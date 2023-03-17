@@ -1,13 +1,18 @@
-package uk.gov.justice.digital.hmpps.hmppstemplatepackagename.integration.health
+package uk.gov.justice.digital.hmpps.personrecord.integration.health
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.hmppstemplatepackagename.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.function.Consumer
 
-class HealthCheckTest : IntegrationTestBase() {
+class HealthCheckIntTest : IntegrationTestBase() {
+
+  @Test
+  fun `should start postgres container`() {
+    assertThat(postgreSQLContainer.isRunning).isTrue
+  }
 
   @Test
   fun `Health page reports ok`() {
@@ -28,7 +33,7 @@ class HealthCheckTest : IntegrationTestBase() {
       .expectBody().jsonPath("components.healthInfo.details.version").value(
         Consumer<String> {
           assertThat(it).startsWith(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE))
-        }
+        },
       )
   }
 

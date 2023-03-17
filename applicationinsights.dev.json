@@ -1,6 +1,6 @@
 {
   "role": {
-    "name": "hmpps-template-kotlin"
+    "name": "hmpps-person-record"
   },
   "customDimensions": {
     "service.version": "${BUILD_NUMBER}"
