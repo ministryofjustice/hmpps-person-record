@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppspersonrecord
+package uk.gov.justice.digital.hmpps.personrecord
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

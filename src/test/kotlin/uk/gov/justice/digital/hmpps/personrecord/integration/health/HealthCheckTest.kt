@@ -1,8 +1,8 @@
-package uk.gov.justice.digital.hmpps.hmppspersonrecord.integration.health
+package uk.gov.justice.digital.hmpps.personrecord.integration.health
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.hmppspersonrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.function.Consumer
@@ -28,7 +28,7 @@ class HealthCheckTest : IntegrationTestBase() {
       .expectBody().jsonPath("components.healthInfo.details.version").value(
         Consumer<String> {
           assertThat(it).startsWith(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE))
-        }
+        },
       )
   }
 
