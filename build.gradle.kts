@@ -32,6 +32,10 @@ java {
   toolchain.languageVersion.set(JavaLanguageVersion.of(19))
 }
 
+repositories {
+  mavenCentral()
+}
+
 tasks {
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
