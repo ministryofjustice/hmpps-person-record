@@ -1,10 +1,10 @@
 info.app:
-  name: Hmpps Person Record
+  name: HMPPS Person Record Service
   version: 1.0
 
 spring:
   application:
-    name: hmpps-person-record
+    name: hmpps-person-record-service
   codec:
     max-in-memory-size: 10MB
 
