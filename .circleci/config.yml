@@ -3,6 +3,14 @@ version: 2.1
 orbs:
   hmpps: ministryofjustice/hmpps@7.2.1
 
+executors:
+  machine_executor_amd64:
+    machine:
+      image: ubuntu-2204:2022.04.2
+    environment:
+      architecture: "amd64"
+      platform: "linux/amd64"
+
 parameters:
   alerts-slack-channel:
     type: string
@@ -23,6 +31,7 @@ jobs:
             - gradle-{{ checksum "build.gradle.kts" }}
             - gradle-
       - run:
+          executor: machine_executor_amd64
           command: ./gradlew build
       - save_cache:
           paths:
