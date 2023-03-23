@@ -19,12 +19,9 @@ executors:
           POSTGRES_DB: personrecordservicetest
           POSTGRES_PASSWORD: dev
     working_directory: ~/app
-#  machine_executor_amd64:
-#    machine:
-#      image: ubuntu-2204:2022.04.2
-#    environment:
-#      architecture: "amd64"
-#      platform: "linux/amd64"
+  machine_executor:
+    machine:
+      image: ubuntu-2204:2022.04.2
 
 parameters:
   alerts-slack-channel:
@@ -36,13 +33,9 @@ parameters:
 
 jobs:
   validate:
-    executor:
-      name: hmpps/java_postgres
-      jdk_tag: "19.0"
-      postgres_tag: "14"
-      postgres_db: "personrecordservicetest"
-      postgres_username: "visit_scheduler"
-      postgres_password: "visit_scheduler"
+    executor: machine_executor
+#      name: hmpps/java
+#      tag: "19.0"
     steps:
       - setup_remote_docker:
           docker_layer_caching: true
