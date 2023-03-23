@@ -38,7 +38,11 @@ jobs:
   validate:
     executor:
       name: hmpps/java_postgres
-      tag: "19.0"
+      jdk_tag: "19.0"
+      postgres_tag: "14"
+      postgres_db: "personrecordservicetest"
+      postgres_username: "visit_scheduler"
+      postgres_password: "visit_scheduler"
     steps:
       - setup_remote_docker:
           docker_layer_caching: true
