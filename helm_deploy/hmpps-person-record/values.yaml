@@ -1,4 +1,3 @@
----
 generic-service:
   nameOverride: hmpps-person-record
 
