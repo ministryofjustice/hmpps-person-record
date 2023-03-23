@@ -37,7 +37,7 @@ parameters:
 jobs:
   validate:
     executor:
-      name: hmpps/java
+      name: hmpps/java_postgres
       tag: "19.0"
     steps:
       - setup_remote_docker:
