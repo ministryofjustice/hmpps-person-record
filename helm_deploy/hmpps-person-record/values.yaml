@@ -1,4 +1,3 @@
----
 generic-service:
   nameOverride: hmpps-person-record
 
@@ -30,6 +29,11 @@ generic-service:
   namespace_secrets:
     hmpps-person-record:
       APPINSIGHTS_INSTRUMENTATIONKEY: "APPINSIGHTS_INSTRUMENTATIONKEY"
+    hmpps-person-record-rds-instance-output:
+      DATABASE_NAME: "database_name"
+      DATABASE_USERNAME: "database_username"
+      DATABASE_PASSWORD: "database_password"
+      DATABASE_ENDPOINT: "rds_instance_endpoint"
 
   allowlist:
     office: "217.33.148.210/32"

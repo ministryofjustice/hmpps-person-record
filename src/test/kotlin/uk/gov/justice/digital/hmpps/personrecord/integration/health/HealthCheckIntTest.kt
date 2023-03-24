@@ -7,7 +7,12 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.function.Consumer
 
-class HealthCheckTest : IntegrationTestBase() {
+class HealthCheckIntTest : IntegrationTestBase() {
+
+  @Test
+  fun `should start postgres container`() {
+    assertThat(postgreSQLContainer.isRunning).isTrue
+  }
 
   @Test
   fun `Health page reports ok`() {

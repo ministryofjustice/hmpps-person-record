@@ -1,10 +1,15 @@
----
 # Per environment values which override defaults in hmpps-person-record/values.yaml
 
 generic-service:
-  replicaCount: 2
+  replicaCount: 1
+
+  image:
+    repository: quay.io/hmpps/hmpps-person-record
+    tag: latest
+    port: 8080
 
   ingress:
+    enabled: true
     host: hmpps-person-record-dev.hmpps.service.justice.gov.uk
 
   env:

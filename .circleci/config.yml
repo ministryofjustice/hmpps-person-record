@@ -1,7 +1,27 @@
 version: 2.1
 
 orbs:
-  hmpps: ministryofjustice/hmpps@7
+  hmpps: ministryofjustice/hmpps@7.2.1
+
+executors:
+  builder:
+    docker:
+      - image: cimg/openjdk:19.0.2-browsers
+        environment:
+          SPRING_PROFILES_ACTIVE: test
+          DATABASE_USERNAME: root
+          DATABASE_PASSWORD: dev
+          DATABASE_NAME: personrecordservicetest
+          DATABASE_ENDPOINT: 127.0.0.1:5432
+      - image: cimg/postgres:11.15
+        environment:
+          POSTGRES_USER: root
+          POSTGRES_DB: personrecordservicetest
+          POSTGRES_PASSWORD: dev
+    working_directory: ~/app
+  machine_executor:
+    machine:
+      image: ubuntu-2204:2022.04.2
 
 parameters:
   alerts-slack-channel:
@@ -13,9 +33,7 @@ parameters:
 
 jobs:
   validate:
-    executor:
-      name: hmpps/java
-      tag: "19.0"
+    executor: machine_executor
     steps:
       - checkout
       - restore_cache:
@@ -23,7 +41,7 @@ jobs:
             - gradle-{{ checksum "build.gradle.kts" }}
             - gradle-
       - run:
-          command: ./gradlew check
+          command: ./gradlew build
       - save_cache:
           paths:
             - ~/.gradle
@@ -63,38 +81,38 @@ workflows:
             - build_docker
             - helm_lint
           helm_timeout: 5m
-#      - request-preprod-approval:
-#          type: approval
-#          requires:
-#            - deploy_dev
-#      - hmpps/deploy_env:
-#          name: deploy_preprod
-#          env: "preprod"
-#          jira_update: true
-#          jira_env_type: staging
-#          context:
-#            - hmpps-common-vars
-#            - hmpps-person-record-preprod
-#          requires:
-#            - request-preprod-approval
-#          helm_timeout: 5m
-#      - request-prod-approval:
-#          type: approval
-#          requires:
-#            - deploy_preprod
-#      - hmpps/deploy_env:
-#          name: deploy_prod
-#          env: "prod"
-#          jira_update: true
-#          jira_env_type: production
-#          slack_notification: true
-#          slack_channel_name: << pipeline.parameters.releases-slack-channel >>
-#          context:
-#            - hmpps-common-vars
-#            - hmpps-person-record-prod
-#          requires:
-#            - request-prod-approval
-#          helm_timeout: 5m
+      - request-preprod-approval:
+          type: approval
+          requires:
+            - deploy_dev
+      - hmpps/deploy_env:
+          name: deploy_preprod
+          env: "preprod"
+          jira_update: true
+          jira_env_type: staging
+          context:
+            - hmpps-common-vars
+            - hmpps-person-record-preprod
+          requires:
+            - request-preprod-approval
+          helm_timeout: 5m
+      - request-prod-approval:
+          type: approval
+          requires:
+            - deploy_preprod
+      - hmpps/deploy_env:
+          name: deploy_prod
+          env: "prod"
+          jira_update: true
+          jira_env_type: production
+          slack_notification: true
+          slack_channel_name: << pipeline.parameters.releases-slack-channel >>
+          context:
+            - hmpps-common-vars
+            - hmpps-person-record-prod
+          requires:
+            - request-prod-approval
+          helm_timeout: 5m
 
   security:
     triggers:
