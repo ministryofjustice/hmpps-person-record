@@ -16,6 +16,7 @@ dependencies {
   implementation("jakarta.validation:jakarta.validation-api:3.0.2")
   implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
+  implementation("org.hibernate.orm:hibernate-envers:6.1.7.Final")
 
   runtimeOnly("org.postgresql:postgresql:42.5.4")
   runtimeOnly("org.flywaydb:flyway-core:9.16.0")
