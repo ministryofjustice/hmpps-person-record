@@ -11,7 +11,7 @@ class HealthCheckIntTest : IntegrationTestBase() {
 
   @Test
   fun `should start postgres container`() {
-    assertThat(postgreSQLContainer.isRunning).isTrue
+    assertThat(Companion.postgreSQLContainer.isRunning).isTrue
   }
 
   @Test
