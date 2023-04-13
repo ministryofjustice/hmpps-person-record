@@ -2,7 +2,11 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import jakarta.persistence.EntityNotFoundException
 import org.assertj.core.api.Assertions.assertThat
+<<<<<<< HEAD
 
+=======
+import org.junit.jupiter.api.Assertions.*
+>>>>>>> 23f5953 (PIC-2904 Get Person by Id API Endpoint)
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
