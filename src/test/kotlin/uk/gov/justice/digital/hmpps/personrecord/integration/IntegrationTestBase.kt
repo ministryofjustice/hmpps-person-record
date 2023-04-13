@@ -1,30 +1,54 @@
 package uk.gov.justice.digital.hmpps.personrecord.integration
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.junit.jupiter.api.BeforeAll
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
+import org.springframework.http.HttpHeaders
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.servlet.MockMvc
 import org.testcontainers.containers.PostgreSQLContainer
-import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
+import java.time.Duration
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
 @Testcontainers
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@AutoConfigureMockMvc
 abstract class IntegrationTestBase {
+
+  @Autowired
+  lateinit var mockMvc: MockMvc
 
   @Autowired
   lateinit var webTestClient: WebTestClient
 
+  @Autowired
+  lateinit var objectMapper: ObjectMapper
+
+  @Autowired
+  internal lateinit var jwtHelper: JwtAuthHelper
+
   companion object {
 
-    @Container
+    /*
+     @JvmStatic used instead of @Container annotation to prevent the premature closing of
+     the DB container after execution of first test
+     */
+    @JvmStatic
     val postgreSQLContainer = PostgreSQLContainer<Nothing>("postgres:latest")
+
+    @BeforeAll
+    @JvmStatic
+    fun beforeAll() {
+      postgreSQLContainer.start()
+    }
 
     @DynamicPropertySource
     @JvmStatic
@@ -33,5 +57,16 @@ abstract class IntegrationTestBase {
       registry.add("spring.datasource.username", postgreSQLContainer::getUsername)
       registry.add("spring.datasource.password", postgreSQLContainer::getPassword)
     }
+  }
+
+  internal fun setAuthorisation(user: String = "hmpps-person-record", roles: List<String> = listOf()): HttpHeaders {
+    val token = jwtHelper.createJwt(
+      subject = user,
+      expiryTime = Duration.ofHours(1L),
+      roles = roles,
+    )
+    val httpHeaders = HttpHeaders()
+    httpHeaders.set(HttpHeaders.AUTHORIZATION, "Bearer $token")
+    return httpHeaders
   }
 }
