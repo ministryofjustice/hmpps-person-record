@@ -12,6 +12,7 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import java.time.LocalDate
+import java.util.UUID
 import kotlin.test.assertFailsWith
 
 @ExtendWith(MockitoExtension::class)
@@ -26,7 +27,7 @@ class PersonRecordServiceTest {
   @Test
   fun `should return person dto for known person id`() {
     // Given
-    val personId = "f4165b62-d9eb-11ed-afa1-0242ac120002"
+    val personId = UUID.fromString("f4165b62-d9eb-11ed-afa1-0242ac120002")
     val dateOfBirth = LocalDate.of(1969, 8, 20)
 
     val personEntity = PersonEntity(
@@ -56,12 +57,11 @@ class PersonRecordServiceTest {
   @Test
   fun `should throw exception when person does not exist for supplied id`() {
     // Given
-    val personId = "f4165b62-d9eb-11ed-afa1-0242ac120002"
     whenever(personRepository.findByPersonId(any())).thenThrow(EntityNotFoundException("Person record not found for id"))
 
     // When
     val exception = assertFailsWith<EntityNotFoundException>(
-      block = { personRecordService.getPersonById(personId) },
+      block = { personRecordService.getPersonById(UUID.randomUUID()) },
     )
 
     // Then
