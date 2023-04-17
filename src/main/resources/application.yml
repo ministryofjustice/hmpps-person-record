@@ -7,6 +7,11 @@ spring:
     name: hmpps-person-record-service
   codec:
     max-in-memory-size: 10MB
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${nomis-oauth.issuer-base-url:${nomis-oauth.base-url}}/auth/issuer
 
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"

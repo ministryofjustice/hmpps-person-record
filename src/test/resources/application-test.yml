@@ -8,3 +8,7 @@ management.endpoint:
 database:
   schema:
     name: personrecordservicetest
+
+nomis-oauth:
+  base-url: https://sign-in-dev.hmpps.service.justice.gov.uk
+
