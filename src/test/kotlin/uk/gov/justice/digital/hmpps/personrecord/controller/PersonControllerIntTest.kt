@@ -27,6 +27,19 @@ import java.time.LocalDate
 class PersonControllerIntTest() : IntegrationTestBase() {
 
   @Test
+  fun `should return HTTP Bad Response code when invalid UUID is provided to get person`() {
+    // Given
+    val badUuid = "BAD-UUID"
+
+    // When
+    mockMvc.perform(
+      get("/person/$badUuid")
+        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+    )
+      .andExpect(status().isBadRequest)
+  }
+
+  @Test
   fun `should return HTTP Unauthorised when no role is provided`() {
     // Given
     val uuid = "eed4a9a4-d853-11ed-afa1-0242ac120002"

@@ -16,10 +16,10 @@ class PersonRecordService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun getPersonById(id: String): PersonDTO {
+  fun getPersonById(id: UUID): PersonDTO {
     log.debug("Entered getPersonById($id)")
     return PersonDTO.from(
-      personRepository.findByPersonId(UUID.fromString(id))
+      personRepository.findByPersonId(id)
         ?: throw EntityNotFoundException("Person record not found for id: $id"),
     )
   }
