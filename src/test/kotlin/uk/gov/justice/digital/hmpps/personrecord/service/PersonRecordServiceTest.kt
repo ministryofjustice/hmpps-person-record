@@ -29,7 +29,6 @@ class PersonRecordServiceTest {
     // Given
     val personId = UUID.fromString("f4165b62-d9eb-11ed-afa1-0242ac120002")
     val dateOfBirth = LocalDate.of(1969, 8, 20)
-
     val personEntity = PersonEntity(
       id = 23232L,
       givenName = "Stephen",
