@@ -162,7 +162,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   }
 
   @Test
-  fun `should return HTTP Unauthorised when no role is provided`() {
+  fun `should return HTTP Unauthorised when no role is provided to get person by id`() {
     // Given
     val uuid = "eed4a9a4-d853-11ed-afa1-0242ac120002"
 
@@ -172,13 +172,42 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   }
 
   @Test
-  fun `should return HTTP forbidden for an unauthorised role`() {
+  fun `should return HTTP forbidden for an unauthorised role to get person by id`() {
     // Given
     val uuid = "eed4a9a4-d853-11ed-afa1-0242ac120002"
 
     // When
     mockMvc.perform(
       get("/person/$uuid")
+        .headers(setAuthorisation(roles = listOf("BAD_ROLE"))),
+    )
+      .andExpect(status().isForbidden)
+  }
+
+  @Test
+  fun `should return HTTP Unauthorised when no role is provided to create person`() {
+    // Given
+    val personJson = objectMapper.writeValueAsString(minimumPersonDto)
+
+    // When
+    mockMvc.perform(
+      post("/person")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(personJson),
+    )
+      .andExpect(status().isUnauthorized)
+  }
+
+  @Test
+  fun `should return HTTP forbidden for an unauthorised role to to create person`() {
+    // Given
+    val personJson = objectMapper.writeValueAsString(minimumPersonDto)
+
+    // When
+    mockMvc.perform(
+      post("/person")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(personJson)
         .headers(setAuthorisation(roles = listOf("BAD_ROLE"))),
     )
       .andExpect(status().isForbidden)

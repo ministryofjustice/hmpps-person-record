@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.controller
 
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.ValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -23,7 +26,17 @@ class PersonController(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
+  @Operation(description = "Search for a person given their unique person identifier")
   @GetMapping("/person/{person-id}")
+  @ApiResponses(
+    value = [
+      ApiResponse(responseCode = "401", description = "Unauthorized - role not provided"),
+      ApiResponse(responseCode = "403", description = "Forbidden - role not authorised for access"),
+      ApiResponse(responseCode = "404", description = "Person Not Found"),
+      ApiResponse(responseCode = "400", description = "Invalid UUID provided"),
+      ApiResponse(responseCode = "200", description = "OK - Person found"),
+    ],
+  )
   fun getPersonDetailsById(@PathVariable(name = "person-id") personId: String): PersonDTO {
     log.debug("Entered getPersonDetailsById($personId)")
     val uuid = try {
@@ -34,6 +47,15 @@ class PersonController(
     return personRecordService.getPersonById(uuid)
   }
 
+  @Operation(description = "Create a person record given the supplied person details")
+  @ApiResponses(
+    value = [
+      ApiResponse(responseCode = "401", description = "Unauthorized - role not provided"),
+      ApiResponse(responseCode = "403", description = "Forbidden - role not authorised for access"),
+      ApiResponse(responseCode = "400", description = "Incorrect person details supplied"),
+      ApiResponse(responseCode = "201", description = "Person created"),
+    ],
+  )
   @PostMapping("/person")
   fun createPerson(@RequestBody person: PersonDTO): ResponseEntity<PersonDTO> {
     log.debug("Entered createPerson()")
