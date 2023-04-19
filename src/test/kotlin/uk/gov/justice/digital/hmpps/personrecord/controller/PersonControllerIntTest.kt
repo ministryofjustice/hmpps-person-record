@@ -1,16 +1,21 @@
 package uk.gov.justice.digital.hmpps.personrecord.controller
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase
 import org.springframework.test.context.jdbc.SqlConfig
 import org.springframework.test.context.jdbc.SqlConfig.TransactionMode
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonDTO
 import java.time.LocalDate
 
@@ -25,6 +30,123 @@ import java.time.LocalDate
   executionPhase = ExecutionPhase.AFTER_TEST_METHOD,
 )
 class PersonControllerIntTest() : IntegrationTestBase() {
+
+  private var minimumPersonDto: PersonDTO? = null
+  private var maximumPersonDto: PersonDTO? = null
+
+  @Autowired
+  lateinit var personRepository: PersonRepository
+
+  @BeforeEach
+  fun setUp() {
+    minimumPersonDto = PersonDTO(
+      familyName = "Panchali",
+      dateOfBirth = LocalDate.of(1968, 8, 15),
+    )
+    maximumPersonDto = PersonDTO(
+      givenName = "Stephen",
+      middleNames = listOf("Danny", "Alex"),
+      familyName = "Jones",
+      dateOfBirth = LocalDate.of(1968, 8, 15),
+      otherIdentifiers = OtherIdentifiers(
+        pncNumber = "PNC1234",
+        crn = "CRN8474",
+      ),
+    )
+  }
+
+  @Test
+  fun `should return HTTP 401 when insufficient data is provide to create a Person record`() {
+    // Given
+    val personJson = "{}"
+
+    // When
+    mockMvc.perform(
+      post("/person")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(personJson)
+        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+    )
+      .andExpect(status().isBadRequest)
+  }
+
+  @Test
+  fun `should return HTTP Location header containing the URL of new person`() {
+    // Given
+    val personJson = objectMapper.writeValueAsString(minimumPersonDto)
+
+    // When
+    val result = mockMvc.perform(
+      post("/person")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(personJson)
+        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+    )
+      .andReturn()
+
+    // Then
+    val personEntityList = personRepository.findByFamilyName("Panchali")
+    assertThat(personEntityList).hasSize(1)
+
+    val locationHeader = result.response.getHeader("Location")
+    assertThat(locationHeader).contains("/person/${personEntityList[0].personId}")
+  }
+
+  @Test
+  fun `should persist and return a Person record with ID when minimum data set is provided`() {
+    // Given
+    val personJson = objectMapper.writeValueAsString(minimumPersonDto)
+
+    // When
+    val result = mockMvc.perform(
+      post("/person")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(personJson)
+        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+    )
+      .andExpect(status().isCreated)
+      .andReturn()
+
+    // Then
+    val personDTO = objectMapper.readValue(result.response.contentAsString, PersonDTO::class.java)
+    assertThat(personDTO.personId).isNotNull()
+
+    personDTO.personId?.let {
+      val personEntity = personRepository.findByPersonId(it)
+      assertThat(personEntity?.familyName).isEqualTo(minimumPersonDto?.familyName)
+      assertThat(personEntity?.dateOfBirth).isEqualTo(minimumPersonDto?.dateOfBirth)
+    }
+  }
+
+  @Test
+  fun `should persist and return a Person record with ID when full data set is provided`() {
+    // Given
+    val personJson = objectMapper.writeValueAsString(maximumPersonDto)
+
+    // When
+    val result = mockMvc.perform(
+      post("/person")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(personJson)
+        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+    )
+      .andExpect(status().isCreated)
+      .andReturn()
+
+    // Then
+    val personDTO = objectMapper.readValue(result.response.contentAsString, PersonDTO::class.java)
+    assertThat(personDTO.personId).isNotNull()
+
+    personDTO.personId?.let {
+      val personEntity = personRepository.findByPersonId(it)
+      assertThat(personEntity?.givenName).isEqualTo(maximumPersonDto?.givenName)
+      assertThat(personEntity?.familyName).isEqualTo(maximumPersonDto?.familyName)
+      assertThat(personEntity?.dateOfBirth).isEqualTo(maximumPersonDto?.dateOfBirth)
+      assertThat(personEntity?.middleNames).isEqualTo(maximumPersonDto?.middleNames?.joinToString(" "))
+      assertThat(personEntity?.crn).isEqualTo(maximumPersonDto?.otherIdentifiers?.crn)
+      assertThat(personEntity?.pncNumber).isEqualTo(maximumPersonDto?.otherIdentifiers?.pncNumber)
+    }
+  }
 
   @Test
   fun `should return HTTP Bad Response code when invalid UUID is provided to get person`() {

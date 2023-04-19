@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.envers.Audited
+import uk.gov.justice.digital.hmpps.personrecord.model.PersonDTO
 import java.time.LocalDate
 import java.util.UUID
 
@@ -16,7 +17,7 @@ import java.util.UUID
 data class PersonEntity(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long,
+  val id: Long? = null,
 
   @Column(name = "person_id")
   val personId: UUID? = null,
@@ -31,7 +32,7 @@ data class PersonEntity(
   val givenName: String? = null,
 
   @Column(name = "family_name")
-  val familyName: String? = null,
+  val familyName: String,
 
   @Column(name = "middle_names")
   val middleNames: String? = null,
@@ -39,4 +40,22 @@ data class PersonEntity(
   @Column(name = "date_of_birth")
   val dateOfBirth: LocalDate,
 
-) : BaseAuditedEntity()
+) : BaseAuditedEntity() {
+  companion object {
+    fun from(personDTO: PersonDTO): PersonEntity {
+      var personEntity = PersonEntity(
+        givenName = personDTO.givenName,
+        familyName = personDTO.familyName,
+        middleNames = personDTO.middleNames?.joinToString(separator = " "),
+        pncNumber = personDTO?.otherIdentifiers?.pncNumber,
+        crn = personDTO?.otherIdentifiers?.crn,
+        dateOfBirth = personDTO.dateOfBirth,
+        personId = UUID.randomUUID(),
+      )
+
+      personEntity.createdBy = "PERSON-RECORD-SERVICE"
+      personEntity.lastUpdatedBy = "PERSON-RECORD-SERVICE"
+      return personEntity
+    }
+  }
+}

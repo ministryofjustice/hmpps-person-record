@@ -19,6 +19,7 @@ internal class PersonDTOTest {
       id = 3234L,
       dateOfBirth = LocalDate.now(),
       middleNames = "Jack Michael Henry",
+      familyName = "Jones",
     )
 
     // When
@@ -34,6 +35,7 @@ internal class PersonDTOTest {
     val person = PersonEntity(
       id = 3234L,
       dateOfBirth = LocalDate.now(),
+      familyName = "Jones",
     )
 
     // When

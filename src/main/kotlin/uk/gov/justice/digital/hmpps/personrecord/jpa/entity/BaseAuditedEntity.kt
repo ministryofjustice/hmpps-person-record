@@ -17,20 +17,20 @@ open class BaseAuditedEntity {
 
   @Column(name = "created_date", nullable = false, updatable = false)
   @CreatedDate
-  private val createdDate: LocalDateTime? = LocalDateTime.now()
+  var createdDate: LocalDateTime? = LocalDateTime.now()
 
   @Column(name = "created_by", nullable = true, updatable = false)
   @CreatedBy
-  private val createdBy: String? = null
+  var createdBy: String? = null
 
   @Column(name = "last_updated_date", nullable = false)
   @LastModifiedDate
-  private val lastUpdatedDate: LocalDateTime? = LocalDateTime.now()
+  var lastUpdatedDate: LocalDateTime? = LocalDateTime.now()
 
   @Column(name = "last_updated_by")
   @LastModifiedBy
-  private val lastUpdatedBy: String? = null
+  var lastUpdatedBy: String? = null
 
   @Version
-  private val version: Int = 0
+  var version: Int = 0
 }
