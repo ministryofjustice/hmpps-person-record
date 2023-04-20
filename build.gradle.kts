@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.1.3-beta"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.1.4-beta-2"
   kotlin("plugin.spring") version "1.8.20-RC"
   kotlin("jvm") version "1.8.20-RC"
   kotlin("plugin.jpa") version "1.8.20-RC"
@@ -20,6 +20,7 @@ dependencies {
   implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
   implementation("org.hibernate.orm:hibernate-envers:6.1.7.Final")
+  implementation("io.swagger.core.v3:swagger-annotations:2.2.8")
 
   runtimeOnly("org.postgresql:postgresql:42.5.4")
   runtimeOnly("org.flywaydb:flyway-core:9.16.0")

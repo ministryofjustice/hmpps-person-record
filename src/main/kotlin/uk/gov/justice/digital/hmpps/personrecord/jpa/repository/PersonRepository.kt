@@ -9,4 +9,6 @@ import java.util.UUID
 interface PersonRepository : JpaRepository<PersonEntity, Long> {
 
   fun findByPersonId(uuid: UUID): PersonEntity?
+
+  fun findByFamilyName(familyName: String): List<PersonEntity>
 }
