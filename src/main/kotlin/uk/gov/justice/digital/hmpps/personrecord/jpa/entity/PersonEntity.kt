@@ -11,6 +11,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.PersonDTO
 import java.time.LocalDate
 import java.util.UUID
 
+private const val PERSON_RECORD_SERVICE = "PERSON-RECORD-SERVICE"
+
 @Entity
 @Table(name = "person")
 @Audited
@@ -53,8 +55,8 @@ data class PersonEntity(
         personId = UUID.randomUUID(),
       )
 
-      personEntity.createdBy = "PERSON-RECORD-SERVICE"
-      personEntity.lastUpdatedBy = "PERSON-RECORD-SERVICE"
+      personEntity.createdBy = PERSON_RECORD_SERVICE
+      personEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
       return personEntity
     }
   }
