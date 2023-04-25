@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import java.time.LocalDate
 import java.util.UUID
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class PersonDTO(
+data class PersonDetails(
   val personId: UUID? = null,
   val givenName: String? = null,
   val middleNames: List<String>? = emptyList(),
@@ -15,8 +15,8 @@ data class PersonDTO(
 ) {
   companion object {
 
-    fun from(personEntity: PersonEntity): PersonDTO {
-      return PersonDTO(
+    fun from(personEntity: PersonEntity): PersonDetails {
+      return PersonDetails(
         personId = personEntity.personId,
         givenName = personEntity.givenName,
         middleNames = personEntity.middleNames?.trim()?.split(" ").orEmpty(),

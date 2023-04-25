@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.controller
 
+import com.fasterxml.jackson.core.type.TypeReference
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -16,8 +17,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
-import uk.gov.justice.digital.hmpps.personrecord.model.PersonDTO
+import uk.gov.justice.digital.hmpps.personrecord.model.PersonDetails
+import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
 import java.time.LocalDate
+import java.util.UUID
 
 @Sql(
   scripts = ["classpath:sql/before-test.sql"],
@@ -31,19 +34,19 @@ import java.time.LocalDate
 )
 class PersonControllerIntTest() : IntegrationTestBase() {
 
-  private var minimumPersonDto: PersonDTO? = null
-  private var maximumPersonDto: PersonDTO? = null
+  private var minimumPersonDetails: PersonDetails? = null
+  private var maximumPersonDetails: PersonDetails? = null
 
   @Autowired
   lateinit var personRepository: PersonRepository
 
   @BeforeEach
   fun setUp() {
-    minimumPersonDto = PersonDTO(
+    minimumPersonDetails = PersonDetails(
       familyName = "Panchali",
       dateOfBirth = LocalDate.of(1968, 8, 15),
     )
-    maximumPersonDto = PersonDTO(
+    maximumPersonDetails = PersonDetails(
       givenName = "Stephen",
       middleNames = listOf("Danny", "Alex"),
       familyName = "Jones",
@@ -73,7 +76,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   @Test
   fun `should return HTTP Location header containing the URL of new person`() {
     // Given
-    val personJson = objectMapper.writeValueAsString(minimumPersonDto)
+    val personJson = objectMapper.writeValueAsString(minimumPersonDetails)
 
     // When
     val result = mockMvc.perform(
@@ -95,7 +98,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   @Test
   fun `should persist and return a Person record with ID when minimum data set is provided`() {
     // Given
-    val personJson = objectMapper.writeValueAsString(minimumPersonDto)
+    val personJson = objectMapper.writeValueAsString(minimumPersonDetails)
 
     // When
     val result = mockMvc.perform(
@@ -108,20 +111,20 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       .andReturn()
 
     // Then
-    val personDTO = objectMapper.readValue(result.response.contentAsString, PersonDTO::class.java)
-    assertThat(personDTO.personId).isNotNull()
+    val personDetails = objectMapper.readValue(result.response.contentAsString, PersonDetails::class.java)
+    assertThat(personDetails.personId).isNotNull()
 
-    personDTO.personId?.let {
+    personDetails.personId?.let {
       val personEntity = personRepository.findByPersonId(it)
-      assertThat(personEntity?.familyName).isEqualTo(minimumPersonDto?.familyName)
-      assertThat(personEntity?.dateOfBirth).isEqualTo(minimumPersonDto?.dateOfBirth)
+      assertThat(personEntity?.familyName).isEqualTo(minimumPersonDetails?.familyName)
+      assertThat(personEntity?.dateOfBirth).isEqualTo(minimumPersonDetails?.dateOfBirth)
     }
   }
 
   @Test
   fun `should persist and return a Person record with ID when full data set is provided`() {
     // Given
-    val personJson = objectMapper.writeValueAsString(maximumPersonDto)
+    val personJson = objectMapper.writeValueAsString(maximumPersonDetails)
 
     // When
     val result = mockMvc.perform(
@@ -134,17 +137,17 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       .andReturn()
 
     // Then
-    val personDTO = objectMapper.readValue(result.response.contentAsString, PersonDTO::class.java)
-    assertThat(personDTO.personId).isNotNull()
+    val personDetails = objectMapper.readValue(result.response.contentAsString, PersonDetails::class.java)
+    assertThat(personDetails.personId).isNotNull()
 
-    personDTO.personId?.let {
+    personDetails.personId?.let {
       val personEntity = personRepository.findByPersonId(it)
-      assertThat(personEntity?.givenName).isEqualTo(maximumPersonDto?.givenName)
-      assertThat(personEntity?.familyName).isEqualTo(maximumPersonDto?.familyName)
-      assertThat(personEntity?.dateOfBirth).isEqualTo(maximumPersonDto?.dateOfBirth)
-      assertThat(personEntity?.middleNames).isEqualTo(maximumPersonDto?.middleNames?.joinToString(" "))
-      assertThat(personEntity?.crn).isEqualTo(maximumPersonDto?.otherIdentifiers?.crn)
-      assertThat(personEntity?.pncNumber).isEqualTo(maximumPersonDto?.otherIdentifiers?.pncNumber)
+      assertThat(personEntity?.givenName).isEqualTo(maximumPersonDetails?.givenName)
+      assertThat(personEntity?.familyName).isEqualTo(maximumPersonDetails?.familyName)
+      assertThat(personEntity?.dateOfBirth).isEqualTo(maximumPersonDetails?.dateOfBirth)
+      assertThat(personEntity?.middleNames).isEqualTo(maximumPersonDetails?.middleNames?.joinToString(" "))
+      assertThat(personEntity?.crn).isEqualTo(maximumPersonDetails?.otherIdentifiers?.crn)
+      assertThat(personEntity?.pncNumber).isEqualTo(maximumPersonDetails?.otherIdentifiers?.pncNumber)
     }
   }
 
@@ -187,7 +190,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   @Test
   fun `should return HTTP Unauthorised when no role is provided to create person`() {
     // Given
-    val personJson = objectMapper.writeValueAsString(minimumPersonDto)
+    val personJson = objectMapper.writeValueAsString(minimumPersonDetails)
 
     // When
     mockMvc.perform(
@@ -201,7 +204,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   @Test
   fun `should return HTTP forbidden for an unauthorised role to to create person`() {
     // Given
-    val personJson = objectMapper.writeValueAsString(minimumPersonDto)
+    val personJson = objectMapper.writeValueAsString(minimumPersonDetails)
 
     // When
     mockMvc.perform(
@@ -241,12 +244,100 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       .andReturn()
 
     // Then
-    val personDto = objectMapper.readValue(result.response.contentAsString, PersonDTO::class.java)
-    assertThat(personDto).isNotNull
-    assertThat(personDto.otherIdentifiers?.crn).isEqualTo("CRN1234")
-    assertThat(personDto.otherIdentifiers?.pncNumber).isEqualTo("PNC12345")
-    assertThat(personDto.givenName).isEqualTo("Carey")
-    assertThat(personDto.familyName).isEqualTo("Mahoney")
-    assertThat(personDto.dateOfBirth).isEqualTo(LocalDate.of(1965, 6, 18))
+    val personDetails = objectMapper.readValue(result.response.contentAsString, PersonDetails::class.java)
+    assertThat(personDetails).isNotNull
+    assertThat(personDetails.otherIdentifiers?.crn).isEqualTo("CRN1234")
+    assertThat(personDetails.otherIdentifiers?.pncNumber).isEqualTo("PNC12345")
+    assertThat(personDetails.givenName).isEqualTo("Carey")
+    assertThat(personDetails.familyName).isEqualTo("Mahoney")
+    assertThat(personDetails.dateOfBirth).isEqualTo(LocalDate.of(1965, 6, 18))
+  }
+
+  @Test
+  fun `should return single search result for exact match`() {
+    // Given
+    val personSearchRequest = PersonSearchRequest(
+      pncNumber = "PNC12345",
+      crn = "CRN1234",
+      forename = "Carey",
+      surname = "Mahoney",
+      dateOfBirth = LocalDate.of(1965, 6, 18),
+    )
+    val searchRequestJson = objectMapper.writeValueAsString(personSearchRequest)
+
+    // When
+    val result = mockMvc.perform(
+      post("/person/search")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(searchRequestJson)
+        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+    )
+      .andExpect(status().isOk)
+      .andReturn()
+
+    // Then
+    val personList: List<PersonDetails> =
+      objectMapper.readValue(result.response.contentAsString, object : TypeReference<List<PersonDetails>>() {})
+    assertThat(personList).hasSize(1)
+    assertThat(personList[0].personId).isEqualTo(UUID.fromString("eed4a9a4-d853-11ed-afa1-0242ac120002"))
+  }
+
+  @Test
+  fun `should return all matched person records for search request`() {
+    // Given
+    val personSearchRequest = PersonSearchRequest(surname = "EVANS")
+    val searchRequestJson = objectMapper.writeValueAsString(personSearchRequest)
+
+    // When
+    val result = mockMvc.perform(
+      post("/person/search")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(searchRequestJson)
+        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+    )
+      .andExpect(status().isOk)
+      .andReturn()
+
+    // Then
+    val personList: List<PersonDetails> =
+      objectMapper.readValue(result.response.contentAsString, object : TypeReference<List<PersonDetails>>() {})
+    assertThat(personList).hasSize(3).allMatch { it.familyName == "Evans" }
+  }
+
+  @Test
+  fun `should return a single person record for a matching pnc number`() {
+    // Given
+    val personSearchRequest = PersonSearchRequest(pncNumber = "pnc33333", surname = "Evans")
+    val searchRequestJson = objectMapper.writeValueAsString(personSearchRequest)
+
+    // When
+    val result = mockMvc.perform(
+      post("/person/search")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(searchRequestJson)
+        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+    )
+      .andExpect(status().isOk)
+      .andReturn()
+
+    // Then
+    val personList: List<PersonDetails> =
+      objectMapper.readValue(result.response.contentAsString, object : TypeReference<List<PersonDetails>>() {})
+    assertThat(personList).hasSize(1).allMatch { it.otherIdentifiers?.pncNumber == "PNC33333" }
+  }
+
+  @Test
+  fun `should return HTTP 401 when insufficient data is provide to search for a Person record`() {
+    // Given
+    val personSearchRequest = "{}"
+
+    // When
+    mockMvc.perform(
+      post("/person/search")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(personSearchRequest)
+        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+    )
+      .andExpect(status().isBadRequest)
   }
 }

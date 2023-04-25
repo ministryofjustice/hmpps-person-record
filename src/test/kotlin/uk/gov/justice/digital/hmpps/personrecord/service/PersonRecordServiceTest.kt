@@ -13,7 +13,8 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.PersonDTO
+import uk.gov.justice.digital.hmpps.personrecord.model.PersonDetails
+import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.assertFailsWith
@@ -81,7 +82,7 @@ class PersonRecordServiceTest {
   @Test
   fun `should create a person record with unique person Identifier from supplied person dto`() {
     // Given
-    val personDto = PersonDTO(
+    val personDetails = PersonDetails(
       givenName = "Stephen",
       middleNames = listOf("Michael", "James"),
       familyName = "Jones",
@@ -91,10 +92,89 @@ class PersonRecordServiceTest {
     whenever(personRepository.save(any())).thenReturn(personEntity)
 
     // When
-    val personRecord = personRecordService.createPersonRecord(personDto)
+    val personRecord = personRecordService.createPersonRecord(personDetails)
 
     // Then
     verify(personRepository).save(any<PersonEntity>())
     assertThat(personRecord.personId).isNotNull
+  }
+
+  @Test
+  fun `should return an empty list when search parameters do not match any person records`() {
+    // Given
+    val searchRequest = PersonSearchRequest(surname = "Unknown")
+    whenever(personRepository.searchByRequestParameters(searchRequest)).thenReturn(emptyList())
+
+    // When
+    val personDetailsList = personRecordService.searchPersonRecords(searchRequest)
+
+    // Then
+    assertThat(personDetailsList).isEmpty()
+  }
+
+  @Test
+  fun `should return all matching person records for provided search parameters`() {
+    // Given
+    val searchRequest = PersonSearchRequest(surname = "Jones")
+    whenever(personRepository.searchByRequestParameters(searchRequest))
+      .thenReturn(createPersonEntityList().filter { it.familyName == "Jones" })
+
+    // When
+    val personDetailsList = personRecordService.searchPersonRecords(searchRequest)
+
+    // Then
+    assertThat(personDetailsList).isNotEmpty().hasSize(2)
+  }
+
+  @Test
+  fun `should return a single person record for an exact for provided search parameters`() {
+    // Given
+    val searchRequest = PersonSearchRequest(
+      forename = "Randy",
+      surname = "Jones",
+      dateOfBirth = LocalDate.of(1969, 7, 30),
+    )
+
+    whenever(personRepository.searchByRequestParameters(searchRequest))
+      .thenReturn(createPersonEntityList().filter { it.id == 4L })
+
+    // When
+    val personDetailsList = personRecordService.searchPersonRecords(searchRequest)
+
+    // Then
+    assertThat(personDetailsList).isNotEmpty().hasSize(1)
+  }
+
+  private fun createPersonEntityList(): List<PersonEntity> {
+    return listOf(
+      PersonEntity(
+        id = 1L,
+        personId = UUID.randomUUID(),
+        givenName = "Bob",
+        familyName = "Jones",
+        dateOfBirth = LocalDate.now(),
+      ),
+      PersonEntity(
+        id = 2L,
+        personId = UUID.randomUUID(),
+        givenName = "George",
+        familyName = "Soros",
+        dateOfBirth = LocalDate.now(),
+      ),
+      PersonEntity(
+        id = 3L,
+        personId = UUID.randomUUID(),
+        givenName = "Rupert",
+        familyName = "Murdoch",
+        dateOfBirth = LocalDate.now(),
+      ),
+      PersonEntity(
+        id = 4L,
+        personId = UUID.randomUUID(),
+        givenName = "Randy",
+        familyName = "Jones",
+        dateOfBirth = LocalDate.of(1969, 7, 30),
+      ),
+    )
   }
 }

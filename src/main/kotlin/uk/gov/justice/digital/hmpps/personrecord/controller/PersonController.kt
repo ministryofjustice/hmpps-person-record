@@ -12,7 +12,8 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
-import uk.gov.justice.digital.hmpps.personrecord.model.PersonDTO
+import uk.gov.justice.digital.hmpps.personrecord.model.PersonDetails
+import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonRecordService
 import java.net.URI
 import java.util.UUID
@@ -37,7 +38,7 @@ class PersonController(
       ApiResponse(responseCode = "200", description = "OK - Person found"),
     ],
   )
-  fun getPersonDetailsById(@PathVariable(name = "person-id") personId: String): PersonDTO {
+  fun getPersonDetailsById(@PathVariable(name = "person-id") personId: String): PersonDetails {
     log.debug("Entered getPersonDetailsById($personId)")
     val uuid = try {
       UUID.fromString(personId)
@@ -57,7 +58,7 @@ class PersonController(
     ],
   )
   @PostMapping("/person")
-  fun createPerson(@RequestBody person: PersonDTO): ResponseEntity<PersonDTO> {
+  fun createPerson(@RequestBody person: PersonDetails): ResponseEntity<PersonDetails> {
     log.debug("Entered createPerson()")
 
     val personRecord = personRecordService.createPersonRecord(person)
@@ -69,5 +70,11 @@ class PersonController(
       .toUri()
 
     return ResponseEntity.created(location).body(personRecord)
+  }
+
+  @PostMapping("/person/search")
+  fun searchForPerson(@RequestBody searchRequest: PersonSearchRequest): List<PersonDetails> {
+    log.debug("Entered searchForPerson($searchRequest)")
+    return personRecordService.searchPersonRecords(searchRequest)
   }
 }
