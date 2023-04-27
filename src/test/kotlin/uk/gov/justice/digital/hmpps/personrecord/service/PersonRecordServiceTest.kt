@@ -13,7 +13,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.PersonDetails
+import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
 import java.time.LocalDate
 import java.util.UUID
@@ -82,7 +82,7 @@ class PersonRecordServiceTest {
   @Test
   fun `should create a person record with unique person Identifier from supplied person dto`() {
     // Given
-    val personDetails = PersonDetails(
+    val person = Person(
       givenName = "Stephen",
       middleNames = listOf("Michael", "James"),
       familyName = "Jones",
@@ -92,7 +92,7 @@ class PersonRecordServiceTest {
     whenever(personRepository.save(any())).thenReturn(personEntity)
 
     // When
-    val personRecord = personRecordService.createPersonRecord(personDetails)
+    val personRecord = personRecordService.createPersonRecord(person)
 
     // Then
     verify(personRepository).save(any<PersonEntity>())
@@ -106,10 +106,10 @@ class PersonRecordServiceTest {
     whenever(personRepository.searchByRequestParameters(searchRequest)).thenReturn(emptyList())
 
     // When
-    val personDetailsList = personRecordService.searchPersonRecords(searchRequest)
+    val personList = personRecordService.searchPersonRecords(searchRequest)
 
     // Then
-    assertThat(personDetailsList).isEmpty()
+    assertThat(personList).isEmpty()
   }
 
   @Test
@@ -120,10 +120,10 @@ class PersonRecordServiceTest {
       .thenReturn(createPersonEntityList().filter { it.familyName == "Jones" })
 
     // When
-    val personDetailsList = personRecordService.searchPersonRecords(searchRequest)
+    val personList = personRecordService.searchPersonRecords(searchRequest)
 
     // Then
-    assertThat(personDetailsList).isNotEmpty().hasSize(2)
+    assertThat(personList).isNotEmpty().hasSize(2)
   }
 
   @Test
@@ -139,10 +139,10 @@ class PersonRecordServiceTest {
       .thenReturn(createPersonEntityList().filter { it.id == 4L })
 
     // When
-    val personDetailsList = personRecordService.searchPersonRecords(searchRequest)
+    val personList = personRecordService.searchPersonRecords(searchRequest)
 
     // Then
-    assertThat(personDetailsList).isNotEmpty().hasSize(1)
+    assertThat(personList).isNotEmpty().hasSize(1)
   }
 
   private fun createPersonEntityList(): List<PersonEntity> {

@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.PersonDetails
+import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
 import java.util.UUID
 
@@ -18,25 +18,25 @@ class PersonRecordService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun getPersonById(id: UUID): PersonDetails {
+  fun getPersonById(id: UUID): Person {
     log.debug("Entered getPersonById($id)")
-    return PersonDetails.from(
+    return Person.from(
       personRepository.findByPersonId(id)
         ?: throw EntityNotFoundException("Person record not found for id: $id"),
     )
   }
 
-  fun createPersonRecord(person: PersonDetails): PersonDetails {
+  fun createPersonRecord(person: Person): Person {
     log.debug("Entered createPersonRecord()")
 
     val personEntity = personRepository.save(PersonEntity.from(person))
-    return PersonDetails.from(personEntity)
+    return Person.from(personEntity)
   }
 
-  fun searchPersonRecords(searchRequest: PersonSearchRequest): List<PersonDetails> {
+  fun searchPersonRecords(searchRequest: PersonSearchRequest): List<Person> {
     log.debug("Entered searchPersonRecords()")
 
     return personRepository.searchByRequestParameters(searchRequest)
-      .map { PersonDetails.from(it) }
+      .map { Person.from(it) }
   }
 }

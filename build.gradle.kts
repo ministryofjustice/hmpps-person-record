@@ -21,6 +21,7 @@ dependencies {
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
   implementation("org.hibernate.orm:hibernate-envers:6.1.7.Final")
   implementation("io.swagger.core.v3:swagger-annotations:2.2.8")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0")
 
   runtimeOnly("org.postgresql:postgresql:42.5.4")
   runtimeOnly("org.flywaydb:flyway-core:9.16.0")

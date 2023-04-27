@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
-import uk.gov.justice.digital.hmpps.personrecord.model.PersonDetails
+import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonRecordService
 import java.net.URI
@@ -38,8 +38,8 @@ class PersonController(
       ApiResponse(responseCode = "200", description = "OK - Person found"),
     ],
   )
-  fun getPersonDetailsById(@PathVariable(name = "person-id") personId: String): PersonDetails {
-    log.debug("Entered getPersonDetailsById($personId)")
+  fun getPersonById(@PathVariable(name = "person-id") personId: String): Person {
+    log.debug("Entered getPersonById($personId)")
     val uuid = try {
       UUID.fromString(personId)
     } catch (ex: IllegalArgumentException) {
@@ -58,7 +58,7 @@ class PersonController(
     ],
   )
   @PostMapping("/person")
-  fun createPerson(@RequestBody person: PersonDetails): ResponseEntity<PersonDetails> {
+  fun createPerson(@RequestBody person: Person): ResponseEntity<Person> {
     log.debug("Entered createPerson()")
 
     val personRecord = personRecordService.createPersonRecord(person)
@@ -72,8 +72,17 @@ class PersonController(
     return ResponseEntity.created(location).body(personRecord)
   }
 
+  @Operation(description = "Search for a person record given the supplied search parameters")
+  @ApiResponses(
+    value = [
+      ApiResponse(responseCode = "401", description = "Unauthorized - role not provided"),
+      ApiResponse(responseCode = "403", description = "Forbidden - role not authorised for access"),
+      ApiResponse(responseCode = "400", description = "Invalid parameters provided"),
+      ApiResponse(responseCode = "200", description = "OK - Person found"),
+    ],
+  )
   @PostMapping("/person/search")
-  fun searchForPerson(@RequestBody searchRequest: PersonSearchRequest): List<PersonDetails> {
+  fun searchForPerson(@RequestBody searchRequest: PersonSearchRequest): List<Person> {
     log.debug("Entered searchForPerson($searchRequest)")
     return personRecordService.searchPersonRecords(searchRequest)
   }

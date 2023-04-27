@@ -17,7 +17,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
-import uk.gov.justice.digital.hmpps.personrecord.model.PersonDetails
+import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
 import java.time.LocalDate
 import java.util.UUID
@@ -34,19 +34,19 @@ import java.util.UUID
 )
 class PersonControllerIntTest() : IntegrationTestBase() {
 
-  private var minimumPersonDetails: PersonDetails? = null
-  private var maximumPersonDetails: PersonDetails? = null
+  private var minimumPerson: Person? = null
+  private var maximumPerson: Person? = null
 
   @Autowired
   lateinit var personRepository: PersonRepository
 
   @BeforeEach
   fun setUp() {
-    minimumPersonDetails = PersonDetails(
+    minimumPerson = Person(
       familyName = "Panchali",
       dateOfBirth = LocalDate.of(1968, 8, 15),
     )
-    maximumPersonDetails = PersonDetails(
+    maximumPerson = Person(
       givenName = "Stephen",
       middleNames = listOf("Danny", "Alex"),
       familyName = "Jones",
@@ -76,7 +76,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   @Test
   fun `should return HTTP Location header containing the URL of new person`() {
     // Given
-    val personJson = objectMapper.writeValueAsString(minimumPersonDetails)
+    val personJson = objectMapper.writeValueAsString(minimumPerson)
 
     // When
     val result = mockMvc.perform(
@@ -98,7 +98,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   @Test
   fun `should persist and return a Person record with ID when minimum data set is provided`() {
     // Given
-    val personJson = objectMapper.writeValueAsString(minimumPersonDetails)
+    val personJson = objectMapper.writeValueAsString(minimumPerson)
 
     // When
     val result = mockMvc.perform(
@@ -111,20 +111,20 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       .andReturn()
 
     // Then
-    val personDetails = objectMapper.readValue(result.response.contentAsString, PersonDetails::class.java)
-    assertThat(personDetails.personId).isNotNull()
+    val person = objectMapper.readValue(result.response.contentAsString, Person::class.java)
+    assertThat(person.personId).isNotNull()
 
-    personDetails.personId?.let {
+    person.personId?.let {
       val personEntity = personRepository.findByPersonId(it)
-      assertThat(personEntity?.familyName).isEqualTo(minimumPersonDetails?.familyName)
-      assertThat(personEntity?.dateOfBirth).isEqualTo(minimumPersonDetails?.dateOfBirth)
+      assertThat(personEntity?.familyName).isEqualTo(minimumPerson?.familyName)
+      assertThat(personEntity?.dateOfBirth).isEqualTo(minimumPerson?.dateOfBirth)
     }
   }
 
   @Test
   fun `should persist and return a Person record with ID when full data set is provided`() {
     // Given
-    val personJson = objectMapper.writeValueAsString(maximumPersonDetails)
+    val personJson = objectMapper.writeValueAsString(maximumPerson)
 
     // When
     val result = mockMvc.perform(
@@ -137,17 +137,17 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       .andReturn()
 
     // Then
-    val personDetails = objectMapper.readValue(result.response.contentAsString, PersonDetails::class.java)
-    assertThat(personDetails.personId).isNotNull()
+    val person = objectMapper.readValue(result.response.contentAsString, Person::class.java)
+    assertThat(person.personId).isNotNull()
 
-    personDetails.personId?.let {
+    person.personId?.let {
       val personEntity = personRepository.findByPersonId(it)
-      assertThat(personEntity?.givenName).isEqualTo(maximumPersonDetails?.givenName)
-      assertThat(personEntity?.familyName).isEqualTo(maximumPersonDetails?.familyName)
-      assertThat(personEntity?.dateOfBirth).isEqualTo(maximumPersonDetails?.dateOfBirth)
-      assertThat(personEntity?.middleNames).isEqualTo(maximumPersonDetails?.middleNames?.joinToString(" "))
-      assertThat(personEntity?.crn).isEqualTo(maximumPersonDetails?.otherIdentifiers?.crn)
-      assertThat(personEntity?.pncNumber).isEqualTo(maximumPersonDetails?.otherIdentifiers?.pncNumber)
+      assertThat(personEntity?.givenName).isEqualTo(maximumPerson?.givenName)
+      assertThat(personEntity?.familyName).isEqualTo(maximumPerson?.familyName)
+      assertThat(personEntity?.dateOfBirth).isEqualTo(maximumPerson?.dateOfBirth)
+      assertThat(personEntity?.middleNames).isEqualTo(maximumPerson?.middleNames?.joinToString(" "))
+      assertThat(personEntity?.crn).isEqualTo(maximumPerson?.otherIdentifiers?.crn)
+      assertThat(personEntity?.pncNumber).isEqualTo(maximumPerson?.otherIdentifiers?.pncNumber)
     }
   }
 
@@ -190,7 +190,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   @Test
   fun `should return HTTP Unauthorised when no role is provided to create person`() {
     // Given
-    val personJson = objectMapper.writeValueAsString(minimumPersonDetails)
+    val personJson = objectMapper.writeValueAsString(minimumPerson)
 
     // When
     mockMvc.perform(
@@ -204,7 +204,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   @Test
   fun `should return HTTP forbidden for an unauthorised role to to create person`() {
     // Given
-    val personJson = objectMapper.writeValueAsString(minimumPersonDetails)
+    val personJson = objectMapper.writeValueAsString(minimumPerson)
 
     // When
     mockMvc.perform(
@@ -244,13 +244,13 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       .andReturn()
 
     // Then
-    val personDetails = objectMapper.readValue(result.response.contentAsString, PersonDetails::class.java)
-    assertThat(personDetails).isNotNull
-    assertThat(personDetails.otherIdentifiers?.crn).isEqualTo("CRN1234")
-    assertThat(personDetails.otherIdentifiers?.pncNumber).isEqualTo("PNC12345")
-    assertThat(personDetails.givenName).isEqualTo("Carey")
-    assertThat(personDetails.familyName).isEqualTo("Mahoney")
-    assertThat(personDetails.dateOfBirth).isEqualTo(LocalDate.of(1965, 6, 18))
+    val person = objectMapper.readValue(result.response.contentAsString, Person::class.java)
+    assertThat(person).isNotNull
+    assertThat(person.otherIdentifiers?.crn).isEqualTo("CRN1234")
+    assertThat(person.otherIdentifiers?.pncNumber).isEqualTo("PNC12345")
+    assertThat(person.givenName).isEqualTo("Carey")
+    assertThat(person.familyName).isEqualTo("Mahoney")
+    assertThat(person.dateOfBirth).isEqualTo(LocalDate.of(1965, 6, 18))
   }
 
   @Test
@@ -276,8 +276,8 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       .andReturn()
 
     // Then
-    val personList: List<PersonDetails> =
-      objectMapper.readValue(result.response.contentAsString, object : TypeReference<List<PersonDetails>>() {})
+    val personList: List<Person> =
+      objectMapper.readValue(result.response.contentAsString, object : TypeReference<List<Person>>() {})
     assertThat(personList).hasSize(1)
     assertThat(personList[0].personId).isEqualTo(UUID.fromString("eed4a9a4-d853-11ed-afa1-0242ac120002"))
   }
@@ -299,8 +299,8 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       .andReturn()
 
     // Then
-    val personList: List<PersonDetails> =
-      objectMapper.readValue(result.response.contentAsString, object : TypeReference<List<PersonDetails>>() {})
+    val personList: List<Person> =
+      objectMapper.readValue(result.response.contentAsString, object : TypeReference<List<Person>>() {})
     assertThat(personList).hasSize(3).allMatch { it.familyName == "Evans" }
   }
 
@@ -321,8 +321,8 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       .andReturn()
 
     // Then
-    val personList: List<PersonDetails> =
-      objectMapper.readValue(result.response.contentAsString, object : TypeReference<List<PersonDetails>>() {})
+    val personList: List<Person> =
+      objectMapper.readValue(result.response.contentAsString, object : TypeReference<List<Person>>() {})
     assertThat(personList).hasSize(1).allMatch { it.otherIdentifiers?.pncNumber == "PNC33333" }
   }
 
