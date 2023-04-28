@@ -22,6 +22,7 @@ class SecurityConfiguration {
             "/ping",
             "/swagger-ui.html",
             "/swagger-ui/**",
+            "/v3/api-docs/**",
           ).permitAll()
           .anyRequest().hasAuthority("ROLE_VIEW_PRISONER_DATA")
       }

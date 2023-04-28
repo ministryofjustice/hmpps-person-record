@@ -1,21 +1,16 @@
 package uk.gov.justice.digital.hmpps.personrecord.model
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import java.time.LocalDate
 
-internal class PersonDTOTest {
-
-  @BeforeEach
-  fun setUp() {
-  }
+internal class PersonTest {
 
   @Test
   fun `should correctly map multiple middle names to a list`() {
     // Given
-    val person = PersonEntity(
+    val personEntity = PersonEntity(
       id = 3234L,
       dateOfBirth = LocalDate.now(),
       middleNames = "Jack Michael Henry",
@@ -23,33 +18,33 @@ internal class PersonDTOTest {
     )
 
     // When
-    val personDTO = PersonDTO.from(person)
+    val person = Person.from(personEntity)
 
     // Then
-    assertThat(personDTO.middleNames).containsExactlyInAnyOrder("Jack", "Michael", "Henry")
+    assertThat(person.middleNames).containsExactlyInAnyOrder("Jack", "Michael", "Henry")
   }
 
   @Test
   fun `should return an empty list when no middle names are present`() {
     // Given
-    val person = PersonEntity(
+    val personEntity = PersonEntity(
       id = 3234L,
       dateOfBirth = LocalDate.now(),
       familyName = "Jones",
     )
 
     // When
-    val personDTO = PersonDTO.from(person)
+    val person = Person.from(personEntity)
 
     // Then
-    assertThat(personDTO.middleNames).isEmpty()
+    assertThat(person.middleNames).isEmpty()
   }
 
   @Test
   fun `should correctly map all fields`() {
     // Given
     val date = LocalDate.now()
-    val person = PersonEntity(
+    val personEntity = PersonEntity(
       id = 3234L,
       dateOfBirth = date,
       pncNumber = "353344/D",
@@ -60,14 +55,14 @@ internal class PersonDTOTest {
     )
 
     // When
-    val personDTO = PersonDTO.from(person)
+    val person = Person.from(personEntity)
 
     // Then
-    assertThat(personDTO.dateOfBirth).isEqualTo(date)
-    assertThat(personDTO.otherIdentifiers?.pncNumber).isEqualTo("353344/D")
-    assertThat(personDTO.otherIdentifiers?.crn).isEqualTo("CRN1234")
-    assertThat(personDTO.givenName).isEqualTo("Steve")
-    assertThat(personDTO.familyName).isEqualTo("Jones")
-    assertThat(personDTO.middleNames).contains("Frankie")
+    assertThat(person.dateOfBirth).isEqualTo(date)
+    assertThat(person.otherIdentifiers?.pncNumber).isEqualTo("353344/D")
+    assertThat(person.otherIdentifiers?.crn).isEqualTo("CRN1234")
+    assertThat(person.givenName).isEqualTo("Steve")
+    assertThat(person.familyName).isEqualTo("Jones")
+    assertThat(person.middleNames).contains("Frankie")
   }
 }
