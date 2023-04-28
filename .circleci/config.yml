@@ -13,7 +13,7 @@ executors:
           DATABASE_PASSWORD: dev
           DATABASE_NAME: personrecordservicetest
           DATABASE_ENDPOINT: 127.0.0.1:5432
-      - image: cimg/postgres:11.15
+      - image: cimg/postgres:14.7
         environment:
           POSTGRES_USER: root
           POSTGRES_DB: personrecordservicetest
