@@ -7,7 +7,7 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.envers.Audited
-import uk.gov.justice.digital.hmpps.personrecord.model.PersonDTO
+import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import java.time.LocalDate
 import java.util.UUID
 
@@ -44,14 +44,14 @@ data class PersonEntity(
 
 ) : BaseAuditedEntity() {
   companion object {
-    fun from(personDTO: PersonDTO): PersonEntity {
-      var personEntity = PersonEntity(
-        givenName = personDTO.givenName,
-        familyName = personDTO.familyName,
-        middleNames = personDTO.middleNames?.joinToString(separator = " "),
-        pncNumber = personDTO?.otherIdentifiers?.pncNumber,
-        crn = personDTO?.otherIdentifiers?.crn,
-        dateOfBirth = personDTO.dateOfBirth,
+    fun from(person: Person): PersonEntity {
+      val personEntity = PersonEntity(
+        givenName = person.givenName,
+        familyName = person.familyName,
+        middleNames = person.middleNames?.joinToString(separator = " "),
+        pncNumber = person.otherIdentifiers?.pncNumber,
+        crn = person.otherIdentifiers?.crn,
+        dateOfBirth = person.dateOfBirth,
         personId = UUID.randomUUID(),
       )
 
