@@ -6,9 +6,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import java.util.UUID
 
 @Repository
-interface PersonRepository : JpaRepository<PersonEntity, Long> {
+interface PersonRepository : JpaRepository<PersonEntity, Long>, PersonRepositoryCustom {
 
   fun findByPersonId(uuid: UUID): PersonEntity?
-
   fun findByFamilyName(familyName: String): List<PersonEntity>
 }
