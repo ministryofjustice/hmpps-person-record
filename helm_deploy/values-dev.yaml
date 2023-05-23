@@ -11,6 +11,7 @@ generic-service:
   ingress:
     enabled: true
     host: hmpps-person-record-dev.hmpps.service.justice.gov.uk
+    tlsSecretName: hmpps-person-record-dev-cert-secret
 
   env:
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.dev.json
