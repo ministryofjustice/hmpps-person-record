@@ -4,6 +4,7 @@
 generic-service:
   ingress:
     host: hmpps-person-record.hmpps.service.justice.gov.uk
+    tlsSecretName: hmpps-person-record-cert-secret
 
   env:
     SPRING_PROFILES_ACTIVE: "prod"
