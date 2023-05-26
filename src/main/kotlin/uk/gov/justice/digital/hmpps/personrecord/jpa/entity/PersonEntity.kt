@@ -1,15 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import org.hibernate.envers.Audited
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 
 private const val PERSON_RECORD_SERVICE = "PERSON-RECORD-SERVICE"
 
@@ -40,7 +35,7 @@ data class PersonEntity(
   val middleNames: String? = null,
 
   @Column(name = "date_of_birth")
-  val dateOfBirth: LocalDate,
+  val dateOfBirth: LocalDate? = null,
 
 ) : BaseAuditedEntity() {
   companion object {

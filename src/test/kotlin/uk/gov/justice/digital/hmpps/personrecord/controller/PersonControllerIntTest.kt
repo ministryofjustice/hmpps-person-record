@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
 import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 
 @Sql(
   scripts = ["classpath:sql/before-test.sql"],
@@ -45,7 +45,6 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   fun setUp() {
     minimumPerson = Person(
       familyName = "Panchali",
-      dateOfBirth = LocalDate.of(1968, 8, 15),
     )
     maximumPerson = Person(
       givenName = "Stephen",
@@ -118,7 +117,12 @@ class PersonControllerIntTest() : IntegrationTestBase() {
     person.personId?.let {
       val personEntity = personRepository.findByPersonId(it)
       assertThat(personEntity?.familyName).isEqualTo(minimumPerson?.familyName)
-      assertThat(personEntity?.dateOfBirth).isEqualTo(minimumPerson?.dateOfBirth)
+      assertThat(personEntity?.givenName).isNull()
+      assertThat(personEntity?.middleNames).isEmpty()
+      assertThat(personEntity?.crn).isNull()
+      assertThat(personEntity?.pncNumber).isNull()
+      assertThat(personEntity?.dateOfBirth).isNull()
+      assertThat(personEntity?.dateOfBirth).isNull()
     }
   }
 
