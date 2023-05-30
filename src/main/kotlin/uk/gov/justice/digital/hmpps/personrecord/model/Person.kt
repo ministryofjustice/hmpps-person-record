@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import java.time.LocalDate
 import java.util.UUID
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Person(
   @Schema(description = "The unique person identifier", example = "f4165b62-d9eb-11ed-afa1-0242ac120002")
@@ -16,7 +17,7 @@ data class Person(
   @Schema(description = "A person's surname", example = "Atherton")
   val familyName: String,
   @Schema(description = "A person's date of birth", example = "1972-08-27")
-  val dateOfBirth: LocalDate,
+  val dateOfBirth: LocalDate? = null,
   val otherIdentifiers: OtherIdentifiers? = null,
 ) {
   companion object {

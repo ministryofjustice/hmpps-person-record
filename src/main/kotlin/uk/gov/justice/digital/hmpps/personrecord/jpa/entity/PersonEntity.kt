@@ -40,7 +40,7 @@ data class PersonEntity(
   val middleNames: String? = null,
 
   @Column(name = "date_of_birth")
-  val dateOfBirth: LocalDate,
+  val dateOfBirth: LocalDate? = null,
 
 ) : BaseAuditedEntity() {
   companion object {
