@@ -1,10 +1,15 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import org.hibernate.envers.Audited
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 private const val PERSON_RECORD_SERVICE = "PERSON-RECORD-SERVICE"
 
