@@ -44,7 +44,7 @@ class PersonRepositoryCustomImplIntTest : IntegrationTestBase() {
     val searchRequest = PersonSearchRequest(
       pncNumber = "PNC12345",
       forename = "Carey",
-      middleNames = "Iestyn",
+      middleNames = listOf("Iestyn"),
       surname = "Mahoney",
       dateOfBirth = LocalDate.of(1965, 6, 18),
     )
@@ -58,11 +58,28 @@ class PersonRepositoryCustomImplIntTest : IntegrationTestBase() {
   }
 
   @Test
+  fun `should return person records for null middle names in search request`() {
+    // Given
+    val searchRequest = PersonSearchRequest(
+      middleNames = null,
+      surname = "Evans",
+    )
+
+    // When
+    val results = personRepository.searchByRequestParameters(searchRequest)
+
+    // Then
+    assertThat(results)
+      .hasSize(3)
+      .allMatch { it.familyName == "Evans" }
+  }
+
+  @Test
   fun `should return a single person record for an exact name match ignoring case`() {
     // Given
     val searchRequest = PersonSearchRequest(
       forename = "GeRwIn",
-      middleNames = "DAFYDD jenkins",
+      middleNames = listOf("DAFYDD", "jenkins"),
       surname = "evanS",
     )
 

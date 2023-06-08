@@ -10,8 +10,8 @@ data class PersonSearchRequest(
   val crn: String? = null,
   @Schema(description = "The person's first name", example = "Bill")
   val forename: String? = null,
-  @Schema(description = "The person's middle names, space separated for more than one", example = "Stuart Benedict")
-  val middleNames: String? = null,
+  @Schema(description = "The person's middle names", example = "Stuart Benedict")
+  val middleNames: List<String>? = null,
   @Schema(description = "The person's surname", example = "Roberts")
   val surname: String,
   @Schema(description = "The person's date of birth", example = "1980-01-21")
