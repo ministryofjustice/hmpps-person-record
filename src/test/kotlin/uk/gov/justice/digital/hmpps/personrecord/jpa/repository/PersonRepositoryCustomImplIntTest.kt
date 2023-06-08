@@ -74,7 +74,6 @@ class PersonRepositoryCustomImplIntTest : IntegrationTestBase() {
       .allMatch { it.familyName == "Evans" }
   }
 
-
   @Test
   fun `should return a single person record for an exact name match ignoring case`() {
     // Given
