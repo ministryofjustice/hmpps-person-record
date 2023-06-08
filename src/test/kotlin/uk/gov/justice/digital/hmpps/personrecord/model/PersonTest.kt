@@ -25,6 +25,23 @@ internal class PersonTest {
   }
 
   @Test
+  fun `should correctly map single middle name to a list`() {
+    // Given
+    val personEntity = PersonEntity(
+      id = 3234L,
+      dateOfBirth = LocalDate.now(),
+      middleNames = "Jack",
+      familyName = "Jones",
+    )
+
+    // When
+    val person = Person.from(personEntity)
+
+    // Then
+    assertThat(person.middleNames).containsExactlyInAnyOrder("Jack")
+  }
+
+  @Test
   fun `should return an empty list when no middle names are present`() {
     // Given
     val personEntity = PersonEntity(

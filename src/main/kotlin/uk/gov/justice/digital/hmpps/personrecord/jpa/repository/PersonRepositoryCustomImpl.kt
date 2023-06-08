@@ -18,7 +18,8 @@ class PersonRepositoryCustomImpl : PersonRepositoryCustom {
     searchQueryBuilder.append("SELECT p.* from person p ")
     searchQueryBuilder.append("WHERE p.family_name ILIKE :surname ")
     personSearchRequest.forename?.let { searchQueryBuilder.append("AND p.given_name ILIKE :forename ") }
-    personSearchRequest.middleNames?.let { searchQueryBuilder.append("AND p.middle_names ILIKE :middleNames ") }
+    personSearchRequest.middleNames?.joinToString(separator = " ")?.let { searchQueryBuilder.append("AND p.middle_names ILIKE :middleNames ") }
+
     personSearchRequest.dateOfBirth?.let { searchQueryBuilder.append("AND p.date_of_birth = :dateOfBirth ") }
     personSearchRequest.pncNumber?.let { searchQueryBuilder.append("AND p.pnc_number ILIKE :pncNumber ") }
     personSearchRequest.crn?.let { searchQueryBuilder.append("AND p.crn ILIKE :crn ") }
@@ -26,7 +27,8 @@ class PersonRepositoryCustomImpl : PersonRepositoryCustom {
     val personQuery: Query = entityManager.createNativeQuery(searchQueryBuilder.toString(), PersonEntity::class.java)
     personSearchRequest.surname?.let { personQuery.setParameter("surname", it) }
     personSearchRequest.forename?.let { personQuery.setParameter("forename", it) }
-    personSearchRequest.middleNames?.let { personQuery.setParameter("middleNames", it) }
+    personSearchRequest.middleNames?.joinToString(separator = " ")?.let { personQuery.setParameter("middleNames", it) }
+
     personSearchRequest.dateOfBirth?.let { personQuery.setParameter("dateOfBirth", it) }
     personSearchRequest.pncNumber?.let { personQuery.setParameter("pncNumber", it) }
     personSearchRequest.crn?.let { personQuery.setParameter("crn", it) }
