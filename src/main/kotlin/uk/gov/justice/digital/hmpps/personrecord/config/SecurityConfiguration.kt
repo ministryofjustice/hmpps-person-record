@@ -14,7 +14,7 @@ class SecurityConfiguration {
   @Throws(java.lang.Exception::class)
   fun filterChain(http: HttpSecurity): SecurityFilterChain? {
     http
-      .csrf().disable()
+      .csrf { csrf -> csrf.disable() }
       .authorizeHttpRequests { authorize ->
         authorize
           .requestMatchers(
@@ -27,7 +27,12 @@ class SecurityConfiguration {
 //          .anyRequest().hasAuthority("ROLE_VIEW_PRISONER_DATA") TODO ensure appropriate role is added back in at some point
           .anyRequest().permitAll() // TODO delete this line when role is added in above
       }
-      .oauth2ResourceServer().jwt().jwtAuthenticationConverter(AuthAwareTokenConverter())
+      .oauth2ResourceServer { oauth2ResourceServer ->
+        oauth2ResourceServer
+          .jwt { jwt ->
+            jwt.jwtAuthenticationConverter(AuthAwareTokenConverter())
+          }
+      }
 
     return http.build()
   }

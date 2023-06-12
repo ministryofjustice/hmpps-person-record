@@ -14,6 +14,10 @@ class AuditTableSchemaFilterProvider : SchemaFilterProvider {
     return AuditTableSchemaFilter.INSTANCE
   }
 
+  override fun getTruncatorFilter(): SchemaFilter {
+    return AuditTableSchemaFilter.INSTANCE
+  }
+
   override fun getMigrateFilter(): SchemaFilter {
     return AuditTableSchemaFilter.INSTANCE
   }
