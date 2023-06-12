@@ -6,17 +6,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.ValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonRecordService
 import java.net.URI
-import java.util.UUID
+import java.util.*
 
 @RestController
 class PersonController(
@@ -54,6 +50,7 @@ class PersonController(
       ApiResponse(responseCode = "401", description = "Unauthorized - role not provided"),
       ApiResponse(responseCode = "403", description = "Forbidden - role not authorised for access"),
       ApiResponse(responseCode = "400", description = "Incorrect person details supplied"),
+      ApiResponse(responseCode = "409", description = "Person details already exist"),
       ApiResponse(responseCode = "201", description = "Person created"),
     ],
   )
