@@ -54,6 +54,7 @@ class PersonController(
       ApiResponse(responseCode = "401", description = "Unauthorized - role not provided"),
       ApiResponse(responseCode = "403", description = "Forbidden - role not authorised for access"),
       ApiResponse(responseCode = "400", description = "Incorrect person details supplied"),
+      ApiResponse(responseCode = "409", description = "Person details already exist"),
       ApiResponse(responseCode = "201", description = "Person created"),
     ],
   )

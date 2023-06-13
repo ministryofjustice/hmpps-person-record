@@ -2,9 +2,12 @@ package uk.gov.justice.digital.hmpps.personrecord.controller.advice
 
 import jakarta.persistence.EntityNotFoundException
 import jakarta.validation.ValidationException
+import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.BAD_REQUEST
+import org.springframework.http.HttpStatus.CONFLICT
 import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.ResponseEntity
@@ -52,6 +55,20 @@ class PersonRecordControllerAdvice {
           status = NOT_FOUND,
           userMessage = "Entity Not found: ${e.message}",
           developerMessage = e.message,
+        ),
+      )
+  }
+
+  @ExceptionHandler(DataIntegrityViolationException::class)
+  fun handleDataIntegrityViolationException(e: Exception): ResponseEntity<ErrorResponse> {
+    val errorMessage = StringUtils.substringBetween(e.cause?.message, "Detail:", ".]")
+    log.info("DataIntegrityViolationException exception: ${e.message}", e)
+    return ResponseEntity
+      .status(CONFLICT)
+      .body(
+        ErrorResponse(
+          status = CONFLICT,
+          userMessage = "A person record with these details already exists:$errorMessage",
         ),
       )
   }

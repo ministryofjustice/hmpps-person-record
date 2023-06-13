@@ -211,6 +211,27 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   }
 
   @Test
+  fun `should return HTTP Conflict when an already existing CRN is provided to create person`() {
+    // Given
+    val personJson = objectMapper.writeValueAsString(maximumPerson)
+
+    // When
+    mockMvc.perform(
+      post("/person")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(personJson),
+    )
+      .andExpect(status().isCreated)
+
+    mockMvc.perform(
+      post("/person")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(personJson),
+    )
+      .andExpect(status().isConflict)
+  }
+
+  @Test
   @Disabled("Until endpoint is secured by role")
   fun `should return HTTP forbidden for an unauthorised role to to create person`() {
     // Given
