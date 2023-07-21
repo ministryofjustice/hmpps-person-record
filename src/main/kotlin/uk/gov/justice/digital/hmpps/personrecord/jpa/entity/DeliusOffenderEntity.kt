@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
-
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -28,5 +27,4 @@ class DeliusOffenderEntity(
     nullable = false,
   )
   var person: PersonEntity? = null,
-
 ) : BaseAuditedEntity()

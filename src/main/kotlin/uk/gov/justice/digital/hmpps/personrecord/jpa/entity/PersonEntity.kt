@@ -34,7 +34,7 @@ class PersonEntity(
 ) : BaseAuditedEntity() {
   companion object {
     fun from(person: Person): PersonEntity {
-      //TODO map from Person
+      // TODO map from Person
       person.dateOfBirth
       val personEntity = PersonEntity(
         personId = UUID.randomUUID(),
