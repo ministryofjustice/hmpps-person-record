@@ -10,14 +10,14 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import org.hibernate.envers.Audited
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
-import java.util.UUID
+import java.util.*
 
 private const val PERSON_RECORD_SERVICE = "PERSON-RECORD-SERVICE"
 
 @Entity
 @Table(name = "person")
 @Audited
-data class PersonEntity(
+class PersonEntity(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
@@ -34,6 +34,8 @@ data class PersonEntity(
 ) : BaseAuditedEntity() {
   companion object {
     fun from(person: Person): PersonEntity {
+      //TODO map from Person
+      person.dateOfBirth
       val personEntity = PersonEntity(
         personId = UUID.randomUUID(),
       )
