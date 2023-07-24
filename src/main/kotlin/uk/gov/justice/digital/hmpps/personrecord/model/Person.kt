@@ -15,7 +15,7 @@ data class Person(
   @Schema(description = "A person's middle name(s)", example = "Catherine Anne")
   val middleNames: List<String>? = emptyList(),
   @Schema(description = "A person's surname", example = "Atherton")
-  val familyName: String,
+  val familyName: String? = null,
   @Schema(description = "A person's date of birth", example = "1972-08-27")
   val dateOfBirth: LocalDate? = null,
   val otherIdentifiers: OtherIdentifiers? = null,
@@ -25,14 +25,8 @@ data class Person(
     fun from(personEntity: PersonEntity): Person {
       return Person(
         personId = personEntity.personId,
-        givenName = personEntity.givenName,
-        middleNames = personEntity.middleNames?.trim()?.split(" ").orEmpty(),
-        familyName = personEntity.familyName,
-        dateOfBirth = personEntity.dateOfBirth,
-        otherIdentifiers = OtherIdentifiers(
-          crn = personEntity.crn,
-          pncNumber = personEntity.pncNumber,
-        ),
+        // TODO need to properly define what a Person model object looks like: for now just return Person UUID
+        // TODO pull data from HmctsDefendant Entity?
       )
     }
   }

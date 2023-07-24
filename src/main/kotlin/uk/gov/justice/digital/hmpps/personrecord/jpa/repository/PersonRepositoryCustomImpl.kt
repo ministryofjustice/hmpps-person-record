@@ -25,7 +25,7 @@ class PersonRepositoryCustomImpl : PersonRepositoryCustom {
     personSearchRequest.crn?.let { searchQueryBuilder.append("AND p.crn ILIKE :crn ") }
 
     val personQuery: Query = entityManager.createNativeQuery(searchQueryBuilder.toString(), PersonEntity::class.java)
-    personSearchRequest.surname?.let { personQuery.setParameter("surname", it) }
+    personSearchRequest.surname.let { personQuery.setParameter("surname", it) }
     personSearchRequest.forename?.let { personQuery.setParameter("forename", it) }
     personSearchRequest.middleNames?.joinToString(separator = " ")?.let { personQuery.setParameter("middleNames", it) }
 

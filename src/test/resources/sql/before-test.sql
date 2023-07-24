@@ -1,9 +1,21 @@
-TRUNCATE TABLE person;
+TRUNCATE TABLE person CASCADE;
+
 
 INSERT INTO person
-(person_id, pnc_number, crn, created_by, created_date, last_updated_by, last_updated_date, "version", date_of_birth, family_name, given_name, middle_names)
+(id, person_id, created_by, created_date, last_updated_by, last_updated_date, "version")
 VALUES
-    ('eed4a9a4-d853-11ed-afa1-0242ac120002', 'PNC12345', 'CRN1234', 'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0, '1965-06-18', 'Mahoney', 'Carey', 'Iestyn'),
-    ('d75a9374-e2a3-11ed-b5ea-0242ac120002', 'PNC54321', '4834922', 'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0, '1965-06-18', 'Evans', 'Geraint', null),
-    ('ddf11834-e2a3-11ed-b5ea-0242ac120002', 'PNC44444', '4939823', 'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0, '1967-02-06', 'Evans', 'Gwion', null),
-    ('e374e376-e2a3-11ed-b5ea-0242ac120002', 'PNC33333', '9173641', 'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0, '1969-04-30', 'Evans', 'Gerwin', 'Dafydd Jenkins');
+    (1, 'eed4a9a4-d853-11ed-afa1-0242ac120002',  'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0),
+    (2, 'd75a9374-e2a3-11ed-b5ea-0242ac120002',  'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0),
+    (3, 'ddf11834-e2a3-11ed-b5ea-0242ac120002',  'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0),
+    (4, 'e374e376-e2a3-11ed-b5ea-0242ac120002',  'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0);
+
+INSERT INTO hmcts_defendant
+(fk_person_id, pnc_number, crn, forename_one, forename_two, surname, sex, date_of_birth, created_by, created_date, last_updated_by, last_updated_date, "version")
+VALUES
+    (1,'PNC12345', 'CRN1234', 'Iestyn', 'Carey', 'Mahoney', 'Male', '1965-06-18', 'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0);
+
+INSERT INTO delius_offender
+(id, fk_person_id,  crn, created_by, created_date, last_updated_by, last_updated_date, "version")
+VALUES
+    (1, 2,'CRN1234', 'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0);
+
