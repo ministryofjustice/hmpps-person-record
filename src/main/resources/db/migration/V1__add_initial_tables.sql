@@ -118,4 +118,13 @@ CREATE TABLE IF NOT EXISTS delius_offender
 
 DROP TABLE IF EXISTS delius_offender_aud;
 
+CREATE TABLE IF NOT EXISTS delius_offender_aud
+(
+    rev integer not null,
+    revtype smallint,
+    id bigint not null,
+    crn TEXT,
+    primary key (rev, id)
+);
+
 alter table if exists delius_offender_aud add constraint delius_offender_aud_revinfo_FK foreign key (rev) references revinfo;
