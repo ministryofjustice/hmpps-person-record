@@ -23,7 +23,6 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.0.4")
 
-
   runtimeOnly("org.postgresql:postgresql:42.5.4")
   runtimeOnly("org.flywaydb:flyway-core:9.16.0")
 
