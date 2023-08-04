@@ -22,7 +22,7 @@ class DeliusOffenderEntity(
 
   @ManyToOne(optional = false, cascade = [CascadeType.ALL])
   @JoinColumn(
-    name = "FK_PERSON_ID",
+    name = "fk_person_id",
     referencedColumnName = "id",
     nullable = false,
   )

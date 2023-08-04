@@ -15,23 +15,22 @@ class PersonRepositoryCustomImpl : PersonRepositoryCustom {
 
   override fun searchByRequestParameters(personSearchRequest: PersonSearchRequest): List<PersonEntity> {
     val searchQueryBuilder = StringBuilder()
-    searchQueryBuilder.append("SELECT p.* from person p ")
-    searchQueryBuilder.append("WHERE p.family_name ILIKE :surname ")
-    personSearchRequest.forename?.let { searchQueryBuilder.append("AND p.given_name ILIKE :forename ") }
-    personSearchRequest.middleNames?.joinToString(separator = " ")?.let { searchQueryBuilder.append("AND p.middle_names ILIKE :middleNames ") }
-
-    personSearchRequest.dateOfBirth?.let { searchQueryBuilder.append("AND p.date_of_birth = :dateOfBirth ") }
-    personSearchRequest.pncNumber?.let { searchQueryBuilder.append("AND p.pnc_number ILIKE :pncNumber ") }
-    personSearchRequest.crn?.let { searchQueryBuilder.append("AND p.crn ILIKE :crn ") }
+    searchQueryBuilder.append("SELECT DISTINCT(p.*) from person p ")
+    searchQueryBuilder.append("INNER JOIN hmcts_defendant d on d.fk_person_id = p.id ")
+    searchQueryBuilder.append("WHERE d.surname ILIKE :surname ")
+    personSearchRequest.forenameOne?.let { searchQueryBuilder.append("AND d.forename_one ILIKE :forenameOne ") }
+    personSearchRequest.forenameTwo?.let { searchQueryBuilder.append("AND d.forename_two ILIKE :forenameTwo ") }
+    personSearchRequest.forenameThree?.let { searchQueryBuilder.append("AND d.forename_three ILIKE :forenameThree ") }
+    personSearchRequest.dateOfBirth?.let { searchQueryBuilder.append("AND d.date_of_birth = :dateOfBirth ") }
+    personSearchRequest.pncNumber?.let { searchQueryBuilder.append("AND d.pnc_number ILIKE :pncNumber ") }
 
     val personQuery: Query = entityManager.createNativeQuery(searchQueryBuilder.toString(), PersonEntity::class.java)
     personSearchRequest.surname.let { personQuery.setParameter("surname", it) }
-    personSearchRequest.forename?.let { personQuery.setParameter("forename", it) }
-    personSearchRequest.middleNames?.joinToString(separator = " ")?.let { personQuery.setParameter("middleNames", it) }
-
+    personSearchRequest.forenameOne?.let { personQuery.setParameter("forenameOne", it) }
+    personSearchRequest.forenameTwo?.let { personQuery.setParameter("forenameTwo", it) }
+    personSearchRequest.forenameThree?.let { personQuery.setParameter("forenameThree", it) }
     personSearchRequest.dateOfBirth?.let { personQuery.setParameter("dateOfBirth", it) }
     personSearchRequest.pncNumber?.let { personQuery.setParameter("pncNumber", it) }
-    personSearchRequest.crn?.let { personQuery.setParameter("crn", it) }
 
     return personQuery.resultList as List<PersonEntity>
   }

@@ -1,15 +1,17 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import jakarta.persistence.EntityNotFoundException
+import jakarta.validation.ValidationException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -17,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
 import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 import kotlin.test.assertFailsWith
 
 @ExtendWith(MockitoExtension::class)
@@ -37,12 +39,11 @@ class PersonRecordServiceTest {
     dateOfBirth = LocalDate.of(1969, 8, 20)
     personEntity = PersonEntity(
       id = 23232L,
-      personId = UUID.randomUUID(),
+      personId = UUID.fromString("f4165b62-d9eb-11ed-afa1-0242ac120002"),
     )
   }
 
   @Test
-  @Disabled("Until refactoring complete")
   fun `should return person dto for known person id`() {
     // Given
     val personId = UUID.fromString("f4165b62-d9eb-11ed-afa1-0242ac120002")
@@ -53,26 +54,21 @@ class PersonRecordServiceTest {
     val personDTO = personRecordService.getPersonById(personId)
 
     // Then
-    assertThat(personDTO.familyName).isEqualTo("Jones")
-    assertThat(personDTO.givenName).isEqualTo("Stephen")
-    assertThat(personDTO.middleNames).contains("Michael", "James")
-    assertThat(personDTO.dateOfBirth).isEqualTo(dateOfBirth)
-    assertThat(personDTO.otherIdentifiers?.crn).isEqualTo("CRN1234")
-    assertThat(personDTO.otherIdentifiers?.pncNumber).isEqualTo("PNC82882")
+    assertThat(personDTO.personId).isEqualTo(UUID.fromString("f4165b62-d9eb-11ed-afa1-0242ac120002"))
   }
 
   @Test
   fun `should throw exception when person does not exist for supplied id`() {
     // Given
-    whenever(personRepository.findByPersonId(any())).thenThrow(EntityNotFoundException("Person record not found for id"))
+    val uuid = UUID.randomUUID()
 
     // When
     val exception = assertFailsWith<EntityNotFoundException>(
-      block = { personRecordService.getPersonById(UUID.randomUUID()) },
+      block = { personRecordService.getPersonById(uuid) },
     )
 
     // Then
-    assertThat(exception.message).isEqualTo("Person record not found for id")
+    assertThat(exception.message).isEqualTo("Person record not found for id: $uuid")
   }
 
   @Test
@@ -109,23 +105,10 @@ class PersonRecordServiceTest {
   }
 
   @Test
-  @Disabled("Until refactoring complete")
-  fun `should return all matching person records for provided search parameters`() {
-    // Given
-    val searchRequest = PersonSearchRequest(surname = "Jones")
-
-    // When
-    val personList = personRecordService.searchPersonRecords(searchRequest)
-
-    // Then
-    assertThat(personList).isNotEmpty().hasSize(2)
-  }
-
-  @Test
-  fun `should return a single person record for an exact for provided search parameters`() {
+  fun `should return a single person record for an exact match for provided search parameters`() {
     // Given
     val searchRequest = PersonSearchRequest(
-      forename = "Randy",
+      forenameOne = "Randy",
       surname = "Jones",
       dateOfBirth = LocalDate.of(1969, 7, 30),
     )
@@ -138,6 +121,73 @@ class PersonRecordServiceTest {
 
     // Then
     assertThat(personList).isNotEmpty().hasSize(1)
+  }
+
+  @Test
+  fun `should search delius offender records when crn is provided`() {
+    // Given
+    val searchRequest = PersonSearchRequest(crn = "CRN1234")
+
+    whenever(personRepository.findByDeliusOffendersCrn(any()))
+      .thenReturn(personEntity)
+
+    // When
+    personRecordService.searchPersonRecords(searchRequest)
+
+    // Then
+    verify(personRepository).findByDeliusOffendersCrn(eq("CRN1234"))
+    verify(personRepository, never()).searchByRequestParameters(any())
+  }
+
+  @Test
+  fun `should throw exception when person does not exist for supplied CRN`() {
+    // Given
+    val searchRequest = PersonSearchRequest(crn = "CRN1234")
+    whenever(personRepository.findByDeliusOffendersCrn(any()))
+      .thenThrow(EntityNotFoundException("Person record not found for CRN"))
+
+    // When
+    val exception = assertFailsWith<EntityNotFoundException>(
+      block = { personRecordService.searchPersonRecords(searchRequest) },
+    )
+
+    // Then
+    assertThat(exception.message).isEqualTo("Person record not found for CRN")
+    verify(personRepository, never()).searchByRequestParameters(any())
+  }
+
+  @Test
+  fun `should throw validation exception when minimum search criteria are not provided`() {
+    // Given
+    val searchRequest = PersonSearchRequest(forenameOne = "Crispin")
+
+    // When
+    val exception = assertFailsWith<ValidationException>(
+      block = { personRecordService.searchPersonRecords(searchRequest) },
+    )
+
+    assertThat(exception.message).isEqualTo("Surname not provided in search request")
+    verify(personRepository, never()).searchByRequestParameters(any())
+  }
+
+  @Test
+  fun `should only search by request parameters when crn is NOT provided`() {
+    // Given
+    val searchRequest = PersonSearchRequest(
+      forenameOne = "Randy",
+      surname = "Jones",
+      dateOfBirth = LocalDate.of(1969, 7, 30),
+    )
+
+    whenever(personRepository.searchByRequestParameters(searchRequest))
+      .thenReturn(createPersonEntityList().filter { it.id == 4L })
+
+    // When
+    personRecordService.searchPersonRecords(searchRequest)
+
+    // Then
+    verify(personRepository, never()).findByDeliusOffendersCrn(any())
+    verify(personRepository).searchByRequestParameters(eq(searchRequest))
   }
 
   private fun createPersonEntityList(): List<PersonEntity> {

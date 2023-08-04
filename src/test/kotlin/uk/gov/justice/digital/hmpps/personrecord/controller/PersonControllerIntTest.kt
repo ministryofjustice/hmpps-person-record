@@ -273,13 +273,12 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   }
 
   @Test
-  @Disabled("Until refactoring complete")
-  fun `should return single search result for exact match`() {
+  fun `should return single search result for known CRN in search request`() {
     // Given
     val personSearchRequest = PersonSearchRequest(
       pncNumber = "PNC12345",
       crn = "CRN1234",
-      forename = "Carey",
+      forenameOne = "Carey",
       surname = "Mahoney",
       dateOfBirth = LocalDate.of(1965, 6, 18),
     )
@@ -296,10 +295,25 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       .andReturn()
 
     // Then
-    val personList: List<Person> =
-      objectMapper.readValue(result.response.contentAsString, object : TypeReference<List<Person>>() {})
+    val personList: List<Person> = objectMapper.readValue(result.response.contentAsString, object : TypeReference<List<Person>>() {})
     assertThat(personList).hasSize(1)
-    assertThat(personList[0].personId).isEqualTo(UUID.fromString("eed4a9a4-d853-11ed-afa1-0242ac120002"))
+    assertThat(personList[0].personId).isEqualTo(UUID.fromString("d75a9374-e2a3-11ed-b5ea-0242ac120002"))
+  }
+
+  @Test
+  fun `should return HTTP not found for unknown CRN in search request`() {
+    // Given
+    val personSearchRequest = PersonSearchRequest(crn = "CRN3737")
+    val searchRequestJson = objectMapper.writeValueAsString(personSearchRequest)
+
+    // When
+    mockMvc.perform(
+      post("/person/search")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(searchRequestJson)
+        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+    )
+      .andExpect(status().isNotFound)
   }
 
   @Test

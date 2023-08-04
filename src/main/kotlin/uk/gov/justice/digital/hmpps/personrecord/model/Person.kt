@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Person(
@@ -22,9 +22,9 @@ data class Person(
 ) {
   companion object {
 
-    fun from(personEntity: PersonEntity): Person {
+    fun from(personEntity: PersonEntity?): Person {
       return Person(
-        personId = personEntity.personId,
+        personId = personEntity?.personId,
         // TODO need to properly define what a Person model object looks like: for now just return Person UUID
         // TODO pull data from HmctsDefendant Entity?
       )
