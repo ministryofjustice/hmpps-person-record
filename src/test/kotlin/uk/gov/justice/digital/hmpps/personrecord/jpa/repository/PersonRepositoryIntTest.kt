@@ -81,6 +81,4 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
     // Then
     assertThat(personEntity).isNull()
   }
-
-
 }

@@ -104,8 +104,6 @@ class PersonRecordServiceTest {
     assertThat(personList).isEmpty()
   }
 
-
-
   @Test
   fun `should return a single person record for an exact match for provided search parameters`() {
     // Given

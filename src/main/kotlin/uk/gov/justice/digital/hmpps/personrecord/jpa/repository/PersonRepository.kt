@@ -10,5 +10,5 @@ interface PersonRepository : JpaRepository<PersonEntity, Long>, PersonRepository
 
   fun findByPersonId(uuid: UUID): PersonEntity?
 
-  fun findByDeliusOffendersCrn(crn : String): PersonEntity?
+  fun findByDeliusOffendersCrn(crn: String): PersonEntity?
 }

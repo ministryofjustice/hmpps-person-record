@@ -42,7 +42,7 @@ class PersonRepositoryCustomImplIntTest : IntegrationTestBase() {
     // Given
     val searchRequest = PersonSearchRequest(
       surname = "Mahoney",
-      forenameThree = "bob"
+      forenameThree = "bob",
     )
 
     // When
@@ -57,7 +57,7 @@ class PersonRepositoryCustomImplIntTest : IntegrationTestBase() {
   fun `should return all person records for provided search criteria`() {
     // Given
     val searchRequest = PersonSearchRequest(
-      surname = "Mahoney"
+      surname = "Mahoney",
     )
 
     // When
@@ -67,10 +67,9 @@ class PersonRepositoryCustomImplIntTest : IntegrationTestBase() {
     assertThat(results).hasSize(2)
     assertThat(results).anyMatch { p ->
       p.personId == UUID.fromString("eed4a9a4-d853-11ed-afa1-0242ac120002") ||
-      p.personId == UUID.fromString("d75a9374-e2a3-11ed-b5ea-0242ac120002")
+        p.personId == UUID.fromString("d75a9374-e2a3-11ed-b5ea-0242ac120002")
     }
   }
-
 
   @Test
   fun `should return a single person record for an exact name match ignoring case`() {

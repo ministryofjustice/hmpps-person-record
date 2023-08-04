@@ -39,9 +39,11 @@ class PersonRecordService(
     log.debug("Entered searchPersonRecords()")
 
     searchRequest.crn?.let {
-      return listOf(Person.from(
-        personRepository.findByDeliusOffendersCrn(it) ?: throw EntityNotFoundException("Person record not found for crn: $it")
-      ))
+      return listOf(
+        Person.from(
+          personRepository.findByDeliusOffendersCrn(it) ?: throw EntityNotFoundException("Person record not found for crn: $it"),
+        ),
+      )
     }
 
     // ensure minimum parameters are present in the search request
