@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonRecordService
 import java.net.URI
-import java.util.UUID
+import java.util.*
 
 @RestController
 class PersonController(
@@ -78,6 +78,7 @@ class PersonController(
     value = [
       ApiResponse(responseCode = "401", description = "Unauthorized - role not provided"),
       ApiResponse(responseCode = "403", description = "Forbidden - role not authorised for access"),
+      ApiResponse(responseCode = "404", description = "Person Not Found"),
       ApiResponse(responseCode = "400", description = "Invalid parameters provided"),
       ApiResponse(responseCode = "200", description = "OK - Person found"),
     ],

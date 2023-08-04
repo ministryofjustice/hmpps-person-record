@@ -34,7 +34,7 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
 
     // Then
     assertThat(personEntity).isNotNull
-    assertThat(personEntity?.hmctsDefendants).hasSize(1)
+    assertThat(personEntity?.hmctsDefendants).hasSize(2)
     val hmctsDefendantEntity = personEntity?.hmctsDefendants?.get(0)
     assertThat(hmctsDefendantEntity?.pncNumber).isEqualTo("PNC12345")
     assertThat(hmctsDefendantEntity?.crn).isEqualTo("CRN1234")
@@ -69,4 +69,18 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
     assertThat(personEntity?.deliusOffenders).hasSize(1)
     assertThat(personEntity?.deliusOffenders?.get(0)?.crn).isEqualTo("CRN1234")
   }
+
+  @Test
+  fun `should return null for unknown CRN`() {
+    // Given
+    val crn = "CRN9999"
+
+    // When
+    val personEntity = personRepository.findByDeliusOffendersCrn(crn)
+
+    // Then
+    assertThat(personEntity).isNull()
+  }
+
+
 }
