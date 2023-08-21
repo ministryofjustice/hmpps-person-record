@@ -12,6 +12,34 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${nomis-oauth.issuer-base-url:${nomis-oauth.base-url}}/auth/issuer
+      client:
+        registration:
+          offender-search:
+            provider:  nomis-oauth-service
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: client_credentials
+            client-id: ${offender-search.client-id}
+            client-secret: ${offender-search.client-secret}
+        provider:
+          nomis-oauth-service:
+            token-uri: ${nomis-oauth.base-url}/auth/oauth/token
+
+#  cloud:
+#    openfeign:
+#      oauth2:
+#        enabled: true
+#        clientRegistrationId: offender-search
+#    client:
+#      config:
+#        default:
+#          logger-level: full
+#          connect-timeout: 90000
+#          read-timeout: 90000
+#          default-request-headers:
+#            Accept: application/json
+#            Content-Type: application/json
+
+
 
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"
@@ -73,4 +101,12 @@ management:
       cache:
         time-to-live: 2000ms
 
+offender-search:
+  offender-detail: /search
 
+web:
+  client:
+    connect-timeout-ms: 100000
+    read-timeout-ms: 50000
+    write-timeout-ms: 5000
+    byte-buffer-size: 20971520

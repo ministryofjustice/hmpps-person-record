@@ -1,0 +1,27 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/search",
+    "bodyPatterns" : [
+      {
+        "equalToJson" : {
+          "firstName" : null,
+          "surname" : null,
+          "dateOfBirth" : null,
+          "pncNumber" : null,
+          "croNumber" : null,
+          "crn" : "CRN404",
+          "nomsNumber" : null,
+          "includeAliases" : false
+        }
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "[]"
+  }
+}

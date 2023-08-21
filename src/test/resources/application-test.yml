@@ -10,5 +10,12 @@ database:
     name: personrecordservicetest
 
 nomis-oauth:
-  base-url: https://sign-in-dev.hmpps.service.justice.gov.uk
+  base-url: http://localhost:8090
+
+offender-search:
+  base-url: http://localhost:8090
+
+feature:
+  flags:
+    auth-enabled: false
 

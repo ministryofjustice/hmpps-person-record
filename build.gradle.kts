@@ -1,8 +1,8 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.2.0"
-  kotlin("plugin.spring") version "1.8.20-RC"
-  kotlin("jvm") version "1.8.20-RC"
-  kotlin("plugin.jpa") version "1.8.20-RC"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.3.0"
+  kotlin("plugin.spring") version "1.9.0"
+  kotlin("jvm") version "1.9.0"
+  kotlin("plugin.jpa") version "1.9.0"
 }
 
 configurations {
@@ -22,6 +22,7 @@ dependencies {
   implementation("io.swagger.core.v3:swagger-annotations:2.2.8")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.0.4")
+  implementation("org.springframework.cloud:spring-cloud-dependencies:2022.0.4")
 
   runtimeOnly("org.postgresql:postgresql:42.5.4")
   runtimeOnly("org.flywaydb:flyway-core:9.16.0")

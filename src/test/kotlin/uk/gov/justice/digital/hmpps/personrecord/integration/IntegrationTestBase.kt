@@ -1,7 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.integration
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -16,6 +19,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Testcontainers
 import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
 import java.time.Duration
+
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -34,6 +38,11 @@ abstract class IntegrationTestBase {
 
   @Autowired
   internal lateinit var jwtHelper: JwtAuthHelper
+
+  @RegisterExtension
+  var wireMockExtension = WireMockExtension.newInstance()
+    .options(wireMockConfig().port(8090))
+    .build()
 
   companion object {
 

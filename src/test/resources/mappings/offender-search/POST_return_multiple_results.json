@@ -1,0 +1,33 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "POST",
+    "urlPath": "/search",
+    "headers" : {
+      "Content-Type": {
+        "equalTo": "application/json"
+      }
+    },
+    "bodyPatterns" : [
+      {
+        "equalToJson" : {
+          "firstName": "John",
+          "surname": "Smith",
+          "dateOfBirth" : null,
+          "pncNumber" : null,
+          "croNumber" : null,
+          "crn" : null,
+          "nomsNumber" : null,
+          "includeAliases" : false
+        }
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "offender-search/POST_search_with_multiple_responses_200.json"
+  }
+}
