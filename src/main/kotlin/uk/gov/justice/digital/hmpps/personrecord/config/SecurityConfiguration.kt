@@ -34,8 +34,6 @@ class SecurityConfiguration {
           }
       }
 
-
     return http.build()
   }
-
 }

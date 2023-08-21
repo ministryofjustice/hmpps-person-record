@@ -13,10 +13,8 @@ class ProbationOffenderSearchClientIntTest : IntegrationTestBase() {
   @Autowired
   lateinit var restClient: ProbationOffenderSearchClient
 
-
   @Test
   fun `should return offender details for known person`() {
-
     // Given
     val searchDto = SearchDto(firstName = "John", surname = "Smith")
 
@@ -40,7 +38,6 @@ class ProbationOffenderSearchClientIntTest : IntegrationTestBase() {
     // Then
     assertThat(offenderDetails).isEmpty()
   }
-
 
   @Test
   fun `should return bad request for insufficient search parameters`() {
