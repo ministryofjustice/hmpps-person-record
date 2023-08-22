@@ -1,0 +1,27 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/search",
+    "bodyPatterns" : [
+      {
+        "equalToJson" : {
+          "firstName" : null,
+          "surname" : null,
+          "dateOfBirth" : null,
+          "pncNumber" : null,
+          "croNumber" : null,
+          "crn" : null,
+          "nomsNumber" : null,
+          "includeAliases" : false
+        }
+      }
+    ]
+  },
+  "response": {
+    "status": 400,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\n    \"status\": 400,\n    \"developerMessage\": \"Invalid search  - please provide at least 1 search parameter\"\n}"
+  }
+}

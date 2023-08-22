@@ -29,6 +29,9 @@ generic-service:
   namespace_secrets:
     hmpps-person-record:
       APPINSIGHTS_INSTRUMENTATIONKEY: "APPINSIGHTS_INSTRUMENTATIONKEY"
+      OFFENDER_SEARCH_CLIENT_ID: "NOMIS_OAUTH_CLIENT_ID"
+      OFFENDER_SEARCH_CLIENT_SECRET: "NOMIS_OAUTH_CLIENT_SECRET"
+
     hmpps-person-record-rds-instance-output:
       DATABASE_NAME: "database_name"
       DATABASE_USERNAME: "database_username"
