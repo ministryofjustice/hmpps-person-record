@@ -18,4 +18,3 @@ offender-search:
 feature:
   flags:
     auth-enabled: false
-

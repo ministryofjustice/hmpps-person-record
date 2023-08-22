@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.client
 
-import jakarta.validation.ValidationException
+import feign.FeignException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 class ProbationOffenderSearchClientIntTest : IntegrationTestBase() {
 
   @Autowired
+//  lateinit var restClient: ProbationOffenderSearchClient
   lateinit var restClient: ProbationOffenderSearchClient
 
   @Test
@@ -45,11 +46,11 @@ class ProbationOffenderSearchClientIntTest : IntegrationTestBase() {
     val searchDto = SearchDto()
 
     // When
-    val exception = assertThrows(ValidationException::class.java) {
+    val exception = assertThrows(FeignException.BadRequest::class.java) {
       restClient.getOffenderDetail(searchDto)
     }
 
     // Then
-    assertThat(exception.message).isEqualTo("Error retrieving offender details")
+    assertThat(exception.message).contains("[400 Bad Request] during [GET]", "Invalid search  - please provide at least 1 search parameter")
   }
 }
