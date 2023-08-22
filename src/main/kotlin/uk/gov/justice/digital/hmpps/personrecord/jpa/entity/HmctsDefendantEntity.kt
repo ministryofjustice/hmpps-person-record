@@ -1,13 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
-import jakarta.persistence.CascadeType
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import org.hibernate.envers.Audited
+import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import java.time.LocalDate
 
 @Entity
@@ -16,8 +11,8 @@ import java.time.LocalDate
 class HmctsDefendantEntity(
 
   @Id
-  @Column(name = "id")
-  val id: Long,
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  val id: Long? = null,
 
   @ManyToOne(optional = false, cascade = [CascadeType.ALL])
   @JoinColumn(
@@ -84,4 +79,31 @@ class HmctsDefendantEntity(
   @Column(name = "date_of_birth")
   val dateOfBirth: LocalDate? = null,
 
-) : BaseAuditedEntity()
+) : BaseAuditedEntity(){
+  companion object {
+    fun from(person : Person) : HmctsDefendantEntity? {
+      return person.defendantId?.let {
+        HmctsDefendantEntity(
+          forenameOne = person.familyName,
+          surname = person.familyName,
+          dateOfBirth = person.dateOfBirth,
+          defendantId = it,
+          pncNumber = person.otherIdentifiers?.pncNumber,
+          crn = person.otherIdentifiers?.crn,
+          cro = person.otherIdentifiers?.cro,
+          title = person.title,
+          sex = person.sex,
+          nationalityOne = person.nationalityOne,
+          nationalityTwo = person.nationalityTwo,
+          addressLineOne = person.addressLineOne,
+          addressLineTwo = person.addressLineTwo,
+          addressLineThree = person.addressLineThree,
+          addressLineFour = person.addressLineFour,
+          addressLineFive = person.addressLineFive,
+          postcode = person.postcode,
+        )
+      } ?: throw java.lang.IllegalArgumentException("Missing defendant id")
+
+    }
+  }
+}
