@@ -10,8 +10,8 @@ import uk.gov.justice.digital.hmpps.personrecord.config.FeignOAuth2Config
 @FeignClient(
   name = "offender-search",
   url = "\${offender-search.base-url}",
-  configuration = [FeignOAuth2Config::class]
- )
+  configuration = [FeignOAuth2Config::class],
+)
 interface ProbationOffenderSearchFeignClient {
 
   @GetMapping(value = ["/search"])

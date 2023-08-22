@@ -12,7 +12,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.SearchDto
 @RestController
 class TestController(
   var client: ProbationOffenderSearchClient,
-  var feignClient: ProbationOffenderSearchFeignClient) {
+  var feignClient: ProbationOffenderSearchFeignClient,
+) {
 
   companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
