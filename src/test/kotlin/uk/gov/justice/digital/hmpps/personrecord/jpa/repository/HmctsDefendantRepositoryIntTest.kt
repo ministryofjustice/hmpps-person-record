@@ -17,7 +17,6 @@ class HmctsDefendantRepositoryIntTest : IntegrationTestBase() {
   lateinit var hmctsDefendantRepository: HmctsDefendantRepository
   @Autowired
   lateinit var personRepository: PersonRepository
-
   @Test
   fun ` should save defendant successfully and link a new  person record` () {
     val personEntity = PersonEntity(
@@ -43,9 +42,6 @@ class HmctsDefendantRepositoryIntTest : IntegrationTestBase() {
 
     assertNotNull(hmctsDefendantRepository.findByDefendantId("c04d3d2d-4bd2-40b9-bda6-564a4d9adb91"))
   }
-
-
-
   @Test
   fun ` should save offender successfully and link to an existing person record`() {
     val personId = UUID.randomUUID()
@@ -75,7 +71,6 @@ class HmctsDefendantRepositoryIntTest : IntegrationTestBase() {
 
     assertNotNull(hmctsDefendantRepository.findByDefendantId("e59d442a-11c6-4fba-ace1-6d899ae5b9fa"))
   }
-
   @Test
   fun ` should update defendant list successfully and link the new defendant to an existing person record`() {
     val personId = UUID.randomUUID()

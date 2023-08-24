@@ -36,5 +36,4 @@ class PersonEntity(
             return personEntity
         }
     }
-
 }

@@ -16,15 +16,12 @@ class DeliusOffenderRepositoryIntTest : IntegrationTestBase() {
 
   @Autowired
   lateinit var deliusOffenderRepository: DeliusOffenderRepository
-
   @Autowired
   lateinit var personRepository: PersonRepository
-
   @BeforeEach
   fun setUp() {
     deliusOffenderRepository.deleteAll()
   }
-
   @Test
   fun `should save offender successfully and link a new person record`() {
     val personId = UUID.randomUUID()
@@ -51,8 +48,6 @@ class DeliusOffenderRepositoryIntTest : IntegrationTestBase() {
     assertNotNull(createdOffender.person)
     assertEquals(personId, createdOffender.person!!.personId)
   }
-
-
   @Test
   fun ` should save offender successfully and link to an existing person record`() {
     val personId = UUID.randomUUID()
@@ -79,8 +74,7 @@ class DeliusOffenderRepositoryIntTest : IntegrationTestBase() {
 
     assertNotNull(deliusOffenderRepository.findByCrn("E363880"))
   }
-
-  @Test
+   @Test
   fun ` should update offender list successfully for the existing person record`() {
     val personId = UUID.randomUUID()
 
@@ -150,7 +144,6 @@ class DeliusOffenderRepositoryIntTest : IntegrationTestBase() {
 
     assertTrue { deliusOffenderRepository.existsByCrn("E363876") }
   }
-
   @Test
   fun `should return false for an unknown crn`() {
 

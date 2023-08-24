@@ -33,5 +33,3 @@ data class PersonSearchRequest(
     }
   }
 }
-
-

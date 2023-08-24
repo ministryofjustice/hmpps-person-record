@@ -23,9 +23,6 @@ data class SearchDto(
         croNumber = person.otherIdentifiers?.cro,
         crn = person.otherIdentifiers?.crn,
       )
-
     }
-
-
   }
 }

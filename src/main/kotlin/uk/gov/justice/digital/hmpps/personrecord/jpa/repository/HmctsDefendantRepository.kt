@@ -6,6 +6,5 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.HmctsDefendantEntity
 
 @Repository
 interface HmctsDefendantRepository: JpaRepository<HmctsDefendantEntity, Long> {
-
   fun findByDefendantId(defendantId : String) : HmctsDefendantEntity ?
 }

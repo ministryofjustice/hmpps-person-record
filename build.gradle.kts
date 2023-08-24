@@ -24,13 +24,10 @@ dependencies {
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.0.4")
   implementation("org.springframework.cloud:spring-cloud-dependencies:2022.0.4")
 
-
   runtimeOnly("org.postgresql:postgresql:42.5.4")
   runtimeOnly("org.flywaydb:flyway-core:9.16.0")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-  annotationProcessor("org.projectlombok:lombok")
-
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.springframework.security:spring-security-test")
