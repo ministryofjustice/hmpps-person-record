@@ -3,9 +3,3 @@ nomis-oauth:
 
 offender-search:
   base-url: https://probation-offender-search-dev.hmpps.service.justice.gov.uk
-
-logging:
-  level:
-    org:
-      springframework:
-        security: DEBUG

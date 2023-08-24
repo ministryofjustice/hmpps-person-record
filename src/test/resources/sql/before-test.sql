@@ -14,7 +14,7 @@ VALUES
     (1, 1,'PNC12345', 'CRN1234', 'Iestyn', 'Carey', null, 'Mahoney', 'Male', '1965-06-18', 'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0),
     (2, 1,'PNC12345', 'CRN1234', 'Iestyn', 'Carey', 'Bob', 'Mahoney', 'Male', '1965-06-18', 'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0),
     (3, 2,'PNC12345', 'CRN1234', 'John', null, null, 'Mahoney', 'Male', '1965-06-18', 'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0),
-    (4, 3,'PNC12345', 'CRN1234', 'Bob', null, null, 'Mortimer', 'Male', '1965-06-18', 'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0);
+    (4, 3,'pnc33333', 'CRN1234', 'Bob', null, null, 'Mortimer', 'Male', '1965-06-18', 'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0);
 
 INSERT INTO delius_offender
 (id, fk_person_id,  crn, created_by, created_date, last_updated_by, last_updated_date, "version")

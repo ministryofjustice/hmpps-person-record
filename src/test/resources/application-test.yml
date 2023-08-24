@@ -15,6 +15,3 @@ nomis-oauth:
 offender-search:
   base-url: http://localhost:8090
 
-feature:
-  flags:
-    auth-enabled: false
