@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model
 
+import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import java.time.LocalDate
 
 data class SearchDto(
@@ -11,4 +12,17 @@ data class SearchDto(
   val crn: String? = null,
   val nomsNumber: String? = null,
   val includeAliases: Boolean? = false,
-)
+) {
+  companion object {
+    fun from(person: Person): SearchDto {
+      return SearchDto(
+        firstName = person.givenName,
+        surname = person.familyName,
+        dateOfBirth = person.dateOfBirth,
+        pncNumber = person.otherIdentifiers?.pncNumber,
+        croNumber = person.otherIdentifiers?.cro,
+        crn = person.otherIdentifiers?.crn,
+      )
+    }
+  }
+}

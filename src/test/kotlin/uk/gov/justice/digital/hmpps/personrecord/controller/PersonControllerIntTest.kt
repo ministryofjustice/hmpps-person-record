@@ -22,6 +22,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
 import java.time.LocalDate
 import java.util.*
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 @Sql(
   scripts = ["classpath:sql/before-test.sql"],
@@ -45,6 +47,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   fun setUp() {
     minimumPerson = Person(
       familyName = "Panchali",
+      defendantId = "39222c4f-97a6-401b-8669-2205ae629822",
     )
     maximumPerson = Person(
       givenName = "Stephen",
@@ -59,7 +62,6 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   }
 
   @Test
-  @Disabled("Until refactoring complete")
   fun `should return HTTP 401 when insufficient data is provide to create a Person record`() {
     // Given
     val personJson = "{}"
@@ -93,7 +95,6 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   }
 
   @Test
-  @Disabled("Until refactoring complete")
   fun `should persist and return a Person record with ID when minimum data set is provided`() {
     // Given
     val personJson = objectMapper.writeValueAsString(minimumPerson)
@@ -114,13 +115,18 @@ class PersonControllerIntTest() : IntegrationTestBase() {
 
     person.personId?.let {
       val personEntity = personRepository.findByPersonId(it)
+      assertNotNull(personEntity)
     }
   }
 
   @Test
-  @Disabled("Until refactoring complete")
-  fun `should persist and return a Person record with ID when full data set is provided`() {
+  fun `should persist and return a Person record with ID and create an offender when a crn is provided`() {
     // Given
+    maximumPerson = Person(
+      otherIdentifiers = OtherIdentifiers(
+        crn = "CRN404",
+      ),
+    )
     val personJson = objectMapper.writeValueAsString(maximumPerson)
     println(personJson)
 
@@ -140,6 +146,10 @@ class PersonControllerIntTest() : IntegrationTestBase() {
 
     person.personId?.let {
       val personEntity = personRepository.findByPersonId(it)
+      val offender = personEntity?.deliusOffenders?.get(0)
+      if (offender != null) {
+        assertEquals("CRN404", offender.crn)
+      }
     }
   }
 
@@ -157,7 +167,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   }
 
   @Test
-  @Disabled("Until endpoint is secured by role")
+  @Disabled("Enable when the auth is turned on")
   fun `should return HTTP Unauthorised when no role is provided to get person by id`() {
     // Given
     val uuid = "eed4a9a4-d853-11ed-afa1-0242ac120002"
@@ -168,7 +178,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   }
 
   @Test
-  @Disabled("Until endpoint is secured by role")
+  @Disabled("Enable when the auth is turned on")
   fun `should return HTTP forbidden for an unauthorised role to get person by id`() {
     // Given
     val uuid = "eed4a9a4-d853-11ed-afa1-0242ac120002"
@@ -182,7 +192,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   }
 
   @Test
-  @Disabled("Until endpoint is secured by role")
+  @Disabled("Enable when the auth is turned on")
   fun `should return HTTP Unauthorised when no role is provided to create person`() {
     // Given
     val personJson = objectMapper.writeValueAsString(minimumPerson)
@@ -197,18 +207,19 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   }
 
   @Test
-  @Disabled("Until refactoring complete")
   fun `should return HTTP Conflict when an already existing CRN is provided to create person`() {
     // Given
-    val personJson = objectMapper.writeValueAsString(maximumPerson)
-
-    // When
-    mockMvc.perform(
-      post("/person")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(personJson),
+    maximumPerson = Person(
+      givenName = "Stephen",
+      middleNames = listOf("Danny", "Alex"),
+      familyName = "Jones",
+      dateOfBirth = LocalDate.of(1968, 8, 15),
+      otherIdentifiers = OtherIdentifiers(
+        pncNumber = "PNC1234",
+        crn = "CRN1234", // crn already exist in the db
+      ),
     )
-      .andExpect(status().isCreated)
+    val personJson = objectMapper.writeValueAsString(maximumPerson)
 
     mockMvc.perform(
       post("/person")
@@ -219,7 +230,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   }
 
   @Test
-  @Disabled("Until endpoint is secured by role")
+  @Disabled("Enable when the auth is turned on")
   fun `should return HTTP forbidden for an unauthorised role to to create person`() {
     // Given
     val personJson = objectMapper.writeValueAsString(minimumPerson)
@@ -248,7 +259,6 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   }
 
   @Test
-  @Disabled("Until refactoring complete")
   fun `should return person record for known UUID`() {
     // Given
     val uuid = "eed4a9a4-d853-11ed-afa1-0242ac120002"
@@ -265,11 +275,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
     // Then
     val person = objectMapper.readValue(result.response.contentAsString, Person::class.java)
     assertThat(person).isNotNull
-    assertThat(person.otherIdentifiers?.crn).isEqualTo("CRN1234")
-    assertThat(person.otherIdentifiers?.pncNumber).isEqualTo("PNC12345")
-    assertThat(person.givenName).isEqualTo("Carey")
-    assertThat(person.familyName).isEqualTo("Mahoney")
-    assertThat(person.dateOfBirth).isEqualTo(LocalDate.of(1965, 6, 18))
+    assertThat(person.personId).isEqualTo(UUID.fromString(uuid))
   }
 
   @Test

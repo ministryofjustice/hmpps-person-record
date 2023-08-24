@@ -1,0 +1,97 @@
+[
+  {
+    "offenderId": 2500034487,
+    "title": "Mr",
+    "firstName": "William",
+    "middleNames": [
+      "Wilbur"
+    ],
+    "surname": "Smith",
+    "dateOfBirth": "1977-01-02",
+    "gender": "Male",
+    "otherIds": {
+      "crn": "X026350",
+      "pncNumber": "PNC1234"
+    },
+    "contactDetails": {
+      "phoneNumbers": [],
+      "emailAddresses": [],
+      "addresses": [
+        {
+          "id": 2500033946,
+          "from": "2018-02-14",
+          "noFixedAbode": true,
+          "notes": "Comment added by SYSTEM USER on 09/06/2022 at 11:47\nType and Type Verified were set by an automated script based upon the current accommodation Personal Circumstances record on  ( 09-JUN-2022 11:47 )",
+          "postcode": "NF1 1NF",
+          "status": {
+            "code": "M",
+            "description": "Main"
+          },
+          "type": {
+            "code": "A07B",
+            "description": "Friends/Family (settled)"
+          }
+        }
+      ]
+    },
+    "offenderProfile": {
+      "offenderLanguages": {
+        "requiresInterpreter": false
+      },
+      "previousConviction": {
+        "detail": {}
+      }
+    },
+    "offenderManagers": [
+      {
+        "staff": {
+          "code": "N02UATU",
+          "forenames": "Unallocated Staff(N02)",
+          "surname": "Staff"
+        },
+        "partitionArea": "National Data",
+        "softDeleted": false,
+        "team": {
+          "code": "N02UAT",
+          "description": "Unallocated Team(N02)",
+          "district": {
+            "code": "N02UAT",
+            "description": "Unallocated Level 3(N02)"
+          },
+          "borough": {
+            "code": "N02UAT",
+            "description": "Unallocated Level 2(N02)"
+          }
+        },
+        "probationArea": {
+          "code": "N02",
+          "description": "NPS North East",
+          "nps": false
+        },
+        "fromDate": "1900-01-01",
+        "active": true,
+        "allocationReason": {
+          "code": "IN1",
+          "description": "Initial Allocation"
+        }
+      }
+    ],
+    "softDeleted": false,
+    "currentDisposal": "1",
+    "partitionArea": "National Data",
+    "currentRestriction": false,
+    "restrictionMessage": "This is a restricted offender record. Please contact a system administrator",
+    "currentExclusion": false,
+    "exclusionMessage": "You are excluded from viewing this offender record. Please contact a system administrator",
+    "currentTier": "B2",
+    "activeProbationManagedSentence": true,
+    "probationStatus": {
+      "status": "CURRENT",
+      "inBreach": false,
+      "preSentenceActivity": false,
+      "awaitingPsr": false
+    },
+    "age": 46
+  }
+
+]

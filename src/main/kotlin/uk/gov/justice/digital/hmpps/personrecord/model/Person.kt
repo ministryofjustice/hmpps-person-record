@@ -19,6 +19,18 @@ data class Person(
   @Schema(description = "A person's date of birth", example = "1972-08-27")
   val dateOfBirth: LocalDate? = null,
   val otherIdentifiers: OtherIdentifiers? = null,
+  val defendantId: String? = null,
+  val title: String? = null,
+  val addressLineOne: String? = null,
+  val addressLineTwo: String? = null,
+  val addressLineThree: String? = null,
+  val addressLineFour: String? = null,
+  val addressLineFive: String? = null,
+  val postcode: String? = null,
+  val sex: String? = null,
+  val nationalityOne: String? = null,
+  val nationalityTwo: String? = null,
+
 ) {
   companion object {
 
@@ -37,4 +49,6 @@ data class OtherIdentifiers(
   val crn: String? = null,
   @Schema(description = "PNC Number", example = "1965/0046583U")
   val pncNumber: String? = null,
+  @Schema(description = "CRO", example = "293110/23X")
+  val cro: String? = null,
 )
