@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DeliusOffenderEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.HmctsDefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DeliusOffenderRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.HmctsDefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
@@ -24,7 +23,6 @@ import java.util.*
 class PersonRecordService(
   val personRepository: PersonRepository,
   val deliusOffenderRepository: DeliusOffenderRepository,
-  val hmctsDefendantRepository: HmctsDefendantRepository,
   val offenderSearchClient: ProbationOffenderSearchClient,
 ) {
 
@@ -43,7 +41,7 @@ class PersonRecordService(
   fun createPersonRecord(person: Person): Person {
     log.debug("Entered createPersonRecord with $person")
 
-    //create an offender
+    // create an offender
     person.otherIdentifiers?.crn?.let {
       if (!isOffenderExistInPersonRecord(person.otherIdentifiers.crn)) {
         val offenderDetail = searchDeliusOffender(person)
@@ -81,7 +79,7 @@ class PersonRecordService(
   }
   private fun createOffenderFromOffenderDetail(offenderDetail: OffenderDetail): PersonEntity {
     val newPersonEntity = PersonEntity.new()
-    //create an offender
+    // create an offender
     val newOffenderEntity = DeliusOffenderEntity.from(offenderDetail)
     newOffenderEntity?.person = newPersonEntity
     if (newOffenderEntity != null) {
@@ -107,7 +105,7 @@ class PersonRecordService(
   }
 
   private fun createOffenderFromPerson(person: Person): PersonEntity {
-    val newPersonEntity = PersonEntity.new();
+    val newPersonEntity = PersonEntity.new()
     val newOffenderEntity = DeliusOffenderEntity.from(person)
     newOffenderEntity.person = newPersonEntity
     newPersonEntity.deliusOffenders.add(newOffenderEntity)
@@ -117,7 +115,6 @@ class PersonRecordService(
   fun searchPersonRecords(searchRequest: PersonSearchRequest): List<Person> {
     log.debug("Entered searchPersonRecords()")
 
-    //TODO is this correct? search shouldn't throw any exception
     searchRequest.crn?.let {
       return listOf(
         Person.from(

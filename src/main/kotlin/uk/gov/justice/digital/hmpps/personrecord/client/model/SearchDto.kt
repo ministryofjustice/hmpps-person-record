@@ -12,9 +12,9 @@ data class SearchDto(
   val crn: String? = null,
   val nomsNumber: String? = null,
   val includeAliases: Boolean? = false,
-){
+) {
   companion object {
-    fun from(person : Person) : SearchDto {
+    fun from(person: Person): SearchDto {
       return SearchDto(
         firstName = person.givenName,
         surname = person.familyName,

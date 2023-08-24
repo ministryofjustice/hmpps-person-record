@@ -47,7 +47,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   fun setUp() {
     minimumPerson = Person(
       familyName = "Panchali",
-      defendantId = "39222c4f-97a6-401b-8669-2205ae629822"
+      defendantId = "39222c4f-97a6-401b-8669-2205ae629822",
     )
     maximumPerson = Person(
       givenName = "Stephen",
@@ -208,7 +208,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
 
   @Test
   fun `should return HTTP Conflict when an already existing CRN is provided to create person`() {
-        // Given
+    // Given
     maximumPerson = Person(
       givenName = "Stephen",
       middleNames = listOf("Danny", "Alex"),
@@ -217,7 +217,8 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       otherIdentifiers = OtherIdentifiers(
         pncNumber = "PNC1234",
         crn = "CRN1234", // crn already exist in the db
-      ))
+      ),
+    )
     val personJson = objectMapper.writeValueAsString(maximumPerson)
 
     mockMvc.perform(

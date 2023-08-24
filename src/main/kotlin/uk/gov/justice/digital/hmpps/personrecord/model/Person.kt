@@ -31,10 +31,7 @@ data class Person(
   val nationalityOne: String? = null,
   val nationalityTwo: String? = null,
 
-
-
-
-  ) {
+) {
   companion object {
 
     fun from(personEntity: PersonEntity?): Person {
@@ -54,4 +51,4 @@ data class OtherIdentifiers(
   val pncNumber: String? = null,
   @Schema(description = "CRO", example = "293110/23X")
   val cro: String? = null,
-  )
+)

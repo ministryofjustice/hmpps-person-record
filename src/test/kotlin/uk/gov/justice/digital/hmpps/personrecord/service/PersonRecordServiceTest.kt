@@ -31,10 +31,13 @@ class PersonRecordServiceTest {
 
   @Mock
   lateinit var personRepository: PersonRepository
+
   @Mock
   lateinit var deliusOffenderRepository: DeliusOffenderRepository
+
   @Mock
   lateinit var offenderSearchClient: ProbationOffenderSearchClient
+
   @Mock
   lateinit var hmctsDefendantRepository: HmctsDefendantRepository
 
@@ -89,8 +92,8 @@ class PersonRecordServiceTest {
       middleNames = listOf("Michael", "James"),
       familyName = "Jones",
       dateOfBirth = LocalDate.of(1968, 8, 15),
-      defendantId =  "c04d3d2d-4bd2-40b9-bda6-564a4d9adb91",
-      )
+      defendantId = "c04d3d2d-4bd2-40b9-bda6-564a4d9adb91",
+    )
 
     whenever(personRepository.save(any())).thenReturn(personEntity)
 
@@ -110,8 +113,8 @@ class PersonRecordServiceTest {
       middleNames = listOf("Michael", "James"),
       familyName = "Jones",
       dateOfBirth = LocalDate.of(1968, 8, 15),
-      defendantId =  "c04d3d2d-4bd2-40b9-bda6-564a4d9adb91",
-      otherIdentifiers = OtherIdentifiers(crn = "59770/20X")
+      defendantId = "c04d3d2d-4bd2-40b9-bda6-564a4d9adb91",
+      otherIdentifiers = OtherIdentifiers(crn = "59770/20X"),
     )
 
     whenever(personRepository.save(any())).thenReturn(personEntity)
