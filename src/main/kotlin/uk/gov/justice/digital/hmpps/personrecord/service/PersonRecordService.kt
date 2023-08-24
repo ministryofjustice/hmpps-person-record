@@ -81,10 +81,8 @@ class PersonRecordService(
     val newPersonEntity = PersonEntity.new()
     // create an offender
     val newOffenderEntity = DeliusOffenderEntity.from(offenderDetail)
-    newOffenderEntity?.person = newPersonEntity
-    if (newOffenderEntity != null) {
-      newPersonEntity.deliusOffenders.add(newOffenderEntity)
-    }
+    newOffenderEntity.person = newPersonEntity
+    newPersonEntity.deliusOffenders.add(newOffenderEntity)
     return personRepository.save(newPersonEntity)
   }
 
