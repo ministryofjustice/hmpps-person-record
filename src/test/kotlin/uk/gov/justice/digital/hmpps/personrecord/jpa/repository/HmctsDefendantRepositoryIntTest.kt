@@ -19,7 +19,7 @@ class HmctsDefendantRepositoryIntTest : IntegrationTestBase() {
   lateinit var personRepository: PersonRepository
 
   @Test
-  fun ` should save defendant successfully and link a new  person record`() {
+  fun `should save defendant successfully and link a new  person record`() {
     val personEntity = PersonEntity(
       personId = UUID.randomUUID(),
 
@@ -45,7 +45,7 @@ class HmctsDefendantRepositoryIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun ` should save offender successfully and link to an existing person record`() {
+  fun `should save offender successfully and link to an existing person record`() {
     val personId = UUID.randomUUID()
 
     val personEntity = PersonEntity(
@@ -75,7 +75,7 @@ class HmctsDefendantRepositoryIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun ` should update defendant list successfully and link the new defendant to an existing person record`() {
+  fun `should update defendant list successfully and link the new defendant to an existing person record`() {
     val personId = UUID.randomUUID()
 
     val personEntity = PersonEntity(

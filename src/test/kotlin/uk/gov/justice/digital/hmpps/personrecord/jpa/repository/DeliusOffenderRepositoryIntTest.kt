@@ -53,7 +53,7 @@ class DeliusOffenderRepositoryIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun ` should save offender successfully and link to an existing person record`() {
+  fun `should save offender successfully and link to an existing person record`() {
     val personId = UUID.randomUUID()
 
     val personEntity = PersonEntity(
@@ -80,7 +80,7 @@ class DeliusOffenderRepositoryIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun ` should update offender list successfully for the existing person record`() {
+  fun `should update offender list successfully for the existing person record`() {
     val personId = UUID.randomUUID()
 
     val personEntity = PersonEntity(
@@ -127,7 +127,7 @@ class DeliusOffenderRepositoryIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun ` should return true for an existing offender`() {
+  fun `should return true for an existing offender`() {
     val personId = UUID.randomUUID()
     val personEntity = PersonEntity(
       personId = personId,

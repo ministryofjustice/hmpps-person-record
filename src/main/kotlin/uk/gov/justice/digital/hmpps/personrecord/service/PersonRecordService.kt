@@ -43,7 +43,7 @@ class PersonRecordService(
 
     // create an offender
     person.otherIdentifiers?.crn?.let {
-      if (!isOffenderExistInPersonRecord(person.otherIdentifiers.crn)) {
+      if (!doesOffenderExistInPersonRecord(person.otherIdentifiers.crn)) {
         val offenderDetail = searchDeliusOffender(person)
         if (offenderDetail != null) {
           return Person.from(createOffenderFromOffenderDetail(offenderDetail))
@@ -74,7 +74,7 @@ class PersonRecordService(
     if (!offenderDetails.isNullOrEmpty()) return offenderSearchClient.getOffenderDetail(SearchDto.from(person))?.get(0)
     return null
   }
-  private fun isOffenderExistInPersonRecord(crn: String): Boolean {
+  private fun doesOffenderExistInPersonRecord(crn: String): Boolean {
     return deliusOffenderRepository.existsByCrn(crn)
   }
   private fun createOffenderFromOffenderDetail(offenderDetail: OffenderDetail): PersonEntity {
