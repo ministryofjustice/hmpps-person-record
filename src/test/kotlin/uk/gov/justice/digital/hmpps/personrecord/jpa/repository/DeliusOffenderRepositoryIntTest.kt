@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
@@ -7,7 +8,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DeliusOffenderEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import java.util.*
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class DeliusOffenderRepositoryIntTest : IntegrationTestBase() {
 
@@ -17,8 +20,13 @@ class DeliusOffenderRepositoryIntTest : IntegrationTestBase() {
   @Autowired
   lateinit var personRepository: PersonRepository
 
+  @BeforeEach
+  fun setUp() {
+    deliusOffenderRepository.deleteAll()
+  }
+
   @Test
-  fun ` should save offender successfully and link a new  person record`() {
+  fun `should save offender successfully and link a new person record`() {
     val personId = UUID.randomUUID()
     val personEntity = PersonEntity(
       personId = personId,
@@ -102,8 +110,6 @@ class DeliusOffenderRepositoryIntTest : IntegrationTestBase() {
 
     existingPerson  = existingOffender?.person!!
 
-
-
     val anotherDeliusOffenderEntity = DeliusOffenderEntity(
       crn = "E363999",
       person = existingPerson,
@@ -122,4 +128,32 @@ class DeliusOffenderRepositoryIntTest : IntegrationTestBase() {
     assertNotNull(deliusOffenderRepository.findByCrn("E363881"))
   }
 
+  @Test
+  fun ` should return true for an existing offender`() {
+    val personId = UUID.randomUUID()
+    val personEntity = PersonEntity(
+      personId = personId,
+    )
+    personEntity.createdBy = "test"
+    personEntity.lastUpdatedBy = "test"
+
+    val deliusOffenderEntity = DeliusOffenderEntity(
+      crn = "E363876",
+      person = personEntity,
+
+      )
+
+    deliusOffenderEntity.createdBy = "test"
+    deliusOffenderEntity.lastUpdatedBy = "test"
+
+    deliusOffenderRepository.save(deliusOffenderEntity)
+
+    assertTrue { deliusOffenderRepository.existsByCrn("E363876") }
+  }
+
+  @Test
+  fun `should return false for an unknown crn`() {
+
+    assertFalse{ deliusOffenderRepository.existsByCrn("ABCD") }
+  }
 }

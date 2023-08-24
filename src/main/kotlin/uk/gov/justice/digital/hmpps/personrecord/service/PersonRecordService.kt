@@ -4,7 +4,11 @@ import jakarta.persistence.EntityNotFoundException
 import jakarta.validation.ValidationException
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.personrecord.client.ProbationOffenderSearchClient
+import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderDetail
+import uk.gov.justice.digital.hmpps.personrecord.client.model.SearchDto
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DeliusOffenderEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.HmctsDefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -20,6 +24,8 @@ import java.util.*
 class PersonRecordService(
   val personRepository: PersonRepository,
   val deliusOffenderRepository: DeliusOffenderRepository,
+  val hmctsDefendantRepository: HmctsDefendantRepository,
+  val offenderSearchClient: ProbationOffenderSearchClient,
 ) {
 
   companion object {
@@ -35,64 +41,83 @@ class PersonRecordService(
   }
 
   fun createPersonRecord(person: Person): Person {
-    log.debug("Entered createPersonRecord()")
+    log.debug("Entered createPersonRecord with $person")
 
-    // create an offender as well as a defendant record and link to a person
+    //create an offender
     person.otherIdentifiers?.crn?.let {
-      return createOffender(person)
+      if (!isOffenderExistInPersonRecord(person.otherIdentifiers.crn)) {
+        val offenderDetail = searchDeliusOffender(person)
+        if (offenderDetail != null) {
+          return Person.from(createOffenderFromOffenderDetail(offenderDetail))
+        } else {
+          return Person.from(createOffenderFromPerson(person))
+        }
+      } else {
+        log.error("Person with ${person.otherIdentifiers.crn} already exist")
+        throw DataIntegrityViolationException("Person already exist")
+      }
     }
 
     // Create a new defendant or updating an existing defendant list
     val searchRequest = PersonSearchRequest.from(person)
-    val existingDefendants = personRepository.searchByRequestParameters(searchRequest)
-    if (existingDefendants.isEmpty() || existingDefendants.size == 1) {
-
-      return Person.from(createDefendant(person))
-    }
-
-    return person;
-  }
-
-  private fun createOffender(person: Person): Person {
-    val offenderFromPersonRecord = person.otherIdentifiers?.crn?.let { searchOffenderFromPersonRecord(it) };
-    if (offenderFromPersonRecord == null) {
-      //TODO nDelius offender check
-      return Person.from(createOffenderAndDefendant(person))
+    val existingPersons = personRepository.searchByRequestParameters(searchRequest)
+    return if (existingPersons.isEmpty()) {
+      Person.from(createDefendantFromPerson(person))
+    } else if (existingPersons.size == 1) { // exact match
+      Person.from(addDefendantToPerson(existingPersons[0], person))
     } else {
-      throw IllegalArgumentException("Offender already exist")
+      log.error("Multiple person records exist for search criteria $person")
+      throw IllegalArgumentException("Multiple person records exist for search criteria $person")
     }
   }
 
-  private fun createOffenderAndDefendant(person: Person): PersonEntity {
-    val newPersonEntity = PersonEntity.from(person);
+  private fun searchDeliusOffender(person: Person): OffenderDetail? {
+    val offenderDetails = offenderSearchClient.getOffenderDetail(SearchDto.from(person))
+    if (!offenderDetails.isNullOrEmpty()) return offenderSearchClient.getOffenderDetail(SearchDto.from(person))?.get(0)
+    return null
+  }
+  private fun isOffenderExistInPersonRecord(crn: String): Boolean {
+    return deliusOffenderRepository.existsByCrn(crn)
+  }
+  private fun createOffenderFromOffenderDetail(offenderDetail: OffenderDetail): PersonEntity {
+    val newPersonEntity = PersonEntity.new()
     //create an offender
-    val newOffenderEntity = DeliusOffenderEntity.from(person)
+    val newOffenderEntity = DeliusOffenderEntity.from(offenderDetail)
     newOffenderEntity?.person = newPersonEntity
     if (newOffenderEntity != null) {
       newPersonEntity.deliusOffenders.add(newOffenderEntity)
     }
-    //create a defendant
-    val newDefendantEntity = HmctsDefendantEntity.from(person)
-    newDefendantEntity?.person = newPersonEntity
-    if (newDefendantEntity != null) {
-      newPersonEntity.hmctsDefendants.add(newDefendantEntity)
-    }
     return personRepository.save(newPersonEntity)
   }
 
-  private fun createDefendant(person: Person): PersonEntity {
-    val newPersonEntity = PersonEntity.from(person);
+  private fun createDefendantFromPerson(person: Person): PersonEntity {
+    val newPersonEntity = PersonEntity.new()
+
     val newDefendantEntity = HmctsDefendantEntity.from(person)
-    newDefendantEntity?.person = newPersonEntity
-    if (newDefendantEntity != null) {
-      newPersonEntity.hmctsDefendants.add(newDefendantEntity)
-    }
+    newDefendantEntity.person = newPersonEntity
+    newPersonEntity.hmctsDefendants.add(newDefendantEntity)
+    return personRepository.save(newPersonEntity)
+  }
+
+  private fun addDefendantToPerson(personEntity: PersonEntity, person: Person): PersonEntity {
+    val newDefendantEntity = HmctsDefendantEntity.from(person)
+    newDefendantEntity.person = personEntity
+    personEntity.hmctsDefendants.add(newDefendantEntity)
+    return personRepository.save(personEntity)
+  }
+
+  private fun createOffenderFromPerson(person: Person): PersonEntity {
+    val newPersonEntity = PersonEntity.new();
+    val newOffenderEntity = DeliusOffenderEntity.from(person)
+    newOffenderEntity.person = newPersonEntity
+    newPersonEntity.deliusOffenders.add(newOffenderEntity)
     return personRepository.save(newPersonEntity)
   }
 
   fun searchPersonRecords(searchRequest: PersonSearchRequest): List<Person> {
     log.debug("Entered searchPersonRecords()")
 
+    //TODO is this correct? search shouldn't throw any exception
     searchRequest.crn?.let {
       return listOf(
         Person.from(
@@ -108,8 +133,5 @@ class PersonRecordService(
 
     return personRepository.searchByRequestParameters(searchRequest)
       .map { Person.from(it) }
-  }
-  private fun searchOffenderFromPersonRecord(crn: String): DeliusOffenderEntity? {
-    return deliusOffenderRepository.findByCrn(crn)
   }
 }

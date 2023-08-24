@@ -14,9 +14,12 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.personrecord.client.ProbationOffenderSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DeliusOffenderRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.HmctsDefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
 import java.time.LocalDate
@@ -30,6 +33,10 @@ class PersonRecordServiceTest {
   lateinit var personRepository: PersonRepository
   @Mock
   lateinit var deliusOffenderRepository: DeliusOffenderRepository
+  @Mock
+  lateinit var offenderSearchClient: ProbationOffenderSearchClient
+  @Mock
+  lateinit var hmctsDefendantRepository: HmctsDefendantRepository
 
   @InjectMocks
   lateinit var personRecordService: PersonRecordService
@@ -84,6 +91,28 @@ class PersonRecordServiceTest {
       dateOfBirth = LocalDate.of(1968, 8, 15),
       defendantId =  "c04d3d2d-4bd2-40b9-bda6-564a4d9adb91",
       )
+
+    whenever(personRepository.save(any())).thenReturn(personEntity)
+
+    // When
+    val personRecord = personRecordService.createPersonRecord(person)
+
+    // Then
+    verify(personRepository).save(any<PersonEntity>())
+    assertThat(personRecord.personId).isNotNull
+  }
+
+  @Test
+  fun `should create a person record with unique person Identifier from supplied person dto contains crn`() {
+    // Given
+    val person = Person(
+      givenName = "Stephen",
+      middleNames = listOf("Michael", "James"),
+      familyName = "Jones",
+      dateOfBirth = LocalDate.of(1968, 8, 15),
+      defendantId =  "c04d3d2d-4bd2-40b9-bda6-564a4d9adb91",
+      otherIdentifiers = OtherIdentifiers(crn = "59770/20X")
+    )
 
     whenever(personRepository.save(any())).thenReturn(personEntity)
 

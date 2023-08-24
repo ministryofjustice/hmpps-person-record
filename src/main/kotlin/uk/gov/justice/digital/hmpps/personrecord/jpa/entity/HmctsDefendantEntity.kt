@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
 import jakarta.persistence.*
+import jakarta.validation.ValidationException
 import org.hibernate.envers.Audited
+import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import java.time.LocalDate
 
@@ -81,9 +83,9 @@ class HmctsDefendantEntity(
 
 ) : BaseAuditedEntity(){
   companion object {
-    fun from(person : Person) : HmctsDefendantEntity? {
+    fun from(person : Person) : HmctsDefendantEntity {
       return person.defendantId?.let {
-        HmctsDefendantEntity(
+       val hmctsDefendantEntity =  HmctsDefendantEntity(
           forenameOne = person.familyName,
           surname = person.familyName,
           dateOfBirth = person.dateOfBirth,
@@ -102,7 +104,10 @@ class HmctsDefendantEntity(
           addressLineFive = person.addressLineFive,
           postcode = person.postcode,
         )
-      } ?: throw java.lang.IllegalArgumentException("Missing defendant id")
+        hmctsDefendantEntity.createdBy = PERSON_RECORD_SERVICE
+        hmctsDefendantEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
+        return hmctsDefendantEntity
+      } ?: throw ValidationException("Missing defendant id")
 
     }
   }

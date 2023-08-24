@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
 import jakarta.persistence.*
 import org.hibernate.envers.Audited
+import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 
 @Entity
@@ -25,12 +26,25 @@ class DeliusOffenderEntity(
   var person: PersonEntity? = null,
 ) : BaseAuditedEntity(){
   companion object {
-    fun from(person : Person) : DeliusOffenderEntity? {
+    fun from(person : Person) : DeliusOffenderEntity {
       return person.otherIdentifiers?.crn?.let {
-        DeliusOffenderEntity(
+      val defendantEntity =   DeliusOffenderEntity(
           crn = it
         )
+        defendantEntity.createdBy = PERSON_RECORD_SERVICE
+        defendantEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
+        return defendantEntity
+
       } ?: throw java.lang.IllegalArgumentException("Missing CRN")
+    }
+
+    fun from(offenderDetail: OffenderDetail): DeliusOffenderEntity? {
+      val defendantEntity =   DeliusOffenderEntity(
+        crn = offenderDetail.otherIds.crn
+      )
+      defendantEntity.createdBy = PERSON_RECORD_SERVICE
+      defendantEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
+      return defendantEntity
     }
   }
 }
