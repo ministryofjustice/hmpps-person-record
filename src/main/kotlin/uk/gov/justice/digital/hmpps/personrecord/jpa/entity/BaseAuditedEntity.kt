@@ -11,6 +11,8 @@ import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.LocalDateTime
 
+const val PERSON_RECORD_SERVICE = "PERSON-RECORD-SERVICE"
+
 @EntityListeners(AuditingEntityListener::class)
 @MappedSuperclass
 open class BaseAuditedEntity {

@@ -18,4 +18,16 @@ data class PersonSearchRequest(
   val surname: String? = null,
   @Schema(description = "The person's date of birth", example = "1980-01-21")
   val dateOfBirth: LocalDate? = null,
-)
+) {
+  companion object {
+    fun from(person: Person): PersonSearchRequest {
+      return PersonSearchRequest(
+        pncNumber = person.otherIdentifiers?.pncNumber,
+        crn = person.otherIdentifiers?.crn,
+        forenameOne = person.givenName,
+        surname = person.familyName,
+        dateOfBirth = person.dateOfBirth,
+      )
+    }
+  }
+}

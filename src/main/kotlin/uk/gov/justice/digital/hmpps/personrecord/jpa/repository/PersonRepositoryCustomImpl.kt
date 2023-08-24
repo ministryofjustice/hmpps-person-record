@@ -12,7 +12,6 @@ class PersonRepositoryCustomImpl : PersonRepositoryCustom {
 
   @PersistenceContext
   lateinit var entityManager: EntityManager
-
   override fun searchByRequestParameters(personSearchRequest: PersonSearchRequest): List<PersonEntity> {
     val searchQueryBuilder = StringBuilder()
     searchQueryBuilder.append("SELECT DISTINCT(p.*) from person p ")
