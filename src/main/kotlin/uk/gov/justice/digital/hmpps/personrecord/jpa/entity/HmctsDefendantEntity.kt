@@ -93,14 +93,14 @@ class HmctsDefendantEntity(
     fun from(person: Person): HmctsDefendantEntity {
       return person.defendantId?.let {
         val hmctsDefendantEntity = HmctsDefendantEntity(
-          forenameOne = person.familyName,
+          title = person.title,
+          forenameOne = person.givenName,
           surname = person.familyName,
           dateOfBirth = person.dateOfBirth,
           defendantId = it,
           pncNumber = person.otherIdentifiers?.pncNumber,
           crn = person.otherIdentifiers?.crn,
           cro = person.otherIdentifiers?.cro,
-          title = person.title,
           sex = person.sex,
           nationalityOne = person.nationalityOne,
           nationalityTwo = person.nationalityTwo,
