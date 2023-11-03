@@ -1,6 +1,8 @@
 generic-service:
   nameOverride: hmpps-person-record
 
+  serviceAccountName: "person-record-service"
+
   replicaCount: 4
 
   image:
