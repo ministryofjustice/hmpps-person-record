@@ -50,7 +50,7 @@ abstract class IntegrationTestBase {
      the DB container after execution of first test
      */
     @JvmStatic
-    val postgresSQLContainer = PostgreSQLContainer<Nothing>("postgres:latest")
+    val postgresSQLContainer = PostgreSQLContainer("postgres:latest")
 
     @BeforeAll
     @JvmStatic
