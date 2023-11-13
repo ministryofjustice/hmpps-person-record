@@ -49,11 +49,6 @@ spring:
     url: jdbc:postgresql://${database.endpoint:localhost:5432}/${database.name:postgres}?currentSchema=${database.schema.name}&user=${database.username:root}&password=${database.password:dev}&stringtype=unspecified
 
   jpa:
-    properties:
-      hibernate:
-        hbm2ddl:
-          auto: update
-          schema_filter_provider: "uk.gov.justice.digital.hmpps.personrecord.jpa.filter.AuditTableSchemaFilterProvider"
     open-in-view: false
 
   flyway:

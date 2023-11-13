@@ -1,6 +1,7 @@
 server:
   shutdown: immediate
 
+
 management.endpoint:
   health.cache.time-to-live: 0
   info.cache.time-to-live: 0
@@ -15,3 +16,9 @@ nomis-oauth:
 offender-search:
   base-url: http://localhost:8090
 
+spring:
+  jpa:
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: update
