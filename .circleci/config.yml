@@ -19,6 +19,9 @@ executors:
           POSTGRES_DB: personrecordservicetest
           POSTGRES_PASSWORD: dev
     working_directory: ~/app
+  machine_executor:
+    machine:
+      image: ubuntu-2204:2022.04.2
 
 parameters:
   alerts-slack-channel:
