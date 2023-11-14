@@ -19,6 +19,9 @@ executors:
           POSTGRES_DB: personrecordservicetest
           POSTGRES_PASSWORD: dev
     working_directory: ~/app
+  machine_executor:
+    machine:
+      image: ubuntu-2204:2023.10.1
 
 parameters:
   alerts-slack-channel:
@@ -30,7 +33,7 @@ parameters:
 
 jobs:
   validate:
-    executor: builder
+    executor: machine_executor
     steps:
       - checkout
       - restore_cache:
