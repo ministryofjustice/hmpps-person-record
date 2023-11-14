@@ -29,8 +29,7 @@ class SecurityConfiguration {
             "/swagger-ui/**",
             "/v3/api-docs/**",
           ).permitAll()
-//          .anyRequest().hasAuthority("ROLE_VIEW_PRISONER_DATA") TODO ensure appropriate role is added back in at some point
-          .anyRequest().permitAll() // TODO delete this line when role is added in above
+          .anyRequest().hasAuthority("ROLE_VIEW_PERSON_DATA")
       }
       .oauth2ResourceServer { oauth2ResourceServer ->
         oauth2ResourceServer

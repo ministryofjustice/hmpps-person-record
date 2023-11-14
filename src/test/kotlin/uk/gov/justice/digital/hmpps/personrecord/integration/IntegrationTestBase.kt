@@ -50,21 +50,23 @@ abstract class IntegrationTestBase {
      the DB container after execution of first test
      */
     @JvmStatic
-    val postgreSQLContainer = PostgreSQLContainer<Nothing>("postgres:latest")
+    val postgresSQLContainer = PostgreSQLContainer("postgres:latest")
 
     @BeforeAll
     @JvmStatic
     fun beforeAll() {
-      postgreSQLContainer.start()
+      postgresSQLContainer.start()
     }
 
     @DynamicPropertySource
     @JvmStatic
     fun registerDynamicProperties(registry: DynamicPropertyRegistry) {
-      registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl)
-      registry.add("spring.datasource.username", postgreSQLContainer::getUsername)
-      registry.add("spring.datasource.password", postgreSQLContainer::getPassword)
+      registry.add("spring.datasource.url", postgresSQLContainer::getJdbcUrl)
+      registry.add("spring.datasource.username", postgresSQLContainer::getUsername)
+      registry.add("spring.datasource.password", postgresSQLContainer::getPassword)
     }
+
+    const val VIEW_PERSON_DATA_ROLE = "ROLE_VIEW_PERSON_DATA"
   }
 
   internal fun setAuthorisation(user: String = "hmpps-person-record", roles: List<String> = listOf()): HttpHeaders {

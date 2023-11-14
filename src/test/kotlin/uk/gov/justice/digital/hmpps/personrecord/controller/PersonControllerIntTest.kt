@@ -71,7 +71,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       post("/person")
         .contentType(MediaType.APPLICATION_JSON)
         .content(personJson)
-        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+        .headers(setAuthorisation(roles = listOf(VIEW_PERSON_DATA_ROLE))),
     )
       .andExpect(status().isBadRequest)
   }
@@ -86,7 +86,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       post("/person")
         .contentType(MediaType.APPLICATION_JSON)
         .content(personJson)
-        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+        .headers(setAuthorisation(roles = listOf(VIEW_PERSON_DATA_ROLE))),
     )
       .andReturn()
 
@@ -104,7 +104,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       post("/person")
         .contentType(MediaType.APPLICATION_JSON)
         .content(personJson)
-        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+        .headers(setAuthorisation(roles = listOf(VIEW_PERSON_DATA_ROLE))),
     )
       .andExpect(status().isCreated)
       .andReturn()
@@ -135,7 +135,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       post("/person")
         .contentType(MediaType.APPLICATION_JSON)
         .content(personJson)
-        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+        .headers(setAuthorisation(roles = listOf(VIEW_PERSON_DATA_ROLE))),
     )
       .andExpect(status().isCreated)
       .andReturn()
@@ -161,7 +161,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
     // When
     mockMvc.perform(
       get("/person/$badUuid")
-        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+        .headers(setAuthorisation(roles = listOf(VIEW_PERSON_DATA_ROLE))),
     )
       .andExpect(status().isBadRequest)
   }
@@ -224,7 +224,8 @@ class PersonControllerIntTest() : IntegrationTestBase() {
     mockMvc.perform(
       post("/person")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(personJson),
+        .content(personJson)
+        .headers(setAuthorisation(roles = listOf(VIEW_PERSON_DATA_ROLE))),
     )
       .andExpect(status().isConflict)
   }
@@ -253,7 +254,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
     // When
     mockMvc.perform(
       get("/person/$unknownPersonId")
-        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+        .headers(setAuthorisation(roles = listOf(VIEW_PERSON_DATA_ROLE))),
     )
       .andExpect(status().isNotFound)
   }
@@ -266,7 +267,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
     // When
     val result = mockMvc.perform(
       get("/person/$uuid")
-        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+        .headers(setAuthorisation(roles = listOf(VIEW_PERSON_DATA_ROLE))),
     )
       .andExpect(status().is2xxSuccessful)
       .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -295,7 +296,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       post("/person/search")
         .contentType(MediaType.APPLICATION_JSON)
         .content(searchRequestJson)
-        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+        .headers(setAuthorisation(roles = listOf(VIEW_PERSON_DATA_ROLE))),
     )
       .andExpect(status().isOk)
       .andReturn()
@@ -317,7 +318,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       post("/person/search")
         .contentType(MediaType.APPLICATION_JSON)
         .content(searchRequestJson)
-        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+        .headers(setAuthorisation(roles = listOf(VIEW_PERSON_DATA_ROLE))),
     )
       .andExpect(status().isNotFound)
   }
@@ -333,7 +334,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       post("/person/search")
         .contentType(MediaType.APPLICATION_JSON)
         .content(searchRequestJson)
-        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+        .headers(setAuthorisation(roles = listOf(VIEW_PERSON_DATA_ROLE))),
     )
       .andExpect(status().isOk)
       .andReturn()
@@ -357,7 +358,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       post("/person/search")
         .contentType(MediaType.APPLICATION_JSON)
         .content(searchRequestJson)
-        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+        .headers(setAuthorisation(roles = listOf(VIEW_PERSON_DATA_ROLE))),
     )
       .andExpect(status().isOk)
       .andReturn()
@@ -378,7 +379,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       post("/person/search")
         .contentType(MediaType.APPLICATION_JSON)
         .content(personSearchRequest)
-        .headers(setAuthorisation(roles = listOf("ROLE_VIEW_PRISONER_DATA"))),
+        .headers(setAuthorisation(roles = listOf(VIEW_PERSON_DATA_ROLE))),
     )
       .andExpect(status().isBadRequest)
   }

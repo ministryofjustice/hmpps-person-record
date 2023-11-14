@@ -1,8 +1,8 @@
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.8.0"
-  kotlin("plugin.spring") version "1.9.0"
-  kotlin("jvm") version "1.9.0"
-  kotlin("plugin.jpa") version "1.9.0"
+  kotlin("plugin.spring") version "1.9.20"
+  kotlin("jvm") version "1.9.20"
+  kotlin("plugin.jpa") version "1.9.20"
 }
 
 configurations {
@@ -24,7 +24,7 @@ dependencies {
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.0.4")
   implementation("org.springframework.cloud:spring-cloud-dependencies:2022.0.4")
 
-  runtimeOnly("org.postgresql:postgresql:42.5.4")
+  runtimeOnly("org.postgresql:postgresql:42.6.0")
   runtimeOnly("org.flywaydb:flyway-core:9.22.3")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -32,7 +32,7 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.testcontainers:junit-jupiter:1.19.1")
-  testImplementation("org.testcontainers:postgresql:1.19.1")
+  testImplementation("org.testcontainers:postgresql:1.17.6")
   testImplementation("org.wiremock:wiremock:3.2.0")
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.3")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.3")
@@ -41,7 +41,7 @@ dependencies {
 }
 
 java {
-  toolchain.languageVersion.set(JavaLanguageVersion.of(19))
+  toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
 repositories {
@@ -51,7 +51,7 @@ repositories {
 tasks {
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
-      jvmTarget = "19"
+      jvmTarget = "21"
     }
   }
 }
