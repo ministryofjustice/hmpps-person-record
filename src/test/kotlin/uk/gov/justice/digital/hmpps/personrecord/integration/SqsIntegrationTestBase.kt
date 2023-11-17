@@ -9,7 +9,6 @@ import org.springframework.test.context.DynamicPropertySource
 import uk.gov.justice.digital.hmpps.personrecord.integration.LocalStackContainer.setLocalStackProperties
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 abstract class SqsIntegrationTestBase {
@@ -17,11 +16,11 @@ abstract class SqsIntegrationTestBase {
   @Autowired
   private lateinit var hmppsQueueService: HmppsQueueService
 
-  //TODO add queues and topics
+  // TODO add queues and topics
 
   @BeforeEach
   fun cleanQueue() {
-    //TODO purge queues
+    // TODO purge queues
   }
 
   companion object {

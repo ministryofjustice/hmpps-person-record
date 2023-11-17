@@ -25,7 +25,6 @@ dependencies {
   implementation("org.springframework.cloud:spring-cloud-dependencies:2022.0.4")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.1.0")
 
-
   runtimeOnly("org.postgresql:postgresql:42.6.0")
   runtimeOnly("org.flywaydb:flyway-core:9.22.3")
 
