@@ -13,6 +13,7 @@ Ensure all docker containers are up and running:
 
 Which should start the following containers: (verify with `$ docker ps` if necessary)
 - postgres
+- localstack-hmpps-person-record
 
 
 Start the service ensuring the local spring boot profile is set:

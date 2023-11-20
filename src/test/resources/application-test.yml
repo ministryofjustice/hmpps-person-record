@@ -22,3 +22,7 @@ spring:
       hibernate:
         hbm2ddl:
           auto: update
+
+hmpps.sqs:
+  enabled: true
+  provider: localstack

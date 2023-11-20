@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
-import uk.gov.justice.digital.hmpps.personrecord.integration.LocalStackContainer.setLocalStackProperties
+import uk.gov.justice.digital.hmpps.personrecord.integration.LocalStackHelper.setLocalStackProperties
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -24,7 +24,7 @@ abstract class SqsIntegrationTestBase {
   }
 
   companion object {
-    private val localStackContainer = LocalStackContainer.instance
+    private val localStackContainer = LocalStackHelper.instance
 
     @JvmStatic
     @DynamicPropertySource

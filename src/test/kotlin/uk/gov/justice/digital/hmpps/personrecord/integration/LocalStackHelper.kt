@@ -9,7 +9,7 @@ import org.testcontainers.utility.DockerImageName
 import java.io.IOException
 import java.net.ServerSocket
 
-object LocalStackContainer {
+object LocalStackHelper {
   val log = LoggerFactory.getLogger(this::class.java)
   val instance by lazy { startLocalstackIfNotRunning() }
 
