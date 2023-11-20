@@ -20,7 +20,6 @@ import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.junit.jupiter.Testcontainers
 import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
-import uk.gov.justice.hmpps.sqs.MissingQueueException
 import java.time.Duration
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
