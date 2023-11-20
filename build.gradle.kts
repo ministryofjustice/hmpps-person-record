@@ -23,6 +23,8 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.0.4")
   implementation("org.springframework.cloud:spring-cloud-dependencies:2022.0.4")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-autoconfigure:2.1.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.1.1")
 
   runtimeOnly("org.postgresql:postgresql:42.6.0")
   runtimeOnly("org.flywaydb:flyway-core:9.22.3")
@@ -33,11 +35,13 @@ dependencies {
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.testcontainers:junit-jupiter:1.19.1")
   testImplementation("org.testcontainers:postgresql:1.17.6")
+  testImplementation("org.testcontainers:localstack:1.19.2")
   testImplementation("org.wiremock:wiremock:3.2.0")
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.3")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.3")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.3")
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.20")
+  testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
 }
 
 java {
