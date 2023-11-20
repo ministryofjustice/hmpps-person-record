@@ -26,3 +26,10 @@ spring:
 hmpps.sqs:
   enabled: true
   provider: localstack
+  queues:
+    testqueue:
+      queueName: test_queue
+      subscribeTopicId: testtopic
+  topics:
+    testtopic:
+      arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}

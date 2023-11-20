@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.integration
 
 import org.slf4j.LoggerFactory
-import org.springframework.test.context.DynamicPropertyRegistry
 import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.Wait
@@ -12,11 +11,6 @@ import java.net.ServerSocket
 object LocalStackHelper {
   val log = LoggerFactory.getLogger(this::class.java)
   val instance by lazy { startLocalstackIfNotRunning() }
-
-  fun setLocalStackProperties(localStackContainer: LocalStackContainer, registry: DynamicPropertyRegistry) {
-    registry.add("hmpps.sqs.localstackUrl") { localStackContainer.getEndpointOverride(LocalStackContainer.Service.SNS) }
-    registry.add("hmpps.sqs.region") { localStackContainer.region }
-  }
 
   private fun startLocalstackIfNotRunning(): LocalStackContainer? {
     if (localstackIsRunning()) return null

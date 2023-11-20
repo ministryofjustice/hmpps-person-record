@@ -16,8 +16,11 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.servlet.MockMvc
 import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.junit.jupiter.Testcontainers
 import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
+import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.MissingQueueException
 import java.time.Duration
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -38,10 +41,16 @@ abstract class IntegrationTestBase {
   @Autowired
   internal lateinit var jwtHelper: JwtAuthHelper
 
+  @Autowired
+  private lateinit var hmppsQueueService: HmppsQueueService
+
   @RegisterExtension
   var wireMockExtension = WireMockExtension.newInstance()
     .options(wireMockConfig().port(8090))
     .build()
+
+  protected val testTopic by lazy { hmppsQueueService.findByTopicId("testtopic") ?: throw MissingQueueException("topic not found") }
+  protected val testQueue by lazy { hmppsQueueService.findByQueueId("testqueue") ?: throw MissingQueueException("queue not found") }
 
   companion object {
 
@@ -51,6 +60,9 @@ abstract class IntegrationTestBase {
      */
     @JvmStatic
     val postgresSQLContainer = PostgreSQLContainer("postgres:latest")
+
+    @JvmStatic
+    val localStackContainer = LocalStackHelper.instance
 
     @BeforeAll
     @JvmStatic
@@ -64,6 +76,8 @@ abstract class IntegrationTestBase {
       registry.add("spring.datasource.url", postgresSQLContainer::getJdbcUrl)
       registry.add("spring.datasource.username", postgresSQLContainer::getUsername)
       registry.add("spring.datasource.password", postgresSQLContainer::getPassword)
+      registry.add("hmpps.sqs.localstackUrl") { localStackContainer?.getEndpointOverride(LocalStackContainer.Service.SNS) }
+      registry.add("hmpps.sqs.region") { localStackContainer?.region }
     }
 
     const val VIEW_PERSON_DATA_ROLE = "ROLE_VIEW_PERSON_DATA"
