@@ -42,15 +42,12 @@ abstract class IntegrationTestBase {
   internal lateinit var jwtHelper: JwtAuthHelper
 
   @Autowired
-  private lateinit var hmppsQueueService: HmppsQueueService
+  lateinit var hmppsQueueService: HmppsQueueService
 
   @RegisterExtension
   var wireMockExtension = WireMockExtension.newInstance()
     .options(wireMockConfig().port(8090))
     .build()
-
-  protected val testTopic by lazy { hmppsQueueService.findByTopicId("testtopic") ?: throw MissingQueueException("topic not found") }
-  protected val testQueue by lazy { hmppsQueueService.findByQueueId("testqueue") ?: throw MissingQueueException("queue not found") }
 
   companion object {
 
