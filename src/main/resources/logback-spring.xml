@@ -6,41 +6,38 @@
 
     <springProperty scope="context" name="app" source="spring.application.name"/>
 
-
-    <springProfile name="dev || stdout">
-        <appender name="consoleAppender" class="ch.qos.logback.core.helpers.NOPAppender"/>
-        <appender name="logAppender" class="ch.qos.logback.core.ConsoleAppender">
-            <layout class="ch.qos.logback.classic.PatternLayout">
-                <Pattern>${LOG_PATTERN}</Pattern>
-            </layout>
-        </appender>
+    <springProfile name="!prod">
+        <appender name="aiAppender" class="ch.qos.logback.core.helpers.NOPAppender"/>
     </springProfile>
 
-    <springProfile name="!(dev || stdout)">
+    <springProfile name="prod">
+        <appender name="aiAppender" class="com.microsoft.applicationinsights.logback.ApplicationInsightsAppender"/>
+    </springProfile>
+
+    <springProfile name="!log-json">
         <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
             <layout class="ch.qos.logback.classic.PatternLayout">
                 <Pattern>${LOG_PATTERN}</Pattern>
             </layout>
         </appender>
-        <appender name="logAppender" class="com.microsoft.applicationinsights.logback.ApplicationInsightsAppender"/>
+    </springProfile>
+
+    <springProfile name="log-json">
+        <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeCallerInfo>true</includeCallerInfo>
+            </encoder>
+        </appender>
     </springProfile>
 
     <logger name="uk.gov.justice.digital.hmpps.personrecord" additivity="false" level="DEBUG">
-        <appender-ref ref="logAppender"/>
         <appender-ref ref="consoleAppender"/>
+        <appender-ref ref="aiAppender"/>
     </logger>
 
-    <logger name="uk.gov.justice.digital.hmpps" additivity="false" level="DEBUG">
-        <appender-ref ref="logAppender"/>
+    <root level="INFO">
         <appender-ref ref="consoleAppender"/>
-    </logger>
-
-    <logger name="com.microsoft.applicationinsights" additivity="false" level="INFO">
-        <appender-ref ref="logAppender"/>
-    </logger>
-
-    <root level="DEBUG">
-        <appender-ref ref="logAppender"/>
+        <appender-ref ref="aiAppender"/>
     </root>
 
 </configuration>
