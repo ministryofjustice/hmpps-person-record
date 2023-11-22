@@ -15,7 +15,7 @@ class PersonRepositoryCustomImpl : PersonRepositoryCustom {
   override fun searchByRequestParameters(personSearchRequest: PersonSearchRequest): List<PersonEntity> {
     val searchQueryBuilder = StringBuilder()
     searchQueryBuilder.append("SELECT DISTINCT(p.*) from person p ")
-    searchQueryBuilder.append("INNER JOIN hmcts_defendant d on d.fk_person_id = p.id ")
+    searchQueryBuilder.append("INNER JOIN defendant d on d.fk_person_id = p.id ")
     searchQueryBuilder.append("WHERE d.surname ILIKE :surname ")
     personSearchRequest.forenameOne?.let { searchQueryBuilder.append("AND d.forename_one ILIKE :forenameOne ") }
     personSearchRequest.forenameTwo?.let { searchQueryBuilder.append("AND d.forename_two ILIKE :forenameTwo ") }

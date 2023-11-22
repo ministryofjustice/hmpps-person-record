@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import java.time.LocalDate
 
 @Entity
-@Table(name = "hmcts_defendant")
+@Table(name = "defendant")
 @Audited
 class HmctsDefendantEntity(
 
