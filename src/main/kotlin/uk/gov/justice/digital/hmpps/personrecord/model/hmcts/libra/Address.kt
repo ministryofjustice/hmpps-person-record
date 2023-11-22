@@ -1,9 +1,9 @@
-package uk.gov.justice.digital.hmpps.personrecord.model.libra
+package uk.gov.justice.digital.hmpps.personrecord.model.hmcts.libra
 
 import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class LibraAddress(
+data class Address(
   val line1: String? = null,
   val line2: String? = null,
   val line3: String? = null,

@@ -1,10 +1,10 @@
-package uk.gov.justice.digital.hmpps.personrecord.model.commonplatform
+package uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import jakarta.validation.constraints.NotBlank
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class CPAddress(
+data class Address(
   val address1: @NotBlank String,
   val address2: String? = null,
   val address3: String? = null,
