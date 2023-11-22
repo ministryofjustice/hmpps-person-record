@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.HmctsDefendantEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import java.time.LocalDate
 import java.util.*
@@ -27,7 +27,7 @@ class HmctsDefendantRepositoryIntTest : IntegrationTestBase() {
     personEntity.createdBy = "test"
     personEntity.lastUpdatedBy = "test"
 
-    val defendantEntity = HmctsDefendantEntity(
+    val defendantEntity = DefendantEntity(
       crn = "E363876",
       forenameOne = "Guinevere",
       surname = "Atherton",
@@ -56,7 +56,7 @@ class HmctsDefendantRepositoryIntTest : IntegrationTestBase() {
 
     val existingPerson = personRepository.save(personEntity)
 
-    val defendantEntity = HmctsDefendantEntity(
+    val defendantEntity = DefendantEntity(
       forenameOne = "Rodney",
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
@@ -67,7 +67,7 @@ class HmctsDefendantRepositoryIntTest : IntegrationTestBase() {
     defendantEntity.createdBy = "test"
     defendantEntity.lastUpdatedBy = "test"
 
-    existingPerson.hmctsDefendants = mutableListOf(defendantEntity)
+    existingPerson.defendants = mutableListOf(defendantEntity)
 
     personRepository.save(existingPerson)
 
@@ -86,7 +86,7 @@ class HmctsDefendantRepositoryIntTest : IntegrationTestBase() {
 
     var existingPerson = personRepository.save(personEntity)
 
-    val defendantEntity = HmctsDefendantEntity(
+    val defendantEntity = DefendantEntity(
       forenameOne = "Rodney",
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
@@ -97,7 +97,7 @@ class HmctsDefendantRepositoryIntTest : IntegrationTestBase() {
     defendantEntity.createdBy = "test"
     defendantEntity.lastUpdatedBy = "test"
 
-    existingPerson.hmctsDefendants = mutableListOf(defendantEntity)
+    existingPerson.defendants = mutableListOf(defendantEntity)
 
     personRepository.save(existingPerson)
 
@@ -107,7 +107,7 @@ class HmctsDefendantRepositoryIntTest : IntegrationTestBase() {
 
     existingPerson = defendantEntity1?.person!!
 
-    val defendantEntity2 = HmctsDefendantEntity(
+    val defendantEntity2 = DefendantEntity(
       forenameOne = "Rodney",
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
@@ -118,11 +118,11 @@ class HmctsDefendantRepositoryIntTest : IntegrationTestBase() {
     defendantEntity2.createdBy = "test"
     defendantEntity2.lastUpdatedBy = "test"
 
-    existingPerson.hmctsDefendants.add(defendantEntity2)
+    existingPerson.defendants.add(defendantEntity2)
 
     val personEntityUpdated = personRepository.save(existingPerson)
 
-    assertEquals(2, personEntityUpdated.hmctsDefendants.size)
+    assertEquals(2, personEntityUpdated.defendants.size)
     assertNotNull(hmctsDefendantRepository.findByDefendantId("e59d442a-11c6-4fba-ace1-6d899ae5b9fa"))
     assertNotNull(hmctsDefendantRepository.findByDefendantId("b59d442a-11c6-4fba-ace1-6d899ae5b9za"))
   }

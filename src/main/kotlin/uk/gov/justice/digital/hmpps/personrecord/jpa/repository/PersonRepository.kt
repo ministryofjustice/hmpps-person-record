@@ -8,5 +8,5 @@ import java.util.*
 @Repository
 interface PersonRepository : JpaRepository<PersonEntity, Long>, PersonRepositoryCustom {
   fun findByPersonId(uuid: UUID): PersonEntity?
-  fun findByDeliusOffendersCrn(crn: String): PersonEntity?
+  fun findByOffendersCrn(crn: String): PersonEntity?
 }

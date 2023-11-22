@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.controller
 import com.fasterxml.jackson.core.type.TypeReference
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
@@ -146,7 +145,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
 
     person.personId?.let {
       val personEntity = personRepository.findByPersonId(it)
-      val offender = personEntity?.deliusOffenders?.get(0)
+      val offender = personEntity?.offenders?.get(0)
       if (offender != null) {
         assertEquals("CRN404", offender.crn)
       }
@@ -167,7 +166,6 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   }
 
   @Test
-  @Disabled("Enable when the auth is turned on")
   fun `should return HTTP Unauthorised when no role is provided to get person by id`() {
     // Given
     val uuid = "eed4a9a4-d853-11ed-afa1-0242ac120002"
@@ -178,7 +176,6 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   }
 
   @Test
-  @Disabled("Enable when the auth is turned on")
   fun `should return HTTP forbidden for an unauthorised role to get person by id`() {
     // Given
     val uuid = "eed4a9a4-d853-11ed-afa1-0242ac120002"
@@ -192,7 +189,6 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   }
 
   @Test
-  @Disabled("Enable when the auth is turned on")
   fun `should return HTTP Unauthorised when no role is provided to create person`() {
     // Given
     val personJson = objectMapper.writeValueAsString(minimumPerson)
@@ -231,7 +227,6 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   }
 
   @Test
-  @Disabled("Enable when the auth is turned on")
   fun `should return HTTP forbidden for an unauthorised role to to create person`() {
     // Given
     val personJson = objectMapper.writeValueAsString(minimumPerson)

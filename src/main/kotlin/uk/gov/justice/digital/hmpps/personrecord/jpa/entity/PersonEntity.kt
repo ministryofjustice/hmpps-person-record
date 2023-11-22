@@ -24,10 +24,13 @@ class PersonEntity(
   val personId: UUID? = null,
 
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
-  var deliusOffenders: MutableList<DeliusOffenderEntity> = mutableListOf(),
+  var offenders: MutableList<OffenderEntity> = mutableListOf(),
 
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
-  var hmctsDefendants: MutableList<HmctsDefendantEntity> = mutableListOf(),
+  var defendants: MutableList<DefendantEntity> = mutableListOf(),
+
+  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+  var prisoners: MutableList<PrisonerEntity> = mutableListOf(),
 
 ) : BaseAuditedEntity() {
   companion object {

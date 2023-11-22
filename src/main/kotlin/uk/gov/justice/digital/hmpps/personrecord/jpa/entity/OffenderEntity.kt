@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.Person
 @Entity
 @Table(name = "offender")
 @Audited
-class DeliusOffenderEntity(
+class OffenderEntity(
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,26 +32,27 @@ class DeliusOffenderEntity(
     nullable = false,
   )
   var person: PersonEntity? = null,
+
 ) : BaseAuditedEntity() {
   companion object {
-    fun from(person: Person): DeliusOffenderEntity {
+    fun from(person: Person): OffenderEntity {
       return person.otherIdentifiers?.crn?.let {
-        val defendantEntity = DeliusOffenderEntity(
+        val offenderEntity = OffenderEntity(
           crn = it,
         )
-        defendantEntity.createdBy = PERSON_RECORD_SERVICE
-        defendantEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
-        return defendantEntity
+        offenderEntity.createdBy = PERSON_RECORD_SERVICE
+        offenderEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
+        return offenderEntity
       } ?: throw java.lang.IllegalArgumentException("Missing CRN")
     }
 
-    fun from(offenderDetail: OffenderDetail): DeliusOffenderEntity {
-      val defendantEntity = DeliusOffenderEntity(
+    fun from(offenderDetail: OffenderDetail): OffenderEntity {
+      val offenderEntity = OffenderEntity(
         crn = offenderDetail.otherIds.crn,
       )
-      defendantEntity.createdBy = PERSON_RECORD_SERVICE
-      defendantEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
-      return defendantEntity
+      offenderEntity.createdBy = PERSON_RECORD_SERVICE
+      offenderEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
+      return offenderEntity
     }
   }
 }
