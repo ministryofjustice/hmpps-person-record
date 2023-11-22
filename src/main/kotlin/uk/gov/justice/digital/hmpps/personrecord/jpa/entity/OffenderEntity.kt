@@ -12,6 +12,7 @@ import jakarta.persistence.Table
 import org.hibernate.envers.Audited
 import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
+import java.time.LocalDate
 
 @Entity
 @Table(name = "offender")
@@ -25,6 +26,21 @@ class OffenderEntity(
   @Column(name = "crn")
   val crn: String,
 
+  @Column(name = "pnc_number")
+  val pncNumber: String,
+
+  @Column(name = "first_name")
+  val firstName: String? = null,
+
+  @Column(name = "last_name")
+  val lastName: String? = null,
+
+  @Column(name = "date_of_birth")
+  val dateOfBirth: LocalDate? = null,
+
+  @Column(name = "lao")
+  val isLimitedAccessOffender: Boolean? = null,
+
   @ManyToOne(optional = false, cascade = [CascadeType.ALL])
   @JoinColumn(
     name = "fk_person_id",
@@ -33,7 +49,7 @@ class OffenderEntity(
   )
   var person: PersonEntity? = null,
 
-) : BaseAuditedEntity() {
+  ) : BaseAuditedEntity() {
   companion object {
     fun from(person: Person): OffenderEntity {
       return person.otherIdentifiers?.crn?.let {
