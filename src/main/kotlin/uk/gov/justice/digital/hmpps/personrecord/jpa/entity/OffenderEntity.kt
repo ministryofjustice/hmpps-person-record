@@ -27,7 +27,7 @@ class OffenderEntity(
   val crn: String,
 
   @Column(name = "pnc_number")
-  val pncNumber: String,
+  val pncNumber: String? = null,
 
   @Column(name = "first_name")
   val firstName: String? = null,
@@ -49,7 +49,7 @@ class OffenderEntity(
   )
   var person: PersonEntity? = null,
 
-  ) : BaseAuditedEntity() {
+) : BaseAuditedEntity() {
   companion object {
     fun from(person: Person): OffenderEntity {
       return person.otherIdentifiers?.crn?.let {
