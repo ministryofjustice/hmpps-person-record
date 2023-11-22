@@ -9,5 +9,4 @@ data class LibraName(
   val forename2: String? = null,
   val forename3: String? = null,
   val surname: String? = null,
-
 )

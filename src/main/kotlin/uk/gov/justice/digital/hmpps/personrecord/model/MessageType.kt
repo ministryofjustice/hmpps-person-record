@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model
 enum class MessageType {
   LIBRA_COURT_CASE,
   COMMON_PLATFORM_HEARING,
-  UNKNOWN
+  UNKNOWN,
 }
 
 fun of(messageType: String): MessageType {
