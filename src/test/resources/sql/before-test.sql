@@ -8,7 +8,7 @@ VALUES
     (-3, 'ddf11834-e2a3-11ed-b5ea-0242ac120002',  'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0),
     (-4, 'e374e376-e2a3-11ed-b5ea-0242ac120002',  'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0);
 
-INSERT INTO hmcts_defendant
+INSERT INTO defendant
 (id, fk_person_id, pnc_number, crn, forename_one, forename_two, forename_three, surname, sex, date_of_birth, created_by, created_date, last_updated_by, last_updated_date, "version")
 VALUES
     (-1, -1,'PNC12345', 'CRN1234', 'Iestyn', 'Carey', null, 'Mahoney', 'Male', '1965-06-18', 'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0),
@@ -16,7 +16,7 @@ VALUES
     (-3, -2,'PNC12345', 'CRN1234', 'John', null, null, 'Mahoney', 'Male', '1965-06-18', 'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0),
     (-4, -3,'pnc33333', 'CRN1234', 'Bob', null, null, 'Mortimer', 'Male', '1965-06-18', 'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0);
 
-INSERT INTO delius_offender
+INSERT INTO offender
 (id, fk_person_id,  crn, created_by, created_date, last_updated_by, last_updated_date, "version")
 VALUES
     (-1, -2,'CRN1234', 'test', CURRENT_TIMESTAMP, 'test', CURRENT_TIMESTAMP, 0),

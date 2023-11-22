@@ -1,6 +1,7 @@
 server:
   shutdown: immediate
 
+
 management.endpoint:
   health.cache.time-to-live: 0
   info.cache.time-to-live: 0
@@ -15,3 +16,25 @@ nomis-oauth:
 offender-search:
   base-url: http://localhost:8090
 
+spring:
+  jpa:
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: update
+
+hmpps.sqs:
+  enabled: true
+  provider: localstack
+  queues:
+    cprcourtcaseeventsqueue:
+      queueName: cpr_court_case_events_queue
+      subscribeTopicId: courtcaseeventstopic
+    testqueue:
+      queueName: test_queue
+      subscribeTopicId: testtopic
+  topics:
+    courtcaseeventstopic:
+      arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
+    testtopic:
+      arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}

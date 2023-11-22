@@ -13,5 +13,21 @@ services:
     tmpfs:
       - /var/lib/postgresql
 
+  localstack-hmpps-person-record:
+    image: localstack/localstack:latest
+    networks:
+      - hmpps
+    container_name: localstack-hmpps-person-record
+    ports:
+      - "4566-4597:4566-4597"
+    environment:
+      - SERVICES=sns
+      - DEBUG=${DEBUG- }
+      - PERSISTENCE=1
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
 networks:
   hmpps:

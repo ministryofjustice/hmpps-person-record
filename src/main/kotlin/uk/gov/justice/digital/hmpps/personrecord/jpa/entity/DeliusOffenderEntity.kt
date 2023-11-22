@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 
 @Entity
-@Table(name = "delius_offender")
+@Table(name = "offender")
 @Audited
 class DeliusOffenderEntity(
 

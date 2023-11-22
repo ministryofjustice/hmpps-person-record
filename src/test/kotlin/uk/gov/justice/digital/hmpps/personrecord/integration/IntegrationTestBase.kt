@@ -16,8 +16,10 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.servlet.MockMvc
 import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.junit.jupiter.Testcontainers
 import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
+import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import java.time.Duration
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -38,6 +40,9 @@ abstract class IntegrationTestBase {
   @Autowired
   internal lateinit var jwtHelper: JwtAuthHelper
 
+  @Autowired
+  lateinit var hmppsQueueService: HmppsQueueService
+
   @RegisterExtension
   var wireMockExtension = WireMockExtension.newInstance()
     .options(wireMockConfig().port(8090))
@@ -50,21 +55,28 @@ abstract class IntegrationTestBase {
      the DB container after execution of first test
      */
     @JvmStatic
-    val postgreSQLContainer = PostgreSQLContainer<Nothing>("postgres:latest")
+    val postgresSQLContainer = PostgreSQLContainer("postgres:latest")
+
+    @JvmStatic
+    val localStackContainer = LocalStackHelper.instance
 
     @BeforeAll
     @JvmStatic
     fun beforeAll() {
-      postgreSQLContainer.start()
+      postgresSQLContainer.start()
     }
 
     @DynamicPropertySource
     @JvmStatic
     fun registerDynamicProperties(registry: DynamicPropertyRegistry) {
-      registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl)
-      registry.add("spring.datasource.username", postgreSQLContainer::getUsername)
-      registry.add("spring.datasource.password", postgreSQLContainer::getPassword)
+      registry.add("spring.datasource.url", postgresSQLContainer::getJdbcUrl)
+      registry.add("spring.datasource.username", postgresSQLContainer::getUsername)
+      registry.add("spring.datasource.password", postgresSQLContainer::getPassword)
+      registry.add("hmpps.sqs.localstackUrl") { localStackContainer?.getEndpointOverride(LocalStackContainer.Service.SNS) }
+      registry.add("hmpps.sqs.region") { localStackContainer?.region }
     }
+
+    const val VIEW_PERSON_DATA_ROLE = "ROLE_VIEW_PERSON_DATA"
   }
 
   internal fun setAuthorisation(user: String = "hmpps-person-record", roles: List<String> = listOf()): HttpHeaders {
