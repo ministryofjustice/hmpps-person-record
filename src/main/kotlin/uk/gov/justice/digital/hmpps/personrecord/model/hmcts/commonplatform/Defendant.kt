@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import jakarta.validation.Valid
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-class Defendant(
+data class Defendant(
   private val pncId: String? = null,
   private val croNumber: String? = null,
   @Valid
