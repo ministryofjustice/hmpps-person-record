@@ -34,8 +34,6 @@ generic-service:
       APPINSIGHTS_INSTRUMENTATIONKEY: "APPINSIGHTS_INSTRUMENTATIONKEY"
       OFFENDER_SEARCH_CLIENT_ID: "NOMIS_OAUTH_CLIENT_ID"
       OFFENDER_SEARCH_CLIENT_SECRET: "NOMIS_OAUTH_CLIENT_SECRET"
-    court-case-events-topic:
-        HMPPS_SQS_TOPICS_COURTCASEEVENTS_ARN: "topic_arn"
     sqs-cpr-court-case-events-secret:
         HMPPS_SQS_QUEUES_CPRCOURTCASEEVENTSQUEUE_QUEUE_NAME: "sqs_queue_name"
     sqs-cpr-court-case-events-dlq-secret:
