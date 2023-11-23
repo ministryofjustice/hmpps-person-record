@@ -12,11 +12,12 @@ import jakarta.persistence.Table
 import org.hibernate.envers.Audited
 import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
+import java.time.LocalDate
 
 @Entity
 @Table(name = "offender")
 @Audited
-class DeliusOffenderEntity(
+class OffenderEntity(
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +26,21 @@ class DeliusOffenderEntity(
   @Column(name = "crn")
   val crn: String,
 
+  @Column(name = "pnc_number")
+  val pncNumber: String? = null,
+
+  @Column(name = "first_name")
+  val firstName: String? = null,
+
+  @Column(name = "last_name")
+  val lastName: String? = null,
+
+  @Column(name = "date_of_birth")
+  val dateOfBirth: LocalDate? = null,
+
+  @Column(name = "lao")
+  val isLimitedAccessOffender: Boolean? = null,
+
   @ManyToOne(optional = false, cascade = [CascadeType.ALL])
   @JoinColumn(
     name = "fk_person_id",
@@ -32,26 +48,27 @@ class DeliusOffenderEntity(
     nullable = false,
   )
   var person: PersonEntity? = null,
+
 ) : BaseAuditedEntity() {
   companion object {
-    fun from(person: Person): DeliusOffenderEntity {
+    fun from(person: Person): OffenderEntity {
       return person.otherIdentifiers?.crn?.let {
-        val defendantEntity = DeliusOffenderEntity(
+        val offenderEntity = OffenderEntity(
           crn = it,
         )
-        defendantEntity.createdBy = PERSON_RECORD_SERVICE
-        defendantEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
-        return defendantEntity
+        offenderEntity.createdBy = PERSON_RECORD_SERVICE
+        offenderEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
+        return offenderEntity
       } ?: throw java.lang.IllegalArgumentException("Missing CRN")
     }
 
-    fun from(offenderDetail: OffenderDetail): DeliusOffenderEntity {
-      val defendantEntity = DeliusOffenderEntity(
+    fun from(offenderDetail: OffenderDetail): OffenderEntity {
+      val offenderEntity = OffenderEntity(
         crn = offenderDetail.otherIds.crn,
       )
-      defendantEntity.createdBy = PERSON_RECORD_SERVICE
-      defendantEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
-      return defendantEntity
+      offenderEntity.createdBy = PERSON_RECORD_SERVICE
+      offenderEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
+      return offenderEntity
     }
   }
 }

@@ -9,20 +9,19 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.ProbationOffenderSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.client.model.SearchDto
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DeliusOffenderEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.HmctsDefendantEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DeliusOffenderRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
-import java.lang.IllegalArgumentException
 import java.util.*
 
 @Service
 class PersonRecordService(
   val personRepository: PersonRepository,
-  val deliusOffenderRepository: DeliusOffenderRepository,
+  val offenderRepository: OffenderRepository,
   val offenderSearchClient: ProbationOffenderSearchClient,
 ) {
 
@@ -75,38 +74,38 @@ class PersonRecordService(
     return null
   }
   private fun doesOffenderExistInPersonRecord(crn: String): Boolean {
-    return deliusOffenderRepository.existsByCrn(crn)
+    return offenderRepository.existsByCrn(crn)
   }
   private fun createOffenderFromOffenderDetail(offenderDetail: OffenderDetail): PersonEntity {
     val newPersonEntity = PersonEntity.new()
     // create an offender
-    val newOffenderEntity = DeliusOffenderEntity.from(offenderDetail)
+    val newOffenderEntity = OffenderEntity.from(offenderDetail)
     newOffenderEntity.person = newPersonEntity
-    newPersonEntity.deliusOffenders.add(newOffenderEntity)
+    newPersonEntity.offenders.add(newOffenderEntity)
     return personRepository.save(newPersonEntity)
   }
 
   private fun createDefendantFromPerson(person: Person): PersonEntity {
     val newPersonEntity = PersonEntity.new()
 
-    val newDefendantEntity = HmctsDefendantEntity.from(person)
+    val newDefendantEntity = DefendantEntity.from(person)
     newDefendantEntity.person = newPersonEntity
-    newPersonEntity.hmctsDefendants.add(newDefendantEntity)
+    newPersonEntity.defendants.add(newDefendantEntity)
     return personRepository.save(newPersonEntity)
   }
 
   private fun addDefendantToPerson(personEntity: PersonEntity, person: Person): PersonEntity {
-    val newDefendantEntity = HmctsDefendantEntity.from(person)
+    val newDefendantEntity = DefendantEntity.from(person)
     newDefendantEntity.person = personEntity
-    personEntity.hmctsDefendants.add(newDefendantEntity)
+    personEntity.defendants.add(newDefendantEntity)
     return personRepository.save(personEntity)
   }
 
   private fun createOffenderFromPerson(person: Person): PersonEntity {
     val newPersonEntity = PersonEntity.new()
-    val newOffenderEntity = DeliusOffenderEntity.from(person)
+    val newOffenderEntity = OffenderEntity.from(person)
     newOffenderEntity.person = newPersonEntity
-    newPersonEntity.deliusOffenders.add(newOffenderEntity)
+    newPersonEntity.offenders.add(newOffenderEntity)
     return personRepository.save(newPersonEntity)
   }
 
@@ -116,7 +115,7 @@ class PersonRecordService(
     searchRequest.crn?.let {
       return listOf(
         Person.from(
-          personRepository.findByDeliusOffendersCrn(it) ?: throw EntityNotFoundException("Person record not found for crn: $it"),
+          personRepository.findByOffendersCrn(it) ?: throw EntityNotFoundException("Person record not found for crn: $it"),
         ),
       )
     }

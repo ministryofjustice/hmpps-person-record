@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import java.time.LocalDate
 
-internal class HmctsDefendantEntityTest {
+internal class DefendantEntityTest {
 
   @Test
   fun `should create defendant entity given person`() {
@@ -37,26 +37,26 @@ internal class HmctsDefendantEntityTest {
 
     )
     // when
-    val hmctsDefendantEntity = HmctsDefendantEntity.from(person)
+    val defendantEntity = DefendantEntity.from(person)
 
     // then
-    assertThat(hmctsDefendantEntity.title).isEqualTo("Mr")
-    assertThat(hmctsDefendantEntity.forenameOne).isEqualTo("givenName")
-    assertThat(hmctsDefendantEntity.surname).isEqualTo("familyName")
-    assertThat(hmctsDefendantEntity.defendantId).isEqualTo("defendantId")
-    assertThat(hmctsDefendantEntity.dateOfBirth).isEqualTo(dateOfBirth)
-    assertThat(hmctsDefendantEntity.crn).isEqualTo("crn1234")
-    assertThat(hmctsDefendantEntity.pncNumber).isEqualTo("pnc1234")
-    assertThat(hmctsDefendantEntity.cro).isEqualTo("cro1234")
-    assertThat(hmctsDefendantEntity.sex).isEqualTo("male")
-    assertThat(hmctsDefendantEntity.nationalityOne).isEqualTo("nationality1")
-    assertThat(hmctsDefendantEntity.nationalityTwo).isEqualTo("nationality2")
-    assertThat(hmctsDefendantEntity.addressLineOne).isEqualTo("addressLine1")
-    assertThat(hmctsDefendantEntity.addressLineTwo).isEqualTo("addressLine2")
-    assertThat(hmctsDefendantEntity.addressLineThree).isEqualTo("addressLine3")
-    assertThat(hmctsDefendantEntity.addressLineFour).isEqualTo("addressLine4")
-    assertThat(hmctsDefendantEntity.addressLineFive).isEqualTo("addressLine5")
-    assertThat(hmctsDefendantEntity.postcode).isEqualTo("postCode")
+    assertThat(defendantEntity.title).isEqualTo("Mr")
+    assertThat(defendantEntity.forenameOne).isEqualTo("givenName")
+    assertThat(defendantEntity.surname).isEqualTo("familyName")
+    assertThat(defendantEntity.defendantId).isEqualTo("defendantId")
+    assertThat(defendantEntity.dateOfBirth).isEqualTo(dateOfBirth)
+    assertThat(defendantEntity.crn).isEqualTo("crn1234")
+    assertThat(defendantEntity.pncNumber).isEqualTo("pnc1234")
+    assertThat(defendantEntity.cro).isEqualTo("cro1234")
+    assertThat(defendantEntity.sex).isEqualTo("male")
+    assertThat(defendantEntity.nationalityOne).isEqualTo("nationality1")
+    assertThat(defendantEntity.nationalityTwo).isEqualTo("nationality2")
+    assertThat(defendantEntity.addressLineOne).isEqualTo("addressLine1")
+    assertThat(defendantEntity.addressLineTwo).isEqualTo("addressLine2")
+    assertThat(defendantEntity.addressLineThree).isEqualTo("addressLine3")
+    assertThat(defendantEntity.addressLineFour).isEqualTo("addressLine4")
+    assertThat(defendantEntity.addressLineFive).isEqualTo("addressLine5")
+    assertThat(defendantEntity.postcode).isEqualTo("postCode")
   }
 
   @Test
@@ -86,7 +86,7 @@ internal class HmctsDefendantEntityTest {
     )
     // when
     val exception = assertThrows(ValidationException::class.java) {
-      HmctsDefendantEntity.from(person)
+      DefendantEntity.from(person)
     }
 
     // Then
