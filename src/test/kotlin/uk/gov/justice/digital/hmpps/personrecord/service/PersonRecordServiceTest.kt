@@ -16,8 +16,8 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.client.ProbationOffenderSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DeliusOffenderRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.HmctsDefendantRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
@@ -33,7 +33,7 @@ class PersonRecordServiceTest {
   lateinit var personRepository: PersonRepository
 
   @Mock
-  lateinit var deliusOffenderRepository: DeliusOffenderRepository
+  lateinit var offenderRepository: OffenderRepository
 
   @Mock
   lateinit var offenderSearchClient: ProbationOffenderSearchClient
@@ -164,14 +164,14 @@ class PersonRecordServiceTest {
     // Given
     val searchRequest = PersonSearchRequest(crn = "CRN1234")
 
-    whenever(personRepository.findByDeliusOffendersCrn(any()))
+    whenever(personRepository.findByOffendersCrn(any()))
       .thenReturn(personEntity)
 
     // When
     personRecordService.searchPersonRecords(searchRequest)
 
     // Then
-    verify(personRepository).findByDeliusOffendersCrn(eq("CRN1234"))
+    verify(personRepository).findByOffendersCrn(eq("CRN1234"))
     verify(personRepository, never()).searchByRequestParameters(any())
   }
 
@@ -179,7 +179,7 @@ class PersonRecordServiceTest {
   fun `should throw exception when person does not exist for supplied CRN`() {
     // Given
     val searchRequest = PersonSearchRequest(crn = "CRN1234")
-    whenever(personRepository.findByDeliusOffendersCrn(any()))
+    whenever(personRepository.findByOffendersCrn(any()))
       .thenThrow(EntityNotFoundException("Person record not found for CRN"))
 
     // When
@@ -222,7 +222,7 @@ class PersonRecordServiceTest {
     personRecordService.searchPersonRecords(searchRequest)
 
     // Then
-    verify(personRepository, never()).findByDeliusOffendersCrn(any())
+    verify(personRepository, never()).findByOffendersCrn(any())
     verify(personRepository).searchByRequestParameters(eq(searchRequest))
   }
 

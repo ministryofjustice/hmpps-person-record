@@ -130,6 +130,10 @@ CREATE TABLE IF NOT EXISTS offender_aud
     id bigint not null,
     crn TEXT,
     pnc_number TEXT,
+    lao BOOLEAN,
+    first_name TEXT,
+    last_name TEXT,
+    date_of_birth DATE,
     primary key (rev, id)
 );
 

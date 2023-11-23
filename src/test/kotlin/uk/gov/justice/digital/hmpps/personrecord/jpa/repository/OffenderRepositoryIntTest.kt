@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DeliusOffenderEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import java.util.*
 import kotlin.test.assertEquals
@@ -12,17 +12,17 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class DeliusOffenderRepositoryIntTest : IntegrationTestBase() {
+class OffenderRepositoryIntTest : IntegrationTestBase() {
 
   @Autowired
-  lateinit var deliusOffenderRepository: DeliusOffenderRepository
+  lateinit var offenderRepository: OffenderRepository
 
   @Autowired
   lateinit var personRepository: PersonRepository
 
   @BeforeEach
   fun setUp() {
-    deliusOffenderRepository.deleteAll()
+    offenderRepository.deleteAll()
   }
 
   @Test
@@ -34,18 +34,18 @@ class DeliusOffenderRepositoryIntTest : IntegrationTestBase() {
     personEntity.createdBy = "test"
     personEntity.lastUpdatedBy = "test"
 
-    val deliusOffenderEntity = DeliusOffenderEntity(
+    val offenderEntity = OffenderEntity(
       crn = "E363876",
       person = personEntity,
 
     )
 
-    deliusOffenderEntity.createdBy = "test"
-    deliusOffenderEntity.lastUpdatedBy = "test"
+    offenderEntity.createdBy = "test"
+    offenderEntity.lastUpdatedBy = "test"
 
-    deliusOffenderRepository.save(deliusOffenderEntity)
+    offenderRepository.save(offenderEntity)
 
-    val createdOffender = deliusOffenderRepository.findByCrn("E363876")
+    val createdOffender = offenderRepository.findByCrn("E363876")
 
     assertNotNull(createdOffender)
     assertNotNull(createdOffender.person)
@@ -64,19 +64,19 @@ class DeliusOffenderRepositoryIntTest : IntegrationTestBase() {
 
     val existingPerson = personRepository.save(personEntity)
 
-    val deliusOffenderEntity = DeliusOffenderEntity(
+    val offenderEntity = OffenderEntity(
       crn = "E363880",
       person = existingPerson,
     )
 
-    deliusOffenderEntity.createdBy = "test"
-    deliusOffenderEntity.lastUpdatedBy = "test"
+    offenderEntity.createdBy = "test"
+    offenderEntity.lastUpdatedBy = "test"
 
-    existingPerson.deliusOffenders = mutableListOf(deliusOffenderEntity)
+    existingPerson.offenders = mutableListOf(offenderEntity)
 
     personRepository.save(existingPerson)
 
-    assertNotNull(deliusOffenderRepository.findByCrn("E363880"))
+    assertNotNull(offenderRepository.findByCrn("E363880"))
   }
 
   @Test
@@ -91,39 +91,39 @@ class DeliusOffenderRepositoryIntTest : IntegrationTestBase() {
 
     var existingPerson = personRepository.save(personEntity)
 
-    val deliusOffenderEntity = DeliusOffenderEntity(
+    val offenderEntity = OffenderEntity(
       crn = "E363881",
       person = existingPerson,
 
     )
 
-    deliusOffenderEntity.createdBy = "test"
-    deliusOffenderEntity.lastUpdatedBy = "test"
+    offenderEntity.createdBy = "test"
+    offenderEntity.lastUpdatedBy = "test"
 
-    existingPerson.deliusOffenders = mutableListOf(deliusOffenderEntity)
+    existingPerson.offenders = mutableListOf(offenderEntity)
 
     personRepository.save(existingPerson)
 
-    val existingOffender = deliusOffenderRepository.findByCrn("E363881")
+    val existingOffender = offenderRepository.findByCrn("E363881")
 
     existingPerson = existingOffender?.person!!
 
-    val anotherDeliusOffenderEntity = DeliusOffenderEntity(
+    val anotherOffenderEntity = OffenderEntity(
       crn = "E363999",
       person = existingPerson,
 
     )
 
-    anotherDeliusOffenderEntity.createdBy = "test"
-    anotherDeliusOffenderEntity.lastUpdatedBy = "test"
+    anotherOffenderEntity.createdBy = "test"
+    anotherOffenderEntity.lastUpdatedBy = "test"
 
-    existingPerson.deliusOffenders.add(anotherDeliusOffenderEntity)
+    existingPerson.offenders.add(anotherOffenderEntity)
 
     val personEntityUpdated = personRepository.save(existingPerson)
 
-    assertEquals(2, personEntityUpdated.deliusOffenders.size)
-    assertNotNull(deliusOffenderRepository.findByCrn("E363999"))
-    assertNotNull(deliusOffenderRepository.findByCrn("E363881"))
+    assertEquals(2, personEntityUpdated.offenders.size)
+    assertNotNull(offenderRepository.findByCrn("E363999"))
+    assertNotNull(offenderRepository.findByCrn("E363881"))
   }
 
   @Test
@@ -135,22 +135,22 @@ class DeliusOffenderRepositoryIntTest : IntegrationTestBase() {
     personEntity.createdBy = "test"
     personEntity.lastUpdatedBy = "test"
 
-    val deliusOffenderEntity = DeliusOffenderEntity(
+    val offenderEntity = OffenderEntity(
       crn = "E363876",
       person = personEntity,
 
     )
 
-    deliusOffenderEntity.createdBy = "test"
-    deliusOffenderEntity.lastUpdatedBy = "test"
+    offenderEntity.createdBy = "test"
+    offenderEntity.lastUpdatedBy = "test"
 
-    deliusOffenderRepository.save(deliusOffenderEntity)
+    offenderRepository.save(offenderEntity)
 
-    assertTrue { deliusOffenderRepository.existsByCrn("E363876") }
+    assertTrue { offenderRepository.existsByCrn("E363876") }
   }
 
   @Test
   fun `should return false for an unknown crn`() {
-    assertFalse { deliusOffenderRepository.existsByCrn("ABCD") }
+    assertFalse { offenderRepository.existsByCrn("ABCD") }
   }
 }

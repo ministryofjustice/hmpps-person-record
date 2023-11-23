@@ -34,8 +34,8 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
 
     // Then
     assertThat(personEntity).isNotNull
-    assertThat(personEntity?.hmctsDefendants).hasSize(2)
-    val hmctsDefendantEntity = personEntity?.hmctsDefendants?.get(0)
+    assertThat(personEntity?.defendants).hasSize(2)
+    val hmctsDefendantEntity = personEntity?.defendants?.get(0)
     assertThat(hmctsDefendantEntity?.pncNumber).isEqualTo("PNC12345")
     assertThat(hmctsDefendantEntity?.crn).isEqualTo("CRN1234")
     assertThat(hmctsDefendantEntity?.forenameOne).isEqualTo("Iestyn")
@@ -66,8 +66,8 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
 
     // Then
     assertThat(personEntity).isNotNull
-    assertThat(personEntity?.deliusOffenders).hasSize(1)
-    assertThat(personEntity?.deliusOffenders?.get(0)?.crn).isEqualTo("CRN1234")
+    assertThat(personEntity?.offenders).hasSize(1)
+    assertThat(personEntity?.offenders?.get(0)?.crn).isEqualTo("CRN1234")
   }
 
   @Test
@@ -76,7 +76,7 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
     val crn = "CRN9999"
 
     // When
-    val personEntity = personRepository.findByDeliusOffendersCrn(crn)
+    val personEntity = personRepository.findByOffendersCrn(crn)
 
     // Then
     assertThat(personEntity).isNull()

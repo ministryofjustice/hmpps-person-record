@@ -17,7 +17,7 @@ import java.time.LocalDate
 @Entity
 @Table(name = "defendant")
 @Audited
-class HmctsDefendantEntity(
+class DefendantEntity(
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -90,9 +90,9 @@ class HmctsDefendantEntity(
 
 ) : BaseAuditedEntity() {
   companion object {
-    fun from(person: Person): HmctsDefendantEntity {
+    fun from(person: Person): DefendantEntity {
       return person.defendantId?.let {
-        val hmctsDefendantEntity = HmctsDefendantEntity(
+        val defendantEntity = DefendantEntity(
           title = person.title,
           forenameOne = person.givenName,
           surname = person.familyName,
@@ -111,9 +111,9 @@ class HmctsDefendantEntity(
           addressLineFive = person.addressLineFive,
           postcode = person.postcode,
         )
-        hmctsDefendantEntity.createdBy = PERSON_RECORD_SERVICE
-        hmctsDefendantEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
-        return hmctsDefendantEntity
+        defendantEntity.createdBy = PERSON_RECORD_SERVICE
+        defendantEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
+        return defendantEntity
       } ?: throw ValidationException("Missing defendant id")
     }
   }
