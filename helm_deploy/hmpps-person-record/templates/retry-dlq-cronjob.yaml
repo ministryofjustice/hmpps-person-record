@@ -1,9 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "app.fullname" . }}-queue-housekeeping
-  labels:
-    {{- include "app.labels" . | nindent 4 }}
+  name: {{ template "app.fullname" . }}-retry-dlq-cronjob
 spec:
   schedule: "*/10 * * * *"
   concurrencyPolicy: Forbid
@@ -12,8 +10,6 @@ spec:
   successfulJobsHistoryLimit: 5
   jobTemplate:
     spec:
-      # Tidy up all jobs after 4 days
-      ttlSecondsAfterFinished: 345600
       template:
         spec:
           containers:
@@ -22,5 +18,6 @@ spec:
               args:
                 - /bin/sh
                 - -c
-                - curl --retry 2 -XPUT http://{{ include "app.fullname" . }}/queue-admin/retry-all-dlqs
+                - curl -XPUT http://{{ template "app.fullname" . }}/queue-admin/retry-all-dlqs
           restartPolicy: Never
+
