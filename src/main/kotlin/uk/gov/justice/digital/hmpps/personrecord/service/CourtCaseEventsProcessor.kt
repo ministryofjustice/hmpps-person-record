@@ -33,7 +33,7 @@ class CourtCaseEventsProcessor(
   }
 
   fun processCommonPlatformHearingEvent(commonPlatformHearingEvent: CommonPlatformHearingEvent) {
-    log.info("Processing COMMON PLATFORM  event")
+    log.debug("Processing COMMON PLATFORM  event")
     log.debug(commonPlatformHearingEvent.toString())
   }
 }

@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.listeners
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -25,7 +25,7 @@ class CourtCaseEventsListenerTest {
   @BeforeEach
   fun setUp() {
     courtCaseEventsListener = CourtCaseEventsListener(
-      objectMapper = jacksonObjectMapper().findAndRegisterModules(),
+      objectMapper = ObjectMapper(),
       courtCaseEventsProcessor = courtCaseEventsProcessor,
     )
   }

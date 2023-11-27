@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.hmcts.libra
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -14,7 +14,7 @@ class LibraHearingEventTest {
 
   @BeforeEach
   fun setUp() {
-    objectMapper = jacksonObjectMapper().findAndRegisterModules()
+    objectMapper = ObjectMapper()
   }
 
   @Test
@@ -22,7 +22,7 @@ class LibraHearingEventTest {
     // given
     val libraHearingMessage = libraHearing()
 
-    val libraHearingEvent = objectMapper.readValue(libraHearingMessage, LibraHearingEvent::class.java)
+    val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(libraHearingMessage)
 
     // then
     assertThat(libraHearingEvent).isNotNull()

@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.hmcts
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -14,7 +14,7 @@ class SQSMessageTest {
 
   @BeforeEach
   fun setUp() {
-    objectMapper = jacksonObjectMapper().findAndRegisterModules()
+    objectMapper = ObjectMapper()
   }
 
   @Test
@@ -22,7 +22,7 @@ class SQSMessageTest {
     // given
     val rawMessage = testMessage(MessageType.LIBRA_COURT_CASE.name)
     // when
-    val sqsMessage = objectMapper.readValue(rawMessage, SQSMessage::class.java)
+    val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     // then
     assertThat(sqsMessage).isNotNull()
     assertThat(sqsMessage.getMessageType()).isEqualTo(MessageType.LIBRA_COURT_CASE)
@@ -33,7 +33,7 @@ class SQSMessageTest {
     // given
     val rawMessage = testMessage(MessageType.COMMON_PLATFORM_HEARING.name)
     // when
-    val sqsMessage = objectMapper.readValue(rawMessage, SQSMessage::class.java)
+    val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     // then
     assertThat(sqsMessage).isNotNull()
     assertThat(sqsMessage.getMessageType()).isEqualTo(MessageType.COMMON_PLATFORM_HEARING)
@@ -44,7 +44,7 @@ class SQSMessageTest {
     // given
     val rawMessage = testMessage(null)
     // when
-    val sqsMessage = objectMapper.readValue(rawMessage, SQSMessage::class.java)
+    val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     // then
     assertThat(sqsMessage).isNotNull()
     assertThat(sqsMessage.getMessageType()).isEqualTo(MessageType.UNKNOWN)
