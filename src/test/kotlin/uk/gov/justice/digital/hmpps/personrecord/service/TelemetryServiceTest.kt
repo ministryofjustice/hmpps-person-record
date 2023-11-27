@@ -10,13 +10,14 @@ import org.mockito.kotlin.verify
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @ExtendWith(MockitoExtension::class)
-class TelemetryServiceTest{
+class TelemetryServiceTest {
 
   @Mock
   private lateinit var telemetryClient: TelemetryClient
 
   @InjectMocks
   lateinit var telemetryService: TelemetryService
+
   @Test
   fun `should track event when provided with custom dimensions and event type`() {
     // Given

@@ -10,5 +10,4 @@ class TelemetryService(val telemetryClient: TelemetryClient) {
   fun trackEvent(eventType: TelemetryEventType, customDimensions: Map<String, String?>) {
     telemetryClient.trackEvent(eventType.eventName, customDimensions, null)
   }
-
 }
