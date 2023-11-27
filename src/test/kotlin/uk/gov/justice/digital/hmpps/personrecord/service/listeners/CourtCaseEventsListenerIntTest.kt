@@ -5,19 +5,15 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
-import org.mockito.Mock
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
-import uk.gov.justice.digital.hmpps.personrecord.service.CourtCaseEventsProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 
 class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
-  @Mock
-  lateinit var courtCaseEventsProcessor: CourtCaseEventsProcessor
 
   val courtCaseEventsTopic by lazy {
     hmppsQueueService.findByTopicId("courtcaseeventstopic")
