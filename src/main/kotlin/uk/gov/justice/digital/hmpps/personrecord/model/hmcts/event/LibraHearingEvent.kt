@@ -13,16 +13,16 @@ import java.time.LocalDate
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class LibraHearingEvent(
-    val urn: String? = null,
-    val name: Name? = null,
-    val defendantName: String? = null,
-    val defendantSex: String? = null,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy", lenient = OptBoolean.TRUE)
+  val urn: String? = null,
+  val name: Name? = null,
+  val defendantName: String? = null,
+  val defendantSex: String? = null,
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy", lenient = OptBoolean.TRUE)
   @JsonDeserialize(using = LocalDateDeserializer::class)
   val defendantDob: LocalDate? = null,
-    val defendantAddress: Address? = null,
-    val cro: String? = null,
-    val pnc: String? = null,
-    val nationality1: String? = null,
-    val nationality2: String? = null,
+  val defendantAddress: Address? = null,
+  val cro: String? = null,
+  val pnc: String? = null,
+  val nationality1: String? = null,
+  val nationality2: String? = null,
 )
