@@ -42,6 +42,7 @@ dependencies {
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.3")
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.20")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
+  testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
 }
 
 java {
