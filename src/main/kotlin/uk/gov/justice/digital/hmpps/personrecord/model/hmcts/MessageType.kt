@@ -6,7 +6,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
 enum class MessageType {
   LIBRA_COURT_CASE,
   COMMON_PLATFORM_HEARING,
-  UNKNOWN;
+  UNKNOWN,
+  ;
 
   companion object {
         /*About @jvmstatic: creators have to be static as they're used to create an instance of the object, that doesn't work well
