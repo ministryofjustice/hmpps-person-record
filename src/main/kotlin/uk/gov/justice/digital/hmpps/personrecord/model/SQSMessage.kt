@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotBlank
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
-import java.util.*
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SQSMessage(
@@ -19,10 +18,8 @@ data class SQSMessage(
   @JsonProperty(value = "MessageAttributes")
   val messageAttributes: MessageAttributes? = null,
 ) {
-  fun getMessageType(): MessageType {
-    return Optional.ofNullable(messageAttributes)
-      .map<MessageType>(MessageAttributes::messageType)
-      .orElse(MessageType.UNKNOWN)
+  fun getMessageType(): MessageType? {
+    return messageAttributes?.messageType
   }
 }
 
