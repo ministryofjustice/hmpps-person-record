@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -14,7 +15,7 @@ class CommonPlatformHearingEventTest {
 
   @BeforeEach
   fun setUp() {
-    objectMapper = ObjectMapper()
+    objectMapper = jacksonObjectMapper().findAndRegisterModules()
   }
 
   @Test
