@@ -7,8 +7,8 @@ import jakarta.validation.Valid
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Defendant(
-  private val pncId: String? = null,
-  private val croNumber: String? = null,
+  val pncId: String? = null,
+  val croNumber: String? = null,
   @Valid
-  private val personDefendant: PersonDefendant? = null,
+  val personDefendant: PersonDefendant? = null,
 )

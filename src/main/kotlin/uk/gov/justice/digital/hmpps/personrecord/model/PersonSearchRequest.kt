@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.model
 
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
+import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
 import java.time.LocalDate
 
 data class PersonSearchRequest(
@@ -27,6 +29,24 @@ data class PersonSearchRequest(
         forenameOne = person.givenName,
         surname = person.familyName,
         dateOfBirth = person.dateOfBirth,
+      )
+    }
+
+    fun from(defendant: Defendant): PersonSearchRequest {
+      return PersonSearchRequest(
+        pncNumber = defendant.pncId,
+        forenameOne = defendant.personDefendant?.personDetails?.firstName,
+        surname = defendant.personDefendant?.personDetails?.lastName,
+        dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
+      )
+    }
+
+    fun from(libraHearingEvent: LibraHearingEvent): PersonSearchRequest {
+      return PersonSearchRequest(
+        pncNumber = libraHearingEvent.pnc,
+        forenameOne = libraHearingEvent.name?.forename1,
+        surname = libraHearingEvent.name?.surname,
+        dateOfBirth = libraHearingEvent.defendantDob,
       )
     }
   }
