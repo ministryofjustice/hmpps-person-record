@@ -16,7 +16,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.client.ProbationOffenderSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.HmctsDefendantRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
@@ -39,7 +39,7 @@ class PersonRecordServiceTest {
   lateinit var offenderSearchClient: ProbationOffenderSearchClient
 
   @Mock
-  lateinit var hmctsDefendantRepository: HmctsDefendantRepository
+  lateinit var defendantRepository: DefendantRepository
 
   @InjectMocks
   lateinit var personRecordService: PersonRecordService
