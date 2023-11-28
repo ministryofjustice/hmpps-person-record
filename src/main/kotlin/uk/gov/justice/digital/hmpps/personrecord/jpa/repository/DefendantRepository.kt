@@ -5,6 +5,8 @@ import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 
 @Repository
-interface HmctsDefendantRepository : JpaRepository<DefendantEntity, Long> {
+interface DefendantRepository : JpaRepository<DefendantEntity, Long> {
   fun findByDefendantId(defendantId: String): DefendantEntity ?
+
+  fun findAllByPncNumber(pncNumber: String): List<DefendantEntity>
 }
