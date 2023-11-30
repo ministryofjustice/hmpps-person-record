@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.personrecord.model
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
+import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
 import java.time.LocalDate
 import java.util.*
 
@@ -39,6 +41,24 @@ data class Person(
         personId = personEntity?.personId,
         // TODO need to properly define what a Person model object looks like: for now just return Person UUID
         // TODO pull data from HmctsDefendant Entity?
+      )
+    }
+
+    fun from(defendant: Defendant): Person {
+      return Person(
+        otherIdentifiers = OtherIdentifiers(pncNumber = defendant.pncId),
+        givenName = defendant.personDefendant?.personDetails?.firstName,
+        familyName = defendant.personDefendant?.personDetails?.lastName,
+        dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
+      )
+    }
+
+    fun from(libraHearingEvent: LibraHearingEvent): Person {
+      return Person(
+        otherIdentifiers = OtherIdentifiers(pncNumber = libraHearingEvent.pnc),
+        givenName = libraHearingEvent.name?.forename1,
+        familyName = libraHearingEvent.name?.surname,
+        dateOfBirth = libraHearingEvent.defendantDob,
       )
     }
   }

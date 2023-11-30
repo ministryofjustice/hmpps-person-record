@@ -7,10 +7,11 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.verify
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.CourtCaseEventsListener
+import uk.gov.justice.digital.hmpps.personrecord.message.processor.CourtCaseEventsProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.MessageAttributes
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
-import uk.gov.justice.digital.hmpps.personrecord.service.CourtCaseEventsProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.testMessage
 
 @ExtendWith(MockitoExtension::class)
