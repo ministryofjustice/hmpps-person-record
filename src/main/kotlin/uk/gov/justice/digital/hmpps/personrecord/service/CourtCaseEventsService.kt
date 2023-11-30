@@ -45,7 +45,8 @@ class CourtCaseEventsService(
           telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PARTIAL_MATCH, extractMatchingFields(defendants[0], person))
         } else {
           log.debug("No existing matching records exist - creating new defendant")
-          personRecordService.createPersonRecord(person)
+          val personRecord = personRecordService.createPersonRecord(person)
+          telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PERSON_CREATED, mapOf("UUID" to personRecord.personId.toString(), "PNC" to it))
         }
       }
     }
