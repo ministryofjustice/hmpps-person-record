@@ -72,3 +72,4 @@ sonar-project.properties
 **/Chart.lock
 /.jpb/jpb-settings.xml
 /gradle.properties
+/volume/
