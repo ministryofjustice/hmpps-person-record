@@ -87,8 +87,7 @@ class CourtCaseEventsService(
           it.pncNumber.equals(person.otherIdentifiers?.pncNumber) &&
             it.surname.equals(person.familyName) &&
             it.forenameOne.equals(person.givenName) &&
-            it.dateOfBirth?.equals(person.dateOfBirth) == true &&
-            it.pncNumber.equals(person.otherIdentifiers?.pncNumber)
+            it.dateOfBirth?.equals(person.dateOfBirth) == true
         },
       )
   }
