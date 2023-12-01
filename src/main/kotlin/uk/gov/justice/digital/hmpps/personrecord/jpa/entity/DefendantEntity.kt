@@ -32,7 +32,7 @@ class DefendantEntity(
   var person: PersonEntity? = null,
 
   @Column(name = "defendant_id")
-  val defendantId: String,
+  val defendantId: String? = null,
 
   @Column(name = "pnc_number")
   val pncNumber: String? = null,
