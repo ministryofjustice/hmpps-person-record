@@ -47,9 +47,9 @@ fun commonPlatformHearing() = """
         "prosecutionCases": [
           {
             "defendants": [
-              {
+              { 
                 "id": "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199",
-                "pncId": "2004/0012345U",
+                "pncId": "1981/0154257C",
                 "croNumber": "12345ABCDEF",
                 "offences": [
                   {
@@ -83,6 +83,47 @@ fun commonPlatformHearing() = """
                     "firstName": "Arthur",
                     "gender": "MALE",
                     "lastName": "MORGAN",
+                    "title": "Mr"
+                  }
+                },
+                "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
+              },
+              {
+                "id": "a3e8f57a-900f-4057-ab2c-ebe6887f98e1",
+                "pncId": "2008/0056560Z",
+                "croNumber": "12345ABCDEF",
+                "offences": [
+                  {
+                    "id": "a63d9020-aa6b-4997-92fd-72a692b036de",
+                    "offenceLegislation": "Contrary to section 20 of the Offences Against the    Person Act 1861.",
+                    "offenceTitle": "Wound / inflict grievous bodily harm without intent",
+                    "wording": "on 01/08/2009 at  the County public house, unlawfully and maliciously wounded, John Smith",
+                    "listingNumber": 30,
+                    "offenceCode": "ABC001"
+                  },
+                  {
+                    "id": "ea1c2cf1-f155-483b-a908-81158a9b2f9b",
+                    "offenceLegislation": "Contrary to section 20 of the Offences Against the    Person Act 1861.",
+                    "offenceTitle": "Wound / inflict grievous bodily harm without intent",
+                    "wording": "on 01/08/2009 at  the County public house, unlawfully and maliciously wounded, Jane Smith",
+                    "listingNumber": 20,
+                    "offenceCode": "ABC002"
+                  }
+                ],
+                "personDefendant": {
+                  "personDetails": {
+                    "address": {
+                      "address1": "13 Wind Street",
+                      "address2": "Swansea",
+                      "address3": "Wales",
+                      "address4": "UK",
+                      "address5": "Earth",
+                      "postcode": "SA1 1FU"
+                    },
+                    "dateOfBirth": "1976-01-01",
+                    "firstName": "Harry",
+                    "gender": "MALE",
+                    "lastName": "Potter",
                     "title": "Mr"
                   }
                 },
@@ -134,7 +175,6 @@ fun commonPlatformHearing() = """
         ]
       }
     }
-
 """.trimIndent()
 
 fun libraHearing() = """
@@ -157,7 +197,7 @@ fun libraHearing() = """
       "pcode":"NT4 6YH"
    },
    "cro":"11111/79J",
-   "pnc":"2004/0012345U",
+   "pnc":"1923[1234567A",
    "listNo":"1st",
    "nationality1":"Angolan",
    "nationality2":"Austrian",
