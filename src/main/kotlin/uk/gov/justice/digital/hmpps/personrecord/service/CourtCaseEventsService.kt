@@ -13,7 +13,7 @@ class CourtCaseEventsService(
   private val telemetryService: TelemetryService,
   private val pncIdValidator: PNCIdValidator,
   private val defendantRepository: DefendantRepository,
-  private val personRecordService: PersonRecordService
+  private val personRecordService: PersonRecordService,
 ) {
 
   companion object {
