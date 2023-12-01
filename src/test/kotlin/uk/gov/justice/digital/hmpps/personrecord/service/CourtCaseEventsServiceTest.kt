@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdValidator
 import java.time.LocalDate
 
+@Suppress("INLINE_FROM_HIGHER_PLATFORM")
 @ExtendWith(MockitoExtension::class)
 class CourtCaseEventsServiceTest {
 

@@ -30,6 +30,6 @@ class CommonPlatformHearingEventTest {
     // then
     assertThat(commonPlatformHearingEvent).isNotNull()
     assertThat(commonPlatformHearingEvent.hearing.prosecutionCases).isNotNull()
-    assertThat(commonPlatformHearingEvent.hearing.prosecutionCases[0].defendants.size).isEqualTo(2)
+    assertThat(commonPlatformHearingEvent.hearing.prosecutionCases[0].defendants.size).isEqualTo(3)
   }
 }
