@@ -30,6 +30,7 @@ import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
   config = SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED),
   executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
 )
+@Suppress("INLINE_FROM_HIGHER_PLATFORM")
 class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   val courtCaseEventsTopic by lazy {
