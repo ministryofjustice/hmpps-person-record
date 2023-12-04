@@ -52,7 +52,7 @@ data class Person(
 
     fun from(defendant: Defendant): Person {
       return Person(
-        otherIdentifiers = OtherIdentifiers(pncNumber = defendant.pncId),
+        otherIdentifiers = OtherIdentifiers(pncNumber = defendant.pncId, cro = defendant.croNumber),
         givenName = defendant.personDefendant?.personDetails?.firstName,
         familyName = defendant.personDefendant?.personDetails?.lastName,
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
@@ -61,7 +61,7 @@ data class Person(
 
     fun from(libraHearingEvent: LibraHearingEvent): Person {
       return Person(
-        otherIdentifiers = OtherIdentifiers(pncNumber = libraHearingEvent.pnc),
+        otherIdentifiers = OtherIdentifiers(pncNumber = libraHearingEvent.pnc, cro = libraHearingEvent.cro),
         givenName = libraHearingEvent.name?.forename1,
         familyName = libraHearingEvent.name?.surname,
         dateOfBirth = libraHearingEvent.defendantDob,

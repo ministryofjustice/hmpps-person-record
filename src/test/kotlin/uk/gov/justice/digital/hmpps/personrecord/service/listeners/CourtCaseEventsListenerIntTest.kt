@@ -5,6 +5,7 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
+import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.check
 import org.mockito.kotlin.eq
@@ -127,6 +128,16 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
+        eq(TelemetryEventType.NEW_LIBRA_CASE_RECEIVED),
+        check {
+          assertThat(it["PNC"]).isEqualTo("1923[1234567A")
+          assertThat(it["CRO"]).isEqualTo("11111/79J")
+        },
+      )
+    }
+
+    await untilAsserted {
+      verify(telemetryService).trackEvent(
         eq(TelemetryEventType.NEW_CASE_INVALID_PNC),
         check {
           assertThat(it["PNC"]).isEqualTo("1923[1234567A")
@@ -162,20 +173,30 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
 
-    val personEntity = personRepository.findByDefendantsPncNumber(defendantsPncNumber)
+    val personEntity = await untilNotNull  { personRepository.findByDefendantsPncNumber(defendantsPncNumber) }
 
     assertThat(personEntity).isNotNull
-    assertThat(personEntity?.personId).isNotNull()
+    assertThat(personEntity.personId).isNotNull()
 
-    assertThat(personEntity?.defendants?.size).isEqualTo(1)
-    assertThat(personEntity?.defendants?.get(0)?.pncNumber).isEqualTo(defendantsPncNumber)
+    assertThat(personEntity.defendants.size).isEqualTo(1)
+    assertThat(personEntity.defendants[0].pncNumber).isEqualTo(defendantsPncNumber)
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
         eq(TelemetryEventType.NEW_CASE_PERSON_CREATED),
         check {
-          assertThat(it["UUID"]).isEqualTo(personEntity?.personId.toString())
+          assertThat(it["UUID"]).isEqualTo(personEntity.personId.toString())
           assertThat(it["PNC"]).isEqualTo(defendantsPncNumber)
+        },
+      )
+    }
+
+    await untilAsserted {
+      verify(telemetryService).trackEvent(
+        eq(TelemetryEventType.NEW_CP_CASE_RECEIVED),
+        check {
+          assertThat(it["PNC"]).isEqualTo(personEntity.defendants[0].pncNumber)
+          assertThat(it["CRO"]).isEqualTo(personEntity.defendants[0].cro)
         },
       )
     }

@@ -6,4 +6,8 @@ enum class TelemetryEventType(val eventName: String) {
   NEW_CASE_EXACT_MATCH("CprNewCaseExactMatch"),
   NEW_CASE_PARTIAL_MATCH("CprNewCasePartialMatch"),
   NEW_CASE_PERSON_CREATED("CprNewCasePersonCreated"),
+  NEW_LIBRA_CASE_RECEIVED("CprLibraHMCTSCaseReceived"),
+  NEW_CP_CASE_RECEIVED("CprCommonPlatformHMCTSCaseReceived"),
+  UNKNOWN_CASE_RECEIVED("CprUnknownHMCTSCase"),
+  CASE_READ_FAILURE("CprCourtCaseQueueReadFailure"),
 }
