@@ -44,6 +44,12 @@ data class Person(
       )
     }
 
+    fun from(person: Person): PersonEntity {
+      return PersonEntity(
+        personId = person.personId,
+      )
+    }
+
     fun from(defendant: Defendant): Person {
       return Person(
         otherIdentifiers = OtherIdentifiers(pncNumber = defendant.pncId),

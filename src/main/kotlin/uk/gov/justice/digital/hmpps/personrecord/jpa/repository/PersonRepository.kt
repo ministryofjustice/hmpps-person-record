@@ -9,4 +9,6 @@ import java.util.*
 interface PersonRepository : JpaRepository<PersonEntity, Long>, PersonRepositoryCustom {
   fun findByPersonId(uuid: UUID): PersonEntity?
   fun findByOffendersCrn(crn: String): PersonEntity?
+
+  fun findByDefendantsPncNumber(defendantsPncNumber: String): PersonEntity?
 }

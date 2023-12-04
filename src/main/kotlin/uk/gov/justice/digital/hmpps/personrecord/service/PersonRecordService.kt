@@ -85,7 +85,9 @@ class PersonRecordService(
     return personRepository.save(newPersonEntity)
   }
 
-  private fun createDefendantFromPerson(person: Person): PersonEntity {
+  fun createDefendantFromPerson(person: Person): PersonEntity {
+    log.debug("Entered createDefendantFromPerson with {}", person)
+
     val newPersonEntity = PersonEntity.new()
 
     val newDefendantEntity = DefendantEntity.from(person)

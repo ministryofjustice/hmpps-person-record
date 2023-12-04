@@ -13,6 +13,7 @@ class CourtCaseEventsService(
   private val telemetryService: TelemetryService,
   private val pncIdValidator: PNCIdValidator,
   private val defendantRepository: DefendantRepository,
+  private val personRecordService: PersonRecordService,
 ) {
 
   companion object {
@@ -43,7 +44,9 @@ class CourtCaseEventsService(
           log.info("Partially matching CPR record exists for defendant - no further processing will occur")
           telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PARTIAL_MATCH, extractMatchingFields(defendants[0], person))
         } else {
-          // TODO create new defendant record
+          log.debug("No existing matching records exist - creating new defendant")
+          val personRecord = personRecordService.createDefendantFromPerson(person)
+          telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PERSON_CREATED, mapOf("UUID" to personRecord.personId.toString(), "PNC" to it))
         }
       }
     }
