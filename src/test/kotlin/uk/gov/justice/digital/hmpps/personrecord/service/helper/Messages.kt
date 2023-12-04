@@ -18,6 +18,24 @@ fun testMessage(messageType: String?) = """
      }    
 """.trimIndent()
 
+fun testMessageWithUnknownType(messageType: String?) = """
+    {
+      "Type" : "Unknown",
+      "MessageId" : "5bc08be0-16e9-5da9-b9ec-d2c870a59bad",
+      "Message" : "{  \"caseId\": 1217464, \"hearingId\": \"hearing-id-one\",   \"caseNo\": \"1600032981\"}}",
+      "MessageAttributes": {
+          "messageType": {
+            "Type": "String",
+            "Value": "$messageType"
+          },
+          "hearingEventType": {
+            "Type": "String",
+            "Value": "ConfirmedOrUpdated"
+          }
+      }
+     }    
+""".trimIndent()
+
 fun commonPlatformHearing() = """
     {
       "hearing": {
