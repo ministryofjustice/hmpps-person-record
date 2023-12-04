@@ -46,7 +46,7 @@ class CourtCaseEventsServiceTest {
     courtCaseEventsService.processPersonFromCourtCaseEvent(person)
 
     // Then
-    verify(personRecordService, never()).createPersonRecord(person)
+    verify(personRecordService, never()).createDefendantFromPerson(person)
     verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_MISSING_PNC, emptyMap())
   }
 
@@ -60,7 +60,7 @@ class CourtCaseEventsServiceTest {
     courtCaseEventsService.processPersonFromCourtCaseEvent(person)
 
     // Then
-    verify(personRecordService, never()).createPersonRecord(person)
+    verify(personRecordService, never()).createDefendantFromPerson(person)
     verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_INVALID_PNC, mapOf("PNC" to pncNumber))
   }
 
@@ -94,7 +94,7 @@ class CourtCaseEventsServiceTest {
     courtCaseEventsService.processPersonFromCourtCaseEvent(person)
 
     // Then
-    verify(personRecordService, never()).createPersonRecord(person)
+    verify(personRecordService, never()).createDefendantFromPerson(person)
     verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_EXACT_MATCH, mapOf("PNC" to pncNumber))
   }
 
@@ -128,7 +128,7 @@ class CourtCaseEventsServiceTest {
     courtCaseEventsService.processPersonFromCourtCaseEvent(person)
 
     // Then
-    verify(personRecordService, never()).createPersonRecord(person)
+    verify(personRecordService, never()).createDefendantFromPerson(person)
     verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_PARTIAL_MATCH, mapOf("Surname" to "Jones"))
   }
 
