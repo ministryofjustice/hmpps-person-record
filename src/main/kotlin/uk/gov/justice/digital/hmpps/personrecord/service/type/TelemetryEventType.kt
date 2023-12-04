@@ -6,4 +6,7 @@ enum class TelemetryEventType(val eventName: String) {
   NEW_CASE_EXACT_MATCH("CprNewCaseExactMatch"),
   NEW_CASE_PARTIAL_MATCH("CprNewCasePartialMatch"),
   NEW_CASE_PERSON_CREATED("CprNewCasePersonCreated"),
+  DELIUS_NO_MATCH_FOUND("CprNDeliusNoMatchFound"),
+  DELIUS_PARTIAL_MATCH_FOUND("CprNDeliusPartialMatchFound"),
+  DELIUS_MATCH_FOUND("CprNDeliusMatchFound"),
 }
