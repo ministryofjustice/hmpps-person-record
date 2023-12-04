@@ -26,6 +26,7 @@ import java.time.LocalDate
 import java.util.*
 import kotlin.test.assertFailsWith
 
+@Suppress("INLINE_FROM_HIGHER_PLATFORM")
 @ExtendWith(MockitoExtension::class)
 class PersonRecordServiceTest {
 

@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdValidator
 import java.time.LocalDate
 import java.util.UUID
 
+@Suppress("INLINE_FROM_HIGHER_PLATFORM")
 @ExtendWith(MockitoExtension::class)
 class CourtCaseEventsServiceTest {
 
