@@ -9,7 +9,6 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
-import jakarta.validation.ValidationException
 import org.hibernate.envers.Audited
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import java.time.LocalDate
@@ -91,30 +90,28 @@ class DefendantEntity(
 ) : BaseAuditedEntity() {
   companion object {
     fun from(person: Person): DefendantEntity {
-      return person.defendantId?.let {
-        val defendantEntity = DefendantEntity(
-          title = person.title,
-          forenameOne = person.givenName,
-          surname = person.familyName,
-          dateOfBirth = person.dateOfBirth,
-          defendantId = it,
-          pncNumber = person.otherIdentifiers?.pncNumber,
-          crn = person.otherIdentifiers?.crn,
-          cro = person.otherIdentifiers?.cro,
-          sex = person.sex,
-          nationalityOne = person.nationalityOne,
-          nationalityTwo = person.nationalityTwo,
-          addressLineOne = person.addressLineOne,
-          addressLineTwo = person.addressLineTwo,
-          addressLineThree = person.addressLineThree,
-          addressLineFour = person.addressLineFour,
-          addressLineFive = person.addressLineFive,
-          postcode = person.postcode,
-        )
-        defendantEntity.createdBy = PERSON_RECORD_SERVICE
-        defendantEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
-        return defendantEntity
-      } ?: throw ValidationException("Missing defendant id")
+      val defendantEntity = DefendantEntity(
+        title = person.title,
+        forenameOne = person.givenName,
+        surname = person.familyName,
+        dateOfBirth = person.dateOfBirth,
+        defendantId = person.defendantId,
+        pncNumber = person.otherIdentifiers?.pncNumber,
+        crn = person.otherIdentifiers?.crn,
+        cro = person.otherIdentifiers?.cro,
+        sex = person.sex,
+        nationalityOne = person.nationalityOne,
+        nationalityTwo = person.nationalityTwo,
+        addressLineOne = person.addressLineOne,
+        addressLineTwo = person.addressLineTwo,
+        addressLineThree = person.addressLineThree,
+        addressLineFour = person.addressLineFour,
+        addressLineFive = person.addressLineFive,
+        postcode = person.postcode,
+      )
+      defendantEntity.createdBy = PERSON_RECORD_SERVICE
+      defendantEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
+      return defendantEntity
     }
   }
 }

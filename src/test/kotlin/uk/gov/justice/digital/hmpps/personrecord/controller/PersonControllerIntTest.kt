@@ -61,21 +61,6 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   }
 
   @Test
-  fun `should return HTTP 401 when insufficient data is provide to create a Person record`() {
-    // Given
-    val personJson = "{}"
-
-    // When
-    mockMvc.perform(
-      post("/person")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(personJson)
-        .headers(setAuthorisation(roles = listOf(VIEW_PERSON_DATA_ROLE))),
-    )
-      .andExpect(status().isBadRequest)
-  }
-
-  @Test
   fun `should return HTTP Location header containing the URL of new person`() {
     // Given
     val personJson = objectMapper.writeValueAsString(minimumPerson)

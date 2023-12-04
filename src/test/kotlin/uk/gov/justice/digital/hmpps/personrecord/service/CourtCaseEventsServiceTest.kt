@@ -147,13 +147,13 @@ class CourtCaseEventsServiceTest {
     )
 
     val uuid = UUID.randomUUID()
-    whenever(personRecordService.createPersonRecord(person)).thenReturn(person.copy(personId = uuid))
+    whenever(personRecordService.createDefendantFromPerson(person)).thenReturn(Person.from(person.copy(personId = uuid)))
 
     // When
     courtCaseEventsService.processPersonFromCourtCaseEvent(person)
 
     // Then
-    verify(personRecordService).createPersonRecord(person)
+    verify(personRecordService).createDefendantFromPerson(person)
     verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_PERSON_CREATED, mapOf("UUID" to uuid.toString(), "PNC" to pncNumber))
   }
 }

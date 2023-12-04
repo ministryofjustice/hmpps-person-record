@@ -9,13 +9,16 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.check
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.SqlConfig
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
+import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
@@ -39,6 +42,9 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   val cprCourtCaseEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprcourtcaseeventsqueue")
   }
+
+  @Autowired
+  lateinit var personRepository: PersonRepository
 
   @Test
   fun `should successfully process common platform message and create correct telemetry events`() {
@@ -124,6 +130,52 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
         eq(TelemetryEventType.NEW_CASE_INVALID_PNC),
         check {
           assertThat(it["PNC"]).isEqualTo("1923[1234567A")
+        },
+      )
+    }
+  }
+
+  @Test
+  fun `should create a new defendant with link to a person record from common platform message`() {
+    // given
+    val defendantsPncNumber = "2003/0062845E"
+
+    val publishRequest = PublishRequest.builder()
+      .topicArn(courtCaseEventsTopic?.arn)
+      .message(commonPlatformHearingWithNewDefendant())
+      .messageAttributes(
+        mapOf(
+          "messageType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(MessageType.COMMON_PLATFORM_HEARING.name).build(),
+        ),
+      )
+      .build()
+
+    // when
+    val publishResponse = courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+
+    // then
+    assertThat(publishResponse?.sdkHttpResponse()?.isSuccessful).isTrue()
+    assertThat(publishResponse?.messageId()).isNotNull()
+
+    await untilCallTo {
+      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
+    } matches { it == 0 }
+
+    val personEntity = personRepository.findByDefendantsPncNumber(defendantsPncNumber)
+
+    assertThat(personEntity).isNotNull
+    assertThat(personEntity?.personId).isNotNull()
+
+    assertThat(personEntity?.defendants?.size).isEqualTo(1)
+    assertThat(personEntity?.defendants?.get(0)?.pncNumber).isEqualTo(defendantsPncNumber)
+
+    await untilAsserted {
+      verify(telemetryService).trackEvent(
+        eq(TelemetryEventType.NEW_CASE_PERSON_CREATED),
+        check {
+          assertThat(it["UUID"]).isEqualTo(personEntity?.personId.toString())
+          assertThat(it["PNC"]).isEqualTo(defendantsPncNumber)
         },
       )
     }

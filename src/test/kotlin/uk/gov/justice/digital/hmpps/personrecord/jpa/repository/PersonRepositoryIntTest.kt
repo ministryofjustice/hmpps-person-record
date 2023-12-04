@@ -81,4 +81,17 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
     // Then
     assertThat(personEntity).isNull()
   }
+
+  @Test
+  fun `should return correct person with defendants matching pnc number`() {
+    // Given
+    val pnc = "2008/0056560Z"
+
+    // When
+    val personEntity = personRepository.findByDefendantsPncNumber(pnc)
+
+    // Then
+    assertThat(personEntity).isNotNull
+    assertThat(personEntity?.defendants?.get(0)?.pncNumber).isEqualTo(pnc)
+  }
 }
