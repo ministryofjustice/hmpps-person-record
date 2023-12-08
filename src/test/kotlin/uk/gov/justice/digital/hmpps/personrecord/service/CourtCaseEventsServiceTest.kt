@@ -68,6 +68,8 @@ class CourtCaseEventsServiceTest {
   fun `should call telemetry service when exact match found for Court Case Event`() {
     // Given
     val pncNumber = "PNC12345"
+    val crn = "CRN123"
+    val personID = UUID.fromString("2936dd6a-677a-4cc0-83c5-2296b6efee0b")
     val dateOfBirth = LocalDate.now()
     whenever(pncIdValidator.isValid(anyString())).thenReturn(true)
     whenever(defendantRepository.findAllByPncNumber(pncNumber))
@@ -75,6 +77,7 @@ class CourtCaseEventsServiceTest {
         listOf(
           DefendantEntity(
             pncNumber = pncNumber,
+            crn = crn,
             surname = "Jones",
             forenameOne = "Crackity",
             dateOfBirth = dateOfBirth,
@@ -84,6 +87,7 @@ class CourtCaseEventsServiceTest {
       )
 
     val person = Person(
+      personId = personID,
       familyName = "Jones",
       givenName = "Crackity",
       dateOfBirth = dateOfBirth,
@@ -95,7 +99,7 @@ class CourtCaseEventsServiceTest {
 
     // Then
     verify(personRecordService, never()).createDefendantFromPerson(person)
-    verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_EXACT_MATCH, mapOf("PNC" to pncNumber))
+    verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_EXACT_MATCH, mapOf("PNC" to pncNumber, "CRN" to crn,"UUID" to personID.toString()))
   }
 
   @Test
