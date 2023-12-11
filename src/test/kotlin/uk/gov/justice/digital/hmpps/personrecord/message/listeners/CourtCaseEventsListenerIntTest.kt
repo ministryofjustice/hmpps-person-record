@@ -5,6 +5,7 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
+import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.check
 import org.mockito.kotlin.eq
@@ -172,23 +173,35 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
 
+    val personEntity = await untilNotNull { personRepository.findByDefendantsPncNumber(defendantsPncNumber) }
+
     await untilAsserted {
       verify(telemetryService).trackEvent(
         eq(TelemetryEventType.NEW_CASE_PERSON_CREATED),
         check {
-          assertThat(it["UUID"]).isNotNull()
+          assertThat(it["UUID"]).isEqualTo(personEntity.personId.toString())
           assertThat(it["PNC"]).isEqualTo(defendantsPncNumber)
         },
       )
     }
-    val personEntity = personRepository.findByDefendantsPncNumber(defendantsPncNumber)
 
-    assertThat(personEntity).isNotNull
-    assertThat(personEntity?.personId).isNotNull()
+    val person = personRepository.findByDefendantsPncNumber(defendantsPncNumber)!!
 
-    assertThat(personEntity?.defendants?.size).isEqualTo(1)
-    assertThat(personEntity?.defendants?.get(0)?.pncNumber).isEqualTo(defendantsPncNumber)
-    assertThat(personEntity?.offenders).hasSize(1)
-    assertThat(personEntity?.offenders?.get(0)?.crn).isEqualTo("X026350")
-  }
+    assertThat(person.personId).isNotNull()
+    assertThat(person.defendants.size).isEqualTo(1)
+    assertThat(person.defendants[0].pncNumber).isEqualTo(defendantsPncNumber)
+    assertThat(person.offenders).hasSize(1)
+    assertThat(person.offenders[0].crn).isEqualTo("X026350")
+
+
+    await untilAsserted {
+      verify(telemetryService).trackEvent(
+        eq(TelemetryEventType.NEW_CP_CASE_RECEIVED),
+        check {
+          assertThat(it["PNC"]).isEqualTo(person.defendants[0].pncNumber)
+          assertThat(it["CRO"]).isEqualTo(person.defendants[0].cro)
+        },
+      )
+    }
+}
 }
