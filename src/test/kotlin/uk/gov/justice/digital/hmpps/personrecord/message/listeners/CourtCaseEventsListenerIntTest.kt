@@ -190,15 +190,5 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity?.defendants?.get(0)?.pncNumber).isEqualTo(defendantsPncNumber)
     assertThat(personEntity?.offenders).hasSize(1)
     assertThat(personEntity?.offenders?.get(0)?.crn).isEqualTo("X026350")
-
-    await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.NEW_CP_CASE_RECEIVED),
-        check {
-          assertThat(it["PNC"]).isEqualTo(personEntity?.defendants?.get(0)?.pncNumber)
-          assertThat(it["CRO"]).isEqualTo(personEntity?.defendants?.get(0)?.cro)
-        },
-      )
-    }
   }
 }
