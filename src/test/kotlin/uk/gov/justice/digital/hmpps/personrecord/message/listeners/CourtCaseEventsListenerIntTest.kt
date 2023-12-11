@@ -193,7 +193,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(person.offenders).hasSize(1)
     assertThat(person.offenders[0].crn).isEqualTo("X026350")
 
-
     await untilAsserted {
       verify(telemetryService).trackEvent(
         eq(TelemetryEventType.NEW_CP_CASE_RECEIVED),
@@ -203,5 +202,5 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
         },
       )
     }
-}
+  }
 }
