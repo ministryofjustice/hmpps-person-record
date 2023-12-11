@@ -14,6 +14,7 @@ class CourtCaseEventsService(
   private val pncIdValidator: PNCIdValidator,
   private val defendantRepository: DefendantRepository,
   private val personRecordService: PersonRecordService,
+  private val offenderService: OffenderService,
 ) {
 
   companion object {
@@ -29,24 +30,25 @@ class CourtCaseEventsService(
       telemetryService.trackEvent(TelemetryEventType.NEW_CASE_MISSING_PNC, emptyMap())
     }
 
-    person.otherIdentifiers?.pncNumber?.let {
+    person.otherIdentifiers?.pncNumber?.let { pnc ->
       // Validate PNC
-      if (!pncIdValidator.isValid(it)) {
+      if (!pncIdValidator.isValid(pnc)) {
         log.info("Invalid PNC encountered in court case event - no further processing will occur")
-        telemetryService.trackEvent(TelemetryEventType.NEW_CASE_INVALID_PNC, mapOf("PNC" to it))
+        telemetryService.trackEvent(TelemetryEventType.NEW_CASE_INVALID_PNC, mapOf("PNC" to pnc))
       } else {
-        val defendants = defendantRepository.findAllByPncNumber(it)
+        val defendants = defendantRepository.findAllByPncNumber(pnc)
 
         if (matchesExistingRecordExactly(defendants, person)) {
           log.info("Exactly matching CPR record exists for defendant - no further processing will occur")
-          telemetryService.trackEvent(TelemetryEventType.NEW_CASE_EXACT_MATCH, mapOf("PNC" to it, "CRN" to defendants[0].crn, "UUID" to person.personId.toString()))
+          telemetryService.trackEvent(TelemetryEventType.NEW_CASE_EXACT_MATCH, mapOf("PNC" to pnc, "CRN" to defendants[0].crn, "UUID" to person.personId.toString()))
         } else if (matchesExistingRecordPartially(defendants, person)) {
           log.info("Partially matching CPR record exists for defendant - no further processing will occur")
           telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PARTIAL_MATCH, extractMatchingFields(defendants[0], person))
         } else {
           log.debug("No existing matching records exist - creating new defendant")
           val personRecord = personRecordService.createDefendantFromPerson(person)
-          telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PERSON_CREATED, mapOf("UUID" to personRecord.personId.toString(), "PNC" to it))
+          telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PERSON_CREATED, mapOf("UUID" to personRecord.personId.toString(), "PNC" to pnc))
+          personRecord.let { offenderService.processAssociatedOffenders(it, person) }
         }
       }
     }

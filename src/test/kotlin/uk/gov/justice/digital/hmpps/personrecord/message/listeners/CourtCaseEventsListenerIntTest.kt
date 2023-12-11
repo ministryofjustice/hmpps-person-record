@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.service.listeners
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -175,12 +175,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     val personEntity = await untilNotNull { personRepository.findByDefendantsPncNumber(defendantsPncNumber) }
 
-    assertThat(personEntity).isNotNull
-    assertThat(personEntity.personId).isNotNull()
-
-    assertThat(personEntity.defendants.size).isEqualTo(1)
-    assertThat(personEntity.defendants[0].pncNumber).isEqualTo(defendantsPncNumber)
-
     await untilAsserted {
       verify(telemetryService).trackEvent(
         eq(TelemetryEventType.NEW_CASE_PERSON_CREATED),
@@ -191,12 +185,20 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       )
     }
 
+    val person = personRepository.findByDefendantsPncNumber(defendantsPncNumber)!!
+
+    assertThat(person.personId).isNotNull()
+    assertThat(person.defendants.size).isEqualTo(1)
+    assertThat(person.defendants[0].pncNumber).isEqualTo(defendantsPncNumber)
+    assertThat(person.offenders).hasSize(1)
+    assertThat(person.offenders[0].crn).isEqualTo("X026350")
+
     await untilAsserted {
       verify(telemetryService).trackEvent(
         eq(TelemetryEventType.NEW_CP_CASE_RECEIVED),
         check {
-          assertThat(it["PNC"]).isEqualTo(personEntity.defendants[0].pncNumber)
-          assertThat(it["CRO"]).isEqualTo(personEntity.defendants[0].cro)
+          assertThat(it["PNC"]).isEqualTo(person.defendants[0].pncNumber)
+          assertThat(it["CRO"]).isEqualTo(person.defendants[0].cro)
         },
       )
     }

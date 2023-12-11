@@ -6,7 +6,7 @@
         </encoder>
     </appender>
 
-    <logger name="org.hibernate" additivity="false" level="INFO">
+    <logger name="org.hibernate" additivity="false" level="ERROR">
         <appender-ref ref="CONSOLE"/>
     </logger>
 
@@ -14,13 +14,31 @@
         <appender-ref ref="CONSOLE"/>
     </logger>
 
-    <logger name="org.springframework" additivity="false" level="INFO">
+    <logger name="org.apache" additivity="false" level="ERROR">
         <appender-ref ref="CONSOLE"/>
     </logger>
 
-    <logger name="reactor.core" additivity="false" level="INFO">
+    <logger name="httpclient" additivity="false" level="ERROR">
         <appender-ref ref="CONSOLE"/>
     </logger>
+
+    <logger name="org.springframework" additivity="false" level="ERROR">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <logger name="reactor.core" additivity="false" level="ERROR">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <logger name="org.wiremock" additivity="false" level="TRACE">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+
+    <logger name="io.netty" additivity="false" level="ERROR">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
 
     <root>
         <level value="DEBUG"/>

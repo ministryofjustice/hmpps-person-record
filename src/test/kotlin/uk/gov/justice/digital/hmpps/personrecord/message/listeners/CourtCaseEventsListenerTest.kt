@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.service.listeners
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.BeforeEach
@@ -10,7 +10,6 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.CourtCaseEventsListener
 import uk.gov.justice.digital.hmpps.personrecord.message.processor.CourtCaseEventsProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.MessageAttributes
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
