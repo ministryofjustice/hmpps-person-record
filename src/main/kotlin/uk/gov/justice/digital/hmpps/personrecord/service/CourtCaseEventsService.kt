@@ -39,7 +39,7 @@ class CourtCaseEventsService(
 
         if (matchesExistingRecordExactly(defendants, person)) {
           log.info("Exactly matching CPR record exists for defendant - no further processing will occur")
-          telemetryService.trackEvent(TelemetryEventType.NEW_CASE_EXACT_MATCH, mapOf("PNC" to it))
+          telemetryService.trackEvent(TelemetryEventType.NEW_CASE_EXACT_MATCH, mapOf("PNC" to it, "CRN" to defendants[0].crn, "UUID" to person.personId.toString()))
         } else if (matchesExistingRecordPartially(defendants, person)) {
           log.info("Partially matching CPR record exists for defendant - no further processing will occur")
           telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PARTIAL_MATCH, extractMatchingFields(defendants[0], person))
