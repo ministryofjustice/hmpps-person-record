@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdValidator
 import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
 @ExtendWith(MockitoExtension::class)
@@ -27,6 +27,9 @@ class CourtCaseEventsServiceTest {
 
   @Mock
   lateinit var personRecordService: PersonRecordService
+
+  @Mock
+  lateinit var offenderService: OffenderService
 
   @Mock
   lateinit var pncIdValidator: PNCIdValidator
@@ -147,7 +150,8 @@ class CourtCaseEventsServiceTest {
     )
 
     val uuid = UUID.randomUUID()
-    whenever(personRecordService.createDefendantFromPerson(person)).thenReturn(Person.from(person.copy(personId = uuid)))
+    val personEntity = Person.from(person.copy(personId = uuid))
+    whenever(personRecordService.createDefendantFromPerson(person)).thenReturn(personEntity)
 
     // When
     courtCaseEventsService.processPersonFromCourtCaseEvent(person)
@@ -155,5 +159,6 @@ class CourtCaseEventsServiceTest {
     // Then
     verify(personRecordService).createDefendantFromPerson(person)
     verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_PERSON_CREATED, mapOf("UUID" to uuid.toString(), "PNC" to pncNumber))
+    verify(offenderService).processAssociatedOffenders(personEntity, person)
   }
 }
