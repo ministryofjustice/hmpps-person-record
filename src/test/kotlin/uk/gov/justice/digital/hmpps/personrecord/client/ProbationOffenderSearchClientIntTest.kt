@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 class ProbationOffenderSearchClientIntTest : IntegrationTestBase() {
 
   @Autowired
-//  lateinit var restClient: ProbationOffenderSearchClient
   lateinit var restClient: ProbationOffenderSearchClient
 
   @Test
