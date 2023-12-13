@@ -1,8 +1,8 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.9.0"
-  kotlin("plugin.spring") version "1.9.20"
-  kotlin("jvm") version "1.9.20"
-  kotlin("plugin.jpa") version "1.9.20"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.11.0"
+  kotlin("plugin.spring") version "1.9.21"
+  kotlin("jvm") version "1.9.21"
+  kotlin("plugin.jpa") version "1.9.21"
 }
 
 configurations {
@@ -16,13 +16,10 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
   implementation("jakarta.validation:jakarta.validation-api:3.0.2")
-  implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
-  implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
   implementation("org.hibernate.orm:hibernate-envers:6.3.1.Final")
   implementation("io.swagger.core.v3:swagger-annotations:2.2.18")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
-  implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.0.4")
-  implementation("org.springframework.cloud:spring-cloud-dependencies:2022.0.4")
+  implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.0")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-autoconfigure:2.1.1")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.1.1")
 
@@ -33,16 +30,15 @@ dependencies {
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.testcontainers:junit-jupiter:1.19.1")
-  testImplementation("org.testcontainers:postgresql:1.17.6")
-  testImplementation("org.testcontainers:localstack:1.19.2")
-  testImplementation("org.wiremock:wiremock:3.2.0")
+  testImplementation("org.testcontainers:junit-jupiter:1.19.3")
+  testImplementation("org.testcontainers:postgresql:1.19.3")
+  testImplementation("org.testcontainers:localstack:1.19.3")
+  testImplementation("org.wiremock:wiremock-standalone:3.3.1")
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.3")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.3")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.3")
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.20")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
-  testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
 }
 
 java {
