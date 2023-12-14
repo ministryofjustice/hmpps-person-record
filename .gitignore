@@ -73,3 +73,5 @@ sonar-project.properties
 /.jpb/jpb-settings.xml
 /gradle.properties
 /volume/
+
+.trivyignore

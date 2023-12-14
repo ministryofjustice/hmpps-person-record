@@ -98,3 +98,6 @@ management:
 
 offender-search:
   offender-detail: /search
+
+prisoner-search:
+  possible-matches: /prisoner-search/possible-matches
