@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.MockitoAnnotations
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
@@ -22,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.PersonRecordService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import java.time.LocalDate
+
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
 @ExtendWith(MockitoExtension::class)
 class OffenderServiceTest {
