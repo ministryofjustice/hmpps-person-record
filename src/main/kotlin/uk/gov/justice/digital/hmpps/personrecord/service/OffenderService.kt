@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.ProbationOffenderSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.client.model.SearchDto
+import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -14,6 +15,7 @@ class OffenderService(
   private val telemetryService: TelemetryService,
   private val personRecordService: PersonRecordService,
   private val client: ProbationOffenderSearchClient,
+  private val featureFlag: FeatureFlag,
 ) {
 
   companion object {
@@ -22,34 +24,39 @@ class OffenderService(
 
   fun processAssociatedOffenders(personEntity: PersonEntity, person: Person) {
     log.debug("Entered processAssociatedOffenders")
-    val offenderDetails = client.getOffenderDetail(SearchDto.from(person))
-    offenderDetails?.let {
-      if (matchesExistingOffenderExactly(it, person)) {
-        log.debug("Exact delius match found - adding offender to person record")
-        personRecordService.addOffenderToPerson(personEntity, Person.from(it[0]))
+    if (featureFlag.isDeliusSearchEnabled()) {
+      val offenderDetails = client.getOffenderDetail(SearchDto.from(person))
+      offenderDetails?.let {
+        if (matchesExistingOffenderExactly(it, person)) {
+          log.debug("Exact delius match found - adding offender to person record")
+          personRecordService.addOffenderToPerson(personEntity, Person.from(it[0]))
+          telemetryService.trackEvent(
+            TelemetryEventType.DELIUS_MATCH_FOUND,
+            mapOf(
+              "UUID" to personEntity.personId.toString(),
+              "PNC" to person.otherIdentifiers?.pncNumber,
+              "CRN" to person.otherIdentifiers?.crn,
+            ),
+          )
+        } else if (matchesExistingOffenderPartially(it, person)) {
+          log.debug("Partial Delius match found for $person")
+          telemetryService.trackEvent(
+            TelemetryEventType.DELIUS_PARTIAL_MATCH_FOUND,
+            mapOf(
+              "UUID" to personEntity.personId.toString(),
+              "PNC" to person.otherIdentifiers?.pncNumber,
+              "CRN" to person.otherIdentifiers?.crn,
+            ),
+          )
+        }
+      }
+      if (offenderDetails.isNullOrEmpty()) {
+        log.debug("No Delius matching records exist")
         telemetryService.trackEvent(
-          TelemetryEventType.DELIUS_MATCH_FOUND,
-          mapOf(
-            "UUID" to personEntity.personId.toString(),
-            "PNC" to person.otherIdentifiers?.pncNumber,
-            "CRN" to person.otherIdentifiers?.crn,
-          ),
-        )
-      } else if (matchesExistingOffenderPartially(it, person)) {
-        log.debug("Partial Delius match found for $person")
-        telemetryService.trackEvent(
-          TelemetryEventType.DELIUS_PARTIAL_MATCH_FOUND,
-          mapOf(
-            "UUID" to personEntity.personId.toString(),
-            "PNC" to person.otherIdentifiers?.pncNumber,
-            "CRN" to person.otherIdentifiers?.crn,
-          ),
+          TelemetryEventType.DELIUS_NO_MATCH_FOUND,
+          mapOf("UUID" to personEntity.personId.toString(), "PNC" to person.otherIdentifiers?.pncNumber),
         )
       }
-    }
-    if (offenderDetails.isNullOrEmpty()) {
-      log.debug("No Delius matching records exist")
-      telemetryService.trackEvent(TelemetryEventType.DELIUS_NO_MATCH_FOUND, mapOf("UUID" to personEntity.personId.toString(), "PNC" to person.otherIdentifiers?.pncNumber))
     }
   }
 

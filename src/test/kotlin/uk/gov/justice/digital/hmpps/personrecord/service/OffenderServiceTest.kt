@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.ProbationOffenderSearchC
 import uk.gov.justice.digital.hmpps.personrecord.client.model.IDs
 import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.client.model.SearchDto
+import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
@@ -19,7 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.PersonRecordService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import java.time.LocalDate
-
+@Suppress("INLINE_FROM_HIGHER_PLATFORM")
 class OffenderServiceTest {
 
   @Mock
@@ -31,13 +32,16 @@ class OffenderServiceTest {
   @Mock
   private lateinit var client: ProbationOffenderSearchClient
 
+  @Mock
+  private lateinit var featureFlag: FeatureFlag
+
   @InjectMocks
   private lateinit var offenderService: OffenderService
 
   @BeforeEach
   fun setUp() {
     MockitoAnnotations.openMocks(this)
-    offenderService = OffenderService(telemetryService, personRecordService, client)
+    offenderService = OffenderService(telemetryService, personRecordService, client, featureFlag)
   }
 
   @Test
@@ -58,7 +62,7 @@ class OffenderServiceTest {
       dateOfBirth = dateOfBirth,
       otherIds = IDs(pncNumber = "PNC123", crn = "crn1234"),
     )
-
+    whenever(featureFlag.isDeliusSearchEnabled()).thenReturn(true)
     whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(listOf(offenderDetail))
 
     // When
@@ -93,7 +97,7 @@ class OffenderServiceTest {
       dateOfBirth = LocalDate.of(1978, 4, 5),
       otherIds = IDs(pncNumber = "PNC123", crn = "crn1234"),
     )
-
+    whenever(featureFlag.isDeliusSearchEnabled()).thenReturn(true)
     whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(listOf(offenderDetail))
 
     // When
@@ -121,7 +125,7 @@ class OffenderServiceTest {
       dateOfBirth = LocalDate.now(),
       otherIdentifiers = OtherIdentifiers(pncNumber = "PNC123"),
     )
-
+    whenever(featureFlag.isDeliusSearchEnabled()).thenReturn(true)
     whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(emptyList())
 
     // When
@@ -136,5 +140,33 @@ class OffenderServiceTest {
         "PNC" to person.otherIdentifiers?.pncNumber,
       ),
     )
+  }
+
+  @Test
+  fun `should not call delius search when feature flag is switched off`() {
+    // Given
+    val personEntity = PersonEntity()
+    val dateOfBirth = LocalDate.now()
+    val person = Person(
+      givenName = "John",
+      familyName = "Mahoney",
+      dateOfBirth = dateOfBirth,
+      otherIdentifiers = OtherIdentifiers(pncNumber = "PNC123"),
+    )
+    val offenderDetail = OffenderDetail(
+      offenderId = 1234L,
+      firstName = "John",
+      surname = "MAHONEY",
+      dateOfBirth = dateOfBirth,
+      otherIds = IDs(pncNumber = "PNC123", crn = "crn1234"),
+    )
+    whenever(featureFlag.isDeliusSearchEnabled()).thenReturn(false)
+    // When
+    offenderService.processAssociatedOffenders(personEntity, person)
+
+    // Then
+    verifyNoInteractions(client)
+    verifyNoInteractions(personRecordService)
+    verifyNoInteractions(telemetryService)
   }
 }
