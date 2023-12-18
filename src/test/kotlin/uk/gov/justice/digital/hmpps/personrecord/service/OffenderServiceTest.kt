@@ -1,9 +1,11 @@
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
+import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
@@ -21,6 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import java.time.LocalDate
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
+@ExtendWith(MockitoExtension::class)
 class OffenderServiceTest {
 
   @Mock
@@ -42,6 +45,7 @@ class OffenderServiceTest {
   fun setUp() {
     MockitoAnnotations.openMocks(this)
     offenderService = OffenderService(telemetryService, personRecordService, client, featureFlag)
+    whenever(featureFlag.isDeliusSearchEnabled()).thenReturn(true)
   }
 
   @Test
@@ -62,7 +66,6 @@ class OffenderServiceTest {
       dateOfBirth = dateOfBirth,
       otherIds = IDs(pncNumber = "PNC123", crn = "crn1234"),
     )
-    whenever(featureFlag.isDeliusSearchEnabled()).thenReturn(true)
     whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(listOf(offenderDetail))
 
     // When
@@ -97,7 +100,6 @@ class OffenderServiceTest {
       dateOfBirth = LocalDate.of(1978, 4, 5),
       otherIds = IDs(pncNumber = "PNC123", crn = "crn1234"),
     )
-    whenever(featureFlag.isDeliusSearchEnabled()).thenReturn(true)
     whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(listOf(offenderDetail))
 
     // When
@@ -125,7 +127,6 @@ class OffenderServiceTest {
       dateOfBirth = LocalDate.now(),
       otherIdentifiers = OtherIdentifiers(pncNumber = "PNC123"),
     )
-    whenever(featureFlag.isDeliusSearchEnabled()).thenReturn(true)
     whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(emptyList())
 
     // When

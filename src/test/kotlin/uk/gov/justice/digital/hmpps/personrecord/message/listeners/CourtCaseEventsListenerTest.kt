@@ -45,6 +45,7 @@ class CourtCaseEventsListenerTest {
       telemetryService = telemetryService,
       featureFlag = featureFlag,
     )
+    whenever(featureFlag.isHmctsSQSEnabled()).thenReturn(true)
   }
 
   @Test
@@ -57,7 +58,6 @@ class CourtCaseEventsListenerTest {
       message = "{  \"caseId\": 1217464, \"hearingId\": \"hearing-id-one\",   \"caseNo\": \"1600032981\"}}",
       messageAttributes = MessageAttributes(MessageType.LIBRA_COURT_CASE),
     )
-    whenever(featureFlag.isHmctsSQSEnabled()).thenReturn(true)
     // when
     courtCaseEventsListener.onMessage(rawMessage = rawMessage)
 
@@ -75,7 +75,6 @@ class CourtCaseEventsListenerTest {
       message = "{  \"caseId\": 1217464, \"hearingId\": \"hearing-id-one\",   \"caseNo\": \"1600032981\"}}",
       messageAttributes = MessageAttributes(MessageType.COMMON_PLATFORM_HEARING),
     )
-    whenever(featureFlag.isHmctsSQSEnabled()).thenReturn(true)
     // when
     courtCaseEventsListener.onMessage(rawMessage = rawMessage)
 
@@ -93,7 +92,6 @@ class CourtCaseEventsListenerTest {
       message = "{  \"caseId\": 1217464, \"hearingId\": \"hearing-id-one\",   \"caseNo\": \"1600032981\"}}",
       messageAttributes = MessageAttributes(MessageType.COMMON_PLATFORM_HEARING),
     )
-    whenever(featureFlag.isHmctsSQSEnabled()).thenReturn(true)
     // when
     courtCaseEventsListener.onMessage(rawMessage = rawMessage)
 
@@ -112,7 +110,6 @@ class CourtCaseEventsListenerTest {
       message = "{  \"caseId\": 1217464, \"hearingId\": \"hearing-id-one\",   \"caseNo\": \"1600032981\"}}",
       messageAttributes = MessageAttributes(MessageType.COMMON_PLATFORM_HEARING),
     )
-    whenever(featureFlag.isHmctsSQSEnabled()).thenReturn(true)
     whenever(courtCaseEventsProcessor.processEvent(any())).thenThrow(IllegalArgumentException("Something went wrong"))
 
     // when
