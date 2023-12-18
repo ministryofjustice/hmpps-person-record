@@ -43,7 +43,6 @@ class OffenderServiceTest {
 
   @BeforeEach
   fun setUp() {
-    MockitoAnnotations.openMocks(this)
     offenderService = OffenderService(telemetryService, personRecordService, client, featureFlag)
     whenever(featureFlag.isDeliusSearchEnabled()).thenReturn(true)
   }
