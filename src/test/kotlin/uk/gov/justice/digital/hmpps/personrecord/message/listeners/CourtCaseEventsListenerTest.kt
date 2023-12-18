@@ -10,6 +10,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.message.processor.CourtCaseEventsProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.MessageAttributes
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
@@ -29,6 +30,9 @@ class CourtCaseEventsListenerTest {
   @Mock
   private lateinit var telemetryService: TelemetryService
 
+  @Mock
+  private lateinit var featureFlag: FeatureFlag
+
   private lateinit var courtCaseEventsListener: CourtCaseEventsListener
 
   private lateinit var sqsMessage: SQSMessage
@@ -39,7 +43,9 @@ class CourtCaseEventsListenerTest {
       objectMapper = ObjectMapper(),
       courtCaseEventsProcessor = courtCaseEventsProcessor,
       telemetryService = telemetryService,
+      featureFlag = featureFlag,
     )
+    whenever(featureFlag.isHmctsSQSEnabled()).thenReturn(true)
   }
 
   @Test
@@ -113,5 +119,24 @@ class CourtCaseEventsListenerTest {
 
     // then
     verify(telemetryService).trackEvent(TelemetryEventType.CASE_READ_FAILURE, mapOf("MESSAGE_ID" to sqsMessage.messageId))
+  }
+
+  @Test
+  fun `should not call the processor when the feature flag is false`() {
+    // given
+    val rawMessage = testMessage(MessageType.LIBRA_COURT_CASE.name)
+    sqsMessage = SQSMessage(
+      type = "Notification",
+      messageId = "5bc08be0-16e9-5da9-b9ec-d2c870a59bad",
+      message = "{  \"caseId\": 1217464, \"hearingId\": \"hearing-id-one\",   \"caseNo\": \"1600032981\"}}",
+      messageAttributes = MessageAttributes(MessageType.LIBRA_COURT_CASE),
+    )
+    whenever(featureFlag.isHmctsSQSEnabled()).thenReturn(false)
+    // when
+    courtCaseEventsListener.onMessage(rawMessage = rawMessage)
+
+    // then
+    verifyNoInteractions(courtCaseEventsProcessor)
+    verifyNoInteractions(telemetryService)
   }
 }

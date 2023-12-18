@@ -92,3 +92,10 @@ management:
 
 offender-search:
   offender-detail: /search
+
+feature:
+  flags:
+    enable-hmcts-sqs: true
+    enable-delius-search: true
+    enable-nomis-search: true
+
