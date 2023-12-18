@@ -5,9 +5,9 @@ import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PossibleMatchCriteria(
-  val firstName: String?,
-  val lastName: String?,
-  val dateOfBirth: LocalDate?,
-  val pncNumber: String?,
-  val nomsNumber: String?
+  val firstName: String? = null,
+  val lastName: String? = null,
+  val dateOfBirth: LocalDate? = null,
+  val pncNumber: String? = null,
+  val nomsNumber: String? = null
 )

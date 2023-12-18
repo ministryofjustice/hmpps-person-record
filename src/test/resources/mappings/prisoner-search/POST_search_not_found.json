@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/prisoner-search/possible-matches",
+    "bodyPatterns" : [
+      {
+        "equalToJson" : {
+          "firstName" : "Melanie",
+          "lastName" : "Sykes",
+          "dateOfBirth" : null,
+          "pncNumber" : null,
+          "nomsNumber" : null
+        }
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "[]"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/prisoner-search/possible-matches",
+    "bodyPatterns" : [
+      {
+        "equalToJson" : {
+        "firstName" : "Robert",
+        "lastName" : "Larsen",
+        "dateOfBirth" : "1975-04-02",
+        "pncNumber" : null,
+        "nomsNumber" : null
+        }
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "prisoner-search/POST_search_with_single_response_200.json"
+  }
+}
