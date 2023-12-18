@@ -19,6 +19,12 @@ offender-search:
 prisoner-search:
   base-url: http://localhost:8090
 
+feature:
+  flags:
+    enable-hmcts-sqs: true
+    enable-delius-search: true
+    enable-nomis-search: false
+
 spring:
   jpa:
     properties:

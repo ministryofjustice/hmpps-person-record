@@ -101,3 +101,10 @@ offender-search:
 
 prisoner-search:
   possible-matches: /prisoner-search/possible-matches
+
+feature:
+  flags:
+    enable-hmcts-sqs: true
+    enable-delius-search: true
+    enable-nomis-search: true
+
