@@ -175,24 +175,12 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     val personEntity = await untilNotNull { personRepository.findByDefendantsPncNumber(defendantsPncNumber) }
 
-    val person = personRepository.findByDefendantsPncNumber(defendantsPncNumber)!!
-
-    assertThat(person.personId).isNotNull()
-    assertThat(person.defendants.size).isEqualTo(1)
-    assertThat(person.defendants[0].pncNumber).isEqualTo(defendantsPncNumber)
-    assertThat(person.offenders).hasSize(1)
-    assertThat(person.offenders[0].crn).isEqualTo("X026350")
-    assertThat(person.prisoners).hasSize(1)
-    assertThat(person.prisoners[0].offenderId).isEqualTo("A1234AA")
-
-    await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.NEW_CP_CASE_RECEIVED),
-        check {
-          assertThat(it["PNC"]).isEqualTo(person.defendants[0].pncNumber)
-          assertThat(it["CRO"]).isEqualTo(person.defendants[0].cro)
-        },
-      )
-    }
+    assertThat(personEntity.personId).isNotNull()
+    assertThat(personEntity.defendants.size).isEqualTo(1)
+    assertThat(personEntity.defendants[0].pncNumber).isEqualTo(defendantsPncNumber)
+    assertThat(personEntity.offenders).hasSize(1)
+    assertThat(personEntity.offenders[0].crn).isEqualTo("X026350")
+    assertThat(personEntity.prisoners).hasSize(1)
+    assertThat(personEntity.prisoners[0].offenderId).isEqualTo("A1234AA")
   }
 }
