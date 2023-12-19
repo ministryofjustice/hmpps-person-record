@@ -54,7 +54,7 @@ class CourtCaseEventsListener(
           )
         }
       }
-    }else {
+    } else {
       LOG.debug("Message processing is switched off")
     }
   }
