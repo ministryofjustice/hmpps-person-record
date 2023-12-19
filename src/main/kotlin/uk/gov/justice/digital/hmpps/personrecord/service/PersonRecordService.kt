@@ -8,10 +8,12 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.ProbationOffenderSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderDetail
+import uk.gov.justice.digital.hmpps.personrecord.client.model.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.SearchDto
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PrisonerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
@@ -107,6 +109,13 @@ class PersonRecordService(
     val offenderEntity = OffenderEntity.from(person)
     offenderEntity.person = personEntity
     personEntity.offenders.add(offenderEntity)
+    return personRepository.save(personEntity)
+  }
+
+  fun addPrisonerToPerson(personEntity: PersonEntity, prisoner: Prisoner): PersonEntity {
+    val prisonerEntity = PrisonerEntity.from(prisoner)
+    prisonerEntity.person = personEntity
+    personEntity.prisoners.add(prisonerEntity)
     return personRepository.save(personEntity)
   }
 

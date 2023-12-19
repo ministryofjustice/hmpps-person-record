@@ -15,6 +15,7 @@ class CourtCaseEventsService(
   private val defendantRepository: DefendantRepository,
   private val personRecordService: PersonRecordService,
   private val offenderService: OffenderService,
+  private val prisonerService: PrisonerService
 ) {
 
   companion object {
@@ -48,7 +49,10 @@ class CourtCaseEventsService(
           log.debug("No existing matching records exist - creating new defendant")
           val personRecord = personRecordService.createDefendantFromPerson(person)
           telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PERSON_CREATED, mapOf("UUID" to personRecord.personId.toString(), "PNC" to pnc))
-          personRecord.let { offenderService.processAssociatedOffenders(it, person) }
+          personRecord.let {
+            offenderService.processAssociatedOffenders(it, person)
+            prisonerService.processAssociatedPrisoners(it, person)
+          }
         }
       }
     }

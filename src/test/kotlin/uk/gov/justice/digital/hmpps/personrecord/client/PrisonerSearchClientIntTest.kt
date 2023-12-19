@@ -16,11 +16,12 @@ class PrisonerSearchClientIntTest : IntegrationTestBase() {
   @Test
   fun `should return prisoner details for given match criteria`() {
     // Given
-    val dob = LocalDate.of(1975, 4, 2)
+    val dob = LocalDate.of(1960, 1, 1)
     val possibleMatchCriteria = PossibleMatchCriteria(
-      firstName = "Robert",
-      lastName = "Larsen",
-      dateOfBirth = dob
+      firstName = "Eric",
+      lastName = "Lassard",
+      pncNumber = "2003/0062845E",
+      dateOfBirth = dob,
     )
 
     // When
@@ -29,8 +30,8 @@ class PrisonerSearchClientIntTest : IntegrationTestBase() {
     // Then
     assertThat(prisoners).isNotEmpty.hasSize(1)
     assertThat(prisoners?.get(0)?.prisonerNumber).isEqualTo("A1234AA")
-    assertThat(prisoners?.get(0)?.pncNumber).isEqualTo("12/394773H")
-    assertThat(prisoners?.get(0)?.gender).isEqualTo("Female")
+    assertThat(prisoners?.get(0)?.pncNumber).isEqualTo("2003/0062845E")
+    assertThat(prisoners?.get(0)?.gender).isEqualTo("Male")
     assertThat(prisoners?.get(0)?.nationality).isEqualTo("Egyptian")
   }
 
@@ -39,7 +40,7 @@ class PrisonerSearchClientIntTest : IntegrationTestBase() {
     // Given
     val possibleMatchCriteria = PossibleMatchCriteria(
       firstName = "Melanie",
-      lastName = "Sykes"
+      lastName = "Sykes",
     )
 
     // When

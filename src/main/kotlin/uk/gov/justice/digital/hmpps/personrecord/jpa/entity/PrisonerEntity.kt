@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.envers.Audited
+import uk.gov.justice.digital.hmpps.personrecord.client.model.Prisoner
 import java.time.LocalDate
 
 @Entity
@@ -44,4 +45,21 @@ class PrisonerEntity(
   )
   var person: PersonEntity? = null,
 
-)
+) : BaseAuditedEntity() {
+  companion object {
+    fun from(prisoner: Prisoner): PrisonerEntity {
+      val prisonerEntity =
+      PrisonerEntity(
+        offenderId = prisoner.prisonerNumber,
+        pncNumber = prisoner.pncNumber,
+        firstName = prisoner.firstName,
+        lastName = prisoner.lastName,
+        dateOfBirth = prisoner.dateOfBirth,
+      ).also {
+        it.createdBy = PERSON_RECORD_SERVICE
+        it.lastUpdatedBy = PERSON_RECORD_SERVICE
+      }
+      return prisonerEntity
+    }
+  }
+}

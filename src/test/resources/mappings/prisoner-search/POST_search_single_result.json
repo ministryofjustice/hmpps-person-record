@@ -5,10 +5,10 @@
     "bodyPatterns" : [
       {
         "equalToJson" : {
-        "firstName" : "Robert",
-        "lastName" : "Larsen",
-        "dateOfBirth" : "1975-04-02",
-        "pncNumber" : null,
+        "firstName" : "Eric",
+        "lastName" : "Lassard",
+        "dateOfBirth" : "1960-01-01",
+        "pncNumber" : "2003/0062845E",
         "nomsNumber" : null
         }
       }
