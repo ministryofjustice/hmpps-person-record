@@ -49,16 +49,16 @@ class PrisonerEntity(
   companion object {
     fun from(prisoner: Prisoner): PrisonerEntity {
       val prisonerEntity =
-      PrisonerEntity(
-        offenderId = prisoner.prisonerNumber,
-        pncNumber = prisoner.pncNumber,
-        firstName = prisoner.firstName,
-        lastName = prisoner.lastName,
-        dateOfBirth = prisoner.dateOfBirth,
-      ).also {
-        it.createdBy = PERSON_RECORD_SERVICE
-        it.lastUpdatedBy = PERSON_RECORD_SERVICE
-      }
+        PrisonerEntity(
+          offenderId = prisoner.prisonerNumber,
+          pncNumber = prisoner.pncNumber,
+          firstName = prisoner.firstName,
+          lastName = prisoner.lastName,
+          dateOfBirth = prisoner.dateOfBirth,
+        ).also {
+          it.createdBy = PERSON_RECORD_SERVICE
+          it.lastUpdatedBy = PERSON_RECORD_SERVICE
+        }
       return prisonerEntity
     }
   }
