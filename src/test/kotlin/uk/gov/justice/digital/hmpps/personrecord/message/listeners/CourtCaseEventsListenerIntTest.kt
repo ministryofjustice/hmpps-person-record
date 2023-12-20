@@ -5,7 +5,6 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
-import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.check
 import org.mockito.kotlin.eq
@@ -18,6 +17,7 @@ import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
+import uk.gov.justice.digital.hmpps.personrecord.service.PrisonerService
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
@@ -46,6 +46,8 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   @Autowired
   lateinit var personRepository: PersonRepository
+  @Autowired
+  lateinit var prisonerService: PrisonerService
 
   @Test
   fun `should successfully process common platform message and create correct telemetry events`() {
@@ -173,7 +175,9 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
 
-    val personEntity = await untilNotNull { personRepository.findByDefendantsPncNumber(defendantsPncNumber) }
+    await untilCallTo { personRepository.findByDefendantsPncNumber(defendantsPncNumber) } matches {
+      it?.prisoners?.size == 1 && it.defendants.size == 1
+    }
 
     val person = personRepository.findByDefendantsPncNumber(defendantsPncNumber)!!
 
