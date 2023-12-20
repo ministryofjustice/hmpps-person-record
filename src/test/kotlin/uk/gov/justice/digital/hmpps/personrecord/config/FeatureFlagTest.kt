@@ -16,12 +16,12 @@ internal class FeatureFlagTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should return false when delius search feature is disabled`() {
-    assertThat(featureFlag.isDeliusSearchEnabled()).isTrue()
+  fun `should return true when delius search feature is enabled`() {
+    assertThat(featureFlag.isDeliusSearchEnabled()).isTrue
   }
 
   @Test
-  fun `should return true when nomis search feature switch is not present`() {
-    assertThat(featureFlag.isNomisSearchEnabled()).isFalse()
+  fun `should return true when nomis search feature switch is enabled`() {
+    assertThat(featureFlag.isNomisSearchEnabled()).isTrue
   }
 }

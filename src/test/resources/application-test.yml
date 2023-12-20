@@ -23,7 +23,7 @@ feature:
   flags:
     enable-hmcts-sqs: true
     enable-delius-search: true
-    enable-nomis-search: false
+    enable-nomis-search: true
 
 spring:
   jpa:
