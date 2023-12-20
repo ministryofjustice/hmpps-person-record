@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
+import java.util.concurrent.TimeUnit
 
 @Sql(
   scripts = ["classpath:sql/before-test.sql"],
@@ -176,7 +177,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
 
-    await untilCallTo { personRepository.findByDefendantsPncNumber(defendantsPncNumber) } matches {
+    await.atMost(30, TimeUnit.SECONDS) untilCallTo { personRepository.findByDefendantsPncNumber(defendantsPncNumber) } matches {
       it?.prisoners?.size == 1 && it.defendants.size == 1
     }
 
