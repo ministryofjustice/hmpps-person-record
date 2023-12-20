@@ -1,5 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.client
 
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.equalTo
+import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -12,6 +16,18 @@ class PrisonerSearchClientIntTest : IntegrationTestBase() {
 
   @Autowired
   lateinit var restClient: PrisonerSearchClient
+
+//  @BeforeEach
+//  fun setup() {
+//    wireMockExtension
+//    wireMockServer.start()
+//    configureFor("localhost", 8090)
+//  }
+//
+//  @AfterEach
+//  fun tearDown() {
+//    wireMockServer.stop()
+//  }
 
   @Test
   fun `should return prisoner details for given match criteria`() {
@@ -41,6 +57,18 @@ class PrisonerSearchClientIntTest : IntegrationTestBase() {
     val possibleMatchCriteria = PossibleMatchCriteria(
       firstName = "Melanie",
       lastName = "Sykes",
+    )
+
+    wireMockExtension.givenThat(
+      post(urlPathEqualTo("/prisoner-search/possible-matches"))
+        .withRequestBody(equalTo(objectMapper.writeValueAsString(possibleMatchCriteria)))
+        .withHeader("Content-Type", equalTo("application/json"))
+        .willReturn(
+          aResponse()
+            .withBody("[]")
+            .withStatus(200)
+            .withHeader("Content-Type", "application/json"),
+        ),
     )
 
     // When
