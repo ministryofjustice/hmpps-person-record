@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.message.listeners.notifiers.IEv
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
 
-const val OFFENDER_EVENTS_QUEUE_CONFIG_KEY = "offendereventsqueue"
+const val OFFENDER_EVENTS_QUEUE_CONFIG_KEY = "cprdeliusoffendereventsqueue"
 
 @Component
 class OffenderDomainEventListener(
