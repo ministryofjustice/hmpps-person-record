@@ -46,6 +46,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   @Autowired
   lateinit var personRepository: PersonRepository
+
   @Autowired
   lateinit var prisonerService: PrisonerService
 
