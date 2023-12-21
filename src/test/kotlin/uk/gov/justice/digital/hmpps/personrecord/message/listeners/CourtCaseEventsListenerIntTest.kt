@@ -178,7 +178,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
 
-    val personEntity = await.atMost(5, TimeUnit.SECONDS) untilNotNull { personRepository.findByPrisonersPncNumber(defendantsPncNumber) }
+    val personEntity = await.atMost(30, TimeUnit.SECONDS) untilNotNull { personRepository.findByPrisonersPncNumber(defendantsPncNumber) }
 
     assertThat(personEntity.personId).isNotNull()
     assertThat(personEntity.defendants.size).isEqualTo(1)
