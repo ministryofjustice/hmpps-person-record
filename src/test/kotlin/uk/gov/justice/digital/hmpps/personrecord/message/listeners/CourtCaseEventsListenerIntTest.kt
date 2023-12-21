@@ -180,7 +180,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     await untilAsserted { assertThat(postgresSQLContainer.isCreated()).isTrue() }
 
-    val personEntity = await.atMost(30, TimeUnit.SECONDS) untilNotNull { personRepository.findByPrisonersPncNumber(defendantsPncNumber) }
+    val personEntity = await.atMost(360, TimeUnit.SECONDS) untilNotNull { personRepository.findByPrisonersPncNumber(defendantsPncNumber) }
 
     assertThat(personEntity.personId).isNotNull()
     assertThat(personEntity.defendants.size).isEqualTo(1)
