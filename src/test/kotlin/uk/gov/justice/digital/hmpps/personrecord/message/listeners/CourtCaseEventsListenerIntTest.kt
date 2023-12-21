@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
+import java.util.concurrent.TimeUnit
 
 @Sql(
   scripts = ["classpath:sql/before-test.sql"],
@@ -177,16 +178,14 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
 
-    val personEntity = await untilNotNull { personRepository.findByDefendantsPncNumber(defendantsPncNumber) }
+    val personEntity = await.atMost(5, TimeUnit.SECONDS) untilNotNull { personRepository.findByPrisonersPncNumber(defendantsPncNumber) }
 
-    val person = personRepository.findByDefendantsPncNumber(defendantsPncNumber)!!
-
-    assertThat(person.personId).isNotNull()
-    assertThat(person.defendants.size).isEqualTo(1)
-    assertThat(person.defendants[0].pncNumber).isEqualTo(defendantsPncNumber)
-    assertThat(person.offenders).hasSize(1)
-    assertThat(person.offenders[0].crn).isEqualTo("X026350")
-    assertThat(person.prisoners).hasSize(1)
-    assertThat(person.prisoners[0].offenderId).isEqualTo("A1234AA")
+    assertThat(personEntity.personId).isNotNull()
+    assertThat(personEntity.defendants.size).isEqualTo(1)
+    assertThat(personEntity.defendants[0].pncNumber).isEqualTo(defendantsPncNumber)
+    assertThat(personEntity.offenders).hasSize(1)
+    assertThat(personEntity.offenders[0].crn).isEqualTo("X026350")
+    assertThat(personEntity.prisoners).hasSize(1)
+    assertThat(personEntity.prisoners[0].offenderId).isEqualTo("A1234AA")
   }
 }
