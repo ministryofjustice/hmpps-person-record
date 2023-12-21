@@ -178,6 +178,8 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
 
+    await untilAsserted { assertThat(postgresSQLContainer.isCreated()).isTrue() }
+
     val personEntity = await.atMost(30, TimeUnit.SECONDS) untilNotNull { personRepository.findByPrisonersPncNumber(defendantsPncNumber) }
 
     assertThat(personEntity.personId).isNotNull()
