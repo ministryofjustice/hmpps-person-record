@@ -28,6 +28,7 @@ spring:
       hibernate:
         hbm2ddl:
           auto: update
+    show-sql: false
 
 hmpps.sqs:
   enabled: true
