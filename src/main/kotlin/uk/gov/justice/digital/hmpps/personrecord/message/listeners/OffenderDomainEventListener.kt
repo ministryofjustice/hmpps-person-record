@@ -37,7 +37,7 @@ class OffenderDomainEventListener(
         try {
           getEventProcessor(domainEvent).process(domainEvent)
         } catch (e: Exception) {
-          LOG.error("Failed to process know domain event type:${domainEvent.eventType}", e)
+          LOG.error("Failed to process known domain event type:${domainEvent.eventType}", e)
           throw e
         }
       }
