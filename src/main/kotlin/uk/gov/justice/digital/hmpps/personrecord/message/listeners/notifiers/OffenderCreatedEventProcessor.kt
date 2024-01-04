@@ -12,6 +12,6 @@ class OffenderCreatedEventProcessor() : EventProcessor() {
     val offenderDetailUrl = domainEvent.detailUrl
     val path = URI.create(offenderDetailUrl).path
     val crn = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }
-    LOG.debug("Enter processEvent with  Info:$offenderDetailUrl")
+    LOG.debug("Entered processEvent with  url:$offenderDetailUrl")
   }
 }
