@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
 const val OFFENDER_EVENTS_QUEUE_CONFIG_KEY = "cprdeliusoffendereventsqueue"
 
 @Component
-class OffenderDomainEventListener(
+class OffenderDomainEventsListener(
   val context: ApplicationContext,
   val objectMapper: ObjectMapper,
   val featureFlag: FeatureFlag,

@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture
 
 private const val CRN = "XXX1234"
 
-class OffenderDomainEventListenerIntTest : IntegrationTestBase() {
+class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
 
   val domainEventsTopic by lazy {
     hmppsQueueService.findByTopicId("domainevents")
