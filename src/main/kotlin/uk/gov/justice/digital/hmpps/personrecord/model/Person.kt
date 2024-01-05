@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderDetail
+import uk.gov.justice.digital.hmpps.personrecord.client.model.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
@@ -72,6 +73,21 @@ data class Person(
         givenName = libraHearingEvent.name?.forename1,
         familyName = libraHearingEvent.name?.surname,
         dateOfBirth = libraHearingEvent.defendantDob,
+      )
+    }
+
+    fun from(prisoner: Prisoner): Person {
+      return Person(
+        otherIdentifiers = OtherIdentifiers(
+          pncNumber = prisoner.pncNumber,
+          cro = prisoner.croNumber,
+        ),
+        givenName = prisoner.firstName,
+        familyName = prisoner.lastName,
+        dateOfBirth = prisoner.dateOfBirth,
+        middleNames = prisoner.middleNames?.split(" "),
+        nationalityOne = prisoner.nationality,
+        sex = prisoner.gender,
       )
     }
   }

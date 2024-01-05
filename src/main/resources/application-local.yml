@@ -4,6 +4,10 @@ nomis-oauth:
 offender-search:
   base-url: https://probation-offender-search-dev.hmpps.service.justice.gov.uk
 
+prisoner-search:
+  base-url: https://prisoner-search-dev.prison.service.justice.gov.uk
+
+
 hmpps.sqs:
   enabled: true
   provider: localstack

@@ -20,6 +20,12 @@ spring:
             authorization-grant-type: client_credentials
             client-id: ${offender-search.client-id}
             client-secret: ${offender-search.client-secret}
+          prisoner-search:
+            provider: nomis-oauth-service
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: client_credentials
+            client-id: ${prisoner-search.client-id}
+            client-secret: ${prisoner-search.client-secret}
         provider:
           nomis-oauth-service:
             token-uri: ${nomis-oauth.base-url}/auth/oauth/token
@@ -92,6 +98,9 @@ management:
 
 offender-search:
   offender-detail: /search
+
+prisoner-search:
+  possible-matches: /prisoner-search/possible-matches
 
 feature:
   flags:

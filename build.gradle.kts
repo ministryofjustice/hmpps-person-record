@@ -16,8 +16,6 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
   implementation("jakarta.validation:jakarta.validation-api:3.0.2")
-  implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
-  implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
   implementation("org.hibernate.orm:hibernate-envers:6.3.1.Final")
   implementation("io.swagger.core.v3:swagger-annotations:2.2.18")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
@@ -33,8 +31,8 @@ dependencies {
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.testcontainers:junit-jupiter:1.19.1")
-  testImplementation("org.testcontainers:postgresql:1.17.6")
+  testImplementation("org.testcontainers:junit-jupiter:1.19.2")
+  testImplementation("org.testcontainers:postgresql:1.19.2")
   testImplementation("org.testcontainers:localstack:1.19.2")
   testImplementation("org.wiremock:wiremock:3.2.0")
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.3")
@@ -42,7 +40,6 @@ dependencies {
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.3")
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.20")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
-  testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
 }
 
 java {

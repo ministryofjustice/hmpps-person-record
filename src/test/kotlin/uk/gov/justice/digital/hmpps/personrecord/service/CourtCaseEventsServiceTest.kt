@@ -29,6 +29,9 @@ class CourtCaseEventsServiceTest {
   lateinit var personRecordService: PersonRecordService
 
   @Mock
+  lateinit var prisonerService: PrisonerService
+
+  @Mock
   lateinit var offenderService: OffenderService
 
   @Mock
@@ -164,5 +167,6 @@ class CourtCaseEventsServiceTest {
     verify(personRecordService).createDefendantFromPerson(person)
     verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_PERSON_CREATED, mapOf("UUID" to uuid.toString(), "PNC" to pncNumber))
     verify(offenderService).processAssociatedOffenders(personEntity, person)
+    verify(prisonerService).processAssociatedPrisoners(personEntity, person)
   }
 }

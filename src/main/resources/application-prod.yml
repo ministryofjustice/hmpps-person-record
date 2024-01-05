@@ -3,3 +3,6 @@ nomis-oauth:
 
 offender-search:
   base-url: https://probation-offender-search.hmpps.service.justice.gov.uk
+
+prisoner-search:
+  base-url: https://prisoner-search.prison.service.justice.gov.uk
