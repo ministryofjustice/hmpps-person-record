@@ -13,4 +13,5 @@ enum class TelemetryEventType(val eventName: String) {
   NEW_CP_CASE_RECEIVED("CprCommonPlatformHMCTSCaseReceived"),
   UNKNOWN_CASE_RECEIVED("CprUnknownHMCTSCase"),
   CASE_READ_FAILURE("CprCourtCaseQueueReadFailure"),
+  DELIUS_RECORD_CREATION_RECEIVED("CPRNewNDeliusRecordCreationReceived"),
 }

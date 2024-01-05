@@ -3,9 +3,12 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
+import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.verify
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
@@ -15,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.message.listeners.notifiers.NEW
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.concurrent.CompletableFuture
 
@@ -39,7 +43,6 @@ class OffenderDomainEventListenerIntTest : IntegrationTestBase() {
   @Test
   fun `should receive the message successfully when new offender event published`() {
     // Given
-
     val domainEvent = objectMapper.writeValueAsString(createDomainEvent(NEW_OFFENDER_CREATED, CRN))
 
     val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
@@ -59,6 +62,15 @@ class OffenderDomainEventListenerIntTest : IntegrationTestBase() {
     assertThat(publishResponse?.messageId()).isNotNull()
 
     assertNewOffenderDomainEventReceiverQueueHasProcessedMessages()
+
+    await untilAsserted {
+      verify(telemetryService).trackEvent(
+        eq(TelemetryEventType.DELIUS_RECORD_CREATION_RECEIVED),
+        org.mockito.kotlin.check {
+          assertThat(it["CRN"]).isEqualTo(CRN)
+        },
+      )
+    }
   }
 
   fun publishOffenderEvent(publishRequest: PublishRequest): CompletableFuture<PublishResponse>? {
