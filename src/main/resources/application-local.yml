@@ -7,6 +7,7 @@ offender-search:
 prisoner-search:
   base-url: https://prisoner-search-dev.prison.service.justice.gov.uk
 
+
 hmpps.sqs:
   enabled: true
   provider: localstack
@@ -14,11 +15,17 @@ hmpps.sqs:
     cprcourtcaseeventsqueue:
       queueName: cpr_court_case_events_queue
       subscribeTopicId: courtcaseeventstopic
+    cprdeliusoffendereventsqueue:
+      queueName: cpr_delius_offender_events_queue
+      subscribeTopicId: domainevents
+      subscribeFilter: '{"eventType":[ "probation-case.engagement.created", "probation-case.merge.completed", "probation-case.unmerge.completed"] }'
     testqueue:
       queueName: test_queue
       subscribeTopicId: testtopic
   topics:
     courtcaseeventstopic:
+      arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
+    domainevents:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
     testtopic:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
