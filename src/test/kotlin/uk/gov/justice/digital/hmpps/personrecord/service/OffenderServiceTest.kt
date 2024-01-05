@@ -153,13 +153,7 @@ class OffenderServiceTest {
       dateOfBirth = dateOfBirth,
       otherIdentifiers = OtherIdentifiers(pncNumber = "PNC123"),
     )
-    val offenderDetail = OffenderDetail(
-      offenderId = 1234L,
-      firstName = "John",
-      surname = "MAHONEY",
-      dateOfBirth = dateOfBirth,
-      otherIds = IDs(pncNumber = "PNC123", crn = "crn1234"),
-    )
+
     whenever(featureFlag.isDeliusSearchEnabled()).thenReturn(false)
     // When
     offenderService.processAssociatedOffenders(personEntity, person)
