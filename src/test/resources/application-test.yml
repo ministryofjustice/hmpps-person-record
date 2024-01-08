@@ -16,6 +16,9 @@ nomis-oauth:
 offender-search:
   base-url: http://localhost:8090
 
+prisoner-search:
+  base-url: http://localhost:8090
+
 domain_event_and_delius_api:
   base_url: http://localhost:8090
 
@@ -23,7 +26,7 @@ feature:
   flags:
     enable-hmcts-sqs: true
     enable-delius-search: true
-    enable-nomis-search: false
+    enable-nomis-search: true
 
 spring:
   jpa:

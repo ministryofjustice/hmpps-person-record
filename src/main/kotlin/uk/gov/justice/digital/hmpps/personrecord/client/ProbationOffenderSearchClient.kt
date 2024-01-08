@@ -14,6 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.config.FeignOAuth2Config
 )
 interface ProbationOffenderSearchClient {
 
-  @GetMapping(value = ["/search"])
+  @GetMapping(value = ["\${offender-search.offender-detail}"])
   fun getOffenderDetail(@RequestBody searchDto: SearchDto): List<OffenderDetail>?
 }

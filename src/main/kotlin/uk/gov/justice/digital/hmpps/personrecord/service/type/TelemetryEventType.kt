@@ -9,9 +9,11 @@ enum class TelemetryEventType(val eventName: String) {
   DELIUS_NO_MATCH_FOUND("CprNDeliusNoMatchFound"),
   DELIUS_PARTIAL_MATCH_FOUND("CprNDeliusPartialMatchFound"),
   DELIUS_MATCH_FOUND("CprNDeliusMatchFound"),
+  DELIUS_RECORD_CREATION_RECEIVED("CPRNewNDeliusRecordCreationReceived"),
   NEW_LIBRA_CASE_RECEIVED("CprLibraHMCTSCaseReceived"),
   NEW_CP_CASE_RECEIVED("CprCommonPlatformHMCTSCaseReceived"),
   UNKNOWN_CASE_RECEIVED("CprUnknownHMCTSCase"),
   CASE_READ_FAILURE("CprCourtCaseQueueReadFailure"),
-  DELIUS_RECORD_CREATION_RECEIVED("CPRNewNDeliusRecordCreationReceived"),
+  NOMIS_MATCH_FOUND("CprNomisMatchFound"),
+  NOMIS_PARTIAL_MATCH_FOUND("CrpNomisPartialMatchFound"),
 }
