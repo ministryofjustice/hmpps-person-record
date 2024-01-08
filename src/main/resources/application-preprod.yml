@@ -4,3 +4,6 @@ nomis-oauth:
 offender-search:
   base-url: https://probation-offender-search-preprod.hmpps.service.justice.gov.uk
 
+domain_event_and_delius_api:
+  base_url: https://domain-events-and-delius-preprod.hmpps.service.justice.gov.uk
+

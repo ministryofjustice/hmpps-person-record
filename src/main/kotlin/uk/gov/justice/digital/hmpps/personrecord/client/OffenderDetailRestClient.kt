@@ -8,6 +8,7 @@ import java.net.URI
 
 @FeignClient(
   name = "offender-detail",
+  url = "\${domain_event_and_delius_api.base_url}",
   configuration = [FeignOAuth2Config::class],
 )
 interface OffenderDetailRestClient {
