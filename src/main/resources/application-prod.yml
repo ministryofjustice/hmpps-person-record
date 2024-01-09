@@ -6,5 +6,6 @@ offender-search:
 
 prisoner-search:
   base-url: https://prisoner-search.prison.service.justice.gov.uk
+
 domain_event_and_delius_api:
   base_url: https://domain-events-and-delius.hmpps.service.justice.gov.uk
