@@ -10,3 +10,6 @@ prisoner-search:
 
 
 
+domain_event_and_delius_api:
+  base_url: https://domain-events-and-delius-dev.hmpps.service.justice.gov.uk
+
