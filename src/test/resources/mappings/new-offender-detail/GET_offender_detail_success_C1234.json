@@ -1,0 +1,19 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "GET",
+    "urlPattern": "/probation-case.engagement.created/C1234",
+    "headers" : {
+      "Content-Type": {
+        "equalTo": "application/json"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\n  \"identifiers\": {\n    \"crn\": \"C1234\",\n    \"pnc\": \"PN/1234560XX\"\n  },\n  \"name\": {\n    \"forename\": \"David\",\n    \"surname\": \"BOWIE\",\n    \"otherNames\": []\n  },\n  \"dateOfBirth\": \"1939-10-10\"\n}"
+  }
+}

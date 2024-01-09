@@ -2,9 +2,9 @@ package uk.gov.justice.digital.hmpps.personrecord.client
 
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import uk.gov.justice.digital.hmpps.personrecord.client.model.DeliusOffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.config.FeignOAuth2Config
-import java.net.URI
 
 @FeignClient(
   name = "offender-detail",
@@ -13,6 +13,6 @@ import java.net.URI
 )
 interface OffenderDetailRestClient {
 
-  @GetMapping()
-  fun getNewOffenderDetail(detailUrl: URI): DeliusOffenderDetail?
+  @GetMapping("{detailUrl}")
+  fun getNewOffenderDetail(@PathVariable("detailUrl") detailUrl: String): DeliusOffenderDetail?
 }
