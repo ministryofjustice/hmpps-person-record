@@ -16,6 +16,8 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
   implementation("jakarta.validation:jakarta.validation-api:3.0.2")
+  implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
+  implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
   implementation("org.hibernate.orm:hibernate-envers:6.3.1.Final")
   implementation("io.swagger.core.v3:swagger-annotations:2.2.18")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
