@@ -96,13 +96,13 @@ class PersonRecordServiceTest {
       defendantId = "c04d3d2d-4bd2-40b9-bda6-564a4d9adb91",
     )
 
-    whenever(personRepository.save(any())).thenReturn(personEntity)
+    whenever(personRepository.saveAndFlush(any())).thenReturn(personEntity)
 
     // When
     val personRecord = personRecordService.createPersonRecord(person)
 
     // Then
-    verify(personRepository).save(any<PersonEntity>())
+    verify(personRepository).saveAndFlush(any<PersonEntity>())
     assertThat(personRecord.personId).isNotNull
   }
 
@@ -118,13 +118,13 @@ class PersonRecordServiceTest {
       otherIdentifiers = OtherIdentifiers(crn = "59770/20X"),
     )
 
-    whenever(personRepository.save(any())).thenReturn(personEntity)
+    whenever(personRepository.saveAndFlush(any())).thenReturn(personEntity)
 
     // When
     val personRecord = personRecordService.createPersonRecord(person)
 
     // Then
-    verify(personRepository).save(any<PersonEntity>())
+    verify(personRepository).saveAndFlush(any<PersonEntity>())
     assertThat(personRecord.personId).isNotNull
   }
 

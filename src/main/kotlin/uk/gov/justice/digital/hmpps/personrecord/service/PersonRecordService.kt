@@ -84,7 +84,7 @@ class PersonRecordService(
     val newOffenderEntity = OffenderEntity.from(offenderDetail)
     newOffenderEntity.person = newPersonEntity
     newPersonEntity.offenders.add(newOffenderEntity)
-    return personRepository.save(newPersonEntity)
+    return personRepository.saveAndFlush(newPersonEntity)
   }
 
   fun createDefendantFromPerson(person: Person): PersonEntity {
@@ -95,28 +95,28 @@ class PersonRecordService(
     val newDefendantEntity = DefendantEntity.from(person)
     newDefendantEntity.person = newPersonEntity
     newPersonEntity.defendants.add(newDefendantEntity)
-    return personRepository.save(newPersonEntity)
+    return personRepository.saveAndFlush(newPersonEntity)
   }
 
   private fun addDefendantToPerson(personEntity: PersonEntity, person: Person): PersonEntity {
     val newDefendantEntity = DefendantEntity.from(person)
     newDefendantEntity.person = personEntity
     personEntity.defendants.add(newDefendantEntity)
-    return personRepository.save(personEntity)
+    return personRepository.saveAndFlush(personEntity)
   }
 
   fun addOffenderToPerson(personEntity: PersonEntity, person: Person): PersonEntity {
     val offenderEntity = OffenderEntity.from(person)
     offenderEntity.person = personEntity
     personEntity.offenders.add(offenderEntity)
-    return personRepository.save(personEntity)
+    return personRepository.saveAndFlush(personEntity)
   }
 
   fun addPrisonerToPerson(personEntity: PersonEntity, prisoner: Prisoner): PersonEntity {
     val prisonerEntity = PrisonerEntity.from(prisoner)
     prisonerEntity.person = personEntity
     personEntity.prisoners.add(prisonerEntity)
-    return personRepository.save(personEntity)
+    return personRepository.saveAndFlush(personEntity)
   }
 
   private fun createOffenderFromPerson(person: Person): PersonEntity {
@@ -124,7 +124,7 @@ class PersonRecordService(
     val newOffenderEntity = OffenderEntity.from(person)
     newOffenderEntity.person = newPersonEntity
     newPersonEntity.offenders.add(newOffenderEntity)
-    return personRepository.save(newPersonEntity)
+    return personRepository.saveAndFlush(newPersonEntity)
   }
 
   fun searchPersonRecords(searchRequest: PersonSearchRequest): List<Person> {
