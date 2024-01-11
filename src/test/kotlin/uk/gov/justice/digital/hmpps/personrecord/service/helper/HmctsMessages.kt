@@ -295,7 +295,73 @@ fun commonPlatformHearingWithNewDefendant() = """
                   }
                 },
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
-              }
+              },
+              { 
+                "id": "b5cfae34-9256-43ad-87fb-ac3def34e2ac",
+                "pncId": "2003/0062845E",
+                "croNumber": "12345ABCDEF",
+                "offences": [
+                  {
+                    "id": "a63d9020-aa6b-4997-92fd-72a692b036de",
+                    "offenceLegislation": "Contrary to section 20 of the Offences Against the    Person Act 1861.",
+                    "offenceTitle": "Wound / inflict grievous bodily harm without intent",
+                    "wording": "on 01/08/2009 at  the County public house, unlawfully and maliciously wounded, John Smith",
+                    "listingNumber": 30,
+                    "offenceCode": "ABC001"
+                  }
+                ],
+                "personDefendant": {
+                  "personDetails": {
+                    "address": {
+                      "address1": "13 broad Street",
+                      "address2": "Cardiff",
+                      "address3": "Wales",
+                      "address4": "UK",
+                      "address5": "Earth",
+                      "postcode": "CF10 1FU"
+                    },
+                    "dateOfBirth": "1960-01-01",
+                    "firstName": "Eric",
+                    "gender": "MALE",
+                    "lastName": "Lassard",
+                    "title": "Mr"
+                  }
+                },
+                "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
+              },
+                           { 
+                "id": "b5cfae34-9256-43ad-87fb-ac3def34e2ac",
+                "pncId": "2003/0062845E",
+                "croNumber": "12345ABCDEF",
+                "offences": [
+                  {
+                    "id": "a63d9020-aa6b-4997-92fd-72a692b036de",
+                    "offenceLegislation": "Contrary to section 20 of the Offences Against the    Person Act 1861.",
+                    "offenceTitle": "Wound / inflict grievous bodily harm without intent",
+                    "wording": "on 01/08/2009 at  the County public house, unlawfully and maliciously wounded, John Smith",
+                    "listingNumber": 30,
+                    "offenceCode": "ABC001"
+                  }
+                ],
+                "personDefendant": {
+                  "personDetails": {
+                    "address": {
+                      "address1": "13 broad Street",
+                      "address2": "Cardiff",
+                      "address3": "Wales",
+                      "address4": "UK",
+                      "address5": "Earth",
+                      "postcode": "CF10 1FU"
+                    },
+                    "dateOfBirth": "1960-01-01",
+                    "firstName": "Eric",
+                    "gender": "MALE",
+                    "lastName": "Lassard",
+                    "title": "Mr"
+                  }
+                },
+                "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
+              } 
             ],
             "id": "D2B61C8A-0684-4764-B401-F0A788BC7CCF",
             "prosecutionCaseIdentifier": {
