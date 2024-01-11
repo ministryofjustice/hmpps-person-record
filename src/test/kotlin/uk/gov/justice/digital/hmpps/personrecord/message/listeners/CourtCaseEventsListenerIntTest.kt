@@ -153,7 +153,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
- // @Disabled("Works locally - disabled until reason for failure on circleCi has been established")
+  @Disabled("Works locally - disabled until reason for failure on circleCi has been established")
   fun `should create a new defendant with link to a person record from common platform message`() {
     // given
     val defendantsPncNumber = "2003/0062845E"

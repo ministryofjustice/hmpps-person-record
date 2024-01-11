@@ -31,7 +31,6 @@ feature:
 spring:
   jpa:
     properties:
-      org.hibernate.flushMode: AUTO
       hibernate:
         hbm2ddl:
           auto: update
