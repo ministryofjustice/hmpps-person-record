@@ -14,7 +14,7 @@ class PNCIdValidator {
   }
 
   private fun hasValidCheckDigit(pncIdentifier: String): Boolean {
-    val pncMinusSlash = pncIdentifier.replace("/", "") // removing forward slash
+    val pncMinusSlash = pncIdentifier.replace("/", "")
     val checkDigit = pncMinusSlash.last().uppercaseChar()
     val modulus = calculateModulusOfSerialNumber(pncMinusSlash)
     val calculatedCheckDigit = convertNumberToLetterInAlphabet(modulus.toInt())
@@ -24,7 +24,7 @@ class PNCIdValidator {
   private fun isValidFormat(pncIdentifier: String): Boolean = pncIdentifier.matches(Regex(PNC_REGEX))
 
   private fun calculateModulusOfSerialNumber(pncIdentifier: String): BigInteger {
-    // Starting format is : YYYY/NNNNNNND OR YYYYNNNNNNND
+    // Starting format is : YYYYNNNNNNND
     val year = extractTwoDigitYearPart(pncIdentifier) // YY
     val serialNumber = extractSerialNumberFromId(pncIdentifier, year) // NNNNNNN
     val operand = BigInteger(year + serialNumber) // YYNNNNNNN
