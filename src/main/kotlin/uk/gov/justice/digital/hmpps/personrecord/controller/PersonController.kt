@@ -85,7 +85,7 @@ class PersonController(
   )
   @PostMapping("/person/search")
   fun searchForPerson(@RequestBody searchRequest: PersonSearchRequest): List<Person> {
-    log.debug("Entered searchForPerson($searchRequest)")
+    log.debug("Entered searchForPerson()")
     return personRecordService.searchPersonRecords(searchRequest)
   }
 }
