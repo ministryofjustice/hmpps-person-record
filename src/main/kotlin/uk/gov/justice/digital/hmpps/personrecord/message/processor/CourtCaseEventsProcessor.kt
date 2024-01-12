@@ -38,19 +38,27 @@ class CourtCaseEventsProcessor(
 
   fun processLibraHearingEvent(libraHearingEvent: LibraHearingEvent) {
     log.debug("Processing LIBRA event")
-    log.debug(libraHearingEvent.toString())
     telemetryService.trackEvent(TelemetryEventType.NEW_LIBRA_CASE_RECEIVED, mapOf("PNC" to libraHearingEvent.pnc, "CRO" to libraHearingEvent.cro))
     courtCaseEventsService.processPersonFromCourtCaseEvent(Person.from(libraHearingEvent))
   }
 
   fun processCommonPlatformHearingEvent(commonPlatformHearingEvent: CommonPlatformHearingEvent) {
     log.debug("Processing COMMON PLATFORM event")
-    log.debug(commonPlatformHearingEvent.toString())
-    commonPlatformHearingEvent.hearing.prosecutionCases.forEach { prosecutionCase ->
-      prosecutionCase.defendants.forEach {
-        telemetryService.trackEvent(TelemetryEventType.NEW_CP_CASE_RECEIVED, mapOf("PNC" to it.pncId, "CRO" to it.croNumber))
-        courtCaseEventsService.processPersonFromCourtCaseEvent(Person.from(it))
+
+    val uniqueDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
+      .flatMap { it.defendants }
+      .distinctBy {
+        it.personDefendant?.personDetails?.firstName +
+          it.personDefendant?.personDetails?.lastName +
+          it.personDefendant?.personDetails?.dateOfBirth +
+          it.pncId +
+          it.croNumber
       }
+    log.debug("Processing CP Event with ${uniqueDefendants.size} distinct defendants")
+
+    uniqueDefendants.forEach { defendant ->
+      telemetryService.trackEvent(TelemetryEventType.NEW_CP_CASE_RECEIVED, mapOf("PNC" to defendant.pncId, "CRO" to defendant.croNumber))
+      courtCaseEventsService.processPersonFromCourtCaseEvent(Person.from(defendant))
     }
   }
 }

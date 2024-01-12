@@ -36,7 +36,7 @@ class PrisonerService(
           ),
         )
       } else if (matchesExistingPrisonerPartially(it, person)) {
-        log.debug("Partial Nomis match found for $person")
+        log.debug("Partial Nomis match found")
         telemetryService.trackEvent(
           TelemetryEventType.NOMIS_PARTIAL_MATCH_FOUND,
           mapOf(

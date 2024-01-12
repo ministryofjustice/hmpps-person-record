@@ -31,7 +31,7 @@ class CourtCaseEventsListener(
   ) {
     LOG.debug("Enter onMessage")
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-    LOG.debug("Received message: type:${sqsMessage.type} message:${sqsMessage.message}")
+    LOG.debug("Received message: type:${sqsMessage.type}")
     if (featureFlag.isHmctsSQSEnabled()) {
       when (sqsMessage.type) {
         "Notification" -> {

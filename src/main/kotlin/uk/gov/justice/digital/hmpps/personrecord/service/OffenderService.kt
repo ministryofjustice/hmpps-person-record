@@ -39,7 +39,7 @@ class OffenderService(
             ),
           )
         } else if (matchesExistingOffenderPartially(it, person)) {
-          log.debug("Partial Delius match found for $person")
+          log.debug("Partial Delius match found")
           telemetryService.trackEvent(
             TelemetryEventType.DELIUS_PARTIAL_MATCH_FOUND,
             mapOf(
