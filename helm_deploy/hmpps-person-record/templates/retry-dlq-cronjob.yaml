@@ -18,6 +18,6 @@ spec:
               args:
                 - /bin/sh
                 - -c
-                - curl -XPUT http://{{ template "app.fullname" . }}/queue-admin/retry-all-dlqs
+                - curl --retry 3 -XPUT http://{{ template "app.fullname" . }}/queue-admin/retry-all-dlqs
           restartPolicy: Never
 
