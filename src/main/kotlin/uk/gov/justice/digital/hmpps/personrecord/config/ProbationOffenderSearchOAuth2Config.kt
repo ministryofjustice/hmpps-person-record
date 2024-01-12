@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 
 @Configuration
-class FeignOAuth2Config(authorizedClientManager: OAuth2AuthorizedClientManager) :
+class ProbationOffenderSearchOAuth2Config(authorizedClientManager: OAuth2AuthorizedClientManager) :
   FeignConfig(authorizedClientManager) {
 
   override fun registrationId() = "offender-search"

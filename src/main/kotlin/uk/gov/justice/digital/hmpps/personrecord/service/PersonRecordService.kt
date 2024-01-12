@@ -40,7 +40,7 @@ class PersonRecordService(
   }
 
   fun createPersonRecord(person: Person): Person {
-    log.debug("Entered createPersonRecord with $person")
+    log.debug("Entered createPersonRecord with")
 
     // create an offender
     person.otherIdentifiers?.crn?.let {
@@ -65,8 +65,8 @@ class PersonRecordService(
     } else if (existingPersons.size == 1) { // exact match
       Person.from(addDefendantToPerson(existingPersons[0], person))
     } else {
-      log.error("Multiple person records exist for search criteria $person")
-      throw IllegalArgumentException("Multiple person records exist for search criteria $person")
+      log.error("Multiple person records exist for search criteria")
+      throw IllegalArgumentException("Multiple person records exist for search criteria")
     }
   }
 
@@ -88,7 +88,7 @@ class PersonRecordService(
   }
 
   fun createDefendantFromPerson(person: Person): PersonEntity {
-    log.debug("Entered createDefendantFromPerson with {}", person)
+    log.debug("Entered createDefendantFromPerson")
 
     val newPersonEntity = PersonEntity.new()
 

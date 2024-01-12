@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.personrecord.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.PossibleMatchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.client.model.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity

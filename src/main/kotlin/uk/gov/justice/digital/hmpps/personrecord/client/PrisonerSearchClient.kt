@@ -1,16 +1,16 @@
-package uk.gov.justice.digital.hmpps.personrecord
+package uk.gov.justice.digital.hmpps.personrecord.client
 
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import uk.gov.justice.digital.hmpps.personrecord.client.model.PossibleMatchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.client.model.Prisoner
-import uk.gov.justice.digital.hmpps.personrecord.config.FeignOAuth2Config
+import uk.gov.justice.digital.hmpps.personrecord.config.PrisonerClientOAuth2Config
 
 @FeignClient(
   name = "prisoner-search",
   url = "\${prisoner-search.base-url}",
-  configuration = [FeignOAuth2Config::class],
+  configuration = [PrisonerClientOAuth2Config::class],
 )
 interface PrisonerSearchClient {
 
