@@ -30,7 +30,7 @@ class OffenderDomainEventsListener(
   ) {
     LOG.debug("Enter onDomainEvent")
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-    LOG.debug("Received message: type:${sqsMessage.type} message:${sqsMessage.message}")
+    LOG.debug("Received message: type:${sqsMessage.type}")
     when (sqsMessage.type) {
       "Notification" -> {
         val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
