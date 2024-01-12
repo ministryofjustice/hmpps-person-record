@@ -197,7 +197,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       dateOfBirth = LocalDate.of(1968, 8, 15),
       otherIdentifiers = OtherIdentifiers(
         pncNumber = "PNC1234",
-        crn = "CRN1234", // crn already exist in the db
+        crn = "CRN1234",
       ),
     )
     val personJson = objectMapper.writeValueAsString(maximumPerson)

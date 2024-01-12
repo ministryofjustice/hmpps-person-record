@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.13.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.14.1"
   kotlin("plugin.spring") version "1.9.22"
   kotlin("jvm") version "1.9.22"
   kotlin("plugin.jpa") version "1.9.22"
@@ -27,8 +27,8 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.2.1")
 
   runtimeOnly("org.postgresql:postgresql:42.7.1")
-  runtimeOnly("org.flywaydb:flyway-core:10.4.1")
-  runtimeOnly("org.flywaydb:flyway-database-postgresql:10.4.1")
+  runtimeOnly("org.flywaydb:flyway-core:10.5.0")
+  runtimeOnly("org.flywaydb:flyway-database-postgresql:10.5.0")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
