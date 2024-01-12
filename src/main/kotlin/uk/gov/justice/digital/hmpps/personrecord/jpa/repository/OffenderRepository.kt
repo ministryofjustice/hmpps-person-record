@@ -6,6 +6,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderEntity
 
 @Repository
 interface OffenderRepository : JpaRepository<OffenderEntity, Long> {
-  fun findByCrn(crn: String): OffenderEntity ?
+  fun findByCrn(crn: String): OffenderEntity?
   fun existsByCrn(crn: String): Boolean
 }
