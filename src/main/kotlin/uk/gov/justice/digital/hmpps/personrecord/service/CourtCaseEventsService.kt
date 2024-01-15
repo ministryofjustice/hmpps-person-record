@@ -11,13 +11,13 @@ import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdValidator
 @Service
 class CourtCaseEventsService(
   private val telemetryService: TelemetryService,
-  private val pncIdValidator: PNCIdValidator,
   private val defendantRepository: DefendantRepository,
   private val personRecordService: PersonRecordService,
   private val offenderService: OffenderService,
   private val prisonerService: PrisonerService,
 ) {
 
+  private val pncIdValidator: PNCIdValidator = PNCIdValidator()
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }

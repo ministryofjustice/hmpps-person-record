@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
@@ -15,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantReposit
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdValidator
 import java.time.LocalDate
 import java.util.*
 
@@ -34,9 +32,6 @@ class CourtCaseEventsServiceTest {
 
   @Mock
   lateinit var offenderService: OffenderService
-
-  @Mock
-  lateinit var pncIdValidator: PNCIdValidator
 
   @Mock
   lateinit var defendantRepository: DefendantRepository
@@ -74,11 +69,11 @@ class CourtCaseEventsServiceTest {
   @Test
   fun `should call telemetry service when exact match found for Court Case Event`() {
     // Given
-    val pncNumber = "PNC12345"
+    val pncNumber = "20030011985X"
     val crn = "CRN123"
     val personID = UUID.fromString("2936dd6a-677a-4cc0-83c5-2296b6efee0b")
     val dateOfBirth = LocalDate.now()
-    whenever(pncIdValidator.isValid(anyString())).thenReturn(true)
+
     whenever(defendantRepository.findAllByPncNumber(pncNumber))
       .thenReturn(
         listOf(
@@ -112,9 +107,9 @@ class CourtCaseEventsServiceTest {
   @Test
   fun `should call telemetry service when partial match found for Court Case Event`() {
     // Given
-    val pncNumber = "PNC12345"
+    val pncNumber = "20030011985X"
     val dateOfBirth = LocalDate.now()
-    whenever(pncIdValidator.isValid(anyString())).thenReturn(true)
+
     whenever(defendantRepository.findAllByPncNumber(pncNumber))
       .thenReturn(
         listOf(
@@ -146,9 +141,7 @@ class CourtCaseEventsServiceTest {
   @Test
   fun `should create new defendant record when no matching records are found`() {
     // Given
-    val pncNumber = "PNC12345"
-
-    whenever(pncIdValidator.isValid(pncNumber)).thenReturn(true)
+    val pncNumber = "20030011985X"
 
     val person = Person(
       familyName = "Jones",
@@ -174,8 +167,7 @@ class CourtCaseEventsServiceTest {
   @Test
   fun `should not create new defendant when mulitple existing records are found`() {
     // Given
-    val pncNumber = "PNC12345"
-    whenever(pncIdValidator.isValid(pncNumber)).thenReturn(true)
+    val pncNumber = "20030011985X"
 
     val person = Person(
       familyName = "Jones",
