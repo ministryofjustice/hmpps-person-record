@@ -32,7 +32,7 @@ spring:
 
   cloud.openfeign.client.config:
     default:
-      logger-level: full
+      logger-level: basic
       connect-timeout: 5000
       read-timeout: 5000
       default-request-headers:
