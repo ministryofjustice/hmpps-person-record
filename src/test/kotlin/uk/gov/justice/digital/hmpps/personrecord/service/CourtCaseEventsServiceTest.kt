@@ -172,7 +172,7 @@ class CourtCaseEventsServiceTest {
   }
 
   @Test
-  fun `should not create new defendant when mulitple existing records are found`() {
+  fun `should not create new defendant when multiple existing records are found`() {
     // Given
     val pncNumber = "PNC12345"
     whenever(pncIdValidator.isValid(pncNumber)).thenReturn(true)
