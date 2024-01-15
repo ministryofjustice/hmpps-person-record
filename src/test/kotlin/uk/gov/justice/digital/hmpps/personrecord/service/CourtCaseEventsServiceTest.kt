@@ -8,6 +8,7 @@ import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
@@ -168,5 +169,30 @@ class CourtCaseEventsServiceTest {
     verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_PERSON_CREATED, mapOf("UUID" to uuid.toString(), "PNC" to pncNumber))
     verify(offenderService).processAssociatedOffenders(personEntity, person)
     verify(prisonerService).processAssociatedPrisoners(personEntity, person)
+  }
+
+  @Test
+  fun `should not create new defendant when mulitple existing records are found`() {
+    // Given
+    val pncNumber = "PNC12345"
+    whenever(pncIdValidator.isValid(pncNumber)).thenReturn(true)
+
+    val person = Person(
+      familyName = "Jones",
+      givenName = "Billy",
+      dateOfBirth = LocalDate.of(1969, 8, 15),
+      otherIdentifiers = OtherIdentifiers(pncNumber = pncNumber),
+    )
+
+    val defendant = DefendantEntity()
+    whenever(defendantRepository.findAllByPncNumber(pncNumber)).thenReturn(listOf(defendant, defendant))
+
+    // When
+    courtCaseEventsService.processPersonFromCourtCaseEvent(person)
+
+    // Then
+    verifyNoInteractions(personRecordService)
+    verifyNoInteractions(offenderService)
+    verifyNoInteractions(prisonerService)
   }
 }

@@ -45,7 +45,7 @@ class CourtCaseEventsService(
         } else if (matchesExistingRecordPartially(defendants, person)) {
           log.info("Partially matching CPR record exists for defendant - no further processing will occur")
           telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PARTIAL_MATCH, extractMatchingFields(defendants[0], person))
-        } else {
+        } else if (defendants.isEmpty()) {
           log.debug("No existing matching records exist - creating new defendant")
           val personRecord = personRecordService.createDefendantFromPerson(person)
           telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PERSON_CREATED, mapOf("UUID" to personRecord.personId.toString(), "PNC" to pnc))
