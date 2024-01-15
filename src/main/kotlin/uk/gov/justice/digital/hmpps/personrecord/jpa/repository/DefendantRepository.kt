@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 @Repository
 interface DefendantRepository : JpaRepository<DefendantEntity, Long> {
   fun findByDefendantId(defendantId: String): DefendantEntity?
+
   @Transactional(isolation = Isolation.READ_COMMITTED)
   fun findAllByPncNumber(pncNumber: String): List<DefendantEntity>
 }
