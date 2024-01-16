@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Isolation
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
@@ -22,6 +24,7 @@ class CourtCaseEventsService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
+  @Transactional(isolation = Isolation.SERIALIZABLE)
   fun processPersonFromCourtCaseEvent(person: Person) {
     log.debug("Entered processPersonFromCourtCaseEvent")
 
@@ -34,7 +37,7 @@ class CourtCaseEventsService(
     person.otherIdentifiers?.pncNumber?.let { pnc ->
       // Validate PNC
       if (!pncIdValidator.isValid(pnc)) {
-        log.info("Invalid PNC encountered in court case event - no further processing will occur")
+        log.info("Invalid PNC $pnc encountered in court case event - no further processing will occur")
         telemetryService.trackEvent(TelemetryEventType.NEW_CASE_INVALID_PNC, mapOf("PNC" to pnc))
       } else {
         val defendants = personRepository.findByDefendantsPncNumber(pnc)?.defendants.orEmpty()
@@ -46,7 +49,7 @@ class CourtCaseEventsService(
           log.info("Partially matching Person record exists with defendant - no further processing will occur")
           telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PARTIAL_MATCH, extractMatchingFields(defendants[0], person))
         } else if (defendants.isEmpty()) {
-          log.debug("No existing matching Person record exists - creating new person and defendant")
+          log.debug("No existing matching Person record exists - creating new person and defendant with pnc $pnc")
           val personRecord = personRecordService.createNewPersonAndDefendant(person)
           telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PERSON_CREATED, mapOf("UUID" to personRecord.personId.toString(), "PNC" to pnc))
           personRecord.let {
