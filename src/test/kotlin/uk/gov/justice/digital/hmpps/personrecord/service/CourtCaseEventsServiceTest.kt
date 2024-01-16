@@ -10,7 +10,8 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -34,7 +35,7 @@ class CourtCaseEventsServiceTest {
   lateinit var offenderService: OffenderService
 
   @Mock
-  lateinit var defendantRepository: DefendantRepository
+  lateinit var personRepository: PersonRepository
 
   @InjectMocks
   lateinit var courtCaseEventsService: CourtCaseEventsService
@@ -48,7 +49,7 @@ class CourtCaseEventsServiceTest {
     courtCaseEventsService.processPersonFromCourtCaseEvent(person)
 
     // Then
-    verify(personRecordService, never()).createDefendantFromPerson(person)
+    verify(personRecordService, never()).createNewPersonAndDefendant(person)
     verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_MISSING_PNC, emptyMap())
   }
 
@@ -62,7 +63,7 @@ class CourtCaseEventsServiceTest {
     courtCaseEventsService.processPersonFromCourtCaseEvent(person)
 
     // Then
-    verify(personRecordService, never()).createDefendantFromPerson(person)
+    verify(personRecordService, never()).createNewPersonAndDefendant(person)
     verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_INVALID_PNC, mapOf("PNC" to pncNumber))
   }
 
@@ -73,17 +74,18 @@ class CourtCaseEventsServiceTest {
     val crn = "CRN123"
     val personID = UUID.fromString("2936dd6a-677a-4cc0-83c5-2296b6efee0b")
     val dateOfBirth = LocalDate.now()
-
-    whenever(defendantRepository.findAllByPncNumber(pncNumber))
+    whenever(personRepository.findByDefendantsPncNumber(pncNumber))
       .thenReturn(
-        listOf(
-          DefendantEntity(
-            pncNumber = pncNumber,
-            crn = crn,
-            surname = "Jones",
-            forenameOne = "Crackity",
-            dateOfBirth = dateOfBirth,
-            defendantId = "122434",
+        PersonEntity(
+          defendants = mutableListOf(
+            DefendantEntity(
+              pncNumber = pncNumber,
+              crn = crn,
+              surname = "Jones",
+              forenameOne = "Crackity",
+              dateOfBirth = dateOfBirth,
+              defendantId = "122434",
+            ),
           ),
         ),
       )
@@ -100,7 +102,7 @@ class CourtCaseEventsServiceTest {
     courtCaseEventsService.processPersonFromCourtCaseEvent(person)
 
     // Then
-    verify(personRecordService, never()).createDefendantFromPerson(person)
+    verify(personRecordService, never()).createNewPersonAndDefendant(person)
     verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_EXACT_MATCH, mapOf("PNC" to pncNumber, "CRN" to crn, "UUID" to personID.toString()))
   }
 
@@ -109,16 +111,17 @@ class CourtCaseEventsServiceTest {
     // Given
     val pncNumber = "20030011985X"
     val dateOfBirth = LocalDate.now()
-
-    whenever(defendantRepository.findAllByPncNumber(pncNumber))
+    whenever(personRepository.findByDefendantsPncNumber(pncNumber))
       .thenReturn(
-        listOf(
-          DefendantEntity(
-            pncNumber = pncNumber,
-            surname = "Jones",
-            forenameOne = "Crackity",
-            dateOfBirth = dateOfBirth,
-            defendantId = "122434",
+        PersonEntity(
+          defendants = mutableListOf(
+            DefendantEntity(
+              pncNumber = pncNumber,
+              surname = "Jones",
+              forenameOne = "Crackity",
+              dateOfBirth = dateOfBirth,
+              defendantId = "122434",
+            ),
           ),
         ),
       )
@@ -134,7 +137,7 @@ class CourtCaseEventsServiceTest {
     courtCaseEventsService.processPersonFromCourtCaseEvent(person)
 
     // Then
-    verify(personRecordService, never()).createDefendantFromPerson(person)
+    verify(personRecordService, never()).createNewPersonAndDefendant(person)
     verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_PARTIAL_MATCH, mapOf("Surname" to "Jones"))
   }
 
@@ -152,22 +155,22 @@ class CourtCaseEventsServiceTest {
 
     val uuid = UUID.randomUUID()
     val personEntity = Person.from(person.copy(personId = uuid))
-    whenever(personRecordService.createDefendantFromPerson(person)).thenReturn(personEntity)
+    whenever(personRecordService.createNewPersonAndDefendant(person)).thenReturn(personEntity)
 
     // When
     courtCaseEventsService.processPersonFromCourtCaseEvent(person)
 
     // Then
-    verify(personRecordService).createDefendantFromPerson(person)
+    verify(personRecordService).createNewPersonAndDefendant(person)
     verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_PERSON_CREATED, mapOf("UUID" to uuid.toString(), "PNC" to pncNumber))
     verify(offenderService).processAssociatedOffenders(personEntity, person)
     verify(prisonerService).processAssociatedPrisoners(personEntity, person)
   }
 
   @Test
-  fun `should not create new defendant when mulitple existing records are found`() {
+  fun `should not create new defendant when multiple existing records are found`() {
     // Given
-    val pncNumber = "20030011985X"
+    val pncNumber = "PNC12345"
 
     val person = Person(
       familyName = "Jones",
@@ -175,9 +178,6 @@ class CourtCaseEventsServiceTest {
       dateOfBirth = LocalDate.of(1969, 8, 15),
       otherIdentifiers = OtherIdentifiers(pncNumber = pncNumber),
     )
-
-    val defendant = DefendantEntity()
-    whenever(defendantRepository.findAllByPncNumber(pncNumber)).thenReturn(listOf(defendant, defendant))
 
     // When
     courtCaseEventsService.processPersonFromCourtCaseEvent(person)
