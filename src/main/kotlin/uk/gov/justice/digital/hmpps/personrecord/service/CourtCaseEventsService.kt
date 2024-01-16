@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdValidator
@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdValidator
 @Service
 class CourtCaseEventsService(
   private val telemetryService: TelemetryService,
-  private val defendantRepository: DefendantRepository,
+  private val personRepository: PersonRepository,
   private val personRecordService: PersonRecordService,
   private val offenderService: OffenderService,
   private val prisonerService: PrisonerService,
@@ -37,17 +37,17 @@ class CourtCaseEventsService(
         log.info("Invalid PNC encountered in court case event - no further processing will occur")
         telemetryService.trackEvent(TelemetryEventType.NEW_CASE_INVALID_PNC, mapOf("PNC" to pnc))
       } else {
-        val defendants = defendantRepository.findAllByPncNumber(pnc)
+        val defendants = personRepository.findByDefendantsPncNumber(pnc)?.defendants.orEmpty()
 
         if (matchesExistingRecordExactly(defendants, person)) {
-          log.info("Exactly matching CPR record exists for defendant - no further processing will occur")
+          log.info("Exactly matching Person record exists with defendant - no further processing will occur")
           telemetryService.trackEvent(TelemetryEventType.NEW_CASE_EXACT_MATCH, mapOf("PNC" to pnc, "CRN" to defendants[0].crn, "UUID" to person.personId.toString()))
         } else if (matchesExistingRecordPartially(defendants, person)) {
-          log.info("Partially matching CPR record exists for defendant - no further processing will occur")
+          log.info("Partially matching Person record exists with defendant - no further processing will occur")
           telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PARTIAL_MATCH, extractMatchingFields(defendants[0], person))
         } else if (defendants.isEmpty()) {
-          log.debug("No existing matching records exist - creating new defendant")
-          val personRecord = personRecordService.createDefendantFromPerson(person)
+          log.debug("No existing matching Person record exists - creating new person and defendant")
+          val personRecord = personRecordService.createNewPersonAndDefendant(person)
           telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PERSON_CREATED, mapOf("UUID" to personRecord.personId.toString(), "PNC" to pnc))
           personRecord.let {
             offenderService.processAssociatedOffenders(it, person)
