@@ -67,7 +67,8 @@ class CourtCaseEventsProcessor(
           it.pncId +
           it.croNumber
       }
-    log.debug("Processing CP Event with ${uniqueDefendants.size} distinct defendants with pnc ${uniqueDefendants.forEach { defendant -> defendant.pncId }} ")
+    val pncValues = uniqueDefendants.joinToString(" ") { it.pncId.toString() }
+    log.debug("Processing CP Event with ${uniqueDefendants.size} distinct defendants with pnc $pncValues")
 
     uniqueDefendants.forEach { defendant ->
       telemetryService.trackEvent(
