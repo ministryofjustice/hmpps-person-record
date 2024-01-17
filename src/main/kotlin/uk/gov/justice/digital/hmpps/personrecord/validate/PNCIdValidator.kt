@@ -1,12 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.validate
 
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
 import java.math.BigInteger
 
 const val PNC_REGEX = "\\d{4}(/?)\\d{7}[A-Z]{1}\$"
 
-@Component
 class PNCIdValidator {
 
   fun isValid(pncIdentifier: String): Boolean {

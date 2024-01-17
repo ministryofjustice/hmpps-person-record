@@ -61,7 +61,7 @@ class PersonRecordService(
     val searchRequest = PersonSearchRequest.from(person)
     val existingPersons = personRepository.searchByRequestParameters(searchRequest)
     return if (existingPersons.isEmpty()) {
-      Person.from(createDefendantFromPerson(person))
+      Person.from(createNewPersonAndDefendant(person))
     } else if (existingPersons.size == 1) { // exact match
       Person.from(addDefendantToPerson(existingPersons[0], person))
     } else {
@@ -87,14 +87,14 @@ class PersonRecordService(
     return personRepository.saveAndFlush(newPersonEntity)
   }
 
-  fun createDefendantFromPerson(person: Person): PersonEntity {
-    log.debug("Entered createDefendantFromPerson")
+  fun createNewPersonAndDefendant(person: Person): PersonEntity {
+    log.debug("Entered createNewPersonAndDefendant with pnc ${person.otherIdentifiers?.pncNumber}")
 
     val newPersonEntity = PersonEntity.new()
-
     val newDefendantEntity = DefendantEntity.from(person)
     newDefendantEntity.person = newPersonEntity
     newPersonEntity.defendants.add(newDefendantEntity)
+
     return personRepository.saveAndFlush(newPersonEntity)
   }
 

@@ -32,7 +32,7 @@ spring:
 
   cloud.openfeign.client.config:
     default:
-      logger-level: full
+      logger-level: basic
       connect-timeout: 5000
       read-timeout: 5000
       default-request-headers:
@@ -106,5 +106,5 @@ feature:
   flags:
     enable-hmcts-sqs: false
     enable-delius-search: true
-    enable-nomis-search: true
+    enable-nomis-search: false
 
