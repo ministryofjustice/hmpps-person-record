@@ -50,6 +50,9 @@ class PrisonerService(
           )
         }
       }
+      if (prisoners.isNullOrEmpty()) {
+        log.debug("No Nomis matching records exist")
+      }
     }
   }
 
