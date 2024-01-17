@@ -16,4 +16,5 @@ enum class TelemetryEventType(val eventName: String) {
   CASE_READ_FAILURE("CprCourtCaseQueueReadFailure"),
   NOMIS_MATCH_FOUND("CprNomisMatchFound"),
   NOMIS_PARTIAL_MATCH_FOUND("CrpNomisPartialMatchFound"),
+  NOMIS_NO_MATCH_FOUND("CprNomisNoMatchFound"),
 }
