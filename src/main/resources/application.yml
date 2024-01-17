@@ -104,7 +104,7 @@ prisoner-search:
 
 feature:
   flags:
-    enable-hmcts-sqs: false
+    enable-hmcts-sqs: true
     enable-delius-search: true
-    enable-nomis-search: false
+    enable-nomis-search: true
 
