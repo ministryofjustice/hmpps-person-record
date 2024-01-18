@@ -49,3 +49,8 @@ Put a message onto the court case events queue for testing purposes:
 Retrieve a message from the Court case events DLQ and save to a file called dlq_data:
 
 `$ aws sqs receive-message --queue-url $COURT_CASE_EVENTS_DLQ_QUEUE_URL > "dlq_data"`
+
+
+### Sample Court Case Events data:
+
+Example Libra/Common platform test data can be found here : https://github.com/ministryofjustice/hmpps-probation-in-court-utils/tree/main/cases
