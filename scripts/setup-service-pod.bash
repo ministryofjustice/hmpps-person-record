@@ -37,7 +37,7 @@ export COURT_CASE_EVENTS_QUEUE_URL=$(echo "$secret_json" | jq -r .data.sqs_queue
 
 echo "🔑 Getting court case events DLQ url from secrets..."
 secret_json=$(cloud-platform decode-secret -s sqs-cpr-court-case-events-dlq-secret -n $namespace --skip-version-check)
-export COURT_CASE_EVENTS_DLQ_QUEUE_URL=$(echo "$secret_json" | jq -r .data.sqs_queue_url)
+export COURT_CASE_EVENTS_DLQ_URL=$(echo "$secret_json" | jq -r .data.sqs_queue_url)
 
 echo "🔑 Getting delius offender events queue url from secrets..."
 secret_json=$(cloud-platform decode-secret -s sqs-cpr-delius-offender-events-secret -n $namespace --skip-version-check)
@@ -45,15 +45,15 @@ export DELIUS_OFFENDER_EVENTS_QUEUE_URL=$(echo "$secret_json" | jq -r .data.sqs_
 
 echo "🔑 Getting delius offender events DLQ url from secrets..."
 secret_json=$(cloud-platform decode-secret -s sqs-cpr-delius-offender-events-dlq-secret -n $namespace --skip-version-check)
-export DELIUS_OFFENDER_EVENTS_DLQ_QUEUE_URL=$(echo "$secret_json" | jq -r .data.sqs_queue_url)
+export DELIUS_OFFENDER_EVENTS_DLQ_URL=$(echo "$secret_json" | jq -r .data.sqs_queue_url)
 
 kubectl --namespace=$namespace --request-timeout='120s' run \
     --env "namespace=$namespace" \
     --env "RDS_INSTANCE_IDENTIFIER=$RDS_INSTANCE_IDENTIFIER" \
     --env "COURT_CASE_EVENTS_QUEUE_URL=$COURT_CASE_EVENTS_QUEUE_URL" \
-    --env "COURT_CASE_EVENTS_DLQ_QUEUE_URL=$COURT_CASE_EVENTS_DLQ_QUEUE_URL" \
+    --env "COURT_CASE_EVENTS_DLQ_URL=$COURT_CASE_EVENTS_DLQ_URL" \
     --env "DELIUS_OFFENDER_EVENTS_QUEUE_URL=$DELIUS_OFFENDER_EVENTS_QUEUE_URL" \
-    --env "DELIUS_OFFENDER_EVENTS_DLQ_QUEUE_URL=$DELIUS_OFFENDER_EVENTS_DLQ_QUEUE_URL" \
+    --env "DELIUS_OFFENDER_EVENTS_DLQ_URL=$DELIUS_OFFENDER_EVENTS_DLQ_URL" \
   -it --rm $debug_pod_name --image=quay.io/hmpps/hmpps-probation-in-court-utils:latest \
    --restart=Never --overrides='{ "spec": { "serviceAccount": "person-record-service" } }'
 

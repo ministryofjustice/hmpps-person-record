@@ -1,17 +1,27 @@
 
 ## Accessing AWS Resources via the AWS CLI
 
+
 ### Setting the kubenetes namespace for the environment
 
-Edit the bash script and set the namespace variable to one of:
+The k8s namespace can either be passed in as variable on the command line or by amending the bash script and
+setting the namespace variable to one of:
 
 - hmpps-person-record-dev
 - hmpps-person-record-preprod
 - hmpps-person-record-prod 
 
+
+### Creating the kubenetes service pod
+
 To run the `setup-service-pod.bash` script:
 
-`$ ./setup-service-pod.bash` 
+`$ ./setup-service-pod.bash`
+
+To run the script supplying the namespace:
+
+`$ ./setup-service-pod.bash --namespace hmpps-person-record-preprod`
+
 
 This will create a k8s service pod that allows access to AWS resources using the AWS Service Account
 associated with the hmpps-person-record-dev/preprod/prod cluster.
@@ -25,6 +35,7 @@ The script sets up some convenience environment variables to facilitate testing:
 - DELIUS_OFFENDER_EVENTS_DLQ_QUEUE_URL
  
 After running the script you'll find yourself automatically in the service pod and can run AWS CLI commands as if you are authenticated with the service account.
+
 
 ### Example usages:
 
