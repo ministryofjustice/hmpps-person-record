@@ -56,7 +56,7 @@ class CourtCaseEventsService(
             offenderService.processAssociatedOffenders(it, person)
             prisonerService.processAssociatedPrisoners(it, person)
           }
-        }
+        } // what if defendants is not empty?
       }
     }
   }
