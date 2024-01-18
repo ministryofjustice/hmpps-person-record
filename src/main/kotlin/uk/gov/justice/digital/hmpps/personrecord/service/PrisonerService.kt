@@ -50,6 +50,13 @@ class PrisonerService(
           )
         }
       }
+      if (prisoners.isNullOrEmpty()) {
+        log.debug("No Nomis matching records exist")
+        telemetryService.trackEvent(
+          TelemetryEventType.NOMIS_NO_MATCH_FOUND,
+          mapOf("UUID" to personEntity.personId.toString(), "PNC" to person.otherIdentifiers?.pncNumber),
+        )
+      }
     }
   }
 
