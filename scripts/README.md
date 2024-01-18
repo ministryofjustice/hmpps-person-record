@@ -5,9 +5,9 @@
 
 Edit the bash script and set the namespace variable to one of:
 
-- hmpps-persons-record-dev
-- hmpps-persons-record-preprod
-- hmpps-persons-record-prod 
+- hmpps-person-record-dev
+- hmpps-person-record-preprod
+- hmpps-person-record-prod 
 
 To run the `setup-service-pod.bash` script:
 
