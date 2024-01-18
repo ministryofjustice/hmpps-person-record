@@ -27,8 +27,18 @@ class CourtCaseEventsProcessor(
   fun processEvent(sqsMessage: SQSMessage) {
     log.debug("Received message with id ${sqsMessage.messageId}")
     when (sqsMessage.getMessageType()) {
-      MessageType.LIBRA_COURT_CASE -> processLibraHearingEvent(objectMapper.readValue<LibraHearingEvent>(sqsMessage.message))
-      MessageType.COMMON_PLATFORM_HEARING -> processCommonPlatformHearingEvent(objectMapper.readValue<CommonPlatformHearingEvent>(sqsMessage.message))
+      MessageType.LIBRA_COURT_CASE -> processLibraHearingEvent(
+        objectMapper.readValue<LibraHearingEvent>(
+          sqsMessage.message,
+        ),
+      )
+
+      MessageType.COMMON_PLATFORM_HEARING -> processCommonPlatformHearingEvent(
+        objectMapper.readValue<CommonPlatformHearingEvent>(
+          sqsMessage.message,
+        ),
+      )
+
       else -> {
         log.debug("Received case type ${MessageType.UNKNOWN.name}")
         telemetryService.trackEvent(TelemetryEventType.UNKNOWN_CASE_RECEIVED, emptyMap())
@@ -38,19 +48,34 @@ class CourtCaseEventsProcessor(
 
   fun processLibraHearingEvent(libraHearingEvent: LibraHearingEvent) {
     log.debug("Processing LIBRA event")
-    log.debug(libraHearingEvent.toString())
-    telemetryService.trackEvent(TelemetryEventType.NEW_LIBRA_CASE_RECEIVED, mapOf("PNC" to libraHearingEvent.pnc, "CRO" to libraHearingEvent.cro))
+    telemetryService.trackEvent(
+      TelemetryEventType.NEW_LIBRA_CASE_RECEIVED,
+      mapOf("PNC" to libraHearingEvent.pnc, "CRO" to libraHearingEvent.cro),
+    )
     courtCaseEventsService.processPersonFromCourtCaseEvent(Person.from(libraHearingEvent))
   }
 
   fun processCommonPlatformHearingEvent(commonPlatformHearingEvent: CommonPlatformHearingEvent) {
     log.debug("Processing COMMON PLATFORM event")
-    log.debug(commonPlatformHearingEvent.toString())
-    commonPlatformHearingEvent.hearing.prosecutionCases.forEach { prosecutionCase ->
-      prosecutionCase.defendants.forEach {
-        telemetryService.trackEvent(TelemetryEventType.NEW_CP_CASE_RECEIVED, mapOf("PNC" to it.pncId, "CRO" to it.croNumber))
-        courtCaseEventsService.processPersonFromCourtCaseEvent(Person.from(it))
+
+    val uniqueDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
+      .flatMap { it.defendants }
+      .distinctBy {
+        it.personDefendant?.personDetails?.firstName +
+          it.personDefendant?.personDetails?.lastName +
+          it.personDefendant?.personDetails?.dateOfBirth +
+          it.pncId +
+          it.croNumber
       }
+    val pncValues = uniqueDefendants.joinToString(" ") { it.pncId.toString() }
+    log.debug("Processing CP Event with ${uniqueDefendants.size} distinct defendants with pnc $pncValues")
+
+    uniqueDefendants.forEach { defendant ->
+      telemetryService.trackEvent(
+        TelemetryEventType.NEW_CP_CASE_RECEIVED,
+        mapOf("PNC" to defendant.pncId, "CRO" to defendant.croNumber),
+      )
+      courtCaseEventsService.processPersonFromCourtCaseEvent(Person.from(defendant))
     }
   }
 }

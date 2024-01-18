@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InOrder
@@ -10,9 +11,10 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.personrecord.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.PossibleMatchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.client.model.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
@@ -33,6 +35,14 @@ class PrisonerServiceTest {
 
   @Mock
   lateinit var client: PrisonerSearchClient
+
+  @Mock
+  lateinit var featureFlag: FeatureFlag
+
+  @BeforeEach
+  fun setUp() {
+    whenever(featureFlag.isNomisSearchEnabled()).thenReturn(true)
+  }
 
   @Test
   fun `should add prisoner to person record when exact match found associated prisoners correctly`() {
@@ -124,5 +134,21 @@ class PrisonerServiceTest {
 
     // Then
     verifyNoInteractions(personRecordService)
+  }
+
+  @Test
+  fun `should not process associated prisoners when nomis feature flag is set to false`() {
+    // Given
+    whenever(featureFlag.isNomisSearchEnabled()).thenReturn(false)
+    val person = Person()
+    val personEntity = Person.from(person)
+
+    // When
+    prisonerService.processAssociatedPrisoners(personEntity, person)
+
+    // Then
+    verifyNoInteractions(personRecordService)
+    verifyNoInteractions(client)
+    verifyNoInteractions(telemetryService)
   }
 }

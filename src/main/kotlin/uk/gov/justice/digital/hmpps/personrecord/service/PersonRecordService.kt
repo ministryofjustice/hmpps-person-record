@@ -40,7 +40,7 @@ class PersonRecordService(
   }
 
   fun createPersonRecord(person: Person): Person {
-    log.debug("Entered createPersonRecord with $person")
+    log.debug("Entered createPersonRecord with")
 
     // create an offender
     person.otherIdentifiers?.crn?.let {
@@ -61,12 +61,12 @@ class PersonRecordService(
     val searchRequest = PersonSearchRequest.from(person)
     val existingPersons = personRepository.searchByRequestParameters(searchRequest)
     return if (existingPersons.isEmpty()) {
-      Person.from(createDefendantFromPerson(person))
+      Person.from(createNewPersonAndDefendant(person))
     } else if (existingPersons.size == 1) { // exact match
       Person.from(addDefendantToPerson(existingPersons[0], person))
     } else {
-      log.error("Multiple person records exist for search criteria $person")
-      throw IllegalArgumentException("Multiple person records exist for search criteria $person")
+      log.error("Multiple person records exist for search criteria")
+      throw IllegalArgumentException("Multiple person records exist for search criteria")
     }
   }
 
@@ -84,39 +84,39 @@ class PersonRecordService(
     val newOffenderEntity = OffenderEntity.from(offenderDetail)
     newOffenderEntity.person = newPersonEntity
     newPersonEntity.offenders.add(newOffenderEntity)
-    return personRepository.save(newPersonEntity)
+    return personRepository.saveAndFlush(newPersonEntity)
   }
 
-  fun createDefendantFromPerson(person: Person): PersonEntity {
-    log.debug("Entered createDefendantFromPerson with {}", person)
+  fun createNewPersonAndDefendant(person: Person): PersonEntity {
+    log.debug("Entered createNewPersonAndDefendant with pnc ${person.otherIdentifiers?.pncNumber}")
 
     val newPersonEntity = PersonEntity.new()
-
     val newDefendantEntity = DefendantEntity.from(person)
     newDefendantEntity.person = newPersonEntity
     newPersonEntity.defendants.add(newDefendantEntity)
-    return personRepository.save(newPersonEntity)
+
+    return personRepository.saveAndFlush(newPersonEntity)
   }
 
   private fun addDefendantToPerson(personEntity: PersonEntity, person: Person): PersonEntity {
     val newDefendantEntity = DefendantEntity.from(person)
     newDefendantEntity.person = personEntity
     personEntity.defendants.add(newDefendantEntity)
-    return personRepository.save(personEntity)
+    return personRepository.saveAndFlush(personEntity)
   }
 
   fun addOffenderToPerson(personEntity: PersonEntity, person: Person): PersonEntity {
     val offenderEntity = OffenderEntity.from(person)
     offenderEntity.person = personEntity
     personEntity.offenders.add(offenderEntity)
-    return personRepository.save(personEntity)
+    return personRepository.saveAndFlush(personEntity)
   }
 
   fun addPrisonerToPerson(personEntity: PersonEntity, prisoner: Prisoner): PersonEntity {
     val prisonerEntity = PrisonerEntity.from(prisoner)
     prisonerEntity.person = personEntity
     personEntity.prisoners.add(prisonerEntity)
-    return personRepository.save(personEntity)
+    return personRepository.saveAndFlush(personEntity)
   }
 
   private fun createOffenderFromPerson(person: Person): PersonEntity {
@@ -124,7 +124,7 @@ class PersonRecordService(
     val newOffenderEntity = OffenderEntity.from(person)
     newOffenderEntity.person = newPersonEntity
     newPersonEntity.offenders.add(newOffenderEntity)
-    return personRepository.save(newPersonEntity)
+    return personRepository.saveAndFlush(newPersonEntity)
   }
 
   fun searchPersonRecords(searchRequest: PersonSearchRequest): List<Person> {

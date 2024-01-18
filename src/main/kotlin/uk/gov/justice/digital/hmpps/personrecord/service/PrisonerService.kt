@@ -2,9 +2,10 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.personrecord.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.PossibleMatchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.client.model.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -14,6 +15,7 @@ class PrisonerService(
   private val telemetryService: TelemetryService,
   private val personRecordService: PersonRecordService,
   private val client: PrisonerSearchClient,
+  private val featureFlag: FeatureFlag,
 ) {
 
   companion object {
@@ -22,29 +24,31 @@ class PrisonerService(
 
   fun processAssociatedPrisoners(personEntity: PersonEntity, person: Person) {
     log.debug("Entered processAssociatedPrisoners")
-    val prisoners = client.findPossibleMatches(PossibleMatchCriteria.from(person))
-    prisoners?.let {
-      if (matchesExistingPrisonerExactly(it, person)) {
-        log.debug("Exact Nomis match found - adding prisoner to person record")
-        personRecordService.addPrisonerToPerson(personEntity, it[0])
-        telemetryService.trackEvent(
-          TelemetryEventType.NOMIS_MATCH_FOUND,
-          mapOf(
-            "UUID" to personEntity.personId.toString(),
-            "PNC" to person.otherIdentifiers?.pncNumber,
-            "Prison Number" to it[0].prisonerNumber,
-          ),
-        )
-      } else if (matchesExistingPrisonerPartially(it, person)) {
-        log.debug("Partial Nomis match found for $person")
-        telemetryService.trackEvent(
-          TelemetryEventType.NOMIS_PARTIAL_MATCH_FOUND,
-          mapOf(
-            "UUID" to personEntity.personId.toString(),
-            "PNC" to person.otherIdentifiers?.pncNumber,
-            "Prison Number" to it[0].prisonerNumber,
-          ),
-        )
+    if (featureFlag.isNomisSearchEnabled()) {
+      val prisoners = client.findPossibleMatches(PossibleMatchCriteria.from(person))
+      prisoners?.let {
+        if (matchesExistingPrisonerExactly(it, person)) {
+          log.debug("Exact Nomis match found - adding prisoner to person record")
+          personRecordService.addPrisonerToPerson(personEntity, it[0])
+          telemetryService.trackEvent(
+            TelemetryEventType.NOMIS_MATCH_FOUND,
+            mapOf(
+              "UUID" to personEntity.personId.toString(),
+              "PNC" to person.otherIdentifiers?.pncNumber,
+              "Prison Number" to it[0].prisonerNumber,
+            ),
+          )
+        } else if (matchesExistingPrisonerPartially(it, person)) {
+          log.debug("Partial Nomis match found")
+          telemetryService.trackEvent(
+            TelemetryEventType.NOMIS_PARTIAL_MATCH_FOUND,
+            mapOf(
+              "UUID" to personEntity.personId.toString(),
+              "PNC" to person.otherIdentifiers?.pncNumber,
+              "Prison Number" to it[0].prisonerNumber,
+            ),
+          )
+        }
       }
     }
   }

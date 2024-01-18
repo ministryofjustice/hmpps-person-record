@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 
 @Repository
 interface DefendantRepository : JpaRepository<DefendantEntity, Long> {
-  fun findByDefendantId(defendantId: String): DefendantEntity ?
+  fun findByDefendantId(defendantId: String): DefendantEntity?
 
   fun findAllByPncNumber(pncNumber: String): List<DefendantEntity>
 }
