@@ -11,4 +11,5 @@ interface PersonRepository : JpaRepository<PersonEntity, Long>, PersonRepository
   fun findByOffendersCrn(crn: String): PersonEntity?
   fun findByDefendantsPncNumber(defendantsPncNumber: String): PersonEntity?
   fun findByPrisonersPncNumber(prisonerPncNumber: String): PersonEntity?
+  fun findByOffendersPncNumber(offenderPncNumber: String): PersonEntity?
 }
