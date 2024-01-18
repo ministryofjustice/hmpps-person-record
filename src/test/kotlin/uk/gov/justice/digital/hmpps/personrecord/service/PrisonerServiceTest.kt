@@ -134,6 +134,13 @@ class PrisonerServiceTest {
 
     // Then
     verifyNoInteractions(personRecordService)
+    verify(telemetryService).trackEvent(
+      TelemetryEventType.NOMIS_NO_MATCH_FOUND,
+      mapOf(
+        "UUID" to personEntity.personId.toString(),
+        "PNC" to person.otherIdentifiers?.pncNumber,
+      ),
+    )
   }
 
   @Test
