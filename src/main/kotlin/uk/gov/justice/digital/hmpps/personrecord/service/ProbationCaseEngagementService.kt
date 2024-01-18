@@ -5,15 +5,15 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.model.DeliusOffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 const val DELIUS_EVENT = "DELIUS-EVENT"
 
 @Service
 class ProbationCaseEngagementService(
-  val defendantRepository: DefendantRepository,
   val offenderRepository: OffenderRepository,
   val personRepository: PersonRepository,
   val telemetryService: TelemetryService,
@@ -23,19 +23,50 @@ class ProbationCaseEngagementService(
   }
 
   fun processNewOffender(newOffenderDetail: DeliusOffenderDetail) {
+    val crn = newOffenderDetail.identifiers.crn
     newOffenderDetail.identifiers.pnc?.let {
       val pnc = newOffenderDetail.identifiers.pnc
-      val matchingOffenders = personRepository.findByOffendersPncNumber(pnc)?.offenders.orEmpty()
 
-      if (matchingOffenders.isNotEmpty()) {
-        log.debug("Offenders found for pnc $pnc")
-      } else {
-        log.debug("No Offenders found for pnc $pnc")
+      val existingPerson = personRepository.findByOffendersPncNumber(pnc)
+
+      existingPerson?.let { // person exist for pnc
+        log.debug("Person record exist for pnc $pnc - adding new offender to person with crn $crn")
+        addOffenderToPerson(it, createOffender(newOffenderDetail))
+
+        telemetryService.trackEvent(
+          TelemetryEventType.NEW_DELIUS_RECORD_PNC_MATCHED,
+          mapOf(
+            "CRN" to crn,
+            "PNC" to pnc,
+          ),
+        )
+      } ?: { // no person for pnc
+        log.debug("Person not exist for pnc $pnc - creating a new person and offender")
+
+        val newPerson = createNewPersonAndOffender(newOffenderDetail)
+
+        telemetryService.trackEvent(
+          TelemetryEventType.NEW_DELIUS_RECORD_PNC_MATCHED,
+          mapOf(
+            "UUID" to newPerson.personId.toString(),
+            "CRN" to crn,
+            "PNC" to pnc,
+          ),
+        )
       }
+    } ?: { // no pnc
+      log.debug("Pnc not present no further processing needed")
+
+      telemetryService.trackEvent(
+        TelemetryEventType.NEW_DELIUS_RECORD_NO_PNC,
+        mapOf(
+          "CRN" to crn,
+        ),
+      )
     }
   }
 
-  fun createOffender(deliusOffenderDetail: DeliusOffenderDetail): OffenderEntity {
+  private fun createOffender(deliusOffenderDetail: DeliusOffenderDetail): OffenderEntity {
     log.debug("Creating new offender with pnc  ${deliusOffenderDetail.identifiers.pnc}")
     val newOffender = OffenderEntity(
       crn = deliusOffenderDetail.identifiers.crn,
@@ -47,6 +78,20 @@ class ProbationCaseEngagementService(
     newOffender.createdBy = DELIUS_EVENT
     newOffender.lastUpdatedBy = DELIUS_EVENT
 
-    return offenderRepository.save(newOffender)
+    return newOffender
+  }
+
+  private fun createNewPersonAndOffender(offenderDetail: DeliusOffenderDetail): PersonEntity {
+    val newPersonEntity = PersonEntity.new()
+    val newOffenderEntity = createOffender(offenderDetail)
+    newOffenderEntity.person = newPersonEntity
+    newPersonEntity.offenders.add(newOffenderEntity)
+    return addOffenderToPerson(newPersonEntity, newOffenderEntity)
+  }
+
+  private fun addOffenderToPerson(personEntity: PersonEntity, offenderEntity: OffenderEntity): PersonEntity {
+    offenderEntity.person = personEntity
+    personEntity.offenders.add(offenderEntity)
+    return personRepository.saveAndFlush(personEntity)
   }
 }
