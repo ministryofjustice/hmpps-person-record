@@ -19,4 +19,5 @@ enum class TelemetryEventType(val eventName: String) {
   NOMIS_NO_MATCH_FOUND("CprNomisNoMatchFound"),
   NEW_DELIUS_RECORD_NO_PNC("CprNewnDeliusRecordUnableToMatchNoPnc"),
   NEW_DELIUS_RECORD_PNC_MATCHED("CprNewNDeliusRecordCreatedPNCMatched"),
+  NEW_DELIUS_RECORD_NEW_PNC("CprNewNDeliusRecordCreatedNewPNC"),
 }

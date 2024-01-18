@@ -46,7 +46,7 @@ class ProbationCaseEngagementService(
         val newPerson = createNewPersonAndOffender(newOffenderDetail)
 
         telemetryService.trackEvent(
-          TelemetryEventType.NEW_DELIUS_RECORD_PNC_MATCHED,
+          TelemetryEventType.NEW_DELIUS_RECORD_NEW_PNC,
           mapOf(
             "UUID" to newPerson.personId.toString(),
             "CRN" to crn,
