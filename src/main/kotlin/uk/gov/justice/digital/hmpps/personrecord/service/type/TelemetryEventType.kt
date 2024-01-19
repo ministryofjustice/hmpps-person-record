@@ -1,8 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.type
 
 enum class TelemetryEventType(val eventName: String) {
-  NEW_CASE_MISSING_PNC("CprNewCaseMissingPnc"),
-  NEW_CASE_INVALID_PNC("CprNewCaseInvalidPnc"),
+  MISSING_PNC("CprMissingPnc"),
+  INVALID_PNC("CprInvalidPnc"),
+  VALID_PNC("CprValidPnc"),
   NEW_CASE_EXACT_MATCH("CprNewCaseExactMatch"),
   NEW_CASE_PARTIAL_MATCH("CprNewCasePartialMatch"),
   NEW_CASE_PERSON_CREATED("CprNewCasePersonCreated"),
