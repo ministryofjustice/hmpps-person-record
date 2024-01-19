@@ -18,7 +18,7 @@ dependencies {
   implementation("jakarta.validation:jakarta.validation-api:3.0.2")
   implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
-  implementation("org.hibernate.orm:hibernate-envers:6.4.1.Final")
+  implementation("org.hibernate.orm:hibernate-envers:6.4.2.Final")
   implementation("io.swagger.core.v3:swagger-annotations:2.2.20")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.0")
@@ -27,8 +27,8 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.2.1")
 
   runtimeOnly("org.postgresql:postgresql:42.7.1")
-  runtimeOnly("org.flywaydb:flyway-core:10.5.0")
-  runtimeOnly("org.flywaydb:flyway-database-postgresql:10.5.0")
+  runtimeOnly("org.flywaydb:flyway-core:10.6.0")
+  runtimeOnly("org.flywaydb:flyway-database-postgresql:10.6.0")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
