@@ -2,13 +2,27 @@ package uk.gov.justice.digital.hmpps.personrecord.validate
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.mockito.Mock
+import org.mockito.junit.jupiter.MockitoExtension
+import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 
+@ExtendWith(MockitoExtension::class)
 class PNCIdValidatorTest {
 
-  private val pncIdValidator: PNCIdValidator = PNCIdValidator()
+  @Mock
+  lateinit var telemetryService: TelemetryService
+
+  private lateinit var pncIdValidator: PNCIdValidator
+
+  @BeforeEach
+  fun setUp() {
+    pncIdValidator = PNCIdValidator(telemetryService)
+  }
 
   @ParameterizedTest
   @ValueSource(strings = ["", "0", "01", "012", "0123", "01234", "012345", "0123567", "012345678", "0123456789", "01234567890", "01234567890123"])

@@ -50,7 +50,21 @@ class CourtCaseEventsServiceTest {
 
     // Then
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
-    verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_MISSING_PNC, emptyMap())
+    verify(telemetryService).trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
+  }
+
+  @Test
+  fun `should call telemetry service when PNC is empty`() { // failing test to show double counting of empty string pnc
+    // Given
+    val person = Person(familyName = "Jones", otherIdentifiers = OtherIdentifiers(pncNumber = ""))
+
+    // When
+    courtCaseEventsService.processPersonFromCourtCaseEvent(person)
+
+    // Then
+    verify(personRecordService, never()).createNewPersonAndDefendant(person)
+    verify(telemetryService).trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
+    verify(telemetryService, never()).trackEvent(TelemetryEventType.INVALID_PNC, mapOf("PNC" to ""))
   }
 
   @Test
@@ -64,7 +78,7 @@ class CourtCaseEventsServiceTest {
 
     // Then
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
-    verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_INVALID_PNC, mapOf("PNC" to pncNumber))
+    verify(telemetryService).trackEvent(TelemetryEventType.INVALID_PNC, mapOf("PNC" to pncNumber))
   }
 
   @Test
@@ -103,6 +117,7 @@ class CourtCaseEventsServiceTest {
 
     // Then
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
+    verify(telemetryService).trackEvent(TelemetryEventType.VALID_PNC, mapOf("PNC" to pncNumber))
     verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_EXACT_MATCH, mapOf("PNC" to pncNumber, "CRN" to crn, "UUID" to personID.toString()))
   }
 
