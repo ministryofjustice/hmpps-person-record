@@ -99,7 +99,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.NEW_CASE_MISSING_PNC),
+        eq(TelemetryEventType.MISSING_PNC),
         check {
           assertThat(it).isEmpty()
         },
@@ -144,7 +144,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.NEW_CASE_INVALID_PNC),
+        eq(TelemetryEventType.INVALID_PNC),
         check {
           assertThat(it["PNC"]).isEqualTo("1923[1234567A")
         },

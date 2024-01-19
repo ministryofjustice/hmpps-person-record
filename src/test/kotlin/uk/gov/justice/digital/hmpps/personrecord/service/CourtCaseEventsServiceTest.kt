@@ -50,7 +50,7 @@ class CourtCaseEventsServiceTest {
 
     // Then
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
-    verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_MISSING_PNC, emptyMap())
+    verify(telemetryService).trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
   }
 
   @Test
@@ -63,8 +63,8 @@ class CourtCaseEventsServiceTest {
 
     // Then
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
-    verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_MISSING_PNC, emptyMap())
-    verify(telemetryService, never()).trackEvent(TelemetryEventType.NEW_CASE_INVALID_PNC, mapOf("PNC" to ""))
+    verify(telemetryService).trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
+    verify(telemetryService, never()).trackEvent(TelemetryEventType.INVALID_PNC, mapOf("PNC" to ""))
   }
 
   @Test
@@ -78,7 +78,7 @@ class CourtCaseEventsServiceTest {
 
     // Then
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
-    verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_INVALID_PNC, mapOf("PNC" to pncNumber))
+    verify(telemetryService).trackEvent(TelemetryEventType.INVALID_PNC, mapOf("PNC" to pncNumber))
   }
 
   @Test

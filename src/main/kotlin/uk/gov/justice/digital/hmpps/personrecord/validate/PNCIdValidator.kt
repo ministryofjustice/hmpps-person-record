@@ -11,13 +11,13 @@ class PNCIdValidator(private val telemetryService: TelemetryService) {
 
   fun isValid(pncIdentifier: String?): Boolean {
     if (pncIdentifier.isNullOrEmpty()) {
-      telemetryService.trackEvent(TelemetryEventType.NEW_CASE_MISSING_PNC, emptyMap())
+      telemetryService.trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
       return false
     }
     val result = isValidFormat(pncIdentifier) && hasValidCheckDigit(pncIdentifier)
     return result.also {
       if (!it) {
-        telemetryService.trackEvent(TelemetryEventType.NEW_CASE_INVALID_PNC, mapOf("PNC" to pncIdentifier))
+        telemetryService.trackEvent(TelemetryEventType.INVALID_PNC, mapOf("PNC" to pncIdentifier))
       }
     }
   }
