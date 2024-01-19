@@ -28,27 +28,25 @@ class CourtCaseEventsService(
   fun processPersonFromCourtCaseEvent(person: Person) {
     log.debug("Entered processPersonFromCourtCaseEvent")
     val pnc: String? = person.otherIdentifiers?.pncNumber
-    // Validate PNC
-    if (!pncIdValidator.isValid(pnc)) {
-      return
-    }
-    val defendants = personRepository.findByDefendantsPncNumber(pnc!!)?.defendants.orEmpty()
+    if (pncIdValidator.isValid(pnc)) {
+      val defendants = personRepository.findByDefendantsPncNumber(pnc!!)?.defendants.orEmpty()
 
-    if (matchesExistingRecordExactly(defendants, person)) {
-      log.info("Exactly matching Person record exists with defendant - no further processing will occur")
-      telemetryService.trackEvent(TelemetryEventType.NEW_CASE_EXACT_MATCH, mapOf("PNC" to pnc, "CRN" to defendants[0].crn, "UUID" to person.personId.toString()))
-    } else if (matchesExistingRecordPartially(defendants, person)) {
-      log.info("Partially matching Person record exists with defendant - no further processing will occur")
-      telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PARTIAL_MATCH, extractMatchingFields(defendants[0], person))
-    } else if (defendants.isEmpty()) {
-      log.debug("No existing matching Person record exists - creating new person and defendant with pnc $pnc")
-      val personRecord = personRecordService.createNewPersonAndDefendant(person)
-      telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PERSON_CREATED, mapOf("UUID" to personRecord.personId.toString(), "PNC" to pnc))
-      personRecord.let {
-        offenderService.processAssociatedOffenders(it, person)
-        prisonerService.processAssociatedPrisoners(it, person)
-      }
-    } // what if defendants is not empty?
+      if (matchesExistingRecordExactly(defendants, person)) {
+        log.info("Exactly matching Person record exists with defendant - no further processing will occur")
+        telemetryService.trackEvent(TelemetryEventType.NEW_CASE_EXACT_MATCH, mapOf("PNC" to pnc, "CRN" to defendants[0].crn, "UUID" to person.personId.toString()))
+      } else if (matchesExistingRecordPartially(defendants, person)) {
+        log.info("Partially matching Person record exists with defendant - no further processing will occur")
+        telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PARTIAL_MATCH, extractMatchingFields(defendants[0], person))
+      } else if (defendants.isEmpty()) {
+        log.debug("No existing matching Person record exists - creating new person and defendant with pnc $pnc")
+        val personRecord = personRecordService.createNewPersonAndDefendant(person)
+        telemetryService.trackEvent(TelemetryEventType.NEW_CASE_PERSON_CREATED, mapOf("UUID" to personRecord.personId.toString(), "PNC" to pnc))
+        personRecord.let {
+          offenderService.processAssociatedOffenders(it, person)
+          prisonerService.processAssociatedPrisoners(it, person)
+        }
+      } // what if defendants is not empty?
+    }
   }
 
   private fun extractMatchingFields(defendant: DefendantEntity, person: Person): Map<String, String?> {
