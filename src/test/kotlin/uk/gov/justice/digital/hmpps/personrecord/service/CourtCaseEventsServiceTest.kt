@@ -54,7 +54,7 @@ class CourtCaseEventsServiceTest {
   }
 
   @Test
-  fun `should call telemetry service when PNC is empty`() { //failing test to show double counting of empty string pnc
+  fun `should call telemetry service when PNC is empty`() { // failing test to show double counting of empty string pnc
     // Given
     val person = Person(familyName = "Jones", otherIdentifiers = OtherIdentifiers(pncNumber = ""))
 
