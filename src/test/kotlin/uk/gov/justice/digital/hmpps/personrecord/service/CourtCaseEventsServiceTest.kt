@@ -117,6 +117,7 @@ class CourtCaseEventsServiceTest {
 
     // Then
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
+    verify(telemetryService).trackEvent(TelemetryEventType.VALID_PNC, mapOf("PNC" to pncNumber))
     verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_EXACT_MATCH, mapOf("PNC" to pncNumber, "CRN" to crn, "UUID" to personID.toString()))
   }
 

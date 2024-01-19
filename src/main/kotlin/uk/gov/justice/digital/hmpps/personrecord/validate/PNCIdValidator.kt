@@ -18,6 +18,8 @@ class PNCIdValidator(private val telemetryService: TelemetryService) {
     return result.also {
       if (!it) {
         telemetryService.trackEvent(TelemetryEventType.INVALID_PNC, mapOf("PNC" to pncIdentifier))
+      } else {
+        telemetryService.trackEvent(TelemetryEventType.VALID_PNC, mapOf("PNC" to pncIdentifier))
       }
     }
   }
