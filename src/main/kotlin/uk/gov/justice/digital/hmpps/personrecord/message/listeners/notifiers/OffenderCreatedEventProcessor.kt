@@ -5,10 +5,10 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.OffenderDetailRestClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.DeliusOffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.service.ProbationCaseEngagementService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import java.net.URI
-import kotlin.math.log
 
 const val NEW_OFFENDER_CREATED = "probation-case.engagement.created"
 
@@ -16,6 +16,7 @@ const val NEW_OFFENDER_CREATED = "probation-case.engagement.created"
 class OffenderCreatedEventProcessor(
   val telemetryService: TelemetryService,
   val offenderDetailRestClient: OffenderDetailRestClient,
+  val probationCaseEngagementService: ProbationCaseEngagementService,
 ) : EventProcessor() {
 
   companion object {
@@ -24,22 +25,27 @@ class OffenderCreatedEventProcessor(
 
   override fun processEvent(domainEvent: DomainEvent) {
     val offenderDetailUrl = domainEvent.detailUrl
-    val path = URI.create(offenderDetailUrl).path
     val crn = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }
     telemetryService.trackEvent(
       TelemetryEventType.DELIUS_RECORD_CREATION_RECEIVED,
       mapOf("CRN" to crn?.value),
     )
+    log.debug("Entered processEvent with  url $offenderDetailUrl")
     getNewOffenderDetail(offenderDetailUrl).fold(
       onSuccess = {
-        // TODO process new offender (CPR-112)
+        it?.let {
+          probationCaseEngagementService.processNewOffender(it)
+        }
       },
       onFailure = {
         log.error("Error retrieving new offender detail: ${it.message}")
+        telemetryService.trackEvent(
+          TelemetryEventType.DELIUS_OFFENDER_READ_FAILURE,
+          mapOf("CRN" to crn?.value),
+        )
         throw it
       },
     )
-    LOG.debug("Entered processEvent with  urlR:$offenderDetailUrl")
   }
 
   private fun getNewOffenderDetail(offenderDetailUrl: String): Result<DeliusOffenderDetail?> {
