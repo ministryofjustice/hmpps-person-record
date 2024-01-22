@@ -25,7 +25,7 @@ dependencies {
   implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.0")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-autoconfigure:2.2.1")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.2.1")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.32.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.0.0")
 
   runtimeOnly("org.postgresql:postgresql:42.7.1")
   runtimeOnly("org.flywaydb:flyway-core:10.6.0")
