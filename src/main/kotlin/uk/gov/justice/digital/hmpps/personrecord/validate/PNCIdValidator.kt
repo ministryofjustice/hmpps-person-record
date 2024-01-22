@@ -2,7 +2,9 @@ package uk.gov.justice.digital.hmpps.personrecord.validate
 
 import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MISSING_PNC
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.VALID_PNC
 import java.math.BigInteger
 
 const val PNC_REGEX = "\\d{4}(/?)\\d{7}[A-Z]{1}\$"
@@ -11,16 +13,12 @@ class PNCIdValidator(private val telemetryService: TelemetryService) {
 
   fun isValid(pncIdentifier: String?): Boolean {
     if (pncIdentifier.isNullOrEmpty()) {
-      telemetryService.trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
+      telemetryService.trackEvent(MISSING_PNC, emptyMap())
       return false
     }
     val result = isValidFormat(pncIdentifier) && hasValidCheckDigit(pncIdentifier)
     return result.also {
-      if (!it) {
-        telemetryService.trackEvent(TelemetryEventType.INVALID_PNC, mapOf("PNC" to pncIdentifier))
-      } else {
-        telemetryService.trackEvent(TelemetryEventType.VALID_PNC, mapOf("PNC" to pncIdentifier))
-      }
+      telemetryService.trackEvent(if (it) VALID_PNC else INVALID_PNC, mapOf("PNC" to pncIdentifier))
     }
   }
 
