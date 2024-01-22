@@ -30,9 +30,9 @@ The script sets up some convenience environment variables to facilitate testing:
 
 - RDS_INSTANCE_IDENTIFIER
 - COURT_CASE_EVENTS_QUEUE_URL
-- COURT_CASE_EVENTS_DLQ_QUEUE_URL
+- COURT_CASE_EVENTS_DLQ_URL
 - DELIUS_OFFENDER_EVENTS_QUEUE_URL
-- DELIUS_OFFENDER_EVENTS_DLQ_QUEUE_URL
+- DELIUS_OFFENDER_EVENTS_DLQ_URL
  
 After running the script you'll find yourself automatically in the service pod and can run AWS CLI commands as if you are authenticated with the service account.
 
@@ -43,7 +43,7 @@ Count the number of messages on the Court case events queues:
 
 `$ aws sqs get-queue-attributes --queue-url $COURT_CASE_EVENTS_QUEUE_URL --attribute-names ApproximateNumberOfMessages`
 
-`$ aws sqs get-queue-attributes --queue-url $COURT_CASE_EVENTS_DLQ_QUEUE_URL --attribute-names ApproximateNumberOfMessages`
+`$ aws sqs get-queue-attributes --queue-url $COURT_CASE_EVENTS_DLQ_URL --attribute-names ApproximateNumberOfMessages`
 
 List the known RDS Database snapshots:
 
@@ -59,7 +59,7 @@ Put a message onto the court case events queue for testing purposes:
 
 Retrieve a message from the Court case events DLQ and save to a file called dlq_data:
 
-`$ aws sqs receive-message --queue-url $COURT_CASE_EVENTS_DLQ_QUEUE_URL > "dlq_data"`
+`$ aws sqs receive-message --queue-url $COURT_CASE_EVENTS_DLQ_URL > "dlq_data"`
 
 
 ### Sample Court Case Events data:
