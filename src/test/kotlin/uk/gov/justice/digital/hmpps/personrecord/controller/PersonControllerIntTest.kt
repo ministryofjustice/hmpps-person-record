@@ -284,7 +284,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
     // Then
     val personList: List<Person> = objectMapper.readValue(result.response.contentAsString, object : TypeReference<List<Person>>() {})
     assertThat(personList).hasSize(1)
-    assertThat(personList[0].personId).isEqualTo(UUID.fromString("d75a9374-e2a3-11ed-b5ea-0242ac120002"))
+    assertThat(personList[0].personId).isEqualTo(UUID.fromString("eed4a9a4-d853-11ed-afa1-0242ac120002"))
   }
 
   @Test
