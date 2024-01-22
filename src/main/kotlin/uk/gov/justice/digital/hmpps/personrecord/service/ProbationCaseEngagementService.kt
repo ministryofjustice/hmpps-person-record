@@ -21,10 +21,9 @@ class ProbationCaseEngagementService(
   }
 
   fun processNewOffender(newOffenderDetail: DeliusOffenderDetail) {
-    val crn = newOffenderDetail.identifiers.crn
     newOffenderDetail.identifiers.pnc?.let {
       handlePncPresent(newOffenderDetail)
-    } ?: handleNoPnc(crn)
+    } ?: handleNoPnc(newOffenderDetail.identifiers.crn)
   }
 
   private fun handlePncPresent(newOffenderDetail: DeliusOffenderDetail) {
