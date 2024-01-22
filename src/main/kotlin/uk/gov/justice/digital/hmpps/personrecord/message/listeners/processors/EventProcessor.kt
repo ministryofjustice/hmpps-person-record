@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners.notifiers
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
