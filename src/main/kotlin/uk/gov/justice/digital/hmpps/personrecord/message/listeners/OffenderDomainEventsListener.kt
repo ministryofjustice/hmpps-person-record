@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.awspring.cloud.sqs.annotation.SqsListener
+import io.opentelemetry.api.trace.SpanKind
+import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
@@ -25,6 +27,7 @@ class OffenderDomainEventsListener(
   }
 
   @SqsListener(OFFENDER_EVENTS_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
+  @WithSpan(value = "hmpps-person-record-cpr_delius_offender_events_queue", kind = SpanKind.SERVER)
   fun onDomainEvent(
     rawMessage: String,
   ) {
