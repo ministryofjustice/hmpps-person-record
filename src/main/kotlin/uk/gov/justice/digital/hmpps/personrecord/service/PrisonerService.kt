@@ -26,6 +26,7 @@ class PrisonerService(
     log.debug("Entered processAssociatedPrisoners")
     if (featureFlag.isNomisSearchEnabled()) {
       val prisoners = client.findPossibleMatches(PossibleMatchCriteria.from(person))
+      log.debug("Number of prisoners returned from Nomis for PNC ${person.otherIdentifiers?.pncNumber} = ${prisoners?.size ?: 0}")
       prisoners?.let {
         if (matchesExistingPrisonerExactly(it, person)) {
           log.debug("Exact Nomis match found - adding prisoner to person record")
