@@ -59,7 +59,7 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
   @Test
   fun `should return linked delius offender entity for existing person`() {
     // Given
-    val personId = UUID.fromString("d75a9374-e2a3-11ed-b5ea-0242ac120002")
+    val personId = UUID.fromString("eed4a9a4-d853-11ed-afa1-0242ac120002")
 
     // When
     val personEntity = personRepository.findByPersonId(personId)
@@ -93,5 +93,45 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
     // Then
     assertThat(personEntity).isNotNull
     assertThat(personEntity?.defendants?.get(0)?.pncNumber).isEqualTo(pnc)
+  }
+
+  @Test
+  fun `should return correct person records with matching pnc number`() {
+    // Given
+    val pnc = "2008/0056560Z"
+
+    // When
+    val personEntity = personRepository.findPersonEntityByPncNumber(pnc)
+
+    // Then
+    assertThat(personEntity).isNotNull
+    assertThat(personEntity?.defendants!![0].pncNumber).isEqualTo(pnc)
+    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(pnc)
+  }
+
+  @Test
+  fun `should return correct person with matching pnc number when person linked to defendant and offender`() {
+    // Given
+    val pnc = "PNC12345"
+
+    // When
+    val personEntity = personRepository.findPersonEntityByPncNumber(pnc)
+
+    // Then
+    assertThat(personEntity).isNotNull
+    assertThat(personEntity?.defendants!![0].pncNumber).isEqualTo(pnc)
+    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(pnc)
+  }
+
+  @Test
+  fun `should not return any person record with no matching pnc`() {
+    // Given
+    val pnc = "PNC00000"
+
+    // When
+    val personEntity = personRepository.findPersonEntityByPncNumber(pnc)
+
+    // Then
+    assertThat(personEntity).isNull()
   }
 }
