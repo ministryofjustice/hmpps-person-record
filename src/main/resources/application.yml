@@ -107,4 +107,6 @@ feature:
     enable-hmcts-sqs: true
     enable-delius-search: true
     enable-nomis-search: true
+    enable-delius-domain-event-sqs: true
+
 

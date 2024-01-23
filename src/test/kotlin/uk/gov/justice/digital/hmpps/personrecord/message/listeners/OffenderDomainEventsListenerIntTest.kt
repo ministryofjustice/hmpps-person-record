@@ -5,25 +5,42 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
+import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.jdbc.Sql
+import org.springframework.test.context.jdbc.SqlConfig
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.notifiers.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 
 private const val CRN = "XXX1234"
 
+@Sql(
+  scripts = ["classpath:sql/before-test.sql"],
+  config = SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED),
+  executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+)
+@Sql(
+  scripts = ["classpath:sql/after-test.sql"],
+  config = SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED),
+  executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+)
+@Suppress("INLINE_FROM_HIGHER_PLATFORM")
 class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
 
   val domainEventsTopic by lazy {
@@ -32,6 +49,9 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
   val cprDeliusOffenderEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprdeliusoffendereventsqueue")
   }
+
+  @Autowired
+  lateinit var personRepository: PersonRepository
 
   @BeforeEach
   fun setUp() {
@@ -43,6 +63,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
   @Test
   fun `should receive the message successfully when new offender event published`() {
     // Given
+    val expectedPncNumber = "PN/1234560XX"
     val domainEvent = objectMapper.writeValueAsString(createDomainEvent(NEW_OFFENDER_CREATED, CRN))
 
     val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
@@ -71,6 +92,22 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
         },
       )
     }
+
+    await untilAsserted {
+      verify(telemetryService).trackEvent(
+        eq(TelemetryEventType.NEW_DELIUS_RECORD_NEW_PNC),
+        org.mockito.kotlin.check {
+          assertThat(it["CRN"]).isEqualTo(CRN)
+        },
+      )
+    }
+
+    val personEntity = await.atMost(10, TimeUnit.SECONDS) untilNotNull { personRepository.findPersonEntityByPncNumber(expectedPncNumber) }
+
+    assertThat(personEntity.personId).isNotNull()
+    assertThat(personEntity.offenders).hasSize(1)
+    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(expectedPncNumber)
+    assertThat(personEntity.offenders[0].crn).isEqualTo(CRN)
   }
 
   fun publishOffenderEvent(publishRequest: PublishRequest): CompletableFuture<PublishResponse>? {
