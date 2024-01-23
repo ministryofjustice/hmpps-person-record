@@ -26,16 +26,19 @@ class PrisonerService(
     log.debug("Entered processAssociatedPrisoners")
     if (featureFlag.isNomisSearchEnabled()) {
       val prisoners = client.findPossibleMatches(PossibleMatchCriteria.from(person))
-      log.debug("Number of prisoners returned from Nomis for PNC ${person.otherIdentifiers?.pncNumber} = ${prisoners?.size ?: 0}")
+      val nomisPncNumbers = prisoners?.joinToString(" ") { it.pncNumber.toString() }
+
+      log.debug("Number of prisoners returned from Nomis for PNC ${person.otherIdentifiers?.pncNumber} = ${prisoners?.size ?: 0} having PNCs: $nomisPncNumbers")
       prisoners?.let { prisonerList ->
         if (pncIdentifierDoesNotMatch(prisonerList, person)) {
           log.debug("Nomis PNC Id does not match that of person")
           telemetryService.trackEvent(
-            TelemetryEventType.NOMIS_PNC_DOES_NOT_MATCH,
+            TelemetryEventType.NOMIS_PNC_MISMATCH,
             mapOf(
               "UUID" to personEntity.personId.toString(),
-              "PNC" to person.otherIdentifiers?.pncNumber,
-              "Prison Number" to prisonerList[0].prisonerNumber,
+              "PNC searched for" to person.otherIdentifiers?.pncNumber,
+              "PNC returned from search" to nomisPncNumbers,
+              "Prisoner Number" to prisonerList[0].prisonerNumber,
             ),
           )
         } else if (matchesExistingPrisonerExactly(prisonerList, person)) {
@@ -46,7 +49,7 @@ class PrisonerService(
             mapOf(
               "UUID" to personEntity.personId.toString(),
               "PNC" to person.otherIdentifiers?.pncNumber,
-              "Prison Number" to prisonerList[0].prisonerNumber,
+              "Prisoner Number" to prisonerList[0].prisonerNumber,
             ),
           )
         } else if (matchesExistingPrisonerPartially(prisonerList, person)) {
@@ -56,7 +59,7 @@ class PrisonerService(
             mapOf(
               "UUID" to personEntity.personId.toString(),
               "PNC" to person.otherIdentifiers?.pncNumber,
-              "Prison Number" to prisonerList[0].prisonerNumber,
+              "Prisoner Number" to prisonerList[0].prisonerNumber,
             ),
           )
         }
