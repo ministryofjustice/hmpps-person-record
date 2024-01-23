@@ -1,7 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.*
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.matches
+import org.awaitility.kotlin.untilAsserted
+import org.awaitility.kotlin.untilCallTo
+import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.eq
@@ -98,7 +102,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
       )
     }
 
-    val personEntity = await.atMost(10, TimeUnit.SECONDS) untilNotNull { personRepository.findByOffendersPncNumber(expectedPncNumber) }
+    val personEntity = await.atMost(10, TimeUnit.SECONDS) untilNotNull { personRepository.findPersonEntityByPncNumber(expectedPncNumber) }
 
     assertThat(personEntity.personId).isNotNull()
     assertThat(personEntity.offenders).hasSize(1)
