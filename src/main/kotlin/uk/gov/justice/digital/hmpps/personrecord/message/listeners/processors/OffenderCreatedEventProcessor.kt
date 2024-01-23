@@ -44,10 +44,6 @@ class OffenderCreatedEventProcessor(
     )
   }
   private fun getNewOffenderDetail(offenderDetailsUrl: String): Result<DeliusOffenderDetail?> {
-    return tryRetrievingOffenderDetail(offenderDetailsUrl)
-  }
-
-  private fun tryRetrievingOffenderDetail(offenderDetailsUrl: String): Result<DeliusOffenderDetail?> {
     return try {
       Result.success(offenderDetailRestClient.getNewOffenderDetail(URI.create(offenderDetailsUrl).path))
     } catch (e: Exception) {
