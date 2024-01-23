@@ -26,27 +26,40 @@ class PrisonerService(
     log.debug("Entered processAssociatedPrisoners")
     if (featureFlag.isNomisSearchEnabled()) {
       val prisoners = client.findPossibleMatches(PossibleMatchCriteria.from(person))
-      log.debug("Number of prisoners returned from Nomis for PNC ${person.otherIdentifiers?.pncNumber} = ${prisoners?.size ?: 0}")
-      prisoners?.let {
-        if (matchesExistingPrisonerExactly(it, person)) {
+      val nomisPncNumbers = prisoners?.joinToString(" ") { it.pncNumber.toString() }
+
+      log.debug("Number of prisoners returned from Nomis for PNC ${person.otherIdentifiers?.pncNumber} = ${prisoners?.size ?: 0} having PNCs: $nomisPncNumbers")
+      prisoners?.let { prisonerList ->
+        if (pncIdentifierDoesNotMatch(prisonerList, person)) {
+          log.debug("Nomis PNC Id does not match that of person")
+          telemetryService.trackEvent(
+            TelemetryEventType.NOMIS_PNC_MISMATCH,
+            mapOf(
+              "UUID" to personEntity.personId.toString(),
+              "PNC searched for" to person.otherIdentifiers?.pncNumber,
+              "PNC returned from search" to nomisPncNumbers,
+              "Prisoner Number" to prisonerList[0].prisonerNumber,
+            ),
+          )
+        } else if (matchesExistingPrisonerExactly(prisonerList, person)) {
           log.debug("Exact Nomis match found - adding prisoner to person record")
-          personRecordService.addPrisonerToPerson(personEntity, it[0])
+          personRecordService.addPrisonerToPerson(personEntity, prisonerList[0])
           telemetryService.trackEvent(
             TelemetryEventType.NOMIS_MATCH_FOUND,
             mapOf(
               "UUID" to personEntity.personId.toString(),
               "PNC" to person.otherIdentifiers?.pncNumber,
-              "Prison Number" to it[0].prisonerNumber,
+              "Prisoner Number" to prisonerList[0].prisonerNumber,
             ),
           )
-        } else if (matchesExistingPrisonerPartially(it, person)) {
+        } else if (matchesExistingPrisonerPartially(prisonerList, person)) {
           log.debug("Partial Nomis match found")
           telemetryService.trackEvent(
             TelemetryEventType.NOMIS_PARTIAL_MATCH_FOUND,
             mapOf(
               "UUID" to personEntity.personId.toString(),
               "PNC" to person.otherIdentifiers?.pncNumber,
-              "Prison Number" to it[0].prisonerNumber,
+              "Prisoner Number" to prisonerList[0].prisonerNumber,
             ),
           )
         }
@@ -59,6 +72,10 @@ class PrisonerService(
         )
       }
     }
+  }
+
+  private fun pncIdentifierDoesNotMatch(prisonerList: List<Prisoner>, person: Person): Boolean {
+    return prisonerList.none { it.pncNumber.equals(person.otherIdentifiers?.pncNumber) }
   }
 
   private fun matchesExistingPrisonerPartially(prisoners: List<Prisoner>, person: Person): Boolean {

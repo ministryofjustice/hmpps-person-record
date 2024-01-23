@@ -79,7 +79,46 @@ class PrisonerServiceTest {
       mapOf(
         "UUID" to personEntity.personId.toString(),
         "PNC" to person.otherIdentifiers?.pncNumber,
-        "Prison Number" to prisoner.prisonerNumber,
+        "Prisoner Number" to prisoner.prisonerNumber,
+      ),
+    )
+  }
+
+  @Test
+  fun `should track nomis pnc mismatch event`() {
+    // Given
+    val prisonerDOB = LocalDate.now()
+    val person = Person(
+      givenName = "John",
+      familyName = "Doe",
+      dateOfBirth = prisonerDOB,
+      otherIdentifiers = OtherIdentifiers(pncNumber = "PNC123"),
+    )
+    val personEntity = Person.from(person)
+    val prisoner = Prisoner(
+      firstName = "John",
+      lastName = "Mahoney",
+      prisonerNumber = "12345",
+      dateOfBirth = prisonerDOB,
+      gender = "Male",
+      nationality = "British",
+      pncNumber = "PNC999",
+    )
+    val prisonerList = listOf(prisoner)
+    whenever(client.findPossibleMatches(PossibleMatchCriteria.from(person))).thenReturn(prisonerList)
+
+    // When
+    prisonerService.processAssociatedPrisoners(personEntity, person)
+
+    // Then
+    verifyNoInteractions(personRecordService)
+    verify(telemetryService).trackEvent(
+      TelemetryEventType.NOMIS_PNC_MISMATCH,
+      mapOf(
+        "UUID" to personEntity.personId.toString(),
+        "PNC searched for" to person.otherIdentifiers?.pncNumber,
+        "PNC returned from search" to prisoner.pncNumber,
+        "Prisoner Number" to prisonerList[0].prisonerNumber,
       ),
     )
   }
@@ -116,16 +155,16 @@ class PrisonerServiceTest {
       mapOf(
         "UUID" to personEntity.personId.toString(),
         "PNC" to person.otherIdentifiers?.pncNumber,
-        "Prison Number" to prisoner.prisonerNumber,
+        "Prisoner Number" to prisoner.prisonerNumber,
       ),
     )
   }
 
   @Test
-  fun `should not call person record service when no match is returned`() {
+  fun `should not call person record service when no nomis results are returned`() {
     // Given
     val searchCriteria = PossibleMatchCriteria()
-    whenever(client.findPossibleMatches(searchCriteria)).thenReturn(emptyList())
+    whenever(client.findPossibleMatches(searchCriteria)).thenReturn(null)
     val personEntity = PersonEntity()
     val person = Person()
 
