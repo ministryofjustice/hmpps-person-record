@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.*
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilAsserted
