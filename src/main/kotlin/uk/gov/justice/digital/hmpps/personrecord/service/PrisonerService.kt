@@ -38,7 +38,7 @@ class PrisonerService(
               "UUID" to personEntity.personId.toString(),
               "PNC searched for" to person.otherIdentifiers?.pncNumber,
               "PNC returned from search" to nomisPncNumbers,
-              "Prisoner Number" to prisonerList[0].prisonerNumber,
+              "Prisoner Number" to prisonerList.singleOrNull()?.prisonerNumber,
             ),
           )
         } else if (matchesExistingPrisonerExactly(prisonerList, person)) {
