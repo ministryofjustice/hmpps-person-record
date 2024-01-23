@@ -79,13 +79,13 @@ class PrisonerServiceTest {
       mapOf(
         "UUID" to personEntity.personId.toString(),
         "PNC" to person.otherIdentifiers?.pncNumber,
-        "Prison Number" to prisoner.prisonerNumber,
+        "Prisoner Number" to prisoner.prisonerNumber,
       ),
     )
   }
 
   @Test
-  fun `should track pnc does not match event`() {
+  fun `should track nomis pnc mismatch event`() {
     // Given
     val prisonerDOB = LocalDate.now()
     val person = Person(
@@ -113,11 +113,12 @@ class PrisonerServiceTest {
     // Then
     verifyNoInteractions(personRecordService)
     verify(telemetryService).trackEvent(
-      TelemetryEventType.NOMIS_PNC_DOES_NOT_MATCH,
+      TelemetryEventType.NOMIS_PNC_MISMATCH,
       mapOf(
         "UUID" to personEntity.personId.toString(),
-        "PNC" to person.otherIdentifiers?.pncNumber,
-        "Prison Number" to prisonerList[0].prisonerNumber,
+        "PNC searched for" to person.otherIdentifiers?.pncNumber,
+        "PNC returned from search" to prisoner.pncNumber,
+        "Prisoner Number" to prisonerList[0].prisonerNumber,
       ),
     )
   }
@@ -154,7 +155,7 @@ class PrisonerServiceTest {
       mapOf(
         "UUID" to personEntity.personId.toString(),
         "PNC" to person.otherIdentifiers?.pncNumber,
-        "Prison Number" to prisoner.prisonerNumber,
+        "Prisoner Number" to prisoner.prisonerNumber,
       ),
     )
   }
