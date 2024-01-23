@@ -13,5 +13,5 @@ data class Prisoner(
   val lastName: String? = null,
   val dateOfBirth: LocalDate? = null,
   val gender: String? = null,
-  val nationality: String? = null
+  val nationality: String? = null,
 )
