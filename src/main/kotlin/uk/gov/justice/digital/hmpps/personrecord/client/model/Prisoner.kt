@@ -5,13 +5,13 @@ import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Prisoner(
-  val prisonerNumber: String,
+  val prisonerNumber: String? = null,
   val pncNumber: String? = null,
   val croNumber: String? = null,
-  val firstName: String,
+  val firstName: String? = null,
   val middleNames: String? = null,
-  val lastName: String,
-  val dateOfBirth: LocalDate,
-  val gender: String,
-  val nationality: String,
+  val lastName: String? = null,
+  val dateOfBirth: LocalDate? = null,
+  val gender: String? = null,
+  val nationality: String? = null,
 )
