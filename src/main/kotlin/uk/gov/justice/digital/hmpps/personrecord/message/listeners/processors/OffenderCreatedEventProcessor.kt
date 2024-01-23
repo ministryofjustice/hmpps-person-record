@@ -22,14 +22,14 @@ class OffenderCreatedEventProcessor(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
   override fun processEvent(domainEvent: DomainEvent) {
-    val offenderDetailsUrl = domainEvent.detailUrl
+    val offenderDetailUrl = domainEvent.detailUrl
     val crnIdentifier = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }
     telemetryService.trackEvent(
       TelemetryEventType.DELIUS_RECORD_CREATION_RECEIVED,
       mapOf("CRN" to crnIdentifier?.value),
     )
-    log.debug("Entered processEvent with  url $offenderDetailsUrl")
-    getNewOffenderDetail(offenderDetailsUrl).fold(
+    log.debug("Entered processEvent with  url $offenderDetailUrl")
+    getNewOffenderDetail(offenderDetailUrl).fold(
       onSuccess = { deliusOffenderDetail ->
         deliusOffenderDetail?.let(probationCaseEngagementService::processNewOffender)
       },

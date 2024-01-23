@@ -17,10 +17,10 @@ interface PersonRepository : JpaRepository<PersonEntity, Long>, PersonRepository
 
   @Query(
     "SELECT distinct p FROM PersonEntity p " +
-      "LEFT JOIN DefendantEntity d on d.person.id = p.id " +
-      "LEFT JOIN OffenderEntity o on o.person.id = p.id " +
-      "LEFT JOIN PrisonerEntity p2 ON p2.person.id = p.id " +
-      "WHERE o.pncNumber = :pncNumber OR d.pncNumber = :pncNumber OR p2.pncNumber = :pncNumber",
+      "LEFT JOIN DefendantEntity defendant on defendant.person.id = p.id " +
+      "LEFT JOIN OffenderEntity offender on offender.person.id = p.id " +
+      "LEFT JOIN PrisonerEntity prisioner ON prisioner.person.id = p.id " +
+      "WHERE offender.pncNumber = :pncNumber OR defendant.pncNumber = :pncNumber OR prisioner.pncNumber = :pncNumber",
   )
   fun findPersonEntityByPncNumber(@Param("pncNumber") pncNumber: String?): PersonEntity?
 }
