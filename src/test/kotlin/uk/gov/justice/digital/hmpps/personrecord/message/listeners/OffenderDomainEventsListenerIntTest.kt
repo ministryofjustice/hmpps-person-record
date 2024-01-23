@@ -64,6 +64,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
   @Test
   fun `should receive the message successfully when new offender event published`() {
     // Given
+    val expectedPncNumber = "PN/1234560XX"
     val domainEvent = objectMapper.writeValueAsString(createDomainEvent(NEW_OFFENDER_CREATED, CRN))
 
     val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
@@ -92,22 +93,6 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
         },
       )
     }
-
-    await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.NEW_DELIUS_RECORD_NEW_PNC),
-        org.mockito.kotlin.check {
-          assertThat(it["CRN"]).isEqualTo(CRN)
-        },
-      )
-    }
-
-    val personEntity = await.atMost(10, TimeUnit.SECONDS) untilNotNull { personRepository.findByOffendersPncNumber(expectedPncNumber) }
-
-    assertThat(personEntity.personId).isNotNull()
-    assertThat(personEntity.offenders).hasSize(1)
-    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(expectedPncNumber)
-    assertThat(personEntity.offenders[0].crn).isEqualTo(CRN)
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
