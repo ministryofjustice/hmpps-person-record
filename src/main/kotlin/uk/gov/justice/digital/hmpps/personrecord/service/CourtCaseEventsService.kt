@@ -50,17 +50,11 @@ class CourtCaseEventsService(
   }
 
   private fun extractMatchingFields(defendant: DefendantEntity, person: Person): Map<String, String?> {
-    val matchingFields = mutableMapOf<String, String>()
-    if (defendant.surname.equals(person.familyName)) {
-      matchingFields["Surname"] = defendant.surname.toString()
-    }
-    if (defendant.forenameOne.equals(person.givenName)) {
-      matchingFields["Forename"] = defendant.forenameOne.toString()
-    }
-    if (defendant.dateOfBirth?.equals(person.dateOfBirth) == true) {
-      matchingFields["Date of birth"] = defendant.dateOfBirth.toString()
-    }
-    return matchingFields
+    return mapOf(
+      "Surname" to if (defendant.surname.equals(person.familyName)) defendant.surname.toString() else null,
+      "Forename" to if (defendant.forenameOne.equals(person.givenName)) defendant.forenameOne.toString() else null,
+      "Date of birth" to if (defendant.dateOfBirth?.equals(person.dateOfBirth) == true) defendant.dateOfBirth.toString() else null,
+    ).filterValues { it != null }
   }
 
   private fun matchesExistingRecordPartially(defendants: List<DefendantEntity>, person: Person): Boolean {
