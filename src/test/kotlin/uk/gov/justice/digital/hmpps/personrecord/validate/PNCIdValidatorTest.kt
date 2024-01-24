@@ -25,7 +25,9 @@ class PNCIdValidatorTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["", "0", "01", "012", "0123", "01234", "012345", "0123567", "012345678", "0123456789", "01234567890", "01234567890123"])
+  @ValueSource(
+    strings = ["01", "012", "0123", "01234", "012345", "0123567", "012345678", "0123456789", "01234567890", "01234567890123"],
+  )
   fun `should return invalid when PNC id is not the correct length`(pncId: String) {
     // When
     val valid = pncIdValidator.isValid(pncId)

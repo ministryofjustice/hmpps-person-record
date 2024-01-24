@@ -80,28 +80,19 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.NEW_CASE_EXACT_MATCH),
+        eq(TelemetryEventType.NEW_CP_CASE_RECEIVED),
         check {
           assertThat(it["PNC"]).isEqualTo("1981/0154257C")
+          assertThat(it["CRO"]).isEqualTo("12345ABCDEF")
         },
       )
     }
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.NEW_CASE_PARTIAL_MATCH),
+        eq(TelemetryEventType.NEW_CASE_PERSON_CREATED),
         check {
-          assertThat(it["Surname"]).isEqualTo("Potter")
-          assertThat(it["Forename"]).isEqualTo("Harry")
-        },
-      )
-    }
-
-    await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.MISSING_PNC),
-        check {
-          assertThat(it).isEmpty()
+          assertThat(it["PNC"]).isEqualTo("19810154257C")
         },
       )
     }

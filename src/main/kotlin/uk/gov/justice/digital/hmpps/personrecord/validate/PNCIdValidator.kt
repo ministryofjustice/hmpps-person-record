@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.validate
 import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MISSING_PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.VALID_PNC
 import java.math.BigInteger
 
@@ -11,11 +10,7 @@ const val PNC_REGEX = "\\d{4}(/?)\\d{7}[A-Z]{1}\$"
 
 class PNCIdValidator(private val telemetryService: TelemetryService) {
 
-  fun isValid(pncIdentifier: String?): Boolean {
-    if (pncIdentifier.isNullOrEmpty()) {
-      telemetryService.trackEvent(MISSING_PNC, emptyMap())
-      return false
-    }
+  fun isValid(pncIdentifier: String): Boolean {
     val result = isValidFormat(pncIdentifier) && hasValidCheckDigit(pncIdentifier)
     return result.also {
       telemetryService.trackEvent(if (it) VALID_PNC else INVALID_PNC, mapOf("PNC" to pncIdentifier))

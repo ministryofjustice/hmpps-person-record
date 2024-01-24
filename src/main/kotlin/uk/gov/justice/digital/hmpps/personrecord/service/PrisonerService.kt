@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier.Companion.areEquivalent
 
 @Service
 class PrisonerService(
@@ -75,7 +76,9 @@ class PrisonerService(
   }
 
   private fun pncIdentifierDoesNotMatch(prisonerList: List<Prisoner>, person: Person): Boolean {
-    return prisonerList.none { it.pncNumber.equals(person.otherIdentifiers?.pncNumber) }
+    return prisonerList.none {
+      areEquivalent(it.pncNumber, person.otherIdentifiers?.pncNumber)
+    }
   }
 
   private fun matchesExistingPrisonerPartially(prisoners: List<Prisoner>, person: Person): Boolean {
@@ -83,7 +86,7 @@ class PrisonerService(
       .and(prisoners.size == 1)
       .and(
         prisoners.any {
-          it.pncNumber.equals(person.otherIdentifiers?.pncNumber) &&
+          areEquivalent(it.pncNumber, person.otherIdentifiers?.pncNumber) &&
             (
               it.firstName.equals(person.givenName, true) ||
                 it.lastName.equals(person.familyName, true) ||
@@ -95,7 +98,7 @@ class PrisonerService(
 
   private fun matchesExistingPrisonerExactly(prisoners: List<Prisoner>, person: Person): Boolean {
     return prisoners.singleOrNull {
-      it.pncNumber.equals(person.otherIdentifiers?.pncNumber) &&
+      areEquivalent(it.pncNumber, person.otherIdentifiers?.pncNumber) &&
         it.firstName.equals(person.givenName, true) &&
         it.lastName.equals(person.familyName, true) &&
         it.dateOfBirth == person.dateOfBirth

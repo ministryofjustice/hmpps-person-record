@@ -11,6 +11,7 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.envers.Audited
 import uk.gov.justice.digital.hmpps.personrecord.client.model.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier.Companion.toCanonicalForm
 import java.time.LocalDate
 
 @Entity
@@ -51,7 +52,7 @@ class PrisonerEntity(
       val prisonerEntity =
         PrisonerEntity(
           offenderId = prisoner.prisonerNumber,
-          pncNumber = prisoner.pncNumber,
+          pncNumber = toCanonicalForm(prisoner.pncNumber),
           firstName = prisoner.firstName,
           lastName = prisoner.lastName,
           dateOfBirth = prisoner.dateOfBirth,

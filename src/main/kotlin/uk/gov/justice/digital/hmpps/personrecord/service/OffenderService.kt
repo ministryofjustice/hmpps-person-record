@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier.Companion.areEquivalent
 
 @Service
 class OffenderService(
@@ -65,7 +66,7 @@ class OffenderService(
       .and(offenderDetails.size == 1)
       .and(
         offenderDetails.any {
-          it.otherIds.pncNumber.equals(person.otherIdentifiers?.pncNumber) &&
+          areEquivalent(it.otherIds.pncNumber, person.otherIdentifiers?.pncNumber) &&
             (
               it.firstName.equals(person.givenName, true) ||
                 it.surname.equals(person.familyName, true) ||
@@ -80,7 +81,7 @@ class OffenderService(
       .and(offenderDetails.size == 1)
       .and(
         offenderDetails.any {
-          it.otherIds.pncNumber.equals(person.otherIdentifiers?.pncNumber) &&
+          areEquivalent(it.otherIds.pncNumber, person.otherIdentifiers?.pncNumber) &&
             it.firstName.equals(person.givenName, true) &&
             it.surname.equals(person.familyName, true) &&
             it.dateOfBirth == person.dateOfBirth
