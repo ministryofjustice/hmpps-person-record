@@ -49,13 +49,12 @@ class CourtCaseEventsService(
     }
   }
 
-  private fun extractMatchingFields(defendant: DefendantEntity, person: Person): Map<String, String?> {
-    return mapOf(
-      "Surname" to if (defendant.surname.equals(person.familyName)) defendant.surname.toString() else null,
-      "Forename" to if (defendant.forenameOne.equals(person.givenName)) defendant.forenameOne.toString() else null,
+  private fun extractMatchingFields(defendant: DefendantEntity, person: Person): Map<String, String?> =
+    mapOf(
+      "Surname" to if (defendant.surname.equals(person.familyName)) defendant.surname else null,
+      "Forename" to if (defendant.forenameOne.equals(person.givenName)) defendant.forenameOne else null,
       "Date of birth" to if (defendant.dateOfBirth?.equals(person.dateOfBirth) == true) defendant.dateOfBirth.toString() else null,
     ).filterValues { it != null }
-  }
 
   private fun matchesExistingRecordPartially(defendants: List<DefendantEntity>, person: Person): Boolean {
     // a record in CPR exists with a matching PNC but Surname, forename, or Dob do not match
