@@ -7,5 +7,5 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 class OffenderDetailClientOAuth2Config(authorizedClientManager: OAuth2AuthorizedClientManager) :
   FeignConfig(authorizedClientManager) {
 
-  override fun registrationId() = "offender-detail-search"
+  override fun registrationId() = "domain-event-and-delius-api"
 }
