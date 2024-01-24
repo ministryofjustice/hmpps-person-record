@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.DeliusOffenderDeta
 
 @FeignClient(
   name = "offender-detail",
-  url = "\${domain_event_and_delius_api.base_url}",
+  url = "\${domain-event-and-delius-api.base_url}",
 //  configuration = [ProbationOffenderSearchOAuth2Config::class],
 )
 interface OffenderDetailRestClient {

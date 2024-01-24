@@ -19,7 +19,7 @@ offender-search:
 prisoner-search:
   base-url: http://localhost:8090
 
-domain_event_and_delius_api:
+domain-event-and-delius-api:
   base_url: http://localhost:8090
 
 feature:
