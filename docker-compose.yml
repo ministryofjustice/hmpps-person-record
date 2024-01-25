@@ -21,7 +21,7 @@ services:
     ports:
       - "4566-4597:4566-4597"
     environment:
-      - SERVICES=sns
+      - SERVICES=sns,sqs
       - DEBUG=${DEBUG- }
       - PERSISTENCE=1
       - DOCKER_HOST=unix:///var/run/docker.sock
