@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
-import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier.Companion.toCanonicalForm
 import java.time.LocalDate
 import java.util.*
 
@@ -61,7 +60,7 @@ data class Person(
 
     fun from(defendant: Defendant): Person {
       return Person(
-        otherIdentifiers = OtherIdentifiers(pncNumber = toCanonicalForm(defendant.pncId), cro = defendant.croNumber),
+        otherIdentifiers = OtherIdentifiers(pncNumber = defendant.pncId, cro = defendant.croNumber),
         givenName = defendant.personDefendant?.personDetails?.firstName,
         familyName = defendant.personDefendant?.personDetails?.lastName,
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
@@ -70,7 +69,7 @@ data class Person(
 
     fun from(libraHearingEvent: LibraHearingEvent): Person {
       return Person(
-        otherIdentifiers = OtherIdentifiers(pncNumber = toCanonicalForm(libraHearingEvent.pnc), cro = libraHearingEvent.cro),
+        otherIdentifiers = OtherIdentifiers(pncNumber = libraHearingEvent.pnc, cro = libraHearingEvent.cro),
         givenName = libraHearingEvent.name?.forename1,
         familyName = libraHearingEvent.name?.surname,
         dateOfBirth = libraHearingEvent.defendantDob,
