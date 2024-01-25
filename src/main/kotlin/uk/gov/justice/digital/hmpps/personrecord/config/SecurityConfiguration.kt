@@ -28,6 +28,7 @@ class SecurityConfiguration {
             "/swagger-ui.html",
             "/swagger-ui/**",
             "/v3/api-docs/**",
+            "/queue-admin/retry-all-dlqs",
           ).permitAll()
           .anyRequest().hasAuthority("ROLE_VIEW_PERSON_DATA")
       }
