@@ -96,7 +96,7 @@ class DefendantEntity(
         surname = person.familyName,
         dateOfBirth = person.dateOfBirth,
         defendantId = person.defendantId,
-        pncNumber = person.otherIdentifiers?.pncNumber,
+        pncNumber = person.otherIdentifiers?.pncIdentifier?.pncId,
         crn = person.otherIdentifiers?.crn,
         cro = person.otherIdentifiers?.cro,
         sex = person.sex,

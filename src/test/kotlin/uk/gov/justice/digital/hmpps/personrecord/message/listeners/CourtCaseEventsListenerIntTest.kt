@@ -24,7 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier.Companion.toCanonicalForm
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.concurrent.TimeUnit
 
@@ -90,18 +90,9 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.NEW_CASE_EXACT_MATCH),
+        eq(TelemetryEventType.NEW_CASE_PERSON_CREATED),
         check {
-          assertThat(it["PNC"]).isEqualTo("1981/0154257C")
-        },
-      )
-    }
-
-    await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.VALID_PNC),
-        check {
-          assertThat(it["PNC"]).isEqualTo("1981/0154257C")
+          assertThat(it["PNC"]).isEqualTo("19810154257C")
         },
       )
     }
@@ -191,6 +182,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.offenders[0].crn).isEqualTo("X026350")
     assertThat(personEntity.prisoners).hasSize(1)
     assertThat(personEntity.prisoners[0].offenderId).isEqualTo("A1234AA")
-    assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(toCanonicalForm(defendantsPncNumber))
+    assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(PNCIdentifier(defendantsPncNumber).pncId)
   }
 }

@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdValidator
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 
 @Service
 class CourtCaseEventsService(
@@ -27,10 +28,10 @@ class CourtCaseEventsService(
   @Transactional(isolation = Isolation.SERIALIZABLE)
   fun processPersonFromCourtCaseEvent(person: Person) {
     log.debug("Entered processPersonFromCourtCaseEvent")
-    if (person.otherIdentifiers?.pncNumber?.isNotEmpty() == true) {
-      val pncId = person.otherIdentifiers.pncNumber
-      if (pncIdValidator.isValid(pncId)) {
-        val defendants = personRepository.findByDefendantsPncNumber(pncId)?.defendants.orEmpty()
+    person.otherIdentifiers?.pncIdentifier?.let { pncIdentifier ->
+      val pncId = pncIdentifier.pncId
+      if (pncIdValidator.isValid(pncIdentifier)) {
+        val defendants = personRepository.findByDefendantsPncNumber(pncId!!)?.defendants.orEmpty()
 
         if (matchesExistingRecordExactly(defendants, person)) {
           log.info("Exactly matching Person record exists with defendant - no further processing will occur")
@@ -57,7 +58,8 @@ class CourtCaseEventsService(
           }
         } // what if defendants is not empty?
       }
-    } else {
+    }
+    if (person.otherIdentifiers?.pncIdentifier == null) {
       telemetryService.trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
     }
   }
@@ -82,7 +84,7 @@ class CourtCaseEventsService(
       .and(defendants.size == 1)
       .and(
         defendants.any {
-          it.pncNumber.equals(person.otherIdentifiers?.pncNumber) &&
+          person.otherIdentifiers?.pncIdentifier?.isEquivalentTo(PNCIdentifier(it.pncNumber)) == true &&
             (
               it.surname.equals(person.familyName, true) ||
                 it.forenameOne.equals(person.givenName, true) ||
@@ -97,7 +99,7 @@ class CourtCaseEventsService(
       .and(defendants.size == 1)
       .and(
         defendants.any {
-          it.pncNumber.equals(person.otherIdentifiers?.pncNumber) &&
+          person.otherIdentifiers?.pncIdentifier?.isEquivalentTo(PNCIdentifier(it.pncNumber)) == true &&
             it.surname.equals(person.familyName, true) &&
             it.forenameOne.equals(person.givenName, true) &&
             it.dateOfBirth?.equals(person.dateOfBirth) == true

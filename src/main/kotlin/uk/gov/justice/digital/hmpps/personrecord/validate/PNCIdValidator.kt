@@ -10,10 +10,11 @@ const val PNC_REGEX = "\\d{4}(/?)\\d{7}[A-Z]{1}\$"
 
 class PNCIdValidator(private val telemetryService: TelemetryService) {
 
-  fun isValid(pncIdentifier: String): Boolean {
-    val result = isValidFormat(pncIdentifier) && hasValidCheckDigit(pncIdentifier)
+  fun isValid(pncIdentifier: PNCIdentifier): Boolean {
+    val result = pncIdentifier.pncId?.let { isValidFormat(it) } == true &&
+      hasValidCheckDigit(pncIdentifier.pncId!!)
     return result.also {
-      telemetryService.trackEvent(if (it) VALID_PNC else INVALID_PNC, mapOf("PNC" to pncIdentifier))
+      telemetryService.trackEvent(if (it) VALID_PNC else INVALID_PNC, mapOf("PNC" to pncIdentifier.pncId))
     }
   }
 

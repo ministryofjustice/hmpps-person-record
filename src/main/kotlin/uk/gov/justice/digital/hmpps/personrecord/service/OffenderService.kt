@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier.Companion.areEquivalent
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 
 @Service
 class OffenderService(
@@ -35,7 +35,7 @@ class OffenderService(
             TelemetryEventType.DELIUS_MATCH_FOUND,
             mapOf(
               "UUID" to personEntity.personId.toString(),
-              "PNC" to person.otherIdentifiers?.pncNumber,
+              "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
               "CRN" to person.otherIdentifiers?.crn,
             ),
           )
@@ -45,7 +45,7 @@ class OffenderService(
             TelemetryEventType.DELIUS_PARTIAL_MATCH_FOUND,
             mapOf(
               "UUID" to personEntity.personId.toString(),
-              "PNC" to person.otherIdentifiers?.pncNumber,
+              "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
               "CRN" to person.otherIdentifiers?.crn,
             ),
           )
@@ -55,7 +55,7 @@ class OffenderService(
         log.debug("No Delius matching records exist")
         telemetryService.trackEvent(
           TelemetryEventType.DELIUS_NO_MATCH_FOUND,
-          mapOf("UUID" to personEntity.personId.toString(), "PNC" to person.otherIdentifiers?.pncNumber),
+          mapOf("UUID" to personEntity.personId.toString(), "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId),
         )
       }
     }
@@ -66,7 +66,7 @@ class OffenderService(
       .and(offenderDetails.size == 1)
       .and(
         offenderDetails.any {
-          areEquivalent(it.otherIds.pncNumber, person.otherIdentifiers?.pncNumber) &&
+          person.otherIdentifiers?.pncIdentifier?.isEquivalentTo(PNCIdentifier(it.otherIds.pncNumber)) == true &&
             (
               it.firstName.equals(person.givenName, true) ||
                 it.surname.equals(person.familyName, true) ||
@@ -81,7 +81,7 @@ class OffenderService(
       .and(offenderDetails.size == 1)
       .and(
         offenderDetails.any {
-          areEquivalent(it.otherIds.pncNumber, person.otherIdentifiers?.pncNumber) &&
+          person.otherIdentifiers?.pncIdentifier?.isEquivalentTo(PNCIdentifier(it.otherIds.pncNumber)) == true &&
             it.firstName.equals(person.givenName, true) &&
             it.surname.equals(person.familyName, true) &&
             it.dateOfBirth == person.dateOfBirth

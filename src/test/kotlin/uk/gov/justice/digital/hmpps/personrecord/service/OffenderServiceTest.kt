@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.OffenderService
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonRecordService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import java.time.LocalDate
 
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
@@ -56,7 +57,7 @@ class OffenderServiceTest {
       givenName = "John",
       familyName = "Mahoney",
       dateOfBirth = dateOfBirth,
-      otherIdentifiers = OtherIdentifiers(pncNumber = "PNC123"),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123")),
     )
     val offenderDetail = OffenderDetail(
       offenderId = 1234L,
@@ -76,7 +77,7 @@ class OffenderServiceTest {
       TelemetryEventType.DELIUS_MATCH_FOUND,
       mapOf(
         "UUID" to personEntity.personId.toString(),
-        "PNC" to person.otherIdentifiers?.pncNumber,
+        "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
         "CRN" to person.otherIdentifiers?.crn,
       ),
     )
@@ -90,7 +91,7 @@ class OffenderServiceTest {
       givenName = "John",
       familyName = "Mahoney",
       dateOfBirth = LocalDate.now(),
-      otherIdentifiers = OtherIdentifiers(pncNumber = "PNC123"),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123")),
     )
     val offenderDetail = OffenderDetail(
       offenderId = 1234L,
@@ -110,7 +111,7 @@ class OffenderServiceTest {
       TelemetryEventType.DELIUS_PARTIAL_MATCH_FOUND,
       mapOf(
         "UUID" to personEntity.personId.toString(),
-        "PNC" to person.otherIdentifiers?.pncNumber,
+        "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
         "CRN" to person.otherIdentifiers?.crn,
       ),
     )
@@ -124,7 +125,7 @@ class OffenderServiceTest {
       givenName = "John",
       familyName = "Mahoney",
       dateOfBirth = LocalDate.now(),
-      otherIdentifiers = OtherIdentifiers(pncNumber = "PNC123"),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123")),
     )
     whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(emptyList())
 
@@ -137,7 +138,7 @@ class OffenderServiceTest {
       TelemetryEventType.DELIUS_NO_MATCH_FOUND,
       mapOf(
         "UUID" to personEntity.personId.toString(),
-        "PNC" to person.otherIdentifiers?.pncNumber,
+        "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
       ),
     )
   }
@@ -151,7 +152,7 @@ class OffenderServiceTest {
       givenName = "John",
       familyName = "Mahoney",
       dateOfBirth = dateOfBirth,
-      otherIdentifiers = OtherIdentifiers(pncNumber = "PNC123"),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123")),
     )
 
     whenever(featureFlag.isDeliusSearchEnabled()).thenReturn(false)

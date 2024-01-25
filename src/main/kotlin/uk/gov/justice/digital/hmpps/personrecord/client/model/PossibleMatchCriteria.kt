@@ -20,7 +20,7 @@ data class PossibleMatchCriteria(
         firstName = person.givenName,
         lastName = person.familyName,
         dateOfBirth = person.dateOfBirth,
-        pncNumber = person.otherIdentifiers?.pncNumber,
+        pncNumber = person.otherIdentifiers?.pncIdentifier?.pncId,
       )
   }
 }

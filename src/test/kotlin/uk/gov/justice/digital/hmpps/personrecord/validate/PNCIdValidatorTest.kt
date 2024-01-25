@@ -30,7 +30,7 @@ class PNCIdValidatorTest {
   )
   fun `should return invalid when PNC id is not the correct length`(pncId: String) {
     // When
-    val valid = pncIdValidator.isValid(pncId)
+    val valid = pncIdValidator.isValid(PNCIdentifier(pncId))
 
     // Then
     assertThat(valid).isFalse()
@@ -40,7 +40,7 @@ class PNCIdValidatorTest {
   @ValueSource(strings = ["1X23/1234567A", "1923[1234567A", "1923/1Z34567A", "1923/1234567AA"])
   fun `should return invalid when PNC id is incorrectly formatted`(pncId: String) {
     // When
-    val valid = pncIdValidator.isValid(pncId)
+    val valid = pncIdValidator.isValid(PNCIdentifier(pncId))
 
     // Then
     assertThat(valid).isFalse()
@@ -50,7 +50,7 @@ class PNCIdValidatorTest {
   @ValueSource(strings = ["20030011985X", "20120052494Q", "20230583843L", "2001/0171310W", "2011/0275516Q", "2008/0056560Z", "2003/0062845E", "1981/0154257C"])
   fun `should return valid when PNC id is correctly formatted`(pncId: String) {
     // When
-    val valid = pncIdValidator.isValid(pncId)
+    val valid = pncIdValidator.isValid(PNCIdentifier(pncId))
 
     // Then
     assertThat(valid).isTrue()

@@ -4,8 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier.Companion.areEquivalent
-import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier.Companion.toCanonicalForm
 import java.util.stream.Stream
 
 class PNCIdentifierTest {
@@ -14,7 +12,7 @@ class PNCIdentifierTest {
   @MethodSource("longFormPncProvider")
   fun `should convert long form PNC ids to canonical form`(pncId: String, expectedResult: String) {
     // When
-    val expectedCanonicalForm = toCanonicalForm(pncId)
+    val expectedCanonicalForm = PNCIdentifier(pncId).pncId
 
     // Then
     assertThat(expectedCanonicalForm).isEqualTo(expectedResult)
@@ -24,7 +22,7 @@ class PNCIdentifierTest {
   @MethodSource("canonicalFormPncProvider")
   fun `should NOT convert PNCs already in canonical form`(pncId: String, expectedResult: String) {
     // When
-    val result = toCanonicalForm(pncId)
+    val result = PNCIdentifier(pncId).pncId
 
     // Then
     assertThat(result).isEqualTo(expectedResult)
@@ -34,7 +32,7 @@ class PNCIdentifierTest {
   @MethodSource("shortFormPncProvider")
   fun `should convert short form PNC ids to canonical form`(pncId: String, expectedResult: String) {
     // When
-    val expectedCanonicalForm = toCanonicalForm(pncId)
+    val expectedCanonicalForm = PNCIdentifier(pncId).pncId
 
     // Then
     assertThat(expectedCanonicalForm).isEqualTo(expectedResult)
@@ -44,7 +42,7 @@ class PNCIdentifierTest {
   @MethodSource("invalidPncProvider")
   fun `should NOT convert invalid PNC ids`(pncId: String, expectedResult: String) {
     // When
-    val expectedCanonicalForm = toCanonicalForm(pncId)
+    val expectedCanonicalForm = PNCIdentifier(pncId).pncId
 
     // Then
     assertThat(expectedCanonicalForm).isEqualTo(expectedResult)
@@ -54,7 +52,7 @@ class PNCIdentifierTest {
   @MethodSource("equalityPncProvider")
   fun `should perform equality comparison using canonical form`(pncId1: String, pncId2: String, expectedResult: Boolean) {
     // When
-    val result = areEquivalent(pncId1, pncId2)
+    val result = PNCIdentifier(pncId1).isEquivalentTo(PNCIdentifier(pncId2))
 
     // Then
     assertThat(result).isEqualTo(expectedResult)

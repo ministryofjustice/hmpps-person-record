@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import java.time.LocalDate
 import java.util.*
 
@@ -60,7 +61,7 @@ data class Person(
 
     fun from(defendant: Defendant): Person {
       return Person(
-        otherIdentifiers = OtherIdentifiers(pncNumber = defendant.pncId, cro = defendant.croNumber),
+        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier(defendant.pncId), cro = defendant.croNumber),
         givenName = defendant.personDefendant?.personDetails?.firstName,
         familyName = defendant.personDefendant?.personDetails?.lastName,
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
@@ -69,7 +70,7 @@ data class Person(
 
     fun from(libraHearingEvent: LibraHearingEvent): Person {
       return Person(
-        otherIdentifiers = OtherIdentifiers(pncNumber = libraHearingEvent.pnc, cro = libraHearingEvent.cro),
+        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier(libraHearingEvent.pnc), cro = libraHearingEvent.cro),
         givenName = libraHearingEvent.name?.forename1,
         familyName = libraHearingEvent.name?.surname,
         dateOfBirth = libraHearingEvent.defendantDob,
@@ -79,7 +80,7 @@ data class Person(
     fun from(prisoner: Prisoner): Person {
       return Person(
         otherIdentifiers = OtherIdentifiers(
-          pncNumber = prisoner.pncNumber,
+          pncIdentifier = PNCIdentifier(prisoner.pncNumber),
           cro = prisoner.croNumber,
         ),
         givenName = prisoner.firstName,
@@ -97,7 +98,7 @@ data class OtherIdentifiers(
   @Schema(description = "CRN", example = "X340906")
   val crn: String? = null,
   @Schema(description = "PNC Number", example = "1965/0046583U")
-  val pncNumber: String? = null,
+  val pncIdentifier: PNCIdentifier? = null,
   @Schema(description = "CRO", example = "293110/23X")
   val cro: String? = null,
 )
