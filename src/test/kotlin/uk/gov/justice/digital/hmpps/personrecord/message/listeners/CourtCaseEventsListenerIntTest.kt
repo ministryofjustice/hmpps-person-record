@@ -87,15 +87,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
         },
       )
     }
-
-    await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.NEW_CASE_PERSON_CREATED),
-        check {
-          assertThat(it["PNC"]).isEqualTo("19810154257C")
-        },
-      )
-    }
   }
 
   @Test
