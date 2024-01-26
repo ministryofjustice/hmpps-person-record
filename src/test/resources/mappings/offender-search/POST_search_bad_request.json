@@ -1,4 +1,5 @@
 {
+  "priority": 3,
   "request": {
     "method": "POST",
     "url": "/search",
@@ -12,7 +13,7 @@
           "croNumber" : null,
           "crn" : null,
           "nomsNumber" : null,
-          "includeAliases" : false
+          "includeAliases" : null
         }
       }
     ]

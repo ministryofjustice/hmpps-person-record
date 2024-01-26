@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import java.time.LocalDate
 
 @ExtendWith(MockitoExtension::class)
@@ -52,7 +53,7 @@ class PrisonerServiceTest {
       givenName = "John",
       familyName = "Doe",
       dateOfBirth = prisonerDOB,
-      otherIdentifiers = OtherIdentifiers(pncNumber = "PNC123"),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123")),
     )
     val personEntity = Person.from(person)
 
@@ -78,7 +79,7 @@ class PrisonerServiceTest {
       TelemetryEventType.NOMIS_MATCH_FOUND,
       mapOf(
         "UUID" to personEntity.personId.toString(),
-        "PNC" to person.otherIdentifiers?.pncNumber,
+        "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
         "Prisoner Number" to prisoner.prisonerNumber,
       ),
     )
@@ -92,7 +93,7 @@ class PrisonerServiceTest {
       givenName = "John",
       familyName = "Doe",
       dateOfBirth = prisonerDOB,
-      otherIdentifiers = OtherIdentifiers(pncNumber = "PNC123"),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123")),
     )
     val personEntity = Person.from(person)
     val prisoner = Prisoner(
@@ -116,7 +117,7 @@ class PrisonerServiceTest {
       TelemetryEventType.NOMIS_PNC_MISMATCH,
       mapOf(
         "UUID" to personEntity.personId.toString(),
-        "PNC searched for" to person.otherIdentifiers?.pncNumber,
+        "PNC searched for" to person.otherIdentifiers?.pncIdentifier?.pncId,
         "PNC returned from search" to prisoner.pncNumber,
         "Prisoner Number" to prisonerList[0].prisonerNumber,
       ),
@@ -131,7 +132,7 @@ class PrisonerServiceTest {
       givenName = "John",
       familyName = "Doe",
       dateOfBirth = prisonerDOB,
-      otherIdentifiers = OtherIdentifiers(pncNumber = "PNC123"),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123")),
     )
     val personEntity = Person.from(person)
     val prisoner = Prisoner(
@@ -154,7 +155,7 @@ class PrisonerServiceTest {
       TelemetryEventType.NOMIS_PARTIAL_MATCH_FOUND,
       mapOf(
         "UUID" to personEntity.personId.toString(),
-        "PNC" to person.otherIdentifiers?.pncNumber,
+        "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
         "Prisoner Number" to prisoner.prisonerNumber,
       ),
     )
@@ -177,7 +178,7 @@ class PrisonerServiceTest {
       TelemetryEventType.NOMIS_NO_MATCH_FOUND,
       mapOf(
         "UUID" to personEntity.personId.toString(),
-        "PNC" to person.otherIdentifiers?.pncNumber,
+        "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
       ),
     )
   }

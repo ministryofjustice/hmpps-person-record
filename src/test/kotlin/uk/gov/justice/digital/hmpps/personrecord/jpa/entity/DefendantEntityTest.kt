@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import java.time.LocalDate
 
 internal class DefendantEntityTest {
@@ -20,7 +21,7 @@ internal class DefendantEntityTest {
       dateOfBirth = dateOfBirth,
       otherIdentifiers = OtherIdentifiers(
         crn = "crn1234",
-        pncNumber = "pnc1234",
+        pncIdentifier = PNCIdentifier("pnc1234"),
         cro = "cro1234",
       ),
       sex = "male",

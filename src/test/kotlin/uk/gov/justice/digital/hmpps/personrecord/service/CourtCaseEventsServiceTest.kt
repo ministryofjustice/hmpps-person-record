@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import java.time.LocalDate
 import java.util.*
 
@@ -56,7 +57,7 @@ class CourtCaseEventsServiceTest {
   @Test
   fun `should call telemetry service when PNC is empty`() { // failing test to show double counting of empty string pnc
     // Given
-    val person = Person(familyName = "Jones", otherIdentifiers = OtherIdentifiers(pncNumber = ""))
+    val person = Person(familyName = "Jones", otherIdentifiers = OtherIdentifiers(pncIdentifier = null))
 
     // When
     courtCaseEventsService.processPersonFromCourtCaseEvent(person)
@@ -71,7 +72,7 @@ class CourtCaseEventsServiceTest {
   fun `should call telemetry service when PNC is invalid from Court Case Event`() {
     // Given
     val pncNumber = "DODGY_PNC"
-    val person = Person(familyName = "Jones", otherIdentifiers = OtherIdentifiers(pncNumber = pncNumber))
+    val person = Person(familyName = "Jones", otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier(pncNumber)))
 
     // When
     courtCaseEventsService.processPersonFromCourtCaseEvent(person)
@@ -109,7 +110,7 @@ class CourtCaseEventsServiceTest {
       familyName = "Jones",
       givenName = "Crackity",
       dateOfBirth = dateOfBirth,
-      otherIdentifiers = OtherIdentifiers(pncNumber = pncNumber),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier(pncNumber)),
     )
 
     // When
@@ -145,7 +146,7 @@ class CourtCaseEventsServiceTest {
       familyName = "Jones",
       givenName = "Billy",
       dateOfBirth = LocalDate.of(1969, 8, 15),
-      otherIdentifiers = OtherIdentifiers(pncNumber = pncNumber),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier(pncNumber)),
     )
 
     // When
@@ -165,7 +166,7 @@ class CourtCaseEventsServiceTest {
       familyName = "Jones",
       givenName = "Billy",
       dateOfBirth = LocalDate.of(1969, 8, 15),
-      otherIdentifiers = OtherIdentifiers(pncNumber = pncNumber),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier(pncNumber)),
     )
 
     val uuid = UUID.randomUUID()
@@ -191,7 +192,7 @@ class CourtCaseEventsServiceTest {
       familyName = "Jones",
       givenName = "Billy",
       dateOfBirth = LocalDate.of(1969, 8, 15),
-      otherIdentifiers = OtherIdentifiers(pncNumber = pncNumber),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier(pncNumber)),
     )
 
     // When

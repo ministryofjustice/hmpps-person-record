@@ -22,7 +22,7 @@ data class PersonSearchRequest(
   companion object {
     fun from(person: Person): PersonSearchRequest {
       return PersonSearchRequest(
-        pncNumber = person.otherIdentifiers?.pncNumber,
+        pncNumber = person.otherIdentifiers?.pncIdentifier?.pncId,
         crn = person.otherIdentifiers?.crn,
         forenameOne = person.givenName,
         surname = person.familyName,

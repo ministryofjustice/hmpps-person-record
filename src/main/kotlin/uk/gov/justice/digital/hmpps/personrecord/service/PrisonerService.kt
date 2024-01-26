@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 
 @Service
 class PrisonerService(
@@ -28,7 +29,7 @@ class PrisonerService(
       val prisoners = client.findPossibleMatches(PossibleMatchCriteria.from(person))
       val nomisPncNumbers = prisoners?.joinToString(" ") { it.pncNumber.toString() }
 
-      log.debug("Number of prisoners returned from Nomis for PNC ${person.otherIdentifiers?.pncNumber} = ${prisoners?.size ?: 0} having PNCs: $nomisPncNumbers")
+      log.debug("Number of prisoners returned from Nomis for PNC ${person.otherIdentifiers?.pncIdentifier?.pncId} = ${prisoners?.size ?: 0} having PNCs: $nomisPncNumbers")
       prisoners?.let { prisonerList ->
         if (pncIdentifierDoesNotMatch(prisonerList, person)) {
           log.debug("Nomis PNC Id does not match that of person")
@@ -36,7 +37,7 @@ class PrisonerService(
             TelemetryEventType.NOMIS_PNC_MISMATCH,
             mapOf(
               "UUID" to personEntity.personId.toString(),
-              "PNC searched for" to person.otherIdentifiers?.pncNumber,
+              "PNC searched for" to person.otherIdentifiers?.pncIdentifier?.pncId,
               "PNC returned from search" to nomisPncNumbers,
               "Prisoner Number" to prisonerList.singleOrNull()?.prisonerNumber,
             ),
@@ -48,7 +49,7 @@ class PrisonerService(
             TelemetryEventType.NOMIS_MATCH_FOUND,
             mapOf(
               "UUID" to personEntity.personId.toString(),
-              "PNC" to person.otherIdentifiers?.pncNumber,
+              "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
               "Prisoner Number" to prisonerList[0].prisonerNumber,
             ),
           )
@@ -58,7 +59,7 @@ class PrisonerService(
             TelemetryEventType.NOMIS_PARTIAL_MATCH_FOUND,
             mapOf(
               "UUID" to personEntity.personId.toString(),
-              "PNC" to person.otherIdentifiers?.pncNumber,
+              "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
               "Prisoner Number" to prisonerList[0].prisonerNumber,
             ),
           )
@@ -68,14 +69,16 @@ class PrisonerService(
         log.debug("No Nomis matching records exist")
         telemetryService.trackEvent(
           TelemetryEventType.NOMIS_NO_MATCH_FOUND,
-          mapOf("UUID" to personEntity.personId.toString(), "PNC" to person.otherIdentifiers?.pncNumber),
+          mapOf("UUID" to personEntity.personId.toString(), "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId),
         )
       }
     }
   }
 
   private fun pncIdentifierDoesNotMatch(prisonerList: List<Prisoner>, person: Person): Boolean {
-    return prisonerList.none { it.pncNumber.equals(person.otherIdentifiers?.pncNumber) }
+    return prisonerList.none {
+      person.otherIdentifiers?.pncIdentifier?.isEquivalentTo(PNCIdentifier(it.pncNumber)) == true
+    }
   }
 
   private fun matchesExistingPrisonerPartially(prisoners: List<Prisoner>, person: Person): Boolean {
@@ -83,7 +86,7 @@ class PrisonerService(
       .and(prisoners.size == 1)
       .and(
         prisoners.any {
-          it.pncNumber.equals(person.otherIdentifiers?.pncNumber) &&
+          person.otherIdentifiers?.pncIdentifier?.isEquivalentTo(PNCIdentifier(it.pncNumber)) == true &&
             (
               it.firstName.equals(person.givenName, true) ||
                 it.lastName.equals(person.familyName, true) ||
@@ -95,7 +98,7 @@ class PrisonerService(
 
   private fun matchesExistingPrisonerExactly(prisoners: List<Prisoner>, person: Person): Boolean {
     return prisoners.singleOrNull {
-      it.pncNumber.equals(person.otherIdentifiers?.pncNumber) &&
+      person.otherIdentifiers?.pncIdentifier?.isEquivalentTo(PNCIdentifier(it.pncNumber)) == true &&
         it.firstName.equals(person.givenName, true) &&
         it.lastName.equals(person.familyName, true) &&
         it.dateOfBirth == person.dateOfBirth

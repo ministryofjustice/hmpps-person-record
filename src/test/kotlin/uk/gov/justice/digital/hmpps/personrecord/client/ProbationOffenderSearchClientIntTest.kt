@@ -42,7 +42,7 @@ class ProbationOffenderSearchClientIntTest : IntegrationTestBase() {
   @Test
   fun `should return bad request for insufficient search parameters`() {
     // Given
-    val searchDto = SearchDto()
+    val searchDto = SearchDto(includeAliases = null)
 
     // When
     val exception = assertThrows(FeignException.BadRequest::class.java) {

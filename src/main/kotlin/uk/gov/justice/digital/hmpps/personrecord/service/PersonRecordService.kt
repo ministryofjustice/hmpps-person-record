@@ -88,7 +88,7 @@ class PersonRecordService(
   }
 
   fun createNewPersonAndDefendant(person: Person): PersonEntity {
-    log.debug("Entered createNewPersonAndDefendant with pnc ${person.otherIdentifiers?.pncNumber}")
+    log.debug("Entered createNewPersonAndDefendant with pnc ${person.otherIdentifiers?.pncIdentifier}")
 
     val newPersonEntity = PersonEntity.new()
     val newDefendantEntity = DefendantEntity.from(person)

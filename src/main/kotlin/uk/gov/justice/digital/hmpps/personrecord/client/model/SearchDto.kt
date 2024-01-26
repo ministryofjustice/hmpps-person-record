@@ -19,7 +19,7 @@ data class SearchDto(
         firstName = person.givenName,
         surname = person.familyName,
         dateOfBirth = person.dateOfBirth,
-        pncNumber = person.otherIdentifiers?.pncNumber,
+        pncNumber = person.otherIdentifiers?.pncIdentifier?.pncId,
         croNumber = person.otherIdentifiers?.cro,
         crn = person.otherIdentifiers?.crn,
       )
