@@ -50,10 +50,16 @@ hmpps.sqs:
     testqueue:
       queueName: test_queue
       subscribeTopicId: testtopic
+    cproffendereventsqueue:
+      queueName: cpr_offender_events_queue
+      subscribeTopicId: probationoffenderevents
+      subscribeFilter: '{"eventType":[ "OFFENDER_DETAILS_CHANGED"] }'
   topics:
     courtcaseeventstopic:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
     domainevents:
+      arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
+    probationoffenderevents:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
     testtopic:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
