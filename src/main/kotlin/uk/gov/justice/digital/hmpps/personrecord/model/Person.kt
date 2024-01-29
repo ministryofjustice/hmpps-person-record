@@ -58,7 +58,7 @@ data class Person(
         givenName = offenderDetail.firstName,
         familyName = offenderDetail.surname,
         dateOfBirth = offenderDetail.dateOfBirth,
-        otherIdentifiers = OtherIdentifiers(crn = offenderDetail.otherIds.crn, pncIdentifier = PNCIdentifier(offenderDetail.otherIds.pncNumber))
+        otherIdentifiers = OtherIdentifiers(crn = offenderDetail.otherIds.crn, pncIdentifier = PNCIdentifier(offenderDetail.otherIds.pncNumber)),
       )
     }
 
