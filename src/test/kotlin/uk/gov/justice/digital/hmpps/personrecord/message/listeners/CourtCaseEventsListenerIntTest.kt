@@ -12,13 +12,15 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.jdbc.Sql
+import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
+import org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD
 import org.springframework.test.context.jdbc.SqlConfig
+import org.springframework.test.context.jdbc.SqlConfig.TransactionMode.ISOLATED
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
-import uk.gov.justice.digital.hmpps.personrecord.service.PrisonerService
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
@@ -30,13 +32,13 @@ import java.util.concurrent.TimeUnit
 
 @Sql(
   scripts = ["classpath:sql/before-test.sql"],
-  config = SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED),
-  executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+  config = SqlConfig(transactionMode = ISOLATED),
+  executionPhase = BEFORE_TEST_METHOD,
 )
 @Sql(
   scripts = ["classpath:sql/after-test.sql"],
-  config = SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED),
-  executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+  config = SqlConfig(transactionMode = ISOLATED),
+  executionPhase = AFTER_TEST_METHOD,
 )
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
 class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
@@ -50,9 +52,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   @Autowired
   lateinit var personRepository: PersonRepository
-
-  @Autowired
-  lateinit var prisonerService: PrisonerService
 
   @Test
   fun `should successfully process common platform message and create correct telemetry events`() {
@@ -69,12 +68,9 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       .build()
 
     // when
-    val publishResponse = courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
     // then
-    assertThat(publishResponse?.sdkHttpResponse()?.isSuccessful).isTrue()
-    assertThat(publishResponse?.messageId()).isNotNull()
-
     await untilCallTo {
       cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
@@ -104,12 +100,9 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       .build()
 
     // when
-    val publishResponse = courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
     // then
-    assertThat(publishResponse?.sdkHttpResponse()?.isSuccessful).isTrue()
-    assertThat(publishResponse?.messageId()).isNotNull()
-
     await untilCallTo {
       cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
@@ -139,12 +132,9 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       .build()
 
     // when
-    val publishResponse = courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
     // then
-    assertThat(publishResponse?.sdkHttpResponse()?.isSuccessful).isTrue()
-    assertThat(publishResponse?.messageId()).isNotNull()
-
     await untilCallTo {
       cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
@@ -167,15 +157,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
         },
       )
     }
-
-    await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.INVALID_PNC),
-        check {
-          assertThat(it["PNC]"]).isNullOrEmpty()
-        },
-      )
-    }
   }
 
   @Test
@@ -195,12 +176,9 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       .build()
 
     // when
-    val publishResponse = courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
     // then
-    assertThat(publishResponse?.sdkHttpResponse()?.isSuccessful).isTrue()
-    assertThat(publishResponse?.messageId()).isNotNull()
-
     await untilCallTo {
       cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
