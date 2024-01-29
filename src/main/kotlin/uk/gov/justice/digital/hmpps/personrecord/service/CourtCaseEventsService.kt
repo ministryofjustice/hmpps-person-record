@@ -59,7 +59,7 @@ class CourtCaseEventsService(
         } // what if defendants is not empty?
       }
     }
-    if (person.otherIdentifiers?.pncIdentifier == null) {
+    if (person.otherIdentifiers?.pncIdentifier?.pncId.isNullOrEmpty()) {
       telemetryService.trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
     }
   }
