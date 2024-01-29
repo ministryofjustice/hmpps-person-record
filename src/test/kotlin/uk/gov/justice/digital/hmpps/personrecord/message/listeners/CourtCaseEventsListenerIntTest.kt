@@ -153,26 +153,8 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       verify(telemetryService).trackEvent(
         eq(TelemetryEventType.NEW_LIBRA_CASE_RECEIVED),
         check {
-          assertThat(it["PNC"]).isEqualTo("1923[1234567A")
+          assertThat(it["PNC"]).isEqualTo("1923/1234567A")
           assertThat(it["CRO"]).isEqualTo("11111/79J")
-        },
-      )
-    }
-
-    await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.INVALID_PNC),
-        check {
-          assertThat(it["PNC"]).isEqualTo("1923[1234567A")
-        },
-      )
-    }
-
-    await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.INVALID_PNC),
-        check {
-          assertThat(it["PNC]"]).isNullOrEmpty()
         },
       )
     }

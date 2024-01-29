@@ -31,10 +31,19 @@ data class PNCIdentifier(private val inputPncId: String? = null) {
           val remainingIdChars = sanitizedPncId.substring(2) // the non-year id part 123456Z
           // pad out with zeros: 123456Z becomes 0123456Z
           val standardizedId = remainingIdChars.padStart(LONG_PNC_ID_LENGTH - 2, '0')
-          return year + standardizedId // 19790123456Z
+          return "$year/$standardizedId" // 19790123456Z
         }
-        return sanitizedPncId
+        return withForwardSlash(pnc)
       }
+    }
+  }
+
+  private fun withForwardSlash(pnc: String): String {
+    return when {
+      !pnc.contains('/') -> {
+        pnc.substring(0, 4) + "/" + pnc.substring(4)
+      }
+      else -> pnc
     }
   }
 

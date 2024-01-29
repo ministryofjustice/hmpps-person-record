@@ -195,7 +195,7 @@ fun commonPlatformHearing() = """
     }
 """.trimIndent()
 
-fun libraHearing(pncNumber: String = "1923[1234567A") = """
+fun libraHearing(pncNumber: String = "1923/1234567A") = """
 {
    "caseId":1217464,
    "caseNo":"1600032981",

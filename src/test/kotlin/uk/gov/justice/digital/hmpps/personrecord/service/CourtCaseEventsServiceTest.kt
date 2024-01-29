@@ -85,7 +85,7 @@ class CourtCaseEventsServiceTest {
   @Test
   fun `should call telemetry service when exact match found for Court Case Event`() {
     // Given
-    val pncNumber = "20030011985X"
+    val pncNumber = "2003/0011985X"
     val crn = "CRN123"
     val personID = UUID.fromString("2936dd6a-677a-4cc0-83c5-2296b6efee0b")
     val dateOfBirth = LocalDate.now()
@@ -125,7 +125,7 @@ class CourtCaseEventsServiceTest {
   @Test
   fun `should call telemetry service when partial match found for Court Case Event`() {
     // Given
-    val pncNumber = "20030011985X"
+    val pncNumber = "2003/0011985X"
     val dateOfBirth = LocalDate.now()
     whenever(personRepository.findByDefendantsPncNumber(pncNumber))
       .thenReturn(
@@ -160,7 +160,7 @@ class CourtCaseEventsServiceTest {
   @Test
   fun `should create new defendant record when no matching records are found`() {
     // Given
-    val pncNumber = "20030011985X"
+    val pncNumber = "2003/0011985X"
 
     val person = Person(
       familyName = "Jones",
