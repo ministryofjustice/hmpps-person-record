@@ -55,6 +55,10 @@ class OffenderEntity(
       return person.otherIdentifiers?.crn?.let {
         val offenderEntity = OffenderEntity(
           crn = it,
+          pncNumber = person.otherIdentifiers.pncIdentifier?.pncId,
+          firstName = person.givenName,
+          lastName = person.familyName,
+          dateOfBirth = person.dateOfBirth,
         )
         offenderEntity.createdBy = PERSON_RECORD_SERVICE
         offenderEntity.lastUpdatedBy = PERSON_RECORD_SERVICE

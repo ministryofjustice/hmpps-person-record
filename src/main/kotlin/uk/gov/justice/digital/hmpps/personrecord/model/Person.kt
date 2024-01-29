@@ -55,7 +55,10 @@ data class Person(
 
     fun from(offenderDetail: OffenderDetail): Person {
       return Person(
-        otherIdentifiers = OtherIdentifiers(crn = offenderDetail.otherIds.crn),
+        givenName = offenderDetail.firstName,
+        familyName = offenderDetail.surname,
+        dateOfBirth = offenderDetail.dateOfBirth,
+        otherIdentifiers = OtherIdentifiers(crn = offenderDetail.otherIds.crn, pncIdentifier = PNCIdentifier(offenderDetail.otherIds.pncNumber)),
       )
     }
 
