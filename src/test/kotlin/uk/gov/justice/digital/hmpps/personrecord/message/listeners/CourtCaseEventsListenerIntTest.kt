@@ -67,7 +67,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       .build()
 
     // when
-    val publishResponse = courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
     // then
     await untilCallTo {
@@ -99,7 +99,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       .build()
 
     // when
-    val publishResponse = courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
     // then
     await untilCallTo {
@@ -131,7 +131,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       .build()
 
     // when
-    val publishResponse = courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
     // then
     await untilCallTo {
@@ -184,7 +184,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       .build()
 
     // when
-    val publishResponse = courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
     // then
     await untilCallTo {
