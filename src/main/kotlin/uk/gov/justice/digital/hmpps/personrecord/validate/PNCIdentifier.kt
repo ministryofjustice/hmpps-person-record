@@ -12,28 +12,30 @@ data class PNCIdentifier(private val inputPncId: String? = null) {
   fun isEquivalentTo(otherPncId: PNCIdentifier?): Boolean {
     return this.pncId == otherPncId?.pncId
   }
+
   private fun toCanonicalForm(pnc: String?): String? {
-    pnc?.let {
-      val sanitizedPncId = it.replace("/", "")
+    return when {
+      pnc.isNullOrEmpty() -> pnc
+      else -> {
+        val sanitizedPncId = pnc.replace("/", "")
 
-      if (sanitizedPncId.length < LONG_PNC_ID_LENGTH) { // this is a short form PNC e.g. 79/123456Z
-        val yearDigits = sanitizedPncId.take(2).also { digits ->
-          if (!digits.all { character -> character.isDigit() }) {
-            log.warn("Non numeric year digits encountered in PNC Id: $digits")
-            return it
+        if (sanitizedPncId.length < LONG_PNC_ID_LENGTH) { // this is a short form PNC e.g. 79/123456Z
+          val yearDigits = sanitizedPncId.take(2).also { digits ->
+            if (!digits.all { character -> character.isDigit() }) {
+              log.warn("Non numeric year digits encountered in PNC Id: $digits")
+              return pnc
+            }
           }
+
+          val year = getYearFromLastTwoDigits(yearDigits.toInt()) // E.g. 79 becomes 1979
+          val remainingIdChars = sanitizedPncId.substring(2) // the non-year id part 123456Z
+          // pad out with zeros: 123456Z becomes 0123456Z
+          val standardizedId = remainingIdChars.padStart(LONG_PNC_ID_LENGTH - 2, '0')
+          return year + standardizedId // 19790123456Z
         }
-
-        val year = getYearFromLastTwoDigits(yearDigits.toInt()) // E.g. 79 becomes 1979
-        val remainingIdChars = sanitizedPncId.substring(2) // the non-year id part 123456Z
-        // pad out with zeros: 123456Z becomes 0123456Z
-        val standardizedId = remainingIdChars.padStart(LONG_PNC_ID_LENGTH - 2, '0')
-        return year + standardizedId // 19790123456Z
+        return sanitizedPncId
       }
-
-      return sanitizedPncId
     }
-    return pnc
   }
 
   private fun isYearThisCentury(year: Int): Boolean {

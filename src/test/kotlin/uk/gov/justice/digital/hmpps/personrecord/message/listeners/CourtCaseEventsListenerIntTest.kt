@@ -90,6 +90,41 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
+  fun `should process libra messages with empty pnc identifier`() {
+    // given
+    val publishRequest = PublishRequest.builder()
+      .topicArn(courtCaseEventsTopic?.arn)
+      .message(libraHearing(pncNumber = ""))
+      .messageAttributes(
+        mapOf(
+          "messageType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(MessageType.LIBRA_COURT_CASE.name).build(),
+        ),
+      )
+      .build()
+
+    // when
+    val publishResponse = courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+
+    // then
+    assertThat(publishResponse?.sdkHttpResponse()?.isSuccessful).isTrue()
+    assertThat(publishResponse?.messageId()).isNotNull()
+
+    await untilCallTo {
+      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
+    } matches { it == 0 }
+
+    await untilAsserted {
+      verify(telemetryService).trackEvent(
+        eq(TelemetryEventType.MISSING_PNC),
+        check {
+          assertThat(it).isEmpty()
+        },
+      )
+    }
+  }
+
+  @Test
   fun `should successfully process libra message from court_case_events_topic`() {
     // given
     val publishRequest = PublishRequest.builder()
