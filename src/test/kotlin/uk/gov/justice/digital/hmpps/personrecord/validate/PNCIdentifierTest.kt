@@ -71,7 +71,7 @@ class PNCIdentifierTest {
   @MethodSource("equalityPncProvider")
   fun `should perform equality comparison using canonical form`(pncId1: String, pncId2: String, expectedResult: Boolean) {
     // When
-    val result = PNCIdentifier(pncId1).isEquivalentTo(PNCIdentifier(pncId2))
+    val result = PNCIdentifier(pncId1) == PNCIdentifier(pncId2)
 
     // Then
     assertThat(result).isEqualTo(expectedResult)
@@ -108,6 +108,9 @@ class PNCIdentifierTest {
     fun equalityPncProvider(): Stream<Arguments> {
       return Stream.of(
         Arguments.of("19790163001B", "79/163001B", true),
+        Arguments.of("19790163001B", "1979/0163001B", true),
+        Arguments.of("1979/0163001B", "1979/0163001B", true),
+        Arguments.of("1979/0163001B", "1980/0163001B", false),
         Arguments.of("02/73319Z", "20020073319Z", true),
       )
     }

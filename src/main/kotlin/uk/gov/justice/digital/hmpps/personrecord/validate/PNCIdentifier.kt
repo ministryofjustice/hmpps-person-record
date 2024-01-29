@@ -9,6 +9,17 @@ data class PNCIdentifier(private val inputPncId: String? = null) {
   val pncId: String?
     get() = toCanonicalForm(inputPncId)
 
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+    other as PNCIdentifier
+    return pncId == other.pncId
+  }
+
+  override fun hashCode(): Int {
+    return pncId?.hashCode() ?: 0
+  }
+
   fun isEquivalentTo(otherPncId: PNCIdentifier?): Boolean {
     return this.pncId == otherPncId?.pncId
   }

@@ -77,7 +77,7 @@ class CourtCaseEventsService(
       .and(defendants.size == 1)
       .and(
         defendants.any {
-          person.otherIdentifiers?.pncIdentifier?.isEquivalentTo(PNCIdentifier(it.pncNumber)) == true &&
+          person.otherIdentifiers?.pncIdentifier == PNCIdentifier(it.pncNumber) &&
             (
               it.surname.equals(person.familyName, true) ||
                 it.forenameOne.equals(person.givenName, true) ||
@@ -92,7 +92,7 @@ class CourtCaseEventsService(
       .and(defendants.size == 1)
       .and(
         defendants.any {
-          person.otherIdentifiers?.pncIdentifier?.isEquivalentTo(PNCIdentifier(it.pncNumber)) == true &&
+          person.otherIdentifiers?.pncIdentifier == PNCIdentifier(it.pncNumber) &&
             it.surname.equals(person.familyName, true) &&
             it.forenameOne.equals(person.givenName, true) &&
             it.dateOfBirth?.equals(person.dateOfBirth) == true
