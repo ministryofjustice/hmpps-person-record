@@ -20,10 +20,6 @@ data class PNCIdentifier(private val inputPncId: String? = null) {
     return pncId?.hashCode() ?: 0
   }
 
-  fun isEquivalentTo(otherPncId: PNCIdentifier?): Boolean {
-    return this.pncId == otherPncId?.pncId
-  }
-
   private fun toCanonicalForm(pnc: String?): String? {
     return when {
       pnc.isNullOrEmpty() -> pnc
