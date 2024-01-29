@@ -177,9 +177,8 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     }
   }
 
-
   @Test
-  fun `should create a new defendant with link to a person record from common platform message`() {
+  fun `should create new defendant and prisoner records with link to a person record from common platform message`() {
     // given
     val defendantsPncNumber = "2003/0062845E"
 
