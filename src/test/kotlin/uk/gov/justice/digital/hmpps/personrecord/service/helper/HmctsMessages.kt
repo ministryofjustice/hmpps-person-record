@@ -195,7 +195,7 @@ fun commonPlatformHearing() = """
     }
 """.trimIndent()
 
-fun libraHearing() = """
+fun libraHearing(pncNumber:String = "1923[1234567A") = """
 {
    "caseId":1217464,
    "caseNo":"1600032981",
@@ -215,7 +215,7 @@ fun libraHearing() = """
       "pcode":"NT4 6YH"
    },
    "cro":"11111/79J",
-   "pnc":"1923[1234567A",
+   "pnc": "$pncNumber",
    "listNo":"1st",
    "nationality1":"Angolan",
    "nationality2":"Austrian",
