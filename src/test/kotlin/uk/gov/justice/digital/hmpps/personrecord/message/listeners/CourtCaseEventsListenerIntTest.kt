@@ -6,7 +6,6 @@ import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.check
 import org.mockito.kotlin.eq
@@ -167,10 +166,19 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
         },
       )
     }
+
+    await untilAsserted {
+      verify(telemetryService).trackEvent(
+        eq(TelemetryEventType.INVALID_PNC),
+        check {
+          assertThat(it["PNC]"]).isNullOrEmpty()
+        },
+      )
+    }
   }
 
+
   @Test
-  @Disabled("Works locally - disabled until reason for failure on circleCi has been established")
   fun `should create a new defendant with link to a person record from common platform message`() {
     // given
     val defendantsPncNumber = "2003/0062845E"
@@ -197,13 +205,17 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
 
-    await untilAsserted { assertThat(postgresSQLContainer.isCreated()).isTrue() }
+    await untilAsserted { assertThat(postgresSQLContainer.isCreated).isTrue() }
 
-    val personEntity = await.atMost(30, TimeUnit.SECONDS) untilNotNull { personRepository.findByPrisonersPncNumber(defendantsPncNumber) }
+    val personEntity = await.atMost(30, TimeUnit.SECONDS) untilNotNull {
+      personRepository.findByPrisonersPncNumber(
+        PNCIdentifier(defendantsPncNumber).pncId.toString(),
+      )
+    }
 
     assertThat(personEntity.personId).isNotNull()
     assertThat(personEntity.defendants.size).isEqualTo(1)
-    assertThat(personEntity.defendants[0].pncNumber).isEqualTo(defendantsPncNumber)
+    assertThat(personEntity.defendants[0].pncNumber).isEqualTo(PNCIdentifier(defendantsPncNumber).pncId)
     assertThat(personEntity.offenders).hasSize(1)
     assertThat(personEntity.offenders[0].crn).isEqualTo("X026350")
     assertThat(personEntity.prisoners).hasSize(1)

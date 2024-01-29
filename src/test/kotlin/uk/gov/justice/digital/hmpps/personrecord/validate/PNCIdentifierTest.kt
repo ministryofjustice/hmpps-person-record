@@ -18,6 +18,15 @@ class PNCIdentifierTest {
     assertThat(expectedCanonicalForm).isEmpty()
   }
 
+  @Test
+  fun `should process a null string`() {
+    // When
+    val expectedCanonicalForm = PNCIdentifier(null).pncId
+
+    // Then
+    assertThat(expectedCanonicalForm).isNull()
+  }
+
   @ParameterizedTest
   @MethodSource("longFormPncProvider")
   fun `should convert long form PNC ids to canonical form`(pncId: String, expectedResult: String) {
