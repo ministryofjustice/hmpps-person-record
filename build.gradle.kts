@@ -39,9 +39,9 @@ dependencies {
   testImplementation("org.testcontainers:postgresql:1.19.4")
   testImplementation("org.testcontainers:localstack:1.19.4")
   testImplementation("org.wiremock:wiremock-standalone:3.3.1")
-  testImplementation("io.jsonwebtoken:jjwt-api:0.12.3")
-  testImplementation("io.jsonwebtoken:jjwt-impl:0.12.3")
-  testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.3")
+  testImplementation("io.jsonwebtoken:jjwt-api:0.12.4")
+  testImplementation("io.jsonwebtoken:jjwt-impl:0.12.4")
+  testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.4")
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.22")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
 }
