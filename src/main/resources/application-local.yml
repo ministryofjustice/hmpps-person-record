@@ -21,13 +21,8 @@ hmpps.sqs:
       queueName: cpr_delius_offender_events_queue
       subscribeTopicId: domainevents
       subscribeFilter: '{"eventType":[ "probation-case.engagement.created", "probation-case.merge.completed", "probation-case.unmerge.completed"] }'
-    testqueue:
-      queueName: test_queue
-      subscribeTopicId: testtopic
   topics:
     courtcaseeventstopic:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
     domainevents:
-      arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
-    testtopic:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
