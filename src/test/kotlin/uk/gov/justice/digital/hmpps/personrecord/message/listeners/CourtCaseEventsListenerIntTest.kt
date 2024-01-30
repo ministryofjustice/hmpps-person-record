@@ -116,13 +116,12 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       )
     }
 
-    verify(telemetryService,never()).trackEvent(
+    verify(telemetryService, never()).trackEvent(
       eq(TelemetryEventType.INVALID_PNC),
       check {
         assertThat(it["PNC"]).isEqualTo("")
-      }
+      },
     )
-
   }
 
   @Test
