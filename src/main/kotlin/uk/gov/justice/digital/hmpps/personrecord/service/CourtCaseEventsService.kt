@@ -28,6 +28,10 @@ class CourtCaseEventsService(
   @Transactional(isolation = Isolation.SERIALIZABLE)
   fun processPersonFromCourtCaseEvent(person: Person) {
     log.debug("Entered processPersonFromCourtCaseEvent")
+    if (person.otherIdentifiers?.pncIdentifier?.pncId.isNullOrEmpty()) {
+      telemetryService.trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
+      return
+    }
     person.otherIdentifiers?.pncIdentifier?.let { pncIdentifier ->
       val pncId = pncIdentifier.pncId
       if (pncIdValidator.isValid(pncIdentifier)) {
@@ -58,9 +62,6 @@ class CourtCaseEventsService(
           }
         } // what if defendants is not empty?
       }
-    }
-    if (person.otherIdentifiers?.pncIdentifier?.pncId.isNullOrEmpty()) {
-      telemetryService.trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
     }
   }
 

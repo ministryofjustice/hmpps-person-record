@@ -9,6 +9,7 @@ import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.check
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.jdbc.Sql
@@ -115,6 +116,13 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
         },
       )
     }
+
+    verify(telemetryService, never()).trackEvent(
+      eq(TelemetryEventType.INVALID_PNC),
+      check {
+        assertThat(it["PNC"]).isEqualTo("")
+      },
+    )
   }
 
   @Test
