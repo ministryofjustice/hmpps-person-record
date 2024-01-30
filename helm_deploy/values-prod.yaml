@@ -10,3 +10,12 @@ generic-service:
     SPRING_PROFILES_ACTIVE: "prod"
     nomis_oauth:
       base_url: https://sign-in.hmpps.service.justice.gov.uk
+
+generic-prometheus-alerts:
+  sqsAlertsQueueNames:
+    - "hmpps-person-record-prod-cpr_court_case_events_queue"
+    - "hmpps-person-record-prod-cpr_court_case_events_dlq"
+    - "hmpps-person-record-prod-cpr_delius_offender_events_dlq"
+    - "hmpps-person-record-prod-cpr_delius_offender_events_queue"
+    # - "Digital-Prison-Services-prod-cpr_offender_events_dlq" omitting for now
+    # - "Digital-Prison-Services-prod-cpr_offender_events_queue" # we are not yet consuming from this queue
