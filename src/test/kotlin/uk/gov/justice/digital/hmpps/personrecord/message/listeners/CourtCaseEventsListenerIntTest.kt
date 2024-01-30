@@ -59,7 +59,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     // given
     val publishRequest = PublishRequest.builder()
       .topicArn(courtCaseEventsTopic?.arn)
-      .message(commonPlatformHearing())
+      .message(commonPlatformHearing("19810154257C"))
       .messageAttributes(
         mapOf(
           "messageType" to MessageAttributeValue.builder().dataType("String")
@@ -130,7 +130,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     // given
     val publishRequest = PublishRequest.builder()
       .topicArn(courtCaseEventsTopic?.arn)
-      .message(libraHearing())
+      .message(libraHearing("19231234567A"))
       .messageAttributes(
         mapOf(
           "messageType" to MessageAttributeValue.builder().dataType("String")
