@@ -32,21 +32,21 @@ class OffenderService(
       val offenderDetails = client.getOffenderDetail(SearchDto.from(person))
 
       if (offenderDetails.isNullOrEmpty()) {
-        logAndTelemetryEvent(NO_RECORDS_MESSAGE, TelemetryEventType.DELIUS_NO_MATCH_FOUND, personEntity, person)
+        logAndTrackEvent(NO_RECORDS_MESSAGE, TelemetryEventType.DELIUS_NO_MATCH_FOUND, personEntity, person)
       } else {
         when {
           matchesExistingOffenderExactly(offenderDetails, person) -> {
-            logAndTelemetryEvent(EXACT_MATCH_MESSAGE, TelemetryEventType.DELIUS_MATCH_FOUND, personEntity, person)
+            logAndTrackEvent(EXACT_MATCH_MESSAGE, TelemetryEventType.DELIUS_MATCH_FOUND, personEntity, person)
             personRecordService.addOffenderToPerson(personEntity, Person.from(offenderDetails[0]))
           }
 
           matchesExistingOffenderPartially(offenderDetails, person) -> {
-            logAndTelemetryEvent(PARTIAL_MATCH_MESSAGE, TelemetryEventType.DELIUS_PARTIAL_MATCH_FOUND, personEntity, person)
+            logAndTrackEvent(PARTIAL_MATCH_MESSAGE, TelemetryEventType.DELIUS_PARTIAL_MATCH_FOUND, personEntity, person)
           }
 
           multipleOffendersMatch(offenderDetails, person) -> {
             offenderDetails.forEach { offender ->
-              logAndTelemetryEvent(MULTIPLE_MATCHES_MESSAGE, TelemetryEventType.DELIUS_MATCH_FOUND, personEntity, person)
+              logAndTrackEvent(MULTIPLE_MATCHES_MESSAGE, TelemetryEventType.DELIUS_MATCH_FOUND, personEntity, person)
               personRecordService.addOffenderToPerson(personEntity, Person.from(offender))
             }
           }
@@ -60,7 +60,7 @@ class OffenderService(
     offenderDetail.surname.equals(person.familyName, true) &&
     offenderDetail.dateOfBirth == person.dateOfBirth
 
-  private fun logAndTelemetryEvent(
+  private fun logAndTrackEvent(
     logMessage: String,
     eventType: TelemetryEventType,
     personEntity: PersonEntity,
