@@ -6,13 +6,16 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
+import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
+import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.LIBRA_COURT_CASE
+import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.UNKNOWN
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.service.CourtCaseEventsService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_CP_CASE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_LIBRA_CASE_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.UNKNOWN_CASE_RECEIVED
 
 @Service
 class CourtCaseEventsProcessor(
@@ -28,21 +31,21 @@ class CourtCaseEventsProcessor(
   fun processEvent(sqsMessage: SQSMessage) {
     log.debug("Received message with id ${sqsMessage.messageId}")
     when (sqsMessage.getMessageType()) {
-      MessageType.LIBRA_COURT_CASE -> processLibraHearingEvent(
+      LIBRA_COURT_CASE -> processLibraHearingEvent(
         objectMapper.readValue<LibraHearingEvent>(
           sqsMessage.message,
         ),
       )
 
-      MessageType.COMMON_PLATFORM_HEARING -> processCommonPlatformHearingEvent(
+      COMMON_PLATFORM_HEARING -> processCommonPlatformHearingEvent(
         objectMapper.readValue<CommonPlatformHearingEvent>(
           sqsMessage.message,
         ),
       )
 
       else -> {
-        log.debug("Received case type ${MessageType.UNKNOWN.name}")
-        telemetryService.trackEvent(TelemetryEventType.UNKNOWN_CASE_RECEIVED, emptyMap())
+        log.debug("Received case type ${UNKNOWN.name}")
+        telemetryService.trackEvent(UNKNOWN_CASE_RECEIVED, emptyMap())
       }
     }
   }
@@ -74,11 +77,13 @@ class CourtCaseEventsProcessor(
     log.debug("Processing CP Event with ${uniqueDefendants.size} distinct defendants with pnc $pncValues")
 
     uniqueDefendants.forEach { defendant ->
+      val person = Person.from(defendant)
       telemetryService.trackEvent(
-        TelemetryEventType.NEW_CP_CASE_RECEIVED,
-        mapOf("PNC" to defendant.pncId, "CRO" to defendant.croNumber),
+        NEW_CP_CASE_RECEIVED,
+        mapOf("PNC" to person.otherIdentifiers?.pncIdentifier?.pncId, "CRO" to person.otherIdentifiers?.cro),
       )
-      courtCaseEventsService.processPersonFromCourtCaseEvent(Person.from(defendant))
+
+      courtCaseEventsService.processPersonFromCourtCaseEvent(person)
     }
   }
 }
