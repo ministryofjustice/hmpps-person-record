@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -52,6 +53,7 @@ class CourtCaseEventsServiceTest {
     // Then
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
     verify(telemetryService).trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
+    verifyNoMoreInteractions(telemetryService)
   }
 
   @Test
@@ -66,6 +68,7 @@ class CourtCaseEventsServiceTest {
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
     verify(telemetryService).trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
     verify(telemetryService, never()).trackEvent(TelemetryEventType.INVALID_PNC, mapOf("PNC" to ""))
+    verifyNoMoreInteractions(telemetryService)
   }
 
   @Test
@@ -80,6 +83,7 @@ class CourtCaseEventsServiceTest {
     // Then
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
     verify(telemetryService).trackEvent(TelemetryEventType.INVALID_PNC, mapOf("PNC" to pncNumber))
+    verifyNoMoreInteractions(telemetryService)
   }
 
   @Test

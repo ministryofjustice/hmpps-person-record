@@ -62,24 +62,6 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   }
 
   @Test
-  fun `should return HTTP Location header containing the URL of new person`() {
-    // Given
-    val personJson = objectMapper.writeValueAsString(minimumPerson)
-
-    // When
-    val result = mockMvc.perform(
-      post("/person")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(personJson)
-        .headers(setAuthorisation(roles = listOf(VIEW_PERSON_DATA_ROLE))),
-    )
-      .andReturn()
-
-    // Then
-    // TODO
-  }
-
-  @Test
   fun `should persist and return a Person record with ID when minimum data set is provided`() {
     // Given
     val personJson = objectMapper.writeValueAsString(minimumPerson)
