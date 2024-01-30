@@ -9,8 +9,15 @@ data class PNCIdentifier(private val inputPncId: String? = null) {
   val pncId: String?
     get() = toCanonicalForm(inputPncId)
 
-  fun isEquivalentTo(otherPncId: PNCIdentifier?): Boolean {
-    return this.pncId == otherPncId?.pncId
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+    other as PNCIdentifier
+    return pncId == other.pncId
+  }
+
+  override fun hashCode(): Int {
+    return pncId?.hashCode() ?: 0
   }
 
   private fun toCanonicalForm(pnc: String?): String? {
@@ -31,10 +38,19 @@ data class PNCIdentifier(private val inputPncId: String? = null) {
           val remainingIdChars = sanitizedPncId.substring(2) // the non-year id part 123456Z
           // pad out with zeros: 123456Z becomes 0123456Z
           val standardizedId = remainingIdChars.padStart(LONG_PNC_ID_LENGTH - 2, '0')
-          return year + standardizedId // 19790123456Z
+          return "$year/$standardizedId" // 1979/0123456Z
         }
-        return sanitizedPncId
+        return withForwardSlash(pnc)
       }
+    }
+  }
+
+  private fun withForwardSlash(pnc: String): String {
+    return when {
+      !pnc.contains('/') -> {
+        pnc.substring(0, 4) + "/" + pnc.substring(4)
+      }
+      else -> pnc
     }
   }
 

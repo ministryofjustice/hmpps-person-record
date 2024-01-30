@@ -23,7 +23,7 @@ class PrisonerSearchClientIntTest : IntegrationTestBase() {
     val possibleMatchCriteria = PossibleMatchCriteria(
       firstName = "Eric",
       lastName = "Lassard",
-      pncNumber = "20030062845E",
+      pncNumber = "2003/0062845E",
       dateOfBirth = dob,
     )
 

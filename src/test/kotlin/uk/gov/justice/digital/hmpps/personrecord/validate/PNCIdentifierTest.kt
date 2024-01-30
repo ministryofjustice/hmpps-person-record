@@ -71,7 +71,7 @@ class PNCIdentifierTest {
   @MethodSource("equalityPncProvider")
   fun `should perform equality comparison using canonical form`(pncId1: String, pncId2: String, expectedResult: Boolean) {
     // When
-    val result = PNCIdentifier(pncId1).isEquivalentTo(PNCIdentifier(pncId2))
+    val result = PNCIdentifier(pncId1) == PNCIdentifier(pncId2)
 
     // Then
     assertThat(result).isEqualTo(expectedResult)
@@ -81,26 +81,26 @@ class PNCIdentifierTest {
     @JvmStatic
     fun shortFormPncProvider(): Stream<Arguments> {
       return Stream.of(
-        Arguments.of("02/9Z", "20020000009Z"),
-        Arguments.of("02/73319Z", "20020073319Z"),
-        Arguments.of("00/73319Z", "20000073319Z"),
-        Arguments.of("79/163001B", "19790163001B"),
-        Arguments.of("0273319Z", "20020073319Z"),
-        Arguments.of("0073319Z", "20000073319Z"),
-        Arguments.of("79163001B", "19790163001B"),
-        Arguments.of("840B", "19840000000B"),
+        Arguments.of("02/9Z", "2002/0000009Z"),
+        Arguments.of("02/73319Z", "2002/0073319Z"),
+        Arguments.of("00/73319Z", "2000/0073319Z"),
+        Arguments.of("79/163001B", "1979/0163001B"),
+        Arguments.of("0273319Z", "2002/0073319Z"),
+        Arguments.of("0073319Z", "2000/0073319Z"),
+        Arguments.of("79163001B", "1979/0163001B"),
+        Arguments.of("840B", "1984/0000000B"),
       )
     }
 
     @JvmStatic
     fun longFormPncProvider(): Stream<Arguments> {
       return Stream.of(
-        Arguments.of("20020073319Z", "20020073319Z"),
-        Arguments.of("20000073319Z", "20000073319Z"),
-        Arguments.of("19790163001B", "19790163001B"),
-        Arguments.of("2002/0073319Z", "20020073319Z"),
-        Arguments.of("2000/0073319Z", "20000073319Z"),
-        Arguments.of("1979/0163001B", "19790163001B"),
+        Arguments.of("20020073319Z", "2002/0073319Z"),
+        Arguments.of("20000073319Z", "2000/0073319Z"),
+        Arguments.of("19790163001B", "1979/0163001B"),
+        Arguments.of("2002/0073319Z", "2002/0073319Z"),
+        Arguments.of("2000/0073319Z", "2000/0073319Z"),
+        Arguments.of("1979/0163001B", "1979/0163001B"),
       )
     }
 
@@ -108,6 +108,9 @@ class PNCIdentifierTest {
     fun equalityPncProvider(): Stream<Arguments> {
       return Stream.of(
         Arguments.of("19790163001B", "79/163001B", true),
+        Arguments.of("19790163001B", "1979/0163001B", true),
+        Arguments.of("1979/0163001B", "1979/0163001B", true),
+        Arguments.of("1979/0163001B", "1980/0163001B", false),
         Arguments.of("02/73319Z", "20020073319Z", true),
       )
     }
@@ -115,8 +118,8 @@ class PNCIdentifierTest {
     @JvmStatic
     fun canonicalFormPncProvider(): Stream<Arguments> {
       return Stream.of(
-        Arguments.of("19790163001B", "19790163001B"),
-        Arguments.of("20000073319Z", "20000073319Z"),
+        Arguments.of("1979/0163001B", "1979/0163001B"),
+        Arguments.of("2000/0073319Z", "2000/0073319Z"),
       )
     }
 
@@ -125,7 +128,7 @@ class PNCIdentifierTest {
       return Stream.of(
         Arguments.of("garbage", "garbage"),
         Arguments.of("xx/123456Z", "xx/123456Z"),
-        Arguments.of("sdsdlkfjlsdkfjlskdjflsdkfj", "sdsdlkfjlsdkfjlskdjflsdkfj"),
+        Arguments.of("sdsdlkfjlsdkfjlskdjflsdkfj", "sdsd/lkfjlsdkfjlskdjflsdkfj"),
       )
     }
   }

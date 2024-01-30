@@ -66,7 +66,7 @@ class OffenderService(
       .and(offenderDetails.size == 1)
       .and(
         offenderDetails.any {
-          person.otherIdentifiers?.pncIdentifier?.isEquivalentTo(PNCIdentifier(it.otherIds.pncNumber)) == true &&
+          person.otherIdentifiers?.pncIdentifier == PNCIdentifier(it.otherIds.pncNumber) &&
             (
               it.firstName.equals(person.givenName, true) ||
                 it.surname.equals(person.familyName, true) ||
@@ -81,7 +81,7 @@ class OffenderService(
       .and(offenderDetails.size == 1)
       .and(
         offenderDetails.any {
-          person.otherIdentifiers?.pncIdentifier?.isEquivalentTo(PNCIdentifier(it.otherIds.pncNumber)) == true &&
+          person.otherIdentifiers?.pncIdentifier == PNCIdentifier(it.otherIds.pncNumber) &&
             it.firstName.equals(person.givenName, true) &&
             it.surname.equals(person.familyName, true) &&
             it.dateOfBirth == person.dateOfBirth

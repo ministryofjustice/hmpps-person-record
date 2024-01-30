@@ -77,7 +77,7 @@ class PrisonerService(
 
   private fun pncIdentifierDoesNotMatch(prisonerList: List<Prisoner>, person: Person): Boolean {
     return prisonerList.none {
-      person.otherIdentifiers?.pncIdentifier?.isEquivalentTo(PNCIdentifier(it.pncNumber)) == true
+      person.otherIdentifiers?.pncIdentifier == PNCIdentifier(it.pncNumber)
     }
   }
 
@@ -86,7 +86,7 @@ class PrisonerService(
       .and(prisoners.size == 1)
       .and(
         prisoners.any {
-          person.otherIdentifiers?.pncIdentifier?.isEquivalentTo(PNCIdentifier(it.pncNumber)) == true &&
+          person.otherIdentifiers?.pncIdentifier == PNCIdentifier(it.pncNumber) &&
             (
               it.firstName.equals(person.givenName, true) ||
                 it.lastName.equals(person.familyName, true) ||
@@ -98,7 +98,7 @@ class PrisonerService(
 
   private fun matchesExistingPrisonerExactly(prisoners: List<Prisoner>, person: Person): Boolean {
     return prisoners.singleOrNull {
-      person.otherIdentifiers?.pncIdentifier?.isEquivalentTo(PNCIdentifier(it.pncNumber)) == true &&
+      person.otherIdentifiers?.pncIdentifier == PNCIdentifier(it.pncNumber) &&
         it.firstName.equals(person.givenName, true) &&
         it.lastName.equals(person.familyName, true) &&
         it.dateOfBirth == person.dateOfBirth
