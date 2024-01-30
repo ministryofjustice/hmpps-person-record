@@ -23,7 +23,7 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.0")
   implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.0")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-autoconfigure:2.2.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-autoconfigure:3.0.0")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.2.1")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.0.0")
 
