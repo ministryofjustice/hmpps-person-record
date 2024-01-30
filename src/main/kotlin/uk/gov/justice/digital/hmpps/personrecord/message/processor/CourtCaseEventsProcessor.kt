@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingE
 import uk.gov.justice.digital.hmpps.personrecord.service.CourtCaseEventsService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_LIBRA_CASE_RECEIVED
 
 @Service
 class CourtCaseEventsProcessor(
@@ -48,11 +49,13 @@ class CourtCaseEventsProcessor(
 
   fun processLibraHearingEvent(libraHearingEvent: LibraHearingEvent) {
     log.debug("Processing LIBRA event")
+    val person = Person.from(libraHearingEvent)
     telemetryService.trackEvent(
-      TelemetryEventType.NEW_LIBRA_CASE_RECEIVED,
-      mapOf("PNC" to libraHearingEvent.pnc, "CRO" to libraHearingEvent.cro),
+      NEW_LIBRA_CASE_RECEIVED,
+      mapOf("PNC" to person.otherIdentifiers?.pncIdentifier?.pncId, "CRO" to person.otherIdentifiers?.cro),
     )
-    courtCaseEventsService.processPersonFromCourtCaseEvent(Person.from(libraHearingEvent))
+
+    courtCaseEventsService.processPersonFromCourtCaseEvent(person)
   }
 
   fun processCommonPlatformHearingEvent(commonPlatformHearingEvent: CommonPlatformHearingEvent) {
