@@ -148,7 +148,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
         },
       )
     }
-
   }
 
   @Test
