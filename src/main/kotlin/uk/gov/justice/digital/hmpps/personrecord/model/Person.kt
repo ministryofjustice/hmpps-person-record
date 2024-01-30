@@ -63,8 +63,9 @@ data class Person(
         otherIdentifiers = OtherIdentifiers(
           crn = offenderDetail.otherIds.crn,
           pncIdentifier = PNCIdentifier(offenderDetail.otherIds.pncNumber),
-          prisonNumber = offenderDetail.otherIds.nomsNumber),
-        )
+          prisonNumber = offenderDetail.otherIds.nomsNumber,
+        ),
+      )
     }
 
     fun from(defendant: Defendant): Person {
@@ -110,4 +111,4 @@ data class OtherIdentifiers(
   @Schema(description = "CRO", example = "293110/23X")
   val cro: String? = null,
   val prisonNumber: String? = null,
-  )
+)

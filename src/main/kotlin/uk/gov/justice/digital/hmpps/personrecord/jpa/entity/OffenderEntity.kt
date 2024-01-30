@@ -42,7 +42,7 @@ class OffenderEntity(
   val isLimitedAccessOffender: Boolean? = null,
 
   @Column(name = "prison_number")
-  val prisonNumber: String? =  null,
+  val prisonNumber: String? = null,
 
   @ManyToOne(optional = false, cascade = [CascadeType.ALL])
   @JoinColumn(
