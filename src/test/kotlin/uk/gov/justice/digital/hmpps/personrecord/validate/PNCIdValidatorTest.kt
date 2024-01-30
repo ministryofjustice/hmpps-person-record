@@ -95,11 +95,8 @@ class PNCIdValidatorTest {
   @ParameterizedTest
   @ValueSource(ints = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22])
   fun `should not return ignored letters for any input`(input: Int) {
-    // Given
-    val index = 22
-
     // When
-    val letterInAlphabet = PNCIdValidator.convertNumberToLetterInAlphabet(index)
+    val letterInAlphabet = PNCIdValidator.convertNumberToLetterInAlphabet(input)
 
     // Then
     assertThat(letterInAlphabet).isNotIn('I', 'O', 'S')

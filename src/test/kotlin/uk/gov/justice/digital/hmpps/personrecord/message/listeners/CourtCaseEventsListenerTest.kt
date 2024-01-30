@@ -113,7 +113,7 @@ class CourtCaseEventsListenerTest {
     whenever(courtCaseEventsProcessor.processEvent(any())).thenThrow(IllegalArgumentException("Something went wrong"))
 
     // when
-    val exception = assertFailsWith<IllegalArgumentException>(
+    assertFailsWith<IllegalArgumentException>(
       block = { courtCaseEventsListener.onMessage(rawMessage = rawMessage) },
     )
 
