@@ -36,7 +36,7 @@ fun testMessageWithUnknownType(messageType: String?) = """
      }    
 """.trimIndent()
 
-fun commonPlatformHearing() = """
+fun commonPlatformHearing(pncNumber: String = "1981/0154257C") = """
     {
       "hearing": {
         "type": {
@@ -67,7 +67,7 @@ fun commonPlatformHearing() = """
             "defendants": [
               { 
                 "id": "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199",
-                "pncId": "1981/0154257C",
+                "pncId": "$pncNumber",
                 "croNumber": "12345ABCDEF",
                 "offences": [
                   {
