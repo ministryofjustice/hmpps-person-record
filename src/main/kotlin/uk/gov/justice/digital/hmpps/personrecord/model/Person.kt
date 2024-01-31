@@ -110,5 +110,5 @@ data class OtherIdentifiers(
   val pncIdentifier: PNCIdentifier? = null,
   @Schema(description = "CRO", example = "293110/23X")
   val cro: String? = null,
-  val prisonNumber: String? = null,
+  var prisonNumber: String? = null,
 )

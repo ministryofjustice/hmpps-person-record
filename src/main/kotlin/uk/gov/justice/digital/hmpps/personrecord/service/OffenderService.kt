@@ -24,6 +24,8 @@ class OffenderService(
     const val EXACT_MATCH_MESSAGE = "Exact delius match found - adding offender to person record"
     const val PARTIAL_MATCH_MESSAGE = "Partial Delius match found"
     const val MULTIPLE_MATCHES_MESSAGE = "Multiple Delius matches found"
+    const val EXACT_MATCH_NOMS_NUMBER_FOUND = "Exact delius match found with noms number"
+
   }
 
   fun processAssociatedOffenders(personEntity: PersonEntity, person: Person) {
@@ -55,11 +57,13 @@ class OffenderService(
     }
   }
 
-  private fun isMatchingOffender(person: Person, offenderDetail: OffenderDetail) = person.otherIdentifiers?.pncIdentifier == PNCIdentifier(offenderDetail.otherIds.pncNumber) &&
+  private fun isMatchingOffender(person: Person, offenderDetail: OffenderDetail) =
+    person.otherIdentifiers?.pncIdentifier == PNCIdentifier(offenderDetail.otherIds.pncNumber) &&
     offenderDetail.firstName.equals(person.givenName, true) &&
     offenderDetail.surname.equals(person.familyName, true) &&
     offenderDetail.dateOfBirth == person.dateOfBirth
 
+  @Suppress("UNCHECKED_CAST")
   private fun logAndTrackEvent(
     logMessage: String,
     eventType: TelemetryEventType,
@@ -73,7 +77,8 @@ class OffenderService(
         "UUID" to personEntity.personId.toString(),
         "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
         "CRN" to person.otherIdentifiers?.crn,
-      ),
+        "PRISON NUMBER" to person.otherIdentifiers?.prisonNumber
+      ).filterValues { !it.isNullOrBlank() } as Map<String, String>,
     )
   }
 
