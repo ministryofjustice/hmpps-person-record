@@ -199,6 +199,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.offenders[0].firstName).isEqualTo("Eric")
     assertThat(personEntity.offenders[0].lastName).isEqualTo("Lassard")
     assertThat(personEntity.offenders[0].dateOfBirth).isEqualTo(LocalDate.of(1960, 1, 1))
+    assertThat(personEntity.offenders[0].prisonNumber).isEqualTo("A1671AJ")
     assertThat(personEntity.prisoners).hasSize(1)
     assertThat(personEntity.prisoners[0].offenderId).isEqualTo("A1234AA")
     assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(PNCIdentifier(pncNumber).pncId)

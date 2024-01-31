@@ -55,11 +55,13 @@ class OffenderService(
     }
   }
 
-  private fun isMatchingOffender(person: Person, offenderDetail: OffenderDetail) = person.otherIdentifiers?.pncIdentifier == PNCIdentifier(offenderDetail.otherIds.pncNumber) &&
-    offenderDetail.firstName.equals(person.givenName, true) &&
-    offenderDetail.surname.equals(person.familyName, true) &&
-    offenderDetail.dateOfBirth == person.dateOfBirth
+  private fun isMatchingOffender(person: Person, offenderDetail: OffenderDetail) =
+    person.otherIdentifiers?.pncIdentifier == PNCIdentifier(offenderDetail.otherIds.pncNumber) &&
+      offenderDetail.firstName.equals(person.givenName, true) &&
+      offenderDetail.surname.equals(person.familyName, true) &&
+      offenderDetail.dateOfBirth == person.dateOfBirth
 
+  @Suppress("UNCHECKED_CAST")
   private fun logAndTrackEvent(
     logMessage: String,
     eventType: TelemetryEventType,
@@ -73,7 +75,8 @@ class OffenderService(
         "UUID" to personEntity.personId.toString(),
         "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
         "CRN" to person.otherIdentifiers?.crn,
-      ),
+        "PRISON NUMBER" to person.otherIdentifiers?.prisonNumber,
+      ).filterValues { !it.isNullOrBlank() } as Map<String, String>,
     )
   }
 

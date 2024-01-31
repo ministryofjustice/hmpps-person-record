@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderDetail
@@ -12,6 +13,7 @@ import java.time.LocalDate
 import java.util.*
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class Person(
   @Schema(description = "The unique person identifier", example = "f4165b62-d9eb-11ed-afa1-0242ac120002")
   val personId: UUID? = null,
@@ -58,7 +60,11 @@ data class Person(
         givenName = offenderDetail.firstName,
         familyName = offenderDetail.surname,
         dateOfBirth = offenderDetail.dateOfBirth,
-        otherIdentifiers = OtherIdentifiers(crn = offenderDetail.otherIds.crn, pncIdentifier = PNCIdentifier(offenderDetail.otherIds.pncNumber)),
+        otherIdentifiers = OtherIdentifiers(
+          crn = offenderDetail.otherIds.crn,
+          pncIdentifier = PNCIdentifier(offenderDetail.otherIds.pncNumber),
+          prisonNumber = offenderDetail.otherIds.nomsNumber,
+        ),
       )
     }
 
@@ -104,4 +110,5 @@ data class OtherIdentifiers(
   val pncIdentifier: PNCIdentifier? = null,
   @Schema(description = "CRO", example = "293110/23X")
   val cro: String? = null,
+  var prisonNumber: String? = null,
 )
