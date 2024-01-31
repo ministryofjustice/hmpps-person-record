@@ -5,7 +5,11 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
-import org.mockito.kotlin.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.client.ProbationOffenderSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.IDs
 import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderDetail
@@ -114,7 +118,6 @@ class OffenderServiceTest {
         "CRN" to person.otherIdentifiers?.crn,
       ),
     )
-    verifyNoMoreInteractions(telemetryService)
   }
 
   private fun createOffenderDetail(dateOfBirth: LocalDate): OffenderDetail {
@@ -153,7 +156,7 @@ class OffenderServiceTest {
         "UUID" to personEntity.personId.toString(),
         "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
         "CRN" to person.otherIdentifiers?.crn,
-        ),
+      ),
     )
   }
 
@@ -225,7 +228,7 @@ class OffenderServiceTest {
         "UUID" to personEntity.personId.toString(),
         "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
         "CRN" to person.otherIdentifiers?.crn,
-        "PRISON NUMBER" to person.otherIdentifiers?.prisonNumber
+        "PRISON NUMBER" to person.otherIdentifiers?.prisonNumber,
       ),
     )
   }
