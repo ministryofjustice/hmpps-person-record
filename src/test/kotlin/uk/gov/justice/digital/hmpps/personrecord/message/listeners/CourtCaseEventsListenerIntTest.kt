@@ -6,10 +6,12 @@ import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
+import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.check
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.jdbc.Sql
@@ -43,13 +45,6 @@ import java.util.concurrent.TimeUnit
 )
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
 class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
-
-  val courtCaseEventsTopic by lazy {
-    hmppsQueueService.findByTopicId("courtcaseeventstopic")
-  }
-  val cprCourtCaseEventsQueue by lazy {
-    hmppsQueueService.findByQueueId("cprcourtcaseeventsqueue")
-  }
 
   @Autowired
   lateinit var personRepository: PersonRepository
@@ -156,6 +151,69 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
         },
       )
     }
+  }
+
+  @Test
+  fun `should not push messages onto dead letter queue when processing fails because of could not serialize access due to read write dependencies among transactions`() {
+    // given
+    val pncNumber = "2003/0062845E"
+
+    val publishRequest = PublishRequest.builder()
+      .topicArn(courtCaseEventsTopic?.arn)
+      .message(commonPlatformHearingWithNewDefendant())
+      .messageAttributes(
+        mapOf(
+          "messageType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(MessageType.COMMON_PLATFORM_HEARING.name).build(),
+        ),
+      )
+      .build()
+    val blitzer = Blitzer(100, 50)
+    try {
+      blitzer.blitz {
+        courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+      }
+    } finally {
+      blitzer.shutdown()
+    }
+    // when
+
+    // then
+    await untilCallTo {
+      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
+    } matches { it == 0 }
+
+    await untilCallTo {
+      cprCourtCaseEventsQueue?.sqsDlqClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.dlqUrl!!)?.get()
+    } matches { it == 0 }
+
+    await untilAsserted { assertThat(postgresSQLContainer.isCreated).isTrue() }
+
+    val personEntity = await.atMost(30, TimeUnit.SECONDS) untilNotNull {
+      personRepository.findByPrisonersPncNumber(
+        PNCIdentifier(pncNumber).pncId.toString(),
+      )
+    }
+
+    assertThat(personEntity.personId).isNotNull()
+    assertThat(personEntity.defendants.size).isEqualTo(1)
+    assertThat(personEntity.defendants[0].pncNumber).isEqualTo(PNCIdentifier(pncNumber).pncId)
+    assertThat(personEntity.offenders).hasSize(1)
+    assertThat(personEntity.offenders[0].crn).isEqualTo("X026350")
+    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(PNCIdentifier(pncNumber).pncId)
+    assertThat(personEntity.offenders[0].firstName).isEqualTo("Eric")
+    assertThat(personEntity.offenders[0].lastName).isEqualTo("Lassard")
+    assertThat(personEntity.offenders[0].dateOfBirth).isEqualTo(LocalDate.of(1960, 1, 1))
+    assertThat(personEntity.prisoners).hasSize(1)
+    assertThat(personEntity.prisoners[0].offenderId).isEqualTo("A1234AA")
+    assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(PNCIdentifier(pncNumber).pncId)
+
+    verify(telemetryService, times(1)).trackEvent(
+      eq(TelemetryEventType.NEW_CASE_PERSON_CREATED),
+      check {
+        assertThat(it["PNC"]).isEqualTo(pncNumber)
+      },
+    )
   }
 
   @Test
