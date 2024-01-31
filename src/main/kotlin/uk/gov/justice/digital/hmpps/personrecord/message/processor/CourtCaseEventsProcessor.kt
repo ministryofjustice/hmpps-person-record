@@ -83,7 +83,20 @@ class CourtCaseEventsProcessor(
         mapOf("PNC" to person.otherIdentifiers?.pncIdentifier?.pncId, "CRO" to person.otherIdentifiers?.cro),
       )
 
-      courtCaseEventsService.processPersonFromCourtCaseEvent(person)
+      retry { courtCaseEventsService.processPersonFromCourtCaseEvent(person) }
+    }
+  }
+  fun retry(
+    block: () -> Unit,
+  ) {
+    repeat(2) {
+      try {
+        block()
+      } catch (e: Exception) {
+        log.info("Retrying")
+        log.error(e.message)
+      }
+      Thread.sleep(1000L)
     }
   }
 }
