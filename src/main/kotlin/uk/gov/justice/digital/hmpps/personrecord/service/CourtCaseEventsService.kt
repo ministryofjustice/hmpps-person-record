@@ -52,6 +52,13 @@ class CourtCaseEventsService(
         } else if (defendants.isEmpty()) {
           log.debug("No existing matching Person record exists - creating new person and defendant with pnc $pncId")
           val personRecord = personRecordService.createNewPersonAndDefendant(person)
+          // option 1 - catch the expected error here and log NEW_CASE_EXACT_MATCH
+          // option 2 - introduce a unique constraint then catch ConstraintViolationException and log NEW_CASE_EXACT_MATCH
+          // option 3 - make this method retryable on the expected error
+          // option 4 - slow down message processing
+          // option 5 - see if we can make processing synchronous in code - X
+          // option 6 - see if we can make processing synchronous in SQS Listener Config - ?
+
           telemetryService.trackEvent(
             TelemetryEventType.NEW_CASE_PERSON_CREATED,
             mapOf("UUID" to personRecord.personId.toString(), "PNC" to pncId),
