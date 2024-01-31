@@ -43,6 +43,8 @@ hmpps.sqs:
     cprcourtcaseeventsqueue:
       queueName: cpr_court_case_events_queue
       subscribeTopicId: courtcaseeventstopic
+      dlqName: cpr_court_case_events_queue_dlq
+      dlqMaxReceiveCount: 1
     cprdeliusoffendereventsqueue:
       queueName: cpr_delius_offender_events_queue
       subscribeTopicId: domainevents
