@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -19,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.junit.jupiter.Testcontainers
+import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -48,11 +50,22 @@ abstract class IntegrationTestBase {
   @SpyBean
   lateinit var telemetryService: TelemetryService
 
+  val courtCaseEventsTopic by lazy {
+    hmppsQueueService.findByTopicId("courtcaseeventstopic")
+  }
+  val cprCourtCaseEventsQueue by lazy {
+    hmppsQueueService.findByQueueId("cprcourtcaseeventsqueue")
+  }
+
   @RegisterExtension
   var wireMockExtension = WireMockExtension.newInstance()
     .options(wireMockConfig().port(8090))
     .build()
 
+  @BeforeEach
+  fun beforeEach() {
+    cprCourtCaseEventsQueue?.sqsDlqClient!!.purgeQueue(PurgeQueueRequest.builder().queueUrl(cprCourtCaseEventsQueue?.dlqUrl).build()).get()
+  }
   companion object {
 
     /*

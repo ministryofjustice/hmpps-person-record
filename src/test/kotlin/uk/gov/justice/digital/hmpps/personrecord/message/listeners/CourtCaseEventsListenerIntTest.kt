@@ -46,13 +46,6 @@ import java.util.concurrent.TimeUnit
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
 class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
-  val courtCaseEventsTopic by lazy {
-    hmppsQueueService.findByTopicId("courtcaseeventstopic")
-  }
-  val cprCourtCaseEventsQueue by lazy {
-    hmppsQueueService.findByQueueId("cprcourtcaseeventsqueue")
-  }
-
   @Autowired
   lateinit var personRepository: PersonRepository
 
