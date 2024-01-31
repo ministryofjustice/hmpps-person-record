@@ -52,7 +52,7 @@ class OffenderServiceTest {
 
   companion object {
     const val PNC_ID = "2003/0062845E"
-    const val CRN = "X026350"  
+    const val CRN = "X026350"
   }
 
   @Test
