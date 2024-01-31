@@ -177,7 +177,6 @@ class OffenderServiceTest {
       mapOf(
         "UUID" to personEntity.personId.toString(),
         "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
-        "CRN" to person.otherIdentifiers?.crn,
       ),
     )
   }
