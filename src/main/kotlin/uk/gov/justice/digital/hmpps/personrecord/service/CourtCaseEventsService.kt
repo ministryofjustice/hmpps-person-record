@@ -57,7 +57,7 @@ class CourtCaseEventsService(
           // option 3 - make this method retryable on the expected error
           // option 4 - slow down message processing
           // option 5 - see if we can make processing synchronous in code - X
-          // option 6 - see if we can make processing synchronous in SQS Listener Config - ?
+          // option 6 - see if we can make processing synchronous in SQS Listener Config - X
 
           telemetryService.trackEvent(
             TelemetryEventType.NEW_CASE_PERSON_CREATED,
