@@ -41,6 +41,9 @@ class OffenderEntity(
   @Column(name = "lao")
   val isLimitedAccessOffender: Boolean? = null,
 
+  @Column(name = "prison_number")
+  val prisonNumber: String? = null,
+
   @ManyToOne(optional = false, cascade = [CascadeType.ALL])
   @JoinColumn(
     name = "fk_person_id",
@@ -59,6 +62,7 @@ class OffenderEntity(
           firstName = person.givenName,
           lastName = person.familyName,
           dateOfBirth = person.dateOfBirth,
+          prisonNumber = person.otherIdentifiers.prisonNumber,
         )
         offenderEntity.createdBy = PERSON_RECORD_SERVICE
         offenderEntity.lastUpdatedBy = PERSON_RECORD_SERVICE

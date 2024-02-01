@@ -18,52 +18,70 @@ class OffenderService(
   private val client: ProbationOffenderSearchClient,
   private val featureFlag: FeatureFlag,
 ) {
-
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
+    const val NO_RECORDS_MESSAGE = "No Delius matching records exist"
+    const val EXACT_MATCH_MESSAGE = "Exact delius match found - adding offender to person record"
+    const val PARTIAL_MATCH_MESSAGE = "Partial Delius match found"
+    const val MULTIPLE_MATCHES_MESSAGE = "Multiple Delius matches found"
   }
 
   fun processAssociatedOffenders(personEntity: PersonEntity, person: Person) {
     log.debug("Entered processAssociatedOffenders")
     if (featureFlag.isDeliusSearchEnabled()) {
       val offenderDetails = client.getOffenderDetail(SearchDto.from(person))
-      offenderDetails?.let {
-        if (matchesExistingOffenderExactly(it, person)) {
-          log.debug("Exact delius match found - adding offender to person record")
-          personRecordService.addOffenderToPerson(personEntity, Person.from(it[0]))
-          telemetryService.trackEvent(
-            TelemetryEventType.DELIUS_MATCH_FOUND,
-            mapOf(
-              "UUID" to personEntity.personId.toString(),
-              "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
-              "CRN" to person.otherIdentifiers?.crn,
-            ),
-          )
-        } else if (matchesExistingOffenderPartially(it, person)) {
-          log.debug("Partial Delius match found")
-          telemetryService.trackEvent(
-            TelemetryEventType.DELIUS_PARTIAL_MATCH_FOUND,
-            mapOf(
-              "UUID" to personEntity.personId.toString(),
-              "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
-              "CRN" to person.otherIdentifiers?.crn,
-            ),
-          )
-        }
-      }
+
       if (offenderDetails.isNullOrEmpty()) {
-        log.debug("No Delius matching records exist")
-        telemetryService.trackEvent(
-          TelemetryEventType.DELIUS_NO_MATCH_FOUND,
-          mapOf("UUID" to personEntity.personId.toString(), "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId),
-        )
+        logAndTrackEvent(NO_RECORDS_MESSAGE, TelemetryEventType.DELIUS_NO_MATCH_FOUND, personEntity, person)
+      } else {
+        when {
+          matchesExistingOffenderExactly(offenderDetails, person) -> {
+            logAndTrackEvent(EXACT_MATCH_MESSAGE, TelemetryEventType.DELIUS_MATCH_FOUND, personEntity, person)
+            personRecordService.addOffenderToPerson(personEntity, Person.from(offenderDetails[0]))
+          }
+
+          matchesExistingOffenderPartially(offenderDetails, person) -> {
+            logAndTrackEvent(PARTIAL_MATCH_MESSAGE, TelemetryEventType.DELIUS_PARTIAL_MATCH_FOUND, personEntity, person)
+          }
+
+          multipleOffendersMatch(offenderDetails, person) -> {
+            offenderDetails.forEach { offender ->
+              logAndTrackEvent(MULTIPLE_MATCHES_MESSAGE, TelemetryEventType.DELIUS_MATCH_FOUND, personEntity, person)
+              personRecordService.addOffenderToPerson(personEntity, Person.from(offender))
+            }
+          }
+        }
       }
     }
   }
 
+  private fun isMatchingOffender(person: Person, offenderDetail: OffenderDetail) =
+    person.otherIdentifiers?.pncIdentifier == PNCIdentifier(offenderDetail.otherIds.pncNumber) &&
+      offenderDetail.firstName.equals(person.givenName, true) &&
+      offenderDetail.surname.equals(person.familyName, true) &&
+      offenderDetail.dateOfBirth == person.dateOfBirth
+
+  @Suppress("UNCHECKED_CAST")
+  private fun logAndTrackEvent(
+    logMessage: String,
+    eventType: TelemetryEventType,
+    personEntity: PersonEntity,
+    person: Person,
+  ) {
+    log.debug(logMessage)
+    telemetryService.trackEvent(
+      eventType,
+      mapOf(
+        "UUID" to personEntity.personId.toString(),
+        "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
+        "CRN" to person.otherIdentifiers?.crn,
+        "PRISON NUMBER" to person.otherIdentifiers?.prisonNumber,
+      ).filterValues { !it.isNullOrBlank() } as Map<String, String>,
+    )
+  }
+
   private fun matchesExistingOffenderPartially(offenderDetails: List<OffenderDetail>, person: Person): Boolean {
-    return offenderDetails.isNotEmpty()
-      .and(offenderDetails.size == 1)
+    return (offenderDetails.size == 1)
       .and(
         offenderDetails.any {
           person.otherIdentifiers?.pncIdentifier == PNCIdentifier(it.otherIds.pncNumber) &&
@@ -77,15 +95,12 @@ class OffenderService(
   }
 
   private fun matchesExistingOffenderExactly(offenderDetails: List<OffenderDetail>, person: Person): Boolean {
-    return offenderDetails.isNotEmpty()
-      .and(offenderDetails.size == 1)
-      .and(
-        offenderDetails.any {
-          person.otherIdentifiers?.pncIdentifier == PNCIdentifier(it.otherIds.pncNumber) &&
-            it.firstName.equals(person.givenName, true) &&
-            it.surname.equals(person.familyName, true) &&
-            it.dateOfBirth == person.dateOfBirth
-        },
-      )
+    return (offenderDetails.size == 1)
+      .and(offenderDetails.any { isMatchingOffender(person, it) })
+  }
+
+  private fun multipleOffendersMatch(offenderDetails: List<OffenderDetail>, person: Person): Boolean {
+    return (offenderDetails.size > 1)
+      .and(offenderDetails.all { isMatchingOffender(person, it) })
   }
 }
