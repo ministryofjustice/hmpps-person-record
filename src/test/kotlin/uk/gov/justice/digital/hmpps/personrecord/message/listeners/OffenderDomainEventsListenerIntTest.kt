@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
@@ -63,7 +64,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
   @Test
   fun `should receive the message successfully when new offender event published`() {
     // Given
-    val expectedPncNumber = "PN/1234560XX"
+    val expectedPncNumber = PNCIdentifier("PN/1234560XX")
     val domainEvent = objectMapper.writeValueAsString(createDomainEvent(NEW_OFFENDER_CREATED, CRN))
 
     val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
@@ -102,7 +103,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
       )
     }
 
-    val personEntity = await.atMost(10, TimeUnit.SECONDS) untilNotNull { personRepository.findPersonEntityByPncNumber(expectedPncNumber) }
+    val personEntity = await.atMost(10, TimeUnit.SECONDS) untilNotNull { personRepository.findPersonEntityByPncNumber(expectedPncNumber.pncId) }
 
     assertThat(personEntity.personId).isNotNull()
     assertThat(personEntity.offenders).hasSize(1)

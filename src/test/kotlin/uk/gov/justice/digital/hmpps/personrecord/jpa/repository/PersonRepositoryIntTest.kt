@@ -107,7 +107,7 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
     // Then
     assertThat(personEntity).isNotNull
     assertThat(personEntity?.defendants!![0].pncNumber).isEqualTo(pncIdentifier)
-    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(pncIdentifier.pncId)
+    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(pncIdentifier)
   }
 
   @Test
@@ -121,7 +121,7 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
     // Then
     assertThat(personEntity).isNotNull
     assertThat(personEntity?.defendants!![0].pncNumber).isEqualTo(pnc)
-    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(pnc.pncId)
+    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(pnc)
   }
 
   @Test

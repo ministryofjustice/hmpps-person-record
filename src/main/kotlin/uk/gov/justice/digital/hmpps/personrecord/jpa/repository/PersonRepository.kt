@@ -14,7 +14,7 @@ interface PersonRepository : JpaRepository<PersonEntity, Long>, PersonRepository
   fun findByOffendersCrn(crn: String): PersonEntity?
   fun findByDefendantsPncNumber(pncIdentifier: PNCIdentifier): PersonEntity?
   fun findByPrisonersPncNumber(prisonerPncNumber: String): PersonEntity?
-  fun findByOffendersPncNumber(offenderPncNumber: String): PersonEntity?
+  fun findByOffendersPncNumber(pncNumber: PNCIdentifier): PersonEntity?
 
   @Query(
     "SELECT distinct p FROM PersonEntity p " +
