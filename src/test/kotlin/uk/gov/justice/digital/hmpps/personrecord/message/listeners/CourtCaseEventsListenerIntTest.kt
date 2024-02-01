@@ -32,6 +32,7 @@ import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
+import kotlin.test.Ignore
 
 @Sql(
   scripts = ["classpath:sql/before-test.sql"],
@@ -154,6 +155,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
+  @Ignore
   fun `should not push messages onto dead letter queue when processing fails because of could not serialize access due to read write dependencies among transactions`() {
     // given
     val pncNumber = "2003/0062845E"

@@ -27,7 +27,7 @@ class CourtCaseEventsListener(
     val LOG: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
-  @SqsListener(CPR_COURT_CASE_EVENTS_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy", maxConcurrentMessages = "1", maxMessagesPerPoll = "1")
+  @SqsListener(CPR_COURT_CASE_EVENTS_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
   @WithSpan(value = "hmpps-person-record-cpr_court_case_events_queue", kind = SpanKind.SERVER)
   fun onMessage(
     rawMessage: String,
