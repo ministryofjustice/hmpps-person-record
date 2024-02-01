@@ -13,8 +13,8 @@ interface PersonRepository : JpaRepository<PersonEntity, Long>, PersonRepository
   fun findByPersonId(uuid: UUID): PersonEntity?
   fun findByOffendersCrn(crn: String): PersonEntity?
   fun findByDefendantsPncNumber(pncIdentifier: PNCIdentifier): PersonEntity?
-  fun findByPrisonersPncNumber(prisonerPncNumber: String): PersonEntity?
-  fun findByOffendersPncNumber(pncNumber: PNCIdentifier): PersonEntity?
+  fun findByPrisonersPncNumber(pncIdentifier: PNCIdentifier): PersonEntity?
+  fun findByOffendersPncNumber(pncIdentifier: PNCIdentifier): PersonEntity?
 
   @Query(
     "SELECT distinct p FROM PersonEntity p " +
@@ -23,5 +23,5 @@ interface PersonRepository : JpaRepository<PersonEntity, Long>, PersonRepository
       "LEFT JOIN PrisonerEntity prisioner ON prisioner.person.id = p.id " +
       "WHERE offender.pncNumber = :pncNumber OR defendant.pncNumber = :pncNumber OR prisioner.pncNumber = :pncNumber",
   )
-  fun findPersonEntityByPncNumber(@Param("pncNumber") pncNumber: String?): PersonEntity?
+  fun findPersonEntityByPncNumber(@Param("pncNumber") pncNumber: PNCIdentifier?): PersonEntity?
 }

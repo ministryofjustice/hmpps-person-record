@@ -102,7 +102,7 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
     val pncIdentifier = PNCIdentifier("2008/0056560Z")
 
     // When
-    val personEntity = personRepository.findPersonEntityByPncNumber(pncIdentifier.pncId)
+    val personEntity = personRepository.findPersonEntityByPncNumber(pncIdentifier)
 
     // Then
     assertThat(personEntity).isNotNull
@@ -116,7 +116,7 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
     val pnc = PNCIdentifier("2008/0056560Z")
 
     // When
-    val personEntity = personRepository.findPersonEntityByPncNumber(pnc.pncId)
+    val personEntity = personRepository.findPersonEntityByPncNumber(pnc)
 
     // Then
     assertThat(personEntity).isNotNull
@@ -127,7 +127,7 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
   @Test
   fun `should not return any person record with no matching pnc`() {
     // Given
-    val pnc = "PNC00000"
+    val pnc = PNCIdentifier("PNC00000")
 
     // When
     val personEntity = personRepository.findPersonEntityByPncNumber(pnc)
