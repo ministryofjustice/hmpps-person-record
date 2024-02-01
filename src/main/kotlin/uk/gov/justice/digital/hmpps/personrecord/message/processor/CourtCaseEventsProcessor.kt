@@ -96,7 +96,7 @@ class CourtCaseEventsProcessor(
         log.info("Retrying")
         log.error(e.message)
       }
-      Thread.sleep(1000L)
+      Thread.sleep(100L)
     }
   }
 }
