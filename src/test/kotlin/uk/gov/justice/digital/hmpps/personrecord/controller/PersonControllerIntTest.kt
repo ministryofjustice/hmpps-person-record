@@ -313,7 +313,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
   @Test
   fun `should return a single person record for a matching pnc number`() {
     // Given
-    val personSearchRequest = PersonSearchRequest(pncNumber = "pnc33333", surname = "Mortimer")
+    val personSearchRequest = PersonSearchRequest(pncNumber = "1981/0154257C", surname = "MORGAN")
     val searchRequestJson = objectMapper.writeValueAsString(personSearchRequest)
 
     // When
@@ -329,7 +329,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
     // Then
     val personList: List<Person> =
       objectMapper.readValue(result.response.contentAsString, object : TypeReference<List<Person>>() {})
-    assertThat(personList).hasSize(1).allMatch { it.personId == UUID.fromString("ddf11834-e2a3-11ed-b5ea-0242ac120002") }
+    assertThat(personList).hasSize(1).allMatch { it.personId == UUID.fromString("e374e376-e2a3-11ed-b5ea-0242ac120002") }
   }
 
   @Test

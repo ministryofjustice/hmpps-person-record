@@ -36,7 +36,7 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
     assertThat(personEntity).isNotNull
     assertThat(personEntity?.defendants).hasSize(2)
     val hmctsDefendantEntity = personEntity?.defendants?.get(0)
-    assertThat(hmctsDefendantEntity?.pncNumber).isEqualTo("PNC12345")
+    assertThat(hmctsDefendantEntity?.pncNumber).isEqualTo("2001/0171310W")
     assertThat(hmctsDefendantEntity?.crn).isEqualTo("CRN1234")
     assertThat(hmctsDefendantEntity?.forenameOne).isEqualTo("Iestyn")
     assertThat(hmctsDefendantEntity?.forenameTwo).isEqualTo("Carey")
@@ -112,7 +112,7 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
   @Test
   fun `should return correct person with matching pnc number when person linked to defendant and offender`() {
     // Given
-    val pnc = "PNC12345"
+    val pnc = "2008/0056560Z"
 
     // When
     val personEntity = personRepository.findPersonEntityByPncNumber(pnc)
