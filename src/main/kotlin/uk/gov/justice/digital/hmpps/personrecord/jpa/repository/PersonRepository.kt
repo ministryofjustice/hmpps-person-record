@@ -5,13 +5,14 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import java.util.*
 
 @Repository
 interface PersonRepository : JpaRepository<PersonEntity, Long>, PersonRepositoryCustom {
   fun findByPersonId(uuid: UUID): PersonEntity?
   fun findByOffendersCrn(crn: String): PersonEntity?
-  fun findByDefendantsPncNumber(defendantsPncNumber: String): PersonEntity?
+  fun findByDefendantsPncNumber(pncIdentifier: PNCIdentifier): PersonEntity?
   fun findByPrisonersPncNumber(prisonerPncNumber: String): PersonEntity?
   fun findByOffendersPncNumber(offenderPncNumber: String): PersonEntity?
 

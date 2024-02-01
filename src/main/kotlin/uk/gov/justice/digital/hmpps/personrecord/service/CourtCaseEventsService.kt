@@ -35,7 +35,7 @@ class CourtCaseEventsService(
     person.otherIdentifiers?.pncIdentifier?.let { pncIdentifier ->
       val pncId = pncIdentifier.pncId
       if (pncIdValidator.isValid(pncIdentifier)) {
-        val defendants = personRepository.findByDefendantsPncNumber(pncId!!)?.defendants.orEmpty()
+        val defendants = personRepository.findByDefendantsPncNumber(PNCIdentifier(pncId!!))?.defendants.orEmpty()
 
         if (matchesExistingRecordExactly(defendants, person)) {
           log.info("Exactly matching Person record exists with defendant - no further processing will occur")
@@ -85,7 +85,7 @@ class CourtCaseEventsService(
       .and(defendants.size == 1)
       .and(
         defendants.any {
-          person.otherIdentifiers?.pncIdentifier == PNCIdentifier(it.pncNumber) &&
+          person.otherIdentifiers?.pncIdentifier == it.pncNumber &&
             (
               it.surname.equals(person.familyName, true) ||
                 it.forenameOne.equals(person.givenName, true) ||
@@ -100,7 +100,7 @@ class CourtCaseEventsService(
       .and(defendants.size == 1)
       .and(
         defendants.any {
-          person.otherIdentifiers?.pncIdentifier == PNCIdentifier(it.pncNumber) &&
+          person.otherIdentifiers?.pncIdentifier == it.pncNumber &&
             it.surname.equals(person.familyName, true) &&
             it.forenameOne.equals(person.givenName, true) &&
             it.dateOfBirth?.equals(person.dateOfBirth) == true
