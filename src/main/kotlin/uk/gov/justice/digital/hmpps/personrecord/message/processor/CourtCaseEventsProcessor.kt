@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 import org.springframework.dao.CannotAcquireLockException
+import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
@@ -86,12 +87,17 @@ class CourtCaseEventsProcessor(
       )
       try {
         courtCaseEventsService.processPersonFromCourtCaseEvent(person)
-      } catch (e: CannotAcquireLockException) {
-        log.warn("CannotAcquireLockException")
-        telemetryService.trackEvent(
-          TelemetryEventType.NEW_CASE_EXACT_MATCH,
-          mapOf("PNC" to person.otherIdentifiers?.pncIdentifier?.pncId),
-        )
+      } catch (e: Exception) {
+        when (e) {
+          is CannotAcquireLockException, is JpaSystemException -> {
+            log.warn("Expected error when processing $e.message")
+            telemetryService.trackEvent(
+              TelemetryEventType.NEW_CASE_EXACT_MATCH,
+              mapOf("PNC" to person.otherIdentifiers?.pncIdentifier?.pncId, "Exception" to e.message),
+            )
+          }
+          else -> throw e
+        }
       }
     }
   }
