@@ -28,14 +28,6 @@ feature:
     enable-delius-search: true
     enable-nomis-search: true
 
-spring:
-  jpa:
-    properties:
-      hibernate:
-        hbm2ddl:
-          auto: update
-    show-sql: false
-
 hmpps.sqs:
   enabled: true
   provider: localstack

@@ -1,4 +1,7 @@
 TRUNCATE TABLE person CASCADE;
+TRUNCATE TABLE offender CASCADE;
+TRUNCATE TABLE defendant CASCADE;
+TRUNCATE TABLE prisoner CASCADE;
 
 INSERT INTO person
 (id, person_id, created_by, created_date, last_updated_by, last_updated_date, "version")
