@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processor
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
+import org.springframework.dao.CannotAcquireLockException
+import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
@@ -13,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.CommonPlatfor
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.service.CourtCaseEventsService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_CP_CASE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_LIBRA_CASE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.UNKNOWN_CASE_RECEIVED
@@ -82,8 +85,20 @@ class CourtCaseEventsProcessor(
         NEW_CP_CASE_RECEIVED,
         mapOf("PNC" to person.otherIdentifiers?.pncIdentifier?.pncId, "CRO" to person.otherIdentifiers?.cro),
       )
-
-      courtCaseEventsService.processPersonFromCourtCaseEvent(person)
+      try {
+        courtCaseEventsService.processPersonFromCourtCaseEvent(person)
+      } catch (e: Exception) {
+        when (e) {
+          is CannotAcquireLockException, is JpaSystemException -> {
+            log.warn("Expected error when processing $e.message")
+            telemetryService.trackEvent(
+              TelemetryEventType.NEW_CASE_EXACT_MATCH,
+              mapOf("PNC" to person.otherIdentifiers?.pncIdentifier?.pncId, "Exception" to e.message),
+            )
+          }
+          else -> throw e
+        }
+      }
     }
   }
 }
