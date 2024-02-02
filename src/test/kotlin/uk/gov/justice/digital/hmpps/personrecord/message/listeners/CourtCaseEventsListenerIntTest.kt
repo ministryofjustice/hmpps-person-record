@@ -209,7 +209,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     verify(telemetryService, times(1)).trackEvent(
       eq(TelemetryEventType.NEW_CASE_PERSON_CREATED),
       check {
-        assertThat(it["PNC"]).isEqualTo(pncNumber)
+        assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
       },
     )
   }
