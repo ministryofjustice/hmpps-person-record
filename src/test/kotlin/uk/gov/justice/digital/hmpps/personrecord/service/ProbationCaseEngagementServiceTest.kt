@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.Name
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import java.time.LocalDate
 
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
@@ -55,7 +56,7 @@ class ProbationCaseEngagementServiceTest {
 
     probationCaseEngagementService.processNewOffender(deliusOffenderDetail)
 
-    verify(personRepository).findPersonEntityByPncNumber("19790163001B")
+    verify(personRepository).findPersonEntityByPncNumber(PNCIdentifier("19790163001B"))
     verify(personRepository).saveAndFlush(personEntity)
     verify(telemetryService).trackEvent(
       TelemetryEventType.NEW_DELIUS_RECORD_PNC_MATCHED,
@@ -86,7 +87,7 @@ class ProbationCaseEngagementServiceTest {
 
     probationCaseEngagementService.processNewOffender(deliusOffenderDetail)
 
-    verify(personRepository).findPersonEntityByPncNumber("19790163001B")
+    verify(personRepository).findPersonEntityByPncNumber(PNCIdentifier("19790163001B"))
     verify(telemetryService).trackEvent(
       TelemetryEventType.NEW_DELIUS_RECORD_NEW_PNC,
       mapOf(

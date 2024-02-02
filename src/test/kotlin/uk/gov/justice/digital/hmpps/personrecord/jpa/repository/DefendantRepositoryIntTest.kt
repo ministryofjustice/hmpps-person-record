@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import java.time.LocalDate
 import java.util.*
 import kotlin.test.assertEquals
@@ -145,7 +146,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "cbee7d12-5515-483f-8cdc-f4b03867c529",
-      pncNumber = "2008/0056560S",
+      pncNumber = PNCIdentifier("2008/0056560S"),
       person = existingPerson,
     )
 
@@ -157,7 +158,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "69c94c02-9b7d-439f-9412-d0812f8c2835",
-      pncNumber = "2008/0056560E",
+      pncNumber = PNCIdentifier("2008/0056560E"),
       person = existingPerson,
     )
 
@@ -170,7 +171,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
 
     assertEquals(2, personEntityUpdated.defendants.size)
 
-    val defendants = defendantRepository.findAllByPncNumber("2008/0056560S")
+    val defendants = defendantRepository.findAllByPncNumber(PNCIdentifier("2008/0056560S"))
 
     assertEquals(1, defendants.size)
     assertEquals(defendantEntity.pncNumber, defendants[0].pncNumber)
@@ -193,7 +194,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "a6704fae-34ac-4ec6-9c6a-93afa73a85d9",
-      pncNumber = "2008/0056560E",
+      pncNumber = PNCIdentifier("2008/0056560E"),
       person = existingPerson,
     )
 
@@ -205,7 +206,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "0c4b2734-5bca-4401-a20a-90654f8a5a89",
-      pncNumber = "2008/0056560E",
+      pncNumber = PNCIdentifier("2008/0056560E"),
       person = existingPerson,
     )
 
@@ -218,12 +219,12 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
 
     assertEquals(2, personEntityUpdated.defendants.size)
 
-    val defendants = defendantRepository.findAllByPncNumber("2008/0056560E")
+    val defendants = defendantRepository.findAllByPncNumber(PNCIdentifier("2008/0056560E"))
 
     assertEquals(2, defendants.size)
 
     assertThat(defendants)
       .extracting("pncNumber")
-      .containsOnly("2008/0056560E")
+      .containsOnly(PNCIdentifier("2008/0056560E"))
   }
 }

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.SqlConfig
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import java.time.LocalDate
 import java.util.*
 
@@ -36,7 +37,7 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
     assertThat(personEntity).isNotNull
     assertThat(personEntity?.defendants).hasSize(2)
     val hmctsDefendantEntity = personEntity?.defendants?.get(0)
-    assertThat(hmctsDefendantEntity?.pncNumber).isEqualTo("PNC12345")
+    assertThat(hmctsDefendantEntity?.pncNumber).isEqualTo(PNCIdentifier("2001/0171310W"))
     assertThat(hmctsDefendantEntity?.crn).isEqualTo("CRN1234")
     assertThat(hmctsDefendantEntity?.forenameOne).isEqualTo("Iestyn")
     assertThat(hmctsDefendantEntity?.forenameTwo).isEqualTo("Carey")
@@ -85,34 +86,34 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
   @Test
   fun `should return correct person with defendants matching pnc number`() {
     // Given
-    val pnc = "2008/0056560Z"
+    val pncIdentifier = PNCIdentifier("2008/0056560Z")
 
     // When
-    val personEntity = personRepository.findByDefendantsPncNumber(pnc)
+    val personEntity = personRepository.findByDefendantsPncNumber(pncIdentifier)
 
     // Then
     assertThat(personEntity).isNotNull
-    assertThat(personEntity?.defendants?.get(0)?.pncNumber).isEqualTo(pnc)
+    assertThat(personEntity?.defendants?.get(0)?.pncNumber).isEqualTo(pncIdentifier)
   }
 
   @Test
   fun `should return correct person records with matching pnc number`() {
     // Given
-    val pnc = "2008/0056560Z"
+    val pncIdentifier = PNCIdentifier("2008/0056560Z")
 
     // When
-    val personEntity = personRepository.findPersonEntityByPncNumber(pnc)
+    val personEntity = personRepository.findPersonEntityByPncNumber(pncIdentifier)
 
     // Then
     assertThat(personEntity).isNotNull
-    assertThat(personEntity?.defendants!![0].pncNumber).isEqualTo(pnc)
-    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(pnc)
+    assertThat(personEntity?.defendants!![0].pncNumber).isEqualTo(pncIdentifier)
+    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(pncIdentifier)
   }
 
   @Test
   fun `should return correct person with matching pnc number when person linked to defendant and offender`() {
     // Given
-    val pnc = "PNC12345"
+    val pnc = PNCIdentifier("2008/0056560Z")
 
     // When
     val personEntity = personRepository.findPersonEntityByPncNumber(pnc)
@@ -126,7 +127,7 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
   @Test
   fun `should not return any person record with no matching pnc`() {
     // Given
-    val pnc = "PNC00000"
+    val pnc = PNCIdentifier("PNC00000")
 
     // When
     val personEntity = personRepository.findPersonEntityByPncNumber(pnc)
