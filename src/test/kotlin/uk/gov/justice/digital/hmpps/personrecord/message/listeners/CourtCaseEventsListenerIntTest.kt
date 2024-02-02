@@ -156,7 +156,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   @Test
   fun `should not push messages onto dead letter queue when processing fails because of could not serialize access due to read write dependencies among transactions`() {
     // given
-    val pncNumber = "2003/0062845E"
+    val pncNumber = PNCIdentifier("2003/0062845E")
 
     val publishRequest = PublishRequest.builder()
       .topicArn(courtCaseEventsTopic?.arn)
@@ -190,23 +190,21 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     await untilAsserted { assertThat(postgresSQLContainer.isCreated).isTrue() }
 
     val personEntity = await.atMost(30, TimeUnit.SECONDS) untilNotNull {
-      personRepository.findByPrisonersPncNumber(
-        PNCIdentifier(pncNumber).pncId.toString(),
-      )
+      personRepository.findByPrisonersPncNumber(pncNumber)
     }
 
     assertThat(personEntity.personId).isNotNull()
     assertThat(personEntity.defendants.size).isEqualTo(1)
-    assertThat(personEntity.defendants[0].pncNumber).isEqualTo(PNCIdentifier(pncNumber).pncId)
+    assertThat(personEntity.defendants[0].pncNumber).isEqualTo(pncNumber)
     assertThat(personEntity.offenders).hasSize(1)
     assertThat(personEntity.offenders[0].crn).isEqualTo("X026350")
-    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(PNCIdentifier(pncNumber).pncId)
+    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(pncNumber)
     assertThat(personEntity.offenders[0].firstName).isEqualTo("Eric")
     assertThat(personEntity.offenders[0].lastName).isEqualTo("Lassard")
     assertThat(personEntity.offenders[0].dateOfBirth).isEqualTo(LocalDate.of(1960, 1, 1))
     assertThat(personEntity.prisoners).hasSize(1)
     assertThat(personEntity.prisoners[0].offenderId).isEqualTo("A1234AA")
-    assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(PNCIdentifier(pncNumber).pncId)
+    assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(pncNumber)
 
     verify(telemetryService, times(1)).trackEvent(
       eq(TelemetryEventType.NEW_CASE_PERSON_CREATED),
@@ -219,7 +217,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   @Test
   fun `should create new defendant and prisoner records with link to a person record from common platform message`() {
     // given
-    val pncNumber = "2003/0062845E"
+    val pncNumber = PNCIdentifier("2003/0062845E")
 
     val publishRequest = PublishRequest.builder()
       .topicArn(courtCaseEventsTopic?.arn)
@@ -243,23 +241,21 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     await untilAsserted { assertThat(postgresSQLContainer.isCreated).isTrue() }
 
     val personEntity = await.atMost(30, TimeUnit.SECONDS) untilNotNull {
-      personRepository.findByPrisonersPncNumber(
-        PNCIdentifier(pncNumber).pncId.toString(),
-      )
+      personRepository.findByPrisonersPncNumber(pncNumber)
     }
 
     assertThat(personEntity.personId).isNotNull()
     assertThat(personEntity.defendants.size).isEqualTo(1)
-    assertThat(personEntity.defendants[0].pncNumber).isEqualTo(PNCIdentifier(pncNumber).pncId)
+    assertThat(personEntity.defendants[0].pncNumber).isEqualTo(pncNumber)
     assertThat(personEntity.offenders).hasSize(1)
     assertThat(personEntity.offenders[0].crn).isEqualTo("X026350")
-    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(PNCIdentifier(pncNumber).pncId)
+    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(pncNumber)
     assertThat(personEntity.offenders[0].firstName).isEqualTo("Eric")
     assertThat(personEntity.offenders[0].lastName).isEqualTo("Lassard")
     assertThat(personEntity.offenders[0].dateOfBirth).isEqualTo(LocalDate.of(1960, 1, 1))
     assertThat(personEntity.offenders[0].prisonNumber).isEqualTo("A1671AJ")
     assertThat(personEntity.prisoners).hasSize(1)
     assertThat(personEntity.prisoners[0].offenderId).isEqualTo("A1234AA")
-    assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(PNCIdentifier(pncNumber).pncId)
+    assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(pncNumber)
   }
 }

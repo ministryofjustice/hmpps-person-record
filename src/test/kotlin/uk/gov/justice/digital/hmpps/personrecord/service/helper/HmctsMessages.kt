@@ -195,7 +195,7 @@ fun commonPlatformHearing(pncNumber: String = "1981/0154257C") = """
     }
 """.trimIndent()
 
-fun libraHearing(pncNumber: String = "1923/1234567A") = """
+fun libraHearing(pncNumber: String = "2003/0011985X") = """
 {
    "caseId":1217464,
    "caseNo":"1600032981",

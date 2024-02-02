@@ -93,12 +93,12 @@ class CourtCaseEventsServiceTest {
     val crn = "CRN123"
     val personID = UUID.fromString("2936dd6a-677a-4cc0-83c5-2296b6efee0b")
     val dateOfBirth = LocalDate.now()
-    whenever(personRepository.findByDefendantsPncNumber(pncNumber))
+    whenever(personRepository.findByDefendantsPncNumber(PNCIdentifier(pncNumber)))
       .thenReturn(
         PersonEntity(
           defendants = mutableListOf(
             DefendantEntity(
-              pncNumber = pncNumber,
+              pncNumber = PNCIdentifier(pncNumber),
               crn = crn,
               surname = "Jones",
               forenameOne = "Crackity",
@@ -131,12 +131,12 @@ class CourtCaseEventsServiceTest {
     // Given
     val pncNumber = "2003/0011985X"
     val dateOfBirth = LocalDate.now()
-    whenever(personRepository.findByDefendantsPncNumber(pncNumber))
+    whenever(personRepository.findByDefendantsPncNumber(PNCIdentifier(pncNumber)))
       .thenReturn(
         PersonEntity(
           defendants = mutableListOf(
             DefendantEntity(
-              pncNumber = pncNumber,
+              pncNumber = PNCIdentifier(pncNumber),
               surname = "Jones",
               forenameOne = "Crackity",
               dateOfBirth = dateOfBirth,

@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 
 const val DELIUS_EVENT = "DELIUS-EVENT"
 
@@ -27,7 +28,7 @@ class ProbationCaseEngagementService(
   }
 
   private fun handlePncPresent(newOffenderDetail: DeliusOffenderDetail) {
-    val existingPerson = personRepository.findPersonEntityByPncNumber(newOffenderDetail.identifiers.pnc!!)
+    val existingPerson = personRepository.findPersonEntityByPncNumber(PNCIdentifier(newOffenderDetail.identifiers.pnc!!))
     existingPerson?.let { person ->
       handlePersonExistsForPnc(newOffenderDetail, person)
     } ?: handleNoPersonForPnc(newOffenderDetail)
@@ -75,7 +76,7 @@ class ProbationCaseEngagementService(
     log.debug("Creating new offender with pnc  ${deliusOffenderDetail.identifiers.pnc}")
     val newOffender = OffenderEntity(
       crn = deliusOffenderDetail.identifiers.crn,
-      pncNumber = deliusOffenderDetail.identifiers.pnc,
+      pncNumber = PNCIdentifier(deliusOffenderDetail.identifiers.pnc),
       firstName = deliusOffenderDetail.name.forename,
       lastName = deliusOffenderDetail.name.surname,
       dateOfBirth = deliusOffenderDetail.dateOfBirth,

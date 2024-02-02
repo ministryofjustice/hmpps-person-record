@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
+import jakarta.persistence.Convert
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -10,7 +11,9 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.envers.Audited
+import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConverter
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
+import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import java.time.LocalDate
 
 @Entity
@@ -34,7 +37,8 @@ class DefendantEntity(
   val defendantId: String? = null,
 
   @Column(name = "pnc_number")
-  val pncNumber: String? = null,
+  @Convert(converter = PNCIdentifierConverter::class)
+  val pncNumber: PNCIdentifier? = null,
 
   @Column(name = "crn")
   val crn: String? = null,
@@ -96,7 +100,7 @@ class DefendantEntity(
         surname = person.familyName,
         dateOfBirth = person.dateOfBirth,
         defendantId = person.defendantId,
-        pncNumber = person.otherIdentifiers?.pncIdentifier?.pncId,
+        pncNumber = person.otherIdentifiers?.pncIdentifier,
         crn = person.otherIdentifiers?.crn,
         cro = person.otherIdentifiers?.cro,
         sex = person.sex,
