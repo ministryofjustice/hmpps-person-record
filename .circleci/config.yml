@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  hmpps: ministryofjustice/hmpps@7
+  hmpps: ministryofjustice/hmpps@8
 
 executors:
   builder:
@@ -71,6 +71,8 @@ workflows:
           name: deploy_dev
           env: "dev"
           jira_update: true
+          pipeline_id: <<pipeline.id>>
+          pipeline_number: <<pipeline.number>>
           context: hmpps-common-vars
           filters:
             branches:
@@ -89,6 +91,8 @@ workflows:
           name: deploy_preprod
           env: "preprod"
           jira_update: true
+          pipeline_id: <<pipeline.id>>
+          pipeline_number: <<pipeline.number>>
           jira_env_type: staging
           context:
             - hmpps-common-vars
@@ -104,6 +108,8 @@ workflows:
           name: deploy_prod
           env: "prod"
           jira_update: true
+          pipeline_id: <<pipeline.id>>
+          pipeline_number: <<pipeline.number>>
           jira_env_type: production
           slack_notification: true
           slack_channel_name: << pipeline.parameters.releases-slack-channel >>
