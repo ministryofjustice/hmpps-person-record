@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_CASE_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdValidator
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 
@@ -52,23 +53,15 @@ class CourtCaseEventsService(
         } else if (defendants.isEmpty()) {
           log.debug("No existing matching Person record exists - creating new person and defendant with pnc $pncId")
           val personRecord = personRecordService.createNewPersonAndDefendant(person)
-          // option 1 - catch the expected error here and log NEW_CASE_EXACT_MATCH ?
-          // option 2 - introduce a unique constraint then catch ConstraintViolationException and log NEW_CASE_EXACT_MATCH
-          // option 3 - make this method retryable on the expected error
-          // option 4 - slow down message processing
-          // option 5 - see if we can make processing synchronous in code - X
-          // option 6 - see if we can make processing synchronous in SQS Listener Config - X
-
           personRecord.let {
             offenderService.processAssociatedOffenders(it, person)
             prisonerService.processAssociatedPrisoners(it, person)
           }
 
           telemetryService.trackEvent(
-            TelemetryEventType.NEW_CASE_PERSON_CREATED,
+            NEW_CASE_PERSON_CREATED,
             mapOf("UUID" to personRecord.personId.toString(), "PNC" to pncId),
           )
-          log.error("NEW CASE $personRecord.personId.toString() PNC $pncId")
         } // what if defendants is not empty?
       }
     }
