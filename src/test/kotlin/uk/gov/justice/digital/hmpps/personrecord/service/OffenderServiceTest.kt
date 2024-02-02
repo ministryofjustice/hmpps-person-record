@@ -61,7 +61,7 @@ class OffenderServiceTest {
     val personEntity = PersonEntity.new()
     val dateOfBirth = LocalDate.now()
     val person = createPerson(dateOfBirth, PNCIdentifier(PNC_ID), CRN)
-    val offenderDetail = createOffenderDetail(dateOfBirth)
+    val offenderDetail = createOffenderDetail(dateOfBirth, PNC_ID)
     whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(listOf(offenderDetail, offenderDetail, offenderDetail))
 
     // When
@@ -80,29 +80,12 @@ class OffenderServiceTest {
   }
 
   @Test
-  fun `should NOT add offenders to a person record for multiple unmatched delius offenders`() {
-    // Given
-    val personEntity = PersonEntity.new()
-    val dateOfBirth = LocalDate.now()
-    val person = createPerson(dateOfBirth, PNCIdentifier(PNC_ID), CRN)
-    val offenderDetail = createOffenderDetail(LocalDate.of(1969, 8, 18))
-    whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(listOf(offenderDetail, offenderDetail, offenderDetail))
-
-    // When
-    offenderService.processAssociatedOffenders(personEntity, person)
-
-    // Then
-    verifyNoInteractions(personRecordService)
-    verifyNoInteractions(telemetryService)
-  }
-
-  @Test
   fun `should add offender to person record when exact match found`() {
     // Given
     val personEntity = PersonEntity.new()
     val dateOfBirth = LocalDate.now()
     val person = createPerson(dateOfBirth, PNCIdentifier(PNC_ID), CRN)
-    val offenderDetail = createOffenderDetail(dateOfBirth)
+    val offenderDetail = createOffenderDetail(dateOfBirth, PNC_ID)
     whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(listOf(offenderDetail))
 
     // When
@@ -120,13 +103,13 @@ class OffenderServiceTest {
     )
   }
 
-  private fun createOffenderDetail(dateOfBirth: LocalDate): OffenderDetail {
+  private fun createOffenderDetail(dateOfBirth: LocalDate, pnc: String): OffenderDetail {
     val offenderDetail = OffenderDetail(
       offenderId = 1234L,
       firstName = "John",
       surname = "MAHONEY",
       dateOfBirth = dateOfBirth,
-      otherIds = IDs(pncNumber = PNC_ID, crn = "crn1234"),
+      otherIds = IDs(pncNumber = pnc, crn = "crn1234"),
     )
     return offenderDetail
   }
@@ -229,6 +212,31 @@ class OffenderServiceTest {
         "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
         "CRN" to person.otherIdentifiers?.crn,
         "PRISON NUMBER" to person.otherIdentifiers?.prisonNumber,
+      ),
+    )
+  }
+
+  @Test
+  fun `should send correct event when pnc does not match`() {
+    // Given
+    val anotherPnc = "2001/0072845E"
+    val personEntity = PersonEntity.new()
+    val dateOfBirth = LocalDate.now()
+    val person = createPerson(dateOfBirth, PNCIdentifier(PNC_ID), CRN)
+    val offenderDetails = listOf(createOffenderDetail(dateOfBirth, anotherPnc))
+    whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(offenderDetails)
+
+    // When
+    offenderService.processAssociatedOffenders(personEntity, person)
+
+    // Then
+    verifyNoInteractions(personRecordService)
+    verify(telemetryService).trackEvent(
+      TelemetryEventType.DELIUS_PNC_MISMATCH,
+      mapOf(
+        "UUID" to personEntity.personId.toString(),
+        "PNC searched for" to person.otherIdentifiers?.pncIdentifier?.pncId,
+        "PNC returned from search" to offenderDetails.joinToString(" ") { it.otherIds.pncNumber.toString() },
       ),
     )
   }
