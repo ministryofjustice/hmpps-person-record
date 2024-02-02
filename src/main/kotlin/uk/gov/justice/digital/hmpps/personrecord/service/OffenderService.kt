@@ -83,8 +83,8 @@ class OffenderService(
         "UUID" to personEntity.personId.toString(),
         "PNC searched for" to person.otherIdentifiers?.pncIdentifier?.pncId,
         "PNC returned from search" to offenderDetails.joinToString(" ") { it.otherIds.pncNumber.toString() },
-        "Prison Number" to offenderDetails.singleOrNull()?.otherIds?.nomsNumber,
-      ),
+        "PRISON NUMBER" to offenderDetails.singleOrNull()?.otherIds?.nomsNumber,
+      ).filterValues { !it.isNullOrBlank() },
     )
   }
   private fun logAndTrackEvent(
