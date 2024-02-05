@@ -16,6 +16,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_CASE_EXACT_MATCH
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.VALID_PNC
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import java.time.LocalDate
 import java.util.*
@@ -67,7 +70,7 @@ class CourtCaseEventsServiceTest {
     // Then
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
     verify(telemetryService).trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
-    verify(telemetryService, never()).trackEvent(TelemetryEventType.INVALID_PNC, mapOf("PNC" to ""))
+    verify(telemetryService, never()).trackEvent(INVALID_PNC, mapOf("PNC" to ""))
     verifyNoMoreInteractions(telemetryService)
   }
 
@@ -82,7 +85,7 @@ class CourtCaseEventsServiceTest {
 
     // Then
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
-    verify(telemetryService).trackEvent(TelemetryEventType.INVALID_PNC, mapOf("PNC" to pncNumber))
+    verify(telemetryService).trackEvent(INVALID_PNC, mapOf("PNC" to pncNumber, "inputPNC" to "DODGY_PNC"))
     verifyNoMoreInteractions(telemetryService)
   }
 
@@ -122,8 +125,8 @@ class CourtCaseEventsServiceTest {
 
     // Then
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
-    verify(telemetryService).trackEvent(TelemetryEventType.VALID_PNC, mapOf("PNC" to pncNumber))
-    verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_EXACT_MATCH, mapOf("PNC" to pncNumber, "CRN" to crn, "UUID" to personID.toString()))
+    verify(telemetryService).trackEvent(VALID_PNC, mapOf("PNC" to pncNumber, "inputPNC" to pncNumber))
+    verify(telemetryService).trackEvent(NEW_CASE_EXACT_MATCH, mapOf("PNC" to pncNumber, "CRN" to crn, "UUID" to personID.toString()))
   }
 
   @Test
