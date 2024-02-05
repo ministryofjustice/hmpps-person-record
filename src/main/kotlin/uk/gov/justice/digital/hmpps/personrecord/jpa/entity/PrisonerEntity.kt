@@ -25,8 +25,8 @@ class PrisonerEntity(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
 
-  @Column(name = "offender_id")
-  val offenderId: String? = null,
+  @Column(name = "prison_number")
+  val prisonNumber: String? = null,
 
   @Column(name = "pnc_number")
   @Convert(converter = PNCIdentifierConverter::class)
@@ -54,7 +54,7 @@ class PrisonerEntity(
     fun from(prisoner: Prisoner): PrisonerEntity {
       val prisonerEntity =
         PrisonerEntity(
-          offenderId = prisoner.prisonerNumber,
+          prisonNumber = prisoner.prisonerNumber,
           pncNumber = PNCIdentifier(prisoner.pncNumber),
           firstName = prisoner.firstName,
           lastName = prisoner.lastName,
