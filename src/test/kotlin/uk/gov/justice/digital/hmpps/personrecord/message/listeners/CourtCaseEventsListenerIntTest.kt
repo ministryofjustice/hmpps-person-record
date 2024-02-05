@@ -24,10 +24,12 @@ import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
+import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
@@ -50,6 +52,39 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   lateinit var personRepository: PersonRepository
 
   @Test
+  fun `should output correct telemetry for invalid PNC`() {
+    // given
+    val publishRequest = PublishRequest.builder()
+      .topicArn(courtCaseEventsTopic?.arn)
+      .message(commonPlatformHearing("03/62845X")) // X is the incorrect check letter
+      .messageAttributes(
+        mapOf(
+          "messageType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(COMMON_PLATFORM_HEARING.name).build(),
+        ),
+      )
+      .build()
+
+    // when
+    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+
+    // then
+    await untilCallTo {
+      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
+    } matches { it == 0 }
+
+    await untilAsserted {
+      verify(telemetryService).trackEvent(
+        eq(INVALID_PNC),
+        check {
+          assertThat(it["PNC"]).isEqualTo("2003/0062845X").withFailMessage("PNC incorrect")
+          assertThat(it["inputPNC"]).isEqualTo("03/62845X").withFailMessage("inputPNC incorrect")
+        },
+      )
+    }
+  }
+
+  @Test
   fun `should successfully process common platform message and create correct telemetry events`() {
     // given
     val publishRequest = PublishRequest.builder()
@@ -58,7 +93,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       .messageAttributes(
         mapOf(
           "messageType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(MessageType.COMMON_PLATFORM_HEARING.name).build(),
+            .stringValue(COMMON_PLATFORM_HEARING.name).build(),
         ),
       )
       .build()
@@ -113,7 +148,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     }
 
     verify(telemetryService, never()).trackEvent(
-      eq(TelemetryEventType.INVALID_PNC),
+      eq(INVALID_PNC),
       check {
         assertThat(it["PNC"]).isEqualTo("")
       },
@@ -164,7 +199,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       .messageAttributes(
         mapOf(
           "messageType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(MessageType.COMMON_PLATFORM_HEARING.name).build(),
+            .stringValue(COMMON_PLATFORM_HEARING.name).build(),
         ),
       )
       .build()
@@ -225,7 +260,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       .messageAttributes(
         mapOf(
           "messageType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(MessageType.COMMON_PLATFORM_HEARING.name).build(),
+            .stringValue(COMMON_PLATFORM_HEARING.name).build(),
         ),
       )
       .build()

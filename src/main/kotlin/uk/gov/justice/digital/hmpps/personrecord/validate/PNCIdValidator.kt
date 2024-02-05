@@ -16,7 +16,7 @@ class PNCIdValidator(private val telemetryService: TelemetryService) {
         hasValidCheckDigit(pncIdentifier.pncId!!)
       )
       .also {
-        telemetryService.trackEvent(if (it) VALID_PNC else INVALID_PNC, mapOf("PNC" to pncIdentifier.pncId))
+        telemetryService.trackEvent(if (it) VALID_PNC else INVALID_PNC, mapOf("PNC" to pncIdentifier.pncId, "inputPNC" to pncIdentifier.inputPnc))
       }
   }
 
