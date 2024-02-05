@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.controller
 
 import org.junit.jupiter.api.Test
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 
@@ -28,6 +27,4 @@ class HealthInfoIntTest() : IntegrationTestBase() {
       get("/info"),
     ).andExpect(status().isOk)
   }
-
-
 }
