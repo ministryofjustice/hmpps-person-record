@@ -7,18 +7,18 @@ import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 class OffenderMatcher(val offenderDetails: List<OffenderDetail>?, val person: Person) {
 
   fun isExactMatch(): Boolean {
-    return offenderDetails?.size == 1 && offenderDetails.any { isMatchingOffender(person, it) }
+    return !offenderDetails.isNullOrEmpty() && offenderDetails.size == 1 && offenderDetails.any { isMatchingOffender(person, it) }
   }
 
   fun isPartialMatch(): Boolean {
-    return offenderDetails?.size == 1 && offenderDetails.any {
+    return !offenderDetails.isNullOrEmpty() && offenderDetails.size == 1 && offenderDetails.any {
       person.otherIdentifiers?.pncIdentifier == PNCIdentifier(it.otherIds.pncNumber) &&
         it.firstName.equals(person.givenName, true) || it.surname.equals(person.familyName, true) || it.dateOfBirth == person.dateOfBirth
     }
   }
 
   fun isMultipleMatch(): Boolean {
-    return offenderDetails?.size!! > 1 && offenderDetails.all { isMatchingOffender(person, it) }
+    return !offenderDetails.isNullOrEmpty() && offenderDetails.size > 1 && offenderDetails.all { isMatchingOffender(person, it) }
   }
 
   fun isPncDoesNotMatch(): Boolean {
