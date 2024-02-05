@@ -24,6 +24,7 @@ class SecurityConfiguration {
         authorize
           .requestMatchers(
             "/health/**",
+            "/info/**",
             "/ping",
             "/swagger-ui.html",
             "/swagger-ui/**",
