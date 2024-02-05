@@ -49,7 +49,7 @@ class PrisonerEntity(
   )
   var person: PersonEntity? = null,
 
-  ) : BaseAuditedEntity() {
+) : BaseAuditedEntity() {
   companion object {
     fun from(prisoner: Prisoner): PrisonerEntity {
       val prisonerEntity =
