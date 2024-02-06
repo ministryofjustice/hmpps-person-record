@@ -53,12 +53,12 @@ class PrisonerServiceTest {
       givenName = "John",
       familyName = "Doe",
       dateOfBirth = prisonerDOB,
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123")),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123"), prisonNumber = "12345"),
     )
     val personEntity = Person.from(person)
 
     val prisoner = Prisoner(
-      firstName = "John",
+      firstName = "JOHN",
       lastName = "Doe",
       prisonerNumber = "12345",
       dateOfBirth = prisonerDOB,
@@ -74,7 +74,6 @@ class PrisonerServiceTest {
 
     // Then
     val inOrder: InOrder = inOrder(telemetryService, personRecordService)
-    inOrder.verify(personRecordService).addPrisonerToPerson(personEntity, prisoner)
     inOrder.verify(telemetryService).trackEvent(
       TelemetryEventType.NOMIS_MATCH_FOUND,
       mapOf(
@@ -83,6 +82,7 @@ class PrisonerServiceTest {
         "Prisoner Number" to prisoner.prisonerNumber,
       ),
     )
+    inOrder.verify(personRecordService).addPrisonerToPerson(personEntity, prisoner)
   }
 
   @Test
@@ -132,7 +132,7 @@ class PrisonerServiceTest {
       givenName = "John",
       familyName = "Doe",
       dateOfBirth = prisonerDOB,
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123")),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123"), prisonNumber = "12345"),
     )
     val personEntity = Person.from(person)
     val prisoner = Prisoner(
@@ -164,10 +164,14 @@ class PrisonerServiceTest {
   @Test
   fun `should not call person record service when no nomis results are returned`() {
     // Given
-    val searchCriteria = PrisonerMatchCriteria()
-    whenever(client.findPossibleMatches(searchCriteria)).thenReturn(null)
-    val personEntity = PersonEntity()
-    val person = Person()
+    val personEntity = PersonEntity.new()
+    val person = Person(
+      givenName = "John",
+      familyName = "Doe",
+      dateOfBirth = LocalDate.now(),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123")),
+    )
+    whenever(client.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(null)
 
     // When
     prisonerService.processAssociatedPrisoners(personEntity, person)
