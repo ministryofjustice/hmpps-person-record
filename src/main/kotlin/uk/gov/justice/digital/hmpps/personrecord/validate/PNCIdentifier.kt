@@ -81,5 +81,18 @@ data class PNCIdentifier(private val inputPncId: String? = null) {
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
+
+    private const val VALID_LETTERS = "ZABCDEFGHJKLMNPQRTUVWXY"
+    private const val SLASH = "/"
+    private val PNC_REGEX = Regex("\\d{4}(/?)\\d{7}[A-Z]{1}\$")
+  }
+
+  fun isValid(): Boolean {
+    return (pncId!!.matches(PNC_REGEX) && correctModulus(pncId!!))
+  }
+
+  private fun correctModulus(pncIdentifier: String): Boolean {
+    val modulusLetter = pncIdentifier[12]
+    return VALID_LETTERS[pncIdentifier.replace(SLASH, "").substring(2, 11).toLong().mod(23)] == modulusLetter
   }
 }
