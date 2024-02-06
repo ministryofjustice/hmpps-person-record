@@ -7,7 +7,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.personrecord.client.model.PossibleMatchCriteria
+import uk.gov.justice.digital.hmpps.personrecord.client.model.PrisonerMatchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import java.time.LocalDate
 
@@ -20,7 +20,7 @@ class PrisonerSearchClientIntTest : IntegrationTestBase() {
   fun `should return prisoner details for given match criteria`() {
     // Given
     val dob = LocalDate.of(1960, 1, 1)
-    val possibleMatchCriteria = PossibleMatchCriteria(
+    val prisonerMatchCriteria = PrisonerMatchCriteria(
       firstName = "Eric",
       lastName = "Lassard",
       pncNumber = "2003/0062845E",
@@ -28,7 +28,7 @@ class PrisonerSearchClientIntTest : IntegrationTestBase() {
     )
 
     // When
-    val prisoners = restClient.findPossibleMatches(possibleMatchCriteria)
+    val prisoners = restClient.findPossibleMatches(prisonerMatchCriteria)
 
     // Then
     assertThat(prisoners).isNotEmpty.hasSize(1)
@@ -41,14 +41,14 @@ class PrisonerSearchClientIntTest : IntegrationTestBase() {
   @Test
   fun `should return empty prisoner list for unmatched search criteria`() {
     // Given
-    val possibleMatchCriteria = PossibleMatchCriteria(
+    val prisonerMatchCriteria = PrisonerMatchCriteria(
       firstName = "Melanie",
       lastName = "Sykes",
     )
 
     wireMockExtension.givenThat(
       post(urlPathEqualTo("/prisoner-search/possible-matches"))
-        .withRequestBody(equalTo(objectMapper.writeValueAsString(possibleMatchCriteria)))
+        .withRequestBody(equalTo(objectMapper.writeValueAsString(prisonerMatchCriteria)))
         .withHeader("Content-Type", equalTo("application/json"))
         .willReturn(
           aResponse()
@@ -59,7 +59,7 @@ class PrisonerSearchClientIntTest : IntegrationTestBase() {
     )
 
     // When
-    val prisoners = restClient.findPossibleMatches(possibleMatchCriteria)
+    val prisoners = restClient.findPossibleMatches(prisonerMatchCriteria)
 
     // Then
     assertThat(prisoners).isEmpty()
