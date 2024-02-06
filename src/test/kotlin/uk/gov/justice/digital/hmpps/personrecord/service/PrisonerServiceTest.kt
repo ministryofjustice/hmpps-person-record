@@ -12,8 +12,8 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.PossibleMatchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.client.model.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.client.model.PrisonerMatchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
@@ -67,7 +67,7 @@ class PrisonerServiceTest {
       pncNumber = "PNC123",
     )
 
-    whenever(client.findPossibleMatches(PossibleMatchCriteria.from(person))).thenReturn(listOf(prisoner))
+    whenever(client.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(listOf(prisoner))
 
     // When
     prisonerService.processAssociatedPrisoners(personEntity, person)
@@ -106,7 +106,7 @@ class PrisonerServiceTest {
       pncNumber = "PNC999",
     )
     val prisonerList = listOf(prisoner)
-    whenever(client.findPossibleMatches(PossibleMatchCriteria.from(person))).thenReturn(prisonerList)
+    whenever(client.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(prisonerList)
 
     // When
     prisonerService.processAssociatedPrisoners(personEntity, person)
@@ -144,7 +144,7 @@ class PrisonerServiceTest {
       nationality = "British",
       pncNumber = "PNC123",
     )
-    whenever(client.findPossibleMatches(PossibleMatchCriteria.from(person))).thenReturn(listOf(prisoner))
+    whenever(client.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(listOf(prisoner))
 
     // When
     prisonerService.processAssociatedPrisoners(personEntity, person)
@@ -164,7 +164,7 @@ class PrisonerServiceTest {
   @Test
   fun `should not call person record service when no nomis results are returned`() {
     // Given
-    val searchCriteria = PossibleMatchCriteria()
+    val searchCriteria = PrisonerMatchCriteria()
     whenever(client.findPossibleMatches(searchCriteria)).thenReturn(null)
     val personEntity = PersonEntity()
     val person = Person()

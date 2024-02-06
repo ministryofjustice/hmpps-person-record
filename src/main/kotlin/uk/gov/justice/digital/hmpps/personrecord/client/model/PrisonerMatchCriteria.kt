@@ -7,7 +7,7 @@ import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class PossibleMatchCriteria(
+data class PrisonerMatchCriteria(
   val firstName: String? = null,
   val lastName: String? = null,
   val dateOfBirth: LocalDate? = null,
@@ -15,8 +15,8 @@ data class PossibleMatchCriteria(
   val nomsNumber: String? = null,
 ) {
   companion object {
-    fun from(person: Person): PossibleMatchCriteria =
-      PossibleMatchCriteria(
+    fun from(person: Person): PrisonerMatchCriteria =
+      PrisonerMatchCriteria(
         firstName = person.givenName,
         lastName = person.familyName,
         dateOfBirth = person.dateOfBirth,
