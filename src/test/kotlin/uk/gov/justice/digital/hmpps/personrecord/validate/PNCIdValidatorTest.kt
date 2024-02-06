@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.validate
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -10,6 +9,9 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import java.nio.file.Files
+import java.nio.file.Paths
+import kotlin.text.Charsets.UTF_8
 
 @ExtendWith(MockitoExtension::class)
 class PNCIdValidatorTest {
@@ -56,60 +58,22 @@ class PNCIdValidatorTest {
     assertThat(valid).isTrue()
   }
 
-  @Test
-  fun `should return Z check digit for an input of 0`() {
-    // Given
-    val index = 0
-
-    // When
-    val letterInAlphabet = PNCIdValidator.convertNumberToLetterInAlphabet(index)
-
-    // Then
-    assertThat(letterInAlphabet).isEqualTo('Z')
-  }
-
-  @Test
-  fun `should return A check digit for an input of 1`() {
-    // Given
-    val index = 1
-
-    // When
-    val letterInAlphabet = PNCIdValidator.convertNumberToLetterInAlphabet(index)
-
-    // Then
-    assertThat(letterInAlphabet).isEqualTo('A')
-  }
-
-  @Test
-  fun `should return Y check digit for an input of 22`() {
-    // Given
-    val index = 22
-
-    // When
-    val letterInAlphabet = PNCIdValidator.convertNumberToLetterInAlphabet(index)
-
-    // Then
-    assertThat(letterInAlphabet).isEqualTo('Y')
-  }
-
   @ParameterizedTest
-  @ValueSource(ints = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22])
-  fun `should not return ignored letters for any input`(input: Int) {
+  @ValueSource(strings = ["20030011985Z", "20120052494O", "20230583843N", "2001/0171310S"])
+  fun `should return invalid when PNC id is correctly formatted but not valid`(pncId: String) {
     // When
-    val letterInAlphabet = PNCIdValidator.convertNumberToLetterInAlphabet(input)
+    val valid = pncIdValidator.isValid(PNCIdentifier(pncId))
 
     // Then
-    assertThat(letterInAlphabet).isNotIn('I', 'O', 'S')
+    assertThat(valid).isFalse()
   }
 
   @Test
-  fun `should throw exception for inputs outside of number range`() {
-    // when
-    val exception = Assertions.assertThrows(IllegalArgumentException::class.java) {
-      PNCIdValidator.convertNumberToLetterInAlphabet(99)
-    }
+  fun `validating PNCs from file`() {
+    val readAllLines = Files.readAllLines(Paths.get("src/test/resources/valid_pncs.csv"), UTF_8)
 
-    // Then
-    assertThat(exception.message).contains("Number: 99 is out of range")
+    readAllLines.stream().forEach {
+      assertThat(pncIdValidator.isValid(PNCIdentifier(it))).isTrue()
+    }
   }
 }
