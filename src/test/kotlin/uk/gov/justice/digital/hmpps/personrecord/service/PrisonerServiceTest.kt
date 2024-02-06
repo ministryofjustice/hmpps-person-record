@@ -12,8 +12,8 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.PossibleMatchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.client.model.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.client.model.PrisonerMatchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
@@ -53,12 +53,12 @@ class PrisonerServiceTest {
       givenName = "John",
       familyName = "Doe",
       dateOfBirth = prisonerDOB,
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123")),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123"), prisonNumber = "12345"),
     )
     val personEntity = Person.from(person)
 
     val prisoner = Prisoner(
-      firstName = "John",
+      firstName = "JOHN",
       lastName = "Doe",
       prisonerNumber = "12345",
       dateOfBirth = prisonerDOB,
@@ -67,14 +67,13 @@ class PrisonerServiceTest {
       pncNumber = "PNC123",
     )
 
-    whenever(client.findPossibleMatches(PossibleMatchCriteria.from(person))).thenReturn(listOf(prisoner))
+    whenever(client.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(listOf(prisoner))
 
     // When
     prisonerService.processAssociatedPrisoners(personEntity, person)
 
     // Then
     val inOrder: InOrder = inOrder(telemetryService, personRecordService)
-    inOrder.verify(personRecordService).addPrisonerToPerson(personEntity, prisoner)
     inOrder.verify(telemetryService).trackEvent(
       TelemetryEventType.NOMIS_MATCH_FOUND,
       mapOf(
@@ -83,6 +82,7 @@ class PrisonerServiceTest {
         "Prisoner Number" to prisoner.prisonerNumber,
       ),
     )
+    inOrder.verify(personRecordService).addPrisonerToPerson(personEntity, prisoner)
   }
 
   @Test
@@ -106,7 +106,7 @@ class PrisonerServiceTest {
       pncNumber = "PNC999",
     )
     val prisonerList = listOf(prisoner)
-    whenever(client.findPossibleMatches(PossibleMatchCriteria.from(person))).thenReturn(prisonerList)
+    whenever(client.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(prisonerList)
 
     // When
     prisonerService.processAssociatedPrisoners(personEntity, person)
@@ -132,7 +132,7 @@ class PrisonerServiceTest {
       givenName = "John",
       familyName = "Doe",
       dateOfBirth = prisonerDOB,
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123")),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123"), prisonNumber = "12345"),
     )
     val personEntity = Person.from(person)
     val prisoner = Prisoner(
@@ -144,7 +144,7 @@ class PrisonerServiceTest {
       nationality = "British",
       pncNumber = "PNC123",
     )
-    whenever(client.findPossibleMatches(PossibleMatchCriteria.from(person))).thenReturn(listOf(prisoner))
+    whenever(client.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(listOf(prisoner))
 
     // When
     prisonerService.processAssociatedPrisoners(personEntity, person)
@@ -164,10 +164,14 @@ class PrisonerServiceTest {
   @Test
   fun `should not call person record service when no nomis results are returned`() {
     // Given
-    val searchCriteria = PossibleMatchCriteria()
-    whenever(client.findPossibleMatches(searchCriteria)).thenReturn(null)
-    val personEntity = PersonEntity()
-    val person = Person()
+    val personEntity = PersonEntity.new()
+    val person = Person(
+      givenName = "John",
+      familyName = "Doe",
+      dateOfBirth = LocalDate.now(),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123")),
+    )
+    whenever(client.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(null)
 
     // When
     prisonerService.processAssociatedPrisoners(personEntity, person)
