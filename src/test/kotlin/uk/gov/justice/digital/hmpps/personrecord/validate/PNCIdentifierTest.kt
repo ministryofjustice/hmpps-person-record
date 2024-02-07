@@ -67,7 +67,7 @@ class PNCIdentifierTest {
     val expectedCanonicalForm = PNCIdentifier(pncId).pncId
 
     // Then
-    assertThat(expectedCanonicalForm).isEqualTo(expectedResult)
+    assertThat(expectedCanonicalForm).isEqualTo(expectedResult.uppercase())
   }
 
   @ParameterizedTest

@@ -5,11 +5,12 @@ import java.time.LocalDate
 
 const val LONG_PNC_ID_LENGTH = 10
 
-data class PNCIdentifier(private val inputPncId: String? = null) {
+class PNCIdentifier(private val inputPncId: String? = null) {
+  val storedPncId: String? = inputPncId?.uppercase()
   // always use canonical format when storing and comparing
 
   val pncId: String?
-    get() = toCanonicalForm(inputPncId)
+    get() = toCanonicalForm(storedPncId)
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
