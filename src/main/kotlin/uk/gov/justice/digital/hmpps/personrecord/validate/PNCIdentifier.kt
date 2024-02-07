@@ -6,8 +6,7 @@ import java.time.LocalDate
 const val LONG_PNC_ID_LENGTH = 10
 
 data class PNCIdentifier(private val inputPncId: String? = null) {
-  val inputPnc: String?
-    get() = inputPncId
+  // always use canonical format when storing and comparing
 
   val pncId: String?
     get() = toCanonicalForm(inputPncId)

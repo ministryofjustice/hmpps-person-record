@@ -78,7 +78,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
         eq(INVALID_PNC),
         check {
           assertThat(it["PNC"]).isEqualTo("2003/0062845X").withFailMessage("PNC incorrect")
-          assertThat(it["inputPNC"]).isEqualTo("03/62845X").withFailMessage("inputPNC incorrect")
         },
       )
     }

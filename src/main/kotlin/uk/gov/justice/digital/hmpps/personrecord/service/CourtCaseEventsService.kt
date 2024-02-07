@@ -34,7 +34,7 @@ class CourtCaseEventsService(
     person.otherIdentifiers?.pncIdentifier?.let { pncIdentifier ->
       val pncId = pncIdentifier.pncId
       if (pncIdentifier.isValid()) {
-        telemetryService.trackEvent(TelemetryEventType.VALID_PNC, mapOf("PNC" to pncIdentifier.pncId, "inputPNC" to pncIdentifier.inputPnc))
+        telemetryService.trackEvent(TelemetryEventType.VALID_PNC, mapOf("PNC" to pncIdentifier.pncId))
         val defendants = personRepository.findByDefendantsPncNumber(PNCIdentifier(pncId!!))?.defendants.orEmpty()
 
         if (matchesExistingRecordExactly(defendants, person)) {
@@ -63,7 +63,7 @@ class CourtCaseEventsService(
           )
         } // what if defendants is not empty?
       } else {
-        telemetryService.trackEvent(TelemetryEventType.INVALID_PNC, mapOf("PNC" to pncIdentifier.pncId, "inputPNC" to pncIdentifier.inputPnc))
+        telemetryService.trackEvent(TelemetryEventType.INVALID_PNC, mapOf("PNC" to pncIdentifier.pncId))
       }
     }
   }
