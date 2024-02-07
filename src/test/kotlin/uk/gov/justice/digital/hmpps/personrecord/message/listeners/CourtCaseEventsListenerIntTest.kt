@@ -189,7 +189,48 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should not push messages onto dead letter queue when processing fails because of could not serialize access due to read write dependencies among transactions`() {
+  fun `should not push messages from Libra onto dead letter queue when processing fails because of could not serialize access due to read write dependencies among transactions`() {
+    // given
+    val publishRequest = PublishRequest.builder()
+      .topicArn(courtCaseEventsTopic?.arn)
+      .message(libraHearing())
+      .messageAttributes(
+        mapOf(
+          "messageType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(MessageType.LIBRA_COURT_CASE.name).build(),
+        ),
+      )
+      .build()
+
+    // when
+    val blitzer = Blitzer(100, 50)
+    try {
+      blitzer.blitz {
+        courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+      }
+    } finally {
+      blitzer.shutdown()
+    }
+
+    // then
+    await untilCallTo {
+      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
+    } matches { it == 0 }
+
+    await untilCallTo {
+      cprCourtCaseEventsQueue?.sqsDlqClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.dlqUrl!!)?.get()
+    } matches { it == 0 }
+
+    verify(telemetryService, times(1)).trackEvent(
+      eq(TelemetryEventType.NEW_CASE_PERSON_CREATED),
+      check {
+        assertThat(it["PNC"]).isEqualTo("2003/0011985X")
+      },
+    )
+  }
+
+  @Test
+  fun `should not push messages from Common Platform onto dead letter queue when processing fails because of could not serialize access due to read write dependencies among transactions`() {
     // given
     val pncNumber = PNCIdentifier("2003/0062845E")
 
@@ -203,6 +244,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
         ),
       )
       .build()
+    // when
     val blitzer = Blitzer(100, 50)
     try {
       blitzer.blitz {
@@ -211,7 +253,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     } finally {
       blitzer.shutdown()
     }
-    // when
 
     // then
     await untilCallTo {
