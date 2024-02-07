@@ -6,7 +6,7 @@ import java.time.LocalDate
 const val LONG_PNC_ID_LENGTH = 10
 
 class PNCIdentifier(private val inputPncId: String? = null) {
-  val storedPncId: String? = inputPncId?.uppercase()
+  private val storedPncId: String? = inputPncId?.uppercase()
   // always use canonical format when storing and comparing
 
   val pncId: String?
@@ -23,6 +23,9 @@ class PNCIdentifier(private val inputPncId: String? = null) {
     return pncId?.hashCode() ?: 0
   }
 
+  override fun toString(): String {
+    return pncId ?: ""
+  }
   private fun toCanonicalForm(pnc: String?): String? {
     return when {
       pnc.isNullOrEmpty() -> pnc

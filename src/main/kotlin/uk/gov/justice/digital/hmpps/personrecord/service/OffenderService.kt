@@ -81,7 +81,7 @@ class OffenderService(
       TelemetryEventType.DELIUS_PNC_MISMATCH,
       mapOf(
         "UUID" to personEntity.personId.toString(),
-        "PNC searched for" to person.otherIdentifiers?.pncIdentifier?.pncId,
+        "PNC searched for" to person.otherIdentifiers?.pncIdentifier.toString(),
         "PNC returned from search" to offenderDetails.joinToString(" ") { it.otherIds.pncNumber.toString() },
         "PRISON NUMBER" to offenderDetails.singleOrNull()?.otherIds?.nomsNumber,
       ).filterValues { !it.isNullOrBlank() },
@@ -98,7 +98,7 @@ class OffenderService(
       eventType,
       mapOf(
         "UUID" to personEntity.personId.toString(),
-        "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
+        "PNC" to person.otherIdentifiers?.pncIdentifier.toString(),
         "CRN" to person.otherIdentifiers?.crn,
         "PRISON NUMBER" to person.otherIdentifiers?.prisonNumber,
       ).filterValues { !it.isNullOrBlank() },
