@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_CASE_PERSON_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdValidator
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 
 @Service
@@ -21,7 +20,6 @@ class CourtCaseEventsService(
   private val prisonerService: PrisonerService,
 ) {
 
-  private val pncIdValidator: PNCIdValidator = PNCIdValidator(telemetryService)
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
@@ -35,7 +33,8 @@ class CourtCaseEventsService(
     }
     person.otherIdentifiers?.pncIdentifier?.let { pncIdentifier ->
       val pncId = pncIdentifier.pncId
-      if (pncIdValidator.isValid(pncIdentifier)) {
+      if (pncIdentifier.isValid()) {
+        telemetryService.trackEvent(TelemetryEventType.VALID_PNC, mapOf("PNC" to pncIdentifier.pncId, "inputPNC" to pncIdentifier.inputPnc))
         val defendants = personRepository.findByDefendantsPncNumber(PNCIdentifier(pncId!!))?.defendants.orEmpty()
 
         if (matchesExistingRecordExactly(defendants, person)) {
@@ -63,6 +62,8 @@ class CourtCaseEventsService(
             mapOf("UUID" to personRecord.personId.toString(), "PNC" to pncId),
           )
         } // what if defendants is not empty?
+      } else {
+        telemetryService.trackEvent(TelemetryEventType.INVALID_PNC, mapOf("PNC" to pncIdentifier.pncId, "inputPNC" to pncIdentifier.inputPnc))
       }
     }
   }
