@@ -27,7 +27,7 @@ class PNCIdentifierTest {
     val expectedCanonicalForm = PNCIdentifier(null).pncId
 
     // Then
-    assertThat(expectedCanonicalForm).isNull()
+    assertThat(expectedCanonicalForm).isEmpty()
   }
 
   @ParameterizedTest

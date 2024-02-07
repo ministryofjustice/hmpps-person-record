@@ -5,11 +5,11 @@ import java.time.LocalDate
 
 const val LONG_PNC_ID_LENGTH = 10
 
-class PNCIdentifier(private val inputPncId: String? = null) {
-  private val storedPncId: String? = inputPncId?.uppercase()
+class PNCIdentifier(inputPncId: String? = null) {
+  private val storedPncId: String = inputPncId?.uppercase() ?: ""
   // always use canonical format when storing and comparing
 
-  val pncId: String?
+  val pncId: String
     get() = toCanonicalForm(storedPncId)
 
   override fun equals(other: Any?): Boolean {
@@ -20,15 +20,15 @@ class PNCIdentifier(private val inputPncId: String? = null) {
   }
 
   override fun hashCode(): Int {
-    return pncId?.hashCode() ?: 0
+    return pncId.hashCode()
   }
 
   override fun toString(): String {
-    return pncId ?: ""
+    return pncId
   }
-  private fun toCanonicalForm(pnc: String?): String? {
+  private fun toCanonicalForm(pnc: String): String {
     return when {
-      pnc.isNullOrEmpty() -> pnc
+      pnc.isBlank() -> pnc
       else -> {
         val sanitizedPncId = pnc.replace("/", "")
 
@@ -91,7 +91,7 @@ class PNCIdentifier(private val inputPncId: String? = null) {
   }
 
   fun isValid(): Boolean {
-    return (pncId!!.matches(PNC_REGEX) && correctModulus(pncId!!))
+    return (pncId.matches(PNC_REGEX) && correctModulus(pncId))
   }
 
   private fun correctModulus(pncIdentifier: String): Boolean {
