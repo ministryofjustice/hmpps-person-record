@@ -26,7 +26,7 @@ class DefendantMatcher(defendants: List<DefendantEntity>?, person: Person) :
       "Date of birth" to if (defendant.dateOfBirth?.equals(person.dateOfBirth) == true) defendant.dateOfBirth.toString() else null,
     ).filterValues { it != null }
 
-  fun hasNothingMatch(): Boolean {
+  fun hasNothingToMatch(): Boolean {
     return items.isNullOrEmpty()
   }
 }

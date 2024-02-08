@@ -44,7 +44,7 @@ class CourtCaseEventsService(
         val defendantMatcher = DefendantMatcher(defendants, person)
 
         when {
-          defendantMatcher.hasNothingMatch() -> createNewPersonRecordAndProcess(person, pncId)
+          defendantMatcher.hasNothingToMatch() -> createNewPersonRecordAndProcess(person, pncId)
           defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person, pncId)
           defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher)
           else -> {
