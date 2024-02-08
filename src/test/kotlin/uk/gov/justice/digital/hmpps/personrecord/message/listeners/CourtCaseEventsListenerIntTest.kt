@@ -159,7 +159,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     // given
     val publishRequest = PublishRequest.builder()
       .topicArn(courtCaseEventsTopic?.arn)
-      .message(libraHearing("19231234567A"))
+      .message(libraHearing("1979/0027672E"))
       .messageAttributes(
         mapOf(
           "messageType" to MessageAttributeValue.builder().dataType("String")
@@ -180,7 +180,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       verify(telemetryService).trackEvent(
         eq(TelemetryEventType.NEW_LIBRA_CASE_RECEIVED),
         check {
-          assertThat(it["PNC"]).isEqualTo("1923/1234567A")
+          assertThat(it["PNC"]).isEqualTo("1979/0027672E")
           assertThat(it["CRO"]).isEqualTo("11111/79J")
         },
       )

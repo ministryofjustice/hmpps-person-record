@@ -6,6 +6,7 @@ import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
@@ -21,13 +22,12 @@ import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.NE
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DELIUS_RECORD_CREATION_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_DELIUS_RECORD_NEW_PNC
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
-
-private const val CRN = "XXX1234"
+import java.util.concurrent.TimeUnit.SECONDS
 
 @Sql(
   scripts = ["classpath:sql/before-test.sql"],
@@ -48,8 +48,9 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
   @Test
   fun `should receive the message successfully when new offender event published`() {
     // Given
-    val expectedPncNumber = PNCIdentifier("PN/1234560XX")
-    val domainEvent = objectMapper.writeValueAsString(createDomainEvent(NEW_OFFENDER_CREATED, CRN))
+    val crn = "XXX1234"
+    val expectedPncNumber = PNCIdentifier("2020/0476873U")
+    val domainEvent = objectMapper.writeValueAsString(createDomainEvent(NEW_OFFENDER_CREATED, crn))
 
     val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
       .message(domainEvent)
@@ -61,38 +62,84 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
       ).build()
 
     // When publish new offender domain event with CRN XXX1234
-    val publishResponse = publishOffenderEvent(publishRequest)?.get()
+    publishOffenderEvent(publishRequest)?.get()
 
     // Then
-    assertThat(publishResponse?.sdkHttpResponse()?.isSuccessful).isTrue()
-    assertThat(publishResponse?.messageId()).isNotNull()
+    assertNewOffenderDomainEventReceiverQueueHasProcessedMessages()
+
+    await untilAsserted {
+      verify(telemetryService).trackEvent(
+        eq(DELIUS_RECORD_CREATION_RECEIVED),
+        org.mockito.kotlin.check {
+          assertThat(it["CRN"]).isEqualTo(crn)
+        },
+      )
+    }
+
+    await untilAsserted {
+      verify(telemetryService).trackEvent(
+        eq(NEW_DELIUS_RECORD_NEW_PNC),
+        org.mockito.kotlin.check {
+          assertThat(it["CRN"]).isEqualTo(crn)
+        },
+      )
+    }
+
+    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findPersonEntityByPncNumber(expectedPncNumber) }
+
+    assertThat(personEntity.personId).isNotNull()
+    assertThat(personEntity.offenders).hasSize(1)
+    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(expectedPncNumber)
+    assertThat(personEntity.offenders[0].crn).isEqualTo(crn)
+  }
+
+  @Test
+  @Disabled("TODO")
+  fun `should write offender without PNC if PNC is invalid`() {
+    // Given
+    val crn = "XXX5678"
+    val domainEvent = objectMapper.writeValueAsString(createDomainEvent(NEW_OFFENDER_CREATED, crn))
+
+    val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
+      .message(domainEvent)
+      .messageAttributes(
+        mapOf(
+          "eventType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(NEW_OFFENDER_CREATED).build(),
+        ),
+      ).build()
+
+    // When
+    publishOffenderEvent(publishRequest)?.get()
+
+    // Then
 
     assertNewOffenderDomainEventReceiverQueueHasProcessedMessages()
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.DELIUS_RECORD_CREATION_RECEIVED),
+        eq(DELIUS_RECORD_CREATION_RECEIVED),
         org.mockito.kotlin.check {
-          assertThat(it["CRN"]).isEqualTo(CRN)
+          assertThat(it["CRN"]).isEqualTo(crn)
         },
       )
     }
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.NEW_DELIUS_RECORD_NEW_PNC),
+        eq(NEW_DELIUS_RECORD_NEW_PNC),
         org.mockito.kotlin.check {
-          assertThat(it["CRN"]).isEqualTo(CRN)
+          assertThat(it["CRN"]).isEqualTo(crn)
         },
       )
     }
 
-    val personEntity = await.atMost(10, TimeUnit.SECONDS) untilNotNull { personRepository.findPersonEntityByPncNumber(expectedPncNumber) }
+    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByOffendersCrn(crn) }
 
     assertThat(personEntity.personId).isNotNull()
     assertThat(personEntity.offenders).hasSize(1)
-    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(expectedPncNumber)
-    assertThat(personEntity.offenders[0].crn).isEqualTo(CRN)
+    assertThat(personEntity.offenders[0].pncNumber?.pncId).isEqualTo("")
+    assertThat(personEntity.offenders[0].crn).isEqualTo(crn)
   }
 
   fun publishOffenderEvent(publishRequest: PublishRequest): CompletableFuture<PublishResponse>? {
