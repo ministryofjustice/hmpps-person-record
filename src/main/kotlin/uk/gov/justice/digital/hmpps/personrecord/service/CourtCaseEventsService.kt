@@ -8,6 +8,12 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.matcher.DefendantMatcher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MISSING_PNC
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_CASE_EXACT_MATCH
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_CASE_PARTIAL_MATCH
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_CASE_PERSON_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.VALID_PNC
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 
 @Service
@@ -27,13 +33,13 @@ class CourtCaseEventsService(
   fun processPersonFromCourtCaseEvent(person: Person) {
     log.debug("Entered processPersonFromCourtCaseEvent")
     if (person.otherIdentifiers?.pncIdentifier?.pncId.isNullOrEmpty()) {
-      trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
+      trackEvent(MISSING_PNC, emptyMap())
       return
     }
     person.otherIdentifiers?.pncIdentifier?.let { pncIdentifier ->
       val pncId = pncIdentifier.pncId
       if (pncIdentifier.isValid()) {
-        trackEvent(TelemetryEventType.VALID_PNC, mapOf("PNC" to pncIdentifier.toString()))
+        trackEvent(VALID_PNC, mapOf("PNC" to pncIdentifier.toString()))
         val defendants = personRepository.findByDefendantsPncNumber(PNCIdentifier(pncId))?.defendants.orEmpty()
         val defendantMatcher = DefendantMatcher(defendants, person)
 
@@ -46,7 +52,7 @@ class CourtCaseEventsService(
           }
         }
       } else {
-        trackEvent(TelemetryEventType.INVALID_PNC, mapOf("PNC" to pncIdentifier.toString()))
+        trackEvent(INVALID_PNC, mapOf("PNC" to pncIdentifier.toString()))
       }
     }
   }
@@ -59,19 +65,19 @@ class CourtCaseEventsService(
       prisonerService.processAssociatedPrisoners(it, person)
     }
     trackEvent(
-      TelemetryEventType.NEW_CASE_PERSON_CREATED,
+      NEW_CASE_PERSON_CREATED,
       mapOf("UUID" to personRecord.personId.toString(), "PNC" to pnc),
     )
   }
   private fun exactMatchFound(defendantMatcher: DefendantMatcher, person: Person, pnc: String) {
     log.info("Exactly matching Person record exists with defendant - no further processing will occur")
     val elementMap = mapOf("PNC" to pnc, "CRN" to defendantMatcher.getItemDetail().crn, "UUID" to person.personId.toString())
-    trackEvent(TelemetryEventType.NEW_CASE_EXACT_MATCH, elementMap)
+    trackEvent(NEW_CASE_EXACT_MATCH, elementMap)
   }
 
   private fun partialMatchFound(defendantMatcher: DefendantMatcher) {
     log.info("Partially matching Person record exists with defendant - no further processing will occur")
-    trackEvent(TelemetryEventType.NEW_CASE_PARTIAL_MATCH, defendantMatcher.extractMatchingFields(defendantMatcher.getItemDetail()))
+    trackEvent(NEW_CASE_PARTIAL_MATCH, defendantMatcher.extractMatchingFields(defendantMatcher.getItemDetail()))
   }
   private fun trackEvent(
     eventType: TelemetryEventType,
