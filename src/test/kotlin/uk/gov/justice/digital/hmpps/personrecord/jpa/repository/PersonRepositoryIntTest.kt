@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 class PersonRepositoryIntTest : IntegrationTestBase() {
 
@@ -24,7 +24,7 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
   fun `should return exact match for provided UUID`() {
     // Given
     val personId = UUID.fromString("eed4a9a4-d853-11ed-afa1-0242ac120002")
-    val person = Person(otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("2001/0171310W"), crn = "CRN1234"), givenName = "Iestyn", familyName = "Mahoney", dateOfBirth = LocalDate.of(1965, 6, 18))
+    val person = Person(otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("2001/0171310W"), crn = "CRN1234"), givenName = "Iestyn", familyName = "Mahoney", dateOfBirth = LocalDate.of(1965, 6, 18))
 
     val newPersonEntity = PersonEntity(personId = personId)
     newPersonEntity.createdBy = "test"
@@ -75,7 +75,7 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
   @Test
   fun `should return correct person with defendants matching pnc number`() {
     // Given
-    val person = Person(otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("2008/0056560Z")))
+    val person = Person(otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("2008/0056560Z")))
 
     val newPersonEntity = PersonEntity.new()
     val newDefendantEntity = DefendantEntity.from(person)
@@ -84,7 +84,6 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
 
     personRepository.saveAndFlush(newPersonEntity)
     val pncIdentifier = PNCIdentifier.from("2008/0056560Z")
-
 
     // When
     val personEntity = personRepository.findByDefendantsPncNumber(pncIdentifier)
