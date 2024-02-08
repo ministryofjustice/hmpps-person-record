@@ -56,7 +56,7 @@ class ProbationCaseEngagementServiceTest {
 
     probationCaseEngagementService.processNewOffender(deliusOffenderDetail)
 
-    verify(personRepository).findPersonEntityByPncNumber(PNCIdentifier("19790163001B"))
+    verify(personRepository).findPersonEntityByPncNumber(PNCIdentifier.from("19790163001B"))
     verify(personRepository).saveAndFlush(personEntity)
     verify(telemetryService).trackEvent(
       TelemetryEventType.NEW_DELIUS_RECORD_PNC_MATCHED,
@@ -87,7 +87,7 @@ class ProbationCaseEngagementServiceTest {
 
     probationCaseEngagementService.processNewOffender(deliusOffenderDetail)
 
-    verify(personRepository).findPersonEntityByPncNumber(PNCIdentifier("19790163001B"))
+    verify(personRepository).findPersonEntityByPncNumber(PNCIdentifier.from("19790163001B"))
     verify(telemetryService).trackEvent(
       TelemetryEventType.NEW_DELIUS_RECORD_NEW_PNC,
       mapOf(

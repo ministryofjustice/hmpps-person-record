@@ -12,6 +12,6 @@ class PNCIdentifierConverter : AttributeConverter<PNCIdentifier, String> {
   }
 
   override fun convertToEntityAttribute(pncIdentifier: String?): PNCIdentifier {
-    return PNCIdentifier(pncIdentifier)
+    return PNCIdentifier.from(pncIdentifier)
   }
 }

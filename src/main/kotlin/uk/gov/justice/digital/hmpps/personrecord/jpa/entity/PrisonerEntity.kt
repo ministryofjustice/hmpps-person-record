@@ -55,7 +55,7 @@ class PrisonerEntity(
       val prisonerEntity =
         PrisonerEntity(
           prisonNumber = prisoner.prisonerNumber,
-          pncNumber = PNCIdentifier(prisoner.pncNumber),
+          pncNumber = PNCIdentifier.from(prisoner.pncNumber),
           firstName = prisoner.firstName,
           lastName = prisoner.lastName,
           dateOfBirth = prisoner.dateOfBirth,

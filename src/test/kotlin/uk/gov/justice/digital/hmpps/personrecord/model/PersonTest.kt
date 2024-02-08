@@ -43,7 +43,7 @@ internal class PersonTest {
     val person = Person.from(libraHearingEvent)
 
     // Then
-    assertThat(person.otherIdentifiers?.pncIdentifier).isEqualTo(PNCIdentifier("1979/0026538X"))
+    assertThat(person.otherIdentifiers?.pncIdentifier).isEqualTo(PNCIdentifier.from("1979/0026538X"))
     assertThat(person.givenName).isEqualTo("Stephen")
     assertThat(person.familyName).isEqualTo("King")
     assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
@@ -69,7 +69,7 @@ internal class PersonTest {
     val person = Person.from(defendant)
 
     // Then
-    assertThat(person.otherIdentifiers?.pncIdentifier).isEqualTo(PNCIdentifier("1979/0026538X"))
+    assertThat(person.otherIdentifiers?.pncIdentifier).isEqualTo(PNCIdentifier.from("1979/0026538X"))
     assertThat(person.givenName).isEqualTo("Stephen")
     assertThat(person.familyName).isEqualTo("King")
     assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
