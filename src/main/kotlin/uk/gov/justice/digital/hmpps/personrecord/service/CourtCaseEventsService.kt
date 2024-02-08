@@ -71,13 +71,13 @@ class CourtCaseEventsService(
   }
   private fun exactMatchFound(defendantMatcher: DefendantMatcher, person: Person, pnc: String) {
     log.info("Exactly matching Person record exists with defendant - no further processing will occur")
-    val elementMap = mapOf("PNC" to pnc, "CRN" to defendantMatcher.getItemDetail().crn, "UUID" to person.personId.toString())
+    val elementMap = mapOf("PNC" to pnc, "CRN" to defendantMatcher.getMatchingItem().crn, "UUID" to person.personId.toString())
     trackEvent(NEW_CASE_EXACT_MATCH, elementMap)
   }
 
   private fun partialMatchFound(defendantMatcher: DefendantMatcher) {
     log.info("Partially matching Person record exists with defendant - no further processing will occur")
-    trackEvent(NEW_CASE_PARTIAL_MATCH, defendantMatcher.extractMatchingFields(defendantMatcher.getItemDetail()))
+    trackEvent(NEW_CASE_PARTIAL_MATCH, defendantMatcher.extractMatchingFields(defendantMatcher.getMatchingItem()))
   }
   private fun trackEvent(
     eventType: TelemetryEventType,

@@ -52,7 +52,7 @@ class PrisonerService(
   }
 
   private fun exactMatchFound(prisonerMatcher: PrisonerMatcher, personEntity: PersonEntity, person: Person) {
-    val matchingPrisoner = prisonerMatcher.getItemDetail()
+    val matchingPrisoner = prisonerMatcher.getMatchingItem()
     logAndTrackEvent(EXACT_MATCH_MESSAGE, TelemetryEventType.NOMIS_MATCH_FOUND, personEntity, person)
     personRecordService.addPrisonerToPerson(personEntity, matchingPrisoner)
   }

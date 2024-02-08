@@ -10,5 +10,5 @@ abstract class Matcher<T>(val items: List<T>?, protected val person: Person) {
   fun isPartialMatch() = !items.isNullOrEmpty() && items.size == 1 && items.any(::isPartialMatchItem)
   fun isMultipleMatch() = !items.isNullOrEmpty() && items.size > 1 && items.all(::isMatchingItem)
   fun getAllMatchingItems() = items?.filter(::isMatchingItem)
-  fun getItemDetail(): T = items!!.first()
+  fun getMatchingItem(): T = items!!.first()
 }

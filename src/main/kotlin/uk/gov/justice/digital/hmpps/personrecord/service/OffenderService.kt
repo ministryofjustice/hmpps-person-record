@@ -60,7 +60,7 @@ class OffenderService(
 
   private fun exactMatchFound(offenderMatches: OffenderMatcher, personEntity: PersonEntity, person: Person) {
     logAndTrackEvent(EXACT_MATCH_MESSAGE, TelemetryEventType.DELIUS_MATCH_FOUND, personEntity, person)
-    val offenderDetail = offenderMatches.getItemDetail()
+    val offenderDetail = offenderMatches.getMatchingItem()
     personRecordService.addOffenderToPerson(personEntity, Person.from(offenderDetail))
   }
 
