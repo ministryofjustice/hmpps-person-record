@@ -36,7 +36,6 @@ class CourtCaseEventsService(
       if (pncIdentifier.isValid()) {
         telemetryService.trackEvent(TelemetryEventType.VALID_PNC, mapOf("PNC" to pncIdentifier.toString()))
         val defendants = personRepository.findByDefendantsPncNumber(PNCIdentifier(pncId))?.defendants.orEmpty()
-
         if (matchesExistingRecordExactly(defendants, person)) {
           log.info("Exactly matching Person record exists with defendant - no further processing will occur")
           telemetryService.trackEvent(
