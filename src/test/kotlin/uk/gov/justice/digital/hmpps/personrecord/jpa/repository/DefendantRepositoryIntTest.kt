@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -13,9 +12,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 class DefendantRepositoryIntTest : IntegrationTestBase() {
-
-  @Autowired
-  lateinit var defendantRepository: DefendantRepository
 
   @Test
   fun `should save defendant successfully and link a new  person record`() {
