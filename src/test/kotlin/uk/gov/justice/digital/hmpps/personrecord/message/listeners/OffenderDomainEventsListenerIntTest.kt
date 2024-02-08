@@ -44,7 +44,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
   fun `should receive the message successfully when new offender event published`() {
     // Given
     val crn = "XXX1234"
-    val expectedPncNumber = PNCIdentifier("2020/0476873U")
+    val expectedPncNumber = PNCIdentifier.create("2020/0476873U")
     val domainEvent = objectMapper.writeValueAsString(createDomainEvent(NEW_OFFENDER_CREATED, crn))
 
     val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)

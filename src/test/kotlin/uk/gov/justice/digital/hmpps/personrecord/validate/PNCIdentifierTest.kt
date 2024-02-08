@@ -15,7 +15,7 @@ class PNCIdentifierTest {
   @Test
   fun `should process an empty string`() {
     // When
-    val expectedCanonicalForm = PNCIdentifier("").pncId
+    val expectedCanonicalForm = PNCIdentifier.create("").pncId
 
     // Then
     assertThat(expectedCanonicalForm).isEmpty()
@@ -24,7 +24,7 @@ class PNCIdentifierTest {
   @Test
   fun `should process a null string`() {
     // When
-    val expectedCanonicalForm = PNCIdentifier(null).pncId
+    val expectedCanonicalForm = PNCIdentifier.create(null).pncId
 
     // Then
     assertThat(expectedCanonicalForm).isEmpty()
@@ -34,7 +34,7 @@ class PNCIdentifierTest {
   @MethodSource("longFormPncProvider")
   fun `should convert long form PNC ids to canonical form`(pncId: String, expectedResult: String) {
     // When
-    val expectedCanonicalForm = PNCIdentifier(pncId).pncId
+    val expectedCanonicalForm = PNCIdentifier.create(pncId).pncId
 
     // Then
     assertThat(expectedCanonicalForm).isEqualTo(expectedResult)
@@ -44,7 +44,7 @@ class PNCIdentifierTest {
   @MethodSource("canonicalFormPncProvider")
   fun `should NOT convert PNCs already in canonical form`(pncId: String, expectedResult: String) {
     // When
-    val result = PNCIdentifier(pncId).pncId
+    val result = PNCIdentifier.create(pncId).pncId
 
     // Then
     assertThat(result).isEqualTo(expectedResult)
@@ -54,7 +54,7 @@ class PNCIdentifierTest {
   @MethodSource("shortFormPncProvider")
   fun `should convert short form PNC ids to canonical form`(pncId: String, expectedResult: String) {
     // When
-    val expectedCanonicalForm = PNCIdentifier(pncId).pncId
+    val expectedCanonicalForm = PNCIdentifier.create(pncId).pncId
 
     // Then
     assertThat(expectedCanonicalForm).isEqualTo(expectedResult)
@@ -64,7 +64,7 @@ class PNCIdentifierTest {
   @MethodSource("invalidPncProvider")
   fun `should NOT convert invalid PNC ids`(pncId: String, expectedResult: String) {
     // When
-    val expectedCanonicalForm = PNCIdentifier(pncId).pncId
+    val expectedCanonicalForm = PNCIdentifier.create(pncId).pncId
 
     // Then
     assertThat(expectedCanonicalForm).isEqualTo(expectedResult.uppercase())
@@ -74,7 +74,7 @@ class PNCIdentifierTest {
   @MethodSource("equalityPncProvider")
   fun `should perform equality comparison using canonical form`(pncId1: String, pncId2: String, expectedResult: Boolean) {
     // When
-    val result = PNCIdentifier(pncId1) == PNCIdentifier(pncId2)
+    val result = PNCIdentifier.create(pncId1) == PNCIdentifier.create(pncId2)
 
     // Then
     assertThat(result).isEqualTo(expectedResult)
@@ -86,7 +86,7 @@ class PNCIdentifierTest {
   )
   fun `should return invalid when PNC id is not the correct length`(pncId: String) {
     // When
-    val valid = PNCIdentifier(pncId).isValid()
+    val valid = PNCIdentifier.create(pncId).isValid()
 
     // Then
     assertThat(valid).isFalse()
@@ -96,7 +96,7 @@ class PNCIdentifierTest {
   @ValueSource(strings = ["1X23/1234567A", "1923[1234567A", "1923/1Z34567A", "1923/1234567AA"])
   fun `should return invalid when PNC id is incorrectly formatted`(pncId: String) {
     // When
-    val valid = PNCIdentifier(pncId).isValid()
+    val valid = PNCIdentifier.create(pncId).isValid()
 
     // Then
     assertThat(valid).isFalse()
@@ -106,7 +106,7 @@ class PNCIdentifierTest {
   @ValueSource(strings = ["20030011985X", "20120052494Q", "20230583843L", "2001/0171310W", "2011/0275516Q", "2008/0056560Z", "2003/0062845E", "1981/0154257C"])
   fun `should return valid when PNC id is correctly formatted`(pncId: String) {
     // When
-    val valid = PNCIdentifier(pncId).isValid()
+    val valid = PNCIdentifier.create(pncId).isValid()
 
     // Then
     assertThat(valid).isTrue()
@@ -116,7 +116,7 @@ class PNCIdentifierTest {
   @ValueSource(strings = ["20030011985Z", "20120052494O", "20230583843N", "2001/0171310S"])
   fun `should return invalid when PNC id is correctly formatted but not valid`(pncId: String) {
     // When
-    val valid = PNCIdentifier(pncId).isValid()
+    val valid = PNCIdentifier.create(pncId).isValid()
 
     // Then
     assertThat(valid).isFalse()
@@ -127,7 +127,7 @@ class PNCIdentifierTest {
     val readAllLines = Files.readAllLines(Paths.get("src/test/resources/valid_pncs.csv"), Charsets.UTF_8)
 
     readAllLines.stream().forEach {
-      assertThat((PNCIdentifier(it).isValid())).isTrue()
+      assertThat((PNCIdentifier.create(it).isValid())).isTrue()
     }
   }
 

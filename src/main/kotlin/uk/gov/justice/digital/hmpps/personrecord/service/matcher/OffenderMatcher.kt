@@ -12,7 +12,7 @@ class OffenderMatcher(val offenderDetails: List<OffenderDetail>?, val person: Pe
 
   fun isPartialMatch(): Boolean {
     return !offenderDetails.isNullOrEmpty() && offenderDetails.size == 1 && offenderDetails.any {
-      person.otherIdentifiers?.pncIdentifier == PNCIdentifier(it.otherIds.pncNumber) &&
+      person.otherIdentifiers?.pncIdentifier == PNCIdentifier.create(it.otherIds.pncNumber) &&
         it.firstName.equals(person.givenName, true) || it.surname.equals(person.familyName, true) || it.dateOfBirth == person.dateOfBirth
     }
   }
@@ -23,7 +23,7 @@ class OffenderMatcher(val offenderDetails: List<OffenderDetail>?, val person: Pe
 
   fun isPncDoesNotMatch(): Boolean {
     return !offenderDetails.isNullOrEmpty() && offenderDetails.none {
-      person.otherIdentifiers?.pncIdentifier == PNCIdentifier(it.otherIds.pncNumber)
+      person.otherIdentifiers?.pncIdentifier == PNCIdentifier.create(it.otherIds.pncNumber)
     }
   }
 
@@ -32,7 +32,7 @@ class OffenderMatcher(val offenderDetails: List<OffenderDetail>?, val person: Pe
   }
 
   private fun isMatchingOffender(person: Person, offenderDetail: OffenderDetail) =
-    person.otherIdentifiers?.pncIdentifier == PNCIdentifier(offenderDetail.otherIds.pncNumber) &&
+    person.otherIdentifiers?.pncIdentifier == PNCIdentifier.create(offenderDetail.otherIds.pncNumber) &&
       offenderDetail.firstName.equals(person.givenName, ignoreCase = true) &&
       offenderDetail.surname.equals(person.familyName, ignoreCase = true) &&
       offenderDetail.dateOfBirth == person.dateOfBirth

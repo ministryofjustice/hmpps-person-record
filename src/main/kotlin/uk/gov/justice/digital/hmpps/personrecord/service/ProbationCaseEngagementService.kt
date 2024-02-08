@@ -28,7 +28,7 @@ class ProbationCaseEngagementService(
   }
 
   private fun handlePncPresent(newOffenderDetail: DeliusOffenderDetail) {
-    val existingPerson = personRepository.findPersonEntityByPncNumber(PNCIdentifier(newOffenderDetail.identifiers.pnc!!))
+    val existingPerson = personRepository.findPersonEntityByPncNumber(PNCIdentifier.create(newOffenderDetail.identifiers.pnc!!))
     existingPerson?.let { person ->
       handlePersonExistsForPnc(newOffenderDetail, person)
     } ?: handleNoPersonForPnc(newOffenderDetail)
@@ -76,7 +76,7 @@ class ProbationCaseEngagementService(
     log.debug("Creating new offender with pnc  ${deliusOffenderDetail.identifiers.pnc}")
     val newOffender = OffenderEntity(
       crn = deliusOffenderDetail.identifiers.crn,
-      pncNumber = PNCIdentifier(deliusOffenderDetail.identifiers.pnc),
+      pncNumber = PNCIdentifier.create(deliusOffenderDetail.identifiers.pnc),
       firstName = deliusOffenderDetail.name.forename,
       lastName = deliusOffenderDetail.name.surname,
       dateOfBirth = deliusOffenderDetail.dateOfBirth,

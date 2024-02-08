@@ -5,11 +5,21 @@ import java.time.LocalDate
 
 const val LONG_PNC_ID_LENGTH = 10
 
-class PNCIdentifier(inputPncId: String? = null) {
+interface PNCIdentifier {
+
+  val pncId: String
+  companion object {
+    fun create(inputPncId: String? = null) = ValidPNCIdentifier(inputPncId)
+  }
+  fun isValid(): Boolean = false
+}
+
+class ValidPNCIdentifier(inputPncId: String?) : PNCIdentifier {
+
   private val storedPncId: String = inputPncId?.uppercase() ?: ""
   // always use canonical format when storing and comparing
 
-  val pncId: String
+  override val pncId: String
     get() = toCanonicalForm(storedPncId)
 
   override fun equals(other: Any?): Boolean {
@@ -82,20 +92,20 @@ class PNCIdentifier(inputPncId: String? = null) {
     }
   }
 
-  companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-
-    private const val VALID_LETTERS = "ZABCDEFGHJKLMNPQRTUVWXY"
-    private const val SLASH = "/"
-    private val PNC_REGEX = Regex("\\d{4}(/?)\\d{7}[A-Z]\$")
-  }
-
-  fun isValid(): Boolean {
+  override fun isValid(): Boolean {
     return (pncId.matches(PNC_REGEX) && correctModulus(pncId))
   }
 
   private fun correctModulus(pncIdentifier: String): Boolean {
     val modulusLetter = pncIdentifier[12]
     return VALID_LETTERS[pncIdentifier.replace(SLASH, "").substring(2, 11).toLong().mod(23)] == modulusLetter
+  }
+
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+
+    private const val VALID_LETTERS = "ZABCDEFGHJKLMNPQRTUVWXY"
+    private const val SLASH = "/"
+    private val PNC_REGEX = Regex("\\d{4}(/?)\\d{7}[A-Z]\$")
   }
 }

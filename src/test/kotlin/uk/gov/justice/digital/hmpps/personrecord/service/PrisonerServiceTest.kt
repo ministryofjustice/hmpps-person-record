@@ -53,7 +53,7 @@ class PrisonerServiceTest {
       givenName = "John",
       familyName = "Doe",
       dateOfBirth = prisonerDOB,
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123"), prisonNumber = "12345"),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.create("PNC123"), prisonNumber = "12345"),
     )
     val personEntity = Person.from(person)
 
@@ -93,7 +93,7 @@ class PrisonerServiceTest {
       givenName = "John",
       familyName = "Doe",
       dateOfBirth = prisonerDOB,
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123")),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.create("PNC123")),
     )
     val personEntity = Person.from(person)
     val prisoner = Prisoner(
@@ -132,7 +132,7 @@ class PrisonerServiceTest {
       givenName = "John",
       familyName = "Doe",
       dateOfBirth = prisonerDOB,
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123"), prisonNumber = "12345"),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.create("PNC123"), prisonNumber = "12345"),
     )
     val personEntity = Person.from(person)
     val prisoner = Prisoner(
@@ -169,7 +169,7 @@ class PrisonerServiceTest {
       givenName = "John",
       familyName = "Doe",
       dateOfBirth = LocalDate.now(),
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier("PNC123")),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.create("PNC123")),
     )
     whenever(client.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(null)
 

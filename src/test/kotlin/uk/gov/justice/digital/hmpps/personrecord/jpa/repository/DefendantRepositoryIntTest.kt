@@ -144,7 +144,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "cbee7d12-5515-483f-8cdc-f4b03867c529",
-      pncNumber = PNCIdentifier(pncNumber),
+      pncNumber = PNCIdentifier.create(pncNumber),
       person = existingPerson,
     )
 
@@ -156,7 +156,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "69c94c02-9b7d-439f-9412-d0812f8c2835",
-      pncNumber = PNCIdentifier("1981/0154257C"),
+      pncNumber = PNCIdentifier.create("1981/0154257C"),
       person = existingPerson,
     )
 
@@ -169,7 +169,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
 
     assertEquals(2, personEntityUpdated.defendants.size)
 
-    val defendants = defendantRepository.findAllByPncNumber(PNCIdentifier(pncNumber))
+    val defendants = defendantRepository.findAllByPncNumber(PNCIdentifier.create(pncNumber))
 
     assertEquals(1, defendants.size)
     assertEquals(defendantEntity.pncNumber, defendants[0].pncNumber)
@@ -192,7 +192,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "a6704fae-34ac-4ec6-9c6a-93afa73a85d9",
-      pncNumber = PNCIdentifier("20030011985X"),
+      pncNumber = PNCIdentifier.create("20030011985X"),
       person = existingPerson,
     )
 
@@ -204,7 +204,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "0c4b2734-5bca-4401-a20a-90654f8a5a89",
-      pncNumber = PNCIdentifier("20030011985X"),
+      pncNumber = PNCIdentifier.create("20030011985X"),
       person = existingPerson,
     )
 
@@ -217,12 +217,12 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
 
     assertEquals(2, personEntityUpdated.defendants.size)
 
-    val defendants = defendantRepository.findAllByPncNumber(PNCIdentifier("20030011985X"))
+    val defendants = defendantRepository.findAllByPncNumber(PNCIdentifier.create("20030011985X"))
 
     assertEquals(2, defendants.size)
 
     assertThat(defendants)
       .extracting("pncNumber")
-      .containsOnly(PNCIdentifier("20030011985X"))
+      .containsOnly(PNCIdentifier.create("20030011985X"))
   }
 }
