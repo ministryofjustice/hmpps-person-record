@@ -60,7 +60,7 @@ class PrisonerService(
   private fun getPrisonerMatcher(person: Person): PrisonerMatcher {
     val prisoners = client.findPossibleMatches(PrisonerMatchCriteria.from(person))
     val pncNumbersReturned = prisoners?.joinToString(" ") { it.pncNumber.toString() }
-    log.debug("Number of prisoners returned from Nomis for PNC ${person.otherIdentifiers?.pncIdentifier?.pncId} = ${prisoners?.size ?: 0} having PNCs: $pncNumbersReturned")
+    log.debug("Number of prisoners returned from Nomis for PNC ${person.otherIdentifiers?.pncIdentifier} = ${prisoners?.size ?: 0} having PNCs: $pncNumbersReturned")
     return PrisonerMatcher(prisoners, person)
   }
 
@@ -75,7 +75,7 @@ class PrisonerService(
       eventType,
       mapOf(
         "UUID" to personEntity.personId.toString(),
-        "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
+        "PNC" to person.otherIdentifiers?.pncIdentifier.toString(),
         "Prisoner Number" to person.otherIdentifiers?.prisonNumber,
       ).filterValues { !it.isNullOrBlank() },
     )
@@ -90,7 +90,7 @@ class PrisonerService(
       TelemetryEventType.NOMIS_PNC_MISMATCH,
       mapOf(
         "UUID" to personEntity.personId.toString(),
-        "PNC searched for" to person.otherIdentifiers?.pncIdentifier?.pncId,
+        "PNC searched for" to person.otherIdentifiers?.pncIdentifier.toString(),
         "PNC returned from search" to prisonerList.joinToString(" ") { it.pncNumber.toString() },
         "Prisoner Number" to prisonerList.singleOrNull()?.prisonerNumber,
       ).filterValues { !it.isNullOrBlank() },

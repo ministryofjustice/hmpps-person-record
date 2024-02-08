@@ -58,7 +58,7 @@ class CourtCaseEventsProcessor(
     val person = Person.from(libraHearingEvent)
     telemetryService.trackEvent(
       NEW_LIBRA_CASE_RECEIVED,
-      mapOf("PNC" to person.otherIdentifiers?.pncIdentifier?.pncId, "CRO" to person.otherIdentifiers?.cro),
+      mapOf("PNC" to person.otherIdentifiers?.pncIdentifier.toString(), "CRO" to person.otherIdentifiers?.cro),
     )
     process(person)
   }
@@ -82,7 +82,7 @@ class CourtCaseEventsProcessor(
       val person = Person.from(defendant)
       telemetryService.trackEvent(
         NEW_CP_CASE_RECEIVED,
-        mapOf("PNC" to person.otherIdentifiers?.pncIdentifier?.pncId, "CRO" to person.otherIdentifiers?.cro),
+        mapOf("PNC" to person.otherIdentifiers?.pncIdentifier.toString(), "CRO" to person.otherIdentifiers?.cro),
       )
       process(person)
     }
@@ -97,7 +97,7 @@ class CourtCaseEventsProcessor(
           log.warn("Expected error when processing $e.message")
           telemetryService.trackEvent(
             NEW_CASE_EXACT_MATCH,
-            mapOf("PNC" to person.otherIdentifiers?.pncIdentifier?.pncId, "Exception" to e.message),
+            mapOf("PNC" to person.otherIdentifiers?.pncIdentifier.toString(), "Exception" to e.message),
           )
         }
 

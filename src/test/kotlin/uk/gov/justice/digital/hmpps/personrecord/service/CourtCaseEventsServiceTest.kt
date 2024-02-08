@@ -85,7 +85,7 @@ class CourtCaseEventsServiceTest {
 
     // Then
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
-    verify(telemetryService).trackEvent(INVALID_PNC, mapOf("PNC" to pncNumber, "inputPNC" to "DODGY_PNC"))
+    verify(telemetryService).trackEvent(INVALID_PNC, mapOf("PNC" to pncNumber))
     verifyNoMoreInteractions(telemetryService)
   }
 
@@ -125,7 +125,7 @@ class CourtCaseEventsServiceTest {
 
     // Then
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
-    verify(telemetryService).trackEvent(VALID_PNC, mapOf("PNC" to pncNumber, "inputPNC" to pncNumber))
+    verify(telemetryService).trackEvent(VALID_PNC, mapOf("PNC" to pncNumber))
     verify(telemetryService).trackEvent(NEW_CASE_EXACT_MATCH, mapOf("PNC" to pncNumber, "CRN" to crn, "UUID" to personID.toString()))
   }
 
