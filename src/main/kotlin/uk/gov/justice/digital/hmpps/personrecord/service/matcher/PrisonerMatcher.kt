@@ -8,16 +8,16 @@ class PrisonerMatcher(prisonerDetails: List<Prisoner>?, person: Person) :
   Matcher<Prisoner>(prisonerDetails, person) {
   fun isPncDoesNotMatch(): Boolean {
     return !items.isNullOrEmpty() && items.none {
-      person.otherIdentifiers?.pncIdentifier == PNCIdentifier.create(it.pncNumber)
+      person.otherIdentifiers?.pncIdentifier == PNCIdentifier.from(it.pncNumber)
     }
   }
   override fun isPartialMatchItem(item: Prisoner): Boolean {
-    return person.otherIdentifiers?.pncIdentifier == PNCIdentifier.create(item.pncNumber) &&
+    return person.otherIdentifiers?.pncIdentifier == PNCIdentifier.from(item.pncNumber) &&
       item.firstName.equals(person.givenName, true) || item.lastName.equals(person.familyName, true) || item.dateOfBirth == person.dateOfBirth
   }
 
   override fun isMatchingItem(item: Prisoner): Boolean {
-    return person.otherIdentifiers?.pncIdentifier == PNCIdentifier.create(item.pncNumber) &&
+    return person.otherIdentifiers?.pncIdentifier == PNCIdentifier.from(item.pncNumber) &&
       item.firstName.equals(person.givenName, ignoreCase = true) &&
       item.lastName.equals(person.familyName, ignoreCase = true) &&
       item.dateOfBirth == person.dateOfBirth

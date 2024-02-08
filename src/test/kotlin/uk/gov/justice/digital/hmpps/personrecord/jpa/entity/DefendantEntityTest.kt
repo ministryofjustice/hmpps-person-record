@@ -21,7 +21,7 @@ internal class DefendantEntityTest {
       dateOfBirth = dateOfBirth,
       otherIdentifiers = OtherIdentifiers(
         crn = "crn1234",
-        pncIdentifier = PNCIdentifier.create("2001/0171310W"),
+        pncIdentifier = PNCIdentifier.from("2001/0171310W"),
         cro = "cro1234",
       ),
       sex = "male",
@@ -45,7 +45,7 @@ internal class DefendantEntityTest {
     assertThat(defendantEntity.defendantId).isEqualTo("defendantId")
     assertThat(defendantEntity.dateOfBirth).isEqualTo(dateOfBirth)
     assertThat(defendantEntity.crn).isEqualTo("crn1234")
-    assertThat(defendantEntity.pncNumber).isEqualTo(PNCIdentifier.create("2001/0171310W"))
+    assertThat(defendantEntity.pncNumber).isEqualTo(PNCIdentifier.from("2001/0171310W"))
     assertThat(defendantEntity.cro).isEqualTo("cro1234")
     assertThat(defendantEntity.sex).isEqualTo("male")
     assertThat(defendantEntity.nationalityOne).isEqualTo("nationality1")

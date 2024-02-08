@@ -78,7 +78,7 @@ class CourtCaseEventsServiceTest {
   fun `should call telemetry service when PNC is invalid from Court Case Event`() {
     // Given
     val pncNumber = "DODGY_PNC"
-    val person = Person(familyName = "Jones", otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.create(pncNumber)))
+    val person = Person(familyName = "Jones", otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(pncNumber)))
 
     // When
     courtCaseEventsService.processPersonFromCourtCaseEvent(person)
@@ -96,12 +96,12 @@ class CourtCaseEventsServiceTest {
     val crn = "CRN123"
     val personID = UUID.fromString("2936dd6a-677a-4cc0-83c5-2296b6efee0b")
     val dateOfBirth = LocalDate.now()
-    whenever(personRepository.findByDefendantsPncNumber(PNCIdentifier.create(pncNumber)))
+    whenever(personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncNumber)))
       .thenReturn(
         PersonEntity(
           defendants = mutableListOf(
             DefendantEntity(
-              pncNumber = PNCIdentifier.create(pncNumber),
+              pncNumber = PNCIdentifier.from(pncNumber),
               crn = crn,
               surname = "Jones",
               forenameOne = "Crackity",
@@ -117,7 +117,7 @@ class CourtCaseEventsServiceTest {
       familyName = "Jones",
       givenName = "Crackity",
       dateOfBirth = dateOfBirth,
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.create(pncNumber)),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(pncNumber)),
     )
 
     // When
@@ -134,12 +134,12 @@ class CourtCaseEventsServiceTest {
     // Given
     val pncNumber = "2003/0011985X"
     val dateOfBirth = LocalDate.now()
-    whenever(personRepository.findByDefendantsPncNumber(PNCIdentifier.create(pncNumber)))
+    whenever(personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncNumber)))
       .thenReturn(
         PersonEntity(
           defendants = mutableListOf(
             DefendantEntity(
-              pncNumber = PNCIdentifier.create(pncNumber),
+              pncNumber = PNCIdentifier.from(pncNumber),
               surname = "Jones",
               forenameOne = "Crackity",
               dateOfBirth = dateOfBirth,
@@ -153,7 +153,7 @@ class CourtCaseEventsServiceTest {
       familyName = "Jones",
       givenName = "Billy",
       dateOfBirth = LocalDate.of(1969, 8, 15),
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.create(pncNumber)),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(pncNumber)),
     )
 
     // When
@@ -173,7 +173,7 @@ class CourtCaseEventsServiceTest {
       familyName = "Jones",
       givenName = "Billy",
       dateOfBirth = LocalDate.of(1969, 8, 15),
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.create(pncNumber)),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(pncNumber)),
     )
 
     val uuid = UUID.randomUUID()
@@ -199,7 +199,7 @@ class CourtCaseEventsServiceTest {
       familyName = "Jones",
       givenName = "Billy",
       dateOfBirth = LocalDate.of(1969, 8, 15),
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.create(pncNumber)),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(pncNumber)),
     )
 
     // When

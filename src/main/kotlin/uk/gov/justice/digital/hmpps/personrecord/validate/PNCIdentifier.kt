@@ -9,7 +9,7 @@ interface PNCIdentifier {
 
   val pncId: String
   companion object {
-    fun create(inputPncId: String? = null) = ValidPNCIdentifier(inputPncId)
+    fun from(inputPncId: String? = null) = ValidPNCIdentifier(inputPncId)
   }
   fun isValid(): Boolean = false
 }

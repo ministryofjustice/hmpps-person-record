@@ -8,12 +8,12 @@ class DefendantMatcher(defendants: List<DefendantEntity>?, person: Person) :
   Matcher<DefendantEntity>(defendants, person) {
 
   override fun isPartialMatchItem(item: DefendantEntity): Boolean {
-    return person.otherIdentifiers?.pncIdentifier == PNCIdentifier.create(item.pncNumber?.pncId) &&
+    return person.otherIdentifiers?.pncIdentifier == PNCIdentifier.from(item.pncNumber?.pncId) &&
       item.forenameOne.equals(person.givenName, true) || item.surname.equals(person.familyName, true) || item.dateOfBirth == person.dateOfBirth
   }
 
   override fun isMatchingItem(item: DefendantEntity): Boolean {
-    return person.otherIdentifiers?.pncIdentifier == PNCIdentifier.create(item.pncNumber?.pncId) &&
+    return person.otherIdentifiers?.pncIdentifier == PNCIdentifier.from(item.pncNumber?.pncId) &&
       item.forenameOne.equals(person.givenName, ignoreCase = true) &&
       item.surname.equals(person.familyName, ignoreCase = true) &&
       item.dateOfBirth == person.dateOfBirth
