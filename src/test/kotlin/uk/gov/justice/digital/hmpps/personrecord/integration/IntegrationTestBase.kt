@@ -56,6 +56,12 @@ abstract class IntegrationTestBase {
   val cprCourtCaseEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprcourtcaseeventsqueue")
   }
+  val domainEventsTopic by lazy {
+    hmppsQueueService.findByTopicId("domainevents")
+  }
+  val cprDeliusOffenderEventsQueue by lazy {
+    hmppsQueueService.findByQueueId("cprdeliusoffendereventsqueue")
+  }
 
   @RegisterExtension
   var wireMockExtension = WireMockExtension.newInstance()
@@ -66,6 +72,9 @@ abstract class IntegrationTestBase {
   fun beforeEach() {
     cprCourtCaseEventsQueue?.sqsDlqClient!!.purgeQueue(PurgeQueueRequest.builder().queueUrl(cprCourtCaseEventsQueue?.dlqUrl).build()).get()
     cprCourtCaseEventsQueue?.sqsClient!!.purgeQueue(PurgeQueueRequest.builder().queueUrl(cprCourtCaseEventsQueue?.queueUrl).build()).get()
+    cprDeliusOffenderEventsQueue?.sqsClient?.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(cprDeliusOffenderEventsQueue?.queueUrl).build(),
+    )
   }
   companion object {
 

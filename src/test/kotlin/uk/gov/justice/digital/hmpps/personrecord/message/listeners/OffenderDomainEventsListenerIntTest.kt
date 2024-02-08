@@ -6,7 +6,6 @@ import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
@@ -16,7 +15,6 @@ import org.springframework.test.context.jdbc.SqlConfig
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
-import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.NEW_OFFENDER_CREATED
@@ -44,22 +42,8 @@ private const val CRN = "XXX1234"
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
 class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
 
-  val domainEventsTopic by lazy {
-    hmppsQueueService.findByTopicId("domainevents")
-  }
-  val cprDeliusOffenderEventsQueue by lazy {
-    hmppsQueueService.findByQueueId("cprdeliusoffendereventsqueue")
-  }
-
   @Autowired
   lateinit var personRepository: PersonRepository
-
-  @BeforeEach
-  fun setUp() {
-    cprDeliusOffenderEventsQueue?.sqsClient?.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(cprDeliusOffenderEventsQueue?.queueUrl).build(),
-    )
-  }
 
   @Test
   fun `should receive the message successfully when new offender event published`() {
