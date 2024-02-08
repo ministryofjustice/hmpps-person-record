@@ -81,11 +81,12 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
 
     var existingPerson = personRepository.save(personEntity)
 
+    val defendantId = "a59d442a-11c6-4fba-ace1-6d899ae5b9fa"
     val defendantEntity = DefendantEntity(
       forenameOne = "Rodney",
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
-      defendantId = "a59d442a-11c6-4fba-ace1-6d899ae5b9fa",
+      defendantId = defendantId,
       person = existingPerson,
     )
 
@@ -96,9 +97,9 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
 
     personRepository.save(existingPerson)
 
-    assertNotNull(defendantRepository.findByDefendantId("a59d442a-11c6-4fba-ace1-6d899ae5b9fa"))
+    assertNotNull(defendantRepository.findByDefendantId(defendantId))
 
-    val defendantEntity1 = defendantRepository.findByDefendantId("a59d442a-11c6-4fba-ace1-6d899ae5b9fa")
+    val defendantEntity1 = defendantRepository.findByDefendantId(defendantId)
 
     existingPerson = defendantEntity1?.person!!
 
@@ -118,7 +119,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     val personEntityUpdated = personRepository.save(existingPerson)
 
     assertEquals(2, personEntityUpdated.defendants.size)
-    assertNotNull(defendantRepository.findByDefendantId("e59d442a-11c6-4fba-ace1-6d899ae5b9fa"))
+    assertNotNull(defendantRepository.findByDefendantId(defendantId))
     assertNotNull(defendantRepository.findByDefendantId("b59d442a-11c6-4fba-ace1-6d899ae5b9za"))
   }
 
