@@ -40,7 +40,7 @@ class PrisonerService(
   }
 
   private fun pncDoesNotMatch(prisonerMatcher: PrisonerMatcher, personEntity: PersonEntity, person: Person) {
-    prisonerMatcher.prisonerDetails?.let { trackPncMismatchEvent(it, personEntity, person) }
+    prisonerMatcher.items?.let { trackPncMismatchEvent(it, personEntity, person) }
   }
 
   private fun noRecordsFound(personEntity: PersonEntity, person: Person) {
@@ -52,7 +52,7 @@ class PrisonerService(
   }
 
   private fun exactMatchFound(prisonerMatcher: PrisonerMatcher, personEntity: PersonEntity, person: Person) {
-    val matchingPrisoner = prisonerMatcher.getPrisonerDetail()
+    val matchingPrisoner = prisonerMatcher.getItemDetail()
     logAndTrackEvent(EXACT_MATCH_MESSAGE, TelemetryEventType.NOMIS_MATCH_FOUND, personEntity, person)
     personRecordService.addPrisonerToPerson(personEntity, matchingPrisoner)
   }

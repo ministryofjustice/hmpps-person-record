@@ -42,7 +42,7 @@ class OffenderService(
   }
 
   private fun pncDoesNotMatch(offenderMatcher: OffenderMatcher, personEntity: PersonEntity, person: Person) {
-    offenderMatcher.offenderDetails?.let { trackPncMismatchEvent(it, personEntity, person) }
+    offenderMatcher.items?.let { trackPncMismatchEvent(it, personEntity, person) }
   }
 
   private fun getOffenderMatcher(person: Person): OffenderMatcher {
@@ -60,12 +60,12 @@ class OffenderService(
 
   private fun exactMatchFound(offenderMatches: OffenderMatcher, personEntity: PersonEntity, person: Person) {
     logAndTrackEvent(EXACT_MATCH_MESSAGE, TelemetryEventType.DELIUS_MATCH_FOUND, personEntity, person)
-    val offenderDetail = offenderMatches.getOffenderDetail()
+    val offenderDetail = offenderMatches.getItemDetail()
     personRecordService.addOffenderToPerson(personEntity, Person.from(offenderDetail))
   }
 
   private fun multipleMatchesFound(offenderMatches: OffenderMatcher, personEntity: PersonEntity, person: Person) {
-    val allMatchingOffenders = offenderMatches.getAllMatchingOffenders()
+    val allMatchingOffenders = offenderMatches.getAllMatchingItems()
     allMatchingOffenders?.forEach { offenderDetail ->
       logAndTrackEvent(MULTIPLE_MATCHES_MESSAGE, TelemetryEventType.DELIUS_MATCH_FOUND, personEntity, person)
       personRecordService.addOffenderToPerson(personEntity, Person.from(offenderDetail))
