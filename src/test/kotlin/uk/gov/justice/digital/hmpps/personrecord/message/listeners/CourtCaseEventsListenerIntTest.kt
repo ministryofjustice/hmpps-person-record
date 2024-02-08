@@ -226,7 +226,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   @Test
   fun `should not push messages from Common Platform onto dead letter queue when processing fails because of could not serialize access due to read write dependencies among transactions`() {
     // given
-    val pncNumber = PNCIdentifier("2003/0062845E")
+    val pncNumber = PNCIdentifier.from("2003/0062845E")
 
     val publishRequest = PublishRequest.builder()
       .topicArn(courtCaseEventsTopic?.arn)
@@ -287,7 +287,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   @Test
   fun `should create new defendant and prisoner records with link to a person record from common platform message`() {
     // given
-    val pncNumber = PNCIdentifier("2003/0062845E")
+    val pncNumber = PNCIdentifier.from("2003/0062845E")
 
     val publishRequest = PublishRequest.builder()
       .topicArn(courtCaseEventsTopic?.arn)

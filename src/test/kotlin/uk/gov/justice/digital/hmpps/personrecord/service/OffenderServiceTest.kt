@@ -60,7 +60,7 @@ class OffenderServiceTest {
     // Given
     val personEntity = PersonEntity.new()
     val dateOfBirth = LocalDate.now()
-    val person = createPerson(dateOfBirth, PNCIdentifier(PNC_ID), CRN)
+    val person = createPerson(dateOfBirth, PNCIdentifier.from(PNC_ID), CRN)
     val offenderDetail = createOffenderDetail(dateOfBirth, PNC_ID)
     whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(listOf(offenderDetail, offenderDetail, offenderDetail))
 
@@ -84,7 +84,7 @@ class OffenderServiceTest {
     // Given
     val personEntity = PersonEntity.new()
     val dateOfBirth = LocalDate.now()
-    val person = createPerson(dateOfBirth, PNCIdentifier(PNC_ID), CRN)
+    val person = createPerson(dateOfBirth, PNCIdentifier.from(PNC_ID), CRN)
     val offenderDetail = createOffenderDetail(dateOfBirth, PNC_ID)
     whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(listOf(offenderDetail))
 
@@ -118,7 +118,7 @@ class OffenderServiceTest {
   fun `should track partial match event when partial match found`() {
     // Given
     val personEntity = PersonEntity.new()
-    val person = createPerson(LocalDate.now(), PNCIdentifier(PNC_ID), CRN)
+    val person = createPerson(LocalDate.now(), PNCIdentifier.from(PNC_ID), CRN)
     val offenderDetail = OffenderDetail(
       offenderId = 1234L,
       firstName = "Frank",
@@ -147,7 +147,7 @@ class OffenderServiceTest {
   fun `should track no match event when no matching records exist`() {
     // Given
     val personEntity = PersonEntity.new()
-    val person = createPerson(LocalDate.now(), PNCIdentifier(PNC_ID), " ")
+    val person = createPerson(LocalDate.now(), PNCIdentifier.from(PNC_ID), " ")
     whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(emptyList())
 
     // When
@@ -168,7 +168,7 @@ class OffenderServiceTest {
   fun `should not call delius search when feature flag is switched off`() {
     // Given
     val personEntity = PersonEntity.new()
-    val person = createPerson(LocalDate.now(), PNCIdentifier(PNC_ID), "")
+    val person = createPerson(LocalDate.now(), PNCIdentifier.from(PNC_ID), "")
 
     whenever(featureFlag.isDeliusSearchEnabled()).thenReturn(false)
     // When
@@ -189,7 +189,7 @@ class OffenderServiceTest {
       givenName = "Frank",
       familyName = "MAHONEY",
       dateOfBirth = dateOfBirth,
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier(PNC_ID), crn = CRN, prisonNumber = "A12324J"),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(PNC_ID), crn = CRN, prisonNumber = "A12324J"),
     )
     val offenderDetail = OffenderDetail(
       offenderId = 1234L,
@@ -222,7 +222,7 @@ class OffenderServiceTest {
     val anotherPnc = "2001/0072845E"
     val personEntity = PersonEntity.new()
     val dateOfBirth = LocalDate.now()
-    val person = createPerson(dateOfBirth, PNCIdentifier(PNC_ID), CRN)
+    val person = createPerson(dateOfBirth, PNCIdentifier.from(PNC_ID), CRN)
     val offenderDetails = listOf(createOffenderDetail(dateOfBirth, anotherPnc))
     whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(offenderDetails)
 

@@ -50,7 +50,7 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       familyName = "Jones",
       dateOfBirth = LocalDate.of(1968, 8, 15),
       otherIdentifiers = OtherIdentifiers(
-        pncIdentifier = PNCIdentifier("PNC1234"),
+        pncIdentifier = PNCIdentifier.from("PNC1234"),
         crn = "CRN8474",
       ),
     )
@@ -174,7 +174,6 @@ class PersonControllerIntTest() : IntegrationTestBase() {
       familyName = "Jones",
       dateOfBirth = LocalDate.of(1968, 8, 15),
       otherIdentifiers = OtherIdentifiers(
-        pncIdentifier = PNCIdentifier("1976/1234Z"),
         crn = "CRN1234",
       ),
     )

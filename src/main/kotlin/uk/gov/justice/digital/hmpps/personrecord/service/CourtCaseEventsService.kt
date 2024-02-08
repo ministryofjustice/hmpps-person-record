@@ -40,9 +40,8 @@ class CourtCaseEventsService(
       val pncId = pncIdentifier.pncId
       if (pncIdentifier.isValid()) {
         trackEvent(VALID_PNC, mapOf("PNC" to pncIdentifier.toString()))
-        val defendants = personRepository.findByDefendantsPncNumber(PNCIdentifier(pncId))?.defendants.orEmpty()
+        val defendants = personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncId))?.defendants.orEmpty()
         val defendantMatcher = DefendantMatcher(defendants, person)
-
         when {
           defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person, pncId)
           defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher)

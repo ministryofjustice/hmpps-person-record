@@ -62,7 +62,7 @@ data class Person(
         dateOfBirth = offenderDetail.dateOfBirth,
         otherIdentifiers = OtherIdentifiers(
           crn = offenderDetail.otherIds.crn,
-          pncIdentifier = PNCIdentifier(offenderDetail.otherIds.pncNumber),
+          pncIdentifier = PNCIdentifier.from(offenderDetail.otherIds.pncNumber),
           prisonNumber = offenderDetail.otherIds.nomsNumber,
         ),
       )
@@ -70,7 +70,7 @@ data class Person(
 
     fun from(defendant: Defendant): Person {
       return Person(
-        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier(defendant.pncId), cro = defendant.croNumber),
+        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(defendant.pncId), cro = defendant.croNumber),
         givenName = defendant.personDefendant?.personDetails?.firstName,
         familyName = defendant.personDefendant?.personDetails?.lastName,
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
@@ -79,7 +79,7 @@ data class Person(
 
     fun from(libraHearingEvent: LibraHearingEvent): Person {
       return Person(
-        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier(libraHearingEvent.pnc), cro = libraHearingEvent.cro),
+        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(libraHearingEvent.pnc), cro = libraHearingEvent.cro),
         givenName = libraHearingEvent.name?.forename1,
         familyName = libraHearingEvent.name?.surname,
         dateOfBirth = libraHearingEvent.defendantDob,
@@ -89,7 +89,7 @@ data class Person(
     fun from(prisoner: Prisoner): Person {
       return Person(
         otherIdentifiers = OtherIdentifiers(
-          pncIdentifier = PNCIdentifier(prisoner.pncNumber),
+          pncIdentifier = PNCIdentifier.from(prisoner.pncNumber),
           cro = prisoner.croNumber,
         ),
         givenName = prisoner.firstName,
