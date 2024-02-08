@@ -44,11 +44,10 @@ class CourtCaseEventsService(
         val defendantMatcher = DefendantMatcher(defendants, person)
 
         when {
-          defendantMatcher.hasNothingToMatch() -> createNewPersonRecordAndProcess(person, pncId)
           defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person, pncId)
           defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher)
           else -> {
-            log.debug("Scenario not covered for pnc $pncId")
+            createNewPersonRecordAndProcess(person, pncId)
           }
         }
       } else {
