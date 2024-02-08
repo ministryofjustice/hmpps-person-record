@@ -4,7 +4,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 
-
 class PrisonerMatcher(prisonerDetails: List<Prisoner>?, person: Person) :
   Matcher<Prisoner>(prisonerDetails, person) {
   fun isPncDoesNotMatch(): Boolean {
