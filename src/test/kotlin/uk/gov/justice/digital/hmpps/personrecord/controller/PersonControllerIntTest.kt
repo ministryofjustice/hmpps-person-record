@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase
@@ -15,7 +14,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
@@ -39,9 +37,6 @@ class PersonControllerIntTest() : IntegrationTestBase() {
 
   private var minimumPerson: Person? = null
   private var maximumPerson: Person? = null
-
-  @Autowired
-  lateinit var personRepository: PersonRepository
 
   @BeforeEach
   fun setUp() {

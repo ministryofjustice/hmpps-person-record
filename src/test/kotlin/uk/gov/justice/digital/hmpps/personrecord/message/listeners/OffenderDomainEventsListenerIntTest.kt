@@ -10,14 +10,12 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.SqlConfig
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
@@ -41,9 +39,6 @@ import java.util.concurrent.TimeUnit.SECONDS
 )
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
 class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
-
-  @Autowired
-  lateinit var personRepository: PersonRepository
 
   @Test
   fun `should receive the message successfully when new offender event published`() {
