@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.SqlConfig
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
@@ -21,9 +20,6 @@ import java.util.*
   executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
 )
 class PersonRepositoryIntTest : IntegrationTestBase() {
-
-  @Autowired
-  lateinit var personRepository: PersonRepository
 
   @Test
   fun `should return exact match for provided UUID`() {

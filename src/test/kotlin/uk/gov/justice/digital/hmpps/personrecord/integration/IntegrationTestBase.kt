@@ -21,6 +21,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.junit.jupiter.Testcontainers
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -47,6 +48,9 @@ abstract class IntegrationTestBase {
   @Autowired
   lateinit var hmppsQueueService: HmppsQueueService
 
+  @Autowired
+  lateinit var personRepository: PersonRepository
+
   @SpyBean
   lateinit var telemetryService: TelemetryService
 
@@ -55,6 +59,12 @@ abstract class IntegrationTestBase {
   }
   val cprCourtCaseEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprcourtcaseeventsqueue")
+  }
+  val domainEventsTopic by lazy {
+    hmppsQueueService.findByTopicId("domainevents")
+  }
+  val cprDeliusOffenderEventsQueue by lazy {
+    hmppsQueueService.findByQueueId("cprdeliusoffendereventsqueue")
   }
 
   @RegisterExtension
@@ -66,6 +76,7 @@ abstract class IntegrationTestBase {
   fun beforeEach() {
     cprCourtCaseEventsQueue?.sqsDlqClient!!.purgeQueue(PurgeQueueRequest.builder().queueUrl(cprCourtCaseEventsQueue?.dlqUrl).build()).get()
     cprCourtCaseEventsQueue?.sqsClient!!.purgeQueue(PurgeQueueRequest.builder().queueUrl(cprCourtCaseEventsQueue?.queueUrl).build()).get()
+    cprDeliusOffenderEventsQueue?.sqsClient?.purgeQueue(PurgeQueueRequest.builder().queueUrl(cprDeliusOffenderEventsQueue?.queueUrl).build())
   }
   companion object {
 

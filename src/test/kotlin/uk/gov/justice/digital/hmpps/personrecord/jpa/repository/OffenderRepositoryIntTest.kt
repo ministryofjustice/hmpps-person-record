@@ -17,9 +17,6 @@ class OffenderRepositoryIntTest : IntegrationTestBase() {
   @Autowired
   lateinit var offenderRepository: OffenderRepository
 
-  @Autowired
-  lateinit var personRepository: PersonRepository
-
   @BeforeEach
   fun setUp() {
     offenderRepository.deleteAll()

@@ -13,7 +13,6 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD
@@ -22,7 +21,6 @@ import org.springframework.test.context.jdbc.SqlConfig.TransactionMode.ISOLATED
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
@@ -47,9 +45,6 @@ import java.util.concurrent.TimeUnit
 )
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
 class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
-
-  @Autowired
-  lateinit var personRepository: PersonRepository
 
   @Test
   fun `should output correct telemetry for invalid PNC`() {
@@ -159,7 +154,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     // given
     val publishRequest = PublishRequest.builder()
       .topicArn(courtCaseEventsTopic?.arn)
-      .message(libraHearing("19231234567A"))
+      .message(libraHearing("1979/0027672E"))
       .messageAttributes(
         mapOf(
           "messageType" to MessageAttributeValue.builder().dataType("String")
@@ -180,7 +175,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       verify(telemetryService).trackEvent(
         eq(TelemetryEventType.NEW_LIBRA_CASE_RECEIVED),
         check {
-          assertThat(it["PNC"]).isEqualTo("1923/1234567A")
+          assertThat(it["PNC"]).isEqualTo("1979/0027672E")
           assertThat(it["CRO"]).isEqualTo("11111/79J")
         },
       )

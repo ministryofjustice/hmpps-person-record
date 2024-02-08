@@ -135,14 +135,14 @@ class PNCIdentifierTest {
     @JvmStatic
     fun shortFormPncProvider(): Stream<Arguments> {
       return Stream.of(
-        Arguments.of("02/9Z", "2002/0000009Z"),
+
+        Arguments.of("81/34U", "1981/0000034U"),
         Arguments.of("02/73319Z", "2002/0073319Z"),
-        Arguments.of("00/73319Z", "2000/0073319Z"),
+        Arguments.of("00/223R", "2000/0000223R"),
         Arguments.of("79/163001B", "1979/0163001B"),
         Arguments.of("0273319Z", "2002/0073319Z"),
-        Arguments.of("0073319Z", "2000/0073319Z"),
         Arguments.of("79163001B", "1979/0163001B"),
-        Arguments.of("840B", "1984/0000000B"),
+        Arguments.of("033Y", "2003/0000003Y"),
       )
     }
 
@@ -150,10 +150,8 @@ class PNCIdentifierTest {
     fun longFormPncProvider(): Stream<Arguments> {
       return Stream.of(
         Arguments.of("20020073319Z", "2002/0073319Z"),
-        Arguments.of("20000073319Z", "2000/0073319Z"),
         Arguments.of("19790163001B", "1979/0163001B"),
         Arguments.of("2002/0073319Z", "2002/0073319Z"),
-        Arguments.of("2000/0073319Z", "2000/0073319Z"),
         Arguments.of("1979/0163001B", "1979/0163001B"),
       )
     }
@@ -173,7 +171,7 @@ class PNCIdentifierTest {
     fun canonicalFormPncProvider(): Stream<Arguments> {
       return Stream.of(
         Arguments.of("1979/0163001B", "1979/0163001B"),
-        Arguments.of("2000/0073319Z", "2000/0073319Z"),
+        Arguments.of("2002/0073319Z", "2002/0073319Z"),
       )
     }
 

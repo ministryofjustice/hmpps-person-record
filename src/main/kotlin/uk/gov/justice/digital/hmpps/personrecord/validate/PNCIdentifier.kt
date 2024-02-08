@@ -53,8 +53,8 @@ class PNCIdentifier(inputPncId: String? = null) {
 
   private fun withForwardSlash(pnc: String): String {
     return when {
-      !pnc.contains('/') -> {
-        pnc.substring(0, 4) + "/" + pnc.substring(4)
+      !pnc.contains(SLASH) -> {
+        pnc.substring(0, 4) + SLASH + pnc.substring(4)
       }
       else -> pnc
     }
@@ -87,7 +87,7 @@ class PNCIdentifier(inputPncId: String? = null) {
 
     private const val VALID_LETTERS = "ZABCDEFGHJKLMNPQRTUVWXY"
     private const val SLASH = "/"
-    private val PNC_REGEX = Regex("\\d{4}(/?)\\d{7}[A-Z]{1}\$")
+    private val PNC_REGEX = Regex("\\d{4}(/?)\\d{7}[A-Z]\$")
   }
 
   fun isValid(): Boolean {

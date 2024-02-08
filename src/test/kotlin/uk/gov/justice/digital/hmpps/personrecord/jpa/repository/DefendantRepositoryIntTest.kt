@@ -17,9 +17,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
   @Autowired
   lateinit var defendantRepository: DefendantRepository
 
-  @Autowired
-  lateinit var personRepository: PersonRepository
-
   @Test
   fun `should save defendant successfully and link a new  person record`() {
     val personEntity = PersonEntity(
@@ -130,7 +127,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should returned correct defendant for a pnc`() {
+  fun `should return correct defendant for a pnc`() {
     val personId = UUID.randomUUID()
 
     val personEntity = PersonEntity(
@@ -141,12 +138,13 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
 
     val existingPerson = personRepository.save(personEntity)
 
+    val pncNumber = "2003/0062845E"
     val defendantEntity = DefendantEntity(
       forenameOne = "Rodney",
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "cbee7d12-5515-483f-8cdc-f4b03867c529",
-      pncNumber = PNCIdentifier("2008/0056560S"),
+      pncNumber = PNCIdentifier(pncNumber),
       person = existingPerson,
     )
 
@@ -158,7 +156,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "69c94c02-9b7d-439f-9412-d0812f8c2835",
-      pncNumber = PNCIdentifier("2008/0056560E"),
+      pncNumber = PNCIdentifier("1981/0154257C"),
       person = existingPerson,
     )
 
@@ -171,14 +169,14 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
 
     assertEquals(2, personEntityUpdated.defendants.size)
 
-    val defendants = defendantRepository.findAllByPncNumber(PNCIdentifier("2008/0056560S"))
+    val defendants = defendantRepository.findAllByPncNumber(PNCIdentifier(pncNumber))
 
     assertEquals(1, defendants.size)
     assertEquals(defendantEntity.pncNumber, defendants[0].pncNumber)
   }
 
   @Test
-  fun `should returned all defendants for a pnc`() {
+  fun `should return all defendants for a pnc`() {
     val personId = UUID.randomUUID()
 
     val personEntity = PersonEntity(
@@ -194,7 +192,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "a6704fae-34ac-4ec6-9c6a-93afa73a85d9",
-      pncNumber = PNCIdentifier("2008/0056560E"),
+      pncNumber = PNCIdentifier("20030011985X"),
       person = existingPerson,
     )
 
@@ -206,7 +204,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "0c4b2734-5bca-4401-a20a-90654f8a5a89",
-      pncNumber = PNCIdentifier("2008/0056560E"),
+      pncNumber = PNCIdentifier("20030011985X"),
       person = existingPerson,
     )
 
@@ -219,12 +217,12 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
 
     assertEquals(2, personEntityUpdated.defendants.size)
 
-    val defendants = defendantRepository.findAllByPncNumber(PNCIdentifier("2008/0056560E"))
+    val defendants = defendantRepository.findAllByPncNumber(PNCIdentifier("20030011985X"))
 
     assertEquals(2, defendants.size)
 
     assertThat(defendants)
       .extracting("pncNumber")
-      .containsOnly(PNCIdentifier("2008/0056560E"))
+      .containsOnly(PNCIdentifier("20030011985X"))
   }
 }
