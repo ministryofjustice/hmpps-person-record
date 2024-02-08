@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.matcher.DefendantMatcher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_CASE_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 
 @Service
@@ -32,18 +31,18 @@ class CourtCaseEventsService(
       return
     }
     person.otherIdentifiers?.pncIdentifier?.let { pncIdentifier ->
-      val pnc = pncIdentifier.pncId
+      val pncId = pncIdentifier.pncId
       if (pncIdentifier.isValid()) {
         trackEvent(TelemetryEventType.VALID_PNC, mapOf("PNC" to pncIdentifier.toString()))
-        val defendants = personRepository.findByDefendantsPncNumber(PNCIdentifier(pnc))?.defendants.orEmpty()
+        val defendants = personRepository.findByDefendantsPncNumber(PNCIdentifier(pncId))?.defendants.orEmpty()
         val defendantMatcher = DefendantMatcher(defendants, person)
 
         when {
-          defendantMatcher.hasNothingMatch() -> createNewPersonRecordAndProcess(person, pnc)
-          defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person, pnc)
+          defendantMatcher.hasNothingMatch() -> createNewPersonRecordAndProcess(person, pncId)
+          defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person, pncId)
           defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher)
           else -> {
-            log.debug("Scenario not covered for pnc $pnc")
+            log.debug("Scenario not covered for pnc $pncId")
           }
         }
       } else {
