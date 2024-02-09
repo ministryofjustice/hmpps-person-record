@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -13,9 +12,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class OffenderRepositoryIntTest : IntegrationTestBase() {
-
-  @Autowired
-  lateinit var offenderRepository: OffenderRepository
 
   @BeforeEach
   fun setUp() {

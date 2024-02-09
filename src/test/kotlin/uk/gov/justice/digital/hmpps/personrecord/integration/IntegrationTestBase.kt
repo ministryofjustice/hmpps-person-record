@@ -21,6 +21,8 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.junit.jupiter.Testcontainers
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
@@ -50,6 +52,12 @@ abstract class IntegrationTestBase {
 
   @Autowired
   lateinit var personRepository: PersonRepository
+
+  @Autowired
+  lateinit var defendantRepository: DefendantRepository
+
+  @Autowired
+  lateinit var offenderRepository: OffenderRepository
 
   @SpyBean
   lateinit var telemetryService: TelemetryService
