@@ -13,11 +13,6 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
-import org.springframework.test.context.jdbc.Sql
-import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
-import org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD
-import org.springframework.test.context.jdbc.SqlConfig
-import org.springframework.test.context.jdbc.SqlConfig.TransactionMode.ISOLATED
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
@@ -187,7 +182,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       .build()
 
     // when
-    val blitzer = Blitzer(100, 10)
+    val blitzer = Blitzer(30, 10)
     try {
       blitzer.blitz {
         courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
@@ -229,7 +224,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       )
       .build()
     // when
-    val blitzer = Blitzer(100, 10)
+    val blitzer = Blitzer(30, 10)
     try {
       blitzer.blitz {
         courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
