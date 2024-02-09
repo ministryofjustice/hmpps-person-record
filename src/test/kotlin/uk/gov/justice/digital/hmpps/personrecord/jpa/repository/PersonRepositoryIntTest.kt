@@ -24,15 +24,9 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
   fun `should return exact match for provided UUID`() {
     // Given
     val personId = UUID.fromString("eed4a9a4-d853-11ed-afa1-0242ac120002")
-    val person = Person(otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("2001/0171310W"), crn = "CRN1234"), givenName = "Iestyn", familyName = "Mahoney", dateOfBirth = LocalDate.of(1965, 6, 18))
-
-    val newPersonEntity = PersonEntity(personId = personId)
-    newPersonEntity.createdBy = "test"
-    newPersonEntity.lastUpdatedBy = "test"
-    val newDefendantEntity = DefendantEntity.from(person)
-    newDefendantEntity.person = newPersonEntity
-    newPersonEntity.defendants.add(newDefendantEntity)
-    personRepository.saveAndFlush(newPersonEntity)
+    val pncIdentifier = PNCIdentifier.from("2001/0171310W")
+    val crn = "CRN1234"
+    aDefendant(personId, "Iestyn", "Mahoney", pncIdentifier, crn, LocalDate.of(1965, 6, 18))
 
     // When
     val personEntity = personRepository.findByPersonId(personId)
@@ -40,8 +34,8 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
     // Then
     assertThat(personEntity?.defendants).hasSize(1)
     val hmctsDefendantEntity = personEntity?.defendants?.get(0)
-    assertThat(hmctsDefendantEntity?.pncNumber).isEqualTo(PNCIdentifier.from("2001/0171310W"))
-    assertThat(hmctsDefendantEntity?.crn).isEqualTo("CRN1234")
+    assertThat(hmctsDefendantEntity?.pncNumber).isEqualTo(pncIdentifier)
+    assertThat(hmctsDefendantEntity?.crn).isEqualTo(crn)
     assertThat(hmctsDefendantEntity?.forenameOne).isEqualTo("Iestyn")
 
     assertThat(hmctsDefendantEntity?.surname).isEqualTo("Mahoney")
