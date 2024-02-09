@@ -144,6 +144,5 @@ class PNCIdentifierTest {
         Arguments.of("2002/0073319Z", "2002/0073319Z"),
       )
     }
-    
   }
 }
