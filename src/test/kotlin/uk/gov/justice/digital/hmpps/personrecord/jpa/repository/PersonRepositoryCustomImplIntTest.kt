@@ -4,13 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
-import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
-import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
-import java.time.LocalDate
 import java.util.*
 
 class PersonRepositoryCustomImplIntTest : IntegrationTestBase() {
@@ -38,8 +32,8 @@ class PersonRepositoryCustomImplIntTest : IntegrationTestBase() {
   @Test
   fun `should return all person records for provided search criteria`() {
     // Given
-    aDefendant(UUID.fromString("eed4a9a4-d853-11ed-afa1-0242ac120002"), "Iestyn", "Mahoney")
-    aDefendant(UUID.fromString("d75a9374-e2a3-11ed-b5ea-0242ac120002"), "Garry", "Mahoney")
+    aDefendant(personId = UUID.fromString("eed4a9a4-d853-11ed-afa1-0242ac120002"), givenName = "Iestyn", familyName = "Mahoney")
+    aDefendant(personId = UUID.fromString("d75a9374-e2a3-11ed-b5ea-0242ac120002"), givenName = "Garry", familyName = "Mahoney")
     val searchRequest = PersonSearchRequest(
       surname = "Mahoney",
     )
@@ -58,7 +52,7 @@ class PersonRepositoryCustomImplIntTest : IntegrationTestBase() {
   @Test
   fun `should return a single person record for an exact name match ignoring case`() {
     // Given
-    aDefendant(UUID.randomUUID(), "John", "Mahoney")
+    aDefendant(givenName = "John", familyName = "Mahoney")
     val searchRequest = PersonSearchRequest(
       forenameOne = "jOhN",
       surname = "mAhOnEy",
@@ -81,17 +75,5 @@ class PersonRepositoryCustomImplIntTest : IntegrationTestBase() {
 
     // Then
     assertThat(results).isEmpty()
-  }
-
-  private fun aDefendant(personId: UUID, givenName: String, familyName: String) {
-    val person = Person(otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("2001/0171310W"), crn = "CRN1234"), givenName = givenName, familyName = familyName, dateOfBirth = LocalDate.of(1965, 6, 18))
-
-    val newPersonEntity = PersonEntity(personId = personId)
-    newPersonEntity.createdBy = "test"
-    newPersonEntity.lastUpdatedBy = "test"
-    val newDefendantEntity = DefendantEntity.from(person)
-    newDefendantEntity.person = newPersonEntity
-    newPersonEntity.defendants.add(newDefendantEntity)
-    personRepository.saveAndFlush(newPersonEntity)
   }
 }
