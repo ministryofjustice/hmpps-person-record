@@ -14,50 +14,30 @@ class PNCIdentifierTest {
 
   @Test
   fun `should process an empty string`() {
-    // When
-    val expectedCanonicalForm = PNCIdentifier.from("").pncId
-
-    // Then
-    assertThat(expectedCanonicalForm).isEmpty()
+    assertThat(PNCIdentifier.from("").pncId).isEmpty()
   }
 
   @Test
   fun `should process a null string`() {
-    // When
-    val expectedCanonicalForm = PNCIdentifier.from(null).pncId
-
-    // Then
-    assertThat(expectedCanonicalForm).isEmpty()
+    assertThat(PNCIdentifier.from(null).pncId).isEmpty()
   }
 
   @ParameterizedTest
   @MethodSource("longFormPncProvider")
   fun `should convert long form PNC ids to canonical form`(pncId: String, expectedResult: String) {
-    // When
-    val expectedCanonicalForm = PNCIdentifier.from(pncId).pncId
-
-    // Then
-    assertThat(expectedCanonicalForm).isEqualTo(expectedResult)
+    assertThat(PNCIdentifier.from(pncId).pncId).isEqualTo(expectedResult)
   }
 
   @ParameterizedTest
   @MethodSource("canonicalFormPncProvider")
   fun `should NOT convert PNCs already in canonical form`(pncId: String, expectedResult: String) {
-    // When
-    val result = PNCIdentifier.from(pncId).pncId
-
-    // Then
-    assertThat(result).isEqualTo(expectedResult)
+    assertThat(PNCIdentifier.from(pncId).pncId).isEqualTo(expectedResult)
   }
 
   @ParameterizedTest
   @MethodSource("shortFormPncProvider")
   fun `should convert short form PNC ids to canonical form`(pncId: String, expectedResult: String) {
-    // When
-    val expectedCanonicalForm = PNCIdentifier.from(pncId).pncId
-
-    // Then
-    assertThat(expectedCanonicalForm).isEqualTo(expectedResult)
+    assertThat(PNCIdentifier.from(pncId).pncId).isEqualTo(expectedResult)
   }
 
   @ParameterizedTest
@@ -164,14 +144,6 @@ class PNCIdentifierTest {
         Arguments.of("2002/0073319Z", "2002/0073319Z"),
       )
     }
-
-    @JvmStatic
-    fun invalidPncProvider(): Stream<Arguments> {
-      return Stream.of(
-        Arguments.of("garbage", "garbage"),
-        Arguments.of("xx/123456Z", "xx/123456Z"),
-        Arguments.of("sdsdlkfjlsdkfjlskdjflsdkfj", "sdsd/lkfjlsdkfjlskdjflsdkfj"),
-      )
-    }
+    
   }
 }
