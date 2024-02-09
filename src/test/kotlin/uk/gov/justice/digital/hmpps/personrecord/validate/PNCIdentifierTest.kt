@@ -14,60 +14,30 @@ class PNCIdentifierTest {
 
   @Test
   fun `should process an empty string`() {
-    // When
-    val expectedCanonicalForm = PNCIdentifier.from("").pncId
-
-    // Then
-    assertThat(expectedCanonicalForm).isEmpty()
+    assertThat(PNCIdentifier.from("").pncId).isEmpty()
   }
 
   @Test
   fun `should process a null string`() {
-    // When
-    val expectedCanonicalForm = PNCIdentifier.from(null).pncId
-
-    // Then
-    assertThat(expectedCanonicalForm).isEmpty()
+    assertThat(PNCIdentifier.from(null).pncId).isEmpty()
   }
 
   @ParameterizedTest
   @MethodSource("longFormPncProvider")
   fun `should convert long form PNC ids to canonical form`(pncId: String, expectedResult: String) {
-    // When
-    val expectedCanonicalForm = PNCIdentifier.from(pncId).pncId
-
-    // Then
-    assertThat(expectedCanonicalForm).isEqualTo(expectedResult)
+    assertThat(PNCIdentifier.from(pncId).pncId).isEqualTo(expectedResult)
   }
 
   @ParameterizedTest
   @MethodSource("canonicalFormPncProvider")
   fun `should NOT convert PNCs already in canonical form`(pncId: String, expectedResult: String) {
-    // When
-    val result = PNCIdentifier.from(pncId).pncId
-
-    // Then
-    assertThat(result).isEqualTo(expectedResult)
+    assertThat(PNCIdentifier.from(pncId).pncId).isEqualTo(expectedResult)
   }
 
   @ParameterizedTest
   @MethodSource("shortFormPncProvider")
   fun `should convert short form PNC ids to canonical form`(pncId: String, expectedResult: String) {
-    // When
-    val expectedCanonicalForm = PNCIdentifier.from(pncId).pncId
-
-    // Then
-    assertThat(expectedCanonicalForm).isEqualTo(expectedResult)
-  }
-
-  @ParameterizedTest
-  @MethodSource("invalidPncProvider")
-  fun `should NOT convert invalid PNC ids`(pncId: String, expectedResult: String) {
-    // When
-    val expectedCanonicalForm = PNCIdentifier.from(pncId).pncId
-
-    // Then
-    assertThat(expectedCanonicalForm).isEqualTo(expectedResult.uppercase())
+    assertThat(PNCIdentifier.from(pncId).pncId).isEqualTo(expectedResult)
   }
 
   @ParameterizedTest
@@ -86,27 +56,27 @@ class PNCIdentifierTest {
   )
   fun `should return invalid when PNC id is not the correct length`(pncId: String) {
     // When
-    val valid = PNCIdentifier.from(pncId).isValid()
+    val invalid = PNCIdentifier.from(pncId) is InvalidPNCIdentifier
 
     // Then
-    assertThat(valid).isFalse()
+    assertThat(invalid).isTrue()
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["1X23/1234567A", "1923[1234567A", "1923/1Z34567A", "1923/1234567AA"])
+  @ValueSource(strings = ["TOTALLYINVALID", "1X23/1234567A", "1923[1234567A", "1923/1Z34567A", "1923/1234567AA"])
   fun `should return invalid when PNC id is incorrectly formatted`(pncId: String) {
     // When
-    val valid = PNCIdentifier.from(pncId).isValid()
+    val invalid = PNCIdentifier.from(pncId) is InvalidPNCIdentifier
 
     // Then
-    assertThat(valid).isFalse()
+    assertThat(invalid).isTrue()
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["2008/0056560Z", "20030011985X", "20120052494Q", "20230583843L", "2001/0171310W", "2011/0275516Q", "2008/0056560Z", "2003/0062845E", "1981/0154257C"])
   fun `should return valid when PNC id is correctly formatted`(pncId: String) {
     // When
-    val valid = PNCIdentifier.from(pncId).isValid()
+    val valid = PNCIdentifier.from(pncId) is ValidPNCIdentifier
 
     // Then
     assertThat(valid).isTrue()
@@ -116,10 +86,10 @@ class PNCIdentifierTest {
   @ValueSource(strings = ["20030011985Z", "20120052494O", "20230583843N", "2001/0171310S"])
   fun `should return invalid when PNC id is correctly formatted but not valid`(pncId: String) {
     // When
-    val valid = PNCIdentifier.from(pncId).isValid()
+    val invalid = PNCIdentifier.from(pncId) is InvalidPNCIdentifier
 
     // Then
-    assertThat(valid).isFalse()
+    assertThat(invalid).isTrue()
   }
 
   @Test
@@ -127,7 +97,7 @@ class PNCIdentifierTest {
     val readAllLines = Files.readAllLines(Paths.get("src/test/resources/valid_pncs.csv"), Charsets.UTF_8)
 
     readAllLines.stream().forEach {
-      assertThat((PNCIdentifier.from(it).isValid())).isTrue()
+      assertThat((PNCIdentifier.from(it) is ValidPNCIdentifier)).isTrue()
     }
   }
 
@@ -172,15 +142,6 @@ class PNCIdentifierTest {
       return Stream.of(
         Arguments.of("1979/0163001B", "1979/0163001B"),
         Arguments.of("2002/0073319Z", "2002/0073319Z"),
-      )
-    }
-
-    @JvmStatic
-    fun invalidPncProvider(): Stream<Arguments> {
-      return Stream.of(
-        Arguments.of("garbage", "garbage"),
-        Arguments.of("xx/123456Z", "xx/123456Z"),
-        Arguments.of("sdsdlkfjlsdkfjlskdjflsdkfj", "sdsd/lkfjlsdkfjlskdjflsdkfj"),
       )
     }
   }
