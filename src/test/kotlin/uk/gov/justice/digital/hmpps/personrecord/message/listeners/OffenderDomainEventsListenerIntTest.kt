@@ -10,8 +10,6 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
-import org.springframework.test.context.jdbc.Sql
-import org.springframework.test.context.jdbc.SqlConfig
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
@@ -27,16 +25,6 @@ import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit.SECONDS
 
-@Sql(
-  scripts = ["classpath:sql/before-test.sql"],
-  config = SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED),
-  executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-)
-@Sql(
-  scripts = ["classpath:sql/after-test.sql"],
-  config = SqlConfig(transactionMode = SqlConfig.TransactionMode.ISOLATED),
-  executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-)
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
 class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
 
