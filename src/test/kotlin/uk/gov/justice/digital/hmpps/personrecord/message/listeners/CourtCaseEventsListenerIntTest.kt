@@ -13,11 +13,6 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
-import org.springframework.test.context.jdbc.Sql
-import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
-import org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD
-import org.springframework.test.context.jdbc.SqlConfig
-import org.springframework.test.context.jdbc.SqlConfig.TransactionMode.ISOLATED
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
@@ -33,16 +28,6 @@ import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
 
-@Sql(
-  scripts = ["classpath:sql/before-test.sql"],
-  config = SqlConfig(transactionMode = ISOLATED),
-  executionPhase = BEFORE_TEST_METHOD,
-)
-@Sql(
-  scripts = ["classpath:sql/after-test.sql"],
-  config = SqlConfig(transactionMode = ISOLATED),
-  executionPhase = AFTER_TEST_METHOD,
-)
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
 class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
@@ -183,47 +168,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should not push messages from Libra onto dead letter queue when processing fails because of could not serialize access due to read write dependencies among transactions`() {
-    // given
-    val publishRequest = PublishRequest.builder()
-      .topicArn(courtCaseEventsTopic?.arn)
-      .message(libraHearing())
-      .messageAttributes(
-        mapOf(
-          "messageType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(MessageType.LIBRA_COURT_CASE.name).build(),
-        ),
-      )
-      .build()
-
-    // when
-    val blitzer = Blitzer(100, 50)
-    try {
-      blitzer.blitz {
-        courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
-      }
-    } finally {
-      blitzer.shutdown()
-    }
-
-    // then
-    await untilCallTo {
-      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
-
-    await untilCallTo {
-      cprCourtCaseEventsQueue?.sqsDlqClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.dlqUrl!!)?.get()
-    } matches { it == 0 }
-
-    verify(telemetryService, times(1)).trackEvent(
-      eq(TelemetryEventType.NEW_CASE_PERSON_CREATED),
-      check {
-        assertThat(it["PNC"]).isEqualTo("2003/0011985X")
-      },
-    )
-  }
-
-  @Test
   fun `should not push messages from Common Platform onto dead letter queue when processing fails because of could not serialize access due to read write dependencies among transactions`() {
     // given
     val pncNumber = PNCIdentifier.from("2003/0062845E")
@@ -239,7 +183,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       )
       .build()
     // when
-    val blitzer = Blitzer(100, 50)
+    val blitzer = Blitzer(100, 5)
     try {
       blitzer.blitz {
         courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()

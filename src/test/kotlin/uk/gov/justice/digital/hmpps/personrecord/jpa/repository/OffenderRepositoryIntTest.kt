@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
 
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderEntity
@@ -12,11 +11,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class OffenderRepositoryIntTest : IntegrationTestBase() {
-
-  @BeforeEach
-  fun setUp() {
-    offenderRepository.deleteAll()
-  }
 
   @Test
   fun `should save offender successfully and link a new person record`() {
