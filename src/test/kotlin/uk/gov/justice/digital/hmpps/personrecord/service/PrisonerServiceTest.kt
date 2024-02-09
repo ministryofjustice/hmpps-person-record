@@ -53,7 +53,7 @@ class PrisonerServiceTest {
       givenName = "John",
       familyName = "Doe",
       dateOfBirth = prisonerDOB,
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("PNC123"), prisonNumber = "12345"),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("20230583843L"), prisonNumber = "12345"),
     )
     val personEntity = Person.from(person)
 
@@ -64,7 +64,7 @@ class PrisonerServiceTest {
       dateOfBirth = prisonerDOB,
       gender = "Male",
       nationality = "British",
-      pncNumber = "PNC123",
+      pncNumber = "20230583843L",
     )
 
     whenever(client.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(listOf(prisoner))
@@ -93,7 +93,7 @@ class PrisonerServiceTest {
       givenName = "John",
       familyName = "Doe",
       dateOfBirth = prisonerDOB,
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("PNC123")),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("2001/0171310W")),
     )
     val personEntity = Person.from(person)
     val prisoner = Prisoner(
@@ -103,7 +103,7 @@ class PrisonerServiceTest {
       dateOfBirth = prisonerDOB,
       gender = "Male",
       nationality = "British",
-      pncNumber = "PNC999",
+      pncNumber = "20230583843L",
     )
     val prisonerList = listOf(prisoner)
     whenever(client.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(prisonerList)
@@ -132,7 +132,7 @@ class PrisonerServiceTest {
       givenName = "John",
       familyName = "Doe",
       dateOfBirth = prisonerDOB,
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("PNC123"), prisonNumber = "12345"),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("20230583843L"), prisonNumber = "12345"),
     )
     val personEntity = Person.from(person)
     val prisoner = Prisoner(
@@ -142,7 +142,7 @@ class PrisonerServiceTest {
       dateOfBirth = prisonerDOB,
       gender = "Male",
       nationality = "British",
-      pncNumber = "PNC123",
+      pncNumber = "20230583843L",
     )
     whenever(client.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(listOf(prisoner))
 
@@ -169,7 +169,7 @@ class PrisonerServiceTest {
       givenName = "John",
       familyName = "Doe",
       dateOfBirth = LocalDate.now(),
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("PNC123")),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("20230583843L")),
     )
     whenever(client.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(null)
 

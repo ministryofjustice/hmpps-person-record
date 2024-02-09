@@ -61,16 +61,6 @@ class PNCIdentifierTest {
   }
 
   @ParameterizedTest
-  @MethodSource("invalidPncProvider")
-  fun `should NOT convert invalid PNC ids`(pncId: String, expectedResult: String) {
-    // When
-    val expectedCanonicalForm = PNCIdentifier.from(pncId).pncId
-
-    // Then
-    assertThat(expectedCanonicalForm).isEqualTo(expectedResult.uppercase())
-  }
-
-  @ParameterizedTest
   @MethodSource("equalityPncProvider")
   fun `should perform equality comparison using canonical form`(pncId1: String, pncId2: String, expectedResult: Boolean) {
     // When

@@ -16,7 +16,7 @@ interface PNCIdentifier {
       if (isValid(pncId)) {
         return ValidPNCIdentifier(pncId)
       }
-      return InvalidPNCIdentifier()
+      return InvalidPNCIdentifier(inputPncId)
     }
 
     private const val VALID_LETTERS = "ZABCDEFGHJKLMNPQRTUVWXY"
@@ -95,13 +95,15 @@ class MissingPNCIdentifier : PNCIdentifier {
   }
 }
 
-class InvalidPNCIdentifier : PNCIdentifier {
+class InvalidPNCIdentifier(val inputPncId: String) : PNCIdentifier {
   override val pncId: String
     get() = ""
 
   override fun toString(): String {
     return pncId
   }
+
+  fun invalidValue(): String = inputPncId
 }
 
 class ValidPNCIdentifier(val inputPncId: String) : PNCIdentifier {
