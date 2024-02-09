@@ -1,18 +1,12 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
 import java.util.*
 
 class PersonRepositoryCustomImplIntTest : IntegrationTestBase() {
-
-  @BeforeEach
-  fun setup() {
-    personRepository.deleteAll()
-  }
 
   @Test
   fun `should return person record for known provided surname`() {

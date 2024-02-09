@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
@@ -14,11 +13,6 @@ import java.time.LocalDate
 import java.util.UUID
 
 class PersonRepositoryIntTest : IntegrationTestBase() {
-
-  @BeforeEach
-  fun before() {
-    personRepository.deleteAll()
-  }
 
   @Test
   fun `should return exact match for provided UUID`() {
