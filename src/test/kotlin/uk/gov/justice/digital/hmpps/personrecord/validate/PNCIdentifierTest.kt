@@ -63,7 +63,7 @@ class PNCIdentifierTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["1X23/1234567A", "1923[1234567A", "1923/1Z34567A", "1923/1234567AA"])
+  @ValueSource(strings = ["TOTALLYINVALID", "1X23/1234567A", "1923[1234567A", "1923/1Z34567A", "1923/1234567AA"])
   fun `should return invalid when PNC id is incorrectly formatted`(pncId: String) {
     // When
     val invalid = PNCIdentifier.from(pncId) is InvalidPNCIdentifier

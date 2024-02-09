@@ -108,7 +108,7 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
   @Test
   fun `should not return any person record with no matching pnc`() {
     // Given
-    val pnc = PNCIdentifier.from("PNC00000")
+    val pnc = PNCIdentifier.from("20230583843L")
 
     // When
     val personEntity = personRepository.findPersonEntityByPncNumber(pnc)

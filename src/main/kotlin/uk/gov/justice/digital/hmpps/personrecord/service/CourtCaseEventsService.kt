@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_CASE_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.VALID_PNC
 import uk.gov.justice.digital.hmpps.personrecord.validate.InvalidPNCIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.validate.ValidPNCIdentifier
 
 @Service
@@ -35,21 +34,23 @@ class CourtCaseEventsService(
   fun processPersonFromCourtCaseEvent(person: Person) {
     log.debug("Entered processPersonFromCourtCaseEvent")
     when (val pncIdentifier = person.otherIdentifiers?.pncIdentifier) {
-      is ValidPNCIdentifier -> {
-        val pncId = pncIdentifier.pncId
-        trackEvent(VALID_PNC, mapOf("PNC" to pncIdentifier.toString()))
-        val defendants = personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncId))?.defendants.orEmpty()
-        val defendantMatcher = DefendantMatcher(defendants, person)
-        when {
-          defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person, pncId)
-          defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher)
-          else -> {
-            createNewPersonRecordAndProcess(person, pncId)
-          }
-        }
-      }
+      is ValidPNCIdentifier -> processValidMessage(pncIdentifier, person)
       is InvalidPNCIdentifier -> trackEvent(INVALID_PNC, mapOf("PNC" to pncIdentifier.invalidValue()))
       else -> trackEvent(MISSING_PNC, emptyMap())
+    }
+  }
+
+  private fun processValidMessage(pncIdentifier: ValidPNCIdentifier, person: Person) {
+    trackEvent(VALID_PNC, mapOf("PNC" to pncIdentifier.toString()))
+    val defendants = personRepository.findByDefendantsPncNumber(pncIdentifier)?.defendants.orEmpty()
+    val defendantMatcher = DefendantMatcher(defendants, person)
+    val pncId = pncIdentifier.pncId
+    when {
+      defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person, pncId)
+      defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher)
+      else -> {
+        createNewPersonRecordAndProcess(person, pncId)
+      }
     }
   }
 
