@@ -86,27 +86,27 @@ class PNCIdentifierTest {
   )
   fun `should return invalid when PNC id is not the correct length`(pncId: String) {
     // When
-    val valid = PNCIdentifier.from(pncId).isValid()
+    val invalid = PNCIdentifier.from(pncId) is InvalidPNCIdentifier
 
     // Then
-    assertThat(valid).isFalse()
+    assertThat(invalid).isTrue()
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["1X23/1234567A", "1923[1234567A", "1923/1Z34567A", "1923/1234567AA"])
   fun `should return invalid when PNC id is incorrectly formatted`(pncId: String) {
     // When
-    val valid = PNCIdentifier.from(pncId).isValid()
+    val invalid = PNCIdentifier.from(pncId) is InvalidPNCIdentifier
 
     // Then
-    assertThat(valid).isFalse()
+    assertThat(invalid).isTrue()
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["2008/0056560Z", "20030011985X", "20120052494Q", "20230583843L", "2001/0171310W", "2011/0275516Q", "2008/0056560Z", "2003/0062845E", "1981/0154257C"])
   fun `should return valid when PNC id is correctly formatted`(pncId: String) {
     // When
-    val valid = PNCIdentifier.from(pncId).isValid()
+    val valid = PNCIdentifier.from(pncId) is ValidPNCIdentifier
 
     // Then
     assertThat(valid).isTrue()
@@ -116,10 +116,10 @@ class PNCIdentifierTest {
   @ValueSource(strings = ["20030011985Z", "20120052494O", "20230583843N", "2001/0171310S"])
   fun `should return invalid when PNC id is correctly formatted but not valid`(pncId: String) {
     // When
-    val valid = PNCIdentifier.from(pncId).isValid()
+    val invalid = PNCIdentifier.from(pncId) is InvalidPNCIdentifier
 
     // Then
-    assertThat(valid).isFalse()
+    assertThat(invalid).isTrue()
   }
 
   @Test
@@ -127,7 +127,7 @@ class PNCIdentifierTest {
     val readAllLines = Files.readAllLines(Paths.get("src/test/resources/valid_pncs.csv"), Charsets.UTF_8)
 
     readAllLines.stream().forEach {
-      assertThat((PNCIdentifier.from(it).isValid())).isTrue()
+      assertThat((PNCIdentifier.from(it) is ValidPNCIdentifier)).isTrue()
     }
   }
 

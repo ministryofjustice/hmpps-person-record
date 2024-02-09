@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_CASE_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.VALID_PNC
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.validate.ValidPNCIdentifier
 
 @Service
 class CourtCaseEventsService(
@@ -38,7 +39,7 @@ class CourtCaseEventsService(
     }
     person.otherIdentifiers?.pncIdentifier?.let { pncIdentifier ->
       val pncId = pncIdentifier.pncId
-      if (pncIdentifier.isValid()) {
+      if (pncIdentifier is ValidPNCIdentifier) {
         trackEvent(VALID_PNC, mapOf("PNC" to pncIdentifier.toString()))
         val defendants = personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncId))?.defendants.orEmpty()
         val defendantMatcher = DefendantMatcher(defendants, person)

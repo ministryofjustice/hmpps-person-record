@@ -6,7 +6,6 @@ import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
@@ -89,7 +88,6 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
-  @Disabled("TODO")
   fun `should write offender without PNC if PNC is invalid`() {
     // Given
     val crn = "XXX5678"
