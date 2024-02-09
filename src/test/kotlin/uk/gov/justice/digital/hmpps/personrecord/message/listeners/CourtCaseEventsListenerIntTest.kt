@@ -33,16 +33,6 @@ import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
 
-@Sql(
-  scripts = ["classpath:sql/before-test.sql"],
-  config = SqlConfig(transactionMode = ISOLATED),
-  executionPhase = BEFORE_TEST_METHOD,
-)
-@Sql(
-  scripts = ["classpath:sql/after-test.sql"],
-  config = SqlConfig(transactionMode = ISOLATED),
-  executionPhase = AFTER_TEST_METHOD,
-)
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
 class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
@@ -197,7 +187,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       .build()
 
     // when
-    val blitzer = Blitzer(100, 50)
+    val blitzer = Blitzer(100, 10)
     try {
       blitzer.blitz {
         courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
@@ -239,7 +229,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       )
       .build()
     // when
-    val blitzer = Blitzer(100, 50)
+    val blitzer = Blitzer(100, 10)
     try {
       blitzer.blitz {
         courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
