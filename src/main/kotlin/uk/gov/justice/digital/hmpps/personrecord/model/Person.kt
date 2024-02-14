@@ -37,6 +37,9 @@ data class Person(
   val sex: String? = null,
   val nationalityOne: String? = null,
   val nationalityTwo: String? = null,
+  val personAliases: List<PersonAlias> = emptyList(),
+  val driverNumber: String? = null,
+  val arrestSummonsNumber: String? = null,
 
 ) {
   companion object {
@@ -73,7 +76,10 @@ data class Person(
         otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(defendant.pncId), cro = defendant.croNumber),
         givenName = defendant.personDefendant?.personDetails?.firstName,
         familyName = defendant.personDefendant?.personDetails?.lastName,
+        middleNames = defendant.personDefendant?.personDetails?.middleName?.split(" "),
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
+        personAliases = defendant.aliases?.map { PersonAlias.from(it) } ?: emptyList(),
+
       )
     }
 
