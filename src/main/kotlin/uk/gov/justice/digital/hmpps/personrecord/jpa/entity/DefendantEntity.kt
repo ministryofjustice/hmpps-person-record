@@ -38,6 +38,10 @@ class DefendantEntity(
   @JoinColumn(name = "fk_address_id", referencedColumnName = "id", nullable = true)
   var address: AddressEntity? = null,
 
+  @OneToOne(cascade = [CascadeType.ALL])
+  @JoinColumn(name = "fk_contact_id", referencedColumnName = "id", nullable = true)
+  var contact: ContactEntity? = null,
+
   @Column(name = "defendant_id")
   val defendantId: String? = null,
 
