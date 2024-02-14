@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
@@ -110,6 +111,16 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       defendantId = "b59d442a-11c6-4fba-ace1-6d899ae5b9za",
       person = existingPerson,
     )
+
+    val addressEntity = AddressEntity(
+      addressLineOne = "line 1",
+      addressLineTwo = "line 2",
+      postcode = "tw3 7pn",
+
+    )
+    addressEntity.createdBy = "test"
+    addressEntity.lastUpdatedBy = "test"
+    defendantEntity2.address = addressEntity
 
     defendantEntity2.createdBy = "test"
     defendantEntity2.lastUpdatedBy = "test"
@@ -221,5 +232,71 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     assertThat(defendants)
       .extracting("pncNumber")
       .containsOnly(PNCIdentifier.from("20030011985X"))
+  }
+
+  @Test
+  fun `should persist new defendant with address and link to an existing person record`() {
+    val personId = UUID.randomUUID()
+
+    val personEntity = PersonEntity(
+      personId = personId,
+    )
+    personEntity.createdBy = "test"
+    personEntity.lastUpdatedBy = "test"
+
+    var existingPerson = personRepository.save(personEntity)
+
+    val defendantId = "a59d442a-11c6-4fba-ace1-6d899ae5b9fa"
+    val defendantEntity = DefendantEntity(
+      forenameOne = "Rodney",
+      surname = "Trotter",
+      dateOfBirth = LocalDate.of(1980, 5, 1),
+      defendantId = defendantId,
+      person = existingPerson,
+    )
+
+    defendantEntity.createdBy = "test"
+    defendantEntity.lastUpdatedBy = "test"
+
+    existingPerson.defendants = mutableListOf(defendantEntity)
+
+    personRepository.save(existingPerson)
+
+    assertNotNull(defendantRepository.findByDefendantId(defendantId))
+
+    val defendantEntity1 = defendantRepository.findByDefendantId(defendantId)
+
+    existingPerson = defendantEntity1?.person!!
+
+    val defendantEntity2 = DefendantEntity(
+      forenameOne = "Rodney",
+      surname = "Trotter",
+      dateOfBirth = LocalDate.of(1980, 5, 1),
+      defendantId = "b59d442a-11c6-4fba-ace1-6d899ae5b9za",
+      person = existingPerson,
+    )
+
+    val addressEntity = AddressEntity(
+      addressLineOne = "line 1",
+      addressLineTwo = "line 2",
+      postcode = "tw3 7pn",
+
+    )
+    addressEntity.createdBy = "test"
+    addressEntity.lastUpdatedBy = "test"
+    defendantEntity2.address = addressEntity
+
+    defendantEntity2.createdBy = "test"
+    defendantEntity2.lastUpdatedBy = "test"
+
+    existingPerson.defendants.add(defendantEntity2)
+
+    val personEntityUpdated = personRepository.save(existingPerson)
+
+    assertEquals(2, personEntityUpdated.defendants.size)
+
+    val defendantWithAddress = defendantRepository.findByDefendantId("b59d442a-11c6-4fba-ace1-6d899ae5b9za")
+    assertNotNull(defendantWithAddress?.address)
+    assertEquals(defendantWithAddress?.address?.postcode, "tw3 7pn")
   }
 }

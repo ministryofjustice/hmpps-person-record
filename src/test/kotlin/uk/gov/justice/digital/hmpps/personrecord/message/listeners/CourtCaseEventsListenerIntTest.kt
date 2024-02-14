@@ -261,6 +261,13 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.personId).isNotNull()
     assertThat(personEntity.defendants.size).isEqualTo(1)
     assertThat(personEntity.defendants[0].pncNumber).isEqualTo(pncNumber)
+    assertThat(personEntity.defendants[0].address).isNotNull
+    assertThat(personEntity.defendants[0].address?.addressLineOne).isEqualTo("13 broad Street")
+    assertThat(personEntity.defendants[0].address?.addressLineTwo).isEqualTo("Cardiff")
+    assertThat(personEntity.defendants[0].address?.addressLineThree).isEqualTo("Wales")
+    assertThat(personEntity.defendants[0].address?.addressLineFour).isEqualTo("UK")
+    assertThat(personEntity.defendants[0].address?.addressLineFive).isEqualTo("Earth")
+    assertThat(personEntity.defendants[0].address?.postcode).isEqualTo("CF10 1FU")
     assertThat(personEntity.offenders).hasSize(1)
     assertThat(personEntity.offenders[0].crn).isEqualTo("X026350")
     assertThat(personEntity.offenders[0].pncNumber).isEqualTo(pncNumber)
