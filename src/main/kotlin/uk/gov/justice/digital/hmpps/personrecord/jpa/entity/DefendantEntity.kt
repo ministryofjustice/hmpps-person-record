@@ -4,11 +4,14 @@ import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Convert
 import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
+import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import org.hibernate.envers.Audited
 import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConverter
@@ -32,6 +35,17 @@ class DefendantEntity(
     nullable = false,
   )
   var person: PersonEntity? = null,
+
+  @OneToOne(cascade = [CascadeType.ALL])
+  @JoinColumn(name = "fk_address_id", referencedColumnName = "id", nullable = true)
+  var address: AddressEntity? = null,
+
+  @OneToOne(cascade = [CascadeType.ALL])
+  @JoinColumn(name = "fk_contact_id", referencedColumnName = "id", nullable = true)
+  var contact: ContactEntity? = null,
+
+  @OneToMany(mappedBy = "defendant", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+  var aliases: MutableList<DefendantAliasEntity>? = mutableListOf(),
 
   @Column(name = "defendant_id")
   val defendantId: String? = null,
@@ -61,24 +75,6 @@ class DefendantEntity(
   @Column(name = "surname")
   val surname: String? = null,
 
-  @Column(name = "address_line_one")
-  val addressLineOne: String? = null,
-
-  @Column(name = "address_line_two")
-  val addressLineTwo: String? = null,
-
-  @Column(name = "address_line_three")
-  val addressLineThree: String? = null,
-
-  @Column(name = "address_line_four")
-  val addressLineFour: String? = null,
-
-  @Column(name = "address_line_five")
-  val addressLineFive: String? = null,
-
-  @Column(name = "postcode")
-  val postcode: String? = null,
-
   @Column(name = "sex")
   val sex: String? = null,
 
@@ -106,12 +102,7 @@ class DefendantEntity(
         sex = person.sex,
         nationalityOne = person.nationalityOne,
         nationalityTwo = person.nationalityTwo,
-        addressLineOne = person.addressLineOne,
-        addressLineTwo = person.addressLineTwo,
-        addressLineThree = person.addressLineThree,
-        addressLineFour = person.addressLineFour,
-        addressLineFive = person.addressLineFive,
-        postcode = person.postcode,
+        address = AddressEntity.from(person),
       )
       defendantEntity.createdBy = PERSON_RECORD_SERVICE
       defendantEntity.lastUpdatedBy = PERSON_RECORD_SERVICE

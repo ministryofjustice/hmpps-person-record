@@ -78,6 +78,13 @@ data class Person(
         familyName = defendant.personDefendant?.personDetails?.lastName,
         middleNames = defendant.personDefendant?.personDetails?.middleName?.split(" "),
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
+        sex = defendant.personDefendant?.personDetails?.gender,
+        addressLineOne = defendant.personDefendant?.personDetails?.address?.address1,
+        addressLineTwo = defendant.personDefendant?.personDetails?.address?.address2,
+        addressLineThree = defendant.personDefendant?.personDetails?.address?.address3,
+        addressLineFour = defendant.personDefendant?.personDetails?.address?.address4,
+        addressLineFive = defendant.personDefendant?.personDetails?.address?.address5,
+        postcode = defendant.personDefendant?.personDetails?.address?.postcode,
         personAliases = defendant.aliases?.map { PersonAlias.from(it) } ?: emptyList(),
 
       )
