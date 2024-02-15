@@ -72,7 +72,7 @@ CREATE TABLE contact_aud
 alter table if exists contact_aud add constraint contact_aud_revinfo_FK foreign key (rev) references revinfo;
 ---------------------------------------------------------------------
 
---------- defendant_audit ------------------
+--------- defendant_alias ------------------
 DROP TABLE IF EXISTS defendant_alias;
 
 CREATE TABLE IF NOT EXISTS defendant_alias
