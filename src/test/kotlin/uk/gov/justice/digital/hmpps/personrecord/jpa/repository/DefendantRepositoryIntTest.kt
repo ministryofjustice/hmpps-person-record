@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantAliasEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
@@ -284,7 +285,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       addressLineOne = "line 1",
       addressLineTwo = "line 2",
       postcode = "tw3 7pn",
-
     )
     addressEntity.createdBy = "test"
     addressEntity.lastUpdatedBy = "test"
@@ -312,5 +312,51 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     assertEquals(defendantWithAddressAndContact?.address?.postcode, "tw3 7pn")
     assertNotNull(defendantWithAddressAndContact?.contact)
     assertEquals(defendantWithAddressAndContact?.contact?.mobile, "0767678766")
+  }
+
+  @Test
+  fun `should persist new defendant with aliases and create a person record`() {
+    val personId = UUID.randomUUID()
+
+    val personEntity = PersonEntity(
+      personId = personId,
+    )
+    personEntity.createdBy = "test"
+    personEntity.lastUpdatedBy = "test"
+
+    // var existingPerson = personRepository.save(personEntity)
+
+    val defendantId = "a59d442a-11c6-4fba-ace1-6d899ae5b9fa"
+    val defendantEntity = DefendantEntity(
+      forenameOne = "Rodney",
+      surname = "Trotter",
+      dateOfBirth = LocalDate.of(1980, 5, 1),
+      defendantId = defendantId,
+      person = personEntity,
+    )
+
+    defendantEntity.createdBy = "test"
+    defendantEntity.lastUpdatedBy = "test"
+
+    val aliasEntity = DefendantAliasEntity(
+      firstName = "Dave",
+      defendant = defendantEntity,
+    )
+
+    aliasEntity.createdBy = "test"
+    aliasEntity.lastUpdatedBy = "test"
+
+    defendantEntity.aliases = mutableListOf(aliasEntity)
+
+    personEntity.defendants = mutableListOf(defendantEntity)
+
+    val newPerson = personRepository.save(personEntity)
+
+    assertEquals(1, newPerson.defendants.size)
+
+    val defendantWithAliases = newPerson.defendants[0]
+
+    assertEquals(1, defendantWithAliases.aliases?.size)
+    assertEquals(defendantWithAliases.aliases!![0].firstName, "Dave")
   }
 }
