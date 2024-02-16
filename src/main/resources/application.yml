@@ -110,9 +110,9 @@ prisoner-search:
 
 feature:
   flags:
-    enable-hmcts-sqs: true
+    enable-hmcts-sqs: false
     enable-delius-search: true
     enable-nomis-search: true
-    enable-delius-domain-event-sqs: true
+    enable-delius-domain-event-sqs: false
 
 
