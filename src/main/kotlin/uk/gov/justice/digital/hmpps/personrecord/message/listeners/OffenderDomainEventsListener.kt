@@ -33,7 +33,7 @@ class OffenderDomainEventsListener(
   ) {
     log.debug("Enter onDomainEvent")
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-    featureFlag.isDeliusDomainEventSQSEnabled().let {
+    if(featureFlag.isDeliusDomainEventSQSEnabled()) {
       when (sqsMessage.type) {
         "Notification" -> {
           val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
@@ -51,6 +51,8 @@ class OffenderDomainEventsListener(
           log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
         }
       }
+    }else{
+      log.debug("Domain event processing switched off.")
     }
   }
 
