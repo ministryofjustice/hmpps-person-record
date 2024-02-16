@@ -26,7 +26,7 @@ internal class FeatureFlagTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should return false when delius domain event feature switch is disabled`() {
-    assertThat(featureFlag.isDeliusDomainEventSQSEnabled()).isFalse()
+  fun `should return true when delius domain event feature switch is enabled`() {
+    assertThat(featureFlag.isDeliusDomainEventSQSEnabled()).isTrue()
   }
 }
