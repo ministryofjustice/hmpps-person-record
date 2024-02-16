@@ -24,4 +24,9 @@ internal class FeatureFlagTest : IntegrationTestBase() {
   fun `should return true when nomis search feature switch is enabled`() {
     assertThat(featureFlag.isNomisSearchEnabled()).isTrue
   }
+
+  @Test
+  fun `should return true when delius domain event feature switch is enabled`() {
+    assertThat(featureFlag.isDeliusDomainEventSQSEnabled()).isTrue()
+  }
 }
