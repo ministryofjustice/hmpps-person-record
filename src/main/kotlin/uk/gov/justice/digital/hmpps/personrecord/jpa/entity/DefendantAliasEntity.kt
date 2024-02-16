@@ -49,8 +49,5 @@ class DefendantAliasEntity(
       defendantAliasEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
       return defendantAliasEntity
     }
-
-
   }
 }
-

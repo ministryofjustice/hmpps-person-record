@@ -37,7 +37,7 @@ class ContactEntity(
         homePhone = person.homePhone,
         workPhone = person.workPhone,
         mobile = person.mobile,
-        primaryEmail = person.primaryEmail
+        primaryEmail = person.primaryEmail,
       )
       addressEntity.createdBy = PERSON_RECORD_SERVICE
       addressEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
