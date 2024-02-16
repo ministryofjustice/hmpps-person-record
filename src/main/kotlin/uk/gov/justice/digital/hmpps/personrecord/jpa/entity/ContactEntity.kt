@@ -33,10 +33,19 @@ class ContactEntity(
 ) : BaseAuditedEntity() {
   companion object {
     fun from(person: Person): ContactEntity {
-      val addressEntity = ContactEntity()
+      val addressEntity = ContactEntity(
+        homePhone = person.homePhone,
+        workPhone = person.workPhone,
+        mobile = person.mobile,
+        primaryEmail = person.primaryEmail
+      )
       addressEntity.createdBy = PERSON_RECORD_SERVICE
       addressEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
       return addressEntity
     }
+  }
+
+  fun isContactDetailsPresent(): Boolean {
+    return homePhone?.isNotBlank() == true || workPhone?.isNotBlank() == true || mobile?.isNotBlank() == true
   }
 }

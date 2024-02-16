@@ -45,7 +45,7 @@ class DefendantEntity(
   var contact: ContactEntity? = null,
 
   @OneToMany(mappedBy = "defendant", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
-  var aliases: MutableList<DefendantAliasEntity>? = mutableListOf(),
+  var aliases: MutableList<DefendantAliasEntity> = mutableListOf(),
 
   @Column(name = "defendant_id")
   val defendantId: String? = null,
@@ -103,6 +103,8 @@ class DefendantEntity(
         nationalityOne = person.nationalityOne,
         nationalityTwo = person.nationalityTwo,
         address = AddressEntity.from(person),
+        contact = ContactEntity.from(person),
+
       )
       defendantEntity.createdBy = PERSON_RECORD_SERVICE
       defendantEntity.lastUpdatedBy = PERSON_RECORD_SERVICE

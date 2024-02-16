@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.hibernate.envers.Audited
+import uk.gov.justice.digital.hmpps.personrecord.model.PersonAlias
 
 @Entity
 @Table(name = "defendant_alias")
@@ -35,4 +36,21 @@ class DefendantAliasEntity(
 
   @Column(name = "last_name")
   val lastName: String? = null,
-) : BaseAuditedEntity()
+) : BaseAuditedEntity() {
+
+  companion object {
+    fun from(personAlias: PersonAlias): DefendantAliasEntity {
+      val defendantAliasEntity = DefendantAliasEntity(
+        firstName = personAlias.firstName,
+        middleName = personAlias.middleName,
+        lastName = personAlias.lastName,
+      )
+      defendantAliasEntity.createdBy = PERSON_RECORD_SERVICE
+      defendantAliasEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
+      return defendantAliasEntity
+    }
+
+
+  }
+}
+

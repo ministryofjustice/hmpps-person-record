@@ -40,7 +40,15 @@ data class Person(
   val personAliases: List<PersonAlias> = emptyList(),
   val driverNumber: String? = null,
   val arrestSummonsNumber: String? = null,
-
+  val masterDefendantId: String? = null,
+  val nationalityCode: String? = null,
+  val nationalInsuranceNumber: String? = null,
+  val observedEthnicityDescription: String? = null,
+  val selfDefinedEthnicityDescription: String? = null,
+  val homePhone: String? = null,
+  val mobile: String? = null,
+  val workPhone: String? = null,
+  val primaryEmail: String? = null,
 ) {
   companion object {
 
@@ -79,14 +87,25 @@ data class Person(
         middleNames = defendant.personDefendant?.personDetails?.middleName?.split(" "),
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
         sex = defendant.personDefendant?.personDetails?.gender,
+        driverNumber = defendant.personDefendant?.driverNumber,
+        arrestSummonsNumber = defendant.personDefendant?.arrestSummonsNumber,
         addressLineOne = defendant.personDefendant?.personDetails?.address?.address1,
         addressLineTwo = defendant.personDefendant?.personDetails?.address?.address2,
         addressLineThree = defendant.personDefendant?.personDetails?.address?.address3,
         addressLineFour = defendant.personDefendant?.personDetails?.address?.address4,
         addressLineFive = defendant.personDefendant?.personDetails?.address?.address5,
         postcode = defendant.personDefendant?.personDetails?.address?.postcode,
+        defendantId = defendant.id,
+        masterDefendantId = defendant.masterDefendantId,
+        nationalityCode = defendant.personDefendant?.personDetails?.nationalityCode,
+        nationalInsuranceNumber = defendant.personDefendant?.personDetails?.nationalInsuranceNumber,
+        observedEthnicityDescription = defendant.ethnicity?.observedEthnicityDescription,
+        selfDefinedEthnicityDescription = defendant.ethnicity?.selfDefinedEthnicityDescription,
+        homePhone = defendant.personDefendant?.personDetails?.contact?.home,
+        workPhone = defendant.personDefendant?.personDetails?.contact?.work,
+        mobile = defendant.personDefendant?.personDetails?.contact?.mobile,
+        primaryEmail = defendant.personDefendant?.personDetails?.contact?.primaryEmail,
         personAliases = defendant.aliases?.map { PersonAlias.from(it) } ?: emptyList(),
-
       )
     }
 

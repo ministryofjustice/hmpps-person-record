@@ -356,7 +356,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
 
     val defendantWithAliases = newPerson.defendants[0]
 
-    assertEquals(1, defendantWithAliases.aliases?.size)
-    assertEquals(defendantWithAliases.aliases!![0].firstName, "Dave")
+    assertEquals(1, defendantWithAliases.aliases.size)
+    assertEquals(defendantWithAliases.aliases[0].firstName, "Dave")
   }
 }
