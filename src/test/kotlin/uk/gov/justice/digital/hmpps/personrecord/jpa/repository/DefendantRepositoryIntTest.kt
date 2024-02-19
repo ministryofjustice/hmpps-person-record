@@ -331,8 +331,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     )
 
     val existingDefendant = person.defendants[0]
-    assertEquals(0,existingDefendant.version)
-
+    assertEquals(0, existingDefendant.version)
 
     existingDefendant.aliases = mutableListOf(aliasEntity)
 
@@ -342,7 +341,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
 
     val updatedDefendant = defendantRepository.findByDefendantId("a59d442a-11c6-4fba-ace1-6d899ae5b9fa")
 
-    assertEquals(1,updatedDefendant?.version)
+    assertEquals(1, updatedDefendant?.version)
     assertEquals(1, updatedDefendant?.aliases?.size)
     assertEquals(updatedDefendant?.aliases!![0].firstName, "Dave")
   }
