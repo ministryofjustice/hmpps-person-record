@@ -50,11 +50,11 @@ internal class DefendantEntityTest {
     assertThat(defendantEntity.sex).isEqualTo("male")
     assertThat(defendantEntity.nationalityOne).isEqualTo("nationality1")
     assertThat(defendantEntity.nationalityTwo).isEqualTo("nationality2")
-    assertThat(defendantEntity.addressLineOne).isEqualTo("addressLine1")
-    assertThat(defendantEntity.addressLineTwo).isEqualTo("addressLine2")
-    assertThat(defendantEntity.addressLineThree).isEqualTo("addressLine3")
-    assertThat(defendantEntity.addressLineFour).isEqualTo("addressLine4")
-    assertThat(defendantEntity.addressLineFive).isEqualTo("addressLine5")
-    assertThat(defendantEntity.postcode).isEqualTo("postCode")
+    assertThat(defendantEntity.address?.addressLineOne).isEqualTo("addressLine1")
+    assertThat(defendantEntity.address?.addressLineTwo).isEqualTo("addressLine2")
+    assertThat(defendantEntity.address?.addressLineThree).isEqualTo("addressLine3")
+    assertThat(defendantEntity.address?.addressLineFour).isEqualTo("addressLine4")
+    assertThat(defendantEntity.address?.addressLineFive).isEqualTo("addressLine5")
+    assertThat(defendantEntity.address?.postcode).isEqualTo("postCode")
   }
 }
