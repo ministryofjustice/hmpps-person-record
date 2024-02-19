@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.validate
+package uk.gov.justice.digital.hmpps.personrecord.model
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

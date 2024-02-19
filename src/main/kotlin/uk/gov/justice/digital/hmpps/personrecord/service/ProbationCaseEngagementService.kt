@@ -7,8 +7,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.DeliusOffenderDeta
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 
 const val DELIUS_EVENT = "DELIUS-EVENT"
 

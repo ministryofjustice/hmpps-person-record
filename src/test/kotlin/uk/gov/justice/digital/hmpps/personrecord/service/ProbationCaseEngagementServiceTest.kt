@@ -15,8 +15,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.Name
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import java.time.LocalDate
 
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
