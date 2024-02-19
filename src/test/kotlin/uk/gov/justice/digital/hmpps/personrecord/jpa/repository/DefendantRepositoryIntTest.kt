@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.assertEquals

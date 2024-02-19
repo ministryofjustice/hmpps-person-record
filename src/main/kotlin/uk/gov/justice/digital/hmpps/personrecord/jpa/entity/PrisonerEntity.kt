@@ -13,7 +13,7 @@ import jakarta.persistence.Table
 import org.hibernate.envers.Audited
 import uk.gov.justice.digital.hmpps.personrecord.client.model.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConverter
-import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import java.time.LocalDate
 
 @Entity

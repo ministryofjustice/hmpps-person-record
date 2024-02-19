@@ -3,8 +3,8 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
+import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
-import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import java.time.LocalDate
 
 internal class DefendantEntityTest {

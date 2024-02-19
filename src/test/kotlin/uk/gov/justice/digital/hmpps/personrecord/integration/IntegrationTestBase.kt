@@ -27,10 +27,10 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantReposit
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
+import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import java.time.Duration
 import java.time.LocalDate

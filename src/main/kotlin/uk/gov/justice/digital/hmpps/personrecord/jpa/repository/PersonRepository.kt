@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import java.util.*
 
 @Repository

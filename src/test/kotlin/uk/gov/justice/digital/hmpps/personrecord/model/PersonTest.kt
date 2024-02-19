@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Pers
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.PersonDetails
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.libra.Name
-import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import java.time.LocalDate
 
 internal class PersonTest {

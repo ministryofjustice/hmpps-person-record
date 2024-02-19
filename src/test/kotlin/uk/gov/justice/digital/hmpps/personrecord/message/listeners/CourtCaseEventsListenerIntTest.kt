@@ -16,6 +16,7 @@ import org.mockito.kotlin.verify
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
@@ -23,7 +24,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
-import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
