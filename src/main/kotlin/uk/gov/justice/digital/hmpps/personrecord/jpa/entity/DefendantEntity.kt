@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
+import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConverter
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
@@ -84,6 +85,9 @@ class DefendantEntity(
 
   @Column(name = "date_of_birth")
   val dateOfBirth: LocalDate? = null,
+
+  @Version
+  var version: Int = 0,
 
 ) {
   companion object {

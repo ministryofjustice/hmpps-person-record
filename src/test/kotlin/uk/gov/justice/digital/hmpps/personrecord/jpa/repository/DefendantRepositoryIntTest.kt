@@ -300,4 +300,50 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     assertEquals(1, defendantWithAliases.aliases?.size)
     assertEquals(defendantWithAliases.aliases!![0].firstName, "Dave")
   }
+
+  @Test
+  fun `should update existing defendant with aliases and update the version`() {
+    val personId = UUID.randomUUID()
+
+    val personEntity = PersonEntity(
+      personId = personId,
+    )
+
+    val defendantId = "a59d442a-11c6-4fba-ace1-6d899ae5b9fa"
+    val defendantEntity = DefendantEntity(
+      forenameOne = "Rodney",
+      surname = "Trotter",
+      dateOfBirth = LocalDate.of(1980, 5, 1),
+      defendantId = defendantId,
+      person = personEntity,
+    )
+
+    personEntity.defendants = mutableListOf(defendantEntity)
+
+    val person = personRepository.save(personEntity)
+
+    assertEquals(1, person.defendants.size)
+
+    // adding aliases
+    val aliasEntity = DefendantAliasEntity(
+      firstName = "Dave",
+      defendant = defendantEntity,
+    )
+
+    val existingDefendant = person.defendants[0]
+    assertEquals(0,existingDefendant.version)
+
+
+    existingDefendant.aliases = mutableListOf(aliasEntity)
+
+    person.defendants.add(existingDefendant)
+
+    personRepository.saveAndFlush(person)
+
+    val updatedDefendant = defendantRepository.findByDefendantId("a59d442a-11c6-4fba-ace1-6d899ae5b9fa")
+
+    assertEquals(1,updatedDefendant?.version)
+    assertEquals(1, updatedDefendant?.aliases?.size)
+    assertEquals(updatedDefendant?.aliases!![0].firstName, "Dave")
+  }
 }

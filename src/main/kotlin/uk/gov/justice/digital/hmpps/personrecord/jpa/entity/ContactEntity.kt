@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 
 @Entity
@@ -27,6 +28,9 @@ class ContactEntity(
 
   @Column(name = "primary_email")
   val primaryEmail: String? = null,
+
+  @Version
+  var version: Int = 0,
 
 ) {
   companion object {

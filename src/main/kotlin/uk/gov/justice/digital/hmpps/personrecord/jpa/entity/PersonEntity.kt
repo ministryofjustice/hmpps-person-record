@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
+import jakarta.persistence.Version
 import java.util.*
 
 @Entity
@@ -29,6 +30,9 @@ class PersonEntity(
 
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
   var prisoners: MutableList<PrisonerEntity> = mutableListOf(),
+
+  @Version
+  var version: Int = 0,
 
 ) {
   companion object {
