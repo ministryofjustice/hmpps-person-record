@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.ProbationOffenderSearchC
 import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.client.model.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.SearchDto
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantAliasEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -91,11 +92,19 @@ class PersonRecordService(
     log.debug("Entered createNewPersonAndDefendant with pnc ${person.otherIdentifiers?.pncIdentifier}")
 
     val newPersonEntity = PersonEntity.new()
-    val newDefendantEntity = DefendantEntity.from(person)
+    val newDefendantEntity = createDefendant(person)
     newDefendantEntity.person = newPersonEntity
     newPersonEntity.defendants.add(newDefendantEntity)
 
     return personRepository.saveAndFlush(newPersonEntity)
+  }
+
+  private fun createDefendant(person: Person): DefendantEntity {
+    val newDefendantEntity = DefendantEntity.from(person)
+    val defendantAliases = person.personAliases.map { DefendantAliasEntity.from(it) }
+    defendantAliases.map { defendantAliasEntity -> defendantAliasEntity.defendant = newDefendantEntity }
+    newDefendantEntity.aliases.addAll(defendantAliases)
+    return newDefendantEntity
   }
 
   private fun addDefendantToPerson(personEntity: PersonEntity, person: Person): PersonEntity {

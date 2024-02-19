@@ -35,8 +35,17 @@ class ContactEntity(
 ) {
   companion object {
     fun from(person: Person): ContactEntity {
-      val contactEntity = ContactEntity()
-      return contactEntity
+      val addressEntity = ContactEntity(
+        homePhone = person.homePhone,
+        workPhone = person.workPhone,
+        mobile = person.mobile,
+        primaryEmail = person.primaryEmail,
+      )
+      return addressEntity
     }
+  }
+
+  fun isContactDetailsPresent(): Boolean {
+    return homePhone?.isNotBlank() == true || workPhone?.isNotBlank() == true || mobile?.isNotBlank() == true
   }
 }

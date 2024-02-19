@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import uk.gov.justice.digital.hmpps.personrecord.model.PersonAlias
 
 @Entity
 @Table(name = "defendant_alias")
@@ -37,4 +38,16 @@ class DefendantAliasEntity(
 
   @Version
   var version: Int = 0,
-)
+) {
+
+  companion object {
+    fun from(personAlias: PersonAlias): DefendantAliasEntity {
+      val defendantAliasEntity = DefendantAliasEntity(
+        firstName = personAlias.firstName,
+        middleName = personAlias.middleName,
+        surname = personAlias.lastName,
+      )
+      return defendantAliasEntity
+    }
+  }
+}

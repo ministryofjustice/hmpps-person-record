@@ -105,6 +105,8 @@ class DefendantEntity(
         nationalityOne = person.nationalityOne,
         nationalityTwo = person.nationalityTwo,
         address = AddressEntity.from(person),
+        contact = ContactEntity.from(person),
+
       )
       return defendantEntity
     }
