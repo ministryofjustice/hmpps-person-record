@@ -6,12 +6,10 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import org.hibernate.envers.Audited
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 
 @Entity
 @Table(name = "address")
-@Audited
 class AddressEntity(
 
   @Id
@@ -35,7 +33,7 @@ class AddressEntity(
 
   @Column(name = "postcode")
   val postcode: String? = null,
-) : BaseAuditedEntity() {
+) {
   companion object {
     fun from(person: Person): AddressEntity {
       val addressEntity = AddressEntity(
@@ -46,8 +44,6 @@ class AddressEntity(
         addressLineFive = person.addressLineFive,
         postcode = person.postcode,
       )
-      addressEntity.createdBy = PERSON_RECORD_SERVICE
-      addressEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
       return addressEntity
     }
   }

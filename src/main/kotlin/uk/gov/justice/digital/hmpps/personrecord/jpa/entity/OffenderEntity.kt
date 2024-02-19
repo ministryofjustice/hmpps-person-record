@@ -10,7 +10,6 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
-import org.hibernate.envers.Audited
 import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConverter
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
@@ -19,7 +18,6 @@ import java.time.LocalDate
 
 @Entity
 @Table(name = "offender")
-@Audited
 class OffenderEntity(
 
   @Id
@@ -56,7 +54,7 @@ class OffenderEntity(
   )
   var person: PersonEntity? = null,
 
-) : BaseAuditedEntity() {
+) {
   companion object {
     fun from(person: Person): OffenderEntity {
       return person.otherIdentifiers?.crn?.let {
@@ -68,8 +66,6 @@ class OffenderEntity(
           dateOfBirth = person.dateOfBirth,
           prisonNumber = person.otherIdentifiers.prisonNumber,
         )
-        offenderEntity.createdBy = PERSON_RECORD_SERVICE
-        offenderEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
         return offenderEntity
       } ?: throw java.lang.IllegalArgumentException("Missing CRN")
     }
@@ -78,8 +74,6 @@ class OffenderEntity(
       val offenderEntity = OffenderEntity(
         crn = offenderDetail.otherIds.crn,
       )
-      offenderEntity.createdBy = PERSON_RECORD_SERVICE
-      offenderEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
       return offenderEntity
     }
   }

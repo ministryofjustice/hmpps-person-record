@@ -9,11 +9,9 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
-import org.hibernate.envers.Audited
 
 @Entity
 @Table(name = "defendant_alias")
-@Audited
 class DefendantAliasEntity(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,6 +31,6 @@ class DefendantAliasEntity(
   @Column(name = "middle_name")
   val middleName: String? = null,
 
-  @Column(name = "last_name")
-  val lastName: String? = null,
-) : BaseAuditedEntity()
+  @Column(name = "surname")
+  val surname: String? = null,
+)

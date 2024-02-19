@@ -22,8 +22,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       personId = UUID.randomUUID(),
 
     )
-    personEntity.createdBy = "test"
-    personEntity.lastUpdatedBy = "test"
 
     val defendantEntity = DefendantEntity(
       crn = "E363876",
@@ -33,9 +31,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       defendantId = "c04d3d2d-4bd2-40b9-bda6-564a4d9adb91",
       person = personEntity,
     )
-
-    defendantEntity.createdBy = "test"
-    defendantEntity.lastUpdatedBy = "test"
 
     defendantRepository.save(defendantEntity)
 
@@ -49,8 +44,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     val personEntity = PersonEntity(
       personId = personId,
     )
-    personEntity.createdBy = "test"
-    personEntity.lastUpdatedBy = "test"
 
     val existingPerson = personRepository.save(personEntity)
 
@@ -61,9 +54,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       defendantId = "e59d442a-11c6-4fba-ace1-6d899ae5b9fa",
       person = existingPerson,
     )
-
-    defendantEntity.createdBy = "test"
-    defendantEntity.lastUpdatedBy = "test"
 
     existingPerson.defendants = mutableListOf(defendantEntity)
 
@@ -79,8 +69,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     val personEntity = PersonEntity(
       personId = personId,
     )
-    personEntity.createdBy = "test"
-    personEntity.lastUpdatedBy = "test"
 
     var existingPerson = personRepository.save(personEntity)
 
@@ -92,9 +80,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       defendantId = defendantId,
       person = existingPerson,
     )
-
-    defendantEntity.createdBy = "test"
-    defendantEntity.lastUpdatedBy = "test"
 
     existingPerson.defendants = mutableListOf(defendantEntity)
 
@@ -120,12 +105,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       postcode = "tw3 7pn",
 
     )
-    addressEntity.createdBy = "test"
-    addressEntity.lastUpdatedBy = "test"
-    defendantEntity2.address = addressEntity
-
-    defendantEntity2.createdBy = "test"
-    defendantEntity2.lastUpdatedBy = "test"
 
     existingPerson.defendants.add(defendantEntity2)
 
@@ -143,8 +122,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     val personEntity = PersonEntity(
       personId = personId,
     )
-    personEntity.createdBy = "test"
-    personEntity.lastUpdatedBy = "test"
 
     val existingPerson = personRepository.save(personEntity)
 
@@ -158,9 +135,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       person = existingPerson,
     )
 
-    defendantEntity.createdBy = "test"
-    defendantEntity.lastUpdatedBy = "test"
-
     val defendantEntity2 = DefendantEntity(
       forenameOne = "Rodney Another",
       surname = "Trotter",
@@ -169,9 +143,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       pncNumber = PNCIdentifier.from("1981/0154257C"),
       person = existingPerson,
     )
-
-    defendantEntity2.createdBy = "test"
-    defendantEntity2.lastUpdatedBy = "test"
 
     existingPerson.defendants = mutableListOf(defendantEntity, defendantEntity2)
 
@@ -192,8 +163,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     val personEntity = PersonEntity(
       personId = personId,
     )
-    personEntity.createdBy = "test"
-    personEntity.lastUpdatedBy = "test"
 
     val existingPerson = personRepository.save(personEntity)
 
@@ -206,9 +175,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       person = existingPerson,
     )
 
-    defendantEntity.createdBy = "test"
-    defendantEntity.lastUpdatedBy = "test"
-
     val defendantEntity2 = DefendantEntity(
       forenameOne = "Rodney Another",
       surname = "Trotter",
@@ -217,9 +183,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       pncNumber = PNCIdentifier.from("20030011985X"),
       person = existingPerson,
     )
-
-    defendantEntity2.createdBy = "test"
-    defendantEntity2.lastUpdatedBy = "test"
 
     existingPerson.defendants = mutableListOf(defendantEntity, defendantEntity2)
 
@@ -243,8 +206,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     val personEntity = PersonEntity(
       personId = personId,
     )
-    personEntity.createdBy = "test"
-    personEntity.lastUpdatedBy = "test"
 
     var existingPerson = personRepository.save(personEntity)
 
@@ -256,9 +217,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       defendantId = defendantId,
       person = existingPerson,
     )
-
-    defendantEntity.createdBy = "test"
-    defendantEntity.lastUpdatedBy = "test"
 
     existingPerson.defendants = mutableListOf(defendantEntity)
 
@@ -278,16 +236,11 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       person = existingPerson,
     )
 
-    defendantEntity2.createdBy = "test"
-    defendantEntity2.lastUpdatedBy = "test"
-
     val addressEntity = AddressEntity(
       addressLineOne = "line 1",
       addressLineTwo = "line 2",
       postcode = "tw3 7pn",
     )
-    addressEntity.createdBy = "test"
-    addressEntity.lastUpdatedBy = "test"
     defendantEntity2.address = addressEntity
 
     val contactEntity = ContactEntity(
@@ -297,8 +250,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       primaryEmail = "email@email.com",
     )
 
-    contactEntity.createdBy = "test"
-    contactEntity.lastUpdatedBy = "test"
     defendantEntity2.contact = contactEntity
 
     existingPerson.defendants.add(defendantEntity2)
@@ -321,10 +272,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     val personEntity = PersonEntity(
       personId = personId,
     )
-    personEntity.createdBy = "test"
-    personEntity.lastUpdatedBy = "test"
-
-    // var existingPerson = personRepository.save(personEntity)
 
     val defendantId = "a59d442a-11c6-4fba-ace1-6d899ae5b9fa"
     val defendantEntity = DefendantEntity(
@@ -335,16 +282,10 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       person = personEntity,
     )
 
-    defendantEntity.createdBy = "test"
-    defendantEntity.lastUpdatedBy = "test"
-
     val aliasEntity = DefendantAliasEntity(
       firstName = "Dave",
       defendant = defendantEntity,
     )
-
-    aliasEntity.createdBy = "test"
-    aliasEntity.lastUpdatedBy = "test"
 
     defendantEntity.aliases = mutableListOf(aliasEntity)
 

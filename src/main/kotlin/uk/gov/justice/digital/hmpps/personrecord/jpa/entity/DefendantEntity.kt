@@ -13,7 +13,6 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
-import org.hibernate.envers.Audited
 import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConverter
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.validate.PNCIdentifier
@@ -21,7 +20,6 @@ import java.time.LocalDate
 
 @Entity
 @Table(name = "defendant")
-@Audited
 class DefendantEntity(
 
   @Id
@@ -87,7 +85,7 @@ class DefendantEntity(
   @Column(name = "date_of_birth")
   val dateOfBirth: LocalDate? = null,
 
-) : BaseAuditedEntity() {
+) {
   companion object {
     fun from(person: Person): DefendantEntity {
       val defendantEntity = DefendantEntity(
@@ -104,8 +102,6 @@ class DefendantEntity(
         nationalityTwo = person.nationalityTwo,
         address = AddressEntity.from(person),
       )
-      defendantEntity.createdBy = PERSON_RECORD_SERVICE
-      defendantEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
       return defendantEntity
     }
   }

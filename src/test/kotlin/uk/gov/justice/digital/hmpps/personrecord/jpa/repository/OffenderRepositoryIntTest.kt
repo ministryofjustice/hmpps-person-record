@@ -18,17 +18,12 @@ class OffenderRepositoryIntTest : IntegrationTestBase() {
     val personEntity = PersonEntity(
       personId = personId,
     )
-    personEntity.createdBy = "test"
-    personEntity.lastUpdatedBy = "test"
 
     val offenderEntity = OffenderEntity(
       crn = "E363876",
       person = personEntity,
 
     )
-
-    offenderEntity.createdBy = "test"
-    offenderEntity.lastUpdatedBy = "test"
 
     offenderRepository.save(offenderEntity)
 
@@ -46,8 +41,6 @@ class OffenderRepositoryIntTest : IntegrationTestBase() {
     val personEntity = PersonEntity(
       personId = personId,
     )
-    personEntity.createdBy = "test"
-    personEntity.lastUpdatedBy = "test"
 
     val existingPerson = personRepository.save(personEntity)
 
@@ -55,9 +48,6 @@ class OffenderRepositoryIntTest : IntegrationTestBase() {
       crn = "E363880",
       person = existingPerson,
     )
-
-    offenderEntity.createdBy = "test"
-    offenderEntity.lastUpdatedBy = "test"
 
     existingPerson.offenders = mutableListOf(offenderEntity)
 
@@ -73,8 +63,6 @@ class OffenderRepositoryIntTest : IntegrationTestBase() {
     val personEntity = PersonEntity(
       personId = personId,
     )
-    personEntity.createdBy = "test"
-    personEntity.lastUpdatedBy = "test"
 
     var existingPerson = personRepository.save(personEntity)
 
@@ -83,9 +71,6 @@ class OffenderRepositoryIntTest : IntegrationTestBase() {
       person = existingPerson,
 
     )
-
-    offenderEntity.createdBy = "test"
-    offenderEntity.lastUpdatedBy = "test"
 
     existingPerson.offenders = mutableListOf(offenderEntity)
 
@@ -100,9 +85,6 @@ class OffenderRepositoryIntTest : IntegrationTestBase() {
       person = existingPerson,
 
     )
-
-    anotherOffenderEntity.createdBy = "test"
-    anotherOffenderEntity.lastUpdatedBy = "test"
 
     existingPerson.offenders.add(anotherOffenderEntity)
 
@@ -119,17 +101,12 @@ class OffenderRepositoryIntTest : IntegrationTestBase() {
     val personEntity = PersonEntity(
       personId = personId,
     )
-    personEntity.createdBy = "test"
-    personEntity.lastUpdatedBy = "test"
 
     val offenderEntity = OffenderEntity(
       crn = "E363876",
       person = personEntity,
 
     )
-
-    offenderEntity.createdBy = "test"
-    offenderEntity.lastUpdatedBy = "test"
 
     offenderRepository.save(offenderEntity)
 
