@@ -9,12 +9,11 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
-import org.hibernate.envers.Audited
+import jakarta.persistence.Version
 import java.util.*
 
 @Entity
 @Table(name = "person")
-@Audited
 class PersonEntity(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,15 +31,15 @@ class PersonEntity(
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
   var prisoners: MutableList<PrisonerEntity> = mutableListOf(),
 
-) : BaseAuditedEntity() {
+  @Version
+  var version: Int = 0,
+
+) {
   companion object {
     fun new(): PersonEntity {
       val personEntity = PersonEntity(
         personId = UUID.randomUUID(),
       )
-
-      personEntity.createdBy = PERSON_RECORD_SERVICE
-      personEntity.lastUpdatedBy = PERSON_RECORD_SERVICE
       return personEntity
     }
   }

@@ -10,7 +10,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
-import org.hibernate.envers.Audited
+import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.client.model.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConverter
 import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
@@ -18,7 +18,6 @@ import java.time.LocalDate
 
 @Entity
 @Table(name = "prisoner")
-@Audited
 class PrisonerEntity(
 
   @Id
@@ -49,7 +48,10 @@ class PrisonerEntity(
   )
   var person: PersonEntity? = null,
 
-) : BaseAuditedEntity() {
+  @Version
+  var version: Int = 0,
+
+) {
   companion object {
     fun from(prisoner: Prisoner): PrisonerEntity {
       val prisonerEntity =
@@ -59,10 +61,7 @@ class PrisonerEntity(
           firstName = prisoner.firstName,
           lastName = prisoner.lastName,
           dateOfBirth = prisoner.dateOfBirth,
-        ).also {
-          it.createdBy = PERSON_RECORD_SERVICE
-          it.lastUpdatedBy = PERSON_RECORD_SERVICE
-        }
+        )
       return prisonerEntity
     }
   }

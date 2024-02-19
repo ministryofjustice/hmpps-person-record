@@ -142,8 +142,6 @@ abstract class IntegrationTestBase {
     val person = Person(otherIdentifiers = OtherIdentifiers(pncIdentifier = pncIdentifier, crn = crn), givenName = givenName, familyName = familyName, dateOfBirth = dateOfBirth)
 
     val newPersonEntity = PersonEntity(personId = personId)
-    newPersonEntity.createdBy = "test"
-    newPersonEntity.lastUpdatedBy = "test"
     val newDefendantEntity = DefendantEntity.from(person)
     newDefendantEntity.person = newPersonEntity
     newPersonEntity.defendants.add(newDefendantEntity)

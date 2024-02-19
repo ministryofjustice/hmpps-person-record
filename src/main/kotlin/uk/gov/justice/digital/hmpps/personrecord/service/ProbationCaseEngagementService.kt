@@ -81,9 +81,6 @@ class ProbationCaseEngagementService(
       lastName = deliusOffenderDetail.name.surname,
       dateOfBirth = deliusOffenderDetail.dateOfBirth,
     )
-    newOffender.createdBy = DELIUS_EVENT
-    newOffender.lastUpdatedBy = DELIUS_EVENT
-
     return newOffender
   }
 

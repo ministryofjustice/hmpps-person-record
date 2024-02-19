@@ -73,6 +73,13 @@ data class Person(
         givenName = defendant.personDefendant?.personDetails?.firstName,
         familyName = defendant.personDefendant?.personDetails?.lastName,
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
+        sex = defendant.personDefendant?.personDetails?.gender,
+        addressLineOne = defendant.personDefendant?.personDetails?.address?.address1,
+        addressLineTwo = defendant.personDefendant?.personDetails?.address?.address2,
+        addressLineThree = defendant.personDefendant?.personDetails?.address?.address3,
+        addressLineFour = defendant.personDefendant?.personDetails?.address?.address4,
+        addressLineFive = defendant.personDefendant?.personDetails?.address?.address5,
+        postcode = defendant.personDefendant?.personDetails?.address?.postcode,
       )
     }
 
