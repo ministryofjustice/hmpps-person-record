@@ -3,7 +3,7 @@ generic-service:
 
   serviceAccountName: "person-record-service"
 
-  replicaCount: 4
+  replicaCount: 2
 
   image:
     repository: quay.io/hmpps/hmpps-person-record
