@@ -69,6 +69,9 @@ generic-service:
     groups:
       - internal
 
+  retryDlqCronjob:
+    enabled: true
+
 generic-prometheus-alerts:
   targetApplication: hmpps-person-record
   alertSeverity: hmpps-person-record-alerts-prod
