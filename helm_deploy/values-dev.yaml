@@ -18,3 +18,6 @@ generic-service:
     SPRING_PROFILES_ACTIVE: "dev"
     nomis_oauth:
       base_url: https://sign-in-dev.hmpps.service.justice.gov.uk
+
+generic-prometheus-alerts:
+  businessHoursOnly: true

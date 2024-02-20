@@ -12,3 +12,6 @@ generic-service:
     SPRING_PROFILES_ACTIVE: "preprod"
     nomis_oauth:
       base_url: https://sign-in-preprod.hmpps.service.justice.gov.uk
+
+generic-prometheus-alerts:
+  businessHoursOnly: true
