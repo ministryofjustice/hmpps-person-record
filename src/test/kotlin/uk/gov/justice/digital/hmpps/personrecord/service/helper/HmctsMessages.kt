@@ -294,16 +294,6 @@ fun commonPlatformHearingWithNewDefendant() = """
                     "title": "Mr"
                   }
                 },
-                "aliases": [ 
-                    {
-                     "firstName": "aliasFirstName1",
-                     "lastName": "alisLastName1"
-                    },
-                    {
-                     "firstName": "aliasFirstName2",
-                     "lastName": "alisLastName2"
-                    }
-                  ],
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               },
               { 
