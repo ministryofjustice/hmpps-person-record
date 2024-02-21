@@ -25,7 +25,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
 
     val defendantEntity = DefendantEntity(
       crn = "E363876",
-      forenameOne = "Guinevere",
+      firstName = "Guinevere",
       surname = "Atherton",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "c04d3d2d-4bd2-40b9-bda6-564a4d9adb91",
@@ -48,7 +48,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     val existingPerson = personRepository.save(personEntity)
 
     val defendantEntity = DefendantEntity(
-      forenameOne = "Rodney",
+      firstName = "Rodney",
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "e59d442a-11c6-4fba-ace1-6d899ae5b9fa",
@@ -74,7 +74,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
 
     val defendantId = "a59d442a-11c6-4fba-ace1-6d899ae5b9fa"
     val defendantEntity = DefendantEntity(
-      forenameOne = "Rodney",
+      firstName = "Rodney",
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = defendantId,
@@ -92,7 +92,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     existingPerson = defendantEntity1?.person!!
 
     val defendantEntity2 = DefendantEntity(
-      forenameOne = "Rodney",
+      firstName = "Rodney",
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "b59d442a-11c6-4fba-ace1-6d899ae5b9za",
@@ -127,7 +127,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
 
     val pncNumber = "2003/0062845E"
     val defendantEntity = DefendantEntity(
-      forenameOne = "Rodney",
+      firstName = "Rodney",
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "cbee7d12-5515-483f-8cdc-f4b03867c529",
@@ -136,7 +136,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     )
 
     val defendantEntity2 = DefendantEntity(
-      forenameOne = "Rodney Another",
+      firstName = "Rodney Another",
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "69c94c02-9b7d-439f-9412-d0812f8c2835",
@@ -167,7 +167,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     val existingPerson = personRepository.save(personEntity)
 
     val defendantEntity = DefendantEntity(
-      forenameOne = "Rodney",
+      firstName = "Rodney",
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "a6704fae-34ac-4ec6-9c6a-93afa73a85d9",
@@ -176,7 +176,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     )
 
     val defendantEntity2 = DefendantEntity(
-      forenameOne = "Rodney Another",
+      firstName = "Rodney Another",
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "0c4b2734-5bca-4401-a20a-90654f8a5a89",
@@ -211,7 +211,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
 
     val defendantId = "a59d442a-11c6-4fba-ace1-6d899ae5b9fa"
     val defendantEntity = DefendantEntity(
-      forenameOne = "Rodney",
+      firstName = "Rodney",
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = defendantId,
@@ -229,7 +229,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     existingPerson = defendantEntity1?.person!!
 
     val defendantEntity2 = DefendantEntity(
-      forenameOne = "Rodney",
+      firstName = "Rodney",
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = "b59d442a-11c6-4fba-ace1-6d899ae5b9za",
@@ -275,7 +275,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
 
     val defendantId = "a59d442a-11c6-4fba-ace1-6d899ae5b9fa"
     val defendantEntity = DefendantEntity(
-      forenameOne = "Rodney",
+      firstName = "Rodney",
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = defendantId,
@@ -311,7 +311,7 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
 
     val defendantId = "a59d442a-11c6-4fba-ace1-6d899ae5b9fa"
     val defendantEntity = DefendantEntity(
-      forenameOne = "Rodney",
+      firstName = "Rodney",
       surname = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
       defendantId = defendantId,

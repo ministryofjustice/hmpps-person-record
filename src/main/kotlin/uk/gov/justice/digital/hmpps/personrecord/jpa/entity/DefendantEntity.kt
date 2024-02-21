@@ -62,14 +62,11 @@ class DefendantEntity(
   @Column(name = "title")
   val title: String? = null,
 
-  @Column(name = "forename_one")
-  val forenameOne: String? = null,
+  @Column(name = "first_name")
+  val firstName: String? = null,
 
-  @Column(name = "forename_two")
-  val forenameTwo: String? = null,
-
-  @Column(name = "forename_three")
-  val forenameThree: String? = null,
+  @Column(name = "middle_name")
+  val middleName: String? = null,
 
   @Column(name = "surname")
   val surname: String? = null,
@@ -86,6 +83,27 @@ class DefendantEntity(
   @Column(name = "date_of_birth")
   val dateOfBirth: LocalDate? = null,
 
+  @Column(name = "driver_number")
+  val driverNumber: String? = null,
+
+  @Column(name = "arrest_summons_number")
+  val arrestSummonsNumber: String? = null,
+
+  @Column(name = "master_defendant_id")
+  val masterDefendantId: String? = null,
+
+  @Column(name = "nationality_code")
+  val nationalityCode: String? = null,
+
+  @Column(name = "ni_number")
+  val nationalInsuranceNumber: String? = null,
+
+  @Column(name = "observed_ethnicity")
+  val observedEthnicityDescription: String? = null,
+
+  @Column(name = "self_defined_ethnicity")
+  val selfDefinedEthnicityDescription: String? = null,
+
   @Version
   var version: Int = 0,
 
@@ -94,7 +112,8 @@ class DefendantEntity(
     fun from(person: Person): DefendantEntity {
       val defendantEntity = DefendantEntity(
         title = person.title,
-        forenameOne = person.givenName,
+        firstName = person.givenName,
+        middleName = person.middleNames?.joinToString(" ") { it },
         surname = person.familyName,
         dateOfBirth = person.dateOfBirth,
         defendantId = person.defendantId,
@@ -104,9 +123,15 @@ class DefendantEntity(
         sex = person.sex,
         nationalityOne = person.nationalityOne,
         nationalityTwo = person.nationalityTwo,
+        driverNumber = person.driverNumber,
+        arrestSummonsNumber = person.arrestSummonsNumber,
+        masterDefendantId = person.masterDefendantId,
+        nationalityCode = person.nationalityCode,
+        nationalInsuranceNumber = person.nationalInsuranceNumber,
+        observedEthnicityDescription = person.observedEthnicityDescription,
+        selfDefinedEthnicityDescription = person.selfDefinedEthnicityDescription,
         address = AddressEntity.from(person),
         contact = ContactEntity.from(person),
-
       )
       return defendantEntity
     }

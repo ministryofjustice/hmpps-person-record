@@ -41,13 +41,25 @@ class DefendantAliasEntity(
 ) {
 
   companion object {
-    fun from(personAlias: PersonAlias): DefendantAliasEntity {
-      val defendantAliasEntity = DefendantAliasEntity(
-        firstName = personAlias.firstName,
-        middleName = personAlias.middleName,
-        surname = personAlias.lastName,
-      )
-      return defendantAliasEntity
+    private fun from(personAlias: PersonAlias): DefendantAliasEntity? {
+      return if (isAliasPresent(personAlias.firstName, personAlias.middleName, personAlias.lastName)) {
+        DefendantAliasEntity(
+          firstName = personAlias.firstName,
+          middleName = personAlias.middleName,
+          surname = personAlias.lastName,
+        )
+      } else {
+        null
+      }
+    }
+
+    fun fromList(personAliases: List<PersonAlias>): List<DefendantAliasEntity> {
+      return personAliases.mapNotNull { from(it) }
+    }
+
+    private fun isAliasPresent(firstName: String?, middleName: String?, surname: String?): Boolean {
+      return sequenceOf(firstName, middleName, surname)
+        .filterNotNull().any { it.isNotBlank() }
     }
   }
 }

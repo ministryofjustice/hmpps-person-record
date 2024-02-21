@@ -101,9 +101,11 @@ class PersonRecordService(
 
   private fun createDefendant(person: Person): DefendantEntity {
     val newDefendantEntity = DefendantEntity.from(person)
-    val defendantAliases = person.personAliases.map { DefendantAliasEntity.from(it) }
-    defendantAliases.map { defendantAliasEntity -> defendantAliasEntity.defendant = newDefendantEntity }
+
+    val defendantAliases = DefendantAliasEntity.fromList(person.personAliases)
+    defendantAliases.forEach { defendantAliasEntity -> defendantAliasEntity.defendant = newDefendantEntity }
     newDefendantEntity.aliases.addAll(defendantAliases)
+
     return newDefendantEntity
   }
 

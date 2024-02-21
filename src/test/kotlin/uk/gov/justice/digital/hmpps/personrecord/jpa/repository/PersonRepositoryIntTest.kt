@@ -30,7 +30,7 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
     val hmctsDefendantEntity = personEntity?.defendants?.get(0)
     assertThat(hmctsDefendantEntity?.pncNumber).isEqualTo(pncIdentifier)
     assertThat(hmctsDefendantEntity?.crn).isEqualTo(crn)
-    assertThat(hmctsDefendantEntity?.forenameOne).isEqualTo("Iestyn")
+    assertThat(hmctsDefendantEntity?.firstName).isEqualTo("Iestyn")
 
     assertThat(hmctsDefendantEntity?.surname).isEqualTo("Mahoney")
     assertThat(hmctsDefendantEntity?.dateOfBirth).isEqualTo(LocalDate.of(1965, 6, 18))

@@ -9,11 +9,9 @@ data class PersonSearchRequest(
   @Schema(description = "CRN", example = "X340906")
   val crn: String? = null,
   @Schema(description = "The person's first name", example = "Bill")
-  val forenameOne: String? = null,
+  val firstName: String? = null,
   @Schema(description = "The person's first middle name", example = "Stuart")
-  val forenameTwo: String? = null,
-  @Schema(description = "The person's second middle name", example = "Benedict")
-  val forenameThree: String? = null,
+  val middleName: String? = null,
   @Schema(description = "The person's surname", example = "Roberts")
   val surname: String? = null,
   @Schema(description = "The person's date of birth", example = "1980-01-21")
@@ -24,7 +22,7 @@ data class PersonSearchRequest(
       return PersonSearchRequest(
         pncNumber = person.otherIdentifiers?.pncIdentifier?.pncId,
         crn = person.otherIdentifiers?.crn,
-        forenameOne = person.givenName,
+        firstName = person.givenName,
         surname = person.familyName,
         dateOfBirth = person.dateOfBirth,
       )

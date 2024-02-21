@@ -145,7 +145,7 @@ class PersonRecordServiceTest {
   fun `should return a single person record for an exact match for provided search parameters`() {
     // Given
     val searchRequest = PersonSearchRequest(
-      forenameOne = "Randy",
+      firstName = "Randy",
       surname = "Jones",
       dateOfBirth = LocalDate.of(1969, 7, 30),
     )
@@ -196,7 +196,7 @@ class PersonRecordServiceTest {
   @Test
   fun `should throw validation exception when minimum search criteria are not provided`() {
     // Given
-    val searchRequest = PersonSearchRequest(forenameOne = "Crispin")
+    val searchRequest = PersonSearchRequest(firstName = "Crispin")
 
     // When
     val exception = assertFailsWith<ValidationException>(
@@ -211,7 +211,7 @@ class PersonRecordServiceTest {
   fun `should only search by request parameters when crn is NOT provided`() {
     // Given
     val searchRequest = PersonSearchRequest(
-      forenameOne = "Randy",
+      firstName = "Randy",
       surname = "Jones",
       dateOfBirth = LocalDate.of(1969, 7, 30),
     )

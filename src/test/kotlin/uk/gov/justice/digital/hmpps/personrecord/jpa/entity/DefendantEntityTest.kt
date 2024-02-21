@@ -17,6 +17,7 @@ internal class DefendantEntityTest {
       title = "Mr",
       familyName = "familyName",
       givenName = "givenName",
+      middleNames = listOf("middleName1", "middleName2"),
       defendantId = "defendantId",
       dateOfBirth = dateOfBirth,
       otherIdentifiers = OtherIdentifiers(
@@ -40,8 +41,9 @@ internal class DefendantEntityTest {
 
     // then
     assertThat(defendantEntity.title).isEqualTo("Mr")
-    assertThat(defendantEntity.forenameOne).isEqualTo("givenName")
+    assertThat(defendantEntity.firstName).isEqualTo("givenName")
     assertThat(defendantEntity.surname).isEqualTo("familyName")
+    assertThat(defendantEntity.middleName).isEqualTo("middleName1 middleName2")
     assertThat(defendantEntity.defendantId).isEqualTo("defendantId")
     assertThat(defendantEntity.dateOfBirth).isEqualTo(dateOfBirth)
     assertThat(defendantEntity.crn).isEqualTo("crn1234")

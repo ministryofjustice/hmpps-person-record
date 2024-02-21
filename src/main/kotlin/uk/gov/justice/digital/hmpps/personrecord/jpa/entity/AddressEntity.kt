@@ -38,16 +38,22 @@ class AddressEntity(
   var version: Int = 0,
 ) {
   companion object {
-    fun from(person: Person): AddressEntity {
-      val addressEntity = AddressEntity(
+    fun from(person: Person): AddressEntity? {
+      AddressEntity(
         addressLineOne = person.addressLineOne,
         addressLineTwo = person.addressLineTwo,
         addressLineThree = person.addressLineThree,
         addressLineFour = person.addressLineFour,
         addressLineFive = person.addressLineFive,
         postcode = person.postcode,
-      )
-      return addressEntity
+      ).apply {
+        return if (isAddressDetailsPresent()) this else null
+      }
     }
+  }
+
+  fun isAddressDetailsPresent(): Boolean {
+    return sequenceOf(addressLineOne, addressLineTwo, addressLineThree, addressLineFour, addressLineFive, postcode)
+      .filterNotNull().any { it.isNotBlank() }
   }
 }

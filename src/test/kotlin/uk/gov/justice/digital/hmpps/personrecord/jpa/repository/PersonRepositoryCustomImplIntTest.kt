@@ -48,7 +48,7 @@ class PersonRepositoryCustomImplIntTest : IntegrationTestBase() {
     // Given
     aDefendant(givenName = "John", familyName = "Mahoney")
     val searchRequest = PersonSearchRequest(
-      forenameOne = "jOhN",
+      firstName = "jOhN",
       surname = "mAhOnEy",
     )
 
