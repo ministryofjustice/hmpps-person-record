@@ -35,19 +35,20 @@ class ContactEntity(
 ) {
   companion object {
     fun from(person: Person): ContactEntity? {
-      ContactEntity(
-        homePhone = person.homePhone,
-        workPhone = person.workPhone,
-        mobile = person.mobile,
-        primaryEmail = person.primaryEmail,
-      ).apply {
-        return if (isContactDetailsPresent()) this else null
+      return if (isContactDetailsPresent(person.homePhone, person.workPhone, person.mobile, person.primaryEmail)) {
+        ContactEntity(
+          homePhone = person.homePhone,
+          workPhone = person.workPhone,
+          mobile = person.mobile,
+          primaryEmail = person.primaryEmail,
+        )
+      } else {
+        null
       }
     }
-  }
-
-  fun isContactDetailsPresent(): Boolean {
-    return sequenceOf(homePhone, workPhone, mobile, primaryEmail)
-      .filterNotNull().any { it.isNotBlank() }
+    private fun isContactDetailsPresent(homePhone: String?, workPhone: String?, mobile: String?, primaryEmail: String?): Boolean {
+      return sequenceOf(homePhone, workPhone, mobile, primaryEmail)
+        .filterNotNull().any { it.isNotBlank() }
+    }
   }
 }
