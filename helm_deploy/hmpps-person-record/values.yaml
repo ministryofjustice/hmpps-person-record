@@ -46,10 +46,6 @@ generic-service:
       PRISONER_SEARCH_CLIENT_SECRET: "NOMIS_OAUTH_CLIENT_SECRET"
       DOMAIN_EVENT_AND_DELIUS_API_CLIENT_ID: "NOMIS_OAUTH_CLIENT_ID"
       DOMAIN_EVENT_AND_DELIUS_API_CLIENT_SECRET: "NOMIS_OAUTH_CLIENT_SECRET"
-    court-case-events-topic:
-        HMPPS_SQS_TOPICS_COURTCASEEVENTS_ARN: "topic_arn"
-    hmpps-domain-events-topic:
-      HMPPS_SQS_TOPICS_DOMAINEVENTS_ARN: "topic_arn"
     sqs-cpr-court-case-events-secret:
         HMPPS_SQS_QUEUES_CPRCOURTCASEEVENTSQUEUE_QUEUE_NAME: "sqs_queue_name"
     sqs-cpr-court-case-events-dlq-secret:
