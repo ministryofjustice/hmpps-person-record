@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import uk.gov.justice.digital.hmpps.personrecord.model.PersonAlias
 
 @Entity
 @Table(name = "defendant_alias")
@@ -37,4 +38,28 @@ class DefendantAliasEntity(
 
   @Version
   var version: Int = 0,
-)
+) {
+
+  companion object {
+    private fun from(personAlias: PersonAlias): DefendantAliasEntity? {
+      return if (isAliasPresent(personAlias.firstName, personAlias.middleName, personAlias.lastName)) {
+        DefendantAliasEntity(
+          firstName = personAlias.firstName,
+          middleName = personAlias.middleName,
+          surname = personAlias.lastName,
+        )
+      } else {
+        null
+      }
+    }
+
+    fun fromList(personAliases: List<PersonAlias>): List<DefendantAliasEntity> {
+      return personAliases.mapNotNull { from(it) }
+    }
+
+    private fun isAliasPresent(firstName: String?, middleName: String?, surname: String?): Boolean {
+      return sequenceOf(firstName, middleName, surname)
+        .filterNotNull().any { it.isNotBlank() }
+    }
+  }
+}

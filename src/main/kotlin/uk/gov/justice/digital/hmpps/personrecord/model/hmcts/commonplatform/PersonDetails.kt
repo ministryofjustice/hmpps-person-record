@@ -16,4 +16,7 @@ data class PersonDetails(
   val dateOfBirth: LocalDate? = null,
   val gender: @NotBlank String,
   val address: @Valid Address? = null,
+  val contact: Contact? = null,
+  val nationalityCode: String? = null,
+  val nationalInsuranceNumber: String? = null,
 )

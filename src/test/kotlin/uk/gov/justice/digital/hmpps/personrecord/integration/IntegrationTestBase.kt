@@ -82,11 +82,6 @@ abstract class IntegrationTestBase {
     hmppsQueueService.findByQueueId("cprdeliusoffendereventsqueue")
   }
 
-  @RegisterExtension
-  var wireMockExtension = WireMockExtension.newInstance()
-    .options(wireMockConfig().port(8090))
-    .build()
-
   @BeforeEach
   fun beforeEach() {
     defendantRepository.deleteAll()
@@ -125,6 +120,12 @@ abstract class IntegrationTestBase {
     }
 
     const val VIEW_PERSON_DATA_ROLE = "ROLE_VIEW_PERSON_DATA"
+
+    @JvmStatic
+    @RegisterExtension
+    var wireMockExtension: WireMockExtension = WireMockExtension.newInstance()
+      .options(wireMockConfig().port(8090))
+      .build()
   }
 
   internal fun setAuthorisation(user: String = "hmpps-person-record", roles: List<String> = listOf()): HttpHeaders {

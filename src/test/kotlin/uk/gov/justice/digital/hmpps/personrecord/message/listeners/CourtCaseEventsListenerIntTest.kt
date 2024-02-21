@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
+import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithAdditionalFields
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -27,6 +28,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
+import kotlin.test.assertEquals
 
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
 class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
@@ -280,5 +282,85 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.prisoners[0].lastName).isEqualTo("Lassard")
     assertThat(personEntity.prisoners[0].prisonNumber).isEqualTo("A1234AA")
     assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(pncNumber)
+  }
+
+  @Test
+  fun `should create new defendants with additional fields from common platform message`() {
+    // given
+    val pncNumber1 = PNCIdentifier.from("2003/0062845E")
+    val pncNumber2 = PNCIdentifier.from("2008/0056560Z")
+    val pncNumber3 = PNCIdentifier.from("20230583843L")
+
+    val publishRequest = PublishRequest.builder()
+      .topicArn(courtCaseEventsTopic?.arn)
+      .message(commonPlatformHearingWithAdditionalFields())
+      .messageAttributes(
+        mapOf(
+          "messageType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(COMMON_PLATFORM_HEARING.name).build(),
+        ),
+      )
+      .build()
+
+    // when
+    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+
+    // then
+    await untilCallTo {
+      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
+    } matches { it == 0 }
+
+    await untilAsserted { assertThat(postgresSQLContainer.isCreated).isTrue() }
+
+    val personEntity1 = await.atMost(10, TimeUnit.SECONDS) untilNotNull {
+      personRepository.findByDefendantsPncNumber(pncNumber1)
+    }
+
+    val personEntity2 = await.atMost(10, TimeUnit.SECONDS) untilNotNull {
+      personRepository.findByDefendantsPncNumber(pncNumber2)
+    }
+
+    val personEntity3 = await.atMost(10, TimeUnit.SECONDS) untilNotNull {
+      personRepository.findByDefendantsPncNumber(pncNumber3)
+    }
+
+    assertThat(personEntity1.personId).isNotNull()
+    assertThat(personEntity1.defendants.size).isEqualTo(1)
+    assertThat(personEntity1.defendants[0].pncNumber).isEqualTo(pncNumber1)
+    assertThat(personEntity1.defendants[0].defendantId).isEqualTo("b5cfae34-9256-43ad-87fb-ac3def34e2ac")
+    assertThat(personEntity1.defendants[0].masterDefendantId).isEqualTo("eeb71c73-573b-444e-9dc3-4e5998d1be65")
+    assertThat(personEntity1.defendants[0].firstName).isEqualTo("Eric")
+    assertThat(personEntity1.defendants[0].middleName).isEqualTo("mName1 mName2")
+    assertThat(personEntity1.defendants[0].surname).isEqualTo("Lassard")
+    assertThat(personEntity1.defendants[0].contact).isNull()
+    assertThat(personEntity1.defendants[0].address).isNotNull()
+    assertEquals(2, personEntity1.defendants[0].aliases.size)
+    assertThat(personEntity1.defendants[0].aliases[0].firstName).isEqualTo("aliasFirstName1")
+    assertThat(personEntity1.defendants[0].aliases[0].surname).isEqualTo("alisLastName1")
+    assertThat(personEntity1.defendants[0].aliases[1].firstName).isEqualTo("aliasFirstName2")
+    assertThat(personEntity1.defendants[0].aliases[1].surname).isEqualTo("alisLastName2")
+
+    assertThat(personEntity2.personId).isNotNull()
+    assertThat(personEntity2.defendants.size).isEqualTo(1)
+    assertThat(personEntity2.defendants[0].aliases).isEmpty()
+    assertThat(personEntity2.defendants[0].address).isNotNull()
+    assertThat(personEntity2.defendants[0].pncNumber).isEqualTo(pncNumber2)
+    assertThat(personEntity2.defendants[0].pncNumber).isEqualTo(pncNumber2)
+    assertThat(personEntity2.defendants[0].contact?.homePhone).isEqualTo("0207345678")
+    assertThat(personEntity2.defendants[0].contact?.workPhone).isEqualTo("0203788776")
+    assertThat(personEntity2.defendants[0].contact?.mobile).isEqualTo("078590345677")
+    assertThat(personEntity2.defendants[0].contact?.primaryEmail).isEqualTo("email@email.com")
+    assertThat(personEntity2.defendants[0].defendantId).isEqualTo("cc36c035-6e82-4d04-94c2-2a5728f11481")
+    assertThat(personEntity2.defendants[0].masterDefendantId).isEqualTo("1f6847a2-6663-44dd-b945-fe2c20961d0a")
+
+    assertThat(personEntity3.personId).isNotNull()
+    assertThat(personEntity3.defendants.size).isEqualTo(1)
+    assertThat(personEntity3.defendants[0].aliases).isEmpty()
+    assertThat(personEntity3.defendants[0].contact).isNull()
+    assertThat(personEntity3.defendants[0].pncNumber).isEqualTo(pncNumber3)
+    assertThat(personEntity3.defendants[0].nationalityCode).isEqualTo("GB")
+    assertThat(personEntity3.defendants[0].nationalInsuranceNumber).isEqualTo("PC456743D")
+    assertThat(personEntity3.defendants[0].defendantId).isEqualTo("b56f8612-0f4c-43e5-840a-8bedb17722ec")
+    assertThat(personEntity3.defendants[0].masterDefendantId).isEqualTo("290e0457-1480-4e62-b3c8-7f29ef791c58")
   }
 }

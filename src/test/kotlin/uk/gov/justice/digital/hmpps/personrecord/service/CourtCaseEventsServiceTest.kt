@@ -103,7 +103,7 @@ class CourtCaseEventsServiceTest {
               pncNumber = PNCIdentifier.from(pncNumber),
               crn = crn,
               surname = "Jones",
-              forenameOne = "Crackity",
+              firstName = "Crackity",
               dateOfBirth = dateOfBirth,
               defendantId = "122434",
             ),
@@ -140,7 +140,7 @@ class CourtCaseEventsServiceTest {
             DefendantEntity(
               pncNumber = PNCIdentifier.from(pncNumber),
               surname = "Jones",
-              forenameOne = "Crackity",
+              firstName = "Crackity",
               dateOfBirth = dateOfBirth,
               defendantId = "122434",
             ),

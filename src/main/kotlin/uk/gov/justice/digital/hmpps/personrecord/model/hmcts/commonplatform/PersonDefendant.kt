@@ -7,4 +7,6 @@ data class PersonDefendant(
   @NotNull
   @Valid
   val personDetails: PersonDetails,
+  val driverNumber: String? = null,
+  val arrestSummonsNumber: String? = null,
 )
