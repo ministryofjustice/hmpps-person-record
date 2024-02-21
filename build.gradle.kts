@@ -26,7 +26,7 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:3.1.1")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.1.0")
 
-  runtimeOnly("org.postgresql:postgresql:42.7.1")
+  runtimeOnly("org.postgresql:postgresql:42.7.2")
   runtimeOnly("org.flywaydb:flyway-core:10.8.1")
   runtimeOnly("org.flywaydb:flyway-database-postgresql:10.8.1")
 
@@ -37,7 +37,7 @@ dependencies {
   testImplementation("org.testcontainers:junit-jupiter:1.19.5")
   testImplementation("org.testcontainers:postgresql:1.19.5")
   testImplementation("org.testcontainers:localstack:1.19.5")
-  testImplementation("org.wiremock:wiremock-standalone:3.4.0")
+  testImplementation("org.wiremock:wiremock-standalone:3.4.1")
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.5")
