@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model
 
 import java.time.LocalDate
 
-const val LONG_PNC_ID_LENGTH = 10
+private const val YEAR_END = 4
 
 interface PNCIdentifier {
 
@@ -22,12 +22,16 @@ interface PNCIdentifier {
     private const val VALID_LETTERS = "ZABCDEFGHJKLMNPQRTUVWXY"
     private const val SLASH = "/"
     private val PNC_REGEX = Regex("\\d{4}(/?)\\d{7}[A-Z]\$")
+    private const val LONG_PNC_ID_LENGTH = 10
+    private const val CENTURY = 100
+    private const val LAST_CHARACTER = 12
+
     private fun isValid(pncId: String): Boolean {
       return (pncId.matches(PNC_REGEX) && correctModulus(pncId))
     }
     private fun correctModulus(pncId: String): Boolean {
-      val modulusLetter = pncId[12]
-      return VALID_LETTERS[pncId.replace(SLASH, "").substring(2, 11).toLong().mod(23)] == modulusLetter
+      val modulusLetter = pncId[LAST_CHARACTER]
+      return VALID_LETTERS[pncId.replace(SLASH, "").substring(2, LAST_CHARACTER - 1).toLong().mod(VALID_LETTERS.length)] == modulusLetter
     }
     private fun toCanonicalForm(pnc: String): String {
       val sanitizedPncId = pnc.replace("/", "")
@@ -51,21 +55,21 @@ interface PNCIdentifier {
     private fun withForwardSlash(pnc: String): String {
       return when {
         !pnc.contains("/") -> {
-          pnc.substring(0, 4) + "/" + pnc.substring(4)
+          pnc.substring(0, YEAR_END) + "/" + pnc.substring(YEAR_END)
         }
         else -> pnc
       }
     }
 
     private fun isYearThisCentury(year: Int): Boolean {
-      val currentYearLastTwoDigits = LocalDate.now().year % 100
-      return year in 0..currentYearLastTwoDigits
+      return year in 0..currentYearLastTwoDigits()
     }
 
     private fun isYearLastCentury(year: Int): Boolean {
-      val currentYearLastTwoDigits = LocalDate.now().year % 100
-      return year in currentYearLastTwoDigits + 1..99
+      return year in currentYearLastTwoDigits() + 1..<CENTURY
     }
+
+    private fun currentYearLastTwoDigits(): Int = LocalDate.now().year % CENTURY
 
     private fun formatYear(prefix: String, year: Int): String {
       return prefix + year.toString().padStart(2, '0')
