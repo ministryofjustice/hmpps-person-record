@@ -44,16 +44,14 @@ class PersonRecordService(
     log.debug("Entered createPersonRecord with")
 
     // create an offender
-    person.otherIdentifiers?.crn?.let {
-      if (!doesOffenderExistInPersonRecord(person.otherIdentifiers.crn)) {
+    person.otherIdentifiers?.crn?.let { crn ->
+      if (!doesOffenderExistInPersonRecord(crn)) {
         val offenderDetail = searchDeliusOffender(person)
         if (offenderDetail != null) {
           return Person.from(createOffenderFromOffenderDetail(offenderDetail))
-        } else {
-          return Person.from(createOffenderFromPerson(person))
         }
+        return Person.from(createOffenderFromPerson(person))
       } else {
-        log.error("Person with ${person.otherIdentifiers.crn} already exist")
         throw DataIntegrityViolationException("Person already exist")
       }
     }
