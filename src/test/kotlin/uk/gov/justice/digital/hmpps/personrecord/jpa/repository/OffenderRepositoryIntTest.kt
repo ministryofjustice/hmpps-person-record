@@ -6,9 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import java.util.*
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 class OffenderRepositoryIntTest : IntegrationTestBase() {
 
@@ -94,5 +92,4 @@ class OffenderRepositoryIntTest : IntegrationTestBase() {
     assertNotNull(offenderRepository.findByCrn("E363999"))
     assertNotNull(offenderRepository.findByCrn("E363881"))
   }
-
 }
