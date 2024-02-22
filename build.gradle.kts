@@ -34,9 +34,9 @@ dependencies {
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.testcontainers:junit-jupiter:1.19.5")
-  testImplementation("org.testcontainers:postgresql:1.19.5")
-  testImplementation("org.testcontainers:localstack:1.19.5")
+  testImplementation("org.testcontainers:junit-jupiter:1.19.6")
+  testImplementation("org.testcontainers:postgresql:1.19.6")
+  testImplementation("org.testcontainers:localstack:1.19.6")
   testImplementation("org.wiremock:wiremock-standalone:3.4.1")
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.5")
