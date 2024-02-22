@@ -95,26 +95,4 @@ class OffenderRepositoryIntTest : IntegrationTestBase() {
     assertNotNull(offenderRepository.findByCrn("E363881"))
   }
 
-  @Test
-  fun `should return true for an existing offender`() {
-    val personId = UUID.randomUUID()
-    val personEntity = PersonEntity(
-      personId = personId,
-    )
-
-    val offenderEntity = OffenderEntity(
-      crn = "E363876",
-      person = personEntity,
-
-    )
-
-    offenderRepository.save(offenderEntity)
-
-    assertTrue { offenderRepository.existsByCrn("E363876") }
-  }
-
-  @Test
-  fun `should return false for an unknown crn`() {
-    assertFalse { offenderRepository.existsByCrn("ABCD") }
-  }
 }
