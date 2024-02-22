@@ -10,11 +10,7 @@ interface PNCIdentifier {
       if (inputPncId.isNullOrEmpty()) {
         return MissingPNCIdentifier()
       }
-      val pncId = toCanonicalForm(inputPncId)
-      if (isValid(pncId)) {
-        return ValidPNCIdentifier(pncId)
-      }
-      return InvalidPNCIdentifier(inputPncId)
+      return validOrInvalid(inputPncId)
     }
 
     private const val VALID_LETTERS = "ZABCDEFGHJKLMNPQRTUVWXY"
@@ -25,8 +21,12 @@ interface PNCIdentifier {
     private const val LAST_CHARACTER = 12
     private const val YEAR_END = 4
 
-    private fun isValid(pncId: String): Boolean {
-      return (pncId.matches(PNC_REGEX) && correctModulus(pncId))
+    private fun validOrInvalid(inputPncId: String): PNCIdentifier {
+      val pncId = toCanonicalForm(inputPncId)
+      return when {
+        (pncId.matches(PNC_REGEX) && correctModulus(pncId)) -> ValidPNCIdentifier(pncId)
+        else -> InvalidPNCIdentifier(inputPncId)
+      }
     }
     private fun correctModulus(pncId: String): Boolean {
       val modulusLetter = pncId[LAST_CHARACTER]
