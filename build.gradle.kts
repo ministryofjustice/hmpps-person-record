@@ -3,6 +3,7 @@ plugins {
   kotlin("plugin.spring") version "1.9.22"
   kotlin("jvm") version "1.9.22"
   kotlin("plugin.jpa") version "1.9.22"
+  id("io.gitlab.arturbosch.detekt") version "1.23.5"
 }
 
 configurations {
@@ -54,10 +55,20 @@ repositories {
   mavenCentral()
 }
 
+detekt {
+  source.setFrom("$projectDir/src/main")
+  buildUponDefaultConfig = true // preconfigure defaults
+  allRules = false // activate all available (even unstable) rules.
+  config.setFrom("$projectDir/detekt.yml") // point to your custom config defining rules
+}
+
 tasks {
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
       jvmTarget = "21"
     }
+  }
+  getByName("check") {
+    dependsOn(":ktlintCheck", "detekt")
   }
 }

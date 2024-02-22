@@ -8,7 +8,7 @@ interface IEventProcessor {
   fun process(domainEvent: DomainEvent)
 }
 
-abstract class EventProcessor() : IEventProcessor {
+abstract class EventProcessor : IEventProcessor {
 
   companion object {
     val LOG: Logger = LoggerFactory.getLogger(this::class.java)

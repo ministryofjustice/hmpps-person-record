@@ -42,7 +42,7 @@ class PersonController(
     val uuid = try {
       UUID.fromString(personId)
     } catch (ex: IllegalArgumentException) {
-      throw ValidationException("Invalid UUID provided for Person: $personId")
+      throw ValidationException("Invalid UUID provided for Person: $personId", ex)
     }
     return personRecordService.getPersonById(uuid)
   }

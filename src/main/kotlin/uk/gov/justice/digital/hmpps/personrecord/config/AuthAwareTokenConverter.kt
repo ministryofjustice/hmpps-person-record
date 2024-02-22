@@ -6,7 +6,7 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.oauth2.jwt.Jwt
 
-class AuthAwareTokenConverter() : Converter<Jwt, AbstractAuthenticationToken> {
+class AuthAwareTokenConverter : Converter<Jwt, AbstractAuthenticationToken> {
 
   override fun convert(jwt: Jwt): AbstractAuthenticationToken {
     val clientId: Any? = jwt.claims["client_id"]
