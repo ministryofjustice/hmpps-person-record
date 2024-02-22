@@ -39,7 +39,6 @@ class PersonController(
     ],
   )
   fun getPersonById(@PathVariable(name = "person-id") personId: String): Person {
-    log.debug("Entered getPersonById($personId)")
     val uuid = try {
       UUID.fromString(personId)
     } catch (ex: IllegalArgumentException) {

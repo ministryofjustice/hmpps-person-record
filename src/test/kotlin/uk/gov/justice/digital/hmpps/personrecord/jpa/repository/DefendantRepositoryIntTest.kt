@@ -99,13 +99,6 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
       person = existingPerson,
     )
 
-    val addressEntity = AddressEntity(
-      addressLineOne = "line 1",
-      addressLineTwo = "line 2",
-      postcode = "tw3 7pn",
-
-    )
-
     existingPerson.defendants.add(defendantEntity2)
 
     val personEntityUpdated = personRepository.save(existingPerson)
@@ -297,8 +290,8 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
 
     val defendantWithAliases = newPerson.defendants[0]
 
-    assertEquals(1, defendantWithAliases.aliases?.size)
-    assertEquals(defendantWithAliases.aliases!![0].firstName, "Dave")
+    assertEquals(1, defendantWithAliases.aliases.size)
+    assertEquals(defendantWithAliases.aliases[0].firstName, "Dave")
   }
 
   @Test
