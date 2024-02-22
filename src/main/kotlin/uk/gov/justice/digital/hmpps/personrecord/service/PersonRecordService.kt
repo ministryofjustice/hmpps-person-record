@@ -32,14 +32,6 @@ class PersonRecordService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun getPersonById(id: UUID): Person {
-    log.debug("Entered getPersonById($id)")
-    return Person.from(
-      personRepository.findByPersonId(id)
-        ?: throw EntityNotFoundException("Person record not found for id: $id"),
-    )
-  }
-
   fun createPersonRecord(person: Person): Person {
     log.debug("Entered createPersonRecord with")
 

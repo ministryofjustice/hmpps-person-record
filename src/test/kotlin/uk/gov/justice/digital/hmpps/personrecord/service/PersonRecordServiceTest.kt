@@ -58,34 +58,6 @@ class PersonRecordServiceTest {
   }
 
   @Test
-  fun `should return person dto for known person id`() {
-    // Given
-    val personId = UUID.fromString("f4165b62-d9eb-11ed-afa1-0242ac120002")
-
-    whenever(personRepository.findByPersonId(any())).thenReturn(personEntity)
-
-    // When
-    val personDTO = personRecordService.getPersonById(personId)
-
-    // Then
-    assertThat(personDTO.personId).isEqualTo(UUID.fromString("f4165b62-d9eb-11ed-afa1-0242ac120002"))
-  }
-
-  @Test
-  fun `should throw exception when person does not exist for supplied id`() {
-    // Given
-    val uuid = UUID.randomUUID()
-
-    // When
-    val exception = assertFailsWith<EntityNotFoundException>(
-      block = { personRecordService.getPersonById(uuid) },
-    )
-
-    // Then
-    assertThat(exception.message).isEqualTo("Person record not found for id: $uuid")
-  }
-
-  @Test
   fun `should create a person record with unique person Identifier from supplied person dto`() {
     // Given
     val person = Person(

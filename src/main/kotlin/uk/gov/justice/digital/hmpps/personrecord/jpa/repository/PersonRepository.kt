@@ -10,7 +10,7 @@ import java.util.*
 
 @Repository
 interface PersonRepository : JpaRepository<PersonEntity, Long>, PersonRepositoryCustom {
-  fun findByPersonId(uuid: UUID): PersonEntity?
+
   fun findByOffendersCrn(crn: String): PersonEntity?
   fun findByDefendantsPncNumber(pncIdentifier: PNCIdentifier): PersonEntity?
   fun findByPrisonersPncNumber(pncIdentifier: PNCIdentifier): PersonEntity?
