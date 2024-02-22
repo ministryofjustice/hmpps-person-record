@@ -2,8 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.model
 
 import java.time.LocalDate
 
-private const val YEAR_END = 4
-
 interface PNCIdentifier {
 
   val pncId: String
@@ -25,6 +23,7 @@ interface PNCIdentifier {
     private const val LONG_PNC_ID_LENGTH = 10
     private const val CENTURY = 100
     private const val LAST_CHARACTER = 12
+    private const val YEAR_END = 4
 
     private fun isValid(pncId: String): Boolean {
       return (pncId.matches(PNC_REGEX) && correctModulus(pncId))
