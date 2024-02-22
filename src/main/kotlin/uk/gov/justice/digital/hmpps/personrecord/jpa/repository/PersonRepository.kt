@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import java.util.*
 
 @Repository
-interface PersonRepository : JpaRepository<PersonEntity, Long>, PersonRepositoryCustom {
+interface PersonRepository : JpaRepository<PersonEntity, Long> {
 
   fun findByOffendersCrn(crn: String): PersonEntity?
   fun findByDefendantsPncNumber(pncIdentifier: PNCIdentifier): PersonEntity?
