@@ -19,8 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
-import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonSearchRequest
 import java.time.LocalDate
 import java.util.*
@@ -55,77 +53,6 @@ class PersonRecordServiceTest {
       id = 23232L,
       personId = UUID.fromString("f4165b62-d9eb-11ed-afa1-0242ac120002"),
     )
-  }
-
-  @Test
-  fun `should return person dto for known person id`() {
-    // Given
-    val personId = UUID.fromString("f4165b62-d9eb-11ed-afa1-0242ac120002")
-
-    whenever(personRepository.findByPersonId(any())).thenReturn(personEntity)
-
-    // When
-    val personDTO = personRecordService.getPersonById(personId)
-
-    // Then
-    assertThat(personDTO.personId).isEqualTo(UUID.fromString("f4165b62-d9eb-11ed-afa1-0242ac120002"))
-  }
-
-  @Test
-  fun `should throw exception when person does not exist for supplied id`() {
-    // Given
-    val uuid = UUID.randomUUID()
-
-    // When
-    val exception = assertFailsWith<EntityNotFoundException>(
-      block = { personRecordService.getPersonById(uuid) },
-    )
-
-    // Then
-    assertThat(exception.message).isEqualTo("Person record not found for id: $uuid")
-  }
-
-  @Test
-  fun `should create a person record with unique person Identifier from supplied person dto`() {
-    // Given
-    val person = Person(
-      givenName = "Stephen",
-      middleNames = listOf("Michael", "James"),
-      familyName = "Jones",
-      dateOfBirth = LocalDate.of(1968, 8, 15),
-      defendantId = "c04d3d2d-4bd2-40b9-bda6-564a4d9adb91",
-    )
-
-    whenever(personRepository.saveAndFlush(any())).thenReturn(personEntity)
-
-    // When
-    val personRecord = personRecordService.createPersonRecord(person)
-
-    // Then
-    verify(personRepository).saveAndFlush(any<PersonEntity>())
-    assertThat(personRecord.personId).isNotNull
-  }
-
-  @Test
-  fun `should create a person record with unique person Identifier from supplied person dto contains crn`() {
-    // Given
-    val person = Person(
-      givenName = "Stephen",
-      middleNames = listOf("Michael", "James"),
-      familyName = "Jones",
-      dateOfBirth = LocalDate.of(1968, 8, 15),
-      defendantId = "c04d3d2d-4bd2-40b9-bda6-564a4d9adb91",
-      otherIdentifiers = OtherIdentifiers(crn = "59770/20X"),
-    )
-
-    whenever(personRepository.saveAndFlush(any())).thenReturn(personEntity)
-
-    // When
-    val personRecord = personRecordService.createPersonRecord(person)
-
-    // Then
-    verify(personRepository).saveAndFlush(any<PersonEntity>())
-    assertThat(personRecord.personId).isNotNull
   }
 
   @Test

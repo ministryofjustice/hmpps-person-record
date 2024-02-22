@@ -26,12 +26,9 @@ class SecurityConfiguration {
             "/health/**",
             "/info/**",
             "/ping",
-            "/swagger-ui.html",
-            "/swagger-ui/**",
             "/v3/api-docs/**",
             "/queue-admin/retry-all-dlqs",
           ).permitAll()
-          .anyRequest().hasAuthority("ROLE_VIEW_PERSON_DATA")
       }
       .oauth2ResourceServer { oauth2ResourceServer ->
         oauth2ResourceServer
