@@ -54,4 +54,5 @@ class PersonRecordService(
     personEntity.prisoners.add(prisonerEntity)
     return personRepository.saveAndFlush(personEntity)
   }
+
 }
