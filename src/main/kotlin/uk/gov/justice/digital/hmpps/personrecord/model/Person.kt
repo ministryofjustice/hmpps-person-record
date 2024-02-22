@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)

@@ -26,7 +26,6 @@ class SecurityConfiguration {
             "/health/**",
             "/info/**",
             "/ping",
-            "/v3/api-docs/**",
             "/queue-admin/retry-all-dlqs",
           ).permitAll()
       }
