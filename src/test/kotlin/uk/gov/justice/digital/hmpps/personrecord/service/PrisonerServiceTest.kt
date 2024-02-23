@@ -12,7 +12,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.PrisonerMatchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity

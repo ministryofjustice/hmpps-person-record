@@ -11,7 +11,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
-import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderDetail
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConverter
 import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person

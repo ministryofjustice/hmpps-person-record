@@ -11,9 +11,9 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.client.ProbationOffenderSearchClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.IDs
-import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderDetail
-import uk.gov.justice.digital.hmpps.personrecord.client.model.SearchDto
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.IDs
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
+import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderMatchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
@@ -62,7 +62,7 @@ class OffenderServiceTest {
     val dateOfBirth = LocalDate.now()
     val person = createPerson(dateOfBirth, PNCIdentifier.from(PNC_ID), CRN)
     val offenderDetail = createOffenderDetail(dateOfBirth, PNC_ID)
-    whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(listOf(offenderDetail, offenderDetail, offenderDetail))
+    whenever(client.findPossibleMatches(OffenderMatchCriteria.from(person))).thenReturn(listOf(offenderDetail, offenderDetail, offenderDetail))
 
     // When
     offenderService.processAssociatedOffenders(personEntity, person)
@@ -86,7 +86,7 @@ class OffenderServiceTest {
     val dateOfBirth = LocalDate.now()
     val person = createPerson(dateOfBirth, PNCIdentifier.from(PNC_ID), CRN)
     val offenderDetail = createOffenderDetail(dateOfBirth, PNC_ID)
-    whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(listOf(offenderDetail))
+    whenever(client.findPossibleMatches(OffenderMatchCriteria.from(person))).thenReturn(listOf(offenderDetail))
 
     // When
     offenderService.processAssociatedOffenders(personEntity, person)
@@ -126,7 +126,7 @@ class OffenderServiceTest {
       dateOfBirth = LocalDate.of(1978, 4, 5),
       otherIds = IDs(pncNumber = PNC_ID, crn = CRN),
     )
-    whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(listOf(offenderDetail))
+    whenever(client.findPossibleMatches(OffenderMatchCriteria.from(person))).thenReturn(listOf(offenderDetail))
 
     // When
     offenderService.processAssociatedOffenders(personEntity, person)
@@ -148,7 +148,7 @@ class OffenderServiceTest {
     // Given
     val personEntity = PersonEntity.new()
     val person = createPerson(LocalDate.now(), PNCIdentifier.from(PNC_ID), " ")
-    whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(emptyList())
+    whenever(client.findPossibleMatches(OffenderMatchCriteria.from(person))).thenReturn(emptyList())
 
     // When
     offenderService.processAssociatedOffenders(personEntity, person)
@@ -198,7 +198,7 @@ class OffenderServiceTest {
       dateOfBirth = dateOfBirth,
       otherIds = IDs(pncNumber = PNC_ID, crn = CRN, nomsNumber = "A1234J"),
     )
-    whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(listOf(offenderDetail))
+    whenever(client.findPossibleMatches(OffenderMatchCriteria.from(person))).thenReturn(listOf(offenderDetail))
 
     // When
     offenderService.processAssociatedOffenders(personEntity, person)
@@ -224,7 +224,7 @@ class OffenderServiceTest {
     val dateOfBirth = LocalDate.now()
     val person = createPerson(dateOfBirth, PNCIdentifier.from(PNC_ID), CRN)
     val offenderDetails = listOf(createOffenderDetail(dateOfBirth, anotherPnc))
-    whenever(client.getOffenderDetail(SearchDto.from(person))).thenReturn(offenderDetails)
+    whenever(client.findPossibleMatches(OffenderMatchCriteria.from(person))).thenReturn(offenderDetails)
 
     // When
     offenderService.processAssociatedOffenders(personEntity, person)
