@@ -12,7 +12,8 @@ import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.message.processor.CourtCaseEventsProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CASE_READ_FAILURE
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.UNKNOWN_CASE_RECEIVED
 
 const val CPR_COURT_CASE_EVENTS_QUEUE_CONFIG_KEY = "cprcourtcaseeventsqueue"
 
@@ -32,10 +33,8 @@ class CourtCaseEventsListener(
   fun onMessage(
     rawMessage: String,
   ) {
-    LOG.debug("Enter onMessage")
-    val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-    LOG.debug("Received message: type:${sqsMessage.type}")
     if (featureFlag.isHmctsSQSEnabled()) {
+      val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
       when (sqsMessage.type) {
         "Notification" -> {
           try {
@@ -43,7 +42,7 @@ class CourtCaseEventsListener(
           } catch (e: Exception) {
             LOG.error("Failed to process message:${sqsMessage.messageId}", e)
             telemetryService.trackEvent(
-              TelemetryEventType.CASE_READ_FAILURE,
+              CASE_READ_FAILURE,
               mapOf("MESSAGE_ID" to sqsMessage.messageId),
             )
             throw e
@@ -52,7 +51,7 @@ class CourtCaseEventsListener(
         else -> {
           LOG.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
           telemetryService.trackEvent(
-            TelemetryEventType.UNKNOWN_CASE_RECEIVED,
+            UNKNOWN_CASE_RECEIVED,
             mapOf("UNKNOWN_SOURCE_NAME" to sqsMessage.type),
           )
         }

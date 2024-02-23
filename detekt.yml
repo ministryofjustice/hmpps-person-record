@@ -94,19 +94,19 @@ complexity:
   active: true
   CognitiveComplexMethod:
     active: false
-    threshold: 15
+    threshold: 2
   ComplexCondition:
     active: true
-    threshold: 4
+    threshold: 2
   ComplexInterface:
     active: false
-    threshold: 10
+    threshold: 2
     includeStaticDeclarations: false
     includePrivateDeclarations: false
     ignoreOverloaded: false
   CyclomaticComplexMethod:
     active: true
-    threshold: 15
+    threshold: 8
     ignoreSingleWhenExpression: false
     ignoreSimpleWhenEntries: false
     ignoreNestingFunctions: false
