@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.2"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.3"
   kotlin("plugin.spring") version "1.9.22"
   kotlin("jvm") version "1.9.22"
   kotlin("plugin.jpa") version "1.9.22"
@@ -38,7 +38,7 @@ dependencies {
   testImplementation("org.testcontainers:junit-jupiter:1.19.6")
   testImplementation("org.testcontainers:postgresql:1.19.6")
   testImplementation("org.testcontainers:localstack:1.19.6")
-  testImplementation("org.wiremock:wiremock-standalone:3.4.1")
+  testImplementation("org.wiremock:wiremock-standalone:3.4.2")
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.5")
