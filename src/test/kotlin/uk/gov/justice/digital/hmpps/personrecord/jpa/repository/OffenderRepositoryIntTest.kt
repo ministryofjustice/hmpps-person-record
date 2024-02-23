@@ -6,9 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import java.util.*
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 class OffenderRepositoryIntTest : IntegrationTestBase() {
 
@@ -93,28 +91,5 @@ class OffenderRepositoryIntTest : IntegrationTestBase() {
     assertEquals(2, personEntityUpdated.offenders.size)
     assertNotNull(offenderRepository.findByCrn("E363999"))
     assertNotNull(offenderRepository.findByCrn("E363881"))
-  }
-
-  @Test
-  fun `should return true for an existing offender`() {
-    val personId = UUID.randomUUID()
-    val personEntity = PersonEntity(
-      personId = personId,
-    )
-
-    val offenderEntity = OffenderEntity(
-      crn = "E363876",
-      person = personEntity,
-
-    )
-
-    offenderRepository.save(offenderEntity)
-
-    assertTrue { offenderRepository.existsByCrn("E363876") }
-  }
-
-  @Test
-  fun `should return false for an unknown crn`() {
-    assertFalse { offenderRepository.existsByCrn("ABCD") }
   }
 }
