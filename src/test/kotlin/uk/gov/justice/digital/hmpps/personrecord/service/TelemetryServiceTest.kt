@@ -24,9 +24,9 @@ class TelemetryServiceTest {
     val customDimensions = mapOf("key" to "value")
 
     // When
-    telemetryService.trackEvent(TelemetryEventType.NEW_CASE_EXACT_MATCH, customDimensions)
+    telemetryService.trackEvent(TelemetryEventType.HMCTS_EXACT_MATCH, customDimensions)
 
     // Then
-    verify(telemetryClient).trackEvent("CprNewCaseExactMatch", customDimensions, null)
+    verify(telemetryClient).trackEvent("CprHMCTSRecordExactMatchFound", customDimensions, null)
   }
 }

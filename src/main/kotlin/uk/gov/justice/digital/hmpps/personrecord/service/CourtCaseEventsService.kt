@@ -10,11 +10,11 @@ import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.ValidPNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.matcher.DefendantMatcher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PARTIAL_MATCH
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MISSING_PNC
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_CASE_EXACT_MATCH
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_CASE_PARTIAL_MATCH
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_CASE_PERSON_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.VALID_PNC
 
 @Service
@@ -62,19 +62,19 @@ class CourtCaseEventsService(
       prisonerService.processAssociatedPrisoners(it, person)
     }
     trackEvent(
-      NEW_CASE_PERSON_CREATED,
+      HMCTS_RECORD_CREATED,
       mapOf("UUID" to personRecord.personId.toString(), "PNC" to pnc),
     )
   }
   private fun exactMatchFound(defendantMatcher: DefendantMatcher, person: Person, pnc: String) {
     log.info("Exactly matching Person record exists with defendant - no further processing will occur")
     val elementMap = mapOf("PNC" to pnc, "CRN" to defendantMatcher.getMatchingItem().crn, "UUID" to person.personId.toString())
-    trackEvent(NEW_CASE_EXACT_MATCH, elementMap)
+    trackEvent(HMCTS_EXACT_MATCH, elementMap)
   }
 
   private fun partialMatchFound(defendantMatcher: DefendantMatcher) {
     log.info("Partially matching Person record exists with defendant - no further processing will occur")
-    trackEvent(NEW_CASE_PARTIAL_MATCH, defendantMatcher.extractMatchingFields(defendantMatcher.getMatchingItem()))
+    trackEvent(HMCTS_PARTIAL_MATCH, defendantMatcher.extractMatchingFields(defendantMatcher.getMatchingItem()))
   }
   private fun trackEvent(
     eventType: TelemetryEventType,

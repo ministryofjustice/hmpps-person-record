@@ -67,7 +67,7 @@ abstract class IntegrationTestBase {
   lateinit var offenderRepository: OffenderRepository
 
   @SpyBean
-  lateinit var telemetryService: TelemetryService
+  lateinit var telemetryService: TelemetryService // replace with telemtryClient?
 
   val courtCaseEventsTopic by lazy {
     hmppsQueueService.findByTopicId("courtcaseeventstopic")

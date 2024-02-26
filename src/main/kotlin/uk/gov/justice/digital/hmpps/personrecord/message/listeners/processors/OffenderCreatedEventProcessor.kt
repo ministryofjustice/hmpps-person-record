@@ -35,10 +35,6 @@ class OffenderCreatedEventProcessor(
       },
       onFailure = {
         log.error("Error retrieving new offender detail: ${it.message}")
-        telemetryService.trackEvent(
-          TelemetryEventType.DELIUS_OFFENDER_READ_FAILURE,
-          mapOf("CRN" to crnIdentifier?.value),
-        )
         throw it
       },
     )

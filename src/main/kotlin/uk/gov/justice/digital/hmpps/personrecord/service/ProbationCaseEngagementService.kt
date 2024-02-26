@@ -10,8 +10,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
-const val DELIUS_EVENT = "DELIUS-EVENT"
-
 @Service
 class ProbationCaseEngagementService(
   val personRepository: PersonRepository,
@@ -24,7 +22,7 @@ class ProbationCaseEngagementService(
   fun processNewOffender(newOffenderDetail: DeliusOffenderDetail) {
     newOffenderDetail.identifiers.pnc?.let {
       handlePncPresent(newOffenderDetail)
-    } ?: handleNoPnc(newOffenderDetail.identifiers.crn)
+    } ?: handleNoPnc()
   }
 
   private fun handlePncPresent(newOffenderDetail: DeliusOffenderDetail) {
@@ -37,7 +35,8 @@ class ProbationCaseEngagementService(
   private fun handlePersonExistsForPnc(newOffenderDetail: DeliusOffenderDetail, person: PersonEntity) {
     val pnc = newOffenderDetail.identifiers.pnc!!
     val crn = newOffenderDetail.identifiers.crn
-    log.debug("Person record exist for pnc $pnc - adding new offender to person with crn $crn")
+    log.debug("Person record exists for pnc $pnc - adding new offender to person with crn $crn")
+    // should we not check that there is no offender first?
     addOffenderToPerson(person, createOffender(newOffenderDetail))
     trackEvent(TelemetryEventType.NEW_DELIUS_RECORD_PNC_MATCHED, crn, pnc)
   }
@@ -45,14 +44,13 @@ class ProbationCaseEngagementService(
   private fun handleNoPersonForPnc(newOffenderDetail: DeliusOffenderDetail) {
     val pnc = newOffenderDetail.identifiers.pnc!!
     val crn = newOffenderDetail.identifiers.crn
-    log.debug("Person not exist for pnc $pnc - creating a new person and offender")
+    log.debug("Person record does not exist for pnc $pnc - creating a new person and offender")
     val newPerson = createNewPersonAndOffenderFromPnc(newOffenderDetail)
     trackEvent(TelemetryEventType.NEW_DELIUS_RECORD_NEW_PNC, crn, pnc, newPerson.personId.toString())
   }
 
-  private fun handleNoPnc(crn: String) {
+  private fun handleNoPnc() {
     log.debug("Pnc not present no further processing needed")
-    trackEvent(TelemetryEventType.NEW_DELIUS_RECORD_NO_PNC, crn)
   }
 
   @Suppress("UNCHECKED_CAST")
