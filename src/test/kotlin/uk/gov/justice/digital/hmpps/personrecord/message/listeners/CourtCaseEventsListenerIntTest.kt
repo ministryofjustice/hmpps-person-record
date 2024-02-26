@@ -89,7 +89,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.NEW_CP_CASE_RECEIVED),
+        eq(TelemetryEventType.HMCTS_MESSAGE_RECEIVED),
         check {
           assertThat(it["PNC"]).isEqualTo("1981/0154257C")
         },
@@ -160,7 +160,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.NEW_LIBRA_CASE_RECEIVED),
+        eq(TelemetryEventType.HMCTS_MESSAGE_RECEIVED),
         check {
           assertThat(it["PNC"]).isEqualTo("1979/0027672E")
           assertThat(it["CRO"]).isEqualTo("11111/79J")
@@ -223,7 +223,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(pncNumber)
 
     verify(telemetryService, times(1)).trackEvent(
-      eq(TelemetryEventType.NEW_CASE_PERSON_CREATED),
+      eq(TelemetryEventType.HMCTS_RECORD_CREATED),
       check {
         assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
       },

@@ -16,8 +16,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_CASE_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.VALID_PNC
 import java.time.LocalDate
 import java.util.*
@@ -125,7 +125,7 @@ class CourtCaseEventsServiceTest {
     // Then
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
     verify(telemetryService).trackEvent(VALID_PNC, mapOf("PNC" to pncNumber))
-    verify(telemetryService).trackEvent(NEW_CASE_EXACT_MATCH, mapOf("PNC" to pncNumber, "CRN" to crn, "UUID" to personID.toString()))
+    verify(telemetryService).trackEvent(HMCTS_EXACT_MATCH, mapOf("PNC" to pncNumber, "CRN" to crn, "UUID" to personID.toString()))
   }
 
   @Test
@@ -160,7 +160,7 @@ class CourtCaseEventsServiceTest {
 
     // Then
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
-    verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_PARTIAL_MATCH, mapOf("Surname" to "Jones"))
+    verify(telemetryService).trackEvent(TelemetryEventType.HMCTS_PARTIAL_MATCH, mapOf("Surname" to "Jones"))
   }
 
   @Test
@@ -184,7 +184,7 @@ class CourtCaseEventsServiceTest {
 
     // Then
     verify(personRecordService).createNewPersonAndDefendant(person)
-    verify(telemetryService).trackEvent(TelemetryEventType.NEW_CASE_PERSON_CREATED, mapOf("UUID" to uuid.toString(), "PNC" to pncNumber))
+    verify(telemetryService).trackEvent(TelemetryEventType.HMCTS_RECORD_CREATED, mapOf("UUID" to uuid.toString(), "PNC" to pncNumber))
     verify(offenderService).processAssociatedOffenders(personEntity, person)
     verify(prisonerService).processAssociatedPrisoners(personEntity, person)
   }

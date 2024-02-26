@@ -15,10 +15,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.CommonPlatfor
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.service.CourtCaseEventsService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_CASE_EXACT_MATCH
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_CP_CASE_RECEIVED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_LIBRA_CASE_RECEIVED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.UNKNOWN_CASE_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 
 @Service
 class CourtCaseEventsProcessor(
@@ -48,7 +46,6 @@ class CourtCaseEventsProcessor(
 
       else -> {
         log.debug("Received case type ${UNKNOWN.name}")
-        telemetryService.trackEvent(UNKNOWN_CASE_RECEIVED, emptyMap())
       }
     }
   }
@@ -56,10 +53,6 @@ class CourtCaseEventsProcessor(
   fun processLibraHearingEvent(libraHearingEvent: LibraHearingEvent) {
     log.debug("Processing LIBRA event")
     val person = Person.from(libraHearingEvent)
-    telemetryService.trackEvent(
-      NEW_LIBRA_CASE_RECEIVED,
-      mapOf("PNC" to person.otherIdentifiers?.pncIdentifier.toString(), "CRO" to person.otherIdentifiers?.cro),
-    )
     process(person)
   }
 
@@ -80,23 +73,23 @@ class CourtCaseEventsProcessor(
 
     uniqueDefendants.forEach { defendant ->
       val person = Person.from(defendant)
-      telemetryService.trackEvent(
-        NEW_CP_CASE_RECEIVED,
-        mapOf("PNC" to person.otherIdentifiers?.pncIdentifier.toString(), "CRO" to person.otherIdentifiers?.cro),
-      )
       process(person)
     }
   }
 
   private fun process(person: Person) {
     try {
+      telemetryService.trackEvent(
+        HMCTS_MESSAGE_RECEIVED,
+        mapOf("PNC" to person.otherIdentifiers?.pncIdentifier.toString(), "CRO" to person.otherIdentifiers?.cro),
+      )
       courtCaseEventsService.processPersonFromCourtCaseEvent(person)
     } catch (e: Exception) {
       when (e) {
         is CannotAcquireLockException, is JpaSystemException -> {
           log.warn("Expected error when processing $e.message")
           telemetryService.trackEvent(
-            NEW_CASE_EXACT_MATCH,
+            HMCTS_EXACT_MATCH,
             mapOf("PNC" to person.otherIdentifiers?.pncIdentifier.toString(), "Exception" to e.message),
           )
         }

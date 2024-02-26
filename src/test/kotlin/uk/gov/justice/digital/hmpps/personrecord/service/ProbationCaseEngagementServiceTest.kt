@@ -99,7 +99,7 @@ class ProbationCaseEngagementServiceTest {
   }
 
   @Test
-  fun `should create correct telemetry event for no pnc`() {
+  fun `should not write new offender for no pnc`() {
     val deliusOffenderDetail = DeliusOffenderDetail(
       dateOfBirth = LocalDate.now(),
       name = Name(
@@ -115,11 +115,5 @@ class ProbationCaseEngagementServiceTest {
     probationCaseEngagementService.processNewOffender(deliusOffenderDetail)
 
     verifyNoInteractions(personRepository)
-    verify(telemetryService).trackEvent(
-      TelemetryEventType.NEW_DELIUS_RECORD_NO_PNC,
-      mapOf(
-        "CRN" to deliusOffenderDetail.identifiers.crn,
-      ),
-    )
   }
 }

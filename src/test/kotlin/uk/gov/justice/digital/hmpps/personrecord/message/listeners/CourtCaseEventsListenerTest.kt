@@ -83,7 +83,7 @@ class CourtCaseEventsListenerTest {
   }
 
   @Test
-  fun `should not call the processor and create telemetry event with wrong message type`() {
+  fun `should not call the processor`() {
     // given
     val rawMessage = testMessageWithUnknownType(MessageType.COMMON_PLATFORM_HEARING.name)
     sqsMessage = SQSMessage(
@@ -96,7 +96,6 @@ class CourtCaseEventsListenerTest {
     courtCaseEventsListener.onMessage(rawMessage = rawMessage)
 
     // then
-    verify(telemetryService).trackEvent(TelemetryEventType.UNKNOWN_CASE_RECEIVED, mapOf("UNKNOWN_SOURCE_NAME" to sqsMessage.type))
     verifyNoInteractions(courtCaseEventsProcessor)
   }
 
@@ -118,7 +117,7 @@ class CourtCaseEventsListenerTest {
     )
 
     // then
-    verify(telemetryService).trackEvent(TelemetryEventType.CASE_READ_FAILURE, mapOf("MESSAGE_ID" to sqsMessage.messageId))
+    verify(telemetryService).trackEvent(TelemetryEventType.HMCTS_PROCESSING_FAILURE, mapOf("MESSAGE_ID" to sqsMessage.messageId))
   }
 
   @Test
