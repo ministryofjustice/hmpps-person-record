@@ -9,4 +9,4 @@ data class DeliusOffenderDetail(
   val identifiers: Identifiers,
   val dateOfBirth: LocalDate? = null,
 
-  )
+)

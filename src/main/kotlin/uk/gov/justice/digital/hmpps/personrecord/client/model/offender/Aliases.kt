@@ -8,6 +8,6 @@ data class Aliases(
   val firstName: String? = null,
   val surName: String? = null,
   val middleNames: List<String>? = emptyList(),
-  val dataOfBirth: LocalDate? =  null,
+  val dataOfBirth: LocalDate? = null,
   val id: String? = null,
 )

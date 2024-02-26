@@ -6,5 +6,5 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 data class OffenderProfile(
   val ethnicity: String? = null,
   val nationality: String? = null,
-  val secondaryNationality: String? =  null,
+  val secondaryNationality: String? = null,
 )

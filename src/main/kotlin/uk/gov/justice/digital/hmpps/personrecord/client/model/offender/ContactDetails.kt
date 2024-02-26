@@ -6,5 +6,5 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 data class ContactDetails(
   val emailAddresses: List<String>? = emptyList(),
   val addresses: List<Address>? = emptyList(),
-  val phoneNumbers: List<PhoneNumber>? =  emptyList(),
+  val phoneNumbers: List<PhoneNumber>? = emptyList(),
 )
