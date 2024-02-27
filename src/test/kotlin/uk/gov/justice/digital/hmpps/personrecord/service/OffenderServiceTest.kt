@@ -68,7 +68,7 @@ class OffenderServiceTest {
     offenderService.processAssociatedOffenders(personEntity, person)
 
     // Then
-    verify(personRecordService, times(3)).addOffenderToPerson(any(), any())
+    verify(personRecordService, times(3)).addOffenderToPerson(any(), any<OffenderDetail>())
     verify(telemetryService, times(3)).trackEvent(
       TelemetryEventType.DELIUS_MATCH_FOUND,
       mapOf(
@@ -92,7 +92,7 @@ class OffenderServiceTest {
     offenderService.processAssociatedOffenders(personEntity, person)
 
     // Then
-    verify(personRecordService).addOffenderToPerson(personEntity, Person.from(offenderDetail))
+    verify(personRecordService).addOffenderToPerson(personEntity, offenderDetail)
     verify(telemetryService).trackEvent(
       TelemetryEventType.DELIUS_MATCH_FOUND,
       mapOf(
@@ -204,7 +204,7 @@ class OffenderServiceTest {
     offenderService.processAssociatedOffenders(personEntity, person)
 
     // Then
-    verify(personRecordService).addOffenderToPerson(personEntity, Person.from(offenderDetail))
+    verify(personRecordService).addOffenderToPerson(personEntity, offenderDetail)
     verify(telemetryService).trackEvent(
       TelemetryEventType.DELIUS_MATCH_FOUND,
       mapOf(

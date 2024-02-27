@@ -38,7 +38,7 @@ ALTER TABLE IF EXISTS offender_alias ADD CONSTRAINT fk_offender_alias_id foreign
 
 ALTER TABLE offender
     ADD COLUMN title TEXT NULL,
-    ADD COLUMN offender_id TEXT NULL,
+    ADD COLUMN offender_id bigint NULL,
     ADD COLUMN cro TEXT NULL,
     ADD COLUMN most_recent_prison_number TEXT NULL,
     ADD COLUMN nationality TEXT NULL,

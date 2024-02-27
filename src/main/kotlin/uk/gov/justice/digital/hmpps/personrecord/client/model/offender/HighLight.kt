@@ -7,4 +7,9 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class HighLight(
   @JsonProperty("surname")
   val preferredName: List<String>? = emptyList(),
-)
+) {
+  companion object
+  fun getPreferredNameString(): String? {
+    return preferredName?.joinToString { " " }
+  }
+}

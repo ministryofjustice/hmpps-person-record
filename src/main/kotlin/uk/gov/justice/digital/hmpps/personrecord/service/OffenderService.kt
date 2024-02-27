@@ -58,17 +58,19 @@ class OffenderService(
     logAndTrackEvent(PARTIAL_MATCH_MESSAGE, TelemetryEventType.DELIUS_PARTIAL_MATCH_FOUND, personEntity, person)
   }
 
+  // TODO refactor
   private fun exactMatchFound(offenderMatches: OffenderMatcher, personEntity: PersonEntity, person: Person) {
     logAndTrackEvent(EXACT_MATCH_MESSAGE, TelemetryEventType.DELIUS_MATCH_FOUND, personEntity, person)
     val offenderDetail = offenderMatches.getMatchingItem()
-    personRecordService.addOffenderToPerson(personEntity, Person.from(offenderDetail))
+    personRecordService.addOffenderToPerson(personEntity, offenderDetail)
   }
 
+  // TODO refactor
   private fun multipleMatchesFound(offenderMatches: OffenderMatcher, personEntity: PersonEntity, person: Person) {
     val allMatchingOffenders = offenderMatches.getAllMatchingItems()
     allMatchingOffenders?.forEach { offenderDetail ->
       logAndTrackEvent(MULTIPLE_MATCHES_MESSAGE, TelemetryEventType.DELIUS_MATCH_FOUND, personEntity, person)
-      personRecordService.addOffenderToPerson(personEntity, Person.from(offenderDetail))
+      personRecordService.addOffenderToPerson(personEntity, offenderDetail)
     }
   }
 

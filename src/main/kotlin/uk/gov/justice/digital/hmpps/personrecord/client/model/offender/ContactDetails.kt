@@ -7,4 +7,20 @@ data class ContactDetails(
   val emailAddresses: List<String>? = emptyList(),
   val addresses: List<Address>? = emptyList(),
   val phoneNumbers: List<PhoneNumber>? = emptyList(),
-)
+) {
+  fun getHomePhone(): String? {
+    return phoneNumbers?.firstOrNull { it.type == "TELEPHONE" }?.number
+  }
+
+  fun getMobilePhone(): String? {
+    return phoneNumbers?.firstOrNull { it.type == "MOB" }?.number
+  }
+
+  fun getEmail(): String? {
+    return emailAddresses?.firstOrNull()
+  }
+
+  fun getAddress(): Address? {
+    return addresses?.firstOrNull()
+  }
+}

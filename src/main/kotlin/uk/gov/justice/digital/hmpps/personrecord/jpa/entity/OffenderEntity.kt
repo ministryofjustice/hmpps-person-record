@@ -63,7 +63,7 @@ class OffenderEntity(
   val nationalInsuranceNumber: String? = null,
 
   @Column(name = "offender_id")
-  val offenderId: String? = null,
+  val offenderId: Long? = null,
 
   @Column(name = "most_recent_prison_number")
   val mostRecentPrisonNumber: String? = null,
@@ -121,6 +121,23 @@ class OffenderEntity(
     fun from(offenderDetail: OffenderDetail): OffenderEntity {
       val offenderEntity = OffenderEntity(
         crn = offenderDetail.otherIds.crn,
+        cro = offenderDetail.otherIds.crn,
+        pncNumber = PNCIdentifier.from(offenderDetail.otherIds.pncNumber),
+        nationalInsuranceNumber = offenderDetail.otherIds.niNumber,
+        prisonNumber = offenderDetail.otherIds.nomsNumber,
+        offenderId = offenderDetail.offenderId,
+        mostRecentPrisonNumber = offenderDetail.otherIds.mostRecentPrisonerNumber,
+        title = offenderDetail.title,
+        firstName = offenderDetail.firstName,
+        lastName = offenderDetail.surname,
+        dateOfBirth = offenderDetail.dateOfBirth,
+        gender = offenderDetail.gender,
+        previousSurname = offenderDetail.previousSurName,
+        preferredName = offenderDetail.highLight?.getPreferredNameString(),
+        ethnicity = offenderDetail.offenderProfile?.ethnicity,
+        nationality = offenderDetail.offenderProfile?.nationality,
+        contact = offenderDetail.contactDetails?.let { ContactEntity.from(it) },
+        address = offenderDetail.contactDetails?.getAddress()?.let { AddressEntity.from(it) },
       )
       return offenderEntity
     }
