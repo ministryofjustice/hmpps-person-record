@@ -49,8 +49,14 @@ class OffenderAliasEntity(
 
   companion object {
     private fun from(offenderAlias: Aliases): OffenderAliasEntity? {
-      return if (isAliasPresent(offenderAlias.firstName,
-          offenderAlias.middleNames?.joinToString { " " }, offenderAlias.surName, offenderAlias.dataOfBirth?.toString(), offenderAlias.id)) {
+      return if (isAliasPresent(
+          offenderAlias.firstName,
+          offenderAlias.middleNames?.joinToString { " " },
+          offenderAlias.surName,
+          offenderAlias.dataOfBirth?.toString(),
+          offenderAlias.id,
+        )
+      ) {
         OffenderAliasEntity(
           firstName = offenderAlias.firstName,
           middleName = offenderAlias.middleNames?.joinToString { " " },

@@ -57,7 +57,7 @@ class OffenderEntity(
   val title: String? = null,
 
   @Column(name = "cro")
-  val cro: String? =  null,
+  val cro: String? = null,
 
   @Column(name = "ni_number")
   val nationalInsuranceNumber: String? = null,
