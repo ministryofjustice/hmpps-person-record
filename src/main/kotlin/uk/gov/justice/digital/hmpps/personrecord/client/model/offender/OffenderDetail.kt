@@ -16,4 +16,5 @@ data class OffenderDetail(
   val offenderAliases: List<Aliases>? = emptyList(),
   val contactDetails: ContactDetails? = null,
   val offenderProfile: OffenderProfile? = null,
+  val highLight: HighLight? = null,
 )

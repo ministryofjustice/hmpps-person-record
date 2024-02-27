@@ -4,11 +4,14 @@ import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Convert
 import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
+import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
@@ -47,6 +50,36 @@ class OffenderEntity(
   @Column(name = "prison_number")
   val prisonNumber: String? = null,
 
+  @Column(name = "gender")
+  val gender: String? = null,
+
+  @Column(name = "title")
+  val title: String? = null,
+
+  @Column(name = "cro")
+  val cro: String? =  null,
+
+  @Column(name = "ni_number")
+  val nationalInsuranceNumber: String? = null,
+
+  @Column(name = "offender_id")
+  val offenderId: String? = null,
+
+  @Column(name = "most_recent_prison_number")
+  val mostRecentPrisonNumber: String? = null,
+
+  @Column(name = "preferred_name")
+  val preferredName: String? = null,
+
+  @Column(name = "previous_surname")
+  val previousSurname: String? = null,
+
+  @Column(name = "ethnicity")
+  val ethnicity: String? = null,
+
+  @Column(name = "nationality")
+  val nationality: String? = null,
+
   @ManyToOne(optional = false, cascade = [CascadeType.ALL])
   @JoinColumn(
     name = "fk_person_id",
@@ -54,6 +87,17 @@ class OffenderEntity(
     nullable = false,
   )
   var person: PersonEntity? = null,
+
+  @OneToOne(cascade = [CascadeType.ALL])
+  @JoinColumn(name = "fk_address_id", referencedColumnName = "id", nullable = true)
+  var address: AddressEntity? = null,
+
+  @OneToOne(cascade = [CascadeType.ALL])
+  @JoinColumn(name = "fk_contact_id", referencedColumnName = "id", nullable = true)
+  var contact: ContactEntity? = null,
+
+  @OneToMany(mappedBy = "offender", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+  var aliases: MutableList<OffenderAliasEntity> = mutableListOf(),
 
   @Version
   var version: Int = 0,
