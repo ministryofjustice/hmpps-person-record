@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.OffenderDetailRestClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.DeliusOffenderDetail
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.service.ProbationCaseEngagementService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService

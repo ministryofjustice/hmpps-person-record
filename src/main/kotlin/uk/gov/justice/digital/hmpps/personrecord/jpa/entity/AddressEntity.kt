@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 
 @Entity
@@ -47,6 +48,15 @@ class AddressEntity(
           addressLineFour = person.addressLineFour,
           addressLineFive = person.addressLineFive,
           postcode = person.postcode,
+        )
+      } else {
+        null
+      }
+    }
+    fun from(person: Address): AddressEntity? {
+      return if (isAddressDetailsPresent(null, null, null, null, null, person.postCode)) {
+        AddressEntity(
+          postcode = person.postCode,
         )
       } else {
         null

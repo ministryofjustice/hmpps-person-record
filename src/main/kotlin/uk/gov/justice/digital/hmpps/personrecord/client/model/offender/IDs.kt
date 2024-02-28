@@ -1,5 +1,8 @@
-package uk.gov.justice.digital.hmpps.personrecord.client.model
+package uk.gov.justice.digital.hmpps.personrecord.client.model.offender
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class IDs(
   val crn: String,
   val pncNumber: String? = null,

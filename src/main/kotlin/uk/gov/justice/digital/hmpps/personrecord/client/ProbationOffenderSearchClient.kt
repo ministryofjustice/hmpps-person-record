@@ -3,8 +3,8 @@ package uk.gov.justice.digital.hmpps.personrecord.client
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestBody
-import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderDetail
-import uk.gov.justice.digital.hmpps.personrecord.client.model.SearchDto
+import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderMatchCriteria
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.config.ProbationOffenderSearchOAuth2Config
 
 @FeignClient(
@@ -15,5 +15,5 @@ import uk.gov.justice.digital.hmpps.personrecord.config.ProbationOffenderSearchO
 interface ProbationOffenderSearchClient {
 
   @GetMapping(value = ["\${offender-search.offender-detail}"])
-  fun getOffenderDetail(@RequestBody searchDto: SearchDto): List<OffenderDetail>?
+  fun findPossibleMatches(@RequestBody offenderMatchCriteria: OffenderMatchCriteria): List<OffenderDetail>?
 }
