@@ -13,8 +13,8 @@ data class OffenderDetail(
   val otherIds: IDs,
   val previousSurName: String? = null,
   val gender: String? = null,
-  val offenderAliases: List<Aliases> = emptyList(),
+  val offenderAliases: List<Alias> = emptyList(),
   val contactDetails: ContactDetails? = null,
   val offenderProfile: OffenderProfile? = null,
-  val highLight: HighLight? = null,
+  val highlight: Highlight? = null,
 )

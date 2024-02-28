@@ -10,7 +10,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Aliases
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Alias
 import java.time.LocalDate
 
 @Entity
@@ -48,7 +48,7 @@ class OffenderAliasEntity(
 ) {
 
   companion object {
-    private fun from(offenderAlias: Aliases): OffenderAliasEntity? {
+    private fun from(offenderAlias: Alias): OffenderAliasEntity? {
       val middleName = offenderAlias.middleNames?.joinToString(" ") { it }
       return if (isAliasPresent(
           offenderAlias.firstName,
@@ -70,7 +70,7 @@ class OffenderAliasEntity(
       }
     }
 
-    fun fromList(offenderAliases: List<Aliases>): List<OffenderAliasEntity> {
+    fun fromList(offenderAliases: List<Alias>): List<OffenderAliasEntity> {
       return offenderAliases.mapNotNull { from(it) }
     }
 

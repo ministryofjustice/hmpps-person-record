@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class Aliases(
+data class Alias(
   val firstName: String? = null,
   val surname: String? = null,
   val middleNames: List<String>? = emptyList(),

@@ -4,12 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class HighLight(
+data class Highlight(
   @JsonProperty("surname")
   val preferredName: List<String>? = emptyList(),
 ) {
   companion object
-  fun getPreferredNameString(): String? {
+  fun getPreferredName(): String? {
     return preferredName?.joinToString { " " }
   }
 }
