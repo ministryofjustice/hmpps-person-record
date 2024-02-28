@@ -91,7 +91,7 @@ management:
       cache:
         time-to-live: 2000ms
       show-components: always
-      show-details: always
+      show-details: never
       probes:
         enabled: true
     info:
