@@ -10,9 +10,9 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.personrecord.client.model.DeliusOffenderDetail
-import uk.gov.justice.digital.hmpps.personrecord.client.model.Identifiers
-import uk.gov.justice.digital.hmpps.personrecord.client.model.Name
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOffenderDetail
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier

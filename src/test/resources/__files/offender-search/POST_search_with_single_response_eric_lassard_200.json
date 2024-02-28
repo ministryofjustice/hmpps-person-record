@@ -10,11 +10,24 @@
     "otherIds": {
       "crn": "X026350",
       "pncNumber": "2003/0062845E",
-      "nomsNumber": "A1671AJ"
-    },
+      "nomsNumber": "A1671AJ",
+      "niNumber": "Ab123456G",
+      "mostRecentPrisonerNumber": "2345"
+   },
     "contactDetails": {
-      "phoneNumbers": [],
-      "emailAddresses": [],
+      "phoneNumbers": [
+        {
+          "number": "02920345665",
+          "type": "TELEPHONE"
+        },
+        {
+          "number": "07123456789",
+          "type": "MOBILE"
+        }
+      ],
+      "emailAddresses": [
+        "email@email.com"
+      ],
       "addresses": [
         {
           "id": 2500033946,
@@ -34,6 +47,8 @@
       ]
     },
     "offenderProfile": {
+      "ethnicity": "White",
+      "nationality": "US",
       "offenderLanguages": {
         "requiresInterpreter": false
       },
@@ -41,6 +56,17 @@
         "detail": {}
       }
     },
+    "offenderAliases": [
+      {
+        "id": "12345",
+        "dateOfBirth": "1968-02-22",
+        "firstName": "aliasFirstName",
+        "middleNames": [
+          "mName1","mName2"
+        ],
+        "surname": "alisSurName"
+      }
+    ],
     "offenderManagers": [
       {
         "staff": {

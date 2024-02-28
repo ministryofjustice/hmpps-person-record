@@ -5,7 +5,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.personrecord.client.model.SearchDto
+import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderMatchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 
 class ProbationOffenderSearchClientIntTest : IntegrationTestBase() {
@@ -16,10 +16,10 @@ class ProbationOffenderSearchClientIntTest : IntegrationTestBase() {
   @Test
   fun `should return offender details for known person`() {
     // Given
-    val searchDto = SearchDto(firstName = "John", surname = "Smith")
+    val offenderMatchCriteria = OffenderMatchCriteria(firstName = "John", surname = "Smith")
 
     // When
-    val offenderDetails = restClient.getOffenderDetail(searchDto)
+    val offenderDetails = restClient.findPossibleMatches(offenderMatchCriteria)
 
     // Then
     assertThat(offenderDetails).hasSize(7)
@@ -30,10 +30,10 @@ class ProbationOffenderSearchClientIntTest : IntegrationTestBase() {
   @Test
   fun `should return empty list for unknown person details`() {
     // Given
-    val searchDto = SearchDto(crn = "CRN404")
+    val offenderMatchCriteria = OffenderMatchCriteria(crn = "CRN404")
 
     // When
-    val offenderDetails = restClient.getOffenderDetail(searchDto)
+    val offenderDetails = restClient.findPossibleMatches(offenderMatchCriteria)
 
     // Then
     assertThat(offenderDetails).isEmpty()
@@ -42,11 +42,11 @@ class ProbationOffenderSearchClientIntTest : IntegrationTestBase() {
   @Test
   fun `should return bad request for insufficient search parameters`() {
     // Given
-    val searchDto = SearchDto(includeAliases = null)
+    val offenderMatchCriteria = OffenderMatchCriteria(includeAliases = null)
 
     // When
     val exception = assertThrows(FeignException.BadRequest::class.java) {
-      restClient.getOffenderDetail(searchDto)
+      restClient.findPossibleMatches(offenderMatchCriteria)
     }
 
     // Then
