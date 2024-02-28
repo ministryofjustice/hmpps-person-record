@@ -48,6 +48,7 @@ class PersonRecordService(
 
     val offenderAliases = OffenderAliasEntity.fromList(offenderDetail.offenderAliases)
     offenderAliases.forEach { offenderAliasEntity -> offenderAliasEntity.offender = offenderEntity }
+    offenderEntity.aliases.addAll(offenderAliases)
 
     offenderEntity.person = personEntity
     personEntity.offenders.add(offenderEntity)

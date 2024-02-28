@@ -13,7 +13,7 @@ data class ContactDetails(
   }
 
   fun getMobilePhone(): String? {
-    return phoneNumbers?.firstOrNull { it.type == "MOB" }?.number
+    return phoneNumbers?.firstOrNull { it.type == "MOBILE" }?.number
   }
 
   fun getEmail(): String? {

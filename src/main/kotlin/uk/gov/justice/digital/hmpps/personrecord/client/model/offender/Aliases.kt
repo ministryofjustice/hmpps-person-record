@@ -6,8 +6,8 @@ import java.time.LocalDate
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Aliases(
   val firstName: String? = null,
-  val surName: String? = null,
+  val surname: String? = null,
   val middleNames: List<String>? = emptyList(),
-  val dataOfBirth: LocalDate? = null,
+  val dateOfBirth: LocalDate? = null,
   val id: String? = null,
 )

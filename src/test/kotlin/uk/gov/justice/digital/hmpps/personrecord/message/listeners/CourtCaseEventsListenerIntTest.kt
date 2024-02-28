@@ -363,4 +363,60 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity3.defendants[0].defendantId).isEqualTo("b56f8612-0f4c-43e5-840a-8bedb17722ec")
     assertThat(personEntity3.defendants[0].masterDefendantId).isEqualTo("290e0457-1480-4e62-b3c8-7f29ef791c58")
   }
+
+  @Test
+  fun `should create offender with additional fields`() {
+    // given
+    val pncNumber = PNCIdentifier.from("2003/0062845E")
+
+    val publishRequest = PublishRequest.builder()
+      .topicArn(courtCaseEventsTopic?.arn)
+      .message(commonPlatformHearingWithNewDefendant())
+      .messageAttributes(
+        mapOf(
+          "messageType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(COMMON_PLATFORM_HEARING.name).build(),
+        ),
+      )
+      .build()
+
+    // when
+    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+
+    // then
+    await untilCallTo {
+      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
+    } matches { it == 0 }
+
+    await untilAsserted { assertThat(postgresSQLContainer.isCreated).isTrue() }
+
+    val personEntity = await.atMost(30, TimeUnit.SECONDS) untilNotNull {
+      personRepository.findByPrisonersPncNumber(pncNumber)
+    }
+
+    assertThat(personEntity.personId).isNotNull()
+    assertThat(personEntity.offenders).hasSize(1)
+    assertThat(personEntity.offenders[0].crn).isEqualTo("X026350")
+    assertThat(personEntity.offenders[0].offenderId).isEqualTo(2500034487)
+    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(pncNumber)
+    assertThat(personEntity.offenders[0].firstName).isEqualTo("Eric")
+    assertThat(personEntity.offenders[0].lastName).isEqualTo("Lassard")
+    assertThat(personEntity.offenders[0].gender).isEqualTo("Male")
+    assertThat(personEntity.offenders[0].ethnicity).isEqualTo("White")
+    assertThat(personEntity.offenders[0].nationality).isEqualTo("US")
+    assertThat(personEntity.offenders[0].dateOfBirth).isEqualTo(LocalDate.of(1960, 1, 1))
+    assertThat(personEntity.offenders[0].prisonNumber).isEqualTo("A1671AJ")
+    assertThat(personEntity.offenders[0].nationalInsuranceNumber).isEqualTo("Ab123456G")
+    assertThat(personEntity.offenders[0].mostRecentPrisonNumber).isEqualTo("2345")
+    assertThat(personEntity.offenders[0].contact?.homePhone).isEqualTo("02920345665")
+    assertThat(personEntity.offenders[0].contact?.mobile).isEqualTo("07123456789")
+    assertThat(personEntity.offenders[0].address).isNotNull()
+    assertThat(personEntity.offenders[0].address?.postcode).isEqualTo("NF1 1NF")
+    assertEquals(1, personEntity.offenders[0].aliases.size)
+    assertThat(personEntity.offenders[0].aliases[0].firstName).isEqualTo("aliasFirstName")
+    assertThat(personEntity.offenders[0].aliases[0].middleName).isEqualTo("mName1 mName2")
+    assertThat(personEntity.offenders[0].aliases[0].dateOfBirth).isEqualTo(LocalDate.of(1968, 2, 22))
+    assertThat(personEntity.offenders[0].aliases[0].surname).isEqualTo("alisSurName")
+    assertThat(personEntity.offenders[0].aliases[0].aliasOffenderId).isEqualTo("12345")
+  }
 }
