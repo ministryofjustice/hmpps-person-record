@@ -21,20 +21,13 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.junit.jupiter.Testcontainers
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
-import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import java.time.Duration
-import java.time.LocalDate
-import java.util.UUID
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -119,8 +112,6 @@ abstract class IntegrationTestBase {
       registry.add("hmpps.sqs.region") { localStackContainer?.region }
     }
 
-    const val VIEW_PERSON_DATA_ROLE = "ROLE_VIEW_PERSON_DATA"
-
     @JvmStatic
     @RegisterExtension
     var wireMockExtension: WireMockExtension = WireMockExtension.newInstance()
@@ -139,13 +130,12 @@ abstract class IntegrationTestBase {
     return httpHeaders
   }
 
-  fun aDefendant(personId: UUID = UUID.randomUUID(), givenName: String, familyName: String, pncIdentifier: PNCIdentifier = PNCIdentifier.from("2001/0171310W"), crn: String = "CRN1234", dateOfBirth: LocalDate = LocalDate.of(1965, 6, 18)) {
-    val person = Person(otherIdentifiers = OtherIdentifiers(pncIdentifier = pncIdentifier, crn = crn), givenName = givenName, familyName = familyName, dateOfBirth = dateOfBirth)
-
-    val newPersonEntity = PersonEntity(personId = personId)
-    val newDefendantEntity = DefendantEntity.from(person)
-    newDefendantEntity.person = newPersonEntity
-    newPersonEntity.defendants.add(newDefendantEntity)
-    personRepository.saveAndFlush(newPersonEntity)
+  internal fun WebTestClient.RequestHeadersSpec<*>.authorised(): WebTestClient.RequestBodySpec {
+    val bearerToken = jwtHelper.createJwt(
+      subject = "hmpps-person-record",
+      expiryTime = Duration.ofMinutes(1L),
+      roles = listOf(),
+    )
+    return header("authorization", "Bearer $bearerToken") as WebTestClient.RequestBodySpec
   }
 }
