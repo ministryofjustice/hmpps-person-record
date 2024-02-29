@@ -2,9 +2,11 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.personrecord.client.model.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantAliasEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderAliasEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PrisonerEntity
@@ -41,8 +43,13 @@ class PersonRecordService(
     return newDefendantEntity
   }
 
-  fun addOffenderToPerson(personEntity: PersonEntity, person: Person): PersonEntity {
-    val offenderEntity = OffenderEntity.from(person)
+  fun addOffenderToPerson(personEntity: PersonEntity, offenderDetail: OffenderDetail): PersonEntity {
+    val offenderEntity = OffenderEntity.from(offenderDetail)
+
+    val offenderAliases = OffenderAliasEntity.fromList(offenderDetail.offenderAliases)
+    offenderAliases.forEach { offenderAliasEntity -> offenderAliasEntity.offender = offenderEntity }
+    offenderEntity.aliases.addAll(offenderAliases)
+
     offenderEntity.person = personEntity
     personEntity.offenders.add(offenderEntity)
     return personRepository.saveAndFlush(personEntity)

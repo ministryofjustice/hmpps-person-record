@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.client.model
+package uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.time.LocalDate
