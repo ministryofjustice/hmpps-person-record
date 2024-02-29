@@ -16,7 +16,7 @@ ENV BUILD_NUMBER ${BUILD_NUMBER:-1_0_0}
 
 RUN apt-get update && \
     apt-get -y upgrade && \
-    apt-get install python pip&& \
+    apt-get install python pip && \
     rm -rf /var/lib/apt/lists/*
 
 ENV PYTHONFAULTHANDLER=1 \

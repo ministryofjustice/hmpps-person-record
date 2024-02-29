@@ -34,3 +34,17 @@ Helm is used to deploy the service to a Kubernetes Cluster using templates in th
 
 ---
 
+### Testing python locally
+
+my mac only has python3 so:
+
+```
+# install and create a virtual environment for python to avoid polluting the python installation https://xkcd.com/1987/
+pip3 install virtualenv 
+python3 -m venv spike-env 
+source spike-env/activate
+pip install pandas 
+pip install splink
+
+python3 scripts/match.py "$(<scripts/records.json)"
+```

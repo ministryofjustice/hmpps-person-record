@@ -26,6 +26,8 @@ class CourtCaseEventsService(
   private val prisonerService: PrisonerService,
 ) {
 
+  private val splinkMatcher: SplinkMatcher = SplinkMatcher()
+
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
@@ -45,6 +47,13 @@ class CourtCaseEventsService(
     val defendants = personRepository.findByDefendantsPncNumber(pncIdentifier)?.defendants.orEmpty()
     val defendantMatcher = DefendantMatcher(defendants, person)
     val pncId = pncIdentifier.pncId
+    if (defendants.isNotEmpty()) {
+      val matchScore = splinkMatcher.matchScore(person, defendants.first())
+
+      println("--------------------------")
+      println(matchScore)
+      println("--------------------------")
+    }
     when {
       defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person, pncId)
       defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher)

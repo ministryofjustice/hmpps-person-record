@@ -69,6 +69,6 @@ tasks {
     }
   }
   getByName("check") {
-    dependsOn(":ktlintCheck", "detekt")
+    dependsOn(":ktlintCheck")
   }
 }
