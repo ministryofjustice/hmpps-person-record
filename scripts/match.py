@@ -21,6 +21,7 @@ def score(input_data):
     # Make predictions
     json_output = linker.predict().as_pandas_dataframe().to_json()
 
+    print(json_output)
     # Return
     return json.loads(json_output)
 

@@ -48,6 +48,10 @@ class CourtCaseEventsService(
     val defendantMatcher = DefendantMatcher(defendants, person)
     val pncId = pncIdentifier.pncId
     if (defendants.isNotEmpty()) {
+      log.warn("+++++++++++++++++++++++++++++++++++++++++++++++++")
+      log.warn("Trying to match")
+      log.warn("+++++++++++++++++++++++++++++++++++++++++++++++++")
+
       val matchScore = splinkMatcher.matchScore(person, defendants.first())
 
       println("--------------------------")
