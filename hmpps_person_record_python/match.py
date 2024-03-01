@@ -4,7 +4,7 @@ from splink.duckdb.linker import DuckDBLinker
 
 import os, sys
 
-model_path = os.environ.get('MODEL_PATH', './hmpps-person-record-python/model.json')
+model_path = os.environ.get('MODEL_PATH', './hmpps_person_record_python/model.json')
 
 def score(input_data):
 
