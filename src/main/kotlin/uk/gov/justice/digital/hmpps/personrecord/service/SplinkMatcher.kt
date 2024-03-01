@@ -31,7 +31,7 @@ class SplinkMatcher {
   fun matchScore(person: Person, defendant: DefendantEntity): String {
     print(person.givenName)
     print(defendant.surname)
-    val process = ProcessBuilder("python3", "scripts/match.py", testData()).start()
+    val process = ProcessBuilder("python3", "hmpps_person_record_python/match.py", testData()).start()
     val exitCode = process.waitFor()
     if (exitCode == 0) {
       return process.inputStream.bufferedReader().readLines().joinToString()
