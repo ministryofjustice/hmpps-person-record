@@ -50,3 +50,9 @@ python3 scripts/match.py "$(<scripts/records.json)"
 ```
 
 This is not suitable for unit testing unfortunately
+
+Running locally:
+```
+docker build . -t hmpps-person-record   # takes quite a long time but does work
+docker run --env SPRING_PROFILES_ACTIVE=local --env DATABASE_ENDPOINT=host.docker.internal:5432 --env HMPPS_SQS_LOCALSTACK_URL=http://host.docker.internal:4566 hmpps-person-record:latest
+```
