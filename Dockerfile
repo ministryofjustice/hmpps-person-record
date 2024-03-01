@@ -31,20 +31,17 @@ ENV PIP_DEFAULT_TIMEOUT=100 \
     PIP_NO_CACHE_DIR=1 \
     POETRY_VERSION=1.4.2
 
-# build-time OS dependencies
-# RUN apk add --no-cache gcc musl-dev libffi-dev g++
-
 # install Poetry
 RUN pip install "poetry==$POETRY_VERSION"
 
-# install Python dependencies in virtual environment
+# install Python dependencies
 COPY pyproject.toml poetry.lock ./
 RUN poetry export -f requirements.txt --output requirements.txt
 # Remove unwanted Windows dependencies
 RUN cat ./requirements.txt | sed -e :a -e '/\\$/N; s/\\\n//; ta' | sed 's/^pywin32==.*//' > requirements.txt
 RUN pip install -r requirements.txt
 
-# build the app in virtual environment
+# build the app
 COPY . .
 RUN poetry build
 RUN pip install dist/*.whl
