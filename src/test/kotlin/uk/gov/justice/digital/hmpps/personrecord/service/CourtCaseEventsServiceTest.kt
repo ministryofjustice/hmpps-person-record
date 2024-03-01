@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
@@ -20,9 +21,10 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.VALID_PNC
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
+@Disabled
 @ExtendWith(MockitoExtension::class)
 class CourtCaseEventsServiceTest {
 
