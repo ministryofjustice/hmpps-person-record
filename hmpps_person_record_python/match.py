@@ -22,9 +22,8 @@ def score(input_data):
     json_output = linker.predict().as_pandas_dataframe().to_json()
 
     print(json_output)
-    # Return
-    return json.loads(json_output)
+
 
 if __name__ == '__main__':
-    # takes a single unnamed argument of correctly formatted data as per
+    # takes a single unnamed argument of correctly formatted JSON
     score(sys.argv[1])

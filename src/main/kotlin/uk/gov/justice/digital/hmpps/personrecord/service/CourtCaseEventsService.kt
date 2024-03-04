@@ -1,11 +1,14 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.InvalidPNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.MatchScore
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.ValidPNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.matcher.DefendantMatcher
@@ -24,6 +27,7 @@ class CourtCaseEventsService(
   private val personRecordService: PersonRecordService,
   private val offenderService: OffenderService,
   private val prisonerService: PrisonerService,
+  private val objectMapper: ObjectMapper,
 ) {
 
   private val splinkMatcher: SplinkMatcher = SplinkMatcher()
@@ -48,14 +52,14 @@ class CourtCaseEventsService(
     val defendantMatcher = DefendantMatcher(defendants, person)
     val pncId = pncIdentifier.pncId
     if (defendants.isNotEmpty()) {
-      log.warn("+++++++++++++++++++++++++++++++++++++++++++++++++")
-      log.warn("Trying to match")
-      log.warn("+++++++++++++++++++++++++++++++++++++++++++++++++")
-
-      val matchScore = splinkMatcher.matchScore(person, defendants.first())
+      val matchResult = splinkMatcher.matchScore(person, defendants.first())
 
       println("--------------------------")
-      println(matchScore)
+      println(matchResult)
+      println("--------------------------")
+      val matchScore = objectMapper.readValue<MatchScore>(matchResult)
+      println("--------------------------")
+      print(matchScore.match_probability)
       println("--------------------------")
     }
     when {
