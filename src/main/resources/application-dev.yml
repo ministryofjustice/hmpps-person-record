@@ -10,6 +10,9 @@ prisoner-search:
 domain-event-and-delius-api:
   base_url: https://domain-events-and-delius-dev.hmpps.service.justice.gov.uk
 
+prison-service:
+  base-url: https://prison-api-dev.prison.service.justice.gov.uk
+
 feature:
   flags:
     enable-hmcts-sqs: true
