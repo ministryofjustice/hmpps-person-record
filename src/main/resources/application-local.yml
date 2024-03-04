@@ -10,6 +10,9 @@ prisoner-search:
 domain-event-and-delius-api:
   base_url: https://domain-events-and-delius-dev.hmpps.service.justice.gov.uk
 
+prison-service:
+  base-url: http://localhost:8090
+
 hmpps.sqs:
   enabled: true
   provider: localstack

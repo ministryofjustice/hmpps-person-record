@@ -22,6 +22,9 @@ prisoner-search:
 domain-event-and-delius-api:
   base_url: http://localhost:8090
 
+prison-service:
+  base-url: http://localhost:8090
+
 feature:
   flags:
     enable-hmcts-sqs: true
