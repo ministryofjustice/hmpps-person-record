@@ -2,9 +2,11 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.personrecord.client.PrisonServiceClient
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.PrisonerMatchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerDetails
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
@@ -17,6 +19,7 @@ class PrisonerService(
   private val personRecordService: PersonRecordService,
   private val client: PrisonerSearchClient,
   private val featureFlag: FeatureFlag,
+  val prisonServiceClient: PrisonServiceClient,
 ) {
 
   companion object {
@@ -54,7 +57,24 @@ class PrisonerService(
   private fun exactMatchFound(prisonerMatcher: PrisonerMatcher, personEntity: PersonEntity, person: Person) {
     val matchingPrisoner = prisonerMatcher.getMatchingItem()
     logAndTrackEvent(EXACT_MATCH_MESSAGE, TelemetryEventType.NOMIS_MATCH_FOUND, personEntity, person)
-    personRecordService.addPrisonerToPerson(personEntity, matchingPrisoner)
+    when {
+      matchingPrisoner.prisonerNumber.isNotBlank() -> {
+        val prisonerDetails = getPrisonerDetails(matchingPrisoner.prisonerNumber)
+        if (prisonerDetails != null) {
+          personRecordService.addPrisonerToPerson(personEntity, prisonerDetails)
+        }
+      }
+      else -> { // TODO check with gary/Ritz
+        personRecordService.addPrisonerToPerson(personEntity, matchingPrisoner)
+      }
+    }
+  }
+
+  private fun getPrisonerDetails(prisonerNumber: String): PrisonerDetails? {
+    val prisonerDetails = prisonServiceClient.getPrisonerDetails(prisonerNumber)
+    val prisonerAddress = prisonServiceClient.getPrisonerAddresses(prisonerNumber)
+    prisonerDetails?.addresses = prisonerAddress
+    return prisonerDetails
   }
 
   private fun getPrisonerMatcher(person: Person): PrisonerMatcher {

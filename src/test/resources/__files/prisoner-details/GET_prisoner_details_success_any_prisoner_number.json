@@ -4,9 +4,9 @@
   "bookingNo": "string",
   "offenderId": 356,
   "rootOffenderId": 300,
-  "firstName": "firstName",
-  "middleName": "middleName",
-  "lastName": "lastName",
+  "firstName": "ERIC",
+  "middleName": "Henry",
+  "lastName": "Lassard",
   "dateOfBirth": "1970-03-15",
   "age": 0,
   "activeFlag": true,
@@ -117,7 +117,37 @@
   "identifiers": [
     {
       "type": "PNC",
-      "value": "20120052494Q",
+      "value": "2003/0062845E",
+      "offenderNo": "A1234AB",
+      "bookingId": 1231223,
+      "issuedAuthorityText": "Important Auth",
+      "issuedDate": "2018-01-21",
+      "caseloadType": "GENERAL",
+      "whenCreated": "2021-07-05T10:35:17"
+    },
+    {
+      "type": "CRO",
+      "value": "CR1234",
+      "offenderNo": "A1234AB",
+      "bookingId": 1231223,
+      "issuedAuthorityText": "Important Auth",
+      "issuedDate": "2018-01-21",
+      "caseloadType": "GENERAL",
+      "whenCreated": "2021-07-05T10:35:17"
+    },
+    {
+      "type": "DL",
+      "value": "ERIC1234567K",
+      "offenderNo": "A1234AB",
+      "bookingId": 1231223,
+      "issuedAuthorityText": "Important Auth",
+      "issuedDate": "2018-01-21",
+      "caseloadType": "GENERAL",
+      "whenCreated": "2021-07-05T10:35:17"
+    },
+    {
+      "type": "NINO",
+      "value": "PD123456D",
       "offenderNo": "A1234AB",
       "bookingId": 1231223,
       "issuedAuthorityText": "Important Auth",

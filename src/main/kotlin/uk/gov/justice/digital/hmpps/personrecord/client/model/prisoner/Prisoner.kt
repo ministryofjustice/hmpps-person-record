@@ -5,7 +5,7 @@ import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Prisoner(
-  val prisonerNumber: String? = null,
+  val prisonerNumber: String,
   val pncNumber: String? = null,
   val croNumber: String? = null,
   val firstName: String? = null,
