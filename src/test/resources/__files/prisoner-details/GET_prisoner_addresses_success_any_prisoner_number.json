@@ -1,0 +1,40 @@
+[
+  {
+    "addressId": 543524,
+    "addressType": "HOME",
+    "flat": "3B",
+    "premise": "Liverpool Prison",
+    "street": "Slinn Street",
+    "locality": "Brincliffe",
+    "town": "Liverpool",
+    "postalCode": "LI1 5TH",
+    "county": "HEREFORD",
+    "country": "ENG",
+    "comment": "This is a comment text",
+    "primary": false,
+    "noFixedAddress": false,
+    "startDate": "2005-05-12",
+    "endDate": "2021-02-12",
+    "phones": [
+      {
+        "phoneId": 2234232,
+        "number": "01142345678",
+        "type": "HOME",
+        "ext": "123"
+      },
+      {
+        "phoneId": 2234232,
+        "number": "07234543456",
+        "type": "MOB"
+      }
+    ],
+    "addressUsages": [
+      {
+        "addressId": 23422313,
+        "addressUsage": "HDC",
+        "addressUsageDescription": "HDC Address",
+        "activeFlag": true
+      }
+    ]
+  }
+]

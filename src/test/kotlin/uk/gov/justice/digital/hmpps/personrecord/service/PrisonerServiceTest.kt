@@ -8,12 +8,16 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.inOrder
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.personrecord.client.PrisonServiceClient
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.PrisonerMatchCriteria
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Identifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerDetails
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
@@ -35,7 +39,10 @@ class PrisonerServiceTest {
   lateinit var personRecordService: PersonRecordService
 
   @Mock
-  lateinit var client: PrisonerSearchClient
+  lateinit var prisonerSearchClient: PrisonerSearchClient
+
+  @Mock
+  lateinit var prisonServiceClient: PrisonServiceClient
 
   @Mock
   lateinit var featureFlag: FeatureFlag
@@ -67,7 +74,19 @@ class PrisonerServiceTest {
       pncNumber = "20230583843L",
     )
 
-    whenever(client.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(listOf(prisoner))
+    val identifiers = listOf(Identifier(type = "PNC", value = "20230583843L"))
+
+    val prisonerDetails = PrisonerDetails(
+      firstName = "JOHN",
+      lastName = "Doe",
+      offenderNo = "12345",
+      dateOfBirth = prisonerDOB,
+      identifiers = identifiers,
+    )
+
+    whenever(prisonerSearchClient.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(listOf(prisoner))
+    whenever(prisonServiceClient.getPrisonerDetails(any())).thenReturn(prisonerDetails)
+    whenever(prisonServiceClient.getPrisonerAddresses(any())).thenReturn(emptyList())
 
     // When
     prisonerService.processAssociatedPrisoners(personEntity, person)
@@ -82,7 +101,7 @@ class PrisonerServiceTest {
         "Prisoner Number" to prisoner.prisonerNumber,
       ),
     )
-    inOrder.verify(personRecordService).addPrisonerToPerson(personEntity, prisoner)
+    inOrder.verify(personRecordService).addPrisonerToPerson(personEntity, prisonerDetails)
   }
 
   @Test
@@ -106,7 +125,7 @@ class PrisonerServiceTest {
       pncNumber = "20230583843L",
     )
     val prisonerList = listOf(prisoner)
-    whenever(client.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(prisonerList)
+    whenever(prisonerSearchClient.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(prisonerList)
 
     // When
     prisonerService.processAssociatedPrisoners(personEntity, person)
@@ -144,7 +163,7 @@ class PrisonerServiceTest {
       nationality = "British",
       pncNumber = "20230583843L",
     )
-    whenever(client.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(listOf(prisoner))
+    whenever(prisonerSearchClient.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(listOf(prisoner))
 
     // When
     prisonerService.processAssociatedPrisoners(personEntity, person)
@@ -171,7 +190,7 @@ class PrisonerServiceTest {
       dateOfBirth = LocalDate.now(),
       otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("20230583843L")),
     )
-    whenever(client.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(null)
+    whenever(prisonerSearchClient.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(null)
 
     // When
     prisonerService.processAssociatedPrisoners(personEntity, person)
@@ -199,7 +218,7 @@ class PrisonerServiceTest {
 
     // Then
     verifyNoInteractions(personRecordService)
-    verifyNoInteractions(client)
+    verifyNoInteractions(prisonerSearchClient)
     verifyNoInteractions(telemetryService)
   }
 }

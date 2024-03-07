@@ -8,6 +8,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ContactDetails
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerDetails
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 
 @Entity
@@ -54,6 +55,17 @@ class ContactEntity(
           homePhone = contactDetails.getHomePhone(),
           mobile = contactDetails.getMobilePhone(),
           primaryEmail = contactDetails.getEmail(),
+        )
+      } else {
+        null
+      }
+    }
+
+    fun from(prisonerDetails: PrisonerDetails): ContactEntity? {
+      return if (isContactDetailsPresent(prisonerDetails.getHomeAddress()?.getHomePhone(), null, prisonerDetails.getHomeAddress()?.getMobilePhone(), null)) {
+        ContactEntity(
+          homePhone = prisonerDetails.getHomeAddress()?.getHomePhone(),
+          mobile = prisonerDetails.getHomeAddress()?.getMobilePhone(),
         )
       } else {
         null

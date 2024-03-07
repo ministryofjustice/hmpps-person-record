@@ -9,9 +9,11 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerDetails
 import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConverter
 import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import java.time.LocalDate
@@ -31,8 +33,41 @@ class PrisonerEntity(
   @Convert(converter = PNCIdentifierConverter::class)
   val pncNumber: PNCIdentifier? = null,
 
+  @Column(name = "cro")
+  val cro: String? = null,
+
+  @Column(name = "offender_id")
+  val offenderId: Long? = null,
+
+  @Column(name = "root_offender_id")
+  val rootOffenderId: Long? = null,
+
+  @Column(name = "ni_number")
+  val nationalInsuranceNumber: String? = null,
+
+  @Column(name = "driving_license_number")
+  val drivingLicenseNumber: String? = null,
+
+  @Column(name = "birth_place")
+  val birthPlace: String? = null,
+
+  @Column(name = "birth_country_code")
+  val birthCountryCode: String? = null,
+
+  @Column(name = "sex_code")
+  val sexCode: String? = null,
+
+  @Column(name = "race_code")
+  val raceCode: String? = null,
+
+  @Column(name = "title")
+  val title: String? = null,
+
   @Column(name = "first_name")
   val firstName: String? = null,
+
+  @Column(name = "middle_name")
+  val middleName: String? = null,
 
   @Column(name = "last_name")
   val lastName: String? = null,
@@ -48,21 +83,56 @@ class PrisonerEntity(
   )
   var person: PersonEntity? = null,
 
+  @OneToOne(cascade = [CascadeType.ALL])
+  @JoinColumn(name = "fk_address_id", referencedColumnName = "id", nullable = true)
+  var address: AddressEntity? = null,
+
+  @OneToOne(cascade = [CascadeType.ALL])
+  @JoinColumn(name = "fk_contact_id", referencedColumnName = "id", nullable = true)
+  var contact: ContactEntity? = null,
+
   @Version
   var version: Int = 0,
 
 ) {
   companion object {
     fun from(prisoner: Prisoner): PrisonerEntity {
-      val prisonerEntity =
-        PrisonerEntity(
-          prisonNumber = prisoner.prisonerNumber,
-          pncNumber = PNCIdentifier.from(prisoner.pncNumber),
-          firstName = prisoner.firstName,
-          lastName = prisoner.lastName,
-          dateOfBirth = prisoner.dateOfBirth,
-        )
-      return prisonerEntity
+      return PrisonerEntity(
+        prisonNumber = prisoner.prisonerNumber,
+        pncNumber = PNCIdentifier.from(prisoner.pncNumber),
+        firstName = prisoner.firstName,
+        lastName = prisoner.lastName,
+        dateOfBirth = prisoner.dateOfBirth,
+      )
+    }
+    fun from(prisonerDetails: PrisonerDetails): PrisonerEntity {
+      return PrisonerEntity(
+        prisonNumber = prisonerDetails.offenderNo,
+        pncNumber = PNCIdentifier.from(prisonerDetails.getPnc()),
+        cro = prisonerDetails.getCro(),
+        offenderId = prisonerDetails.offenderId,
+        rootOffenderId = prisonerDetails.rootOffenderId,
+        drivingLicenseNumber = prisonerDetails.getDrivingLicenseNumber(),
+        nationalInsuranceNumber = prisonerDetails.getNationalInsuranceNumber(),
+        title = prisonerDetails.title,
+        firstName = prisonerDetails.firstName,
+        middleName = prisonerDetails.middleName,
+        lastName = prisonerDetails.lastName,
+        dateOfBirth = prisonerDetails.dateOfBirth,
+        birthPlace = prisonerDetails.birthPlace,
+        birthCountryCode = prisonerDetails.birthCountryCode,
+        sexCode = prisonerDetails.physicalAttributes?.sexCode,
+        raceCode = prisonerDetails.physicalAttributes?.raceCode,
+        contact = ContactEntity.from(prisonerDetails),
+        address = when {
+          prisonerDetails.getHomeAddress()?.postCode?.isNotBlank() == true -> {
+            AddressEntity(postcode = prisonerDetails.getHomeAddress()?.postCode)
+          }
+          else -> {
+            null
+          }
+        },
+      )
     }
   }
 }

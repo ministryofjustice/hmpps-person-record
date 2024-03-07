@@ -2,9 +2,11 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.personrecord.client.PrisonServiceClient
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.PrisonerMatchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerDetails
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
@@ -17,6 +19,7 @@ class PrisonerService(
   private val personRecordService: PersonRecordService,
   private val client: PrisonerSearchClient,
   private val featureFlag: FeatureFlag,
+  val prisonServiceClient: PrisonServiceClient,
 ) {
 
   companion object {
@@ -24,6 +27,8 @@ class PrisonerService(
     const val NO_RECORDS_MESSAGE = "No Nomis matching records exist"
     const val EXACT_MATCH_MESSAGE = "Exact Nomis match found - adding prisoner to person record"
     const val PARTIAL_MATCH_MESSAGE = "Partial Nomis match found"
+    const val PRISONER_DETAILS_NOT_FOUND_MESSAGE = "No prisoner details returned from Nomis"
+    const val PRISONER_DETAILS_FOUND_MESSAGE = "Prisoner details returned from Nomis"
   }
 
   fun processAssociatedPrisoners(personEntity: PersonEntity, person: Person) {
@@ -54,7 +59,36 @@ class PrisonerService(
   private fun exactMatchFound(prisonerMatcher: PrisonerMatcher, personEntity: PersonEntity, person: Person) {
     val matchingPrisoner = prisonerMatcher.getMatchingItem()
     logAndTrackEvent(EXACT_MATCH_MESSAGE, TelemetryEventType.NOMIS_MATCH_FOUND, personEntity, person)
-    personRecordService.addPrisonerToPerson(personEntity, matchingPrisoner)
+    val prisonerDetails = getPrisonerDetails(matchingPrisoner.prisonerNumber)
+    if (prisonerDetails != null) {
+      handlePrisonerDetailsFound(personEntity, person, prisonerDetails)
+    } else {
+      logAndTrackEvent(PRISONER_DETAILS_NOT_FOUND_MESSAGE, TelemetryEventType.NOMIS_PRISONER_DETAILS_NOT_FOUND, personEntity, person)
+    }
+  }
+
+  private fun handlePrisonerDetailsFound(personEntity: PersonEntity, person: Person, prisonerDetails: PrisonerDetails) {
+    logAndTrackEvent(
+      PRISONER_DETAILS_FOUND_MESSAGE,
+      TelemetryEventType.NOMIS_PRISONER_DETAILS_FOUND,
+      personEntity,
+      person,
+    )
+    personRecordService.addPrisonerToPerson(personEntity, prisonerDetails)
+  }
+
+  private fun getPrisonerDetails(prisonerNumber: String): PrisonerDetails? {
+    val prisonerDetails = prisonServiceClient.getPrisonerDetails(prisonerNumber)
+    prisonerDetails?.let {
+      updatePrisonerAddresses(prisonerNumber, prisonerDetails)
+    }
+    return prisonerDetails
+  }
+  private fun updatePrisonerAddresses(prisonerNumber: String, prisonerDetails: PrisonerDetails) {
+    val prisonerAddress = prisonServiceClient.getPrisonerAddresses(prisonerNumber)
+    if (prisonerAddress?.isNotEmpty() == true) {
+      prisonerDetails.addresses = prisonerAddress
+    }
   }
 
   private fun getPrisonerMatcher(person: Person): PrisonerMatcher {

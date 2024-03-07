@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerDetails
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantAliasEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderAliasEntity
@@ -57,6 +58,13 @@ class PersonRecordService(
 
   fun addPrisonerToPerson(personEntity: PersonEntity, prisoner: Prisoner): PersonEntity {
     val prisonerEntity = PrisonerEntity.from(prisoner)
+    prisonerEntity.person = personEntity
+    personEntity.prisoners.add(prisonerEntity)
+    return personRepository.saveAndFlush(personEntity)
+  }
+
+  fun addPrisonerToPerson(personEntity: PersonEntity, prisonerDetails: PrisonerDetails): PersonEntity {
+    val prisonerEntity = PrisonerEntity.from(prisonerDetails)
     prisonerEntity.person = personEntity
     personEntity.prisoners.add(prisonerEntity)
     return personRepository.saveAndFlush(personEntity)

@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.offender
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import uk.gov.justice.digital.hmpps.personrecord.client.model.PhoneNumber
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ContactDetails(

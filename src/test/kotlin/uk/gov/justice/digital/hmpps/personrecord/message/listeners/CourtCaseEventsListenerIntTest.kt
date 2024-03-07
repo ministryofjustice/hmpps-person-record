@@ -419,4 +419,53 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.offenders[0].aliases[0].surname).isEqualTo("alisSurName")
     assertThat(personEntity.offenders[0].aliases[0].aliasOffenderId).isEqualTo("12345")
   }
+
+  @Test
+  fun `should create prisoner with additional fields`() {
+    // given
+    val pncNumber = PNCIdentifier.from("2003/0062845E")
+
+    val publishRequest = PublishRequest.builder()
+      .topicArn(courtCaseEventsTopic?.arn)
+      .message(commonPlatformHearingWithNewDefendant())
+      .messageAttributes(
+        mapOf(
+          "messageType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(COMMON_PLATFORM_HEARING.name).build(),
+        ),
+      )
+      .build()
+
+    // when
+    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+
+    // then
+    await untilCallTo {
+      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
+    } matches { it == 0 }
+
+    await untilAsserted { assertThat(postgresSQLContainer.isCreated).isTrue() }
+
+    val personEntity = await.atMost(30, TimeUnit.SECONDS) untilNotNull {
+      personRepository.findByPrisonersPncNumber(pncNumber)
+    }
+
+    assertThat(personEntity.personId).isNotNull()
+    assertThat(personEntity.prisoners).hasSize(1)
+    assertThat(personEntity.prisoners[0].firstName).isEqualTo("ERIC")
+    assertThat(personEntity.prisoners[0].lastName).isEqualTo("Lassard")
+    assertThat(personEntity.prisoners[0].prisonNumber).isEqualTo("A1234AA")
+    assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(pncNumber)
+    assertThat(personEntity.prisoners[0].offenderId).isEqualTo(356)
+    assertThat(personEntity.prisoners[0].rootOffenderId).isEqualTo(300)
+    assertThat(personEntity.prisoners[0].dateOfBirth).isEqualTo(LocalDate.of(1970, 3, 15))
+    assertThat(personEntity.prisoners[0].cro).isEqualTo("CR1234")
+    assertThat(personEntity.prisoners[0].drivingLicenseNumber).isEqualTo("ERIC1234567K")
+    assertThat(personEntity.prisoners[0].nationalInsuranceNumber).isEqualTo("PD123456D")
+    assertThat(personEntity.prisoners[0].address?.postcode).isEqualTo("LI1 5TH")
+    assertThat(personEntity.prisoners[0].sexCode).isEqualTo("M")
+    assertThat(personEntity.prisoners[0].raceCode).isEqualTo("W1")
+    assertThat(personEntity.prisoners[0].birthPlace).isEqualTo("WALES")
+    assertThat(personEntity.prisoners[0].birthCountryCode).isEqualTo("GBR")
+  }
 }
