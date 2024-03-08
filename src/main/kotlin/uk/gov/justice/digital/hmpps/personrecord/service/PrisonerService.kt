@@ -1,10 +1,13 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonServiceClient
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.PrisonerMatchCriteria
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Address
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerDetails
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
@@ -78,24 +81,43 @@ class PrisonerService(
   }
 
   private fun getPrisonerDetails(prisonerNumber: String): PrisonerDetails? {
-    val prisonerDetails = prisonServiceClient.getPrisonerDetails(prisonerNumber)
-    prisonerDetails?.let {
-      updatePrisonerAddresses(prisonerNumber, prisonerDetails)
+    val retryExecutor = RetryExecutor<PrisonerDetails>()
+    val prisonerDetails: PrisonerDetails?
+    try {
+      prisonerDetails = retryExecutor.executeWithRetry { prisonServiceClient.getPrisonerDetails(prisonerNumber)!! }
+      prisonerDetails?.let {
+        updatePrisonerAddresses(prisonerNumber, prisonerDetails)
+      }
+    } catch (exception: Exception) {
+      telemetryService.trackEvent(TelemetryEventType.NOMIS_CALL_FAILED, mapOf("Prisoner Number" to prisonerNumber))
+      throw exception
     }
+
     return prisonerDetails
   }
   private fun updatePrisonerAddresses(prisonerNumber: String, prisonerDetails: PrisonerDetails) {
-    val prisonerAddress = prisonServiceClient.getPrisonerAddresses(prisonerNumber)
+    val retryExecutor = RetryExecutor<List<Address>>()
+    val prisonerAddress = retryExecutor.executeWithRetry { prisonServiceClient.getPrisonerAddresses(prisonerNumber)!! }
     if (prisonerAddress?.isNotEmpty() == true) {
       prisonerDetails.addresses = prisonerAddress
     }
   }
 
-  private fun getPrisonerMatcher(person: Person): PrisonerMatcher {
-    val prisoners = client.findPossibleMatches(PrisonerMatchCriteria.from(person))
-    val pncNumbersReturned = prisoners?.joinToString(" ") { it.pncNumber.toString() }
-    log.debug("Number of prisoners returned from Nomis for PNC ${person.otherIdentifiers?.pncIdentifier} = ${prisoners?.size ?: 0} having PNCs: $pncNumbersReturned")
-    return PrisonerMatcher(prisoners, person)
+  private fun getPrisonerMatcher(person: Person): PrisonerMatcher = runBlocking {
+    var lastException: Exception? = null
+    repeat(3) {
+      try {
+        val prisoners = client.findPossibleMatches(PrisonerMatchCriteria.from(person))
+        val pncNumbersReturned = prisoners?.joinToString(" ") { it.pncNumber.toString() }
+        log.debug("Number of prisoners returned from Nomis for PNC ${person.otherIdentifiers?.pncIdentifier} = ${prisoners?.size ?: 0} having PNCs: $pncNumbersReturned")
+        return@runBlocking PrisonerMatcher(prisoners, person)
+      } catch (exception: Exception) {
+        lastException = exception
+      }
+      delay(2000)
+    }
+    telemetryService.trackEvent(TelemetryEventType.NOMIS_CALL_FAILED, mapOf("Prison Number" to person.otherIdentifiers?.prisonNumber))
+    throw lastException ?: RuntimeException("Unexpected Error")
   }
 
   private fun logAndTrackEvent(
