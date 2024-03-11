@@ -33,6 +33,7 @@ class PrisonerService(
     const val PRISONER_DETAILS_NOT_FOUND_MESSAGE = "No prisoner details returned from Nomis"
     const val PRISONER_DETAILS_FOUND_MESSAGE = "Prisoner details returned from Nomis"
     val exceptionsToRetryOn = listOf(HttpClientErrorException::class, HttpServerErrorException::class)
+    val MAX_RETRY_ATTEMPTS = 3
   }
 
   fun processAssociatedPrisoners(personEntity: PersonEntity, person: Person) {
@@ -88,7 +89,7 @@ class PrisonerService(
 
   private fun getPrisonerDetails(prisonerNumber: String): PrisonerDetails? = runBlocking {
     try {
-      return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, 3) {
+      return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, MAX_RETRY_ATTEMPTS) {
         val prisonerDetails = prisonServiceClient.getPrisonerDetails(prisonerNumber)
         prisonerDetails?.let {
           updatePrisonerAddresses(prisonerNumber, prisonerDetails)
@@ -102,7 +103,7 @@ class PrisonerService(
   }
 
   private fun updatePrisonerAddresses(prisonerNumber: String, prisonerDetails: PrisonerDetails) = runBlocking {
-    return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, 3) {
+    return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, MAX_RETRY_ATTEMPTS) {
       val prisonerAddress = prisonServiceClient.getPrisonerAddresses(prisonerNumber)
       if (prisonerAddress?.isNotEmpty() == true) {
         prisonerDetails.addresses = prisonerAddress
@@ -112,7 +113,7 @@ class PrisonerService(
 
   private fun getPrisonerMatcher(person: Person): PrisonerMatcher = runBlocking {
     try {
-      return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, 3) { findMatchingPrisonersAndCreateMatcher(person) }
+      return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, MAX_RETRY_ATTEMPTS) { findMatchingPrisonersAndCreateMatcher(person) }
     } catch (exception: Exception) {
       telemetryService.trackEvent(
         TelemetryEventType.NOMIS_CALL_FAILED,
