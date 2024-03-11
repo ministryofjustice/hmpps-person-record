@@ -29,7 +29,6 @@ class OffenderService(
     const val MULTIPLE_MATCHES_MESSAGE = "Multiple Delius matches found"
     val exceptionsToRetryOn = listOf(HttpClientErrorException::class, HttpServerErrorException::class)
     const val MAX_RETRY_ATTEMPTS = 3
-
   }
 
   fun processAssociatedOffenders(personEntity: PersonEntity, person: Person) {
