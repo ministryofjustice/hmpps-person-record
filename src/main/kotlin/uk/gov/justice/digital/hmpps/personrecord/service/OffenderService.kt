@@ -1,7 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.HttpServerErrorException
 import uk.gov.justice.digital.hmpps.personrecord.client.ProbationOffenderSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderMatchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
@@ -24,6 +27,7 @@ class OffenderService(
     const val EXACT_MATCH_MESSAGE = "Exact delius match found - adding offender to person record"
     const val PARTIAL_MATCH_MESSAGE = "Partial Delius match found"
     const val MULTIPLE_MATCHES_MESSAGE = "Multiple Delius matches found"
+    val exceptionsToRetryOn = listOf(HttpClientErrorException::class, HttpServerErrorException::class)
   }
 
   fun processAssociatedOffenders(personEntity: PersonEntity, person: Person) {
@@ -45,9 +49,16 @@ class OffenderService(
     offenderMatcher.items?.let { trackPncMismatchEvent(it, personEntity, person) }
   }
 
-  private fun getOffenderMatcher(person: Person): OffenderMatcher {
-    val offenderDetails = client.findPossibleMatches(OffenderMatchCriteria.from(person))
-    return OffenderMatcher(offenderDetails, person)
+  private fun getOffenderMatcher(person: Person): OffenderMatcher = runBlocking {
+    try {
+      return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, 3) {
+        val offenderDetails = client.findPossibleMatches(OffenderMatchCriteria.from(person))
+        OffenderMatcher(offenderDetails, person)
+      }
+    } catch (exception: Exception) {
+      telemetryService.trackEvent(TelemetryEventType.DELIUS_CALL_FAILED, mapOf("CRN" to person.otherIdentifiers?.crn))
+      throw exception
+    }
   }
 
   private fun noRecordsFound(personEntity: PersonEntity, person: Person) {
@@ -102,6 +113,18 @@ class OffenderService(
         "CRN" to person.otherIdentifiers?.crn,
         "PRISON NUMBER" to person.otherIdentifiers?.prisonNumber,
       ).filterValues { !it.isNullOrBlank() },
+    )
+  }
+
+  private fun trackRemoteCallFailedEvent(
+    crn: String,
+    eventType: TelemetryEventType,
+  ) {
+    telemetryService.trackEvent(
+      eventType,
+      mapOf(
+        "CRN" to crn,
+      ),
     )
   }
 }

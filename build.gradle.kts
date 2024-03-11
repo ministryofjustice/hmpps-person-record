@@ -27,7 +27,6 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:3.1.1")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.1.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
-  implementation("io.github.resilience4j:resilience4j-all:2.2.0")
 
   runtimeOnly("org.postgresql:postgresql:42.7.2")
   runtimeOnly("org.flywaydb:flyway-core:10.8.1")
