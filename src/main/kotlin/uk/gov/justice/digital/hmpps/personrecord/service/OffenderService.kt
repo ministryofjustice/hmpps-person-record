@@ -28,6 +28,8 @@ class OffenderService(
     const val PARTIAL_MATCH_MESSAGE = "Partial Delius match found"
     const val MULTIPLE_MATCHES_MESSAGE = "Multiple Delius matches found"
     val exceptionsToRetryOn = listOf(HttpClientErrorException::class, HttpServerErrorException::class)
+    const val MAX_RETRY_ATTEMPTS = 3
+
   }
 
   fun processAssociatedOffenders(personEntity: PersonEntity, person: Person) {
@@ -51,7 +53,7 @@ class OffenderService(
 
   private fun getOffenderMatcher(person: Person): OffenderMatcher = runBlocking {
     try {
-      return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, 3) {
+      return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, MAX_RETRY_ATTEMPTS) {
         val offenderDetails = client.findPossibleMatches(OffenderMatchCriteria.from(person))
         OffenderMatcher(offenderDetails, person)
       }

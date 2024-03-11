@@ -33,7 +33,7 @@ class PrisonerService(
     const val PRISONER_DETAILS_NOT_FOUND_MESSAGE = "No prisoner details returned from Nomis"
     const val PRISONER_DETAILS_FOUND_MESSAGE = "Prisoner details returned from Nomis"
     val exceptionsToRetryOn = listOf(HttpClientErrorException::class, HttpServerErrorException::class)
-    val MAX_RETRY_ATTEMPTS = 3
+    const val MAX_RETRY_ATTEMPTS = 3
   }
 
   fun processAssociatedPrisoners(personEntity: PersonEntity, person: Person) {
