@@ -112,7 +112,7 @@ class PrisonerService(
 
   private fun getPrisonerMatcher(person: Person): PrisonerMatcher = runBlocking {
     try {
-      return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, 3) { findPrisonerMarchesAndCreateMatcher(person) }
+      return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, 3) { findMatchingPrisonersAndCreateMatcher(person) }
     } catch (exception: Exception) {
       telemetryService.trackEvent(
         TelemetryEventType.NOMIS_CALL_FAILED,
@@ -122,7 +122,7 @@ class PrisonerService(
     }
   }
 
-  private fun findPrisonerMarchesAndCreateMatcher(person: Person): PrisonerMatcher {
+  private fun findMatchingPrisonersAndCreateMatcher(person: Person): PrisonerMatcher {
     val prisoners = client.findPossibleMatches(PrisonerMatchCriteria.from(person))
     val pncNumbersReturned = prisoners?.joinToString(" ") { it.pncNumber.toString() }
     log.debug("Number of prisoners returned from Nomis for PNC ${person.otherIdentifiers?.pncIdentifier} = ${prisoners?.size ?: 0} having PNCs: $pncNumbersReturned")

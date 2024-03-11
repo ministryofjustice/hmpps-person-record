@@ -334,6 +334,13 @@ class PrisonerServiceTest {
 
     // then
     verify(prisonerSearchClient, times(1)).findPossibleMatches(PrisonerMatchCriteria.from(person))
+
+    verify(telemetryService).trackEvent(
+      TelemetryEventType.NOMIS_CALL_FAILED,
+      mapOf(
+        "Prisoner Number" to person.otherIdentifiers?.prisonNumber,
+      ),
+    )
   }
 
   @Test
