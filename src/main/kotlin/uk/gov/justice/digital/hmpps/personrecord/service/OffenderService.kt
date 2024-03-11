@@ -1,7 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.HttpServerErrorException
 import uk.gov.justice.digital.hmpps.personrecord.client.ProbationOffenderSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderMatchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
@@ -18,12 +22,17 @@ class OffenderService(
   private val client: ProbationOffenderSearchClient,
   private val featureFlag: FeatureFlag,
 ) {
+  @Value("\${retry.delay}")
+  private val retryDelay: Long = 0
+
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
     const val NO_RECORDS_MESSAGE = "No Delius matching records exist"
     const val EXACT_MATCH_MESSAGE = "Exact delius match found - adding offender to person record"
     const val PARTIAL_MATCH_MESSAGE = "Partial Delius match found"
     const val MULTIPLE_MATCHES_MESSAGE = "Multiple Delius matches found"
+    val exceptionsToRetryOn = listOf(HttpClientErrorException::class, HttpServerErrorException::class)
+    const val MAX_RETRY_ATTEMPTS = 3
   }
 
   fun processAssociatedOffenders(personEntity: PersonEntity, person: Person) {
@@ -45,9 +54,16 @@ class OffenderService(
     offenderMatcher.items?.let { trackPncMismatchEvent(it, personEntity, person) }
   }
 
-  private fun getOffenderMatcher(person: Person): OffenderMatcher {
-    val offenderDetails = client.findPossibleMatches(OffenderMatchCriteria.from(person))
-    return OffenderMatcher(offenderDetails, person)
+  private fun getOffenderMatcher(person: Person): OffenderMatcher = runBlocking {
+    try {
+      return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, MAX_RETRY_ATTEMPTS, retryDelay) {
+        val offenderDetails = client.findPossibleMatches(OffenderMatchCriteria.from(person))
+        OffenderMatcher(offenderDetails, person)
+      }
+    } catch (exception: Exception) {
+      telemetryService.trackEvent(TelemetryEventType.DELIUS_CALL_FAILED, mapOf("CRN" to person.otherIdentifiers?.crn))
+      throw exception
+    }
   }
 
   private fun noRecordsFound(personEntity: PersonEntity, person: Person) {

@@ -113,6 +113,9 @@ prisoner-search:
 prison-service:
   prisoner-details: /offender
 
+retry:
+  delay: 2000
+
 feature:
   flags:
     enable-hmcts-sqs: false

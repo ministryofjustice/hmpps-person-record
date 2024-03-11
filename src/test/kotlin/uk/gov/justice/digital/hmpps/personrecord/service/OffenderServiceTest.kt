@@ -1,6 +1,7 @@
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
@@ -10,6 +11,8 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import org.springframework.http.HttpStatusCode
+import org.springframework.web.client.HttpClientErrorException
 import uk.gov.justice.digital.hmpps.personrecord.client.ProbationOffenderSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderMatchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.IDs
@@ -237,6 +240,52 @@ class OffenderServiceTest {
         "UUID" to personEntity.personId.toString(),
         "PNC searched for" to person.otherIdentifiers?.pncIdentifier?.pncId,
         "PNC returned from search" to offenderDetails.joinToString(" ") { it.otherIds.pncNumber.toString() },
+      ),
+    )
+  }
+
+  @Test
+  fun `should retry send correct event when pnc does not match`() {
+    // Given
+    val anotherPnc = "2001/0072845E"
+    val personEntity = PersonEntity.new()
+    val dateOfBirth = LocalDate.now()
+    val person = createPerson(dateOfBirth, PNCIdentifier.from(PNC_ID), CRN)
+    val offenderDetails = listOf(createOffenderDetail(dateOfBirth, anotherPnc))
+    whenever(client.findPossibleMatches(OffenderMatchCriteria.from(person)))
+      .thenThrow(HttpClientErrorException(HttpStatusCode.valueOf(500)))
+      .thenReturn(offenderDetails)
+
+    // When
+    offenderService.processAssociatedOffenders(personEntity, person)
+
+    // Then
+    verify(client, times(2)).findPossibleMatches(OffenderMatchCriteria.from(person))
+  }
+
+  @Test
+  fun `should retry 3 times and throw exception and send correct event`() {
+    // Given
+    val anotherPnc = "2001/0072845E"
+    val personEntity = PersonEntity.new()
+    val dateOfBirth = LocalDate.now()
+    val person = createPerson(dateOfBirth, PNCIdentifier.from(PNC_ID), CRN)
+    val offenderDetails = listOf(createOffenderDetail(dateOfBirth, anotherPnc))
+    whenever(client.findPossibleMatches(OffenderMatchCriteria.from(person)))
+      .thenThrow(HttpClientErrorException(HttpStatusCode.valueOf(500)))
+      .thenThrow(HttpClientErrorException(HttpStatusCode.valueOf(500)))
+      .thenThrow(HttpClientErrorException(HttpStatusCode.valueOf(500)))
+
+    // When
+    assertThrows<HttpClientErrorException> { offenderService.processAssociatedOffenders(personEntity, person) }
+
+    // Then
+    verify(client, times(3)).findPossibleMatches(OffenderMatchCriteria.from(person))
+
+    verify(telemetryService).trackEvent(
+      TelemetryEventType.DELIUS_CALL_FAILED,
+      mapOf(
+        "CRN" to person.otherIdentifiers?.crn,
       ),
     )
   }
