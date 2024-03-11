@@ -382,7 +382,6 @@ class PrisonerServiceTest {
       .thenThrow(HttpServerErrorException(HttpStatusCode.valueOf(408)))
       .thenThrow(HttpServerErrorException(HttpStatusCode.valueOf(408)))
 
-
     // When
     assertThrows<HttpServerErrorException> { prisonerService.processAssociatedPrisoners(personEntity, person) }
 
@@ -392,7 +391,7 @@ class PrisonerServiceTest {
       mapOf(
         "UUID" to personEntity.personId.toString(),
         "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId,
-        "Prisoner Number"  to person.otherIdentifiers?.prisonNumber
+        "Prisoner Number" to person.otherIdentifiers?.prisonNumber,
       ),
     )
 
@@ -402,6 +401,5 @@ class PrisonerServiceTest {
         "Prisoner Number" to prisoner.prisonerNumber,
       ),
     )
-
   }
 }

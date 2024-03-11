@@ -261,7 +261,6 @@ class OffenderServiceTest {
 
     // Then
     verify(client, times(2)).findPossibleMatches(OffenderMatchCriteria.from(person))
-
   }
 
   @Test
@@ -278,7 +277,7 @@ class OffenderServiceTest {
       .thenThrow(HttpClientErrorException(HttpStatusCode.valueOf(500)))
 
     // When
-   assertThrows<HttpClientErrorException> { offenderService.processAssociatedOffenders(personEntity, person)  }
+    assertThrows<HttpClientErrorException> { offenderService.processAssociatedOffenders(personEntity, person) }
 
     // Then
     verify(client, times(3)).findPossibleMatches(OffenderMatchCriteria.from(person))
@@ -289,7 +288,6 @@ class OffenderServiceTest {
         "CRN" to person.otherIdentifiers?.crn,
       ),
     )
-
   }
 
   private fun createPerson(dateOfBirth: LocalDate?, pncIdentifier: PNCIdentifier, crn: String): Person {

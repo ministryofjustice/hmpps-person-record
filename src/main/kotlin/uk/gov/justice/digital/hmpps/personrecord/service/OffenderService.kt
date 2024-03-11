@@ -115,16 +115,4 @@ class OffenderService(
       ).filterValues { !it.isNullOrBlank() },
     )
   }
-
-  private fun trackRemoteCallFailedEvent(
-    crn: String,
-    eventType: TelemetryEventType,
-  ) {
-    telemetryService.trackEvent(
-      eventType,
-      mapOf(
-        "CRN" to crn,
-      ),
-    )
-  }
 }
