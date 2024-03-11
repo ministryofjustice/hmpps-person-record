@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
@@ -24,6 +25,9 @@ class PrisonerService(
   private val featureFlag: FeatureFlag,
   val prisonServiceClient: PrisonServiceClient,
 ) {
+
+  @Value("\${retry.delay}")
+  private val retryDelay: Long = 0
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -89,7 +93,7 @@ class PrisonerService(
 
   private fun getPrisonerDetails(prisonerNumber: String): PrisonerDetails? = runBlocking {
     try {
-      return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, MAX_RETRY_ATTEMPTS) {
+      return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, MAX_RETRY_ATTEMPTS, retryDelay) {
         val prisonerDetails = prisonServiceClient.getPrisonerDetails(prisonerNumber)
         prisonerDetails?.let {
           updatePrisonerAddresses(prisonerNumber, prisonerDetails)
@@ -103,7 +107,7 @@ class PrisonerService(
   }
 
   private fun updatePrisonerAddresses(prisonerNumber: String, prisonerDetails: PrisonerDetails) = runBlocking {
-    return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, MAX_RETRY_ATTEMPTS) {
+    return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, MAX_RETRY_ATTEMPTS, retryDelay) {
       val prisonerAddress = prisonServiceClient.getPrisonerAddresses(prisonerNumber)
       if (prisonerAddress?.isNotEmpty() == true) {
         prisonerDetails.addresses = prisonerAddress
@@ -113,7 +117,7 @@ class PrisonerService(
 
   private fun getPrisonerMatcher(person: Person): PrisonerMatcher = runBlocking {
     try {
-      return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, MAX_RETRY_ATTEMPTS) { findMatchingPrisonersAndCreateMatcher(person) }
+      return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, MAX_RETRY_ATTEMPTS, retryDelay) { findMatchingPrisonersAndCreateMatcher(person) }
     } catch (exception: Exception) {
       telemetryService.trackEvent(
         TelemetryEventType.NOMIS_CALL_FAILED,

@@ -32,6 +32,9 @@ feature:
     enable-nomis-search: true
     enable-delius-domain-event-sqs: true
 
+retry:
+  delay: 200
+
 
 hmpps.sqs:
   enabled: true

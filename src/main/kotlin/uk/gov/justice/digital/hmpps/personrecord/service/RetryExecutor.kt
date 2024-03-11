@@ -3,12 +3,11 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import kotlinx.coroutines.delay
 import kotlin.reflect.KClass
 
-private const val DELAY: Long = 2000
-
 object RetryExecutor {
   suspend fun <T> runWithRetry(
     exceptions: List<KClass<out Exception>>,
     maxAttempts: Int,
+    delay: Long,
     retryFunction: suspend () -> T,
   ): T {
     var lastException: Exception? = null
@@ -22,7 +21,7 @@ object RetryExecutor {
           throw e
         }
       }
-      delay(DELAY)
+      delay(delay)
     }
     throw lastException ?: RuntimeException("Unexpected error")
   }

@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
@@ -21,6 +22,9 @@ class OffenderService(
   private val client: ProbationOffenderSearchClient,
   private val featureFlag: FeatureFlag,
 ) {
+  @Value("\${retry.delay}")
+  private val retryDelay: Long = 0
+
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
     const val NO_RECORDS_MESSAGE = "No Delius matching records exist"
@@ -52,7 +56,7 @@ class OffenderService(
 
   private fun getOffenderMatcher(person: Person): OffenderMatcher = runBlocking {
     try {
-      return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, MAX_RETRY_ATTEMPTS) {
+      return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, MAX_RETRY_ATTEMPTS, retryDelay) {
         val offenderDetails = client.findPossibleMatches(OffenderMatchCriteria.from(person))
         OffenderMatcher(offenderDetails, person)
       }
