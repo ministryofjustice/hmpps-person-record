@@ -33,7 +33,6 @@ dependencies {
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.testcontainers:junit-jupiter:1.19.7")
   testImplementation("org.testcontainers:postgresql:1.19.7")
@@ -42,7 +41,7 @@ dependencies {
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.5")
-  testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.23")
+  testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.22")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("org.jmock:jmock:2.13.0")
 }
