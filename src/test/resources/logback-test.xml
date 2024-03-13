@@ -14,4 +14,6 @@
         <appender-ref ref="CONSOLE"/>
     </logger>
 
+    <!-- ref: https://github.com/testcontainers/testcontainers-java/discussions/7454 -->
+    <logger name="io.awspring.cloud.sqs.listener.source.AbstractPollingMessageSource" level="OFF"/>
 </configuration>
