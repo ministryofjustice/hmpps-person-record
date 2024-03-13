@@ -13,9 +13,38 @@ LABEL maintainer="HMPPS Digital Studio <info@digital.justice.gov.uk>"
 ARG BUILD_NUMBER
 ENV BUILD_NUMBER ${BUILD_NUMBER:-1_0_0}
 
+
 RUN apt-get update && \
     apt-get -y upgrade && \
+    apt-get -y install python3 && \
+    apt-get -y install pip && \
     rm -rf /var/lib/apt/lists/*
+
+ENV PYTHONFAULTHANDLER=1 \
+    PYTHONHASHSEED=random \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+ENV PIP_DEFAULT_TIMEOUT=100 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1 \
+    POETRY_VERSION=1.4.2
+
+# install Poetry
+RUN pip install "poetry==$POETRY_VERSION"
+
+# install Python dependencies
+COPY pyproject.toml poetry.lock ./
+RUN poetry export -f requirements.txt --output requirements.txt
+# Remove unwanted Windows dependencies
+RUN cat ./requirements.txt | sed -e :a -e '/\\$/N; s/\\\n//; ta' | sed 's/^pywin32==.*//' > requirements.txt
+RUN pip install -r requirements.txt
+
+# build the app
+COPY . .
+RUN poetry build
+RUN pip install dist/*.whl
 
 ENV TZ=Europe/London
 RUN ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezone

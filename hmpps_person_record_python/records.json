@@ -1,0 +1,22 @@
+[
+  {
+    "source_dataset": "cpr",
+    "unique_id": "1",
+    "dob_std": "01/10/2010",
+    "forename1_std": "One",
+    "forename2_std": "Two",
+    "forename3_std": "Three",
+    "surname_std": "Four",
+    "pnc_number_std": "2020/0001234L"
+  },
+  {
+    "source_dataset": "delius",
+    "unique_id": "2",
+    "dob_std": "01/10/2010",
+    "forename1_std": "One",
+    "forename2_std": "Two",
+    "forename3_std": "Three",
+    "surname_std": "Five",
+    "pnc_number_std": "2020/0001234L"
+  }
+]

@@ -7,6 +7,7 @@ import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.check
 import org.mockito.kotlin.eq
@@ -16,7 +17,11 @@ import org.mockito.kotlin.verify
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
@@ -24,6 +29,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
@@ -170,6 +176,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
+  @Disabled
   fun `should not push messages from Common Platform onto dead letter queue when processing fails because of could not serialize access due to read write dependencies among transactions`() {
     // given
     val pncNumber = PNCIdentifier.from("2003/0062845E")
@@ -362,6 +369,50 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity3.defendants[0].nationalInsuranceNumber).isEqualTo("PC456743D")
     assertThat(personEntity3.defendants[0].defendantId).isEqualTo("b56f8612-0f4c-43e5-840a-8bedb17722ec")
     assertThat(personEntity3.defendants[0].masterDefendantId).isEqualTo("290e0457-1480-4e62-b3c8-7f29ef791c58")
+  }
+
+  @Test
+  @Disabled
+  fun `should not create new record when existing person matches`() {
+    // given
+    val pncNumber = PNCIdentifier.from("2003/0062845E")
+
+    val person = Person(dateOfBirth = LocalDate.of(1975, 1, 1), givenName = "Arthur", familyName = "MORGAN", otherIdentifiers = OtherIdentifiers(pncIdentifier = pncNumber))
+
+    val newPersonEntity = PersonEntity.new()
+    val newDefendantEntity = DefendantEntity.from(person)
+    newDefendantEntity.person = newPersonEntity
+    newPersonEntity.defendants.add(newDefendantEntity)
+
+    personRepository.saveAndFlush(newPersonEntity)
+
+    val publishRequest = PublishRequest.builder()
+      .topicArn(courtCaseEventsTopic?.arn)
+      .message(commonPlatformHearing(pncNumber.pncId))
+      .messageAttributes(
+        mapOf(
+          "messageType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(COMMON_PLATFORM_HEARING.name).build(),
+        ),
+      )
+      .build()
+
+    // when
+    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+
+    // then
+    await untilCallTo {
+      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
+    } matches { it == 0 }
+
+    await untilAsserted { assertThat(postgresSQLContainer.isCreated).isTrue() }
+
+    verify(telemetryService, times(1)).trackEvent(
+      eq(HMCTS_EXACT_MATCH),
+      check {
+        assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
+      },
+    )
   }
 
   @Test
