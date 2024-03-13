@@ -23,29 +23,27 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.0")
   implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.0")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-autoconfigure:3.1.1")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:3.1.1")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.1.0")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
 
   runtimeOnly("org.postgresql:postgresql:42.7.2")
-  runtimeOnly("org.flywaydb:flyway-core:10.8.1")
-  runtimeOnly("org.flywaydb:flyway-database-postgresql:10.8.1")
+  runtimeOnly("org.flywaydb:flyway-core:10.9.1")
+  runtimeOnly("org.flywaydb:flyway-database-postgresql:10.9.1")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.testcontainers:junit-jupiter:1.19.6")
-  testImplementation("org.testcontainers:postgresql:1.19.6")
-  testImplementation("org.testcontainers:localstack:1.19.6")
+  testImplementation("org.testcontainers:junit-jupiter:1.19.7")
+  testImplementation("org.testcontainers:postgresql:1.19.7")
+  testImplementation("org.testcontainers:localstack:1.19.7")
   testImplementation("org.wiremock:wiremock-standalone:3.4.2")
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.5")
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.22")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
-  testImplementation("org.jmock:jmock:2.12.0")
+  testImplementation("org.jmock:jmock:2.13.0")
 }
 
 java {
