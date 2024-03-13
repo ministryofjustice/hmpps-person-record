@@ -1,8 +1,8 @@
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.3"
-  kotlin("plugin.spring") version "1.9.23"
-  kotlin("jvm") version "1.9.23"
-  kotlin("plugin.jpa") version "1.9.23"
+  kotlin("plugin.spring") version "1.9.22"
+  kotlin("jvm") version "1.9.22"
+  kotlin("plugin.jpa") version "1.9.22"
   id("io.gitlab.arturbosch.detekt") version "1.23.5"
 }
 
@@ -23,7 +23,6 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.0")
   implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.0")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-autoconfigure:3.1.1")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:3.1.1")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.1.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
