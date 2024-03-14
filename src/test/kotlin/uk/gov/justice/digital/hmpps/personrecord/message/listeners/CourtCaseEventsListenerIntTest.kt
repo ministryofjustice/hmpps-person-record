@@ -68,7 +68,18 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   @Test
   fun `should process libra messages with empty pnc identifier`() {
-    publishMessage(libraHearing(pncNumber = ""), LIBRA_COURT_CASE)
+    val emptyPncNumber = ""
+    publishMessage(libraHearing(pncNumber = emptyPncNumber), LIBRA_COURT_CASE)
+
+    await untilAsserted {
+      verify(telemetryService).trackEvent(
+        eq(HMCTS_MESSAGE_RECEIVED),
+        check {
+          assertThat(it["PNC"]).isEqualTo(emptyPncNumber)
+          assertThat(it["CRO"]).isEqualTo("11111/79J")
+        },
+      )
+    }
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
@@ -82,24 +93,9 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     verify(telemetryService, never()).trackEvent(
       eq(INVALID_PNC),
       check {
-        assertThat(it["PNC"]).isEqualTo("")
+        assertThat(it["PNC"]).isEqualTo(emptyPncNumber)
       },
     )
-  }
-
-  @Test
-  fun `should successfully process libra message from court_case_events_topic`() {
-    publishMessage(libraHearing("1979/0027672E"), LIBRA_COURT_CASE)
-
-    await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(HMCTS_MESSAGE_RECEIVED),
-        check {
-          assertThat(it["PNC"]).isEqualTo("1979/0027672E")
-          assertThat(it["CRO"]).isEqualTo("11111/79J")
-        },
-      )
-    }
   }
 
   @Test
