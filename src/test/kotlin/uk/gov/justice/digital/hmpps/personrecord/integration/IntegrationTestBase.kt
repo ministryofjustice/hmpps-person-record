@@ -3,6 +3,9 @@ package uk.gov.justice.digital.hmpps.personrecord.integration
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.matches
+import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -20,13 +23,17 @@ import org.springframework.test.web.servlet.MockMvc
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.junit.jupiter.Testcontainers
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue
+import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.Duration
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -137,5 +144,24 @@ abstract class IntegrationTestBase {
       roles = listOf(),
     )
     return header("authorization", "Bearer $bearerToken") as WebTestClient.RequestBodySpec
+  }
+
+  internal fun publishHMCTSMessage(message: String, messageType: MessageType) {
+    val publishRequest = PublishRequest.builder()
+      .topicArn(courtCaseEventsTopic?.arn)
+      .message(message)
+      .messageAttributes(
+        mapOf(
+          "messageType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(messageType.name).build(),
+        ),
+      )
+      .build()
+
+    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+
+    await untilCallTo {
+      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
+    } matches { it == 0 }
   }
 }

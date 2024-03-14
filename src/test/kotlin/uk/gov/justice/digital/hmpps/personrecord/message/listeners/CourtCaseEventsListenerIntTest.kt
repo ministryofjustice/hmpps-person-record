@@ -17,7 +17,6 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
@@ -39,14 +38,14 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   @Test
   fun `should output correct telemetry for invalid PNC`() {
-    val pncNumber = "03/62845X" // X is the incorrect check letter
-    publishMessage(commonPlatformHearingWIthOneDefendant(pncNumber), COMMON_PLATFORM_HEARING)
+    val invalidPncNumber = "03/62845X" // X is the incorrect check letter
+    publishHMCTSMessage(commonPlatformHearingWIthOneDefendant(invalidPncNumber), COMMON_PLATFORM_HEARING)
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
         eq(INVALID_PNC),
         check {
-          assertThat(it["PNC"]).isEqualTo(pncNumber).withFailMessage("PNC incorrect")
+          assertThat(it["PNC"]).isEqualTo(invalidPncNumber).withFailMessage("PNC incorrect")
         },
       )
     }
@@ -54,7 +53,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   @Test
   fun `should successfully process common platform message with 3 defendants and create correct telemetry events`() {
-    publishMessage(commonPlatformHearing("19810154257C"), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearing("19810154257C"), COMMON_PLATFORM_HEARING)
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
@@ -85,7 +84,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   @Test
   fun `should process libra messages with empty pnc identifier`() {
     val emptyPncNumber = ""
-    publishMessage(libraHearing(pncNumber = emptyPncNumber), LIBRA_COURT_CASE)
+    publishHMCTSMessage(libraHearing(pncNumber = emptyPncNumber), LIBRA_COURT_CASE)
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
@@ -177,7 +176,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   fun `should create new defendant and prisoner records with link to a person record from common platform message`() {
     val pncNumber = PNCIdentifier.from("2003/0062845E")
 
-    publishMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
 
     val personEntity = await.atMost(30, SECONDS) untilNotNull {
       personRepository.findByPrisonersPncNumber(pncNumber)
@@ -213,7 +212,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     val pncNumber2 = PNCIdentifier.from("2008/0056560Z")
     val pncNumber3 = PNCIdentifier.from("20230583843L")
 
-    publishMessage(commonPlatformHearingWithAdditionalFields(), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearingWithAdditionalFields(), COMMON_PLATFORM_HEARING)
 
     val personEntity1 = await.atMost(10, SECONDS) untilNotNull {
       personRepository.findByDefendantsPncNumber(pncNumber1)
@@ -271,7 +270,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   fun `should create offender with additional fields`() {
     val pncNumber = PNCIdentifier.from("2003/0062845E")
 
-    publishMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
 
     val personEntity = await.atMost(30, SECONDS) untilNotNull {
       personRepository.findByPrisonersPncNumber(pncNumber)
@@ -307,7 +306,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   fun `should create prisoner with additional fields`() {
     val pncNumber = PNCIdentifier.from("2003/0062845E")
 
-    publishMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
 
     val personEntity = await.atMost(30, SECONDS) untilNotNull {
       personRepository.findByPrisonersPncNumber(pncNumber)
@@ -330,24 +329,5 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.prisoners[0].raceCode).isEqualTo("W1")
     assertThat(personEntity.prisoners[0].birthPlace).isEqualTo("WALES")
     assertThat(personEntity.prisoners[0].birthCountryCode).isEqualTo("GBR")
-  }
-
-  private fun publishMessage(message: String, messageType: MessageType) {
-    val publishRequest = PublishRequest.builder()
-      .topicArn(courtCaseEventsTopic?.arn)
-      .message(message)
-      .messageAttributes(
-        mapOf(
-          "messageType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(messageType.name).build(),
-        ),
-      )
-      .build()
-
-    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
-
-    await untilCallTo {
-      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
   }
 }
