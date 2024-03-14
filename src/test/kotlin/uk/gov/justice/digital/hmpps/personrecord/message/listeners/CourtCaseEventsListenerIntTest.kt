@@ -35,31 +35,14 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   @Test
   fun `should output correct telemetry for invalid PNC`() {
-    // given
-    val publishRequest = PublishRequest.builder()
-      .topicArn(courtCaseEventsTopic?.arn)
-      .message(commonPlatformHearing("03/62845X")) // X is the incorrect check letter
-      .messageAttributes(
-        mapOf(
-          "messageType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(COMMON_PLATFORM_HEARING.name).build(),
-        ),
-      )
-      .build()
-
-    // when
-    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
-
-    // then
-    await untilCallTo {
-      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
+    val pncNumber = "03/62845X" // X is the incorrect check letter
+    publishMessage(commonPlatformHearing(pncNumber), COMMON_PLATFORM_HEARING)
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
         eq(INVALID_PNC),
         check {
-          assertThat(it["PNC"]).isEqualTo("03/62845X").withFailMessage("PNC incorrect")
+          assertThat(it["PNC"]).isEqualTo(pncNumber).withFailMessage("PNC incorrect")
         },
       )
     }
@@ -68,24 +51,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   @Test
   fun `should successfully process common platform message and create correct telemetry events`() {
     // given
-    val publishRequest = PublishRequest.builder()
-      .topicArn(courtCaseEventsTopic?.arn)
-      .message(commonPlatformHearing("19810154257C"))
-      .messageAttributes(
-        mapOf(
-          "messageType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(COMMON_PLATFORM_HEARING.name).build(),
-        ),
-      )
-      .build()
-
-    // when
-    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
-
-    // then
-    await untilCallTo {
-      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
+    publishMessage(commonPlatformHearing("19810154257C"), COMMON_PLATFORM_HEARING)
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
@@ -467,5 +433,24 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.prisoners[0].raceCode).isEqualTo("W1")
     assertThat(personEntity.prisoners[0].birthPlace).isEqualTo("WALES")
     assertThat(personEntity.prisoners[0].birthCountryCode).isEqualTo("GBR")
+  }
+
+  private fun publishMessage(message: String, messageType: MessageType) {
+    val publishRequest = PublishRequest.builder()
+      .topicArn(courtCaseEventsTopic?.arn)
+      .message(message)
+      .messageAttributes(
+        mapOf(
+          "messageType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(messageType.name).build(),
+        ),
+      )
+      .build()
+
+    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+
+    await untilCallTo {
+      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
+    } matches { it == 0 }
   }
 }

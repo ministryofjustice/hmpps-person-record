@@ -36,7 +36,7 @@ fun testMessageWithUnknownType(messageType: String?) = """
      }    
 """.trimIndent()
 
-fun commonPlatformHearing(pncNumber: String = "1981/0154257C") = """
+fun commonPlatformHearing(pncNumber: String = "1981/0154257C", firstName: String = "Arthur") = """
     {
       "hearing": {
         "type": {
@@ -98,7 +98,7 @@ fun commonPlatformHearing(pncNumber: String = "1981/0154257C") = """
                       "postcode": "SA1 1FU"
                     },
                     "dateOfBirth": "1975-01-01",
-                    "firstName": "Arthur",
+                    "firstName": "$firstName",
                     "gender": "MALE",
                     "lastName": "MORGAN",
                     "title": "Mr"
