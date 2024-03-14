@@ -19,12 +19,14 @@ import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
+import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithAdditionalFields
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MISSING_PNC
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
@@ -65,29 +67,11 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   @Test
   fun `should process libra messages with empty pnc identifier`() {
-    // given
-    val publishRequest = PublishRequest.builder()
-      .topicArn(courtCaseEventsTopic?.arn)
-      .message(libraHearing(pncNumber = ""))
-      .messageAttributes(
-        mapOf(
-          "messageType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(MessageType.LIBRA_COURT_CASE.name).build(),
-        ),
-      )
-      .build()
-
-    // when
-    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
-
-    // then
-    await untilCallTo {
-      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
+    publishMessage(libraHearing(pncNumber = ""), LIBRA_COURT_CASE)
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
-        eq(TelemetryEventType.MISSING_PNC),
+        eq(MISSING_PNC),
         check {
           assertThat(it).isEmpty()
         },
@@ -104,25 +88,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   @Test
   fun `should successfully process libra message from court_case_events_topic`() {
-    // given
-    val publishRequest = PublishRequest.builder()
-      .topicArn(courtCaseEventsTopic?.arn)
-      .message(libraHearing("1979/0027672E"))
-      .messageAttributes(
-        mapOf(
-          "messageType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(MessageType.LIBRA_COURT_CASE.name).build(),
-        ),
-      )
-      .build()
-
-    // when
-    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
-
-    // then
-    await untilCallTo {
-      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
+    publishMessage(libraHearing("1979/0027672E"), LIBRA_COURT_CASE)
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
@@ -198,27 +164,9 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   @Test
   fun `should create new defendant and prisoner records with link to a person record from common platform message`() {
-    // given
     val pncNumber = PNCIdentifier.from("2003/0062845E")
 
-    val publishRequest = PublishRequest.builder()
-      .topicArn(courtCaseEventsTopic?.arn)
-      .message(commonPlatformHearingWithNewDefendant())
-      .messageAttributes(
-        mapOf(
-          "messageType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(COMMON_PLATFORM_HEARING.name).build(),
-        ),
-      )
-      .build()
-
-    // when
-    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
-
-    // then
-    await untilCallTo {
-      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
+    publishMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
 
     await untilAsserted { assertThat(postgresSQLContainer.isCreated).isTrue() }
 
