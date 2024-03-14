@@ -24,13 +24,13 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithAdditionalFields
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MISSING_PNC
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.test.assertEquals
 
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
@@ -132,7 +132,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       cprCourtCaseEventsQueue?.sqsDlqClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.dlqUrl!!)?.get()
     } matches { it == 0 }
 
-    val personEntity = await.atMost(30, TimeUnit.SECONDS) untilNotNull {
+    val personEntity = await.atMost(30, SECONDS) untilNotNull {
       personRepository.findByPrisonersPncNumber(pncNumber)
     }
 
@@ -150,7 +150,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(pncNumber)
 
     verify(telemetryService, times(1)).trackEvent(
-      eq(TelemetryEventType.HMCTS_RECORD_CREATED),
+      eq(HMCTS_RECORD_CREATED),
       check {
         assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
       },
@@ -163,7 +163,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     publishMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
 
-    val personEntity = await.atMost(30, TimeUnit.SECONDS) untilNotNull {
+    val personEntity = await.atMost(30, SECONDS) untilNotNull {
       personRepository.findByPrisonersPncNumber(pncNumber)
     }
 
@@ -199,15 +199,15 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     publishMessage(commonPlatformHearingWithAdditionalFields(), COMMON_PLATFORM_HEARING)
 
-    val personEntity1 = await.atMost(10, TimeUnit.SECONDS) untilNotNull {
+    val personEntity1 = await.atMost(10, SECONDS) untilNotNull {
       personRepository.findByDefendantsPncNumber(pncNumber1)
     }
 
-    val personEntity2 = await.atMost(10, TimeUnit.SECONDS) untilNotNull {
+    val personEntity2 = await.atMost(10, SECONDS) untilNotNull {
       personRepository.findByDefendantsPncNumber(pncNumber2)
     }
 
-    val personEntity3 = await.atMost(10, TimeUnit.SECONDS) untilNotNull {
+    val personEntity3 = await.atMost(10, SECONDS) untilNotNull {
       personRepository.findByDefendantsPncNumber(pncNumber3)
     }
 
@@ -257,7 +257,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     publishMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
 
-    val personEntity = await.atMost(30, TimeUnit.SECONDS) untilNotNull {
+    val personEntity = await.atMost(30, SECONDS) untilNotNull {
       personRepository.findByPrisonersPncNumber(pncNumber)
     }
 
@@ -293,7 +293,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     publishMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
 
-    val personEntity = await.atMost(30, TimeUnit.SECONDS) untilNotNull {
+    val personEntity = await.atMost(30, SECONDS) untilNotNull {
       personRepository.findByPrisonersPncNumber(pncNumber)
     }
 
