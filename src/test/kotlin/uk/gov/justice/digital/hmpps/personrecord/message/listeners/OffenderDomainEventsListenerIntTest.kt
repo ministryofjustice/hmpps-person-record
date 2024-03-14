@@ -2,26 +2,16 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilAsserted
-import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
-import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import software.amazon.awssdk.services.sns.model.PublishRequest
-import software.amazon.awssdk.services.sns.model.PublishResponse
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.NEW_OFFENDER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DELIUS_RECORD_CREATION_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_DELIUS_RECORD_NEW_PNC
-import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit.SECONDS
 
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
@@ -93,46 +83,5 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.offenders).hasSize(1)
     assertThat(personEntity.offenders[0].pncNumber?.pncId).isEqualTo("")
     assertThat(personEntity.offenders[0].crn).isEqualTo(crn)
-  }
-
-  private fun publishOffenderEvent(publishRequest: PublishRequest): CompletableFuture<PublishResponse>? {
-    return domainEventsTopic?.snsClient?.publish(publishRequest)
-  }
-
-  private fun createDomainEvent(eventType: String, crn: String): DomainEvent {
-    val crnType = PersonIdentifier("CRN", crn)
-    val personReference = PersonReference(listOf(crnType))
-    return DomainEvent(eventType = eventType, detailUrl = createDetailUrl(crn), personReference = personReference)
-  }
-
-  private fun createDetailUrl(crn: String): String {
-    val builder = StringBuilder()
-    builder.append("https://domain-events-and-delius-dev.hmpps.service.justice.gov.uk/probation-case.engagement.created/")
-    builder.append(crn)
-    return builder.toString()
-  }
-
-  private fun assertNewOffenderDomainEventReceiverQueueHasProcessedMessages() {
-    await untilCallTo {
-      cprDeliusOffenderEventsQueue?.sqsClient?.countMessagesOnQueue(cprDeliusOffenderEventsQueue!!.queueUrl)
-        ?.get()
-    } matches { it == 0 }
-  }
-
-  private fun publishDeliusNewOffenderEvent(domainEvent: String?) {
-    val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
-      .message(domainEvent)
-      .messageAttributes(
-        mapOf(
-          "eventType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(NEW_OFFENDER_CREATED).build(),
-        ),
-      ).build()
-
-    // When publish new offender domain event with CRN XXX1234
-    publishOffenderEvent(publishRequest)?.get()
-
-    // Then
-    assertNewOffenderDomainEventReceiverQueueHasProcessedMessages()
   }
 }

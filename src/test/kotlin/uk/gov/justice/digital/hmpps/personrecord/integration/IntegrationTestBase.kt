@@ -25,16 +25,22 @@ import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.junit.jupiter.Testcontainers
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
+import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.Duration
+import java.util.concurrent.CompletableFuture
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -163,5 +169,46 @@ abstract class IntegrationTestBase {
     await untilCallTo {
       cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
+  }
+
+  fun assertNewOffenderDomainEventReceiverQueueHasProcessedMessages() {
+    await untilCallTo {
+      cprDeliusOffenderEventsQueue?.sqsClient?.countMessagesOnQueue(cprDeliusOffenderEventsQueue!!.queueUrl)
+        ?.get()
+    } matches { it == 0 }
+  }
+
+  fun publishDeliusNewOffenderEvent(domainEvent: String?) {
+    val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
+      .message(domainEvent)
+      .messageAttributes(
+        mapOf(
+          "eventType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(NEW_OFFENDER_CREATED).build(),
+        ),
+      ).build()
+
+    // When publish new offender domain event with CRN XXX1234
+    publishOffenderEvent(publishRequest)?.get()
+
+    // Then
+    assertNewOffenderDomainEventReceiverQueueHasProcessedMessages()
+  }
+
+  private fun publishOffenderEvent(publishRequest: PublishRequest): CompletableFuture<PublishResponse>? {
+    return domainEventsTopic?.snsClient?.publish(publishRequest)
+  }
+
+  fun createDomainEvent(eventType: String, crn: String): DomainEvent {
+    val crnType = PersonIdentifier("CRN", crn)
+    val personReference = PersonReference(listOf(crnType))
+    return DomainEvent(eventType = eventType, detailUrl = createDetailUrl(crn), personReference = personReference)
+  }
+
+  private fun createDetailUrl(crn: String): String {
+    val builder = StringBuilder()
+    builder.append("https://domain-events-and-delius-dev.hmpps.service.justice.gov.uk/probation-case.engagement.created/")
+    builder.append(crn)
+    return builder.toString()
   }
 }
