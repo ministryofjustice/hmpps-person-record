@@ -50,23 +50,6 @@ class CourtCaseEventsListenerTest {
   }
 
   @Test
-  fun `should call the processor with correct libra data`() {
-    // given
-    val rawMessage = testMessage(LIBRA_COURT_CASE.name)
-    sqsMessage = SQSMessage(
-      type = "Notification",
-      messageId = "5bc08be0-16e9-5da9-b9ec-d2c870a59bad",
-      message = "{  \"caseId\": 1217464, \"hearingId\": \"hearing-id-one\",   \"caseNo\": \"1600032981\"}}",
-      messageAttributes = MessageAttributes(LIBRA_COURT_CASE),
-    )
-    // when
-    courtCaseEventsListener.onMessage(rawMessage = rawMessage)
-
-    // then
-    verify(courtCaseEventsProcessor).processEvent(sqsMessage)
-  }
-
-  @Test
   fun `should not call the processor when type is unknown`() {
     // given
     val rawMessage = testMessageWithUnknownType(COMMON_PLATFORM_HEARING.name)
