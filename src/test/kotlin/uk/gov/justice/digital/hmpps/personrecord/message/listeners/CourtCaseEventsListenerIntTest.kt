@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
+import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWIthOneDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithAdditionalFields
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
@@ -39,7 +40,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   @Test
   fun `should output correct telemetry for invalid PNC`() {
     val pncNumber = "03/62845X" // X is the incorrect check letter
-    publishMessage(commonPlatformHearing(pncNumber), COMMON_PLATFORM_HEARING)
+    publishMessage(commonPlatformHearingWIthOneDefendant(pncNumber), COMMON_PLATFORM_HEARING)
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
@@ -52,8 +53,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should successfully process common platform message and create correct telemetry events`() {
-    // given
+  fun `should successfully process common platform message with 3 defendants and create correct telemetry events`() {
     publishMessage(commonPlatformHearing("19810154257C"), COMMON_PLATFORM_HEARING)
 
     await untilAsserted {
@@ -61,6 +61,22 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
         eq(HMCTS_MESSAGE_RECEIVED),
         check {
           assertThat(it["PNC"]).isEqualTo("1981/0154257C")
+        },
+      )
+    }
+    await untilAsserted {
+      verify(telemetryService).trackEvent(
+        eq(HMCTS_MESSAGE_RECEIVED),
+        check {
+          assertThat(it["PNC"]).isEqualTo("2008/0056560Z")
+        },
+      )
+    }
+    await untilAsserted {
+      verify(telemetryService).trackEvent(
+        eq(HMCTS_MESSAGE_RECEIVED),
+        check {
+          assertThat(it["PNC"]).isEqualTo("")
         },
       )
     }
