@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_DELIUS_RECORD_NEW_PNC
 import java.util.concurrent.TimeUnit.SECONDS
 
-@Suppress("INLINE_FROM_HIGHER_PLATFORM")
 class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
 
   @Test
@@ -22,7 +21,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     // Given
     val crn = "XXX1234"
     val expectedPncNumber = PNCIdentifier.from("2020/0476873U")
-    val domainEvent = objectMapper.writeValueAsString(createDomainEvent(NEW_OFFENDER_CREATED, crn))
+    val domainEvent = createDomainEvent(NEW_OFFENDER_CREATED, crn)
 
     publishDeliusNewOffenderEvent(domainEvent)
 
@@ -55,7 +54,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
   @Test
   fun `should write offender without PNC if PNC is invalid`() {
     val crn = "XXX5678"
-    val domainEvent = objectMapper.writeValueAsString(createDomainEvent(NEW_OFFENDER_CREATED, crn))
+    val domainEvent = createDomainEvent(NEW_OFFENDER_CREATED, crn)
 
     publishDeliusNewOffenderEvent(domainEvent)
 

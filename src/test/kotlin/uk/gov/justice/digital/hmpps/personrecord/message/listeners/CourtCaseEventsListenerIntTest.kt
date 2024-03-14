@@ -33,7 +33,6 @@ import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.test.assertEquals
 
-@Suppress("INLINE_FROM_HIGHER_PLATFORM")
 class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   @Test

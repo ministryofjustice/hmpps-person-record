@@ -188,10 +188,8 @@ abstract class IntegrationTestBase {
         ),
       ).build()
 
-    // When publish new offender domain event with CRN XXX1234
     publishOffenderEvent(publishRequest)?.get()
 
-    // Then
     assertNewOffenderDomainEventReceiverQueueHasProcessedMessages()
   }
 
@@ -199,10 +197,10 @@ abstract class IntegrationTestBase {
     return domainEventsTopic?.snsClient?.publish(publishRequest)
   }
 
-  fun createDomainEvent(eventType: String, crn: String): DomainEvent {
+  fun createDomainEvent(eventType: String, crn: String): String {
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
-    return DomainEvent(eventType = eventType, detailUrl = createDetailUrl(crn), personReference = personReference)
+    return objectMapper.writeValueAsString(DomainEvent(eventType = eventType, detailUrl = createDetailUrl(crn), personReference = personReference))
   }
 
   private fun createDetailUrl(crn: String): String {
