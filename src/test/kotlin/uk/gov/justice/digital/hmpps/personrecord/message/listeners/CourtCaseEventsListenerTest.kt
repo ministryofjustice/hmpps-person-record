@@ -14,7 +14,8 @@ import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.message.processor.CourtCaseEventsProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.MessageAttributes
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
+import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
+import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.testMessage
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.testMessageWithUnknownType
@@ -51,12 +52,12 @@ class CourtCaseEventsListenerTest {
   @Test
   fun `should call the processor with correct libra data`() {
     // given
-    val rawMessage = testMessage(MessageType.LIBRA_COURT_CASE.name)
+    val rawMessage = testMessage(LIBRA_COURT_CASE.name)
     sqsMessage = SQSMessage(
       type = "Notification",
       messageId = "5bc08be0-16e9-5da9-b9ec-d2c870a59bad",
       message = "{  \"caseId\": 1217464, \"hearingId\": \"hearing-id-one\",   \"caseNo\": \"1600032981\"}}",
-      messageAttributes = MessageAttributes(MessageType.LIBRA_COURT_CASE),
+      messageAttributes = MessageAttributes(LIBRA_COURT_CASE),
     )
     // when
     courtCaseEventsListener.onMessage(rawMessage = rawMessage)
@@ -66,31 +67,14 @@ class CourtCaseEventsListenerTest {
   }
 
   @Test
-  fun `should call the processor with correct common platform data`() {
+  fun `should not call the processor when type is unknown`() {
     // given
-    val rawMessage = testMessage(MessageType.COMMON_PLATFORM_HEARING.name)
-    sqsMessage = SQSMessage(
-      type = "Notification",
-      messageId = "5bc08be0-16e9-5da9-b9ec-d2c870a59bad",
-      message = "{  \"caseId\": 1217464, \"hearingId\": \"hearing-id-one\",   \"caseNo\": \"1600032981\"}}",
-      messageAttributes = MessageAttributes(MessageType.COMMON_PLATFORM_HEARING),
-    )
-    // when
-    courtCaseEventsListener.onMessage(rawMessage = rawMessage)
-
-    // then
-    verify(courtCaseEventsProcessor).processEvent(sqsMessage)
-  }
-
-  @Test
-  fun `should not call the processor`() {
-    // given
-    val rawMessage = testMessageWithUnknownType(MessageType.COMMON_PLATFORM_HEARING.name)
+    val rawMessage = testMessageWithUnknownType(COMMON_PLATFORM_HEARING.name)
     sqsMessage = SQSMessage(
       type = "Unknown",
       messageId = "5bc08be0-16e9-5da9-b9ec-d2c870a59bad",
       message = "{  \"caseId\": 1217464, \"hearingId\": \"hearing-id-one\",   \"caseNo\": \"1600032981\"}}",
-      messageAttributes = MessageAttributes(MessageType.COMMON_PLATFORM_HEARING),
+      messageAttributes = MessageAttributes(COMMON_PLATFORM_HEARING),
     )
     // when
     courtCaseEventsListener.onMessage(rawMessage = rawMessage)
@@ -102,12 +86,12 @@ class CourtCaseEventsListenerTest {
   @Test
   fun `should create correct telemetry event when exception thrown`() {
     // given
-    val rawMessage = testMessage(MessageType.COMMON_PLATFORM_HEARING.name)
+    val rawMessage = testMessage(COMMON_PLATFORM_HEARING.name)
     sqsMessage = SQSMessage(
       type = "Notification",
       messageId = "5bc08be0-16e9-5da9-b9ec-d2c870a59bad",
       message = "{  \"caseId\": 1217464, \"hearingId\": \"hearing-id-one\",   \"caseNo\": \"1600032981\"}}",
-      messageAttributes = MessageAttributes(MessageType.COMMON_PLATFORM_HEARING),
+      messageAttributes = MessageAttributes(COMMON_PLATFORM_HEARING),
     )
     whenever(courtCaseEventsProcessor.processEvent(any())).thenThrow(IllegalArgumentException("Something went wrong"))
 
@@ -123,12 +107,12 @@ class CourtCaseEventsListenerTest {
   @Test
   fun `should not call the processor when the feature flag is false`() {
     // given
-    val rawMessage = testMessage(MessageType.LIBRA_COURT_CASE.name)
+    val rawMessage = testMessage(LIBRA_COURT_CASE.name)
     sqsMessage = SQSMessage(
       type = "Notification",
       messageId = "5bc08be0-16e9-5da9-b9ec-d2c870a59bad",
       message = "{  \"caseId\": 1217464, \"hearingId\": \"hearing-id-one\",   \"caseNo\": \"1600032981\"}}",
-      messageAttributes = MessageAttributes(MessageType.LIBRA_COURT_CASE),
+      messageAttributes = MessageAttributes(LIBRA_COURT_CASE),
     )
     whenever(featureFlag.isHmctsSQSEnabled()).thenReturn(false)
     // when
