@@ -20,7 +20,6 @@ dependencies {
   implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
   implementation("io.swagger.core.v3:swagger-annotations:2.2.20")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.0")
   implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.0")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:3.1.1")
@@ -33,7 +32,6 @@ dependencies {
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
-  testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.testcontainers:junit-jupiter:1.19.7")
   testImplementation("org.testcontainers:postgresql:1.19.7")
   testImplementation("org.testcontainers:localstack:1.19.7")
