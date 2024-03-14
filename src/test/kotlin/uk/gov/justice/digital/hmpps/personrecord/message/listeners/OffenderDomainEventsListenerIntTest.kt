@@ -34,20 +34,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     val expectedPncNumber = PNCIdentifier.from("2020/0476873U")
     val domainEvent = objectMapper.writeValueAsString(createDomainEvent(NEW_OFFENDER_CREATED, crn))
 
-    val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
-      .message(domainEvent)
-      .messageAttributes(
-        mapOf(
-          "eventType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(NEW_OFFENDER_CREATED).build(),
-        ),
-      ).build()
-
-    // When publish new offender domain event with CRN XXX1234
-    publishOffenderEvent(publishRequest)?.get()
-
-    // Then
-    assertNewOffenderDomainEventReceiverQueueHasProcessedMessages()
+    publishDeliusNewOffenderEvent(domainEvent)
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
@@ -77,25 +64,10 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
 
   @Test
   fun `should write offender without PNC if PNC is invalid`() {
-    // Given
     val crn = "XXX5678"
     val domainEvent = objectMapper.writeValueAsString(createDomainEvent(NEW_OFFENDER_CREATED, crn))
 
-    val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
-      .message(domainEvent)
-      .messageAttributes(
-        mapOf(
-          "eventType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(NEW_OFFENDER_CREATED).build(),
-        ),
-      ).build()
-
-    // When
-    publishOffenderEvent(publishRequest)?.get()
-
-    // Then
-
-    assertNewOffenderDomainEventReceiverQueueHasProcessedMessages()
+    publishDeliusNewOffenderEvent(domainEvent)
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
@@ -123,27 +95,44 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.offenders[0].crn).isEqualTo(crn)
   }
 
-  fun publishOffenderEvent(publishRequest: PublishRequest): CompletableFuture<PublishResponse>? {
+  private fun publishOffenderEvent(publishRequest: PublishRequest): CompletableFuture<PublishResponse>? {
     return domainEventsTopic?.snsClient?.publish(publishRequest)
   }
 
-  fun createDomainEvent(eventType: String, crn: String): DomainEvent {
+  private fun createDomainEvent(eventType: String, crn: String): DomainEvent {
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
     return DomainEvent(eventType = eventType, detailUrl = createDetailUrl(crn), personReference = personReference)
   }
 
-  fun createDetailUrl(crn: String): String {
+  private fun createDetailUrl(crn: String): String {
     val builder = StringBuilder()
     builder.append("https://domain-events-and-delius-dev.hmpps.service.justice.gov.uk/probation-case.engagement.created/")
     builder.append(crn)
     return builder.toString()
   }
 
-  fun assertNewOffenderDomainEventReceiverQueueHasProcessedMessages() {
+  private fun assertNewOffenderDomainEventReceiverQueueHasProcessedMessages() {
     await untilCallTo {
       cprDeliusOffenderEventsQueue?.sqsClient?.countMessagesOnQueue(cprDeliusOffenderEventsQueue!!.queueUrl)
         ?.get()
     } matches { it == 0 }
+  }
+
+  private fun publishDeliusNewOffenderEvent(domainEvent: String?) {
+    val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
+      .message(domainEvent)
+      .messageAttributes(
+        mapOf(
+          "eventType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(NEW_OFFENDER_CREATED).build(),
+        ),
+      ).build()
+
+    // When publish new offender domain event with CRN XXX1234
+    publishOffenderEvent(publishRequest)?.get()
+
+    // Then
+    assertNewOffenderDomainEventReceiverQueueHasProcessedMessages()
   }
 }
