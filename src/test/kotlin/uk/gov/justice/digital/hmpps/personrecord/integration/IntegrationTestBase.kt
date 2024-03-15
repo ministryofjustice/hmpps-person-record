@@ -30,7 +30,6 @@ import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonReference
@@ -178,13 +177,18 @@ abstract class IntegrationTestBase {
     } matches { it == 0 }
   }
 
-  fun publishDeliusNewOffenderEvent(domainEvent: String?) {
+  fun publishDeliusNewOffenderEvent(eventType: String, crn: String, pnc: String = "1981/0154257C") {
+    val crnType = PersonIdentifier("CRN", crn)
+    val pncType = PersonIdentifier("PNC", pnc)
+    val personReference = PersonReference(listOf(crnType, pncType))
+    val domainEvent = objectMapper.writeValueAsString(DomainEvent(eventType = eventType, detailUrl = createDetailUrl(crn), personReference = personReference))
+
     val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
       .message(domainEvent)
       .messageAttributes(
         mapOf(
           "eventType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(NEW_OFFENDER_CREATED).build(),
+            .stringValue(eventType).build(),
         ),
       ).build()
 
@@ -195,12 +199,6 @@ abstract class IntegrationTestBase {
 
   private fun publishOffenderEvent(publishRequest: PublishRequest): CompletableFuture<PublishResponse>? {
     return domainEventsTopic?.snsClient?.publish(publishRequest)
-  }
-
-  fun createDomainEvent(eventType: String, crn: String): String {
-    val crnType = PersonIdentifier("CRN", crn)
-    val personReference = PersonReference(listOf(crnType))
-    return objectMapper.writeValueAsString(DomainEvent(eventType = eventType, detailUrl = createDetailUrl(crn), personReference = personReference))
   }
 
   private fun createDetailUrl(crn: String): String {

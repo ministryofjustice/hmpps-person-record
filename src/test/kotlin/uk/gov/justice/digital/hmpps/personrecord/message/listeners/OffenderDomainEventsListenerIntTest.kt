@@ -21,9 +21,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     // Given
     val crn = "XXX1234"
     val expectedPncNumber = PNCIdentifier.from("2020/0476873U")
-    val domainEvent = createDomainEvent(NEW_OFFENDER_CREATED, crn)
-
-    publishDeliusNewOffenderEvent(domainEvent)
+    val domainEvent = publishDeliusNewOffenderEvent(NEW_OFFENDER_CREATED, crn)
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
@@ -54,9 +52,8 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
   @Test
   fun `should write offender without PNC if PNC is invalid`() {
     val crn = "XXX5678"
-    val domainEvent = createDomainEvent(NEW_OFFENDER_CREATED, crn)
 
-    publishDeliusNewOffenderEvent(domainEvent)
+    publishDeliusNewOffenderEvent(NEW_OFFENDER_CREATED, crn)
 
     await untilAsserted {
       verify(telemetryService).trackEvent(

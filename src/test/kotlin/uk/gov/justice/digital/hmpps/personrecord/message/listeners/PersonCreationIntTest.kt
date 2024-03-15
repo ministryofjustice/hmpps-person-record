@@ -6,6 +6,7 @@ import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
@@ -20,13 +21,16 @@ class PersonCreationIntTest : IntegrationTestBase() {
     val oneDefendant: PersonEntity = await.atMost(100, SECONDS) untilNotNull { personRepository.findPersonEntityByPncNumber(PNCIdentifier.from(pncNumber)) }
 
     assertThat(oneDefendant.defendants.size).isEqualTo(1)
+    // this will create a new defendant
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber), COMMON_PLATFORM_HEARING)
-    // this used to fail, now works so problem is fixed
+    // send the same message again to make sure it can be handled - this used to fail
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber), COMMON_PLATFORM_HEARING)
 
+    // this should fail if we can get the call to offender search to return the same PNC
+    publishDeliusNewOffenderEvent(NEW_OFFENDER_CREATED, "CRN123456")
     // now fix the code which this assertion calls
-    // val twoDefendants: PersonEntity = await.atMost(100, SECONDS) untilNotNull { personRepository.findPersonEntityByPncNumber(PNCIdentifier.from(pncNumber)) }
-
-    // assertThat(twoDefendants.defendants.size).isEqualTo(2)
+//    val twoDefendants: PersonEntity = await.atMost(100, SECONDS) untilNotNull { personRepository.findPersonEntityByPncNumber(PNCIdentifier.from(pncNumber)) }
+//
+//    assertThat(twoDefendants.defendants.size).isEqualTo(2)
   }
 }
