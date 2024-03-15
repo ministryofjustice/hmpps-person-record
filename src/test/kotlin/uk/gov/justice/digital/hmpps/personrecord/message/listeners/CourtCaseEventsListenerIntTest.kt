@@ -20,9 +20,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
-import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWIthOneDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithAdditionalFields
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
+import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
@@ -38,7 +38,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   @Test
   fun `should output correct telemetry for invalid PNC`() {
     val invalidPncNumber = "03/62845X" // X is the incorrect check letter
-    publishHMCTSMessage(commonPlatformHearingWIthOneDefendant(invalidPncNumber), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(invalidPncNumber), COMMON_PLATFORM_HEARING)
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
