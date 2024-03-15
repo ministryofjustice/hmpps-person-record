@@ -60,11 +60,11 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
     personRepository.saveAndFlush(newPersonEntity)
 
     // When
-    val personEntity = personRepository.findPersonEntityByPncNumber(pncIdentifier)
+    val personEntity = personRepository.findPersonEntityByPncNumber(pncIdentifier).removeFirst()
 
     // Then
     assertThat(personEntity).isNotNull
-    assertThat(personEntity?.defendants!![0].pncNumber).isEqualTo(pncIdentifier)
+    assertThat(personEntity.defendants!![0].pncNumber).isEqualTo(pncIdentifier)
     assertThat(personEntity.offenders[0].crn).isEqualTo("CRN12345")
     assertThat(personEntity.offenders[0].pncNumber).isEqualTo(pncIdentifier)
   }
@@ -78,6 +78,6 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
     val personEntity = personRepository.findPersonEntityByPncNumber(pnc)
 
     // Then
-    assertThat(personEntity).isNull()
+    assertThat(personEntity).isEmpty()
   }
 }

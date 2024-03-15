@@ -51,7 +51,7 @@ class ProbationCaseEngagementServiceTest {
         pnc = "19790163001B",
       ),
     )
-    whenever(personRepository.findPersonEntityByPncNumber(any())).thenReturn(personEntity)
+    whenever(personRepository.findPersonEntityByPncNumber(any())).thenReturn(mutableListOf(personEntity))
     whenever(personRepository.saveAndFlush(any())).thenReturn(personEntity)
 
     probationCaseEngagementService.processNewOffender(deliusOffenderDetail)
@@ -82,7 +82,7 @@ class ProbationCaseEngagementServiceTest {
         pnc = "19790163001B",
       ),
     )
-    whenever(personRepository.findPersonEntityByPncNumber(any())).thenReturn(null)
+    whenever(personRepository.findPersonEntityByPncNumber(any())).thenReturn(emptyList())
     whenever(personRepository.saveAndFlush(any())).thenReturn(personEntity)
 
     probationCaseEngagementService.processNewOffender(deliusOffenderDetail)

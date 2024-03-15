@@ -26,22 +26,22 @@ class ProbationCaseEngagementService(
   }
 
   private fun handlePncPresent(newOffenderDetail: DeliusOffenderDetail) {
-    // either get offenders and work out from there how to find a person
-    // or make this return a list
-    // or use a service to get all repository results?
-    // at all events try to do away with crappy inline SQL
-    val existingPerson = personRepository.findPersonEntityByPncNumber(PNCIdentifier.from(newOffenderDetail.identifiers.pnc!!))
-    existingPerson?.let { person ->
-      handlePersonExistsForPnc(newOffenderDetail, person)
-    } ?: handleNoPersonForPnc(newOffenderDetail)
+    // use service instead of repo here
+    val existingPeople = personRepository.findPersonEntityByPncNumber(PNCIdentifier.from(newOffenderDetail.identifiers.pnc!!))
+    if (existingPeople.isEmpty()) {
+      handleNoPersonForPnc(newOffenderDetail)
+    } else {
+      handlePersonExistsForPnc(newOffenderDetail, existingPeople)
+    }
   }
 
-  private fun handlePersonExistsForPnc(newOffenderDetail: DeliusOffenderDetail, person: PersonEntity) {
+  private fun handlePersonExistsForPnc(newOffenderDetail: DeliusOffenderDetail, personRecords: List<PersonEntity>) {
     val pnc = newOffenderDetail.identifiers.pnc!!
     val crn = newOffenderDetail.identifiers.crn
     log.debug("Person record exists for pnc $pnc - adding new offender to person with crn $crn")
     // should we not check that there is no offender first?
-    addOffenderToPerson(person, createOffender(newOffenderDetail))
+    addOffenderToPerson(personRecords.removeFirst(), createOffender(newOffenderDetail))
+    personRecords.forEach { log.info("Additional matching person records found with id ${it.personId}") }
     trackEvent(TelemetryEventType.NEW_DELIUS_RECORD_PNC_MATCHED, crn, pnc)
   }
 
@@ -86,6 +86,8 @@ class ProbationCaseEngagementService(
     return newOffender
   }
 
+  // this should not be here, there is a very similar function on PersonRecordService, should use that instead
+  // maybe another branch before doing this?
   private fun addOffenderToPerson(personEntity: PersonEntity, offenderEntity: OffenderEntity): PersonEntity {
     offenderEntity.person = personEntity
     personEntity.offenders.add(offenderEntity)

@@ -22,9 +22,9 @@ class PersonCreationIntTest : IntegrationTestBase() {
   fun `should allow creation and retrieval of 2 defendants with same PNC and different name`() {
     val pncNumber = "1981/0154257C"
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber, "Bob", "Marley", "1945-06-02"), COMMON_PLATFORM_HEARING)
-    val oneDefendant: PersonEntity = await.atMost(100, SECONDS) untilNotNull { personRepository.findPersonEntityByPncNumber(PNCIdentifier.from(pncNumber)) }
+    val oneDefendant: List<PersonEntity> = await.atMost(100, SECONDS) untilNotNull { personRepository.findPersonEntityByPncNumber(PNCIdentifier.from(pncNumber)) }
 
-    assertThat(oneDefendant.defendants.size).isEqualTo(1)
+    assertThat(oneDefendant.removeFirst().defendants.size).isEqualTo(1)
     // this will create a new defendant
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber), COMMON_PLATFORM_HEARING)
     // send the same message again to make sure it can be handled - this used to fail

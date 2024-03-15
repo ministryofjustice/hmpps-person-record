@@ -21,5 +21,5 @@ interface PersonRepository : JpaRepository<PersonEntity, Long> {
       "LEFT JOIN PrisonerEntity prisioner ON prisioner.person.id = p.id " +
       "WHERE offender.pncNumber = :pncNumber OR defendant.pncNumber = :pncNumber OR prisioner.pncNumber = :pncNumber",
   )
-  fun findPersonEntityByPncNumber(@Param("pncNumber") pncNumber: PNCIdentifier?): PersonEntity?
+  fun findPersonEntityByPncNumber(@Param("pncNumber") pncNumber: PNCIdentifier?): List<PersonEntity>
 }
