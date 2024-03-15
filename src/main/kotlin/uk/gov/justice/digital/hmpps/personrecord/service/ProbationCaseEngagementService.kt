@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class ProbationCaseEngagementService(
   val personRepository: PersonRepository,
   val telemetryService: TelemetryService,
+  val personRecordService: PersonRecordService,
 ) {
   private companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -26,8 +27,7 @@ class ProbationCaseEngagementService(
   }
 
   private fun handlePncPresent(newOffenderDetail: DeliusOffenderDetail) {
-    // use service instead of repo here
-    val existingPeople = personRepository.findPersonEntityByPncNumber(PNCIdentifier.from(newOffenderDetail.identifiers.pnc!!))
+    val existingPeople = personRecordService.findPersonRecordsByPnc(PNCIdentifier.from(newOffenderDetail.identifiers.pnc!!))
     if (existingPeople.isEmpty()) {
       handleNoPersonForPnc(newOffenderDetail)
     } else {

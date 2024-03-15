@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
@@ -19,10 +18,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import java.time.LocalDate
 
-@Suppress("INLINE_FROM_HIGHER_PLATFORM")
 @ExtendWith(MockitoExtension::class)
 class ProbationCaseEngagementServiceTest {
-  @InjectMocks
+
   lateinit var probationCaseEngagementService: ProbationCaseEngagementService
 
   @Mock
@@ -33,7 +31,7 @@ class ProbationCaseEngagementServiceTest {
 
   @BeforeEach
   fun setUp() {
-    probationCaseEngagementService = ProbationCaseEngagementService(personRepository, telemetryService)
+    probationCaseEngagementService = ProbationCaseEngagementService(personRepository, telemetryService, PersonRecordService(personRepository))
   }
 
   @Test
