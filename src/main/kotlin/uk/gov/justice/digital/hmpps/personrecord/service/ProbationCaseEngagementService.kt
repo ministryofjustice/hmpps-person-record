@@ -26,7 +26,10 @@ class ProbationCaseEngagementService(
   }
 
   private fun handlePncPresent(newOffenderDetail: DeliusOffenderDetail) {
-    // somehow find a way to test this - an update should cause a problem here if there is more than one record per PNC
+    // either get offenders and work out from there how to find a person
+    // or make this return a list
+    // or use a service to get all repository results?
+    // at all events try to do away with crappy inline SQL
     val existingPerson = personRepository.findPersonEntityByPncNumber(PNCIdentifier.from(newOffenderDetail.identifiers.pnc!!))
     existingPerson?.let { person ->
       handlePersonExistsForPnc(newOffenderDetail, person)

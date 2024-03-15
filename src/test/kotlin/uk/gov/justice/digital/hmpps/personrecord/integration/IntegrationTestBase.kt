@@ -177,10 +177,9 @@ abstract class IntegrationTestBase {
     } matches { it == 0 }
   }
 
-  fun publishDeliusNewOffenderEvent(eventType: String, crn: String, pnc: String = "1981/0154257C") {
+  fun publishDeliusNewOffenderEvent(eventType: String, crn: String) {
     val crnType = PersonIdentifier("CRN", crn)
-    val pncType = PersonIdentifier("PNC", pnc)
-    val personReference = PersonReference(listOf(crnType, pncType))
+    val personReference = PersonReference(listOf(crnType))
     val domainEvent = objectMapper.writeValueAsString(DomainEvent(eventType = eventType, detailUrl = createDetailUrl(crn), personReference = personReference))
 
     val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
