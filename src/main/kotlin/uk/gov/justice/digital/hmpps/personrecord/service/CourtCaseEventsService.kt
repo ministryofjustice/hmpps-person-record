@@ -4,7 +4,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.InvalidPNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.ValidPNCIdentifier
@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 @Service
 class CourtCaseEventsService(
   private val telemetryService: TelemetryService,
-  private val personRepository: PersonRepository,
+  private val defendantRepository: DefendantRepository,
   private val personRecordService: PersonRecordService,
   private val offenderService: OffenderService,
   private val prisonerService: PrisonerService,
@@ -42,8 +42,9 @@ class CourtCaseEventsService(
 
   private fun processValidMessage(pncIdentifier: ValidPNCIdentifier, person: Person) {
     trackEvent(VALID_PNC, mapOf("PNC" to pncIdentifier.toString()))
-    val defendants = personRepository.findByDefendantsPncNumber(pncIdentifier)?.defendants.orEmpty()
+    val defendants = defendantRepository.findAllByPncNumber(pncIdentifier)
     val defendantMatcher = DefendantMatcher(defendants, person)
+    // todo pass the identifier if we must but it is on the person already
     val pncId = pncIdentifier.pncId
     when {
       defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person, pncId)

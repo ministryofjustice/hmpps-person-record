@@ -171,7 +171,7 @@ abstract class IntegrationTestBase {
     } matches { it == 0 }
   }
 
-  fun assertNewOffenderDomainEventReceiverQueueHasProcessedMessages() {
+  private fun assertNewOffenderDomainEventReceiverQueueHasProcessedMessages() {
     await untilCallTo {
       cprDeliusOffenderEventsQueue?.sqsClient?.countMessagesOnQueue(cprDeliusOffenderEventsQueue!!.queueUrl)
         ?.get()
