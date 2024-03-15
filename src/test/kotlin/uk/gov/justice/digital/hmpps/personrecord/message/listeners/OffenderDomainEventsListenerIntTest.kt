@@ -52,7 +52,6 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
   @Test
   fun `should write offender without PNC if PNC is invalid`() {
     val crn = "XXX5678"
-
     publishDeliusNewOffenderEvent(NEW_OFFENDER_CREATED, crn)
 
     await untilAsserted {

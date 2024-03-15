@@ -181,7 +181,6 @@ abstract class IntegrationTestBase {
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
     val domainEvent = objectMapper.writeValueAsString(DomainEvent(eventType = eventType, detailUrl = createDetailUrl(crn), personReference = personReference))
-
     val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
       .message(domainEvent)
       .messageAttributes(
