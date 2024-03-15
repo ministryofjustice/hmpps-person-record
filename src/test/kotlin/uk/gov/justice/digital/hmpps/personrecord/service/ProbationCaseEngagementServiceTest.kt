@@ -31,7 +31,7 @@ class ProbationCaseEngagementServiceTest {
 
   @BeforeEach
   fun setUp() {
-    probationCaseEngagementService = ProbationCaseEngagementService(personRepository, telemetryService, PersonRecordService(personRepository))
+    probationCaseEngagementService = ProbationCaseEngagementService(telemetryService, PersonRecordService(personRepository))
   }
 
   @Test

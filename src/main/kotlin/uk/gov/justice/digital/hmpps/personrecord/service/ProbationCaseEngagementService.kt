@@ -6,13 +6,11 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Service
 class ProbationCaseEngagementService(
-  val personRepository: PersonRepository,
   val telemetryService: TelemetryService,
   val personRecordService: PersonRecordService,
 ) {
@@ -40,7 +38,7 @@ class ProbationCaseEngagementService(
     val crn = newOffenderDetail.identifiers.crn
     log.debug("Person record exists for pnc $pnc - adding new offender to person with crn $crn")
     // should we not check that there is no offender first?
-    addOffenderToPerson(personRecords.removeFirst(), createOffender(newOffenderDetail))
+    personRecordService.addOffenderToPerson(personRecords.removeFirst(), createOffender(newOffenderDetail))
     personRecords.forEach { log.info("Additional matching person records found with id ${it.personId}") }
     trackEvent(TelemetryEventType.NEW_DELIUS_RECORD_PNC_MATCHED, crn, pnc)
   }
@@ -71,26 +69,15 @@ class ProbationCaseEngagementService(
 
   private fun createNewPersonAndOffenderFromPnc(newOffenderDetail: DeliusOffenderDetail): PersonEntity {
     val newOffenderEntity = createOffender(newOffenderDetail)
-    return addOffenderToPerson(PersonEntity.new(), newOffenderEntity)
+    return personRecordService.addOffenderToPerson(PersonEntity.new(), newOffenderEntity)
   }
 
-  private fun createOffender(deliusOffenderDetail: DeliusOffenderDetail): OffenderEntity {
-    log.debug("Creating new offender with pnc  ${deliusOffenderDetail.identifiers.pnc}")
-    val newOffender = OffenderEntity(
+  private fun createOffender(deliusOffenderDetail: DeliusOffenderDetail): OffenderEntity =
+    OffenderEntity(
       crn = deliusOffenderDetail.identifiers.crn,
       pncNumber = PNCIdentifier.from(deliusOffenderDetail.identifiers.pnc),
       firstName = deliusOffenderDetail.name.forename,
       lastName = deliusOffenderDetail.name.surname,
       dateOfBirth = deliusOffenderDetail.dateOfBirth,
     )
-    return newOffender
-  }
-
-  // this should not be here, there is a very similar function on PersonRecordService, should use that instead
-  // maybe another branch before doing this?
-  private fun addOffenderToPerson(personEntity: PersonEntity, offenderEntity: OffenderEntity): PersonEntity {
-    offenderEntity.person = personEntity
-    personEntity.offenders.add(offenderEntity)
-    return personRepository.saveAndFlush(personEntity)
-  }
 }

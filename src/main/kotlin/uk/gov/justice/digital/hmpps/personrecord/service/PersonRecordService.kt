@@ -54,15 +54,19 @@ class PersonRecordService(
     offenderAliases.forEach { offenderAliasEntity -> offenderAliasEntity.offender = offenderEntity }
     offenderEntity.aliases.addAll(offenderAliases)
 
-    offenderEntity.person = personEntity
-    personEntity.offenders.add(offenderEntity)
-    return personRepository.saveAndFlush(personEntity)
+    return addOffenderToPerson(personEntity, offenderEntity)
   }
 
   fun addPrisonerToPerson(personEntity: PersonEntity, prisonerDetails: PrisonerDetails): PersonEntity {
     val prisonerEntity = PrisonerEntity.from(prisonerDetails)
     prisonerEntity.person = personEntity
     personEntity.prisoners.add(prisonerEntity)
+    return personRepository.saveAndFlush(personEntity)
+  }
+
+  fun addOffenderToPerson(personEntity: PersonEntity, offenderEntity: OffenderEntity): PersonEntity {
+    offenderEntity.person = personEntity
+    personEntity.offenders.add(offenderEntity)
     return personRepository.saveAndFlush(personEntity)
   }
 }
