@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_DELIUS_RECORD_PNC_MATCHED
 import java.util.concurrent.TimeUnit.SECONDS
 
-
 class PersonCreationIntTest : IntegrationTestBase() {
 
   @Test
@@ -45,6 +44,5 @@ class PersonCreationIntTest : IntegrationTestBase() {
 //    val twoDefendants: PersonEntity = await.atMost(100, SECONDS) untilNotNull { personRepository.findPersonEntityByPncNumber(PNCIdentifier.from(pncNumber)) }
 //
 //    assertThat(twoDefendants.defendants.size).isEqualTo(2)
-
   }
 }
