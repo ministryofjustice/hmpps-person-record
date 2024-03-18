@@ -15,7 +15,7 @@ generic-service:
     host: app-hostname.local # override per environment
     tlsSecretName: hmpps-person-record-cert
     annotations:
-      nginx.ingress.kubernetes.io/configuration-snippet: |
+      nginx.ingress.kubernetes.io/server-snippet: |
         server_tokens off;
         location /queue-admin/** {
           deny all;
