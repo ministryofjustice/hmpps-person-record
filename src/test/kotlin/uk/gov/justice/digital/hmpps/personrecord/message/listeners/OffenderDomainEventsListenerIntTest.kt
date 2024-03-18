@@ -42,7 +42,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     }
 
     val personEntities = await.atMost(10, SECONDS) untilNotNull { personRepository.findPersonEntityByPncNumber(expectedPncNumber) }
-    val personEntity = personEntities.removeFirst()
+    val personEntity = personEntities[0]
     assertThat(personEntity.personId).isNotNull()
     assertThat(personEntity.offenders).hasSize(1)
     assertThat(personEntity.offenders[0].pncNumber).isEqualTo(expectedPncNumber)
