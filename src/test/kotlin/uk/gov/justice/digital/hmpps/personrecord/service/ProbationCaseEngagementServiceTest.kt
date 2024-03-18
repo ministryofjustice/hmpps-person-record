@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
@@ -19,10 +18,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import java.time.LocalDate
 
-@Suppress("INLINE_FROM_HIGHER_PLATFORM")
 @ExtendWith(MockitoExtension::class)
 class ProbationCaseEngagementServiceTest {
-  @InjectMocks
+
   lateinit var probationCaseEngagementService: ProbationCaseEngagementService
 
   @Mock
@@ -33,7 +31,7 @@ class ProbationCaseEngagementServiceTest {
 
   @BeforeEach
   fun setUp() {
-    probationCaseEngagementService = ProbationCaseEngagementService(personRepository, telemetryService)
+    probationCaseEngagementService = ProbationCaseEngagementService(telemetryService, PersonRecordService(personRepository))
   }
 
   @Test
@@ -51,7 +49,7 @@ class ProbationCaseEngagementServiceTest {
         pnc = "19790163001B",
       ),
     )
-    whenever(personRepository.findPersonEntityByPncNumber(any())).thenReturn(personEntity)
+    whenever(personRepository.findPersonEntityByPncNumber(any())).thenReturn(mutableListOf(personEntity))
     whenever(personRepository.saveAndFlush(any())).thenReturn(personEntity)
 
     probationCaseEngagementService.processNewOffender(deliusOffenderDetail)
@@ -82,7 +80,7 @@ class ProbationCaseEngagementServiceTest {
         pnc = "19790163001B",
       ),
     )
-    whenever(personRepository.findPersonEntityByPncNumber(any())).thenReturn(null)
+    whenever(personRepository.findPersonEntityByPncNumber(any())).thenReturn(emptyList())
     whenever(personRepository.saveAndFlush(any())).thenReturn(personEntity)
 
     probationCaseEngagementService.processNewOffender(deliusOffenderDetail)

@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.Person
 
 class DefendantMatcher(defendants: List<DefendantEntity>?, person: Person) :
   Matcher<DefendantEntity>(defendants, person) {
-
+  override fun isExactMatch() = items?.any(::isMatchingItem) ?: false
   override fun isPartialMatchItem(item: DefendantEntity): Boolean {
     return person.otherIdentifiers?.pncIdentifier == PNCIdentifier.from(item.pncNumber?.pncId) &&
       item.firstName.equals(person.givenName, true) || item.surname.equals(person.familyName, true) || item.dateOfBirth == person.dateOfBirth

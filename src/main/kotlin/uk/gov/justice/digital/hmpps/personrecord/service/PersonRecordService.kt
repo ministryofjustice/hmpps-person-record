@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerDetails
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantAliasEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
@@ -12,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PrisonerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 
 @Service
@@ -23,6 +23,9 @@ class PersonRecordService(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
+  fun findPersonRecordsByPnc(pncIdentifier: PNCIdentifier): List<PersonEntity> {
+    return personRepository.findPersonEntityByPncNumber(pncIdentifier)
+  }
   fun createNewPersonAndDefendant(person: Person): PersonEntity {
     log.debug("Entered createNewPersonAndDefendant with pnc ${person.otherIdentifiers?.pncIdentifier}")
 
@@ -51,22 +54,19 @@ class PersonRecordService(
     offenderAliases.forEach { offenderAliasEntity -> offenderAliasEntity.offender = offenderEntity }
     offenderEntity.aliases.addAll(offenderAliases)
 
-    offenderEntity.person = personEntity
-    personEntity.offenders.add(offenderEntity)
-    return personRepository.saveAndFlush(personEntity)
-  }
-
-  fun addPrisonerToPerson(personEntity: PersonEntity, prisoner: Prisoner): PersonEntity {
-    val prisonerEntity = PrisonerEntity.from(prisoner)
-    prisonerEntity.person = personEntity
-    personEntity.prisoners.add(prisonerEntity)
-    return personRepository.saveAndFlush(personEntity)
+    return addOffenderToPerson(personEntity, offenderEntity)
   }
 
   fun addPrisonerToPerson(personEntity: PersonEntity, prisonerDetails: PrisonerDetails): PersonEntity {
     val prisonerEntity = PrisonerEntity.from(prisonerDetails)
     prisonerEntity.person = personEntity
     personEntity.prisoners.add(prisonerEntity)
+    return personRepository.saveAndFlush(personEntity)
+  }
+
+  fun addOffenderToPerson(personEntity: PersonEntity, offenderEntity: OffenderEntity): PersonEntity {
+    offenderEntity.person = personEntity
+    personEntity.offenders.add(offenderEntity)
     return personRepository.saveAndFlush(personEntity)
   }
 }

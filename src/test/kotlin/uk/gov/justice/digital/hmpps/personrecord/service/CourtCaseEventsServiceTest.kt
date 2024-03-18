@@ -10,8 +10,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
@@ -39,7 +38,7 @@ class CourtCaseEventsServiceTest {
   lateinit var offenderService: OffenderService
 
   @Mock
-  lateinit var personRepository: PersonRepository
+  lateinit var defendantRepository: DefendantRepository
 
   @InjectMocks
   lateinit var courtCaseEventsService: CourtCaseEventsService
@@ -95,18 +94,16 @@ class CourtCaseEventsServiceTest {
     val crn = "CRN123"
     val personID = UUID.fromString("2936dd6a-677a-4cc0-83c5-2296b6efee0b")
     val dateOfBirth = LocalDate.now()
-    whenever(personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncNumber)))
+    whenever(defendantRepository.findAllByPncNumber(PNCIdentifier.from(pncNumber)))
       .thenReturn(
-        PersonEntity(
-          defendants = mutableListOf(
-            DefendantEntity(
-              pncNumber = PNCIdentifier.from(pncNumber),
-              crn = crn,
-              surname = "Jones",
-              firstName = "Crackity",
-              dateOfBirth = dateOfBirth,
-              defendantId = "122434",
-            ),
+        mutableListOf(
+          DefendantEntity(
+            pncNumber = PNCIdentifier.from(pncNumber),
+            crn = crn,
+            surname = "Jones",
+            firstName = "Crackity",
+            dateOfBirth = dateOfBirth,
+            defendantId = "122434",
           ),
         ),
       )
@@ -133,17 +130,15 @@ class CourtCaseEventsServiceTest {
     // Given
     val pncNumber = "2003/0011985X"
     val dateOfBirth = LocalDate.now()
-    whenever(personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncNumber)))
+    whenever(defendantRepository.findAllByPncNumber(PNCIdentifier.from(pncNumber)))
       .thenReturn(
-        PersonEntity(
-          defendants = mutableListOf(
-            DefendantEntity(
-              pncNumber = PNCIdentifier.from(pncNumber),
-              surname = "Jones",
-              firstName = "Crackity",
-              dateOfBirth = dateOfBirth,
-              defendantId = "122434",
-            ),
+        mutableListOf(
+          DefendantEntity(
+            pncNumber = PNCIdentifier.from(pncNumber),
+            surname = "Jones",
+            firstName = "Crackity",
+            dateOfBirth = dateOfBirth,
+            defendantId = "122434",
           ),
         ),
       )
