@@ -1,13 +1,21 @@
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.3"
-  kotlin("plugin.spring") version "1.9.22"
-  kotlin("jvm") version "1.9.22"
-  kotlin("plugin.jpa") version "1.9.22"
+  kotlin("plugin.spring") version "1.9.23"
+  kotlin("jvm") version "1.9.23"
+  kotlin("plugin.jpa") version "1.9.23"
   id("io.gitlab.arturbosch.detekt") version "1.23.5"
 }
 
 configurations {
   testImplementation { exclude(group = "org.junit.vintage") }
+}
+
+configurations.matching { it.name == "detekt" }.all {
+  resolutionStrategy.eachDependency {
+    if (requested.group == "org.jetbrains.kotlin") {
+      useVersion(io.gitlab.arturbosch.detekt.getSupportedKotlinVersion())
+    }
+  }
 }
 
 dependencies {
@@ -23,12 +31,12 @@ dependencies {
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.0")
   implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.0")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:3.1.1")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.1.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.2.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
 
-  runtimeOnly("org.postgresql:postgresql:42.7.2")
-  runtimeOnly("org.flywaydb:flyway-core:10.9.1")
-  runtimeOnly("org.flywaydb:flyway-database-postgresql:10.9.1")
+  runtimeOnly("org.postgresql:postgresql:42.7.3")
+  runtimeOnly("org.flywaydb:flyway-core:10.10.0")
+  runtimeOnly("org.flywaydb:flyway-database-postgresql:10.10.0")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
@@ -39,9 +47,9 @@ dependencies {
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.5")
-  testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.22")
-  testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
-  testImplementation("org.jmock:jmock:2.13.0")
+  testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.23")
+  testImplementation("org.awaitility:awaitility-kotlin:4.2.1")
+  testImplementation("org.jmock:jmock:2.13.1")
 }
 
 java {

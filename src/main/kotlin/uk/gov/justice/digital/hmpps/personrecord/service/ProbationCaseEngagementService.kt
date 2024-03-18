@@ -38,8 +38,8 @@ class ProbationCaseEngagementService(
     val crn = newOffenderDetail.identifiers.crn
     log.debug("Person record exists for pnc $pnc - adding new offender to person with crn $crn")
     // should we not check that there is no offender first?
-    personRecordService.addOffenderToPerson(personRecords.removeFirst(), createOffender(newOffenderDetail))
-    personRecords.forEach { log.info("Additional matching person records found with id ${it.personId}") }
+    personRecordService.addOffenderToPerson(personRecords.get(0), createOffender(newOffenderDetail))
+    personRecords.subList(1, personRecords.size).forEach { log.info("Additional matching person records found with id ${it.personId}") }
     trackEvent(TelemetryEventType.NEW_DELIUS_RECORD_PNC_MATCHED, crn, pnc)
   }
 

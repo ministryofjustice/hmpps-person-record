@@ -1,9 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.model
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.PersonDefendant
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.PersonDetails
@@ -12,21 +10,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.libra.Name
 import java.time.LocalDate
 
 internal class PersonTest {
-
-  @Test
-  @Disabled("Until refactoring complete")
-  fun `should correctly map multiple middle names to a list`() {
-    // Given
-    val personEntity = PersonEntity(
-      id = 3234L,
-    )
-
-    // When
-    val person = Person.from(personEntity)
-
-    // Then
-    assertThat(person.middleNames).containsExactlyInAnyOrder("Jack", "Michael", "Henry")
-  }
 
   @Test
   fun `should map libra hearing to person`() {
