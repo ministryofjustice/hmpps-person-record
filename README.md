@@ -6,8 +6,7 @@
 ### A service for managing identity data about the people we look after in HMPPS
 
 ## Prerequisites
-- JDK 21 needs to be installed 
-- Gradle v8.4 is required for the build
+- JDK 21 needs to be installed
 
 
 ## Running Service Locally
