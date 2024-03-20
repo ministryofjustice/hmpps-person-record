@@ -119,10 +119,6 @@ class PrisonerEntity(
         middleName = prisonerDetails.middleName,
         lastName = prisonerDetails.lastName,
         dateOfBirth = prisonerDetails.dateOfBirth,
-        birthPlace = prisonerDetails.birthPlace,
-        birthCountryCode = prisonerDetails.birthCountryCode,
-        sexCode = prisonerDetails.physicalAttributes?.sexCode,
-        raceCode = prisonerDetails.physicalAttributes?.raceCode,
         contact = ContactEntity.from(prisonerDetails),
         address = when {
           prisonerDetails.getHomeAddress()?.postCode?.isNotBlank() == true -> {

@@ -329,9 +329,9 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.prisoners[0].drivingLicenseNumber).isEqualTo("ERIC1234567K")
     assertThat(personEntity.prisoners[0].nationalInsuranceNumber).isEqualTo("PD123456D")
     assertThat(personEntity.prisoners[0].address?.postcode).isEqualTo("LI1 5TH")
-    assertThat(personEntity.prisoners[0].sexCode).isEqualTo("M")
-    assertThat(personEntity.prisoners[0].raceCode).isEqualTo("W1")
-    assertThat(personEntity.prisoners[0].birthPlace).isEqualTo("WALES")
-    assertThat(personEntity.prisoners[0].birthCountryCode).isEqualTo("GBR")
+    assertThat(personEntity.prisoners[0].sexCode).isNull()
+    assertThat(personEntity.prisoners[0].raceCode).isNull()
+    assertThat(personEntity.prisoners[0].birthPlace).isNull()
+    assertThat(personEntity.prisoners[0].birthCountryCode).isNull()
   }
 }
