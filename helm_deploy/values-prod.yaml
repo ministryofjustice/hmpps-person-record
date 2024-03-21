@@ -10,6 +10,15 @@ generic-service:
     SPRING_PROFILES_ACTIVE: "prod"
     nomis_oauth:
       base_url: https://sign-in.hmpps.service.justice.gov.uk
+    offender-search:
+      base-url: https://probation-offender-search.hmpps.service.justice.gov.uk
+    prisoner-search:
+      base-url: https://prisoner-search.prison.service.justice.gov.uk
+    domain-event-and-delius-api:
+      base_url: https://domain-events-and-delius.hmpps.service.justice.gov.uk
+    prison-service:
+      base-url: https://api.prison.service.justice.gov.uk/
+
 
 generic-prometheus-alerts:
   sqsAlertsQueueNames:
