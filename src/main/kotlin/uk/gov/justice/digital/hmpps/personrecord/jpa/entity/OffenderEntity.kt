@@ -131,11 +131,8 @@ class OffenderEntity(
         firstName = offenderDetail.firstName,
         lastName = offenderDetail.surname,
         dateOfBirth = offenderDetail.dateOfBirth,
-        gender = offenderDetail.gender,
         previousSurname = offenderDetail.previousSurName,
         preferredName = offenderDetail.highlight?.getPreferredName(),
-        ethnicity = offenderDetail.offenderProfile?.ethnicity,
-        nationality = offenderDetail.offenderProfile?.nationality,
         contact = offenderDetail.contactDetails?.let { ContactEntity.from(it) },
         address = offenderDetail.contactDetails?.getAddress()?.let { AddressEntity.from(it) },
       )
