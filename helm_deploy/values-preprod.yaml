@@ -16,13 +16,6 @@ generic-service:
     DOMAIN_EVENT_AND_DELIUS_API_BASE_URL: https://domain-events-and-delius-preprod.hmpps.service.justice.gov.uk
     PRISON_SERVICE_BASE_URL: https://api-preprod.prison.service.justice.gov.uk
 
-    feature:
-      flags:
-        enable-hmcts-sqs: true
-        enable-delius-search: true
-        enable-nomis-search: true
-        enable-delius-domain-event-sqs: true
-
   scheduledDowntime:
     enabled: true
 
