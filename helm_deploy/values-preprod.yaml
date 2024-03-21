@@ -10,8 +10,23 @@ generic-service:
 
   env:
     SPRING_PROFILES_ACTIVE: "preprod"
-    nomis_oauth:
-      base_url: https://sign-in-preprod.hmpps.service.justice.gov.uk
+    nomis-oauth:
+      base-url: https://sign-in-preprod.hmpps.service.justice.gov.uk
+    offender-search:
+      base-url: https://probation-offender-search-preprod.hmpps.service.justice.gov.uk
+    prisoner-search:
+      base-url: https://prisoner-search-preprod.prison.service.justice.gov.uk
+    domain-event-and-delius-api:
+      base_url: https://domain-events-and-delius-preprod.hmpps.service.justice.gov.uk
+    prison-service:
+      base-url: https://api-preprod.prison.service.justice.gov.uk
+
+    feature:
+      flags:
+        enable-hmcts-sqs: true
+        enable-delius-search: true
+        enable-nomis-search: true
+        enable-delius-domain-event-sqs: true
 
   scheduledDowntime:
     enabled: true

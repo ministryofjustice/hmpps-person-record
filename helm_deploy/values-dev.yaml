@@ -16,8 +16,18 @@ generic-service:
   env:
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.dev.json
     SPRING_PROFILES_ACTIVE: "dev"
-    nomis_oauth:
-      base_url: https://sign-in-dev.hmpps.service.justice.gov.uk
+    NOMIS_OAUTH_BASE_URL: https://sign-in-dev.hmpps.service.justice.gov.uk
+    OFFENDER_SEARCH_BASE_URL: https://probation-offender-search-dev.hmpps.service.justice.gov.uk
+    PRISONER_SEARCH_BASE_URL: https://prisoner-search-dev.prison.service.justice.gov.uk
+    DOMAIN_EVENT_AND_DELIUS_API_BASE_URL: https://domain-events-and-delius-dev.hmpps.service.justice.gov.uk
+    PRISON_SERVICE_BASE_URL: https://prison-api-dev.prison.service.justice.gov.uk
+
+    feature:
+      flags:
+        enable-hmcts-sqs: true
+        enable-delius-search: true
+        enable-nomis-search: true
+        enable-delius-domain-event-sqs: true
 
   scheduledDowntime:
     enabled: true
