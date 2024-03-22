@@ -14,9 +14,9 @@ import uk.gov.justice.digital.hmpps.personrecord.config.PrisonServiceOAuth2Confi
 )
 interface PrisonServiceClient {
 
-  @GetMapping(value = ["\${prison-service.prisoner-details}/{prisonerNumber}"])
+  @GetMapping(value = ["/api/offenders/{prisonerNumber}"])
   fun getPrisonerDetails(@PathVariable("prisonerNumber") prisonerNumber: String): PrisonerDetails?
 
-  @GetMapping(value = ["\${prison-service.prisoner-details}/{prisonerNumber}/addresses"])
+  @GetMapping(value = ["/api/offenders/{prisonerNumber}/addresses"])
   fun getPrisonerAddresses(@PathVariable("prisonerNumber") prisonerNumber: String): List<Address>?
 }

@@ -110,9 +110,6 @@ offender-search:
 prisoner-search:
   possible-matches: /prisoner-search/possible-matches
 
-prison-service:
-  prisoner-details: /offender
-
 retry:
   delay: 2000
 
