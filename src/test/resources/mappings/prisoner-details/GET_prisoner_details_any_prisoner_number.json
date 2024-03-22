@@ -2,7 +2,7 @@
   "priority": 5,
   "request": {
     "method": "GET",
-    "urlPattern": "/offender/[A-Z0-9]*",
+    "urlPattern": "/api/offenders/[A-Z0-9]*",
     "headers" : {
       "Content-Type": {
         "equalTo": "application/json"

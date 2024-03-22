@@ -12,7 +12,7 @@ class PrisonServiceClientIntTest : IntegrationTestBase() {
   lateinit var restClient: PrisonServiceClient
 
   @Test
-  fun `should return prisoner detail for valid prisoner number`() {
+  fun `should return prisoner detail for prisoner number which exists`() {
     // Given
     val prisonerNumber = "A1234AA"
 
