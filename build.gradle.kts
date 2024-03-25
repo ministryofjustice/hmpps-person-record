@@ -3,19 +3,11 @@ plugins {
   kotlin("plugin.spring") version "1.9.23"
   kotlin("jvm") version "1.9.23"
   kotlin("plugin.jpa") version "1.9.23"
-  id("io.gitlab.arturbosch.detekt") version "1.23.5"
+  id("io.gitlab.arturbosch.detekt") version "1.23.6"
 }
 
 configurations {
   testImplementation { exclude(group = "org.junit.vintage") }
-}
-
-configurations.matching { it.name == "detekt" }.all {
-  resolutionStrategy.eachDependency {
-    if (requested.group == "org.jetbrains.kotlin") {
-      useVersion(io.gitlab.arturbosch.detekt.getSupportedKotlinVersion())
-    }
-  }
 }
 
 dependencies {
