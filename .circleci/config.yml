@@ -29,7 +29,7 @@ parameters:
     default: hmpps-person-record-alerts
   releases-slack-channel:
     type: string
-    default: dps-releases
+    default: hmpps-person-record-alerts
 
 jobs:
   validate:
@@ -73,6 +73,8 @@ workflows:
           jira_update: true
           pipeline_id: <<pipeline.id>>
           pipeline_number: <<pipeline.number>>
+          slack_notification: true
+          slack_channel_name: << pipeline.parameters.releases-slack-channel >>
           context: hmpps-common-vars
           filters:
             branches:
@@ -93,6 +95,8 @@ workflows:
           jira_update: true
           pipeline_id: <<pipeline.id>>
           pipeline_number: <<pipeline.number>>
+          slack_notification: true
+          slack_channel_name: << pipeline.parameters.releases-slack-channel >>
           jira_env_type: staging
           context:
             - hmpps-common-vars
