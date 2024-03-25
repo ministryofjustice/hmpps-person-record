@@ -10,14 +10,6 @@ configurations {
   testImplementation { exclude(group = "org.junit.vintage") }
 }
 
-configurations.matching { it.name == "detekt" }.all {
-  resolutionStrategy.eachDependency {
-    if (requested.group == "org.jetbrains.kotlin") {
-      useVersion(io.gitlab.arturbosch.detekt.getSupportedKotlinVersion())
-    }
-  }
-}
-
 dependencies {
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
