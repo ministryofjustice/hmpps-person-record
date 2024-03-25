@@ -29,7 +29,7 @@ parameters:
     default: hmpps-person-record-alerts
   releases-slack-channel:
     type: string
-    default: dps-releases
+    default: hmpps-person-record-alerts
 
 jobs:
   validate:
