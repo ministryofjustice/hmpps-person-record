@@ -21,3 +21,7 @@ generic-service:
 
 generic-prometheus-alerts:
   businessHoursOnly: true
+  sqsNumberAlertQueueNames:
+    - "hmpps-person-record-preprod-cpr_court_case_events_dlq"
+    - "hmpps-person-record-preprod-cpr_delius_offender_events_dlq"
+  sqsAlertsTotalMessagesThreshold: 1

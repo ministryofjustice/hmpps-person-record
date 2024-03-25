@@ -15,10 +15,11 @@ generic-service:
     PRISON_SERVICE_BASE_URL: https://api.prison.service.justice.gov.uk
 
 generic-prometheus-alerts:
-  sqsAlertsQueueNames:
+  sqsOldestAlertQueueNames:
     - "hmpps-person-record-prod-cpr_court_case_events_queue"
+    - "hmpps-person-record-prod-cpr_delius_offender_events_queue"
+  sqsNumberAlertQueueNames:
     - "hmpps-person-record-prod-cpr_court_case_events_dlq"
     - "hmpps-person-record-prod-cpr_delius_offender_events_dlq"
-    - "hmpps-person-record-prod-cpr_delius_offender_events_queue"
-    # - "Digital-Prison-Services-prod-cpr_offender_events_dlq" omitting for now
-    # - "Digital-Prison-Services-prod-cpr_offender_events_queue" # we are not yet consuming from this queue
+  sqsAlertsOldestThreshold: 15
+  sqsAlertsTotalMessagesThreshold: 1
