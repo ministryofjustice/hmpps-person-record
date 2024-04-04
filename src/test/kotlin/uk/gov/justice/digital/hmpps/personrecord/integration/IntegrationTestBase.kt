@@ -30,6 +30,7 @@ import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PrisonerRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonReference
@@ -70,6 +71,9 @@ abstract class IntegrationTestBase {
 
   @Autowired
   lateinit var offenderRepository: OffenderRepository
+
+  @Autowired
+  lateinit var prisonerRepository: PrisonerRepository
 
   @SpyBean
   lateinit var telemetryService: TelemetryService // replace with telemtryClient?
