@@ -39,8 +39,11 @@ class OffenderCreatedEventProcessor(
       },
     )
   }
-  private fun getNewOffenderDetail(offenderDetailsUrl: String): Result<DeliusOffenderDetail?> = try {
-    Result.success(offenderDetailRestClient.getNewOffenderDetail(URI.create(offenderDetailsUrl).path))
+  private fun getNewOffenderDetail(offenderDetailsUrl: String?): Result<DeliusOffenderDetail?> = try {
+    Result.success(
+      offenderDetailsUrl?.let { URI.create(it).path }
+        ?.let { offenderDetailRestClient.getNewOffenderDetail(it) },
+    )
   } catch (e: Exception) {
     Result.failure(e)
   }
