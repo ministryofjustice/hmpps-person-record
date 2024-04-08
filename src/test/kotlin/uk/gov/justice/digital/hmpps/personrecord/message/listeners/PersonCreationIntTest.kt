@@ -9,7 +9,7 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.PRISONER_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
@@ -31,7 +31,7 @@ class PersonCreationIntTest : IntegrationTestBase() {
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber), COMMON_PLATFORM_HEARING)
 
     // this should fail if we can get the call to offender search to return the same PNC
-    publishDeliusNewOffenderEvent(PRISONER_UPDATED, "CRN123456")
+    publishDeliusNewOffenderEvent(NEW_OFFENDER_CREATED, "CRN123456")
     await untilAsserted {
       verify(telemetryService).trackEvent(
         eq(NEW_DELIUS_RECORD_PNC_MATCHED),
