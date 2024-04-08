@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DELIUS_RECORD_CREATION_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_DELIUS_RECORD_NEW_PNC
@@ -21,7 +21,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     // Given
     val crn = "XXX1234"
     val expectedPncNumber = PNCIdentifier.from("2020/0476873U")
-    publishDeliusNewOffenderEvent(NEW_OFFENDER_CREATED, crn)
+    publishDeliusNewOffenderEvent(PRISONER_UPDATED, crn)
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
@@ -52,7 +52,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
   @Test
   fun `should write offender without PNC if PNC is invalid`() {
     val crn = "XXX5678"
-    publishDeliusNewOffenderEvent(NEW_OFFENDER_CREATED, crn)
+    publishDeliusNewOffenderEvent(PRISONER_UPDATED, crn)
 
     await untilAsserted {
       verify(telemetryService).trackEvent(
