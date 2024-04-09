@@ -7,13 +7,12 @@ import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 
 @Service
 class PrisonerDomainEventService(
-  val telemetryService: TelemetryService
+  val telemetryService: TelemetryService,
 ) {
 
   private companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
-
 
   fun processEvent(domainEvent: DomainEvent) {
     log.debug("Processing event with noms number ${domainEvent.additionalInformation?.nomsNumber}")
