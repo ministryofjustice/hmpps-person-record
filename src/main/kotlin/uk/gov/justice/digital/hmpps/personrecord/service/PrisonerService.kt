@@ -54,10 +54,6 @@ class PrisonerService(
     }
   }
 
-  fun processPrisonerDomainEvent(domainEvent: DomainEvent) {
-    // implement latter
-  }
-
   private fun pncDoesNotMatch(prisonerMatcher: PrisonerMatcher, personEntity: PersonEntity, person: Person) {
     prisonerMatcher.items?.let { trackPncMismatchEvent(it, personEntity, person) }
   }

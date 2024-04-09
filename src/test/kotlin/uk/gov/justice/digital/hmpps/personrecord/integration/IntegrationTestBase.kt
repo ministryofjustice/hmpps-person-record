@@ -36,6 +36,7 @@ import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.Pr
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
+import uk.gov.justice.digital.hmpps.personrecord.service.PrisonerDomainEventService
 import uk.gov.justice.digital.hmpps.personrecord.service.PrisonerService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -86,7 +87,7 @@ abstract class IntegrationTestBase {
   lateinit var prisonerUpdatedEventProcessor: PrisonerUpdatedEventProcessor
 
   @SpyBean
-  lateinit var prisonerService: PrisonerService
+  lateinit var prisonerDomainEventService: PrisonerDomainEventService
 
   val courtCaseEventsTopic by lazy {
     hmppsQueueService.findByTopicId("courtcaseeventstopic")

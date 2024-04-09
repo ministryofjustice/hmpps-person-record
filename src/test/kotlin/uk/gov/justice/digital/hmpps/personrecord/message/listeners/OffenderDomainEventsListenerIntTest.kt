@@ -109,7 +109,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     }
 
     await untilAsserted {
-      verify(prisonerService).processPrisonerDomainEvent(
+      verify(prisonerDomainEventService).processEvent(
         eq(domainEvent),
       )
     }
@@ -131,7 +131,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     }
 
     await untilAsserted {
-      verify(prisonerService).processPrisonerDomainEvent(
+      verify(prisonerDomainEventService).processEvent(
         eq(domainEvent),
       )
     }
