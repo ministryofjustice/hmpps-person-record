@@ -10,7 +10,10 @@ import org.mockito.kotlin.verify
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_DELIUS_RECORD_PNC_MATCHED
@@ -21,6 +24,7 @@ class PersonCreationIntTest : IntegrationTestBase() {
   @Test
   fun `should allow creation and retrieval of 2 defendants with same PNC and different name`() {
     val pncNumber = "1981/0154257C"
+    val crn = "CRN123456"
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber, "Bob", "Marley", "1945-06-02"), COMMON_PLATFORM_HEARING)
     val oneDefendant: List<PersonEntity> = await.atMost(100, SECONDS) untilNotNull { personRepository.findPersonEntityByPncNumber(PNCIdentifier.from(pncNumber)) }
 
@@ -31,7 +35,11 @@ class PersonCreationIntTest : IntegrationTestBase() {
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber), COMMON_PLATFORM_HEARING)
 
     // this should fail if we can get the call to offender search to return the same PNC
-    publishDeliusNewOffenderEvent(NEW_OFFENDER_CREATED, "CRN123456")
+    val crnType = PersonIdentifier("CRN", crn)
+    val personReference = PersonReference(listOf(crnType))
+    val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
+    publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
+
     await untilAsserted {
       verify(telemetryService).trackEvent(
         eq(NEW_DELIUS_RECORD_PNC_MATCHED),
@@ -40,9 +48,5 @@ class PersonCreationIntTest : IntegrationTestBase() {
         },
       )
     }
-    // now fix the code which this assertion calls
-//    val twoDefendants: PersonEntity = await.atMost(100, SECONDS) untilNotNull { personRepository.findPersonEntityByPncNumber(PNCIdentifier.from(pncNumber)) }
-//
-//    assertThat(twoDefendants.defendants.size).isEqualTo(2)
   }
 }

@@ -31,11 +31,12 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantReposit
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PrisonerRepository
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.PrisonerCreatedEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.PrisonerUpdatedEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
+import uk.gov.justice.digital.hmpps.personrecord.service.PrisonerDomainEventService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
@@ -77,6 +78,15 @@ abstract class IntegrationTestBase {
 
   @SpyBean
   lateinit var telemetryService: TelemetryService // replace with telemtryClient?
+
+  @SpyBean
+  lateinit var prisonerCreatedEventProcessor: PrisonerCreatedEventProcessor
+
+  @SpyBean
+  lateinit var prisonerUpdatedEventProcessor: PrisonerUpdatedEventProcessor
+
+  @SpyBean
+  lateinit var prisonerDomainEventService: PrisonerDomainEventService
 
   val courtCaseEventsTopic by lazy {
     hmppsQueueService.findByTopicId("courtcaseeventstopic")
@@ -174,19 +184,17 @@ abstract class IntegrationTestBase {
     } matches { it == 0 }
   }
 
-  private fun assertNewOffenderDomainEventReceiverQueueHasProcessedMessages() {
+  private fun assertDomainEventReceiverQueueHasProcessedMessages() {
     await untilCallTo {
       cprDeliusOffenderEventsQueue?.sqsClient?.countMessagesOnQueue(cprDeliusOffenderEventsQueue!!.queueUrl)
         ?.get()
     } matches { it == 0 }
   }
 
-  fun publishDeliusNewOffenderEvent(eventType: String, crn: String) {
-    val crnType = PersonIdentifier("CRN", crn)
-    val personReference = PersonReference(listOf(crnType))
-    val domainEvent = objectMapper.writeValueAsString(DomainEvent(eventType = eventType, detailUrl = createDetailUrl(crn), personReference = personReference))
+  fun publishOffenderDomainEvent(eventType: String, domainEvent: DomainEvent) {
+    val domainEventAsString = objectMapper.writeValueAsString(domainEvent)
     val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
-      .message(domainEvent)
+      .message(domainEventAsString)
       .messageAttributes(
         mapOf(
           "eventType" to MessageAttributeValue.builder().dataType("String")
@@ -196,17 +204,24 @@ abstract class IntegrationTestBase {
 
     publishOffenderEvent(publishRequest)?.get()
 
-    assertNewOffenderDomainEventReceiverQueueHasProcessedMessages()
+    assertDomainEventReceiverQueueHasProcessedMessages()
   }
 
   private fun publishOffenderEvent(publishRequest: PublishRequest): CompletableFuture<PublishResponse>? {
     return domainEventsTopic?.snsClient?.publish(publishRequest)
   }
 
-  private fun createDetailUrl(crn: String): String {
+  fun createDeliusDetailUrl(crn: String): String {
     val builder = StringBuilder()
     builder.append("https://domain-events-and-delius-dev.hmpps.service.justice.gov.uk/probation-case.engagement.created/")
     builder.append(crn)
+    return builder.toString()
+  }
+
+  fun createNomsDetailUrl(nomsNUmber: String): String {
+    val builder = StringBuilder()
+    builder.append("https://prisoner-search-dev.prison.service.justice.gov.uk/prisoner/")
+    builder.append(nomsNUmber)
     return builder.toString()
   }
 }
