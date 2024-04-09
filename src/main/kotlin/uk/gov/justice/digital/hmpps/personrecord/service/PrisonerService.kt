@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerDetails
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.matcher.PrisonerMatcher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -53,8 +54,8 @@ class PrisonerService(
     }
   }
 
-  fun processPrisonerDomainEvent(){
-    //implement latter
+  fun processPrisonerDomainEvent(domainEvent: DomainEvent) {
+    // implement latter
   }
 
   private fun pncDoesNotMatch(prisonerMatcher: PrisonerMatcher, personEntity: PersonEntity, person: Person) {
