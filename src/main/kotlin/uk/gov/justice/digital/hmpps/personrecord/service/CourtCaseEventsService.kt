@@ -50,12 +50,13 @@ class CourtCaseEventsService(
       defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person, pncId)
       defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher)
       else -> {
-        createNewPersonRecordAndProcess(person, pncId)
+        createNewPersonRecordAndProcess(person)
       }
     }
   }
 
-  private fun createNewPersonRecordAndProcess(person: Person, pnc: String) {
+  private fun createNewPersonRecordAndProcess(person: Person) {
+    val pnc = person.otherIdentifiers?.pncIdentifier?.pncId
     log.debug("No existing matching Person record exists - creating new person and defendant with pnc $pnc")
     val personRecord = personRecordService.createNewPersonAndDefendant(person)
     personRecord.let {
