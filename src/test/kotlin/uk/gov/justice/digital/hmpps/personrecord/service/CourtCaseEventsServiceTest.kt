@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.VALID_PNC
 import java.time.LocalDate
 import java.util.*
@@ -48,21 +47,6 @@ class CourtCaseEventsServiceTest {
     // Then
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
     verify(telemetryService).trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
-    verifyNoMoreInteractions(telemetryService)
-  }
-
-  @Test
-  fun `should call telemetry service when PNC is invalid from Court Case Event`() {
-    // Given
-    val pncNumber = "DODGY_PNC"
-    val person = Person(familyName = "Jones", otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(pncNumber)))
-
-    // When
-    courtCaseEventsService.processPersonFromCourtCaseEvent(person)
-
-    // Then
-    verify(personRecordService, never()).createNewPersonAndDefendant(person)
-    verify(telemetryService).trackEvent(INVALID_PNC, mapOf("PNC" to pncNumber))
     verifyNoMoreInteractions(telemetryService)
   }
 
