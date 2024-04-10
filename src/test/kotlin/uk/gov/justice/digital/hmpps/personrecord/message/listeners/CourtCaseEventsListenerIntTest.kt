@@ -188,6 +188,13 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     val personEntity = await.atMost(30, SECONDS) untilNotNull {
       personRepository.findByPrisonersPncNumber(pncNumber)
     }
+    verify(telemetryClient, times(1)).trackEvent(
+      eq(HMCTS_RECORD_CREATED.eventName),
+      check {
+        assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
+      },
+      eq(null),
+    )
 
     assertThat(personEntity.personId).isNotNull()
     assertThat(personEntity.defendants.size).isEqualTo(1)
