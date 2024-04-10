@@ -5,9 +5,9 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.InvalidPNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.InvalidPNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.ValidPNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.ValidPNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.matcher.DefendantMatcher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH

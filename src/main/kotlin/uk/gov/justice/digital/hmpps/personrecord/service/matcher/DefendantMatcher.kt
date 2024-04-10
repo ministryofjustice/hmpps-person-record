@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.matcher
 
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 
 class DefendantMatcher(defendants: List<DefendantEntity>?, person: Person) :

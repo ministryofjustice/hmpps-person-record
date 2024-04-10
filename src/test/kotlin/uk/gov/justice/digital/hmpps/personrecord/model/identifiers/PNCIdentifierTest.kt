@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.model
+package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -6,6 +6,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.InvalidPNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.stream.Stream
