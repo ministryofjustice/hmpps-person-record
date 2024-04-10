@@ -1,3 +1,4 @@
+package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -22,9 +23,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.OffenderService
-import uk.gov.justice.digital.hmpps.personrecord.service.PersonRecordService
-import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import java.time.LocalDate
 
@@ -266,11 +264,10 @@ class OffenderServiceTest {
   @Test
   fun `should retry 3 times and throw exception and send correct event`() {
     // Given
-    val anotherPnc = "2001/0072845E"
     val personEntity = PersonEntity.new()
     val dateOfBirth = LocalDate.now()
     val person = createPerson(dateOfBirth, PNCIdentifier.from(PNC_ID), CRN)
-    val offenderDetails = listOf(createOffenderDetail(dateOfBirth, anotherPnc))
+
     whenever(client.findPossibleMatches(OffenderMatchCriteria.from(person)))
       .thenThrow(HttpClientErrorException(HttpStatusCode.valueOf(500)))
       .thenThrow(HttpClientErrorException(HttpStatusCode.valueOf(500)))
