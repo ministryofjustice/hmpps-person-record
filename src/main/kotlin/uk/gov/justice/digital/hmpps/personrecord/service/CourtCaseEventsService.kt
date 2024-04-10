@@ -44,10 +44,8 @@ class CourtCaseEventsService(
     trackEvent(VALID_PNC, mapOf("PNC" to pncIdentifier.toString()))
     val defendants = defendantRepository.findAllByPncNumber(pncIdentifier)
     val defendantMatcher = DefendantMatcher(defendants, person)
-    // todo pass the identifier if we must but it is on the person already
-    val pncId = pncIdentifier.pncId
     when {
-      defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person, pncId)
+      defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person)
       defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher)
       else -> {
         createNewPersonRecordAndProcess(person)
@@ -68,9 +66,10 @@ class CourtCaseEventsService(
       mapOf("UUID" to personRecord.personId.toString(), "PNC" to pnc),
     )
   }
-  private fun exactMatchFound(defendantMatcher: DefendantMatcher, person: Person, pnc: String) {
+
+  private fun exactMatchFound(defendantMatcher: DefendantMatcher, person: Person) {
     log.info("Exactly matching Person record exists with defendant - no further processing will occur")
-    val elementMap = mapOf("PNC" to pnc, "CRN" to defendantMatcher.getMatchingItem().crn, "UUID" to person.personId.toString())
+    val elementMap = mapOf("PNC" to person.otherIdentifiers?.pncIdentifier?.pncId, "CRN" to defendantMatcher.getMatchingItem().crn, "UUID" to person.personId.toString())
     trackEvent(HMCTS_EXACT_MATCH, elementMap)
   }
 
