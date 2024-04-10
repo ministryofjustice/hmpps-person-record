@@ -32,12 +32,6 @@ class CourtCaseEventsServiceTest {
   lateinit var personRecordService: PersonRecordService
 
   @Mock
-  lateinit var prisonerService: PrisonerService
-
-  @Mock
-  lateinit var offenderService: OffenderService
-
-  @Mock
   lateinit var defendantRepository: DefendantRepository
 
   @InjectMocks
@@ -156,31 +150,5 @@ class CourtCaseEventsServiceTest {
     // Then
     verify(personRecordService, never()).createNewPersonAndDefendant(person)
     verify(telemetryService).trackEvent(TelemetryEventType.HMCTS_PARTIAL_MATCH, mapOf("Surname" to "Jones"))
-  }
-
-  @Test
-  fun `should create new defendant record when no matching records are found`() {
-    // Given
-    val pncNumber = "2003/0011985X"
-
-    val person = Person(
-      familyName = "Jones",
-      givenName = "Billy",
-      dateOfBirth = LocalDate.of(1969, 8, 15),
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(pncNumber)),
-    )
-
-    val uuid = UUID.randomUUID()
-    val personEntity = Person.from(person.copy(personId = uuid))
-    whenever(personRecordService.createNewPersonAndDefendant(person)).thenReturn(personEntity)
-
-    // When
-    courtCaseEventsService.processPersonFromCourtCaseEvent(person)
-
-    // Then
-    verify(personRecordService).createNewPersonAndDefendant(person)
-    verify(telemetryService).trackEvent(TelemetryEventType.HMCTS_RECORD_CREATED, mapOf("UUID" to uuid.toString(), "PNC" to pncNumber))
-    verify(offenderService).processAssociatedOffenders(personEntity, person)
-    verify(prisonerService).processAssociatedPrisoners(personEntity, person)
   }
 }
