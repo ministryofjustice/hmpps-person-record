@@ -41,11 +41,12 @@ class PersonCreationIntTest : IntegrationTestBase() {
     publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
     await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(NEW_DELIUS_RECORD_PNC_MATCHED),
+      verify(telemetryClient).trackEvent(
+        eq(NEW_DELIUS_RECORD_PNC_MATCHED.eventName),
         org.mockito.kotlin.check {
           assertThat(it["PNC"]).isEqualTo(pncNumber)
         },
+        eq(null),
       )
     }
   }

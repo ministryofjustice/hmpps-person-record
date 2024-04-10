@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.integration
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
+import com.microsoft.applicationinsights.TelemetryClient
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
@@ -37,7 +38,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.personrecord.service.PrisonerDomainEventService
-import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.Duration
@@ -77,7 +77,7 @@ abstract class IntegrationTestBase {
   lateinit var prisonerRepository: PrisonerRepository
 
   @SpyBean
-  lateinit var telemetryService: TelemetryService // replace with telemtryClient?
+  lateinit var telemetryClient: TelemetryClient
 
   @SpyBean
   lateinit var prisonerCreatedEventProcessor: PrisonerCreatedEventProcessor
