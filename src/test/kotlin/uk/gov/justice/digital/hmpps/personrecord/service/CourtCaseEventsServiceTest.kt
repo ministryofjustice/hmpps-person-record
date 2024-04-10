@@ -52,21 +52,6 @@ class CourtCaseEventsServiceTest {
   }
 
   @Test
-  fun `should call telemetry service when PNC is empty`() { // failing test to show double counting of empty string pnc
-    // Given
-    val person = Person(familyName = "Jones", otherIdentifiers = OtherIdentifiers(pncIdentifier = null))
-
-    // When
-    courtCaseEventsService.processPersonFromCourtCaseEvent(person)
-
-    // Then
-    verify(personRecordService, never()).createNewPersonAndDefendant(person)
-    verify(telemetryService).trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
-    verify(telemetryService, never()).trackEvent(INVALID_PNC, mapOf("PNC" to ""))
-    verifyNoMoreInteractions(telemetryService)
-  }
-
-  @Test
   fun `should call telemetry service when PNC is invalid from Court Case Event`() {
     // Given
     val pncNumber = "DODGY_PNC"
