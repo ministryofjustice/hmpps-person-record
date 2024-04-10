@@ -41,11 +41,12 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(invalidPncNumber), COMMON_PLATFORM_HEARING)
 
     await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(INVALID_PNC),
+      verify(telemetryClient).trackEvent(
+        eq(INVALID_PNC.eventName),
         check {
           assertThat(it["PNC"]).isEqualTo(invalidPncNumber).withFailMessage("PNC incorrect")
         },
+        eq(null),
       )
     }
   }
@@ -55,27 +56,30 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(commonPlatformHearing("19810154257C"), COMMON_PLATFORM_HEARING)
 
     await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(HMCTS_MESSAGE_RECEIVED),
+      verify(telemetryClient).trackEvent(
+        eq(HMCTS_MESSAGE_RECEIVED.eventName),
         check {
           assertThat(it["PNC"]).isEqualTo("1981/0154257C")
         },
+        eq(null),
       )
     }
     await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(HMCTS_MESSAGE_RECEIVED),
+      verify(telemetryClient).trackEvent(
+        eq(HMCTS_MESSAGE_RECEIVED.eventName),
         check {
           assertThat(it["PNC"]).isEqualTo("2008/0056560Z")
         },
+        eq(null),
       )
     }
     await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(HMCTS_MESSAGE_RECEIVED),
+      verify(telemetryClient).trackEvent(
+        eq(HMCTS_MESSAGE_RECEIVED.eventName),
         check {
           assertThat(it["PNC"]).isEqualTo("")
         },
+        eq(null),
       )
     }
   }
@@ -86,29 +90,32 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(libraHearing(pncNumber = emptyPncNumber), LIBRA_COURT_CASE)
 
     await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(HMCTS_MESSAGE_RECEIVED),
+      verify(telemetryClient).trackEvent(
+        eq(HMCTS_MESSAGE_RECEIVED.eventName),
         check {
           assertThat(it["PNC"]).isEqualTo(emptyPncNumber)
           assertThat(it["CRO"]).isEqualTo("11111/79J")
         },
+        eq(null),
       )
     }
 
     await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(MISSING_PNC),
+      verify(telemetryClient).trackEvent(
+        eq(MISSING_PNC.eventName),
         check {
           assertThat(it).isEmpty()
         },
+        eq(null),
       )
     }
 
-    verify(telemetryService, never()).trackEvent(
-      eq(INVALID_PNC),
+    verify(telemetryClient, never()).trackEvent(
+      eq(INVALID_PNC.eventName),
       check {
         assertThat(it["PNC"]).isEqualTo(emptyPncNumber)
       },
+      eq(null),
     )
   }
 
@@ -163,11 +170,12 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.prisoners[0].prisonNumber).isEqualTo("A1234AA")
     assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(pncNumber)
 
-    verify(telemetryService, times(1)).trackEvent(
-      eq(HMCTS_RECORD_CREATED),
+    verify(telemetryClient, times(1)).trackEvent(
+      eq(HMCTS_RECORD_CREATED.eventName),
       check {
         assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
       },
+      eq(null),
     )
   }
 

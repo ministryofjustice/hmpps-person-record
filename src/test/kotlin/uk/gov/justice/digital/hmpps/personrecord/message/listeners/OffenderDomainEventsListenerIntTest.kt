@@ -34,20 +34,22 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
     await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(DELIUS_RECORD_CREATION_RECEIVED),
+      verify(telemetryClient).trackEvent(
+        eq(DELIUS_RECORD_CREATION_RECEIVED.eventName),
         org.mockito.kotlin.check {
           assertThat(it["CRN"]).isEqualTo(crn)
         },
+        eq(null),
       )
     }
 
     await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(NEW_DELIUS_RECORD_NEW_PNC),
+      verify(telemetryClient).trackEvent(
+        eq(NEW_DELIUS_RECORD_NEW_PNC.eventName),
         org.mockito.kotlin.check {
           assertThat(it["CRN"]).isEqualTo(crn)
         },
+        eq(null),
       )
     }
 
@@ -68,20 +70,22 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
     await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(DELIUS_RECORD_CREATION_RECEIVED),
+      verify(telemetryClient).trackEvent(
+        eq(DELIUS_RECORD_CREATION_RECEIVED.eventName),
         org.mockito.kotlin.check {
           assertThat(it["CRN"]).isEqualTo(crn)
         },
+        eq(null),
       )
     }
 
     await untilAsserted {
-      verify(telemetryService).trackEvent(
-        eq(NEW_DELIUS_RECORD_NEW_PNC),
+      verify(telemetryClient).trackEvent(
+        eq(NEW_DELIUS_RECORD_NEW_PNC.eventName),
         org.mockito.kotlin.check {
           assertThat(it["CRN"]).isEqualTo(crn)
         },
+        eq(null),
       )
     }
 
