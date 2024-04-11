@@ -31,6 +31,12 @@ class CourtCaseEventsServiceTest {
   lateinit var personRecordService: PersonRecordService
 
   @Mock
+  lateinit var offenderService: OffenderService
+
+  @Mock
+  lateinit var prisonerService: PrisonerService
+
+  @Mock
   lateinit var defendantRepository: DefendantRepository
 
   @InjectMocks
