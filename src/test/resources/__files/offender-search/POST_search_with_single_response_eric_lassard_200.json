@@ -3,7 +3,7 @@
     "offenderId": 2500034487,
     "title": "Mr",
     "firstName": "Eric",
-    "middleNames": [],
+    "middleNames": ["mName1", "mName2"],
     "surname": "Lassard",
     "dateOfBirth": "1960-01-01",
     "gender": "Male",
