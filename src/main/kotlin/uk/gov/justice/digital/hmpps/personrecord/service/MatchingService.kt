@@ -9,6 +9,7 @@ class MatchingService {
   fun score(allMatchingItems: List<DefendantEntity>, person: Person): MatchResult {
     return MatchResult(
       "0.999353426",
+      candidateRecordUUID = allMatchingItems[0].person?.personId.toString(),
       candidateRecordIdentifierType = "defendantId",
       candidateRecordIdentifier = allMatchingItems[0].defendantId!!,
       newRecordIdentifierType = "defendantId",
@@ -19,9 +20,9 @@ class MatchingService {
 
 class MatchResult(
   val probability: String,
+  val candidateRecordUUID: String,
   val candidateRecordIdentifierType: String,
   val candidateRecordIdentifier: String,
   val newRecordIdentifierType: String,
   val newRecordIdentifier: String,
-
 )

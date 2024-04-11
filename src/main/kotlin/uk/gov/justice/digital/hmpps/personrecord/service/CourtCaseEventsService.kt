@@ -73,7 +73,7 @@ class CourtCaseEventsService(
       SPLINK_MATCH_SCORE,
       mapOf(
         "Match Probability Score" to matchResult.probability,
-        "Candidate Record UUID" to "UUID",
+        "Candidate Record UUID" to matchResult.candidateRecordUUID,
         "Candidate Record Identifier Type" to matchResult.candidateRecordIdentifierType,
         "Candidate Record Identifier" to matchResult.candidateRecordIdentifier,
         "New Record Identifier Type" to matchResult.newRecordIdentifierType,
