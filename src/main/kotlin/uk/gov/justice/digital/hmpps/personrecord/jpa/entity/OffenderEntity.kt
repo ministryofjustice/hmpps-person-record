@@ -15,9 +15,8 @@ import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
-import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.CROIdentifierConverter
 import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConverter
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import java.time.LocalDate
 
@@ -25,64 +24,66 @@ import java.time.LocalDate
 @Table(name = "offender")
 class OffenderEntity(
 
-        @Id
+  @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
 
-        @Column(name = "crn")
+  @Column(name = "crn")
   val crn: String,
 
-        @Column(name = "pnc_number")
+  @Column(name = "pnc_number")
   @Convert(converter = PNCIdentifierConverter::class)
   val pncNumber: PNCIdentifier? = null,
 
-        @Column(name = "first_name")
+  @Column(name = "first_name")
   val firstName: String? = null,
 
-        @Column(name = "last_name")
+  @Column(name = "middle_name")
+  val middleName: String? = null,
+
+  @Column(name = "last_name")
   val lastName: String? = null,
 
-        @Column(name = "date_of_birth")
+  @Column(name = "date_of_birth")
   val dateOfBirth: LocalDate? = null,
 
-        @Column(name = "lao")
+  @Column(name = "lao")
   val isLimitedAccessOffender: Boolean? = null,
 
-        @Column(name = "prison_number")
+  @Column(name = "prison_number")
   val prisonNumber: String? = null,
 
-        @Column(name = "gender")
+  @Column(name = "gender")
   val gender: String? = null,
 
-        @Column(name = "title")
+  @Column(name = "title")
   val title: String? = null,
 
-        @Column(name = "cro")
-        @Convert(converter = CROIdentifierConverter::class)
+  @Column(name = "cro")
   val cro: String? = null,
 
-        @Column(name = "ni_number")
+  @Column(name = "ni_number")
   val nationalInsuranceNumber: String? = null,
 
-        @Column(name = "offender_id")
+  @Column(name = "offender_id")
   val offenderId: Long? = null,
 
-        @Column(name = "most_recent_prison_number")
+  @Column(name = "most_recent_prison_number")
   val mostRecentPrisonNumber: String? = null,
 
-        @Column(name = "preferred_name")
+  @Column(name = "preferred_name")
   val preferredName: String? = null,
 
-        @Column(name = "previous_surname")
+  @Column(name = "previous_surname")
   val previousSurname: String? = null,
 
-        @Column(name = "ethnicity")
+  @Column(name = "ethnicity")
   val ethnicity: String? = null,
 
-        @Column(name = "nationality")
+  @Column(name = "nationality")
   val nationality: String? = null,
 
-        @ManyToOne(optional = false, cascade = [CascadeType.ALL])
+  @ManyToOne(optional = false, cascade = [CascadeType.ALL])
   @JoinColumn(
     name = "fk_person_id",
     referencedColumnName = "id",
@@ -90,21 +91,21 @@ class OffenderEntity(
   )
   var person: PersonEntity? = null,
 
-        @OneToOne(cascade = [CascadeType.ALL])
+  @OneToOne(cascade = [CascadeType.ALL])
   @JoinColumn(name = "fk_address_id", referencedColumnName = "id", nullable = true)
   var address: AddressEntity? = null,
 
-        @OneToOne(cascade = [CascadeType.ALL])
+  @OneToOne(cascade = [CascadeType.ALL])
   @JoinColumn(name = "fk_contact_id", referencedColumnName = "id", nullable = true)
   var contact: ContactEntity? = null,
 
-        @OneToMany(mappedBy = "offender", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "offender", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
   var aliases: MutableList<OffenderAliasEntity> = mutableListOf(),
 
-        @Version
+  @Version
   var version: Int = 0,
 
-        ) {
+) {
   companion object {
     fun from(person: Person): OffenderEntity {
       return person.otherIdentifiers?.crn?.let {
@@ -131,6 +132,7 @@ class OffenderEntity(
         mostRecentPrisonNumber = offenderDetail.otherIds.mostRecentPrisonerNumber,
         title = offenderDetail.title,
         firstName = offenderDetail.firstName,
+        middleName = offenderDetail.middleNames?.joinToString(" ") { it },
         lastName = offenderDetail.surname,
         dateOfBirth = offenderDetail.dateOfBirth,
         previousSurname = offenderDetail.previousSurName,

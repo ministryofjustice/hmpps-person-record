@@ -8,6 +8,7 @@ data class OffenderDetail(
   val offenderId: Long,
   val title: String? = null,
   val firstName: String,
+  val middleNames: List<String>? = emptyList(),
   val surname: String,
   val dateOfBirth: LocalDate,
   val otherIds: IDs,
