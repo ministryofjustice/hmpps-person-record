@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
@@ -11,7 +10,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.check
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
-import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
@@ -24,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PARTIAL_MATCH
@@ -358,17 +355,5 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       HMCTS_PARTIAL_MATCH,
       mapOf("Date of birth" to "1975-01-01"),
     )
-  }
-
-  private fun checkTelemetry(event: TelemetryEventType, expected: Map<String, String>) {
-    await untilAsserted {
-      verify(telemetryClient, times(1)).trackEvent(
-        eq(event.eventName),
-        check {
-          assertThat(it).containsAllEntriesOf(expected)
-        },
-        eq(null),
-      )
-    }
   }
 }
