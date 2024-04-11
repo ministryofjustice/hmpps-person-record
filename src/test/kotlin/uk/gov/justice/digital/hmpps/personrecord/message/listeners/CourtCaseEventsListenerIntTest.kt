@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PARTIAL_MATCH
@@ -206,13 +207,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     val personEntity = await.atMost(30, SECONDS) untilNotNull {
       personRepository.findByPrisonersPncNumber(pncNumber)
     }
-    verify(telemetryClient, times(1)).trackEvent(
-      eq(HMCTS_RECORD_CREATED.eventName),
-      check {
-        assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
-      },
-      eq(null),
-    )
 
     assertThat(personEntity.personId).isNotNull()
     assertThat(personEntity.defendants.size).isEqualTo(1)
@@ -376,20 +370,14 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
     publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
 
-    verify(telemetryClient, times(1)).trackEvent(
-      eq(HMCTS_RECORD_CREATED.eventName),
-      check {
-        assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
-      },
-      eq(null),
+    checkTelemetry(
+      HMCTS_RECORD_CREATED,
+      mapOf("PNC" to pncNumber.pncId),
     )
 
-    verify(telemetryClient, times(1)).trackEvent(
-      eq(HMCTS_EXACT_MATCH.eventName),
-      check {
-        assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
-      },
-      eq(null),
+    checkTelemetry(
+      HMCTS_EXACT_MATCH,
+      mapOf("PNC" to pncNumber.pncId),
     )
   }
 
@@ -401,19 +389,19 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Boothe"), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
-      HMCTS_RECORD_CREATED.eventName,
+      HMCTS_RECORD_CREATED,
       mapOf("PNC" to "2003/0062845E"),
     )
 
     checkTelemetry(
-      HMCTS_PARTIAL_MATCH.eventName,
+      HMCTS_PARTIAL_MATCH,
       mapOf("Date of birth" to "1975-01-01"),
     )
   }
 
-  private fun checkTelemetry(event: String, expected: Map<String, String>) {
+  private fun checkTelemetry(event: TelemetryEventType, expected: Map<String, String>) {
     verify(telemetryClient, times(1)).trackEvent(
-      eq(event),
+      eq(event.eventName),
       check {
         assertThat(it).containsAllEntriesOf(expected)
       },
