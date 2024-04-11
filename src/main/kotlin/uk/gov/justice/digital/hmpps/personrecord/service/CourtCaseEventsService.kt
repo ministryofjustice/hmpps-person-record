@@ -74,9 +74,9 @@ class CourtCaseEventsService(
       mapOf(
         "Match Probability Score" to matchResult.probability,
         "Candidate Record UUID" to "UUID",
-        "Candidate Record Identifier Type" to "defendantID",
+        "Candidate Record Identifier Type" to "defendantId",
         "Candidate Record Identifier" to "123456",
-        "New Record Identifier Type" to "defendantID",
+        "New Record Identifier Type" to matchResult.newRecordIdentifierType,
         "New Record Identifier" to matchResult.newRecordIdentifier,
       ),
     )

@@ -8,8 +8,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.Person
 class MatchingService {
   fun score(allMatchingItems: List<DefendantEntity>, person: Person): MatchResult {
     println(allMatchingItems.size)
-    return MatchResult("0.999353426", newRecordIdentifier = person.defendantId!!)
+    return MatchResult("0.999353426", newRecordIdentifierType = "defendantId", newRecordIdentifier = person.defendantId!!)
   }
 }
 
-class MatchResult(val probability: String, val newRecordIdentifier: String)
+class MatchResult(val probability: String, val newRecordIdentifierType: String, val newRecordIdentifier: String)
