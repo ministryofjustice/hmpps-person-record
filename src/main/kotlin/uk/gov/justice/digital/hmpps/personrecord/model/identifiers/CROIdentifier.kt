@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
+import org.bouncycastle.util.Fingerprint
+
 class CROIdentifier(inputCroId: String, inputFingerprint: Boolean) {
 
   val croId: String = inputCroId
@@ -18,7 +20,7 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean) {
     private val SF_CRO_REGEX = Regex("^SF\\d{2}/\\d{1,6}[A-Z]\$")
     private val CRO_REGEX = Regex("^\\d{1,6}/\\d{2}[A-Z]\$")
 
-    fun from(inputCroId: String? = ""): CROIdentifier {
+    fun from(inputCroId: String? = EMPTY_CRO): CROIdentifier {
       if (inputCroId.isNullOrEmpty()) {
         return CROIdentifier(EMPTY_CRO, false)
       }
@@ -32,7 +34,7 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean) {
         else -> Pair("", false)
       }
       return when {
-        (canonicalCroId.isNotEmpty() && correctModulus(canonicalCroId)) -> CROIdentifier(canonicalCroId, fingerprint)
+        (canonicalCroId.isNotEmpty() && correctModulus(canonicalCroId, fingerprint)) -> CROIdentifier(canonicalCroId, fingerprint)
         else -> CROIdentifier(EMPTY_CRO, false)
       }
     }
@@ -52,10 +54,12 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean) {
       return "$paddedSerialNum/$yearDigits$checkChar"
     }
 
-    private fun correctModulus(inputCroId: String): Boolean {
+    private fun correctModulus(inputCroId: String, fingerprint: Boolean): Boolean {
       val checkChar = inputCroId[LAST_CHARACTER]
       val (serialNum, yearDigit) = inputCroId.dropLast(1).split(SLASH) // Append year digit to serial number
-      return VALID_LETTERS[(yearDigit + serialNum).toLong().mod(VALID_LETTERS.length)] == checkChar
+      val serialNumToCheck = if (!fingerprint) serialNum.trimStart { it == '0' } else serialNum // Assume if no fingerprint it is SF
+      val modulus = VALID_LETTERS[(yearDigit + serialNumToCheck).toLong().mod(VALID_LETTERS.length)]
+      return modulus == checkChar
     }
 
     private fun padSerialNumber(serialNumber: String): String {
