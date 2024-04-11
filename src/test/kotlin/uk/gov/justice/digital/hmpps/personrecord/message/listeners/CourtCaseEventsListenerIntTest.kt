@@ -83,26 +83,15 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     val emptyPncNumber = ""
     publishHMCTSMessage(libraHearing(pncNumber = emptyPncNumber), LIBRA_COURT_CASE)
 
-    await untilAsserted {
-      verify(telemetryClient).trackEvent(
-        eq(HMCTS_MESSAGE_RECEIVED.eventName),
-        check {
-          assertThat(it["PNC"]).isEqualTo(emptyPncNumber)
-          assertThat(it["CRO"]).isEqualTo("11111/79J")
-        },
-        eq(null),
-      )
-    }
+    checkTelemetry(
+      HMCTS_MESSAGE_RECEIVED,
+      mapOf("PNC" to emptyPncNumber, "CRO" to "11111/79J"),
+    )
 
-    await untilAsserted {
-      verify(telemetryClient).trackEvent(
-        eq(MISSING_PNC.eventName),
-        check {
-          assertThat(it).isEmpty()
-        },
-        eq(null),
-      )
-    }
+    checkTelemetry(
+      MISSING_PNC,
+      emptyMap(),
+    )
 
     verify(telemetryClient, never()).trackEvent(
       eq(INVALID_PNC.eventName),
