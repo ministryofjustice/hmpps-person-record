@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MISSING_PNC
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.SPLINK_MATCH_SCORE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.VALID_PNC
 
 @Service
@@ -66,6 +67,7 @@ class CourtCaseEventsService(
 
   private fun partialMatchFound(defendantMatcher: DefendantMatcher) {
     trackEvent(HMCTS_PARTIAL_MATCH, defendantMatcher.extractMatchingFields(defendantMatcher.getMatchingItem()))
+    trackEvent(SPLINK_MATCH_SCORE, mapOf("Match Probability Score" to "99.5", "Candidate Record UUID" to "UUID", "Candidate Record Identifier Type" to "defendantID", "Candidate Record Identifier" to "123456", "New Record Identifier Type" to "defendantID", "New Record Identifier" to "7890"))
   }
 
   private fun trackEvent(

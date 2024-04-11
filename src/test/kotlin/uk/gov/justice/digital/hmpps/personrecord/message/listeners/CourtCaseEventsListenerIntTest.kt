@@ -28,6 +28,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MISSING_PNC
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.SPLINK_MATCH_SCORE
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
@@ -340,7 +341,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should output correct telemetry for partial match`() {
+  fun `should output correct telemetry and call person-match-score for partial match`() {
     val pncNumber = "2003/0062845E"
 
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Clancy", lastName = "Eccles"), COMMON_PLATFORM_HEARING)
@@ -354,6 +355,11 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     checkTelemetry(
       HMCTS_PARTIAL_MATCH,
       mapOf("Date of birth" to "1975-01-01"),
+    )
+
+    checkTelemetry(
+      SPLINK_MATCH_SCORE,
+      mapOf("Match Probability Score" to "99.5", "Candidate Record UUID" to "UUID", "Candidate Record Identifier Type" to "defendantID", "Candidate Record Identifier" to "123456", "New Record Identifier Type" to "defendantID", "New Record Identifier" to "7890"),
     )
   }
 }
