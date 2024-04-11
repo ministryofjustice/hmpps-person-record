@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
@@ -44,7 +45,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       verify(telemetryClient).trackEvent(
         eq(INVALID_PNC.eventName),
         check {
-          assertThat(it["PNC"]).isEqualTo(invalidPncNumber).withFailMessage("PNC incorrect")
+          assertThat(it["PNC"]).isEqualTo(invalidPncNumber)
         },
         eq(null),
       )
@@ -364,5 +365,29 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.prisoners[0].raceCode).isNull()
     assertThat(personEntity.prisoners[0].birthPlace).isNull()
     assertThat(personEntity.prisoners[0].birthCountryCode).isNull()
+  }
+
+  @Test
+  fun `should output correct telemetry for exact match`() {
+    val pncNumber = PNCIdentifier.from("2003/0062845E")
+
+    publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
+
+    verify(telemetryClient, times(1)).trackEvent(
+      eq(HMCTS_RECORD_CREATED.eventName),
+      check {
+        assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
+      },
+      eq(null),
+    )
+
+    verify(telemetryClient, times(1)).trackEvent(
+      eq(HMCTS_EXACT_MATCH.eventName),
+      check {
+        assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
+      },
+      eq(null),
+    )
   }
 }
