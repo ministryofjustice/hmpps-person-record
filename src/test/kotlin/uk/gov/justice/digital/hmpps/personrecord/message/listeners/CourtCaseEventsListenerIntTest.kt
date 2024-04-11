@@ -359,7 +359,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     checkTelemetry(
       SPLINK_MATCH_SCORE,
-      mapOf("Match Probability Score" to "99.5", "Candidate Record UUID" to "UUID", "Candidate Record Identifier Type" to "defendantID", "Candidate Record Identifier" to "123456", "New Record Identifier Type" to "defendantID", "New Record Identifier" to "7890"),
+      mapOf("Match Probability Score" to "0.999353426", "Candidate Record UUID" to "UUID", "Candidate Record Identifier Type" to "defendantID", "Candidate Record Identifier" to "123456", "New Record Identifier Type" to "defendantID", "New Record Identifier" to "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199"),
     )
   }
 }

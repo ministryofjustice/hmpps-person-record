@@ -24,6 +24,7 @@ class CourtCaseEventsService(
   private val personRecordService: PersonRecordService,
   private val offenderService: OffenderService,
   private val prisonerService: PrisonerService,
+  private val matchingService: MatchingService,
 ) {
 
   @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -41,7 +42,7 @@ class CourtCaseEventsService(
     val defendantMatcher = DefendantMatcher(defendants, person)
     when {
       defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person)
-      defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher)
+      defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher, person)
       else -> {
         createNewPersonRecordAndProcess(person)
       }
@@ -65,9 +66,20 @@ class CourtCaseEventsService(
     trackEvent(HMCTS_EXACT_MATCH, elementMap)
   }
 
-  private fun partialMatchFound(defendantMatcher: DefendantMatcher) {
+  private fun partialMatchFound(defendantMatcher: DefendantMatcher, person: Person) {
     trackEvent(HMCTS_PARTIAL_MATCH, defendantMatcher.extractMatchingFields(defendantMatcher.getMatchingItem()))
-    trackEvent(SPLINK_MATCH_SCORE, mapOf("Match Probability Score" to "99.5", "Candidate Record UUID" to "UUID", "Candidate Record Identifier Type" to "defendantID", "Candidate Record Identifier" to "123456", "New Record Identifier Type" to "defendantID", "New Record Identifier" to "7890"))
+    val matchResult = matchingService.score(defendantMatcher.getAllMatchingItems()!!, person)
+    trackEvent(
+      SPLINK_MATCH_SCORE,
+      mapOf(
+        "Match Probability Score" to matchResult.probability,
+        "Candidate Record UUID" to "UUID",
+        "Candidate Record Identifier Type" to "defendantID",
+        "Candidate Record Identifier" to "123456",
+        "New Record Identifier Type" to "defendantID",
+        "New Record Identifier" to matchResult.newRecordIdentifier,
+      ),
+    )
   }
 
   private fun trackEvent(
