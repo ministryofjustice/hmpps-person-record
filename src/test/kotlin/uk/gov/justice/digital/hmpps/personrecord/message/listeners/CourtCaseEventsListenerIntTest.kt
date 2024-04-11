@@ -400,18 +400,22 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Clancy", lastName = "Eccles"), COMMON_PLATFORM_HEARING)
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Boothe"), COMMON_PLATFORM_HEARING)
 
-    verify(telemetryClient, times(1)).trackEvent(
-      eq(HMCTS_RECORD_CREATED.eventName),
-      check {
-        assertThat(it["PNC"]).isEqualTo(pncNumber)
-      },
-      eq(null),
+    checkTelemetry(
+      HMCTS_RECORD_CREATED.eventName,
+      mapOf("PNC" to "2003/0062845E"),
     )
 
+    checkTelemetry(
+      HMCTS_PARTIAL_MATCH.eventName,
+      mapOf("Date of birth" to "1975-01-01"),
+    )
+  }
+
+  private fun checkTelemetry(event: String, expected: Map<String, String>) {
     verify(telemetryClient, times(1)).trackEvent(
-      eq(HMCTS_PARTIAL_MATCH.eventName),
+      eq(event),
       check {
-        assertThat(it["Date of birth"]).isEqualTo("1975-01-01")
+        assertThat(it).containsAllEntriesOf(expected)
       },
       eq(null),
     )
