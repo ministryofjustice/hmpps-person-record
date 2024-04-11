@@ -43,15 +43,10 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     val invalidPncNumber = "03/62845X" // X is the incorrect check letter
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(invalidPncNumber), COMMON_PLATFORM_HEARING)
 
-    await untilAsserted {
-      verify(telemetryClient).trackEvent(
-        eq(INVALID_PNC.eventName),
-        check {
-          assertThat(it["PNC"]).isEqualTo(invalidPncNumber)
-        },
-        eq(null),
-      )
-    }
+    checkTelemetry(
+      INVALID_PNC,
+      mapOf("PNC" to invalidPncNumber),
+    )
   }
 
   @Test
@@ -400,12 +395,14 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   }
 
   private fun checkTelemetry(event: TelemetryEventType, expected: Map<String, String>) {
-    verify(telemetryClient, times(1)).trackEvent(
-      eq(event.eventName),
-      check {
-        assertThat(it).containsAllEntriesOf(expected)
-      },
-      eq(null),
-    )
+    await untilAsserted {
+      verify(telemetryClient, times(1)).trackEvent(
+        eq(event.eventName),
+        check {
+          assertThat(it).containsAllEntriesOf(expected)
+        },
+        eq(null),
+      )
+    }
   }
 }
