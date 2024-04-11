@@ -276,7 +276,7 @@ fun commonPlatformHearingWithOneDefendant(pncNumber: String = "1981/0154257C", f
     }
 """.trimIndent()
 
-fun libraHearing(pncNumber: String = "2003/0011985X") = """
+fun libraHearing(pncNumber: String? = "2003/0011985X") = """
 {
    "caseId":1217464,
    "caseNo":"1600032981",
@@ -296,7 +296,7 @@ fun libraHearing(pncNumber: String = "2003/0011985X") = """
       "pcode":"NT4 6YH"
    },
    "cro":"11111/79J",
-   "pnc": "$pncNumber",
+   ${pncNumber?.let { """ "pnc": "$pncNumber", """.trimIndent() } ?: ""}
    "listNo":"1st",
    "nationality1":"Angolan",
    "nationality2":"Austrian",

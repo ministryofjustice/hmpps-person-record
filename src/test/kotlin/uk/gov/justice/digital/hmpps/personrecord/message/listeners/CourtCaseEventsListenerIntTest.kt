@@ -24,7 +24,9 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PARTIAL_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MISSING_PNC
@@ -44,7 +46,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       verify(telemetryClient).trackEvent(
         eq(INVALID_PNC.eventName),
         check {
-          assertThat(it["PNC"]).isEqualTo(invalidPncNumber).withFailMessage("PNC incorrect")
+          assertThat(it["PNC"]).isEqualTo(invalidPncNumber)
         },
         eq(null),
       )
@@ -78,6 +80,22 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
         eq(HMCTS_MESSAGE_RECEIVED.eventName),
         check {
           assertThat(it["PNC"]).isEqualTo("")
+        },
+        eq(null),
+      )
+    }
+  }
+
+  @Test
+  fun `should process libra messages with missing pnc identifier`() {
+    val message = libraHearing(pncNumber = null)
+    publishHMCTSMessage(message, LIBRA_COURT_CASE)
+
+    await untilAsserted {
+      verify(telemetryClient).trackEvent(
+        eq(MISSING_PNC.eventName),
+        check {
+          assertThat(it).isEmpty()
         },
         eq(null),
       )
@@ -188,6 +206,13 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     val personEntity = await.atMost(30, SECONDS) untilNotNull {
       personRepository.findByPrisonersPncNumber(pncNumber)
     }
+    verify(telemetryClient, times(1)).trackEvent(
+      eq(HMCTS_RECORD_CREATED.eventName),
+      check {
+        assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
+      },
+      eq(null),
+    )
 
     assertThat(personEntity.personId).isNotNull()
     assertThat(personEntity.defendants.size).isEqualTo(1)
@@ -341,5 +366,53 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.prisoners[0].raceCode).isNull()
     assertThat(personEntity.prisoners[0].birthPlace).isNull()
     assertThat(personEntity.prisoners[0].birthCountryCode).isNull()
+  }
+
+  @Test
+  fun `should output correct telemetry for exact match`() {
+    val pncNumber = PNCIdentifier.from("2003/0062845E")
+
+    publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
+
+    verify(telemetryClient, times(1)).trackEvent(
+      eq(HMCTS_RECORD_CREATED.eventName),
+      check {
+        assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
+      },
+      eq(null),
+    )
+
+    verify(telemetryClient, times(1)).trackEvent(
+      eq(HMCTS_EXACT_MATCH.eventName),
+      check {
+        assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
+      },
+      eq(null),
+    )
+  }
+
+  @Test
+  fun `should output correct telemetry for partial match`() {
+    val pncNumber = "2003/0062845E"
+
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Clancy", lastName = "Eccles"), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Boothe"), COMMON_PLATFORM_HEARING)
+
+    verify(telemetryClient, times(1)).trackEvent(
+      eq(HMCTS_RECORD_CREATED.eventName),
+      check {
+        assertThat(it["PNC"]).isEqualTo(pncNumber)
+      },
+      eq(null),
+    )
+
+    verify(telemetryClient, times(1)).trackEvent(
+      eq(HMCTS_PARTIAL_MATCH.eventName),
+      check {
+        assertThat(it["Date of birth"]).isEqualTo("1975-01-01")
+      },
+      eq(null),
+    )
   }
 }
