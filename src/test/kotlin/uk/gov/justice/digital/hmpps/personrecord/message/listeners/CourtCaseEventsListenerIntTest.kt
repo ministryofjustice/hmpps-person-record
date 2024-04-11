@@ -153,12 +153,9 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.prisoners[0].prisonNumber).isEqualTo("A1234AA")
     assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(pncNumber)
 
-    verify(telemetryClient, times(1)).trackEvent(
-      eq(HMCTS_RECORD_CREATED.eventName),
-      check {
-        assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
-      },
-      eq(null),
+    checkTelemetry(
+      HMCTS_RECORD_CREATED,
+      mapOf("PNC" to pncNumber.pncId),
     )
   }
 
