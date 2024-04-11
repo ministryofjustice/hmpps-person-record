@@ -85,6 +85,22 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
+  fun `should process libra messages with missing pnc identifier`() {
+    val message = libraHearing(pncNumber = null)
+    publishHMCTSMessage(message, LIBRA_COURT_CASE)
+
+    await untilAsserted {
+      verify(telemetryClient).trackEvent(
+        eq(MISSING_PNC.eventName),
+        check {
+          assertThat(it).isEmpty()
+        },
+        eq(null),
+      )
+    }
+  }
+
+  @Test
   fun `should process libra messages with empty pnc identifier`() {
     val emptyPncNumber = ""
     publishHMCTSMessage(libraHearing(pncNumber = emptyPncNumber), LIBRA_COURT_CASE)

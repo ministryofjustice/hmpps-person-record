@@ -7,7 +7,6 @@ import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
@@ -41,20 +40,6 @@ class CourtCaseEventsServiceTest {
 
   @InjectMocks
   lateinit var courtCaseEventsService: CourtCaseEventsService
-
-  @Test
-  fun `should call telemetry service when PNC is missing from Court Case Event`() {
-    // Given
-    val person = Person(familyName = "Jones")
-
-    // When
-    courtCaseEventsService.processPersonFromCourtCaseEvent(person)
-
-    // Then
-    verify(personRecordService, never()).createNewPersonAndDefendant(person)
-    verify(telemetryService).trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
-    verifyNoMoreInteractions(telemetryService)
-  }
 
   @Test
   fun `should call telemetry service when exact match found for Court Case Event`() {
