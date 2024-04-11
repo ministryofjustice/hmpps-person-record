@@ -38,6 +38,9 @@ class OffenderEntity(
   @Column(name = "first_name")
   val firstName: String? = null,
 
+  @Column(name = "middle_name")
+  val middleName: String? = null,
+
   @Column(name = "last_name")
   val lastName: String? = null,
 
@@ -129,6 +132,7 @@ class OffenderEntity(
         mostRecentPrisonNumber = offenderDetail.otherIds.mostRecentPrisonerNumber,
         title = offenderDetail.title,
         firstName = offenderDetail.firstName,
+        middleName = offenderDetail.middleNames?.joinToString(" ") { it },
         lastName = offenderDetail.surname,
         dateOfBirth = offenderDetail.dateOfBirth,
         previousSurname = offenderDetail.previousSurName,
