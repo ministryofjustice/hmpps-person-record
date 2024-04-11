@@ -33,25 +33,8 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
     publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
-    await untilAsserted {
-      verify(telemetryClient).trackEvent(
-        eq(DELIUS_RECORD_CREATION_RECEIVED.eventName),
-        org.mockito.kotlin.check {
-          assertThat(it["CRN"]).isEqualTo(crn)
-        },
-        eq(null),
-      )
-    }
-
-    await untilAsserted {
-      verify(telemetryClient).trackEvent(
-        eq(NEW_DELIUS_RECORD_NEW_PNC.eventName),
-        org.mockito.kotlin.check {
-          assertThat(it["CRN"]).isEqualTo(crn)
-        },
-        eq(null),
-      )
-    }
+    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
+    checkTelemetry(NEW_DELIUS_RECORD_NEW_PNC, mapOf("CRN" to crn))
 
     val personEntities = await.atMost(10, SECONDS) untilNotNull { personRepository.findPersonEntityByPncNumber(expectedPncNumber) }
     val personEntity = personEntities[0]
@@ -69,25 +52,8 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
     publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
-    await untilAsserted {
-      verify(telemetryClient).trackEvent(
-        eq(DELIUS_RECORD_CREATION_RECEIVED.eventName),
-        org.mockito.kotlin.check {
-          assertThat(it["CRN"]).isEqualTo(crn)
-        },
-        eq(null),
-      )
-    }
-
-    await untilAsserted {
-      verify(telemetryClient).trackEvent(
-        eq(NEW_DELIUS_RECORD_NEW_PNC.eventName),
-        org.mockito.kotlin.check {
-          assertThat(it["CRN"]).isEqualTo(crn)
-        },
-        eq(null),
-      )
-    }
+    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
+    checkTelemetry(NEW_DELIUS_RECORD_NEW_PNC, mapOf("CRN" to crn))
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByOffendersCrn(crn) }
 
