@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PARTIAL_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MISSING_PNC
@@ -386,6 +387,30 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       eq(HMCTS_EXACT_MATCH.eventName),
       check {
         assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
+      },
+      eq(null),
+    )
+  }
+
+  @Test
+  fun `should output correct telemetry for partial match`() {
+    val pncNumber = "2003/0062845E"
+
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Clancy", lastName = "Eccles"), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Boothe"), COMMON_PLATFORM_HEARING)
+
+    verify(telemetryClient, times(1)).trackEvent(
+      eq(HMCTS_RECORD_CREATED.eventName),
+      check {
+        assertThat(it["PNC"]).isEqualTo(pncNumber)
+      },
+      eq(null),
+    )
+
+    verify(telemetryClient, times(1)).trackEvent(
+      eq(HMCTS_PARTIAL_MATCH.eventName),
+      check {
+        assertThat(it["Date of birth"]).isEqualTo("1975-01-01")
       },
       eq(null),
     )
