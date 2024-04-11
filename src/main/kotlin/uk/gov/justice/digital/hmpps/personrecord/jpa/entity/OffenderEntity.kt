@@ -15,9 +15,11 @@ import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
+import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.CROIdentifierConverter
 import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConverter
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import java.time.LocalDate
 
 @Entity
@@ -60,7 +62,8 @@ class OffenderEntity(
   val title: String? = null,
 
   @Column(name = "cro")
-  val cro: String? = null,
+  @Convert(converter = CROIdentifierConverter::class)
+  val cro: CROIdentifier? = null,
 
   @Column(name = "ni_number")
   val nationalInsuranceNumber: String? = null,
@@ -124,7 +127,7 @@ class OffenderEntity(
     fun from(offenderDetail: OffenderDetail): OffenderEntity {
       val offenderEntity = OffenderEntity(
         crn = offenderDetail.otherIds.crn,
-        cro = offenderDetail.otherIds.crn,
+        cro = CROIdentifier.from(offenderDetail.otherIds.croNumber),
         pncNumber = PNCIdentifier.from(offenderDetail.otherIds.pncNumber),
         nationalInsuranceNumber = offenderDetail.otherIds.niNumber,
         prisonNumber = offenderDetail.otherIds.nomsNumber,

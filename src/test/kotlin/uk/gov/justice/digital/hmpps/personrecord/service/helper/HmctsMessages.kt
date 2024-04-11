@@ -347,7 +347,7 @@ fun commonPlatformHearingWithNewDefendant() = """
               { 
                 "id": "b5cfae34-9256-43ad-87fb-ac3def34e2ac",
                 "pncId": "2003/0062845E",
-                "croNumber": "12345ABCDEF",
+                "croNumber": "51072/62R",
                 "offences": [
                   {
                     "id": "a63d9020-aa6b-4997-92fd-72a692b036de",

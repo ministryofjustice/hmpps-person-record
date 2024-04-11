@@ -8,6 +8,21 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean) {
   val valid: Boolean
     get() = croId.isNotEmpty()
 
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+    other as CROIdentifier
+    return croId == other.croId
+  }
+
+  override fun hashCode(): Int {
+    return croId.hashCode()
+  }
+
+  override fun toString(): String {
+    return croId
+  }
+
   companion object {
     private const val EMPTY_CRO = ""
     private const val SLASH = "/"

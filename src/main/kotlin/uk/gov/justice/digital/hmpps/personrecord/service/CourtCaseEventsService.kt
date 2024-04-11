@@ -9,12 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.ValidPNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.matcher.DefendantMatcher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PARTIAL_MATCH
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MISSING_PNC
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.VALID_PNC
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.*
 
 @Service
 class CourtCaseEventsService(
@@ -31,6 +26,11 @@ class CourtCaseEventsService(
       is ValidPNCIdentifier -> processValidMessage(pncIdentifier, person)
       is InvalidPNCIdentifier -> trackEvent(INVALID_PNC, mapOf("PNC" to pncIdentifier.invalidValue()))
       else -> trackEvent(MISSING_PNC, emptyMap())
+    }
+    if (person.otherIdentifiers?.croIdentifier != null) {
+      if (!person.otherIdentifiers.croIdentifier.valid) {
+        trackEvent(INVALID_CRO, mapOf("CRO" to person.otherIdentifiers.croIdentifier.croId))
+      }
     }
   }
 

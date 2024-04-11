@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import java.time.LocalDate
 import java.util.UUID
@@ -81,7 +82,9 @@ data class Person(
 
     fun from(defendant: Defendant): Person {
       return Person(
-        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(defendant.pncId), cro = defendant.croNumber),
+        otherIdentifiers = OtherIdentifiers(
+          pncIdentifier = PNCIdentifier.from(defendant.pncId),
+          croIdentifier = CROIdentifier.from(defendant.croNumber)),
         givenName = defendant.personDefendant?.personDetails?.firstName,
         familyName = defendant.personDefendant?.personDetails?.lastName,
         middleNames = defendant.personDefendant?.personDetails?.middleName?.split(" "),
@@ -111,7 +114,10 @@ data class Person(
 
     fun from(libraHearingEvent: LibraHearingEvent): Person {
       return Person(
-        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(libraHearingEvent.pnc), cro = libraHearingEvent.cro),
+        otherIdentifiers = OtherIdentifiers(
+          pncIdentifier = PNCIdentifier.from(libraHearingEvent.pnc),
+          croIdentifier = CROIdentifier.from(libraHearingEvent.cro)
+        ),
         givenName = libraHearingEvent.name?.forename1,
         familyName = libraHearingEvent.name?.surname,
         dateOfBirth = libraHearingEvent.defendantDob,
@@ -122,7 +128,7 @@ data class Person(
       return Person(
         otherIdentifiers = OtherIdentifiers(
           pncIdentifier = PNCIdentifier.from(prisoner.pncNumber),
-          cro = prisoner.croNumber,
+          croIdentifier = CROIdentifier.from(prisoner.croNumber),
         ),
         givenName = prisoner.firstName,
         familyName = prisoner.lastName,
@@ -141,6 +147,6 @@ data class OtherIdentifiers(
   @Schema(description = "PNC Number", example = "1965/0046583U")
   val pncIdentifier: PNCIdentifier? = null,
   @Schema(description = "CRO", example = "293110/23X")
-  val cro: String? = null,
+  val croIdentifier: CROIdentifier? = null,
   var prisonNumber: String? = null,
 )
