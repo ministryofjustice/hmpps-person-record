@@ -16,7 +16,7 @@ import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConverter
-import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import java.time.LocalDate
 

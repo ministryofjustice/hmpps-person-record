@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.NE
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.AdditionalInformation

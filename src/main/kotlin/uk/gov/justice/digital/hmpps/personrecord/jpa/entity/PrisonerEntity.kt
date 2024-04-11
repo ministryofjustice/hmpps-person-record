@@ -25,61 +25,61 @@ import java.time.LocalDate
 @Table(name = "prisoner")
 class PrisonerEntity(
 
-        @Id
+  @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
 
-        @Column(name = "prison_number")
+  @Column(name = "prison_number")
   val prisonNumber: String? = null,
 
-        @Column(name = "pnc_number")
+  @Column(name = "pnc_number")
   @Convert(converter = PNCIdentifierConverter::class)
   val pncNumber: PNCIdentifier? = null,
 
-        @Column(name = "cro")
-        @Convert(converter = CROIdentifierConverter::class)
+  @Column(name = "cro")
+  @Convert(converter = CROIdentifierConverter::class)
   val cro: String? = null,
 
-        @Column(name = "offender_id")
+  @Column(name = "offender_id")
   val offenderId: Long? = null,
 
-        @Column(name = "root_offender_id")
+  @Column(name = "root_offender_id")
   val rootOffenderId: Long? = null,
 
-        @Column(name = "ni_number")
+  @Column(name = "ni_number")
   val nationalInsuranceNumber: String? = null,
 
-        @Column(name = "driving_license_number")
+  @Column(name = "driving_license_number")
   val drivingLicenseNumber: String? = null,
 
-        @Column(name = "birth_place")
+  @Column(name = "birth_place")
   val birthPlace: String? = null,
 
-        @Column(name = "birth_country_code")
+  @Column(name = "birth_country_code")
   val birthCountryCode: String? = null,
 
-        @Column(name = "sex_code")
+  @Column(name = "sex_code")
   val sexCode: String? = null,
 
-        @Column(name = "race_code")
+  @Column(name = "race_code")
   val raceCode: String? = null,
 
-        @Column(name = "title")
+  @Column(name = "title")
   val title: String? = null,
 
-        @Column(name = "first_name")
+  @Column(name = "first_name")
   val firstName: String? = null,
 
-        @Column(name = "middle_name")
+  @Column(name = "middle_name")
   val middleName: String? = null,
 
-        @Column(name = "last_name")
+  @Column(name = "last_name")
   val lastName: String? = null,
 
-        @Column(name = "date_of_birth")
+  @Column(name = "date_of_birth")
   val dateOfBirth: LocalDate? = null,
 
-        @ManyToOne(optional = false, cascade = [CascadeType.ALL])
+  @ManyToOne(optional = false, cascade = [CascadeType.ALL])
   @JoinColumn(
     name = "fk_person_id",
     referencedColumnName = "id",
@@ -87,18 +87,18 @@ class PrisonerEntity(
   )
   var person: PersonEntity? = null,
 
-        @OneToOne(cascade = [CascadeType.ALL])
+  @OneToOne(cascade = [CascadeType.ALL])
   @JoinColumn(name = "fk_address_id", referencedColumnName = "id", nullable = true)
   var address: AddressEntity? = null,
 
-        @OneToOne(cascade = [CascadeType.ALL])
+  @OneToOne(cascade = [CascadeType.ALL])
   @JoinColumn(name = "fk_contact_id", referencedColumnName = "id", nullable = true)
   var contact: ContactEntity? = null,
 
-        @OneToMany(mappedBy = "prisoner", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "prisoner", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
   var aliases: MutableList<PrisonerAliasEntity> = mutableListOf(),
 
-        @Version
+  @Version
   var version: Int = 0,
 
         ) {
