@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
-import org.bouncycastle.util.Fingerprint
-
 class CROIdentifier(inputCroId: String, inputFingerprint: Boolean) {
 
   val croId: String = inputCroId

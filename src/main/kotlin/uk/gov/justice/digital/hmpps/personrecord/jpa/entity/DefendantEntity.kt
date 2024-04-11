@@ -57,6 +57,7 @@ class DefendantEntity(
   val crn: String? = null,
 
   @Column(name = "cro")
+  @Convert(converter = PNCIdentifierConverter::class)
   val cro: String? = null,
 
   @Column(name = "title")

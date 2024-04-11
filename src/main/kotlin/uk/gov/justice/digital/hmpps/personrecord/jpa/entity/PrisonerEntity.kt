@@ -16,6 +16,7 @@ import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerDetails
+import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.CROIdentifierConverter
 import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConverter
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import java.time.LocalDate
@@ -36,6 +37,7 @@ class PrisonerEntity(
   val pncNumber: PNCIdentifier? = null,
 
         @Column(name = "cro")
+        @Convert(converter = CROIdentifierConverter::class)
   val cro: String? = null,
 
         @Column(name = "offender_id")
