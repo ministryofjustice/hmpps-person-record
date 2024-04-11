@@ -53,33 +53,18 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   fun `should successfully process common platform message with 3 defendants and create correct telemetry events`() {
     publishHMCTSMessage(commonPlatformHearing("19810154257C"), COMMON_PLATFORM_HEARING)
 
-    await untilAsserted {
-      verify(telemetryClient).trackEvent(
-        eq(HMCTS_MESSAGE_RECEIVED.eventName),
-        check {
-          assertThat(it["PNC"]).isEqualTo("1981/0154257C")
-        },
-        eq(null),
-      )
-    }
-    await untilAsserted {
-      verify(telemetryClient).trackEvent(
-        eq(HMCTS_MESSAGE_RECEIVED.eventName),
-        check {
-          assertThat(it["PNC"]).isEqualTo("2008/0056560Z")
-        },
-        eq(null),
-      )
-    }
-    await untilAsserted {
-      verify(telemetryClient).trackEvent(
-        eq(HMCTS_MESSAGE_RECEIVED.eventName),
-        check {
-          assertThat(it["PNC"]).isEqualTo("")
-        },
-        eq(null),
-      )
-    }
+    checkTelemetry(
+      HMCTS_MESSAGE_RECEIVED,
+      mapOf("PNC" to "1981/0154257C"),
+    )
+    checkTelemetry(
+      HMCTS_MESSAGE_RECEIVED,
+      mapOf("PNC" to "2008/0056560Z"),
+    )
+    checkTelemetry(
+      HMCTS_MESSAGE_RECEIVED,
+      mapOf("PNC" to ""),
+    )
   }
 
   @Test
