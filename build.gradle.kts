@@ -21,6 +21,11 @@ dependencies {
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
   implementation("io.swagger.core.v3:swagger-annotations:2.2.21")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.1")
+  constraints {
+    implementation("org.bouncycastle:bcprov-jdk18on:1.78") {
+      because("1.77 has CVEs")
+    }
+  }
   implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.1")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:3.1.2")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.2.0")
