@@ -2,11 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.verify
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.NEW_OFFENDER_CREATED
@@ -40,14 +37,6 @@ class PersonCreationIntTest : IntegrationTestBase() {
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
     publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
-    await untilAsserted {
-      verify(telemetryClient).trackEvent(
-        eq(NEW_DELIUS_RECORD_PNC_MATCHED.eventName),
-        org.mockito.kotlin.check {
-          assertThat(it["PNC"]).isEqualTo(pncNumber)
-        },
-        eq(null),
-      )
-    }
+    checkTelemetry(NEW_DELIUS_RECORD_PNC_MATCHED, mapOf("PNC" to pncNumber))
   }
 }
