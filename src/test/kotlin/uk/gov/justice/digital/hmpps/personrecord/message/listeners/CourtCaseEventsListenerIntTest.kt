@@ -344,7 +344,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   fun `should output correct telemetry and call person-match-score for partial match`() {
     val pncNumber = "2003/0062845E"
 
-    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Clancy", lastName = "Eccles"), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Clancy", lastName = "Eccles", defendantId = "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777"), COMMON_PLATFORM_HEARING)
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Boothe"), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
@@ -359,7 +359,14 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     checkTelemetry(
       SPLINK_MATCH_SCORE,
-      mapOf("Match Probability Score" to "0.999353426", "Candidate Record UUID" to "UUID", "Candidate Record Identifier Type" to "defendantId", "Candidate Record Identifier" to "123456", "New Record Identifier Type" to "defendantId", "New Record Identifier" to "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199"),
+      mapOf(
+        "Match Probability Score" to "0.999353426",
+        "Candidate Record UUID" to "UUID",
+        "Candidate Record Identifier Type" to "defendantId",
+        "Candidate Record Identifier" to "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777",
+        "New Record Identifier Type" to "defendantId",
+        "New Record Identifier" to "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199",
+      ),
     )
   }
 }

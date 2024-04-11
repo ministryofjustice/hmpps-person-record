@@ -68,14 +68,14 @@ class CourtCaseEventsService(
 
   private fun partialMatchFound(defendantMatcher: DefendantMatcher, person: Person) {
     trackEvent(HMCTS_PARTIAL_MATCH, defendantMatcher.extractMatchingFields(defendantMatcher.getMatchingItem()))
-    val matchResult = matchingService.score(defendantMatcher.getAllMatchingItems()!!, person)
+    val matchResult = matchingService.score(defendantMatcher.items!!, person)
     trackEvent(
       SPLINK_MATCH_SCORE,
       mapOf(
         "Match Probability Score" to matchResult.probability,
         "Candidate Record UUID" to "UUID",
-        "Candidate Record Identifier Type" to "defendantId",
-        "Candidate Record Identifier" to "123456",
+        "Candidate Record Identifier Type" to matchResult.candidateRecordIdentifierType,
+        "Candidate Record Identifier" to matchResult.candidateRecordIdentifier,
         "New Record Identifier Type" to matchResult.newRecordIdentifierType,
         "New Record Identifier" to matchResult.newRecordIdentifier,
       ),

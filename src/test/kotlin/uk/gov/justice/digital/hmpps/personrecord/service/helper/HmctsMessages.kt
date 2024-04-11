@@ -195,7 +195,7 @@ fun commonPlatformHearing(pncNumber: String = "1981/0154257C") = """
     }
 """.trimIndent()
 
-fun commonPlatformHearingWithOneDefendant(pncNumber: String = "1981/0154257C", firstName: String = "Horace", lastName: String = "Andy", dateOfBirth: String = "1975-01-01") = """
+fun commonPlatformHearingWithOneDefendant(pncNumber: String = "1981/0154257C", firstName: String = "Horace", lastName: String = "Andy", dateOfBirth: String = "1975-01-01", defendantId: String = "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199") = """
     {
       "hearing": {
         "type": {
@@ -225,7 +225,7 @@ fun commonPlatformHearingWithOneDefendant(pncNumber: String = "1981/0154257C", f
           {
             "defendants": [
               { 
-                "id": "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199",
+                "id": "$defendantId",
                 "pncId": "$pncNumber",
                 "croNumber": "12345ABCDEF",
                 "offences": [
