@@ -28,7 +28,7 @@ dependencies {
   }
   implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.1")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:3.1.2")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.2.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.3.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
 
   runtimeOnly("org.postgresql:postgresql:42.7.3")
