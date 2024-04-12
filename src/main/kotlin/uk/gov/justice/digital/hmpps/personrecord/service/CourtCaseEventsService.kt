@@ -28,7 +28,7 @@ class CourtCaseEventsService(
     }
     if (person.otherIdentifiers?.croIdentifier != null) {
       if (!person.otherIdentifiers.croIdentifier.valid) {
-        trackEvent(TelemetryEventType.INVALID_CRO, mapOf("CRO" to person.otherIdentifiers.croIdentifier.croId))
+        trackEvent(TelemetryEventType.INVALID_CRO, mapOf("CRO" to person.otherIdentifiers.croIdentifier.invalidCro))
       }
     }
   }

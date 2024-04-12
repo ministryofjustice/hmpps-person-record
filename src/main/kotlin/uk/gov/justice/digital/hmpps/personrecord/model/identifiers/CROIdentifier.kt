@@ -2,13 +2,15 @@ package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
 import org.apache.commons.lang3.builder.EqualsBuilder
 
-class CROIdentifier(inputCroId: String, inputFingerprint: Boolean) {
+class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputCro: String = "") {
 
   val croId: String = inputCroId
   val fingerprint: Boolean = inputFingerprint
 
   val valid: Boolean
     get() = croId.isNotEmpty()
+
+  val invalidCro: String = invalidInputCro
 
   override fun equals(other: Any?): Boolean {
     return EqualsBuilder.reflectionEquals(this, other)
@@ -43,11 +45,11 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean) {
       val (canonicalCroId, fingerprint) = when {
         isSfFormat(inputCroId) -> Pair(canonicalizeSfFormat(inputCroId), false)
         isExpectedFormat(inputCroId) -> Pair(canonicalizeStandardFormat(inputCroId), true)
-        else -> Pair("", false)
+        else -> Pair(EMPTY_CRO, false)
       }
       return when {
         (canonicalCroId.isNotEmpty() && correctModulus(canonicalCroId, fingerprint)) -> CROIdentifier(canonicalCroId, fingerprint)
-        else -> CROIdentifier(EMPTY_CRO, false)
+        else -> CROIdentifier(EMPTY_CRO, false, inputCroId)
       }
     }
 
