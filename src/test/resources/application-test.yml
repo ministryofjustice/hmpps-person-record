@@ -10,6 +10,9 @@ database:
   schema:
     name: personrecordservicetest
 
+match-score:
+  base-url: http://localhost:8090
+
 nomis-oauth:
   base-url: http://localhost:8090
 

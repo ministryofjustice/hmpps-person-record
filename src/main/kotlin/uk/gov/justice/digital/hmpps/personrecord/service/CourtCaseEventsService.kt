@@ -24,7 +24,7 @@ class CourtCaseEventsService(
   private val personRecordService: PersonRecordService,
   private val offenderService: OffenderService,
   private val prisonerService: PrisonerService,
-  private val matchingService: MatchingService,
+  private val matchService: MatchService,
 ) {
 
   @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -68,7 +68,7 @@ class CourtCaseEventsService(
 
   private fun partialMatchFound(defendantMatcher: DefendantMatcher, person: Person) {
     trackEvent(HMCTS_PARTIAL_MATCH, defendantMatcher.extractMatchingFields(defendantMatcher.getMatchingItem()))
-    val matchResult = matchingService.score(defendantMatcher.items!!, person)
+    val matchResult = matchService.score(defendantMatcher.items!!, person)
     trackEvent(
       SPLINK_MATCH_SCORE,
       mapOf(
