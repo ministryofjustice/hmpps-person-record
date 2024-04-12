@@ -31,6 +31,12 @@ hmpps.sqs:
       subscribeFilter: '{"eventType":[ "probation-case.engagement.created", "prisoner-offender-search.prisoner.created", "prisoner-offender-search.prisoner.updated"] }'
   topics:
     courtcaseeventstopic:
-      arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
+      arn: arn:aws:sns:eu-west-2:000000000000:courtcaseeventstopic
     domainevents:
-      arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
+      arn: arn:aws:sns:eu-west-2:000000000000:domainevents
+
+feature.flags:
+  enable-hmcts-sqs: true
+  enable-delius-search: true
+  enable-nomis-search: true
+  enable-delius-domain-event-sqs: true

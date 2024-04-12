@@ -11,6 +11,8 @@
 
 ## Running Service Locally
 
+Mostly runs against dev services, uses localstack for the queues
+
 Ensure all docker containers are up and running:
 
 `$ docker compose up -d`
@@ -19,16 +21,23 @@ Which should start the following containers: (verify with `$ docker ps` if neces
 - postgres
 - localstack-hmpps-person-record
 
-
 Start the service ensuring the local spring boot profile is set:
 
 `$ ./gradlew bootRun --args='--spring.profiles.active=local'`
 
-NB. All REST endpoints are secured with the role `ROLE_VIEW_PRISONER_DATA` which will need to be passed to the endpoint as an OAuth token.
+
+## process a Common Platform message
+
+```shell
+AWS_REGION=eu-west-2 AWS_ACCESS_KEY_ID=key AWS_SECRET_ACCESS_KEY=secret aws --endpoint-url=http://localhost:4566 sns publish \
+    --topic-arn arn:aws:sns:eu-west-2:000000000000:courtcaseeventstopic \
+    --message-attributes file://$(pwd)/src/test/resources/examples/commonPlatformMessageAttributes.json \
+    --message file://$(pwd)/src/test/resources/examples/commonPlatformMessage.json
+```
 
 ## Deployment
 
-Builds and deployments are setup in `Circle CI` and configured in the [config file](./.circleci/config.yml).  
+Builds and deployments are set up in `Circle CI` and configured in the [config file](./.circleci/config.yml).  
 Helm is used to deploy the service to a Kubernetes Cluster using templates in the [`helm_deploy` folder](./helm_deploy).
 
 ---
