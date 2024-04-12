@@ -57,7 +57,6 @@ class CROIdentifierTest {
     val readAllLines = Files.readAllLines(Paths.get("src/test/resources/valid_cros.csv"), Charsets.UTF_8)
 
     readAllLines.stream().forEach {
-      println(it)
       assertThat(CROIdentifier.from(it).valid).isTrue().withFailMessage(it)
     }
   }

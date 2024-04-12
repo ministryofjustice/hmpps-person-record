@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
+import org.apache.commons.lang3.builder.EqualsBuilder
+
 class CROIdentifier(inputCroId: String, inputFingerprint: Boolean) {
 
   val croId: String = inputCroId
@@ -9,10 +11,7 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean) {
     get() = croId.isNotEmpty()
 
   override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (javaClass != other?.javaClass) return false
-    other as CROIdentifier
-    return croId == other.croId
+    return EqualsBuilder.reflectionEquals(this, other)
   }
 
   override fun hashCode(): Int {
@@ -69,17 +68,14 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean) {
 
     private fun correctModulus(inputCroId: String, fingerprint: Boolean): Boolean {
       val checkChar = inputCroId[LAST_CHARACTER]
-      val (serialNum, yearDigit) = inputCroId.dropLast(1).split(SLASH) // Append year digit to serial number
-      val serialNumToCheck = if (!fingerprint) serialNum.trimStart { it == '0' } else serialNum // Assume if no fingerprint it is SF
+      val (serialNum, yearDigit) = inputCroId.dropLast(1).split(SLASH)
+      val serialNumToCheck = if (!fingerprint) serialNum.trimStart { it == '0' } else serialNum
       val modulus = VALID_LETTERS[(yearDigit + serialNumToCheck).toLong().mod(VALID_LETTERS.length)]
       return modulus == checkChar
     }
 
     private fun padSerialNumber(serialNumber: String): String {
-      if (serialNumber.length < SERIAL_NUM_LENGTH) {
-        return serialNumber.padStart(SERIAL_NUM_LENGTH, '0')
-      }
-      return serialNumber
+      return serialNumber.padStart(SERIAL_NUM_LENGTH, '0')
     }
 
     private fun isExpectedFormat(inputCroId: String): Boolean {
