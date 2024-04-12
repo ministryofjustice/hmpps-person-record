@@ -328,14 +328,14 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   fun `should output correct telemetry for exact match`() {
     val pncNumber = PNCIdentifier.from("2003/0062845E")
 
-    publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber.pncId), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
       HMCTS_RECORD_CREATED,
       mapOf("PNC" to pncNumber.pncId),
     )
 
-    publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber.pncId), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
       HMCTS_EXACT_MATCH,
@@ -348,12 +348,13 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     val pncNumber = "2003/0062845E"
 
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Clancy", lastName = "Eccles"), COMMON_PLATFORM_HEARING)
-    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Boothe"), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
       HMCTS_RECORD_CREATED,
       mapOf("PNC" to "2003/0062845E"),
     )
+
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Boothe"), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
       HMCTS_PARTIAL_MATCH,
