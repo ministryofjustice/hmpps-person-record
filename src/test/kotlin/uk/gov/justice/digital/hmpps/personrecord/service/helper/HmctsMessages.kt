@@ -380,7 +380,7 @@ fun commonPlatformHearingWithNewDefendant() = """
               { 
                 "id": "b5cfae34-9256-43ad-87fb-ac3def34e2ac",
                 "pncId": "2003/0062845E",
-                "croNumber": "12345ABCDEF",
+                "croNumber": "75715/64Q",
                 "offences": [
                   {
                     "id": "a63d9020-aa6b-4997-92fd-72a692b036de",
@@ -413,7 +413,7 @@ fun commonPlatformHearingWithNewDefendant() = """
                            { 
                 "id": "b5cfae34-9256-43ad-87fb-ac3def34e2ac",
                 "pncId": "2003/0062845E",
-                "croNumber": "12345ABCDEF",
+                "croNumber": "20970/63D",
                 "offences": [
                   {
                     "id": "a63d9020-aa6b-4997-92fd-72a692b036de",
@@ -487,7 +487,7 @@ fun commonPlatformHearingWithAdditionalFields() = """
                 "id": "b5cfae34-9256-43ad-87fb-ac3def34e2ac",
                 "masterDefendantId": "eeb71c73-573b-444e-9dc3-4e5998d1be65",
                 "pncId": "2003/0062845E",
-                "croNumber": "12345ABCDEF",
+                "croNumber": "33577/63G",
                 "offences": [
                   {
                     "id": "a63d9020-aa6b-4997-92fd-72a692b036de",
@@ -532,7 +532,7 @@ fun commonPlatformHearingWithAdditionalFields() = """
                 "id": "cc36c035-6e82-4d04-94c2-2a5728f11481",
                 "masterDefendantId": "1f6847a2-6663-44dd-b945-fe2c20961d0a",
                 "pncId": "2008/0056560Z",
-                "croNumber": "12345ABCDEF",
+                "croNumber": "78182/63Q",
                 "offences": [
                   {
                     "id": "a63d9020-aa6b-4997-92fd-72a692b036de",
@@ -576,7 +576,7 @@ fun commonPlatformHearingWithAdditionalFields() = """
                 "id": "b56f8612-0f4c-43e5-840a-8bedb17722ec",
                 "masterDefendantId": "290e0457-1480-4e62-b3c8-7f29ef791c58",
                 "pncId": "20230583843L",
-                "croNumber": "12345ABCDEF",
+                "croNumber": "15542/64K",
                 "offences": [
                   {
                     "id": "a63d9020-aa6b-4997-92fd-72a692b036de",
