@@ -102,7 +102,7 @@ class PrisonerEntity(
   @Version
   var version: Int = 0,
 
-  ) {
+) {
   companion object {
     fun from(prisoner: Prisoner): PrisonerEntity {
       return PrisonerEntity(

@@ -16,9 +16,9 @@ import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.CROIdentifierConverter
 import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConverter
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import java.time.LocalDate
 
 @Entity
@@ -110,7 +110,7 @@ class DefendantEntity(
   @Version
   var version: Int = 0,
 
-  ) {
+) {
   companion object {
     fun from(person: Person): DefendantEntity {
       val defendantEntity = DefendantEntity(

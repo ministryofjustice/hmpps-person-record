@@ -84,7 +84,8 @@ data class Person(
       return Person(
         otherIdentifiers = OtherIdentifiers(
           pncIdentifier = PNCIdentifier.from(defendant.pncId),
-          croIdentifier = CROIdentifier.from(defendant.croNumber)),
+          croIdentifier = CROIdentifier.from(defendant.croNumber),
+        ),
         givenName = defendant.personDefendant?.personDetails?.firstName,
         familyName = defendant.personDefendant?.personDetails?.lastName,
         middleNames = defendant.personDefendant?.personDetails?.middleName?.split(" "),
@@ -116,7 +117,7 @@ data class Person(
       return Person(
         otherIdentifiers = OtherIdentifiers(
           pncIdentifier = PNCIdentifier.from(libraHearingEvent.pnc),
-          croIdentifier = CROIdentifier.from(libraHearingEvent.cro)
+          croIdentifier = CROIdentifier.from(libraHearingEvent.cro),
         ),
         givenName = libraHearingEvent.name?.forename1,
         familyName = libraHearingEvent.name?.surname,

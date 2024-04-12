@@ -2,11 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
 import java.nio.file.Files
 import java.nio.file.Paths
-
 import kotlin.test.assertEquals
 
 class CROIdentifierTest {
