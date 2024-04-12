@@ -52,7 +52,7 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputC
       }
       return when {
         canonicalCro.valid -> CROIdentifier(canonicalCro.value, canonicalCro.fingerprint)
-        else -> invalidCro()
+        else -> invalidCro(inputCroId)
       }
     }
 

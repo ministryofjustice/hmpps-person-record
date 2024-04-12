@@ -26,10 +26,8 @@ class CourtCaseEventsService(
       is InvalidPNCIdentifier -> trackEvent(TelemetryEventType.INVALID_PNC, mapOf("PNC" to pncIdentifier.invalidValue()))
       else -> trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
     }
-    if (person.otherIdentifiers?.croIdentifier != null) {
-      if (!person.otherIdentifiers.croIdentifier.valid) {
-        trackEvent(TelemetryEventType.INVALID_CRO, mapOf("CRO" to person.otherIdentifiers.croIdentifier.invalidCro))
-      }
+    if (person.otherIdentifiers?.croIdentifier?.valid == false) {
+      trackEvent(TelemetryEventType.INVALID_CRO, mapOf("CRO" to person.otherIdentifiers.croIdentifier.invalidCro))
     }
   }
 
