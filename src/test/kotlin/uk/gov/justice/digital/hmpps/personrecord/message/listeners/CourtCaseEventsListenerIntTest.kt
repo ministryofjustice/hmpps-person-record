@@ -16,6 +16,7 @@ import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.LIBRA_COURT_CASE
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithAdditionalFields
@@ -82,7 +83,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to emptyPncNumber, "CRO" to "11111/79J"),
+      mapOf("PNC" to emptyPncNumber, "CRO" to "085227/65L"),
     )
 
     checkTelemetry(
@@ -142,7 +143,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.defendants[0].pncNumber).isEqualTo(pncNumber)
     assertThat(personEntity.offenders).hasSize(1)
     assertThat(personEntity.offenders[0].crn).isEqualTo("X026350")
-    assertThat(personEntity.offenders[0].cro).isEqualTo("X026350")
+    assertThat(personEntity.offenders[0].cro).isEqualTo(CROIdentifier.from(""))
     assertThat(personEntity.offenders[0].pncNumber).isEqualTo(pncNumber)
     assertThat(personEntity.offenders[0].firstName).isEqualTo("Eric")
     assertThat(personEntity.offenders[0].lastName).isEqualTo("Lassard")
@@ -170,6 +171,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.personId).isNotNull()
     assertThat(personEntity.defendants.size).isEqualTo(1)
     assertThat(personEntity.defendants[0].pncNumber).isEqualTo(pncNumber)
+    assertThat(personEntity.defendants[0].cro).isEqualTo(CROIdentifier.from("051072/62R"))
     assertThat(personEntity.defendants[0].address).isNotNull
     assertThat(personEntity.defendants[0].address?.addressLineOne).isEqualTo("13 broad Street")
     assertThat(personEntity.defendants[0].address?.addressLineTwo).isEqualTo("Cardiff")
@@ -312,7 +314,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.prisoners[0].offenderId).isEqualTo(356)
     assertThat(personEntity.prisoners[0].rootOffenderId).isEqualTo(300)
     assertThat(personEntity.prisoners[0].dateOfBirth).isEqualTo(LocalDate.of(1970, 3, 15))
-    assertThat(personEntity.prisoners[0].cro).isEqualTo("51072/62R")
+    assertThat(personEntity.prisoners[0].cro).isEqualTo(CROIdentifier.from("51072/62R"))
     assertThat(personEntity.prisoners[0].drivingLicenseNumber).isEqualTo("ERIC1234567K")
     assertThat(personEntity.prisoners[0].nationalInsuranceNumber).isEqualTo("PD123456D")
     assertThat(personEntity.prisoners[0].address?.postcode).isEqualTo("LI1 5TH")
@@ -327,12 +329,13 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     val pncNumber = PNCIdentifier.from("2003/0062845E")
 
     publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
-    publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
       HMCTS_RECORD_CREATED,
       mapOf("PNC" to pncNumber.pncId),
     )
+
+    publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
       HMCTS_EXACT_MATCH,

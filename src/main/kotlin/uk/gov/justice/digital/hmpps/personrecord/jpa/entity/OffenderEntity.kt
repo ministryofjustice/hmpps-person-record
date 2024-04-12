@@ -114,6 +114,7 @@ class OffenderEntity(
       return person.otherIdentifiers?.crn?.let {
         val offenderEntity = OffenderEntity(
           crn = it,
+          cro = person.otherIdentifiers.croIdentifier,
           pncNumber = person.otherIdentifiers.pncIdentifier,
           firstName = person.givenName,
           lastName = person.familyName,

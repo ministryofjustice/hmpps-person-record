@@ -27,7 +27,7 @@ class PersonRecordService(
     return personRepository.findPersonEntityByPncNumber(pncIdentifier)
   }
   fun createNewPersonAndDefendant(person: Person): PersonEntity {
-    log.debug("Entered createNewPersonAndDefendant with pnc ${person.otherIdentifiers?.pncIdentifier}")
+    log.debug("Entered createNewPersonAndDefendant with pnc {}", person.otherIdentifiers?.pncIdentifier)
 
     val newPersonEntity = PersonEntity.new()
     val newDefendantEntity = createDefendant(person)
