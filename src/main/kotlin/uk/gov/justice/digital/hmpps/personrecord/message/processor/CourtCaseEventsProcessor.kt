@@ -81,7 +81,7 @@ class CourtCaseEventsProcessor(
     try {
       telemetryService.trackEvent(
         HMCTS_MESSAGE_RECEIVED,
-        mapOf("PNC" to person.otherIdentifiers?.pncIdentifier.toString(), "CRO" to person.otherIdentifiers?.cro),
+        mapOf("PNC" to person.otherIdentifiers?.pncIdentifier.toString(), "CRO" to person.otherIdentifiers?.croIdentifier.toString()),
       )
       courtCaseEventsService.processPersonFromCourtCaseEvent(person)
     } catch (e: Exception) {

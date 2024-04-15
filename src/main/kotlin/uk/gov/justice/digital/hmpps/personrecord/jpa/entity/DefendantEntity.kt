@@ -14,9 +14,11 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.CROIdentifierConverter
 import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConverter
-import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import java.time.LocalDate
 
 @Entity
@@ -31,7 +33,7 @@ class DefendantEntity(
   @JoinColumn(
     name = "fk_person_id",
     referencedColumnName = "id",
-    nullable = false,
+    nullable = true,
   )
   var person: PersonEntity? = null,
 
@@ -57,7 +59,8 @@ class DefendantEntity(
   val crn: String? = null,
 
   @Column(name = "cro")
-  val cro: String? = null,
+  @Convert(converter = CROIdentifierConverter::class)
+  val cro: CROIdentifier? = null,
 
   @Column(name = "title")
   val title: String? = null,
@@ -119,7 +122,7 @@ class DefendantEntity(
         defendantId = person.defendantId,
         pncNumber = person.otherIdentifiers?.pncIdentifier,
         crn = person.otherIdentifiers?.crn,
-        cro = person.otherIdentifiers?.cro,
+        cro = person.otherIdentifiers?.croIdentifier,
         driverNumber = person.driverNumber,
         arrestSummonsNumber = person.arrestSummonsNumber,
         masterDefendantId = person.masterDefendantId,

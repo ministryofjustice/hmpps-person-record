@@ -8,11 +8,12 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantAliasEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class DefendantRepositoryIntTest : IntegrationTestBase() {
 
@@ -337,5 +338,23 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     assertEquals(1, updatedDefendant?.version)
     assertEquals(1, updatedDefendant?.aliases?.size)
     assertEquals(updatedDefendant?.aliases!![0].firstName, "Dave")
+  }
+
+  @Test
+  fun `should save defendant successfully without a person record`() {
+    val defendantEntity = DefendantEntity(
+      crn = "E363876",
+      firstName = "Guinevere",
+      surname = "Atherton",
+      dateOfBirth = LocalDate.of(1980, 5, 1),
+      defendantId = "9877e0f9-1fa2-401f-b70f-eef6a205ff0b",
+    )
+
+    defendantRepository.save(defendantEntity)
+
+    val createdDefendant = defendantRepository.findByDefendantId("9877e0f9-1fa2-401f-b70f-eef6a205ff0b")
+
+    assertNotNull(createdDefendant)
+    assertNull(createdDefendant.person)
   }
 }

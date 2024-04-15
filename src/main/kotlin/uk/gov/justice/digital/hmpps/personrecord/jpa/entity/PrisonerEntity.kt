@@ -16,8 +16,10 @@ import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerDetails
+import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.CROIdentifierConverter
 import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConverter
-import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import java.time.LocalDate
 
 @Entity
@@ -36,7 +38,8 @@ class PrisonerEntity(
   val pncNumber: PNCIdentifier? = null,
 
   @Column(name = "cro")
-  val cro: String? = null,
+  @Convert(converter = CROIdentifierConverter::class)
+  val cro: CROIdentifier? = null,
 
   @Column(name = "offender_id")
   val offenderId: Long? = null,
@@ -81,7 +84,7 @@ class PrisonerEntity(
   @JoinColumn(
     name = "fk_person_id",
     referencedColumnName = "id",
-    nullable = false,
+    nullable = true,
   )
   var person: PersonEntity? = null,
 
@@ -114,7 +117,7 @@ class PrisonerEntity(
       return PrisonerEntity(
         prisonNumber = prisonerDetails.offenderNo,
         pncNumber = PNCIdentifier.from(prisonerDetails.getPnc()),
-        cro = prisonerDetails.getCro(),
+        cro = CROIdentifier.from(prisonerDetails.getCro()),
         offenderId = prisonerDetails.offenderId,
         rootOffenderId = prisonerDetails.rootOffenderId,
         drivingLicenseNumber = prisonerDetails.getDrivingLicenseNumber(),

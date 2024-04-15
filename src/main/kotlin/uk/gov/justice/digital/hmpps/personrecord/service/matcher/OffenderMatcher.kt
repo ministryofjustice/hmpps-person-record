@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.matcher
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
-import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 
 class OffenderMatcher(offenderDetails: List<OffenderDetail>?, person: Person) :
   Matcher<OffenderDetail>(offenderDetails, person) {
