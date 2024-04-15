@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
 
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -10,6 +9,7 @@ import java.time.LocalDate
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class PrisonerRepositoryIntTest : IntegrationTestBase() {
 

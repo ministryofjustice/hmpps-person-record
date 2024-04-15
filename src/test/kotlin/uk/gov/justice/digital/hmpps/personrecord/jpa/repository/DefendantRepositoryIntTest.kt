@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
@@ -14,6 +13,7 @@ import java.time.LocalDate
 import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class DefendantRepositoryIntTest : IntegrationTestBase() {
 
