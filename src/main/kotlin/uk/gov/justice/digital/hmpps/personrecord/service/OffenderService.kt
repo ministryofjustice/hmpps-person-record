@@ -43,8 +43,8 @@ class OffenderService(
       when {
         offenderMatcher.isPncDoesNotMatch() -> pncDoesNotMatch(offenderMatcher, personEntity, person)
         offenderMatcher.isExactMatch() -> exactMatchFound(offenderMatcher, personEntity, person)
-        offenderMatcher.isPartialMatch() -> partialMatchFound(personEntity, person)
         offenderMatcher.isMultipleMatch() -> multipleMatchesFound(offenderMatcher, personEntity, person)
+        offenderMatcher.isPartialMatch() -> partialMatchFound(personEntity, person)
         else -> noRecordsFound(personEntity, person)
       }
     }

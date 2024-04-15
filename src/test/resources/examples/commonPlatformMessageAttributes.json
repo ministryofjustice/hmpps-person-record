@@ -1,0 +1,14 @@
+{
+  "messageType": {
+    "DataType": "String",
+    "StringValue": "COMMON_PLATFORM_HEARING"
+  },
+  "id": {
+    "DataType": "String",
+    "StringValue": "fcf89ef7-f6e8-ee95-326f-8ce87d3b8ea0"
+  },
+  "timestamp": {
+    "DataType": "Number",
+    "StringValue": "1611149702333"
+  }
+}

@@ -7,13 +7,12 @@ import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.check
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
-import org.mockito.kotlin.verify
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
@@ -23,7 +22,14 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PARTIAL_MATCH
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_CRO
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MISSING_PNC
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.SPLINK_MATCH_SCORE
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
@@ -37,7 +43,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(invalidPncNumber), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
-      TelemetryEventType.INVALID_PNC,
+      INVALID_PNC,
       mapOf("PNC" to invalidPncNumber),
     )
   }
@@ -48,7 +54,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(cro = invalidCRO), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
-      TelemetryEventType.INVALID_CRO,
+      INVALID_CRO,
       mapOf("CRO" to invalidCRO),
     )
   }
@@ -58,15 +64,15 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(commonPlatformHearing("19810154257C"), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
-      TelemetryEventType.HMCTS_MESSAGE_RECEIVED,
+      HMCTS_MESSAGE_RECEIVED,
       mapOf("PNC" to "1981/0154257C"),
     )
     checkTelemetry(
-      TelemetryEventType.HMCTS_MESSAGE_RECEIVED,
+      HMCTS_MESSAGE_RECEIVED,
       mapOf("PNC" to "2008/0056560Z"),
     )
     checkTelemetry(
-      TelemetryEventType.HMCTS_MESSAGE_RECEIVED,
+      HMCTS_MESSAGE_RECEIVED,
       mapOf("PNC" to ""),
     )
   }
@@ -77,7 +83,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(message, LIBRA_COURT_CASE)
 
     checkTelemetry(
-      TelemetryEventType.MISSING_PNC,
+      MISSING_PNC,
       emptyMap(),
     )
   }
@@ -88,21 +94,19 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(libraHearing(pncNumber = emptyPncNumber), LIBRA_COURT_CASE)
 
     checkTelemetry(
-      TelemetryEventType.HMCTS_MESSAGE_RECEIVED,
+      HMCTS_MESSAGE_RECEIVED,
       mapOf("PNC" to emptyPncNumber, "CRO" to "085227/65L"),
     )
 
     checkTelemetry(
-      TelemetryEventType.MISSING_PNC,
+      MISSING_PNC,
       emptyMap(),
     )
 
-    verify(telemetryClient, never()).trackEvent(
-      eq(TelemetryEventType.INVALID_PNC.eventName),
-      check {
-        assertThat(it["PNC"]).isEqualTo(emptyPncNumber)
-      },
-      eq(null),
+    checkTelemetry(
+      INVALID_PNC,
+      mapOf("PNC" to emptyPncNumber),
+      never(),
     )
   }
 
@@ -140,26 +144,8 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       cprCourtCaseEventsQueue?.sqsDlqClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.dlqUrl!!)?.get()
     } matches { it == 0 }
 
-    val personEntity = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByPrisonersPncNumber(pncNumber)
-    }
-
-    assertThat(personEntity.personId).isNotNull()
-    assertThat(personEntity.defendants.size).isEqualTo(1)
-    assertThat(personEntity.defendants[0].pncNumber).isEqualTo(pncNumber)
-    assertThat(personEntity.offenders).hasSize(1)
-    assertThat(personEntity.offenders[0].crn).isEqualTo("X026350")
-    assertThat(personEntity.offenders[0].cro).isEqualTo(CROIdentifier.from(""))
-    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(pncNumber)
-    assertThat(personEntity.offenders[0].firstName).isEqualTo("Eric")
-    assertThat(personEntity.offenders[0].lastName).isEqualTo("Lassard")
-    assertThat(personEntity.offenders[0].dateOfBirth).isEqualTo(LocalDate.of(1960, 1, 1))
-    assertThat(personEntity.prisoners).hasSize(1)
-    assertThat(personEntity.prisoners[0].prisonNumber).isEqualTo("A1234AA")
-    assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(pncNumber)
-
     checkTelemetry(
-      TelemetryEventType.HMCTS_RECORD_CREATED,
+      HMCTS_RECORD_CREATED,
       mapOf("PNC" to pncNumber.pncId),
     )
   }
@@ -343,34 +329,92 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber.pncId), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
-      TelemetryEventType.HMCTS_RECORD_CREATED,
+      HMCTS_RECORD_CREATED,
       mapOf("PNC" to pncNumber.pncId),
     )
 
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber.pncId), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
-      TelemetryEventType.HMCTS_EXACT_MATCH,
+      HMCTS_EXACT_MATCH,
       mapOf("PNC" to pncNumber.pncId),
     )
   }
 
   @Test
-  fun `should output correct telemetry for partial match`() {
+  fun `should output correct telemetry and call person-match-score for partial match`() {
     val pncNumber = "2003/0062845E"
 
-    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Clancy", lastName = "Eccles"), COMMON_PLATFORM_HEARING)
-
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Clancy", lastName = "Eccles", defendantId = "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777"), COMMON_PLATFORM_HEARING)
     checkTelemetry(
-      TelemetryEventType.HMCTS_RECORD_CREATED,
+      HMCTS_RECORD_CREATED,
       mapOf("PNC" to "2003/0062845E"),
     )
+
+    val personEntity = await.atMost(30, SECONDS) untilNotNull {
+      personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncNumber))
+    }
 
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Boothe"), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
-      TelemetryEventType.HMCTS_PARTIAL_MATCH,
+      HMCTS_PARTIAL_MATCH,
       mapOf("Date of birth" to "1975-01-01"),
+    )
+
+    checkTelemetry(
+      SPLINK_MATCH_SCORE,
+      mapOf(
+        "Match Probability Score" to "0.999353426",
+        "Candidate Record UUID" to personEntity.personId.toString(),
+        "Candidate Record Identifier Type" to "defendantId",
+        "Candidate Record Identifier" to "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777",
+        "New Record Identifier Type" to "defendantId",
+        "New Record Identifier" to "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199",
+      ),
+    )
+  }
+
+  @Test
+  fun `should output correct telemetry and call person-match-score for multiple partial matches`() {
+    val pncNumber = "2003/0062845E"
+
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Clancy", lastName = "Eccles", defendantId = "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777"), COMMON_PLATFORM_HEARING)
+    val firstMatchEntity = await.atMost(30, SECONDS) untilNotNull {
+      personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncNumber))
+    }
+
+    val secondMatchEntity = PersonEntity.new()
+    val newDefendantEntity = DefendantEntity(pncNumber = PNCIdentifier.from(pncNumber), firstName = "John", surname = "Holt", dateOfBirth = LocalDate.of(1975, 1, 1))
+    newDefendantEntity.person = secondMatchEntity
+    secondMatchEntity.defendants.add(newDefendantEntity)
+
+    personRepository.saveAndFlush(secondMatchEntity)
+
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Boothe"), COMMON_PLATFORM_HEARING)
+
+    checkTelemetry(
+      SPLINK_MATCH_SCORE,
+      mapOf(
+        "Match Probability Score" to "0.999353426",
+        "Candidate Record UUID" to firstMatchEntity.personId.toString(),
+        "Candidate Record Identifier Type" to "defendantId",
+        "Candidate Record Identifier" to "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777",
+        "New Record Identifier Type" to "defendantId",
+        "New Record Identifier" to "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199",
+      ),
+    )
+
+    checkTelemetry(
+      SPLINK_MATCH_SCORE,
+      mapOf(
+        "Match Probability Score" to "0.9866543",
+        "Candidate Record UUID" to secondMatchEntity.personId.toString(),
+        "Candidate Record Identifier Type" to "defendantId",
+        "Candidate Record Identifier" to "",
+        "New Record Identifier Type" to "defendantId",
+        "New Record Identifier" to "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199",
+      ),
     )
   }
 }
