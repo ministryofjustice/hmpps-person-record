@@ -82,7 +82,7 @@ class PrisonerRepositoryIntTest : IntegrationTestBase() {
       firstName = "Rodney",
       lastName = "Trotter",
       dateOfBirth = LocalDate.of(1980, 5, 1),
-      )
+    )
 
     prisonerRepository.save(prisonerEntity)
 
