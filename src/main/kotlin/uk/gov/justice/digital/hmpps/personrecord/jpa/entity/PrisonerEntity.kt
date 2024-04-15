@@ -81,7 +81,7 @@ class PrisonerEntity(
   @JoinColumn(
     name = "fk_person_id",
     referencedColumnName = "id",
-    nullable = false,
+    nullable = true,
   )
   var person: PersonEntity? = null,
 

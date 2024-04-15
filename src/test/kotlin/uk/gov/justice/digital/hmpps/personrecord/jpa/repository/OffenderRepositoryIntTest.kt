@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class OffenderRepositoryIntTest : IntegrationTestBase() {
 
@@ -91,5 +92,19 @@ class OffenderRepositoryIntTest : IntegrationTestBase() {
     assertEquals(2, personEntityUpdated.offenders.size)
     assertNotNull(offenderRepository.findByCrn("E363999"))
     assertNotNull(offenderRepository.findByCrn("E363881"))
+  }
+
+  @Test
+  fun `should save offender successfully without a person record`() {
+    val offenderEntity = OffenderEntity(
+      crn = "E363876",
+    )
+
+    offenderRepository.save(offenderEntity)
+
+    val createdOffender = offenderRepository.findByCrn("E363876")
+
+    assertNotNull(createdOffender)
+    assertNull(createdOffender.person)
   }
 }
