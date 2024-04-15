@@ -46,7 +46,7 @@ class CourtCaseEventsService(
     val defendantMatcher = DefendantMatcher(defendants, person)
     when {
       defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person)
-      defendantMatcher.isPartialMatch() || defendantMatcher.isMultipleMatch() -> partialMatchFound(defendantMatcher, person)
+      defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher, person)
       else -> {
         createNewPersonRecordAndProcess(person)
       }
@@ -71,7 +71,6 @@ class CourtCaseEventsService(
   }
 
   private fun partialMatchFound(defendantMatcher: DefendantMatcher, person: Person) {
-    // should this event be emitted for all possible partial matches? Not sure it is required any more if we have the match score
     trackEvent(HMCTS_PARTIAL_MATCH, defendantMatcher.extractMatchingFields(defendantMatcher.getMatchingItem()))
     val matchResults = defendantMatcher.items!!.map { matchService.score(it, person) }
 
