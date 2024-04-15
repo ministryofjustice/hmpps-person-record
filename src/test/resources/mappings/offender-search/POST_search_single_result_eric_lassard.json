@@ -6,12 +6,11 @@
     "bodyPatterns" : [
       {
         "equalToJson" : {
-
         "firstName" : "Eric",
         "surname" : "Lassard",
         "dateOfBirth" : "1960-01-01",
         "pncNumber" : "2003/0062845E",
-        "croNumber" : "12345ABCDEF",
+        "croNumber" : "051072/62R",
         "crn" : null,
         "nomsNumber" : null,
         "includeAliases" : false

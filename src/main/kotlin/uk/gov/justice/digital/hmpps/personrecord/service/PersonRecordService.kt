@@ -11,8 +11,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PrisonerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 
 @Service
 class PersonRecordService(
@@ -27,7 +27,7 @@ class PersonRecordService(
     return personRepository.findPersonEntityByPncNumber(pncIdentifier)
   }
   fun createNewPersonAndDefendant(person: Person): PersonEntity {
-    log.debug("Entered createNewPersonAndDefendant with pnc ${person.otherIdentifiers?.pncIdentifier}")
+    log.debug("Entered createNewPersonAndDefendant with pnc {}", person.otherIdentifiers?.pncIdentifier)
 
     val newPersonEntity = PersonEntity.new()
     val newDefendantEntity = createDefendant(person)

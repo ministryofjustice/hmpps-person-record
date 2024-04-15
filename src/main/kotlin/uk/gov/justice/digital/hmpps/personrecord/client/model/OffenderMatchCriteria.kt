@@ -20,7 +20,7 @@ data class OffenderMatchCriteria(
         surname = person.familyName,
         dateOfBirth = person.dateOfBirth,
         pncNumber = person.otherIdentifiers?.pncIdentifier?.pncId,
-        croNumber = person.otherIdentifiers?.cro,
+        croNumber = person.otherIdentifiers?.croIdentifier?.croId,
         crn = person.otherIdentifiers?.crn,
       )
     }

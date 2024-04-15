@@ -3,8 +3,9 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
-import uk.gov.justice.digital.hmpps.personrecord.model.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import java.time.LocalDate
 
 internal class DefendantEntityTest {
@@ -23,7 +24,7 @@ internal class DefendantEntityTest {
       otherIdentifiers = OtherIdentifiers(
         crn = "crn1234",
         pncIdentifier = PNCIdentifier.from("2001/0171310W"),
-        cro = "cro1234",
+        croIdentifier = CROIdentifier.from("064072/62X"),
       ),
       sex = "male",
       nationalityOne = "nationality1",
@@ -48,7 +49,7 @@ internal class DefendantEntityTest {
     assertThat(defendantEntity.dateOfBirth).isEqualTo(dateOfBirth)
     assertThat(defendantEntity.crn).isEqualTo("crn1234")
     assertThat(defendantEntity.pncNumber).isEqualTo(PNCIdentifier.from("2001/0171310W"))
-    assertThat(defendantEntity.cro).isEqualTo("cro1234")
+    assertThat(defendantEntity.cro).isEqualTo(CROIdentifier.from("064072/62X"))
     assertThat(defendantEntity.sex).isNull()
     assertThat(defendantEntity.nationalityOne).isNull()
     assertThat(defendantEntity.nationalityTwo).isNull()

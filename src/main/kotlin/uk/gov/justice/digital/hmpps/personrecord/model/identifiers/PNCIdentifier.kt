@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.model
+package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
 import java.time.LocalDate
 

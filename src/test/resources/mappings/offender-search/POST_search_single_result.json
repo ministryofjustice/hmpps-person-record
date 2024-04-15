@@ -10,7 +10,7 @@
         "surname" : "Jones",
         "dateOfBirth" : "1968-08-15",
         "pncNumber" : "PNC1234",
-        "croNumber" : null,
+        "croNumber" : "051072/62R",
         "crn" : "CRN8474",
         "nomsNumber" : null,
         "includeAliases" : false
