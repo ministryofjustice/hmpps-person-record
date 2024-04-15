@@ -13,15 +13,15 @@ class MatchService(val matchScoreClient: MatchScoreClient) {
     val candidateRecordIdentifier = candidateRecord.defendantId ?: ""
     val newRecordIdentifier = newRecord.defendantId!!
 
-    val matchScore = matchScoreClient.getMatchScore(
-      MatchRequest(
-        uniqueId = MatchRequestData(candidateRecordIdentifier, newRecordIdentifier),
-        firstName = MatchRequestData(candidateRecord.firstName, newRecord.givenName),
-        surname = MatchRequestData(candidateRecord.surname, newRecord.familyName),
-        dateOfBirth = MatchRequestData(candidateRecord.dateOfBirth.toString(), newRecord.dateOfBirth.toString()),
-        pncNumber = MatchRequestData(candidateRecord.pncNumber?.pncId, newRecord.otherIdentifiers?.pncIdentifier?.pncId),
-      ),
+    val matchRequest = MatchRequest(
+      uniqueId = MatchRequestData(candidateRecordIdentifier, newRecordIdentifier),
+      firstName = MatchRequestData(candidateRecord.firstName, newRecord.givenName),
+      surname = MatchRequestData(candidateRecord.surname, newRecord.familyName),
+      dateOfBirth = MatchRequestData(candidateRecord.dateOfBirth.toString(), newRecord.dateOfBirth.toString()),
+      pncNumber = MatchRequestData(candidateRecord.pncNumber?.pncId, newRecord.otherIdentifiers?.pncIdentifier?.pncId),
     )
+
+    val matchScore = matchScoreClient.getMatchScore(matchRequest)
 
     return MatchResult(
       matchScore?.matchProbability?.value!!,

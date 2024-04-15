@@ -7,10 +7,7 @@ import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.check
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
-import org.mockito.kotlin.verify
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
@@ -106,12 +103,10 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       emptyMap(),
     )
 
-    verify(telemetryClient, never()).trackEvent(
-      eq(INVALID_PNC.eventName),
-      check {
-        assertThat(it["PNC"]).isEqualTo(emptyPncNumber)
-      },
-      eq(null),
+    checkTelemetry(
+      INVALID_PNC,
+      mapOf("PNC" to emptyPncNumber),
+      never(),
     )
   }
 
