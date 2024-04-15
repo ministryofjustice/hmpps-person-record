@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
@@ -337,5 +338,23 @@ class DefendantRepositoryIntTest : IntegrationTestBase() {
     assertEquals(1, updatedDefendant?.version)
     assertEquals(1, updatedDefendant?.aliases?.size)
     assertEquals(updatedDefendant?.aliases!![0].firstName, "Dave")
+  }
+
+  @Test
+  fun `should save defendant successfully without a person record`() {
+    val defendantEntity = DefendantEntity(
+      crn = "E363876",
+      firstName = "Guinevere",
+      surname = "Atherton",
+      dateOfBirth = LocalDate.of(1980, 5, 1),
+      defendantId = "9877e0f9-1fa2-401f-b70f-eef6a205ff0b",
+    )
+
+    defendantRepository.save(defendantEntity)
+
+    val createdDefendant = defendantRepository.findByDefendantId("9877e0f9-1fa2-401f-b70f-eef6a205ff0b")
+
+    assertNotNull(createdDefendant)
+    assertNull(createdDefendant.person)
   }
 }

@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
 
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -72,5 +73,22 @@ class PrisonerRepositoryIntTest : IntegrationTestBase() {
 
     assertEquals(1, prisonerWithAliases.aliases.size)
     assertEquals(prisonerWithAliases.aliases[0].firstName, "Dave")
+  }
+
+  @Test
+  fun `should save prisoner successfully without a person record`() {
+    val prisonerEntity = PrisonerEntity(
+      prisonNumber = "A1234BB",
+      firstName = "Rodney",
+      lastName = "Trotter",
+      dateOfBirth = LocalDate.of(1980, 5, 1),
+      )
+
+    prisonerRepository.save(prisonerEntity)
+
+    val createdPrisoner = prisonerRepository.findByPrisonNumber("A1234BB")
+
+    assertNotNull(createdPrisoner)
+    assertNull(createdPrisoner.person)
   }
 }
