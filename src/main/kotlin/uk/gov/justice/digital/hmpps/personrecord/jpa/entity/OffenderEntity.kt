@@ -65,6 +65,9 @@ class OffenderEntity(
   @Convert(converter = CROIdentifierConverter::class)
   val cro: CROIdentifier? = null,
 
+  @Column
+  val fingerprint: Boolean = false,
+
   @Column(name = "ni_number")
   val nationalInsuranceNumber: String? = null,
 
@@ -126,9 +129,11 @@ class OffenderEntity(
     }
 
     fun from(offenderDetail: OffenderDetail): OffenderEntity {
+      val croIdentifier = CROIdentifier.from(offenderDetail.otherIds.croNumber)
       val offenderEntity = OffenderEntity(
         crn = offenderDetail.otherIds.crn,
-        cro = CROIdentifier.from(offenderDetail.otherIds.croNumber),
+        cro = croIdentifier,
+        fingerprint = croIdentifier.fingerprint,
         pncNumber = PNCIdentifier.from(offenderDetail.otherIds.pncNumber),
         nationalInsuranceNumber = offenderDetail.otherIds.niNumber,
         prisonNumber = offenderDetail.otherIds.nomsNumber,

@@ -41,6 +41,9 @@ class PrisonerEntity(
   @Convert(converter = CROIdentifierConverter::class)
   val cro: CROIdentifier? = null,
 
+  @Column
+  val fingerprint: Boolean = false,
+
   @Column(name = "offender_id")
   val offenderId: Long? = null,
 
@@ -114,10 +117,12 @@ class PrisonerEntity(
       )
     }
     fun from(prisonerDetails: PrisonerDetails): PrisonerEntity {
+      val croIdentifier = CROIdentifier.from(prisonerDetails.getCro())
       return PrisonerEntity(
         prisonNumber = prisonerDetails.offenderNo,
         pncNumber = PNCIdentifier.from(prisonerDetails.getPnc()),
-        cro = CROIdentifier.from(prisonerDetails.getCro()),
+        cro = croIdentifier,
+        fingerprint = croIdentifier.fingerprint,
         offenderId = prisonerDetails.offenderId,
         rootOffenderId = prisonerDetails.rootOffenderId,
         drivingLicenseNumber = prisonerDetails.getDrivingLicenseNumber(),

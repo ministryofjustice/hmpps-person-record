@@ -62,6 +62,9 @@ class DefendantEntity(
   @Convert(converter = CROIdentifierConverter::class)
   val cro: CROIdentifier? = null,
 
+  @Column
+  val fingerprint: Boolean = false,
+
   @Column(name = "title")
   val title: String? = null,
 
@@ -129,6 +132,7 @@ class DefendantEntity(
         nationalInsuranceNumber = person.nationalInsuranceNumber,
         address = AddressEntity.from(person),
         contact = ContactEntity.from(person),
+        fingerprint = person.otherIdentifiers?.croIdentifier?.fingerprint ?: false,
       )
       return defendantEntity
     }
