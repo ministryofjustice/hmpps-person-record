@@ -14,6 +14,8 @@ import org.mockito.kotlin.verify
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
@@ -361,15 +363,14 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     val pncNumber = "2003/0062845E"
 
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Clancy", lastName = "Eccles", defendantId = "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777"), COMMON_PLATFORM_HEARING)
-    val personEntity = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncNumber))
-    }
-    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Boothe"), COMMON_PLATFORM_HEARING)
-
     checkTelemetry(
       HMCTS_RECORD_CREATED,
       mapOf("PNC" to "2003/0062845E"),
     )
+
+    val personEntity = await.atMost(30, SECONDS) untilNotNull {
+      personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncNumber))
+    }
 
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Boothe"), COMMON_PLATFORM_HEARING)
 
@@ -385,6 +386,49 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
         "Candidate Record UUID" to personEntity.personId.toString(),
         "Candidate Record Identifier Type" to "defendantId",
         "Candidate Record Identifier" to "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777",
+        "New Record Identifier Type" to "defendantId",
+        "New Record Identifier" to "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199",
+      ),
+    )
+  }
+
+  @Test
+  fun `should output correct telemetry and call person-match-score for multiple partial matches`() {
+    val pncNumber = "2003/0062845E"
+
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Clancy", lastName = "Eccles", defendantId = "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777"), COMMON_PLATFORM_HEARING)
+    val firstMatchEntity = await.atMost(30, SECONDS) untilNotNull {
+      personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncNumber))
+    }
+
+    val secondMatchEntity = PersonEntity.new()
+    val newDefendantEntity = DefendantEntity(pncNumber = PNCIdentifier.from(pncNumber), firstName = "John", surname = "Holt", dateOfBirth = LocalDate.of(1975, 1, 1))
+    newDefendantEntity.person = secondMatchEntity
+    secondMatchEntity.defendants.add(newDefendantEntity)
+
+    personRepository.saveAndFlush(secondMatchEntity)
+
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Boothe"), COMMON_PLATFORM_HEARING)
+
+    checkTelemetry(
+      SPLINK_MATCH_SCORE,
+      mapOf(
+        "Match Probability Score" to "0.999353426",
+        "Candidate Record UUID" to firstMatchEntity.personId.toString(),
+        "Candidate Record Identifier Type" to "defendantId",
+        "Candidate Record Identifier" to "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777",
+        "New Record Identifier Type" to "defendantId",
+        "New Record Identifier" to "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199",
+      ),
+    )
+
+    checkTelemetry(
+      SPLINK_MATCH_SCORE,
+      mapOf(
+        "Match Probability Score" to "0.999353426",
+        "Candidate Record UUID" to secondMatchEntity.personId.toString(),
+        "Candidate Record Identifier Type" to "defendantId",
+        "Candidate Record Identifier" to "",
         "New Record Identifier Type" to "defendantId",
         "New Record Identifier" to "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199",
       ),

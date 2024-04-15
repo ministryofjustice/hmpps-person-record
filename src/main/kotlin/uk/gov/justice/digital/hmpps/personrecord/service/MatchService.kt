@@ -9,10 +9,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.Person
 
 @Service
 class MatchService(val matchScoreClient: MatchScoreClient) {
-  fun score(allMatchingItems: List<DefendantEntity>, newRecord: Person): MatchResult {
-    val candidateRecord = allMatchingItems[0]
-    // TODO a lot of tidying up
-    val candidateRecordIdentifier = candidateRecord.defendantId!!
+  fun score(candidateRecord: DefendantEntity, newRecord: Person): MatchResult {
+    val candidateRecordIdentifier = candidateRecord.defendantId ?: ""
     val newRecordIdentifier = newRecord.defendantId!!
 
     val matchScore = matchScoreClient.getMatchScore(

@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Isolation
+import org.springframework.transaction.annotation.Isolation.SERIALIZABLE
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PARTIAL_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_CRO
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MISSING_PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.SPLINK_MATCH_SCORE
@@ -27,25 +28,25 @@ class CourtCaseEventsService(
   private val matchService: MatchService,
 ) {
 
-  @Transactional(isolation = Isolation.SERIALIZABLE)
+  @Transactional(isolation = SERIALIZABLE)
   fun processPersonFromCourtCaseEvent(person: Person) {
     when (val pncIdentifier = person.otherIdentifiers?.pncIdentifier) {
       is ValidPNCIdentifier -> processValidMessage(pncIdentifier, person)
-      is InvalidPNCIdentifier -> trackEvent(TelemetryEventType.INVALID_PNC, mapOf("PNC" to pncIdentifier.invalidValue()))
-      else -> trackEvent(TelemetryEventType.MISSING_PNC, emptyMap())
+      is InvalidPNCIdentifier -> trackEvent(INVALID_PNC, mapOf("PNC" to pncIdentifier.invalidValue()))
+      else -> trackEvent(MISSING_PNC, emptyMap())
     }
     if (person.otherIdentifiers?.croIdentifier?.valid == false) {
-      trackEvent(TelemetryEventType.INVALID_CRO, mapOf("CRO" to person.otherIdentifiers.croIdentifier.invalidCro))
+      trackEvent(INVALID_CRO, mapOf("CRO" to person.otherIdentifiers.croIdentifier.invalidCro))
     }
   }
 
   private fun processValidMessage(pncIdentifier: ValidPNCIdentifier, person: Person) {
-    trackEvent(TelemetryEventType.VALID_PNC, mapOf("PNC" to pncIdentifier.toString()))
+    trackEvent(VALID_PNC, mapOf("PNC" to pncIdentifier.toString()))
     val defendants = defendantRepository.findAllByPncNumber(pncIdentifier)
     val defendantMatcher = DefendantMatcher(defendants, person)
     when {
       defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person)
-      defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher, person)
+      defendantMatcher.isPartialMatch() || defendantMatcher.isMultipleMatch() -> partialMatchFound(defendantMatcher, person)
       else -> {
         createNewPersonRecordAndProcess(person)
       }
@@ -59,30 +60,34 @@ class CourtCaseEventsService(
       prisonerService.processAssociatedPrisoners(it, person)
     }
     trackEvent(
-      TelemetryEventType.HMCTS_RECORD_CREATED,
+      HMCTS_RECORD_CREATED,
       mapOf("UUID" to personRecord.personId.toString(), "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId),
     )
   }
 
   private fun exactMatchFound(defendantMatcher: DefendantMatcher, person: Person) {
     val elementMap = mapOf("PNC" to person.otherIdentifiers?.pncIdentifier?.pncId, "CRN" to defendantMatcher.getMatchingItem().crn, "UUID" to person.personId.toString())
-    trackEvent(TelemetryEventType.HMCTS_EXACT_MATCH, elementMap)
+    trackEvent(HMCTS_EXACT_MATCH, elementMap)
   }
 
   private fun partialMatchFound(defendantMatcher: DefendantMatcher, person: Person) {
+    // should this event be emitted for all possible partial matches? Not sure it is required any more if we have the match score
     trackEvent(HMCTS_PARTIAL_MATCH, defendantMatcher.extractMatchingFields(defendantMatcher.getMatchingItem()))
-    val matchResult = matchService.score(defendantMatcher.items!!, person)
-    trackEvent(
-      SPLINK_MATCH_SCORE,
-      mapOf(
-        "Match Probability Score" to matchResult.probability,
-        "Candidate Record UUID" to matchResult.candidateRecordUUID,
-        "Candidate Record Identifier Type" to matchResult.candidateRecordIdentifierType,
-        "Candidate Record Identifier" to matchResult.candidateRecordIdentifier,
-        "New Record Identifier Type" to matchResult.newRecordIdentifierType,
-        "New Record Identifier" to matchResult.newRecordIdentifier,
-      ),
-    )
+    val matchResults = defendantMatcher.items!!.map { matchService.score(it, person) }
+
+    matchResults.forEach { matchResult ->
+      trackEvent(
+        SPLINK_MATCH_SCORE,
+        mapOf(
+          "Match Probability Score" to matchResult.probability,
+          "Candidate Record UUID" to matchResult.candidateRecordUUID,
+          "Candidate Record Identifier Type" to matchResult.candidateRecordIdentifierType,
+          "Candidate Record Identifier" to matchResult.candidateRecordIdentifier,
+          "New Record Identifier Type" to matchResult.newRecordIdentifierType,
+          "New Record Identifier" to matchResult.newRecordIdentifier,
+        ),
+      )
+    }
   }
 
   private fun trackEvent(

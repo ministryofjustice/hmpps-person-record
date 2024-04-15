@@ -231,9 +231,9 @@ abstract class IntegrationTestBase {
     return builder.toString()
   }
 
-  fun checkTelemetry(event: TelemetryEventType, expected: Map<String, String>) {
+  fun checkTelemetry(event: TelemetryEventType, expected: Map<String, String>, times: Int = 1) {
     await untilAsserted {
-      verify(telemetryClient, times(1)).trackEvent(
+      verify(telemetryClient, times(times)).trackEvent(
         eq(event.eventName),
         org.mockito.kotlin.check {
           assertThat(it).containsAllEntriesOf(expected)
