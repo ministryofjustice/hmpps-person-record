@@ -18,23 +18,23 @@ interface MatchScoreClient {
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class MatchResponse(
   @JsonProperty("match_probability")
-  val matchProbability: MatchData,
+  val matchProbability: MatchResponseData,
 )
 
-data class MatchData(@JsonProperty("0") val value: String)
+data class MatchResponseData(@JsonProperty("0") val value: String)
 
 class MatchRequest(
   @JsonProperty("unique_id")
-  val uniqueId: PersonMatchScoreParameter,
+  val uniqueId: MatchRequestData,
   @JsonProperty("first_name")
-  val firstName: PersonMatchScoreParameter,
-  val surname: PersonMatchScoreParameter,
+  val firstName: MatchRequestData,
+  val surname: MatchRequestData,
   @JsonProperty("dob")
-  val dateOfBirth: PersonMatchScoreParameter,
+  val dateOfBirth: MatchRequestData,
   @JsonProperty("pnc_number")
-  val pncNumber: PersonMatchScoreParameter,
+  val pncNumber: MatchRequestData,
   @JsonProperty("source_dataset")
-  val sourceDataSet: PersonMatchScoreParameter = PersonMatchScoreParameter("libra", "delius"),
+  val sourceDataSet: MatchRequestData = MatchRequestData("libra", "delius"),
 )
 
-class PersonMatchScoreParameter(@JsonProperty("0") val value0: String? = "", @JsonProperty("1") val value1: String? = "")
+class MatchRequestData(@JsonProperty("0") val value0: String? = "", @JsonProperty("1") val value1: String? = "")

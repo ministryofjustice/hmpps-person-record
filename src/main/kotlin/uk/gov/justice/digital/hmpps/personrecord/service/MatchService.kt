@@ -2,8 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchRequest
+import uk.gov.justice.digital.hmpps.personrecord.client.MatchRequestData
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
-import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchScoreParameter
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 
@@ -15,11 +15,11 @@ class MatchService(val matchScoreClient: MatchScoreClient) {
 
     val matchScore = matchScoreClient.getMatchScore(
       MatchRequest(
-        uniqueId = PersonMatchScoreParameter(candidateRecordIdentifier, newRecordIdentifier),
-        firstName = PersonMatchScoreParameter(candidateRecord.firstName, newRecord.givenName),
-        surname = PersonMatchScoreParameter(candidateRecord.surname, newRecord.familyName),
-        dateOfBirth = PersonMatchScoreParameter(candidateRecord.dateOfBirth.toString(), newRecord.dateOfBirth.toString()),
-        pncNumber = PersonMatchScoreParameter(candidateRecord.pncNumber?.pncId, newRecord.otherIdentifiers?.pncIdentifier?.pncId),
+        uniqueId = MatchRequestData(candidateRecordIdentifier, newRecordIdentifier),
+        firstName = MatchRequestData(candidateRecord.firstName, newRecord.givenName),
+        surname = MatchRequestData(candidateRecord.surname, newRecord.familyName),
+        dateOfBirth = MatchRequestData(candidateRecord.dateOfBirth.toString(), newRecord.dateOfBirth.toString()),
+        pncNumber = MatchRequestData(candidateRecord.pncNumber?.pncId, newRecord.otherIdentifiers?.pncIdentifier?.pncId),
       ),
     )
 
