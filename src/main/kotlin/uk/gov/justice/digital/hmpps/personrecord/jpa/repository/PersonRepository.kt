@@ -6,6 +6,7 @@ import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import java.time.LocalDate
 
 @Repository
 interface PersonRepository : JpaRepository<PersonEntity, Long> {
@@ -22,4 +23,13 @@ interface PersonRepository : JpaRepository<PersonEntity, Long> {
       "WHERE offender.pncNumber = :pncNumber OR defendant.pncNumber = :pncNumber OR prisioner.pncNumber = :pncNumber",
   )
   fun findPersonEntityByPncNumber(@Param("pncNumber") pncNumber: PNCIdentifier?): List<PersonEntity>
+
+  @Query(
+    "SELECT distinct p FROM PersonEntity p " +
+      "LEFT JOIN DefendantEntity defendant on defendant.person.id = p.id " +
+      "LEFT JOIN OffenderEntity offender on offender.person.id = p.id " +
+      "LEFT JOIN PrisonerEntity prisioner ON prisioner.person.id = p.id " +
+      "WHERE offender.dateOfBirth = :dateOfBirth OR defendant.dateOfBirth = :dateOfBirth OR prisioner.dateOfBirth = :dateOfBirth",
+  )
+  fun findPersonEntityByDateOfBirth(@Param("dateOfBirth") dateOfBirth: LocalDate?): List<PersonEntity>
 }

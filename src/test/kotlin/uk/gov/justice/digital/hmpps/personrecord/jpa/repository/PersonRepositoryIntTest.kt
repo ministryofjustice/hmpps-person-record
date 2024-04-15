@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import java.time.LocalDate
 
 class PersonRepositoryIntTest : IntegrationTestBase() {
 
@@ -78,5 +79,45 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
 
     // Then
     assertThat(personEntity).isEmpty()
+  }
+
+  @Test
+  fun `should not return any person record with no matching dateOfBirth`() {
+    // Given
+    val dateOfBirth = LocalDate.parse("1986-12-27")
+
+    // When
+    val personEntity = personRepository.findPersonEntityByDateOfBirth(dateOfBirth)
+
+    // Then
+    assertThat(personEntity).isEmpty()
+  }
+
+  @Test
+  fun `should not return any person record with matching dateOfBirth`() {
+    // Given
+    val dateOfBirth = LocalDate.parse("1986-12-27")
+
+    val person = Person(dateOfBirth = dateOfBirth, otherIdentifiers = OtherIdentifiers(crn = "CRN12345"))
+    val newPersonEntity = PersonEntity.new()
+
+    val newDefendantEntity = DefendantEntity.from(person)
+    newDefendantEntity.person = newPersonEntity
+    newPersonEntity.defendants.add(newDefendantEntity)
+
+    val newOffenderEntity = OffenderEntity.from(person)
+    newOffenderEntity.person = newPersonEntity
+    newPersonEntity.offenders.add(newOffenderEntity)
+
+    personRepository.saveAndFlush(newPersonEntity)
+
+    // When
+    val personEntity = personRepository.findPersonEntityByDateOfBirth(dateOfBirth)[0]
+
+    // Then
+    assertThat(personEntity.defendants).hasSize(1)
+    assertThat(personEntity.defendants[0].dateOfBirth).isEqualTo("1986-12-27")
+    assertThat(personEntity.offenders).hasSize(1)
+    assertThat(personEntity.offenders[0].dateOfBirth).isEqualTo("1986-12-27")
   }
 }
