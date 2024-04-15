@@ -62,6 +62,9 @@ class DefendantEntity(
   @Convert(converter = CROIdentifierConverter::class)
   val cro: CROIdentifier? = null,
 
+  @Column(name = "fingerprint")
+  val fingerprint: Boolean? = null,
+
   @Column(name = "title")
   val title: String? = null,
 
