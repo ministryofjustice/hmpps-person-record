@@ -65,7 +65,7 @@ class OffenderEntity(
   @Convert(converter = CROIdentifierConverter::class)
   val cro: CROIdentifier? = null,
 
-  @Column(name = "fingerprint")
+  @Column
   val fingerprint: Boolean = false,
 
   @Column(name = "ni_number")

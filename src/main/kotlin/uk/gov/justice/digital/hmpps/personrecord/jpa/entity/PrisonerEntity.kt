@@ -41,8 +41,8 @@ class PrisonerEntity(
   @Convert(converter = CROIdentifierConverter::class)
   val cro: CROIdentifier? = null,
 
-  @Column(name = "fingerprint")
-  val fingerprint: Boolean? = null,
+  @Column
+  val fingerprint: Boolean = false,
 
   @Column(name = "offender_id")
   val offenderId: Long? = null,
