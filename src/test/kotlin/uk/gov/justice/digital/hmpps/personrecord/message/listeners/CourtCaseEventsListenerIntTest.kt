@@ -425,7 +425,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     checkTelemetry(
       SPLINK_MATCH_SCORE,
       mapOf(
-        "Match Probability Score" to "0.999353426",
+        "Match Probability Score" to "0.9866543",
         "Candidate Record UUID" to secondMatchEntity.personId.toString(),
         "Candidate Record Identifier Type" to "defendantId",
         "Candidate Record Identifier" to "",
