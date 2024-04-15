@@ -1,0 +1,46 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "POST",
+    "urlPath": "/match",
+    "headers": {
+      "Content-Type": {
+        "equalTo": "application/json"
+      }
+    },
+    "bodyPatterns" : [
+      {
+        "equalToJson": {
+        "unique_id": {
+          "0": "${json-unit.any-string}",
+          "1": "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199"
+        },
+        "first_name": {
+          "0": "Clancy",
+          "1": "Ken"
+        },
+        "surname": {
+          "0": "Eccles",
+          "1": "Boothe"
+        },
+        "dob": {
+          "0": "1975-01-01",
+          "1": "1975-01-01"
+        },
+        "pnc_number": {
+          "0": "2003/0062845E",
+          "1": "2003/0062845E"
+        }
+      }
+
+    }
+     ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\"bf_dob_std\":{\"0\":5575.1271779553},\"bf_forename1_std\":{\"0\":213.268884166},\"bf_forename2_std\":{\"0\":1.0},\"bf_forename3_std\":{\"0\":1.0},\"bf_pnc_number_std\":{\"0\":1.0},\"bf_surname_std\":{\"0\":12.9979580957},\"dob_std_l\":{\"0\":\"2009-07-06\"},\"dob_std_r\":{\"0\":\"2009-07-06\"},\"forename1_std_l\":{\"0\":\"lily\"},\"forename1_std_r\":{\"0\":\"lily\"},\"forename2_std_l\":{\"0\":null},\"forename2_std_r\":{\"0\":null},\"forename3_std_l\":{\"0\":null},\"forename3_std_r\":{\"0\":null},\"gamma_dob_std\":{\"0\":4},\"gamma_forename1_std\":{\"0\":2},\"gamma_forename2_std\":{\"0\":-1},\"gamma_forename3_std\":{\"0\":-1},\"gamma_pnc_number_std\":{\"0\":-1},\"gamma_surname_std\":{\"0\":1},\"match_probability\":{\"0\":0.999353426},\"match_weight\":{\"0\":10.5939636766},\"pnc_number_std_l\":{\"0\":null},\"pnc_number_std_r\":{\"0\":\"2001/0141640Y\"},\"source_dataset_l\":{\"0\":\"delius\"},\"source_dataset_r\":{\"0\":\"libra\"},\"surname_std_l\":{\"0\":\"robibnson\"},\"surname_std_r\":{\"0\":\"robinson\"},\"unique_id_l\":{\"0\":\"862\"},\"unique_id_r\":{\"0\":\"861\"}}"
+  }
+}

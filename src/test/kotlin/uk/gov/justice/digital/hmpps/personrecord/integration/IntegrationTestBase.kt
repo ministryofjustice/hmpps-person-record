@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.RegisterExtension
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.verification.VerificationMode
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -231,9 +232,13 @@ abstract class IntegrationTestBase {
     return builder.toString()
   }
 
-  fun checkTelemetry(event: TelemetryEventType, expected: Map<String, String>) {
+  fun checkTelemetry(
+    event: TelemetryEventType,
+    expected: Map<String, String>,
+    verificationMode: VerificationMode = times(1),
+  ) {
     await untilAsserted {
-      verify(telemetryClient, times(1)).trackEvent(
+      verify(telemetryClient, verificationMode).trackEvent(
         eq(event.eventName),
         org.mockito.kotlin.check {
           assertThat(it).containsAllEntriesOf(expected)
