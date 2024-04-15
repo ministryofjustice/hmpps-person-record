@@ -33,8 +33,6 @@ class MatchRequest(
   val dateOfBirth: MatchRequestData,
   @JsonProperty("pnc_number")
   val pncNumber: MatchRequestData,
-  @JsonProperty("source_dataset")
-  val sourceDataSet: MatchRequestData = MatchRequestData("libra", "delius"),
 )
 
 class MatchRequestData(@JsonProperty("0") val value0: String? = "", @JsonProperty("1") val value1: String? = "")
