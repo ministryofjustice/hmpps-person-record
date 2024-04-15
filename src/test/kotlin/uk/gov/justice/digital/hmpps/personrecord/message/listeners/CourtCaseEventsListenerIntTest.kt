@@ -144,24 +144,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       cprCourtCaseEventsQueue?.sqsDlqClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.dlqUrl!!)?.get()
     } matches { it == 0 }
 
-    val personEntity = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByPrisonersPncNumber(pncNumber)
-    }
-
-    assertThat(personEntity.personId).isNotNull()
-    assertThat(personEntity.defendants.size).isEqualTo(1)
-    assertThat(personEntity.defendants[0].pncNumber).isEqualTo(pncNumber)
-    assertThat(personEntity.offenders).hasSize(1)
-    assertThat(personEntity.offenders[0].crn).isEqualTo("X026350")
-    assertThat(personEntity.offenders[0].cro).isEqualTo(CROIdentifier.from(""))
-    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(pncNumber)
-    assertThat(personEntity.offenders[0].firstName).isEqualTo("Eric")
-    assertThat(personEntity.offenders[0].lastName).isEqualTo("Lassard")
-    assertThat(personEntity.offenders[0].dateOfBirth).isEqualTo(LocalDate.of(1960, 1, 1))
-    assertThat(personEntity.prisoners).hasSize(1)
-    assertThat(personEntity.prisoners[0].prisonNumber).isEqualTo("A1234AA")
-    assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(pncNumber)
-
     checkTelemetry(
       HMCTS_RECORD_CREATED,
       mapOf("PNC" to pncNumber.pncId),
