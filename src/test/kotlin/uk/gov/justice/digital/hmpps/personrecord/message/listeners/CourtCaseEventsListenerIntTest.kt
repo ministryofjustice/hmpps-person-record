@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
@@ -11,7 +10,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.check
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
-import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
@@ -42,48 +40,28 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     val invalidPncNumber = "03/62845X" // X is the incorrect check letter
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(invalidPncNumber), COMMON_PLATFORM_HEARING)
 
-    await untilAsserted {
-      verify(telemetryClient).trackEvent(
-        eq(INVALID_PNC.eventName),
-        check {
-          assertThat(it["PNC"]).isEqualTo(invalidPncNumber)
-        },
-        eq(null),
-      )
-    }
+    checkTelemetry(
+      INVALID_PNC,
+      mapOf("PNC" to invalidPncNumber),
+    )
   }
 
   @Test
   fun `should successfully process common platform message with 3 defendants and create correct telemetry events`() {
     publishHMCTSMessage(commonPlatformHearing("19810154257C"), COMMON_PLATFORM_HEARING)
 
-    await untilAsserted {
-      verify(telemetryClient).trackEvent(
-        eq(HMCTS_MESSAGE_RECEIVED.eventName),
-        check {
-          assertThat(it["PNC"]).isEqualTo("1981/0154257C")
-        },
-        eq(null),
-      )
-    }
-    await untilAsserted {
-      verify(telemetryClient).trackEvent(
-        eq(HMCTS_MESSAGE_RECEIVED.eventName),
-        check {
-          assertThat(it["PNC"]).isEqualTo("2008/0056560Z")
-        },
-        eq(null),
-      )
-    }
-    await untilAsserted {
-      verify(telemetryClient).trackEvent(
-        eq(HMCTS_MESSAGE_RECEIVED.eventName),
-        check {
-          assertThat(it["PNC"]).isEqualTo("")
-        },
-        eq(null),
-      )
-    }
+    checkTelemetry(
+      HMCTS_MESSAGE_RECEIVED,
+      mapOf("PNC" to "1981/0154257C"),
+    )
+    checkTelemetry(
+      HMCTS_MESSAGE_RECEIVED,
+      mapOf("PNC" to "2008/0056560Z"),
+    )
+    checkTelemetry(
+      HMCTS_MESSAGE_RECEIVED,
+      mapOf("PNC" to ""),
+    )
   }
 
   @Test
@@ -91,15 +69,10 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     val message = libraHearing(pncNumber = null)
     publishHMCTSMessage(message, LIBRA_COURT_CASE)
 
-    await untilAsserted {
-      verify(telemetryClient).trackEvent(
-        eq(MISSING_PNC.eventName),
-        check {
-          assertThat(it).isEmpty()
-        },
-        eq(null),
-      )
-    }
+    checkTelemetry(
+      MISSING_PNC,
+      emptyMap(),
+    )
   }
 
   @Test
@@ -107,26 +80,15 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     val emptyPncNumber = ""
     publishHMCTSMessage(libraHearing(pncNumber = emptyPncNumber), LIBRA_COURT_CASE)
 
-    await untilAsserted {
-      verify(telemetryClient).trackEvent(
-        eq(HMCTS_MESSAGE_RECEIVED.eventName),
-        check {
-          assertThat(it["PNC"]).isEqualTo(emptyPncNumber)
-          assertThat(it["CRO"]).isEqualTo("11111/79J")
-        },
-        eq(null),
-      )
-    }
+    checkTelemetry(
+      HMCTS_MESSAGE_RECEIVED,
+      mapOf("PNC" to emptyPncNumber, "CRO" to "11111/79J"),
+    )
 
-    await untilAsserted {
-      verify(telemetryClient).trackEvent(
-        eq(MISSING_PNC.eventName),
-        check {
-          assertThat(it).isEmpty()
-        },
-        eq(null),
-      )
-    }
+    checkTelemetry(
+      MISSING_PNC,
+      emptyMap(),
+    )
 
     verify(telemetryClient, never()).trackEvent(
       eq(INVALID_PNC.eventName),
@@ -188,12 +150,9 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.prisoners[0].prisonNumber).isEqualTo("A1234AA")
     assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(pncNumber)
 
-    verify(telemetryClient, times(1)).trackEvent(
-      eq(HMCTS_RECORD_CREATED.eventName),
-      check {
-        assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
-      },
-      eq(null),
+    checkTelemetry(
+      HMCTS_RECORD_CREATED,
+      mapOf("PNC" to pncNumber.pncId),
     )
   }
 
@@ -206,13 +165,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     val personEntity = await.atMost(30, SECONDS) untilNotNull {
       personRepository.findByPrisonersPncNumber(pncNumber)
     }
-    verify(telemetryClient, times(1)).trackEvent(
-      eq(HMCTS_RECORD_CREATED.eventName),
-      check {
-        assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
-      },
-      eq(null),
-    )
 
     assertThat(personEntity.personId).isNotNull()
     assertThat(personEntity.defendants.size).isEqualTo(1)
@@ -376,20 +328,14 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
     publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
 
-    verify(telemetryClient, times(1)).trackEvent(
-      eq(HMCTS_RECORD_CREATED.eventName),
-      check {
-        assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
-      },
-      eq(null),
+    checkTelemetry(
+      HMCTS_RECORD_CREATED,
+      mapOf("PNC" to pncNumber.pncId),
     )
 
-    verify(telemetryClient, times(1)).trackEvent(
-      eq(HMCTS_EXACT_MATCH.eventName),
-      check {
-        assertThat(it["PNC"]).isEqualTo(pncNumber.pncId)
-      },
-      eq(null),
+    checkTelemetry(
+      HMCTS_EXACT_MATCH,
+      mapOf("PNC" to pncNumber.pncId),
     )
   }
 
@@ -400,20 +346,14 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Clancy", lastName = "Eccles"), COMMON_PLATFORM_HEARING)
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Boothe"), COMMON_PLATFORM_HEARING)
 
-    verify(telemetryClient, times(1)).trackEvent(
-      eq(HMCTS_RECORD_CREATED.eventName),
-      check {
-        assertThat(it["PNC"]).isEqualTo(pncNumber)
-      },
-      eq(null),
+    checkTelemetry(
+      HMCTS_RECORD_CREATED,
+      mapOf("PNC" to "2003/0062845E"),
     )
 
-    verify(telemetryClient, times(1)).trackEvent(
-      eq(HMCTS_PARTIAL_MATCH.eventName),
-      check {
-        assertThat(it["Date of birth"]).isEqualTo("1975-01-01")
-      },
-      eq(null),
+    checkTelemetry(
+      HMCTS_PARTIAL_MATCH,
+      mapOf("Date of birth" to "1975-01-01"),
     )
   }
 }
