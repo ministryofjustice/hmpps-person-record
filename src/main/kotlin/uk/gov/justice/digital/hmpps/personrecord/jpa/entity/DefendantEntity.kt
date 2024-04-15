@@ -132,6 +132,7 @@ class DefendantEntity(
         nationalInsuranceNumber = person.nationalInsuranceNumber,
         address = AddressEntity.from(person),
         contact = ContactEntity.from(person),
+        fingerprint = person.otherIdentifiers?.croIdentifier?.fingerprint,
       )
       return defendantEntity
     }
