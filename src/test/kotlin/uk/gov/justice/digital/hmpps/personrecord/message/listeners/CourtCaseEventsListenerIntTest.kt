@@ -187,6 +187,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.defendants.size).isEqualTo(1)
     assertThat(personEntity.defendants[0].pncNumber).isEqualTo(pncNumber)
     assertThat(personEntity.defendants[0].cro).isEqualTo(CROIdentifier.from("051072/62R"))
+    assertThat(personEntity.defendants[0].fingerprint).isEqualTo(true)
     assertThat(personEntity.defendants[0].address).isNotNull
     assertThat(personEntity.defendants[0].address?.addressLineOne).isEqualTo("13 broad Street")
     assertThat(personEntity.defendants[0].address?.addressLineTwo).isEqualTo("Cardiff")
@@ -196,6 +197,8 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.defendants[0].address?.postcode).isEqualTo("CF10 1FU")
     assertThat(personEntity.offenders).hasSize(1)
     assertThat(personEntity.offenders[0].crn).isEqualTo("X026350")
+    assertThat(personEntity.offenders[0].cro).isEqualTo(CROIdentifier.from(""))
+    assertThat(personEntity.offenders[0].fingerprint).isEqualTo(false)
     assertThat(personEntity.offenders[0].pncNumber).isEqualTo(pncNumber)
     assertThat(personEntity.offenders[0].firstName).isEqualTo("Eric")
     assertThat(personEntity.offenders[0].lastName).isEqualTo("Lassard")
@@ -206,6 +209,8 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.prisoners[0].lastName).isEqualTo("Lassard")
     assertThat(personEntity.prisoners[0].prisonNumber).isEqualTo("A1234AA")
     assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(pncNumber)
+    assertThat(personEntity.prisoners[0].cro).isEqualTo(CROIdentifier.from("051072/62R"))
+    assertThat(personEntity.prisoners[0].fingerprint).isEqualTo(true)
   }
 
   @Test
@@ -330,6 +335,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.prisoners[0].rootOffenderId).isEqualTo(300)
     assertThat(personEntity.prisoners[0].dateOfBirth).isEqualTo(LocalDate.of(1970, 3, 15))
     assertThat(personEntity.prisoners[0].cro).isEqualTo(CROIdentifier.from("51072/62R"))
+    assertThat(personEntity.prisoners[0].fingerprint).isEqualTo(true)
     assertThat(personEntity.prisoners[0].drivingLicenseNumber).isEqualTo("ERIC1234567K")
     assertThat(personEntity.prisoners[0].nationalInsuranceNumber).isEqualTo("PD123456D")
     assertThat(personEntity.prisoners[0].address?.postcode).isEqualTo("LI1 5TH")
