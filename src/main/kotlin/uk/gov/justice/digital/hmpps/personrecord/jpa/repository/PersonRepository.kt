@@ -29,7 +29,8 @@ interface PersonRepository : JpaRepository<PersonEntity, Long> {
       "LEFT JOIN DefendantEntity defendant on defendant.person.id = p.id " +
       "LEFT JOIN OffenderEntity offender on offender.person.id = p.id " +
       "LEFT JOIN PrisonerEntity prisioner ON prisioner.person.id = p.id " +
-      "WHERE offender.dateOfBirth = :dateOfBirth OR defendant.dateOfBirth = :dateOfBirth OR prisioner.dateOfBirth = :dateOfBirth",
+      "WHERE (offender.dateOfBirth = :dateOfBirth OR defendant.dateOfBirth = :dateOfBirth OR prisioner.dateOfBirth = :dateOfBirth) " +
+      "AND (SOUNDEX(offender.firstName) = SOUNDEX(:firstName) OR SOUNDEX(defendant.firstName) = SOUNDEX(:firstName) OR SOUNDEX(prisioner.firstName) = SOUNDEX(:firstName))",
   )
-  fun findPersonEntityByDateOfBirth(@Param("dateOfBirth") dateOfBirth: LocalDate?): List<PersonEntity>
+  fun findPersonEntityBySoundex(@Param("dateOfBirth") dateOfBirth: LocalDate?, @Param("firstName") firstName: String): List<PersonEntity>
 }

@@ -1,0 +1,5 @@
+BEGIN;
+
+CREATE EXTENSION fuzzystrmatch;
+
+COMMIT;
