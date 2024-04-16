@@ -28,7 +28,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_CRO
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MISSING_PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.SPLINK_MATCH_SCORE
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
@@ -83,8 +82,8 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(message, LIBRA_COURT_CASE)
 
     checkTelemetry(
-      MISSING_PNC,
-      emptyMap(),
+      HMCTS_MESSAGE_RECEIVED,
+      mapOf("CRO" to "085227/65L"),
     )
   }
 
@@ -96,11 +95,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
       mapOf("PNC" to emptyPncNumber, "CRO" to "085227/65L"),
-    )
-
-    checkTelemetry(
-      MISSING_PNC,
-      emptyMap(),
     )
 
     checkTelemetry(
