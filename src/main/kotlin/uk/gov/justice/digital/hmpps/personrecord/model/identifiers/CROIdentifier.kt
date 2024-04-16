@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 import org.apache.commons.lang3.builder.EqualsBuilder
 import org.apache.commons.lang3.builder.HashCodeBuilder
 
-class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputCro: String = "") {
+class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputCro: String = EMPTY_CRO) {
 
   val croId: String = inputCroId
   val fingerprint: Boolean = inputFingerprint
@@ -46,8 +46,8 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputC
 
     private fun toCanonicalForm(inputCroId: String): CROIdentifier {
       val canonicalCro: CRO = when {
-        isSfFormat(inputCroId) -> canonicalizeSfFormat(inputCroId)
-        isExpectedFormat(inputCroId) -> canonicalizeStandardFormat(inputCroId)
+        isSfFormat(inputCroId) -> canonicalSfFormat(inputCroId)
+        isStandardFormat(inputCroId) -> canonicalStandardFormat(inputCroId)
         else -> return invalidCro(inputCroId)
       }
       return when {
@@ -56,7 +56,7 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputC
       }
     }
 
-    private fun canonicalizeStandardFormat(inputCroId: String): CRO {
+    private fun canonicalStandardFormat(inputCroId: String): CRO {
       val checkChar = inputCroId.takeLast(1)
       val (serialNum, yearPart) = inputCroId.split(SLASH) // splits into [NNNNNN, YYD]
       val yearDigits = yearPart.dropLast(1)
@@ -64,7 +64,7 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputC
       return CRO(checkChar, paddedSerialNum, yearDigits)
     }
 
-    private fun canonicalizeSfFormat(inputCroId: String): CRO {
+    private fun canonicalSfFormat(inputCroId: String): CRO {
       val checkChar = inputCroId.takeLast(1)
       val (yearDigits, serialNum) = inputCroId.drop(2).split(SLASH) // splits into [YY, NNNNNND]
       val paddedSerialNum = padSerialNumber(serialNum.dropLast(1))
@@ -75,7 +75,7 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputC
       return serialNumber.padStart(SERIAL_NUM_LENGTH, '0')
     }
 
-    private fun isExpectedFormat(inputCroId: String): Boolean {
+    private fun isStandardFormat(inputCroId: String): Boolean {
       return inputCroId.matches(CRO_REGEX)
     }
 
