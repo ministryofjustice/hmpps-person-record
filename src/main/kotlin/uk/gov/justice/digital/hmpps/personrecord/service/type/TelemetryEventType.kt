@@ -10,8 +10,6 @@ enum class TelemetryEventType(val eventName: String) {
   HMCTS_PARTIAL_MATCH("CprHMCTSRecordPartialMatchFound"),
   HMCTS_PROCESSING_FAILURE("CprHMCTSMessageProcessingFailed"),
   HMCTS_RECORD_CREATED("CprHMCTSRecordCreated"),
-  INVALID_PNC("CprHMCTSInvalidPncFound"),
-  MISSING_PNC("CprHMCTSPncNotFound"),
   NEW_DELIUS_RECORD_NEW_PNC("CprNDeliusNewRecordCreated"),
   NEW_DELIUS_RECORD_PNC_MATCHED("CprNewNDeliusNewRecordMatchFound"),
   NOMIS_MATCH_FOUND("CprNomisMatchFound"),
