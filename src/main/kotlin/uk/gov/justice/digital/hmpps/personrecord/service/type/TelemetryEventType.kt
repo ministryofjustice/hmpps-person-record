@@ -18,7 +18,6 @@ enum class TelemetryEventType(val eventName: String) {
   NOMIS_PARTIAL_MATCH_FOUND("CprNomisPartialMatchFound"),
   NOMIS_PNC_MISMATCH("CprNomisPncNoMatchFound"),
   SPLINK_MATCH_SCORE("CprSplinkMatchProbabilityScore"),
-  VALID_PNC("CprHMCTSValidPncFound"),
   NOMIS_PRISONER_DETAILS_FOUND("CprNomisPrisonerDetailsFound"),
   NOMIS_PRISONER_DETAILS_NOT_FOUND("CprNomisErrorNoPrisonerDetailsFound"),
   DELIUS_CALL_FAILED("CprNDeliusCallFailed"),
