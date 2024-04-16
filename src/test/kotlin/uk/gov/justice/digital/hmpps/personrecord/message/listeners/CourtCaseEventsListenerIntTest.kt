@@ -7,21 +7,18 @@ import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.never
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithAdditionalFields
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
-import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PARTIAL_MATCH
@@ -73,34 +70,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
       mapOf("PNC" to ""),
-    )
-  }
-
-  @Test
-  fun `should process libra messages with missing pnc identifier`() {
-    val message = libraHearing(pncNumber = null)
-    publishHMCTSMessage(message, LIBRA_COURT_CASE)
-
-    checkTelemetry(
-      HMCTS_MESSAGE_RECEIVED,
-      mapOf("CRO" to "085227/65L"),
-    )
-  }
-
-  @Test
-  fun `should process libra messages with empty pnc identifier`() {
-    val emptyPncNumber = ""
-    publishHMCTSMessage(libraHearing(pncNumber = emptyPncNumber), LIBRA_COURT_CASE)
-
-    checkTelemetry(
-      HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to emptyPncNumber, "CRO" to "085227/65L"),
-    )
-
-    checkTelemetry(
-      INVALID_PNC,
-      mapOf("PNC" to emptyPncNumber),
-      never(),
     )
   }
 

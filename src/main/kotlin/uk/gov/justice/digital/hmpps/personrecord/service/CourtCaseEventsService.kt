@@ -5,14 +5,12 @@ import org.springframework.transaction.annotation.Isolation.SERIALIZABLE
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.InvalidPNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.matcher.DefendantMatcher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PARTIAL_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_CRO
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.SPLINK_MATCH_SCORE
 
 @Service
@@ -27,9 +25,6 @@ class CourtCaseEventsService(
 
   @Transactional(isolation = SERIALIZABLE)
   fun processPersonFromCourtCaseEvent(person: Person) {
-    if (person.otherIdentifiers?.pncIdentifier is InvalidPNCIdentifier) {
-      trackEvent(INVALID_PNC, mapOf("PNC" to person.otherIdentifiers.pncIdentifier.invalidValue()))
-    }
     if (person.otherIdentifiers?.croIdentifier?.valid == false) {
       trackEvent(INVALID_CRO, mapOf("CRO" to person.otherIdentifiers.croIdentifier.invalidCro))
     }
