@@ -66,7 +66,7 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputC
       val (yearDigits, serialNum) = inputCroId.drop(2).dropLast(1).split(SLASH) // splits into [YY, NNNNNN and drops D]
       return CRO(checkChar, serialNum, yearDigits, false)
     }
-
+    
     private fun isStandardFormat(inputCroId: String): Boolean {
       return inputCroId.matches(CRO_REGEX)
     }
