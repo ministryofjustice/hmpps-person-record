@@ -8,33 +8,36 @@
         "equalTo": "application/json"
       }
     },
-    "bodyPatterns" : [
+    "bodyPatterns": [
       {
         "equalToJson": {
-        "unique_id": {
-          "0": "${json-unit.any-string}",
-          "1": "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199"
-        },
-        "first_name": {
-          "0": "Clancy",
-          "1": "Horace"
-        },
-        "surname": {
-          "0": "Eccles",
-          "1": "Andy"
-        },
-        "dob": {
-          "0": "1975-01-01",
-          "1": "1975-01-01"
-        },
-        "pnc_number": {
-          "0": "2003/0062845E",
-          "1": "2003/0062845E"
+          "unique_id": {
+            "0": "${json-unit.any-string}",
+            "1": "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199"
+          },
+          "first_name": {
+            "0": "Clancy",
+            "1": "Horace"
+          },
+          "surname": {
+            "0": "Eccles",
+            "1": "Andy"
+          },
+          "dob": {
+            "0": "1975-01-01",
+            "1": "1975-01-01"
+          },
+          "pnc_number": {
+            "0": "2003/0062845E",
+            "1": "2003/0062845E"
+          },
+          "source_dataset": {
+            "0": "invalid",
+            "1": "values"
+          }
         }
       }
-
-    }
-     ]
+    ]
   },
   "response": {
     "status": 500,
