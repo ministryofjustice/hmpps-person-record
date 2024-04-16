@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
 import org.apache.commons.lang3.builder.EqualsBuilder
 import org.apache.commons.lang3.builder.HashCodeBuilder
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier.Companion.SERIAL_NUM_LENGTH
 
 class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputCro: String = EMPTY_CRO) {
 
@@ -28,7 +29,7 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputC
   companion object {
     private const val EMPTY_CRO = ""
     private const val SLASH = "/"
-    private const val SERIAL_NUM_LENGTH = 6
+    internal const val SERIAL_NUM_LENGTH = 6
 
     private val SF_CRO_REGEX = Regex("^SF\\d{2}/\\d{1,$SERIAL_NUM_LENGTH}[A-Z]\$")
     private val CRO_REGEX = Regex("^\\d{1,$SERIAL_NUM_LENGTH}/\\d{2}[A-Z]\$")
@@ -56,20 +57,15 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputC
 
     private fun canonicalStandardFormat(inputCroId: String): CRO {
       val checkChar = inputCroId.takeLast(1)
-      val (serialNum, yearDigits) = inputCroId.dropLast(1).split(SLASH) // splits into [NNNNNN, YY and dropsD]
-      val paddedSerialNum = padSerialNumber(serialNum)
-      return CRO(checkChar, paddedSerialNum, yearDigits)
+      val (serialNum, yearDigits) = inputCroId.dropLast(1).split(SLASH) // splits into [NNNNNN, YY and drops D]
+      return CRO(checkChar, serialNum, yearDigits)
     }
 
     private fun canonicalSfFormat(inputCroId: String): CRO {
       val checkChar = inputCroId.takeLast(1)
-      val (yearDigits, serialNum) = inputCroId.drop(2).split(SLASH) // splits into [YY, NNNNNND]
-      val paddedSerialNum = padSerialNumber(serialNum.dropLast(1))
-      return CRO(checkChar, paddedSerialNum, yearDigits, false)
+      val (yearDigits, serialNum) = inputCroId.drop(2).dropLast(1).split(SLASH) // splits into [YY, NNNNNN and drops D]
+      return CRO(checkChar, serialNum, yearDigits, false)
     }
-
-    private fun padSerialNumber(serialNumber: String): String =
-      serialNumber.padStart(SERIAL_NUM_LENGTH, '0')
 
     private fun isStandardFormat(inputCroId: String): Boolean {
       return inputCroId.matches(CRO_REGEX)
@@ -83,14 +79,17 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputC
 
 class CRO(private val checkChar: String, private val serialNum: String, private val yearDigits: String, val fingerprint: Boolean = true) {
 
+  private fun padSerialNumber(serialNumber: String): String =
+    serialNumber.padStart(SERIAL_NUM_LENGTH, '0')
+
   val value: String
-    get() = "$serialNum/$yearDigits$checkChar"
+    get() = "${padSerialNumber(serialNum)}/$yearDigits$checkChar"
 
   val valid: Boolean
     get() = correctModulus(checkChar.single())
 
   private fun correctModulus(checkChar: Char): Boolean {
-    val serialNumToCheck = if (!fingerprint) serialNum.trimStart { it == '0' } else serialNum
+    val serialNumToCheck = if (fingerprint) padSerialNumber(serialNum) else serialNum
     val modulus = VALID_LETTERS[(yearDigits + serialNumToCheck).toLong().mod(VALID_LETTERS.length)]
     return modulus == checkChar
   }
