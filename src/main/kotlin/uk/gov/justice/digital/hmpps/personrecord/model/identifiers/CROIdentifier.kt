@@ -30,8 +30,8 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputC
     private const val SLASH = "/"
     private const val SERIAL_NUM_LENGTH = 6
 
-    private val SF_CRO_REGEX = Regex("^SF\\d{2}/\\d{1,6}[A-Z]\$")
-    private val CRO_REGEX = Regex("^\\d{1,6}/\\d{2}[A-Z]\$")
+    private val SF_CRO_REGEX = Regex("^SF\\d{2}/\\d{1,$SERIAL_NUM_LENGTH}[A-Z]\$")
+    private val CRO_REGEX = Regex("^\\d{1,$SERIAL_NUM_LENGTH}/\\d{2}[A-Z]\$")
 
     private fun invalidCro(inputCroId: String = ""): CROIdentifier {
       return CROIdentifier(EMPTY_CRO, false, inputCroId)
