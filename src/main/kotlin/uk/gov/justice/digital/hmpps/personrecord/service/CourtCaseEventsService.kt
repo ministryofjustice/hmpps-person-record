@@ -5,18 +5,13 @@ import org.springframework.transaction.annotation.Isolation.SERIALIZABLE
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.InvalidPNCIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.ValidPNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.matcher.DefendantMatcher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PARTIAL_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_CRO
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MISSING_PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.SPLINK_MATCH_SCORE
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.VALID_PNC
 
 @Service
 class CourtCaseEventsService(
@@ -30,25 +25,22 @@ class CourtCaseEventsService(
 
   @Transactional(isolation = SERIALIZABLE)
   fun processPersonFromCourtCaseEvent(person: Person) {
-    when (val pncIdentifier = person.otherIdentifiers?.pncIdentifier) {
-      is ValidPNCIdentifier -> processValidMessage(pncIdentifier, person)
-      is InvalidPNCIdentifier -> trackEvent(INVALID_PNC, mapOf("PNC" to pncIdentifier.invalidValue()))
-      else -> trackEvent(MISSING_PNC, emptyMap())
-    }
-    if (person.otherIdentifiers?.croIdentifier?.valid == false) {
+    if (person.otherIdentifiers?.croIdentifier?.valid == false && person.otherIdentifiers.croIdentifier.invalidCro.isNotEmpty()) {
       trackEvent(INVALID_CRO, mapOf("CRO" to person.otherIdentifiers.croIdentifier.invalidCro))
     }
+    processMessage(person)
   }
 
-  private fun processValidMessage(pncIdentifier: ValidPNCIdentifier, person: Person) {
-    trackEvent(VALID_PNC, mapOf("PNC" to pncIdentifier.toString()))
-    val defendants = defendantRepository.findAllByPncNumber(pncIdentifier)
-    val defendantMatcher = DefendantMatcher(defendants, person)
-    when {
-      defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person)
-      defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher, person)
-      else -> {
-        createNewPersonRecordAndProcess(person)
+  private fun processMessage(person: Person) {
+    if (person.otherIdentifiers?.pncIdentifier != null) {
+      val defendants = defendantRepository.findAllByPncNumber(person.otherIdentifiers.pncIdentifier)
+      val defendantMatcher = DefendantMatcher(defendants, person)
+      when {
+        defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person)
+        defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher, person)
+        else -> {
+          createNewPersonRecordAndProcess(person)
+        }
       }
     }
   }
