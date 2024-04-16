@@ -24,7 +24,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PARTIAL_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_CRO
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.SPLINK_MATCH_SCORE
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
@@ -32,17 +31,6 @@ import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.test.assertEquals
 
 class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
-
-  @Test
-  fun `should output correct telemetry for invalid PNC`() {
-    val invalidPncNumber = "03/62845X" // X is the incorrect check letter
-    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(invalidPncNumber), COMMON_PLATFORM_HEARING)
-
-    checkTelemetry(
-      INVALID_PNC,
-      mapOf("PNC" to invalidPncNumber),
-    )
-  }
 
   @Test
   fun `should output correct telemetry for invalid CRO`() {

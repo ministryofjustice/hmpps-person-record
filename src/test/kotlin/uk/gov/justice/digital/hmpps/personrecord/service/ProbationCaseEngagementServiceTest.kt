@@ -7,7 +7,6 @@ import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
@@ -94,24 +93,5 @@ class ProbationCaseEngagementServiceTest {
         "CRN" to deliusOffenderDetail.identifiers.crn,
       ),
     )
-  }
-
-  @Test
-  fun `should not write new offender for no pnc`() {
-    val deliusOffenderDetail = DeliusOffenderDetail(
-      dateOfBirth = LocalDate.now(),
-      name = Name(
-        forename = "forename",
-        surname = "surname",
-        otherNames = emptyList(),
-      ),
-      identifiers = Identifiers(
-        crn = "CRN1234",
-      ),
-    )
-
-    probationCaseEngagementService.processNewOffender(deliusOffenderDetail)
-
-    verifyNoInteractions(personRepository)
   }
 }

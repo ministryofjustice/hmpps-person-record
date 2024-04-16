@@ -42,7 +42,6 @@ class CourtCaseEventsService(
       }
     }
   }
-
   private fun createNewPersonRecordAndProcess(person: Person) {
     val personRecord = personRecordService.createNewPersonAndDefendant(person)
     personRecord.let {
