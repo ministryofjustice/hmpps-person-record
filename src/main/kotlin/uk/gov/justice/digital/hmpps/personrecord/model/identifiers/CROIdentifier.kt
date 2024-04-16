@@ -37,11 +37,9 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputC
       return CROIdentifier(EMPTY_CRO, false, inputCroId)
     }
 
-    fun from(inputCroId: String? = EMPTY_CRO): CROIdentifier {
-      return when {
-        inputCroId.isNullOrEmpty() -> invalidCro()
-        else -> toCanonicalForm(inputCroId)
-      }
+    fun from(inputCroId: String? = EMPTY_CRO): CROIdentifier = when {
+      inputCroId.isNullOrEmpty() -> invalidCro()
+      else -> toCanonicalForm(inputCroId)
     }
 
     private fun toCanonicalForm(inputCroId: String): CROIdentifier {
@@ -58,8 +56,7 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputC
 
     private fun canonicalStandardFormat(inputCroId: String): CRO {
       val checkChar = inputCroId.takeLast(1)
-      val (serialNum, yearPart) = inputCroId.split(SLASH) // splits into [NNNNNN, YYD]
-      val yearDigits = yearPart.dropLast(1)
+      val (serialNum, yearDigits) = inputCroId.dropLast(1).split(SLASH) // splits into [NNNNNN, YY and dropsD]
       val paddedSerialNum = padSerialNumber(serialNum)
       return CRO(checkChar, paddedSerialNum, yearDigits)
     }
@@ -71,9 +68,8 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputC
       return CRO(checkChar, paddedSerialNum, yearDigits, false)
     }
 
-    private fun padSerialNumber(serialNumber: String): String {
-      return serialNumber.padStart(SERIAL_NUM_LENGTH, '0')
-    }
+    private fun padSerialNumber(serialNumber: String): String =
+      serialNumber.padStart(SERIAL_NUM_LENGTH, '0')
 
     private fun isStandardFormat(inputCroId: String): Boolean {
       return inputCroId.matches(CRO_REGEX)
