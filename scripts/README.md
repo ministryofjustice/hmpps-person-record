@@ -2,7 +2,7 @@
 ## Accessing AWS Resources via the AWS CLI
 
 
-### Setting the kubenetes namespace for the environment
+### Setting the kubernetes namespace for the environment
 
 The k8s namespace can either be passed in as variable on the command line or by amending the bash script and
 setting the namespace variable to one of:
@@ -54,8 +54,12 @@ Purge the court case events queue:
 `$ aws sqs purge-queue --queue-url $COURT_CASE_EVENTS_QUEUE_URL`
 
 Put a message onto the court case events queue for testing purposes:
+`
+$ aws sqs send-message --endpoint-url https://sqs.eu-west-2.amazonaws.com --queue-url $COURT_CASE_EVENTS_QUEUE_URL --message-body some-message (see below)
+`
 
-`$ aws sqs send-message --endpoint-url https://sqs.eu-west-2.amazonaws.com --queue-url $COURT_CASE_EVENTS_QUEUE_URL --message-body "{ some json }"`
+You can get an SQS message body like this - run this from outside the pod:
+```jq '. | tojson' src/test/resources/examples/commonPlatformSQSMessage.json | pbcopy```
 
 Retrieve a message from the Court case events DLQ and save to a file called dlq_data:
 
