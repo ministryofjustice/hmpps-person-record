@@ -327,6 +327,24 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
+  fun `should output correct telemetry when call to person-match-score fails`() {
+    val pncNumber = "2003/0062845E"
+
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Clancy", lastName = "Eccles", defendantId = "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777"), COMMON_PLATFORM_HEARING)
+    checkTelemetry(
+      HMCTS_RECORD_CREATED,
+      mapOf("PNC" to "2003/0062845E"),
+    )
+
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Horace", lastName = "Andy"), COMMON_PLATFORM_HEARING)
+
+    checkTelemetry(
+      MATCH_CALL_FAILED,
+      emptyMap(),
+    )
+  }
+
+  @Test
   fun `should output correct telemetry and call person-match-score for multiple partial matches`() {
     val pncNumber = "2003/0062845E"
 
