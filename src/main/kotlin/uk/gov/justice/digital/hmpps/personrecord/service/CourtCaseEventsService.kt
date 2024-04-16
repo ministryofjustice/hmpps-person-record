@@ -37,15 +37,13 @@ class CourtCaseEventsService(
   }
 
   private fun processMessage(person: Person) {
-    if (person.otherIdentifiers?.pncIdentifier != null) {
-      val defendants = defendantRepository.findAllByPncNumber(person.otherIdentifiers.pncIdentifier)
-      val defendantMatcher = DefendantMatcher(defendants, person)
-      when {
-        defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person)
-        defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher, person)
-        else -> {
-          createNewPersonRecordAndProcess(person)
-        }
+    val defendants = defendantRepository.findAllByPncNumber(person.otherIdentifiers?.pncIdentifier!!)
+    val defendantMatcher = DefendantMatcher(defendants, person)
+    when {
+      defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person)
+      defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher, person)
+      else -> {
+        createNewPersonRecordAndProcess(person)
       }
     }
   }
