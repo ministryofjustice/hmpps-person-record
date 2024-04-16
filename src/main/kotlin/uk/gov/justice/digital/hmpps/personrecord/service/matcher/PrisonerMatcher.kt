@@ -12,8 +12,7 @@ class PrisonerMatcher(prisonerDetails: List<Prisoner>?, person: Person) :
     }
   }
   override fun isPartialMatchItem(item: Prisoner): Boolean {
-    return person.otherIdentifiers?.pncIdentifier == PNCIdentifier.from(item.pncNumber) &&
-      item.firstName.equals(person.givenName, true) || item.lastName.equals(person.familyName, true) || item.dateOfBirth == person.dateOfBirth
+    return item.firstName.equals(person.givenName, true) || item.lastName.equals(person.familyName, true) || item.dateOfBirth == person.dateOfBirth
   }
 
   override fun isMatchingItem(item: Prisoner): Boolean {

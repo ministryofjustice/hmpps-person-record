@@ -13,8 +13,7 @@ class DefendantMatcher(defendants: List<DefendantEntity>?, person: Person) :
   }
 
   override fun isMatchingItem(item: DefendantEntity): Boolean {
-    return person.otherIdentifiers?.pncIdentifier == PNCIdentifier.from(item.pncNumber?.pncId) &&
-      item.firstName.equals(person.givenName, ignoreCase = true) &&
+    return item.firstName.equals(person.givenName, ignoreCase = true) &&
       item.surname.equals(person.familyName, ignoreCase = true) &&
       item.dateOfBirth == person.dateOfBirth
   }

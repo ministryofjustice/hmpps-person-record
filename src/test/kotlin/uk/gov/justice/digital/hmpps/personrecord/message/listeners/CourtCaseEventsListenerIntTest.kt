@@ -368,4 +368,33 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       ),
     )
   }
+
+  @Test
+  fun `should process messages without pnc`() {
+    val pncNumber = PNCIdentifier.from()
+
+    publishHMCTSMessage(commonPlatformHearingWithNewDefendant(""), COMMON_PLATFORM_HEARING)
+
+    val defendantEntity = defendantRepository.findByDefendantId("b5cfae34-9256-43ad-87fb-ac3def34e2ac",)
+    val personEntity = personRepository.findByDefendantsDefendantId(defendantEntity?.defendantId!!)
+
+    assertThat(personEntity?.personId).isNotNull()
+//    assertThat(personEntity.prisoners).hasSize(1)
+//    assertThat(personEntity.prisoners[0].firstName).isEqualTo("ERIC")
+//    assertThat(personEntity.prisoners[0].lastName).isEqualTo("Lassard")
+//    assertThat(personEntity.prisoners[0].prisonNumber).isEqualTo("A1234AA")
+//    assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(pncNumber)
+//    assertThat(personEntity.prisoners[0].offenderId).isEqualTo(356)
+//    assertThat(personEntity.prisoners[0].rootOffenderId).isEqualTo(300)
+//    assertThat(personEntity.prisoners[0].dateOfBirth).isEqualTo(LocalDate.of(1970, 3, 15))
+//    assertThat(personEntity.prisoners[0].cro).isEqualTo(CROIdentifier.from("51072/62R"))
+//    assertThat(personEntity.prisoners[0].fingerprint).isEqualTo(true)
+//    assertThat(personEntity.prisoners[0].drivingLicenseNumber).isEqualTo("ERIC1234567K")
+//    assertThat(personEntity.prisoners[0].nationalInsuranceNumber).isEqualTo("PD123456D")
+//    assertThat(personEntity.prisoners[0].address?.postcode).isEqualTo("LI1 5TH")
+//    assertThat(personEntity.prisoners[0].sexCode).isNull()
+//    assertThat(personEntity.prisoners[0].raceCode).isNull()
+//    assertThat(personEntity.prisoners[0].birthPlace).isNull()
+//    assertThat(personEntity.prisoners[0].birthCountryCode).isNull()
+  }
 }

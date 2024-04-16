@@ -315,7 +315,7 @@ fun libraHearing(pncNumber: String? = "2003/0011985X") = """
 }
 """.trimIndent()
 
-fun commonPlatformHearingWithNewDefendant() = """
+fun commonPlatformHearingWithNewDefendant(pncNumber: String = "2003/0062845E") = """
     {
       "hearing": {
         "type": {
@@ -346,7 +346,7 @@ fun commonPlatformHearingWithNewDefendant() = """
             "defendants": [
               { 
                 "id": "b5cfae34-9256-43ad-87fb-ac3def34e2ac",
-                "pncId": "2003/0062845E",
+                "pncId": "$pncNumber",
                 "croNumber": "51072/62R",
                 "offences": [
                   {
