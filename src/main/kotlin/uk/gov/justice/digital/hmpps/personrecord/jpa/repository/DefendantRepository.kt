@@ -9,5 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 interface DefendantRepository : JpaRepository<DefendantEntity, Long> {
   fun findByDefendantId(defendantId: String): DefendantEntity?
 
+  fun findAllByDefendantId(defendantId: String): List<DefendantEntity>
+
   fun findAllByPncNumber(pncNumber: PNCIdentifier): List<DefendantEntity>
 }

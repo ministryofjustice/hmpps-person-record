@@ -16,8 +16,7 @@ class PrisonerMatcher(prisonerDetails: List<Prisoner>?, person: Person) :
   }
 
   override fun isMatchingItem(item: Prisoner): Boolean {
-    return person.otherIdentifiers?.pncIdentifier == PNCIdentifier.from(item.pncNumber) &&
-      item.firstName.equals(person.givenName, ignoreCase = true) &&
+    return item.firstName.equals(person.givenName, ignoreCase = true) &&
       item.lastName.equals(person.familyName, ignoreCase = true) &&
       item.dateOfBirth == person.dateOfBirth
   }

@@ -45,7 +45,7 @@ class PrisonerService(
     if (featureFlag.isNomisSearchEnabled()) {
       val prisonerMatcher = getPrisonerMatcher(person)
       when {
-        prisonerMatcher.isPncDoesNotMatch() -> pncDoesNotMatch(prisonerMatcher, personEntity, person)
+//        prisonerMatcher.isPncDoesNotMatch() -> pncDoesNotMatch(prisonerMatcher, personEntity, person)
         prisonerMatcher.isExactMatch() -> exactMatchFound(prisonerMatcher, personEntity, person)
         prisonerMatcher.isPartialMatch() -> partialMatchFound(personEntity, person)
         else -> noRecordsFound(personEntity, person)

@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.MissingPNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithAdditionalFields
@@ -371,30 +372,35 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   @Test
   fun `should process messages without pnc`() {
-    val pncNumber = PNCIdentifier.from()
-
     publishHMCTSMessage(commonPlatformHearingWithNewDefendant(""), COMMON_PLATFORM_HEARING)
 
-    val defendantEntity = defendantRepository.findByDefendantId("b5cfae34-9256-43ad-87fb-ac3def34e2ac",)
-    val personEntity = personRepository.findByDefendantsDefendantId(defendantEntity?.defendantId!!)
+    val personEntity = await.atMost(30, SECONDS) untilNotNull {
+      personRepository.findByDefendantsDefendantId("b5cfae34-9256-43ad-87fb-ac3def34e2ac")
+    }
 
-    assertThat(personEntity?.personId).isNotNull()
-//    assertThat(personEntity.prisoners).hasSize(1)
-//    assertThat(personEntity.prisoners[0].firstName).isEqualTo("ERIC")
-//    assertThat(personEntity.prisoners[0].lastName).isEqualTo("Lassard")
-//    assertThat(personEntity.prisoners[0].prisonNumber).isEqualTo("A1234AA")
-//    assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(pncNumber)
-//    assertThat(personEntity.prisoners[0].offenderId).isEqualTo(356)
-//    assertThat(personEntity.prisoners[0].rootOffenderId).isEqualTo(300)
-//    assertThat(personEntity.prisoners[0].dateOfBirth).isEqualTo(LocalDate.of(1970, 3, 15))
-//    assertThat(personEntity.prisoners[0].cro).isEqualTo(CROIdentifier.from("51072/62R"))
-//    assertThat(personEntity.prisoners[0].fingerprint).isEqualTo(true)
-//    assertThat(personEntity.prisoners[0].drivingLicenseNumber).isEqualTo("ERIC1234567K")
-//    assertThat(personEntity.prisoners[0].nationalInsuranceNumber).isEqualTo("PD123456D")
-//    assertThat(personEntity.prisoners[0].address?.postcode).isEqualTo("LI1 5TH")
-//    assertThat(personEntity.prisoners[0].sexCode).isNull()
-//    assertThat(personEntity.prisoners[0].raceCode).isNull()
-//    assertThat(personEntity.prisoners[0].birthPlace).isNull()
-//    assertThat(personEntity.prisoners[0].birthCountryCode).isNull()
+    assertThat(personEntity.personId).isNotNull()
+    assertThat(personEntity.prisoners).hasSize(1)
+    assertThat(personEntity.prisoners[0].firstName).isEqualTo("ERIC")
+    assertThat(personEntity.prisoners[0].lastName).isEqualTo("Lassard")
+    assertThat(personEntity.prisoners[0].prisonNumber).isEqualTo("A1234AA")
+    assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(PNCIdentifier.from("2003/0062845E"))
+    assertThat(personEntity.prisoners[0].offenderId).isEqualTo(356)
+    assertThat(personEntity.prisoners[0].rootOffenderId).isEqualTo(300)
+    assertThat(personEntity.prisoners[0].dateOfBirth).isEqualTo(LocalDate.of(1970, 3, 15))
+    assertThat(personEntity.prisoners[0].cro).isEqualTo(CROIdentifier.from("51072/62R"))
+    assertThat(personEntity.prisoners[0].fingerprint).isEqualTo(true)
+    assertThat(personEntity.prisoners[0].drivingLicenseNumber).isEqualTo("ERIC1234567K")
+    assertThat(personEntity.prisoners[0].nationalInsuranceNumber).isEqualTo("PD123456D")
+    assertThat(personEntity.prisoners[0].address?.postcode).isEqualTo("LI1 5TH")
+    assertThat(personEntity.prisoners[0].sexCode).isNull()
+    assertThat(personEntity.prisoners[0].raceCode).isNull()
+    assertThat(personEntity.prisoners[0].birthPlace).isNull()
+    assertThat(personEntity.prisoners[0].birthCountryCode).isNull()
+
+    assertThat(personEntity.offenders).hasSize(1)
+    assertThat(personEntity.offenders[0].pncNumber?.pncId).isEqualTo("")
+
+    assertThat(personEntity.defendants).hasSize(1)
+    assertThat(personEntity.defendants[0].pncNumber?.pncId).isEqualTo("")
   }
 }

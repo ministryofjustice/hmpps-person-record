@@ -41,7 +41,7 @@ class OffenderService(
     if (featureFlag.isDeliusSearchEnabled()) {
       val offenderMatcher = getOffenderMatcher(person)
       when {
-        offenderMatcher.isPncDoesNotMatch() -> pncDoesNotMatch(offenderMatcher, personEntity, person)
+//        offenderMatcher.isPncDoesNotMatch() -> pncDoesNotMatch(offenderMatcher, personEntity, person)
         offenderMatcher.isExactMatch() -> exactMatchFound(offenderMatcher, personEntity, person)
         offenderMatcher.isMultipleMatch() -> multipleMatchesFound(offenderMatcher, personEntity, person)
         offenderMatcher.isPartialMatch() -> partialMatchFound(personEntity, person)

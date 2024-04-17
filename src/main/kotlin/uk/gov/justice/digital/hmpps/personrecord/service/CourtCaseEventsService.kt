@@ -32,7 +32,7 @@ class CourtCaseEventsService(
   }
 
   private fun processMessage(person: Person) {
-    val defendants = defendantRepository.findAllByPncNumber(person.otherIdentifiers?.pncIdentifier!!)
+    val defendants = defendantRepository.findAllByDefendantId(person.defendantId ?: "")
     val defendantMatcher = DefendantMatcher(defendants, person)
     when {
       defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person)
