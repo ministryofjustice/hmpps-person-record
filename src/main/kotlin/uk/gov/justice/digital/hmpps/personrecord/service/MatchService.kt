@@ -25,8 +25,8 @@ class MatchService(val matchScoreClient: MatchScoreClient, val telemetryService:
   private val retryDelay: Long = 0
 
   fun score(candidateRecord: DefendantEntity, newRecord: Person): MatchResult {
-    val candidateRecordIdentifier = candidateRecord.defendantId ?: ""
-    val newRecordIdentifier = newRecord.defendantId!!
+    val candidateRecordIdentifier = candidateRecord.defendantId ?: "defendant1"
+    val newRecordIdentifier = newRecord.defendantId ?: "defendant2"
 
     val matchRequest = MatchRequest(
       uniqueId = MatchRequestData(candidateRecordIdentifier, newRecordIdentifier),
