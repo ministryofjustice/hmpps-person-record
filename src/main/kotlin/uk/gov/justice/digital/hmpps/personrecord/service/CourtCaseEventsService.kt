@@ -26,7 +26,7 @@ class CourtCaseEventsService(
   @Transactional(isolation = SERIALIZABLE)
   fun processPersonFromCourtCaseEvent(person: Person) {
     if (person.otherIdentifiers?.croIdentifier?.valid == false) {
-      trackEvent(INVALID_CRO, mapOf("CRO" to person.otherIdentifiers.croIdentifier.invalidCro))
+      trackEvent(INVALID_CRO, mapOf("CRO" to person.otherIdentifiers.croIdentifier.inputCro))
     }
     processMessage(person)
   }
