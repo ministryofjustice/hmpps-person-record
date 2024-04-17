@@ -34,7 +34,7 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputC
     private val SF_CRO_REGEX = Regex("^SF\\d{2}/\\d{1,$SERIAL_NUM_LENGTH}[A-Z]\$")
     private val CRO_REGEX = Regex("^\\d{1,$SERIAL_NUM_LENGTH}/\\d{2}[A-Z]\$")
 
-    private fun invalidCro(inputCroId: String = ""): CROIdentifier {
+    private fun invalidCro(inputCroId: String = EMPTY_CRO): CROIdentifier {
       return CROIdentifier(EMPTY_CRO, false, inputCroId)
     }
 
