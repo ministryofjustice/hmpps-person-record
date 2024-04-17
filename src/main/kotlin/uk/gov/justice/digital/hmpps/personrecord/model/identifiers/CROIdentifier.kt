@@ -4,15 +4,10 @@ import org.apache.commons.lang3.builder.EqualsBuilder
 import org.apache.commons.lang3.builder.HashCodeBuilder
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier.Companion.SERIAL_NUM_LENGTH
 
-class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputCro: String = EMPTY_CRO) {
-
-  val croId: String = inputCroId
-  val fingerprint: Boolean = inputFingerprint
+class CROIdentifier(val croId: String, val fingerprint: Boolean, val inputCro: String = EMPTY_CRO) {
 
   val valid: Boolean
     get() = croId.isNotEmpty()
-
-  val invalidCro: String = invalidInputCro
 
   override fun equals(other: Any?): Boolean {
     return EqualsBuilder.reflectionEquals(this, other)

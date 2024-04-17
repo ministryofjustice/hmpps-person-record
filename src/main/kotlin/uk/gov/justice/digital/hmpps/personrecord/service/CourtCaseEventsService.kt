@@ -36,7 +36,7 @@ class CourtCaseEventsService(
       else -> trackEvent(MISSING_PNC, emptyMap())
     }
     if (person.otherIdentifiers?.croIdentifier?.valid == false) {
-      trackEvent(INVALID_CRO, mapOf("CRO" to person.otherIdentifiers.croIdentifier.invalidCro))
+      trackEvent(INVALID_CRO, mapOf("CRO" to person.otherIdentifiers.croIdentifier.inputCro))
     }
   }
 
