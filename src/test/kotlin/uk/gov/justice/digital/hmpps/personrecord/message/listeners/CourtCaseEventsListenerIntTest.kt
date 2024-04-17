@@ -22,12 +22,12 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendantAndNoPnc
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PARTIAL_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_CRO
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.SPLINK_MATCH_SCORE
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
@@ -334,7 +334,9 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   fun `should output correct telemetry and call person-match-score for partial match from libra`() {
     val pncNumber = "2003/0062845E"
 
-    publishHMCTSMessage(libraHearing(pncNumber = pncNumber, firstName = "John"), LIBRA_COURT_CASE)
+    publishHMCTSMessage(
+      
+      (pncNumber = pncNumber, firstName = "John"), LIBRA_COURT_CASE)
     checkTelemetry(
       HMCTS_RECORD_CREATED,
       mapOf("PNC" to "2003/0062845E"),
@@ -377,7 +379,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Horace", lastName = "Andy"), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
-      TelemetryEventType.MATCH_CALL_FAILED,
+      MATCH_CALL_FAILED,
       emptyMap(),
     )
   }
