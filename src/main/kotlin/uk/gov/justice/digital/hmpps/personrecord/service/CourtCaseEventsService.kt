@@ -61,7 +61,8 @@ class CourtCaseEventsService(
 
   private fun partialMatchFound(defendantMatcher: DefendantMatcher, person: Person) {
     trackEvent(HMCTS_PARTIAL_MATCH, defendantMatcher.extractMatchingFields(defendantMatcher.getMatchingItem()))
-    val matchResults = defendantMatcher.items!!.map { matchService.score(it, person) }
+
+    val matchResults = defendantMatcher.items!!.take(4).map { matchService.score(it, person) }
 
     matchResults.forEach { matchResult ->
       trackEvent(
