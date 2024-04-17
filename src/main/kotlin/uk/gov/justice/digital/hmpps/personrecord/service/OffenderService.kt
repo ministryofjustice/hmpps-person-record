@@ -82,22 +82,6 @@ class OffenderService(
     }
   }
 
-//  private fun trackPncMismatchEvent(
-//    offenderDetails: List<OffenderDetail>,
-//    personEntity: PersonEntity,
-//    person: Person,
-//  ) {
-//    telemetryService.trackEvent(
-//      TelemetryEventType.DELIUS_PNC_MISMATCH,
-//      mapOf(
-//        "UUID" to personEntity.personId.toString(),
-//        "PNC searched for" to person.otherIdentifiers?.pncIdentifier.toString(),
-//        "PNC returned from search" to offenderDetails.joinToString(" ") { it.otherIds.pncNumber.toString() },
-//        "PRISON NUMBER" to offenderDetails.singleOrNull()?.otherIds?.nomsNumber,
-//      ).filterValues { !it.isNullOrBlank() },
-//    )
-//  }
-
   private fun logAndTrackEvent(
     logMessage: String,
     eventType: TelemetryEventType,

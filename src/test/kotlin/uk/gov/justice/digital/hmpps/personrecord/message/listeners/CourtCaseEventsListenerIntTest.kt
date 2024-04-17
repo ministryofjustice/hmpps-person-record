@@ -18,7 +18,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithAdditionalFields
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
+import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendantAndNoPnc
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PARTIAL_MATCH
@@ -339,7 +341,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Horace", lastName = "Andy"), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
-      MATCH_CALL_FAILED,
+      TelemetryEventType.MATCH_CALL_FAILED,
       emptyMap(),
     )
   }
@@ -389,10 +391,10 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   @Test
   fun `should process messages without pnc`() {
-    publishHMCTSMessage(commonPlatformHearingWithNewDefendant(""), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearingWithNewDefendantAndNoPnc(), COMMON_PLATFORM_HEARING)
 
     val personEntity = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByDefendantsDefendantId("b5cfae34-9256-43ad-87fb-ac3def34e2ac")
+      personRepository.findByDefendantsDefendantId("2d41e7b9-0964-48d8-8d2a-3f7e81b34cd7")
     }
 
     assertThat(personEntity.personId).isNotNull()
