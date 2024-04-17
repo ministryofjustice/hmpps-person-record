@@ -334,9 +334,8 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   fun `should output correct telemetry and call person-match-score for partial match from libra`() {
     val pncNumber = "2003/0062845E"
 
-    publishHMCTSMessage(
-      
-      (pncNumber = pncNumber, firstName = "John"), LIBRA_COURT_CASE)
+    publishHMCTSMessage(libraHearing(pncNumber = pncNumber, firstName = "John"), LIBRA_COURT_CASE)
+
     checkTelemetry(
       HMCTS_RECORD_CREATED,
       mapOf("PNC" to "2003/0062845E"),
@@ -350,7 +349,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     checkTelemetry(
       HMCTS_PARTIAL_MATCH,
-      mapOf("Date of birth" to "1975-01-01"),
+      mapOf("Date of birth" to "1975-01-01", "Surname" to "MORGAN"),
     )
 
     checkTelemetry(
