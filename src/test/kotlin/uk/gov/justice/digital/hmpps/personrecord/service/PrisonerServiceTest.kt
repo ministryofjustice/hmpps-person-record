@@ -110,45 +110,6 @@ class PrisonerServiceTest {
   }
 
   @Test
-  fun `should track nomis pnc mismatch event`() {
-    // Given
-    val prisonerDOB = LocalDate.now()
-    val person = Person(
-      givenName = "John",
-      familyName = "Doe",
-      dateOfBirth = prisonerDOB,
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("2001/0171310W")),
-    )
-    val personEntity = Person.from(person)
-    val prisoner = Prisoner(
-      firstName = "John",
-      lastName = "Mahoney",
-      prisonerNumber = "12345",
-      dateOfBirth = prisonerDOB,
-      gender = "Male",
-      nationality = "British",
-      pncNumber = "20230583843L",
-    )
-    val prisonerList = listOf(prisoner)
-    whenever(prisonerSearchClient.findPossibleMatches(PrisonerMatchCriteria.from(person))).thenReturn(prisonerList)
-
-    // When
-    prisonerService.processAssociatedPrisoners(personEntity, person)
-
-    // Then
-    verifyNoInteractions(personRecordService)
-    verify(telemetryService).trackEvent(
-      TelemetryEventType.NOMIS_PNC_MISMATCH,
-      mapOf(
-        "UUID" to personEntity.personId.toString(),
-        "PNC searched for" to person.otherIdentifiers?.pncIdentifier?.pncId,
-        "PNC returned from search" to prisoner.pncNumber,
-        "Prisoner Number" to prisonerList[0].prisonerNumber,
-      ),
-    )
-  }
-
-  @Test
   fun `should track partial match event when partial match found`() {
     // Given
     val prisonerDOB = LocalDate.now()

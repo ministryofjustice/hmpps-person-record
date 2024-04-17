@@ -8,7 +8,6 @@ import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
 import uk.gov.justice.digital.hmpps.personrecord.client.ProbationOffenderSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderMatchCriteria
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
@@ -41,17 +40,12 @@ class OffenderService(
     if (featureFlag.isDeliusSearchEnabled()) {
       val offenderMatcher = getOffenderMatcher(person)
       when {
-//        offenderMatcher.isPncDoesNotMatch() -> pncDoesNotMatch(offenderMatcher, personEntity, person)
         offenderMatcher.isExactMatch() -> exactMatchFound(offenderMatcher, personEntity, person)
         offenderMatcher.isMultipleMatch() -> multipleMatchesFound(offenderMatcher, personEntity, person)
         offenderMatcher.isPartialMatch() -> partialMatchFound(personEntity, person)
         else -> noRecordsFound(personEntity, person)
       }
     }
-  }
-
-  private fun pncDoesNotMatch(offenderMatcher: OffenderMatcher, personEntity: PersonEntity, person: Person) {
-    offenderMatcher.items?.let { trackPncMismatchEvent(it, personEntity, person) }
   }
 
   private fun getOffenderMatcher(person: Person): OffenderMatcher = runBlocking {
@@ -88,21 +82,22 @@ class OffenderService(
     }
   }
 
-  private fun trackPncMismatchEvent(
-    offenderDetails: List<OffenderDetail>,
-    personEntity: PersonEntity,
-    person: Person,
-  ) {
-    telemetryService.trackEvent(
-      TelemetryEventType.DELIUS_PNC_MISMATCH,
-      mapOf(
-        "UUID" to personEntity.personId.toString(),
-        "PNC searched for" to person.otherIdentifiers?.pncIdentifier.toString(),
-        "PNC returned from search" to offenderDetails.joinToString(" ") { it.otherIds.pncNumber.toString() },
-        "PRISON NUMBER" to offenderDetails.singleOrNull()?.otherIds?.nomsNumber,
-      ).filterValues { !it.isNullOrBlank() },
-    )
-  }
+//  private fun trackPncMismatchEvent(
+//    offenderDetails: List<OffenderDetail>,
+//    personEntity: PersonEntity,
+//    person: Person,
+//  ) {
+//    telemetryService.trackEvent(
+//      TelemetryEventType.DELIUS_PNC_MISMATCH,
+//      mapOf(
+//        "UUID" to personEntity.personId.toString(),
+//        "PNC searched for" to person.otherIdentifiers?.pncIdentifier.toString(),
+//        "PNC returned from search" to offenderDetails.joinToString(" ") { it.otherIds.pncNumber.toString() },
+//        "PRISON NUMBER" to offenderDetails.singleOrNull()?.otherIds?.nomsNumber,
+//      ).filterValues { !it.isNullOrBlank() },
+//    )
+//  }
+
   private fun logAndTrackEvent(
     logMessage: String,
     eventType: TelemetryEventType,
