@@ -38,13 +38,9 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputC
       return CROIdentifier(EMPTY_CRO, false, inputCroId)
     }
 
-    fun from(inputCroId: String? = EMPTY_CRO): CROIdentifier = when {
-      inputCroId.isNullOrEmpty() -> invalidCro()
-      else -> toCanonicalForm(inputCroId)
-    }
-
-    private fun toCanonicalForm(inputCroId: String): CROIdentifier {
+    fun from(inputCroId: String? = EMPTY_CRO): CROIdentifier {
       val canonicalCro: CRO = when {
+        inputCroId.isNullOrEmpty() -> return invalidCro()
         isSfFormat(inputCroId) -> canonicalSfFormat(inputCroId)
         isStandardFormat(inputCroId) -> canonicalStandardFormat(inputCroId)
         else -> return invalidCro(inputCroId)
