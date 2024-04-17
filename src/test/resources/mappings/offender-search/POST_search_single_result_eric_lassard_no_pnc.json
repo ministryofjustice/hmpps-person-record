@@ -1,0 +1,28 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "POST",
+    "url": "/search",
+    "bodyPatterns" : [
+      {
+        "equalToJson" : {
+        "firstName" : "Eric",
+        "surname" : "Lassard",
+        "dateOfBirth" : "1960-01-01",
+        "pncNumber" : "",
+        "croNumber" : "051072/62R",
+        "crn" : null,
+        "nomsNumber" : null,
+        "includeAliases" : false
+        }
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "offender-search/POST_search_with_single_response_eric_lassard_no_pnc_200.json"
+  }
+}

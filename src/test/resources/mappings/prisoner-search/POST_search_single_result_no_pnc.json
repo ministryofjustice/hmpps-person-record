@@ -1,0 +1,24 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "POST",
+    "url": "/prisoner-search/possible-matches",
+    "bodyPatterns" : [
+      {
+        "equalToJson" : {
+          "firstName" : "Eric",
+          "lastName" : "Lassard",
+          "dateOfBirth" : "1960-01-01",
+          "pncNumber" : ""
+        }
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "prisoner-search/POST_search_with_single_response_200.json"
+  }
+}

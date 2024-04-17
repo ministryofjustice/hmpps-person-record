@@ -7,29 +7,25 @@ import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.never
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithAdditionalFields
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
+import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendantAndNoPnc
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
-import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PARTIAL_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_CRO
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MISSING_PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.SPLINK_MATCH_SCORE
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
@@ -37,17 +33,6 @@ import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.test.assertEquals
 
 class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
-
-  @Test
-  fun `should output correct telemetry for invalid PNC`() {
-    val invalidPncNumber = "03/62845X" // X is the incorrect check letter
-    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(invalidPncNumber), COMMON_PLATFORM_HEARING)
-
-    checkTelemetry(
-      INVALID_PNC,
-      mapOf("PNC" to invalidPncNumber),
-    )
-  }
 
   @Test
   fun `should output correct telemetry for invalid CRO`() {
@@ -75,39 +60,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
       mapOf("PNC" to ""),
-    )
-  }
-
-  @Test
-  fun `should process libra messages with missing pnc identifier`() {
-    val message = libraHearing(pncNumber = null)
-    publishHMCTSMessage(message, LIBRA_COURT_CASE)
-
-    checkTelemetry(
-      MISSING_PNC,
-      emptyMap(),
-    )
-  }
-
-  @Test
-  fun `should process libra messages with empty pnc identifier`() {
-    val emptyPncNumber = ""
-    publishHMCTSMessage(libraHearing(pncNumber = emptyPncNumber), LIBRA_COURT_CASE)
-
-    checkTelemetry(
-      HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to emptyPncNumber, "CRO" to "085227/65L"),
-    )
-
-    checkTelemetry(
-      MISSING_PNC,
-      emptyMap(),
-    )
-
-    checkTelemetry(
-      INVALID_PNC,
-      mapOf("PNC" to emptyPncNumber),
-      never(),
     )
   }
 
@@ -389,7 +341,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Horace", lastName = "Andy"), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
-      MATCH_CALL_FAILED,
+      TelemetryEventType.MATCH_CALL_FAILED,
       emptyMap(),
     )
   }
@@ -435,5 +387,39 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
         "New Record Identifier" to "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199",
       ),
     )
+  }
+
+  @Test
+  fun `should process messages without pnc`() {
+    publishHMCTSMessage(commonPlatformHearingWithNewDefendantAndNoPnc(), COMMON_PLATFORM_HEARING)
+
+    val personEntity = await.atMost(30, SECONDS) untilNotNull {
+      personRepository.findByDefendantsDefendantId("2d41e7b9-0964-48d8-8d2a-3f7e81b34cd7")
+    }
+
+    assertThat(personEntity.personId).isNotNull()
+    assertThat(personEntity.prisoners).hasSize(1)
+    assertThat(personEntity.prisoners[0].firstName).isEqualTo("ERIC")
+    assertThat(personEntity.prisoners[0].lastName).isEqualTo("Lassard")
+    assertThat(personEntity.prisoners[0].prisonNumber).isEqualTo("A1234AA")
+    assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(PNCIdentifier.from("2003/0062845E"))
+    assertThat(personEntity.prisoners[0].offenderId).isEqualTo(356)
+    assertThat(personEntity.prisoners[0].rootOffenderId).isEqualTo(300)
+    assertThat(personEntity.prisoners[0].dateOfBirth).isEqualTo(LocalDate.of(1970, 3, 15))
+    assertThat(personEntity.prisoners[0].cro).isEqualTo(CROIdentifier.from("51072/62R"))
+    assertThat(personEntity.prisoners[0].fingerprint).isEqualTo(true)
+    assertThat(personEntity.prisoners[0].drivingLicenseNumber).isEqualTo("ERIC1234567K")
+    assertThat(personEntity.prisoners[0].nationalInsuranceNumber).isEqualTo("PD123456D")
+    assertThat(personEntity.prisoners[0].address?.postcode).isEqualTo("LI1 5TH")
+    assertThat(personEntity.prisoners[0].sexCode).isNull()
+    assertThat(personEntity.prisoners[0].raceCode).isNull()
+    assertThat(personEntity.prisoners[0].birthPlace).isNull()
+    assertThat(personEntity.prisoners[0].birthCountryCode).isNull()
+
+    assertThat(personEntity.offenders).hasSize(1)
+    assertThat(personEntity.offenders[0].pncNumber?.pncId).isEqualTo("")
+
+    assertThat(personEntity.defendants).hasSize(1)
+    assertThat(personEntity.defendants[0].pncNumber?.pncId).isEqualTo("")
   }
 }

@@ -19,12 +19,10 @@ class ProbationCaseEngagementService(
   }
 
   fun processNewOffender(newOffenderDetail: DeliusOffenderDetail) {
-    newOffenderDetail.identifiers.pnc?.let {
-      handlePncPresent(newOffenderDetail)
-    } ?: handleNoPnc()
+    process(newOffenderDetail)
   }
 
-  private fun handlePncPresent(newOffenderDetail: DeliusOffenderDetail) {
+  private fun process(newOffenderDetail: DeliusOffenderDetail) {
     val existingPeople = personRecordService.findPersonRecordsByPnc(PNCIdentifier.from(newOffenderDetail.identifiers.pnc!!))
     if (existingPeople.isEmpty()) {
       handleNoPersonForPnc(newOffenderDetail)
@@ -49,10 +47,6 @@ class ProbationCaseEngagementService(
     log.debug("Person record does not exist for pnc $pnc - creating a new person and offender")
     val newPerson = createNewPersonAndOffenderFromPnc(newOffenderDetail)
     trackEvent(TelemetryEventType.NEW_DELIUS_RECORD_NEW_PNC, crn, pnc, newPerson.personId.toString())
-  }
-
-  private fun handleNoPnc() {
-    log.debug("Pnc not present no further processing needed")
   }
 
   @Suppress("UNCHECKED_CAST")
