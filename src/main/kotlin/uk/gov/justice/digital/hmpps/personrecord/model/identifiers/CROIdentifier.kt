@@ -79,9 +79,6 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputC
 
 class CRO(private val checkChar: String, private val serialNum: String, private val yearDigits: String, val fingerprint: Boolean = true) {
 
-  private fun padSerialNumber(serialNumber: String): String =
-    serialNumber.padStart(SERIAL_NUM_LENGTH, '0')
-
   val value: String
     get() = "${padSerialNumber(serialNum)}/$yearDigits$checkChar"
 
@@ -90,9 +87,13 @@ class CRO(private val checkChar: String, private val serialNum: String, private 
 
   private fun correctModulus(checkChar: Char): Boolean {
     val serialNumToCheck = if (fingerprint) padSerialNumber(serialNum) else serialNum
-    val modulus = VALID_LETTERS[(yearDigits + serialNumToCheck).toLong().mod(VALID_LETTERS.length)]
+    val modulus = VALID_LETTERS[(yearDigits + serialNumToCheck).toInt().mod(VALID_LETTERS.length)]
     return modulus == checkChar
   }
+
+  private fun padSerialNumber(serialNumber: String): String =
+    serialNumber.padStart(SERIAL_NUM_LENGTH, '0')
+
   companion object {
     private const val VALID_LETTERS = "ZABCDEFGHJKLMNPQRTUVWXY"
   }
