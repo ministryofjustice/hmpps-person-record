@@ -63,13 +63,9 @@ class CROIdentifier(inputCroId: String, inputFingerprint: Boolean, invalidInputC
       return CRO(checkChar, serialNum, yearDigits, false)
     }
 
-    private fun isStandardFormat(inputCroId: String): Boolean {
-      return inputCroId.matches(CRO_REGEX)
-    }
+    private fun isStandardFormat(inputCroId: String): Boolean = inputCroId.matches(CRO_REGEX)
 
-    private fun isSfFormat(inputCroId: String): Boolean {
-      return inputCroId.matches(SF_CRO_REGEX)
-    }
+    private fun isSfFormat(inputCroId: String): Boolean = inputCroId.matches(SF_CRO_REGEX)
   }
 }
 
