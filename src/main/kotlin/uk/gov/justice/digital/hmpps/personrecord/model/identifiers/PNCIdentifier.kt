@@ -6,59 +6,55 @@ interface PNCIdentifier {
 
   val pncId: String
   companion object {
-    fun from(inputPncId: String? = ""): PNCIdentifier {
-      if (inputPncId.isNullOrEmpty()) {
-        return MissingPNCIdentifier()
-      }
-      return validOrInvalid(inputPncId)
-    }
 
-    private const val VALID_LETTERS = "ZABCDEFGHJKLMNPQRTUVWXY"
     private const val SLASH = "/"
-    private val PNC_REGEX = Regex("\\d{4}(/?)\\d{7}[A-Z]\$")
+    private val PNC_REGEX = Regex("\\d{2,4}(/?)\\d{1,7}[A-Z]\$")
     private const val LONG_PNC_ID_LENGTH = 10
+    private const val SERIAL_NUM_LENGTH = 7
     private const val CENTURY = 100
-    private const val LAST_CHARACTER = 12
     private const val YEAR_END = 4
 
-    private fun validOrInvalid(inputPncId: String): PNCIdentifier {
-      val pncId = toCanonicalForm(inputPncId)
+    fun from(inputPncId: String? = ""): PNCIdentifier {
       return when {
-        (pncId.matches(PNC_REGEX) && correctModulus(pncId)) -> ValidPNCIdentifier(pncId)
+        inputPncId.isNullOrEmpty() -> MissingPNCIdentifier()
+        !isExpectedFormat(inputPncId) -> InvalidPNCIdentifier(inputPncId)
+        else -> validOrInvalid(inputPncId)
+      }
+    }
+
+    private fun isExpectedFormat(pnc: String): Boolean = pnc.matches(PNC_REGEX)
+
+    private fun validOrInvalid(inputPncId: String): PNCIdentifier {
+      val pnc = toCanonicalForm(inputPncId)
+      return when {
+        (pnc.valid) -> ValidPNCIdentifier(pnc.value)
         else -> InvalidPNCIdentifier(inputPncId)
       }
     }
-    private fun correctModulus(pncId: String): Boolean {
-      val modulusLetter = pncId[LAST_CHARACTER]
-      return VALID_LETTERS[pncId.replace(SLASH, "").substring(2, LAST_CHARACTER - 1).toLong().mod(VALID_LETTERS.length)] == modulusLetter
-    }
-    private fun toCanonicalForm(pnc: String): String {
-      val sanitizedPncId = pnc.replace("/", "")
 
-      if (sanitizedPncId.length < LONG_PNC_ID_LENGTH) { // this is a short form PNC e.g. 79/123456Z
-        val yearDigits = sanitizedPncId.take(2).also { digits ->
-          if (!digits.all { character -> character.isDigit() }) {
-            return pnc
-          }
-        }
-
-        val year = getYearFromLastTwoDigits(yearDigits.toInt()) // E.g. 79 becomes 1979
-        val remainingIdChars = sanitizedPncId.substring(2) // the non-year id part 123456Z
-        // pad out with zeros: 123456Z becomes 0123456Z
-        val standardizedId = remainingIdChars.padStart(LONG_PNC_ID_LENGTH - 2, '0')
-        return "$year/$standardizedId" // 1979/0123456Z
-      }
-      return withForwardSlash(pnc)
-    }
-
-    private fun withForwardSlash(pnc: String): String {
+    private fun toCanonicalForm(pnc: String): PNC {
+      val sanitizedPncId = pnc.replace(SLASH, "")
       return when {
-        !pnc.contains("/") -> {
-          pnc.substring(0, YEAR_END) + "/" + pnc.substring(YEAR_END)
-        }
-        else -> pnc
+        isShortFormFormat(sanitizedPncId) -> canonicalShortForm(sanitizedPncId)
+        else -> canonicalLongForm(sanitizedPncId)
       }
     }
+
+    private fun canonicalShortForm(pnc: String): PNC {
+      val checkChar = pnc.takeLast(1)
+      val year = getYearFromLastTwoDigits(pnc.take(2).toInt()) // E.g. 79 becomes 1979
+      val serialNum = pnc.substring(2).dropLast(1) // the non-year id part 123456Z
+      return PNC(checkChar, serialNum, year)
+    }
+
+    private fun canonicalLongForm(pnc: String): PNC {
+      val checkChar = pnc.takeLast(1)
+      val year = pnc.take(YEAR_END)
+      val serialNum = pnc.dropLast(1).takeLast(SERIAL_NUM_LENGTH)
+      return PNC(checkChar, serialNum, year)
+    }
+
+    private fun isShortFormFormat(pnc: String): Boolean = pnc.length < LONG_PNC_ID_LENGTH
 
     private fun isYearThisCentury(year: Int): Boolean {
       return year in 0..currentYearLastTwoDigits()
@@ -122,5 +118,25 @@ class ValidPNCIdentifier(private val inputPncId: String) : PNCIdentifier {
 
   override fun toString(): String {
     return pncId
+  }
+}
+
+class PNC(private val checkChar: String, private val serialNum: String, private val yearDigits: String) {
+  val value: String
+    get() = "$yearDigits/${padSerialNumber(serialNum)}$checkChar"
+
+  val valid: Boolean
+    get() = correctModulus(checkChar.single())
+
+  private fun correctModulus(checkChar: Char): Boolean {
+    val modulus = VALID_LETTERS[(yearDigits.takeLast(2) + serialNum).toInt().mod(VALID_LETTERS.length)]
+    return modulus == checkChar
+  }
+
+  private fun padSerialNumber(serialNumber: String): String =
+    serialNumber.padStart(CROIdentifier.SERIAL_NUM_LENGTH, '0')
+
+  companion object {
+    private const val VALID_LETTERS = "ZABCDEFGHJKLMNPQRTUVWXY"
   }
 }
