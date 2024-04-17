@@ -13,6 +13,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_CRO
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.SPLINK_MATCH_SCORE
 
+private const val MAXMATCHES: Int = 3
+
 @Service
 class CourtCaseEventsService(
   private val telemetryService: TelemetryService,
@@ -62,7 +64,7 @@ class CourtCaseEventsService(
   private fun partialMatchFound(defendantMatcher: DefendantMatcher, person: Person) {
     trackEvent(HMCTS_PARTIAL_MATCH, defendantMatcher.extractMatchingFields(defendantMatcher.getMatchingItem()))
 
-    val matchResults = defendantMatcher.items!!.take(4).map { matchService.score(it, person) }
+    val matchResults = defendantMatcher.items!!.take(MAXMATCHES).map { matchService.score(it, person) }
 
     matchResults.forEach { matchResult ->
       trackEvent(
