@@ -427,6 +427,30 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
+  fun `should output correct telemetry and call person-match-score for single partial match`() {
+    val pncNumber = "2003/0062845E"
+
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Clancy", lastName = "Eccles", defendantId = "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777"), COMMON_PLATFORM_HEARING)
+    val firstMatchEntity = await.atMost(30, SECONDS) untilNotNull {
+      personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncNumber))
+    }
+
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Boothe"), COMMON_PLATFORM_HEARING)
+
+    checkTelemetry(
+      SPLINK_MATCH_SCORE,
+      mapOf(
+        "Match Probability Score" to "0.999353426",
+        "Candidate Record UUID" to firstMatchEntity.personId.toString(),
+        "Candidate Record Identifier Type" to "defendantId",
+        "Candidate Record Identifier" to "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777",
+        "New Record Identifier Type" to "defendantId",
+        "New Record Identifier" to "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199",
+      ),
+    )
+  }
+
+  @Test
   fun `should process messages without pnc`() {
     publishHMCTSMessage(commonPlatformHearingWithNewDefendantAndNoPnc(), COMMON_PLATFORM_HEARING)
 
