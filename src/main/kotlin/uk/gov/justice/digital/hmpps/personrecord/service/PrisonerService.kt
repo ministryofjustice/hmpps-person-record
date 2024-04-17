@@ -144,20 +144,4 @@ class PrisonerService(
       ).filterValues { !it.isNullOrBlank() },
     )
   }
-
-//  private fun trackPncMismatchEvent(
-//    prisonerList: List<Prisoner>,
-//    personEntity: PersonEntity,
-//    person: Person,
-//  ) {
-//    telemetryService.trackEvent(
-//      TelemetryEventType.NOMIS_PNC_MISMATCH,
-//      mapOf(
-//        "UUID" to personEntity.personId.toString(),
-//        "PNC searched for" to person.otherIdentifiers?.pncIdentifier.toString(),
-//        "PNC returned from search" to prisonerList.joinToString(" ") { it.pncNumber.toString() },
-//        "Prisoner Number" to prisonerList.singleOrNull()?.prisonerNumber,
-//      ).filterValues { !it.isNullOrBlank() },
-//    )
-//  }
 }
