@@ -30,8 +30,6 @@ class PNCIdentifier(val pncId: String) {
     private const val LONG_PNC_ID_LENGTH = 10
     private const val CENTURY = 100
 
-
-
     fun from(inputPncId: String? = EMPTY_PNC): PNCIdentifier {
       return when {
         inputPncId.isNullOrEmpty() -> PNCIdentifier(EMPTY_PNC)
