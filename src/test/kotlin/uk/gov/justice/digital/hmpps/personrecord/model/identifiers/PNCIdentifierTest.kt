@@ -59,7 +59,7 @@ class PNCIdentifierTest {
     val pncIdentifier = PNCIdentifier.from(pncId)
 
     // Then
-    assertThat(pncIdentifier.valid).isFalse()
+    assertThat(pncIdentifier.pncId).isEmpty()
   }
 
   @ParameterizedTest
@@ -69,7 +69,7 @@ class PNCIdentifierTest {
     val pncIdentifier = PNCIdentifier.from(pncId)
 
     // Then
-    assertThat(pncIdentifier.valid).isFalse()
+    assertThat(pncIdentifier.pncId).isEmpty()
   }
 
   @ParameterizedTest
@@ -79,7 +79,7 @@ class PNCIdentifierTest {
     val pncIdentifier = PNCIdentifier.from(pncId)
 
     // Then
-    assertThat(pncIdentifier.valid).isTrue()
+    assertThat(pncIdentifier.pncId).isNotEmpty()
   }
 
   @ParameterizedTest
@@ -89,7 +89,7 @@ class PNCIdentifierTest {
     val pncIdentifier = PNCIdentifier.from(pncId)
 
     // Then
-    assertThat(pncIdentifier.valid).isFalse()
+    assertThat(pncIdentifier.pncId).isEmpty()
   }
 
   @Test
@@ -97,7 +97,7 @@ class PNCIdentifierTest {
     val readAllLines = Files.readAllLines(Paths.get("src/test/resources/valid_pncs.csv"), Charsets.UTF_8)
 
     readAllLines.stream().forEach {
-      assertThat((PNCIdentifier.from(it).valid)).isTrue()
+      assertThat((PNCIdentifier.from(it).pncId)).isNotEmpty()
     }
   }
 

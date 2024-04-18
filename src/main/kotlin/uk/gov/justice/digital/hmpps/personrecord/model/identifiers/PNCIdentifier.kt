@@ -6,9 +6,6 @@ import java.time.LocalDate
 
 class PNCIdentifier(val pncId: String) {
 
-  val valid: Boolean
-    get() = pncId.isNotEmpty()
-
   override fun equals(other: Any?): Boolean {
     return EqualsBuilder.reflectionEquals(this, other)
   }
@@ -23,17 +20,19 @@ class PNCIdentifier(val pncId: String) {
 
   companion object {
 
-    private val PNC_REGEX = Regex("\\d{2,4}(/?)\\d{1,7}[A-Z]\$")
+    internal const val SERIAL_NUM_LENGTH = 7
+    private const val YEAR_END = 4
+
+    private val PNC_REGEX = Regex("\\d{2,$YEAR_END}(/?)\\d{1,$SERIAL_NUM_LENGTH}[A-Z]\$")
 
     private const val EMPTY_PNC = ""
     private const val SLASH = "/"
     private const val LONG_PNC_ID_LENGTH = 10
     private const val CENTURY = 100
-    private const val YEAR_END = 4
 
-    internal const val SERIAL_NUM_LENGTH = 7
 
-    fun from(inputPncId: String? = ""): PNCIdentifier {
+
+    fun from(inputPncId: String? = EMPTY_PNC): PNCIdentifier {
       return when {
         inputPncId.isNullOrEmpty() -> PNCIdentifier(EMPTY_PNC)
         isExpectedFormat(inputPncId) -> toCanonicalForm(inputPncId)
