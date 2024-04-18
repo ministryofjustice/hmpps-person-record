@@ -106,4 +106,42 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
       )
     }
   }
+
+  @Test
+  fun `should handle new offender details with null pnc`() {
+    val crn = "E610461"
+    val crnType = PersonIdentifier("CRN", crn)
+    val personReference = PersonReference(listOf(crnType))
+    val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
+    publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
+
+    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
+    checkTelemetry(NEW_DELIUS_RECORD_NEW_PNC, mapOf("CRN" to crn))
+
+    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByOffendersCrn(crn) }
+
+    assertThat(personEntity.personId).isNotNull()
+    assertThat(personEntity.offenders).hasSize(1)
+    assertThat(personEntity.offenders[0].pncNumber?.pncId).isEqualTo("")
+    assertThat(personEntity.offenders[0].crn).isEqualTo(crn)
+  }
+
+  @Test
+  fun `should handle new offender details with an empty pnc`() {
+    val crn = "E610462"
+    val crnType = PersonIdentifier("CRN", crn)
+    val personReference = PersonReference(listOf(crnType))
+    val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
+    publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
+
+    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
+    checkTelemetry(NEW_DELIUS_RECORD_NEW_PNC, mapOf("CRN" to crn))
+
+    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByOffendersCrn(crn) }
+
+    assertThat(personEntity.personId).isNotNull()
+    assertThat(personEntity.offenders).hasSize(1)
+    assertThat(personEntity.offenders[0].pncNumber?.pncId).isEqualTo("")
+    assertThat(personEntity.offenders[0].crn).isEqualTo(crn)
+  }
 }
