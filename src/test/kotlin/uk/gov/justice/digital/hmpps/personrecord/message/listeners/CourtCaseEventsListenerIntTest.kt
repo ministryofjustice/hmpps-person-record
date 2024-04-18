@@ -7,6 +7,8 @@ import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
@@ -362,6 +364,59 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
         "New Record Identifier Type" to "defendantId",
         "New Record Identifier" to "defendant2",
       ),
+    )
+  }
+
+  @Test
+  fun `should not call person-match-score if date of birth is not present`() {
+    publishHMCTSMessage(libraHearing(pncNumber = "", firstName = "John", dateOfBirth = ""), LIBRA_COURT_CASE)
+
+    checkTelemetry(
+      HMCTS_RECORD_CREATED,
+      mapOf(),
+    )
+
+    publishHMCTSMessage(libraHearing(pncNumber = "", firstName = "Johnathan", dateOfBirth = ""), LIBRA_COURT_CASE)
+
+    checkTelemetry(
+      HMCTS_PARTIAL_MATCH,
+      mapOf("Surname" to "MORGAN"),
+    )
+
+    checkTelemetry(
+      SPLINK_MATCH_SCORE,
+      mapOf("Match Probability Score" to "not scored, no date of birth"),
+    )
+  }
+
+  @Test
+  fun `records when only an empty date of birth matches are not partial matches`() {
+    val pncNumber = ""
+
+    publishHMCTSMessage(libraHearing(pncNumber = pncNumber, firstName = "John", surname = "Smith", dateOfBirth = ""), LIBRA_COURT_CASE)
+
+    await.atMost(30, SECONDS) untilNotNull {
+      personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncNumber))
+    }
+
+    publishHMCTSMessage(libraHearing(pncNumber = pncNumber, firstName = "Johnathan", surname = "Jones", dateOfBirth = ""), LIBRA_COURT_CASE)
+
+    checkTelemetry(
+      HMCTS_RECORD_CREATED,
+      mapOf("PNC" to ""),
+      times(2),
+    )
+
+    checkTelemetry(
+      HMCTS_PARTIAL_MATCH,
+      mapOf(),
+      never(),
+    )
+
+    checkTelemetry(
+      SPLINK_MATCH_SCORE,
+      mapOf(),
+      never(),
     )
   }
 
