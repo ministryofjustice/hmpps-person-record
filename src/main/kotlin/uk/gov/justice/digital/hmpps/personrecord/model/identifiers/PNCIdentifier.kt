@@ -10,9 +10,10 @@ interface PNCIdentifier {
     private const val SLASH = "/"
     private val PNC_REGEX = Regex("\\d{2,4}(/?)\\d{1,7}[A-Z]\$")
     private const val LONG_PNC_ID_LENGTH = 10
-    private const val SERIAL_NUM_LENGTH = 7
     private const val CENTURY = 100
     private const val YEAR_END = 4
+
+    internal const val SERIAL_NUM_LENGTH = 7
 
     fun from(inputPncId: String? = ""): PNCIdentifier {
       return when {
@@ -77,6 +78,9 @@ interface PNCIdentifier {
         else -> throw IllegalArgumentException("Could not get year from digits provided")
       }
     }
+
+    private fun padSerialNumber(serialNumber: String): String =
+      serialNumber.padStart(SERIAL_NUM_LENGTH, '0')
   }
 }
 
@@ -122,19 +126,22 @@ class ValidPNCIdentifier(private val inputPncId: String) : PNCIdentifier {
 }
 
 class PNC(private val checkChar: String, private val serialNum: String, private val yearDigits: String) {
+
+  private val paddedSerialNum: String = padSerialNumber(serialNum)
+
   val value: String
-    get() = "$yearDigits/${padSerialNumber(serialNum)}$checkChar"
+    get() = "$yearDigits/$paddedSerialNum$checkChar"
 
   val valid: Boolean
     get() = correctModulus(checkChar.single())
 
   private fun correctModulus(checkChar: Char): Boolean {
-    val modulus = VALID_LETTERS[(yearDigits.takeLast(2) + serialNum).toInt().mod(VALID_LETTERS.length)]
+    val modulus = VALID_LETTERS[(yearDigits.takeLast(2) + paddedSerialNum).toInt().mod(VALID_LETTERS.length)]
     return modulus == checkChar
   }
 
   private fun padSerialNumber(serialNumber: String): String =
-    serialNumber.padStart(CROIdentifier.SERIAL_NUM_LENGTH, '0')
+    serialNumber.padStart(PNCIdentifier.SERIAL_NUM_LENGTH, '0')
 
   companion object {
     private const val VALID_LETTERS = "ZABCDEFGHJKLMNPQRTUVWXY"
