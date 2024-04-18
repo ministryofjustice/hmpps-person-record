@@ -1,0 +1,19 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "GET",
+    "urlPattern": "/probation-case.engagement.created/E610462",
+    "headers" : {
+      "Content-Type": {
+        "equalTo": "application/json"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\n  \"identifiers\": {\n    \"crn\": \"E610462\" },\n  \"name\": {\n    \"forename\": \"Martin\",\n    \"surname\": \"Bundle\",\n    \"otherNames\": []\n  },\n  \"dateOfBirth\": \"1979-10-10\"\n}"
+  }
+}
