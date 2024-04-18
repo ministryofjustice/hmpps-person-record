@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_CRO
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.SPLINK_MATCH_SCORE
 
-private const val MAXMATCHES: Int = 3
+private const val MAXMATCHES: Int = 1
 
 @Service
 class CourtCaseEventsService(
