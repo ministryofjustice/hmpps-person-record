@@ -23,7 +23,7 @@ class ProbationCaseEngagementService(
   }
 
   private fun process(newOffenderDetail: DeliusOffenderDetail) {
-    val existingPeople = personRecordService.findPersonRecordsByPnc(PNCIdentifier.from(newOffenderDetail.identifiers.pnc!!))
+    val existingPeople = newOffenderDetail.identifiers.pnc.let { personRecordService.findPersonRecordsByPnc(PNCIdentifier.from(newOffenderDetail.identifiers.pnc)) }
     if (existingPeople.isEmpty()) {
       handleNoPersonForPnc(newOffenderDetail)
     } else {
@@ -42,7 +42,7 @@ class ProbationCaseEngagementService(
   }
 
   private fun handleNoPersonForPnc(newOffenderDetail: DeliusOffenderDetail) {
-    val pnc = newOffenderDetail.identifiers.pnc!!
+    val pnc = newOffenderDetail.identifiers.pnc
     val crn = newOffenderDetail.identifiers.crn
     log.debug("Person record does not exist for pnc $pnc - creating a new person and offender")
     val newPerson = createNewPersonAndOffenderFromPnc(newOffenderDetail)
