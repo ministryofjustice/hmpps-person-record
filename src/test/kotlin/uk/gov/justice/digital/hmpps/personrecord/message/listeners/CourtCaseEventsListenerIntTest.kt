@@ -439,7 +439,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should output correct telemetry and call person-match-score for multiple partial matches`() {
+  fun `should output correct telemetry and call person-match-score for multiple partial matches, should send 1`() {
     val pncNumber = "2003/0062845E"
 
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Clancy", lastName = "Eccles", defendantId = "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777"), COMMON_PLATFORM_HEARING)
@@ -478,6 +478,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
         "New Record Identifier Type" to "defendantId",
         "New Record Identifier" to "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199",
       ),
+      never(),
     )
   }
 
