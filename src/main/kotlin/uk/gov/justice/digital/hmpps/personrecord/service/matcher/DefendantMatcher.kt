@@ -11,7 +11,7 @@ class DefendantMatcher(defendants: List<DefendantEntity>?, person: Person) :
     return person.otherIdentifiers?.pncIdentifier == PNCIdentifier.from(item.pncNumber?.pncId) ||
       item.firstName.equals(person.givenName, true) ||
       item.surname.equals(person.familyName, true) ||
-      item.dateOfBirth == person.dateOfBirth
+      (item.dateOfBirth != null && item.dateOfBirth == person.dateOfBirth)
   }
 
   override fun isMatchingItem(item: DefendantEntity): Boolean {

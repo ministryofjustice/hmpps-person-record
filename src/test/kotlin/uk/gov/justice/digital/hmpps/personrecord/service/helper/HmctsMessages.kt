@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.helper
 
+import org.testcontainers.shaded.org.bouncycastle.asn1.isismtt.x509.DeclarationOfMajority.dateOfBirth
+
 fun testMessage(messageType: String?) = """
     {
       "Type" : "Notification",
@@ -276,19 +278,19 @@ fun commonPlatformHearingWithOneDefendant(pncNumber: String = "1981/0154257C", f
     }
 """.trimIndent()
 
-fun libraHearing(pncNumber: String? = "2003/0011985X", firstName: String = "Arthur") = """
+fun libraHearing(pncNumber: String? = "2003/0011985X", firstName: String = "Arthur", surname: String = "MORGAN", dateOfBirth: String = "01/01/1975") = """
 {
    "caseId":1217464,
    "caseNo":"1600032981",
    "name":{
       "title":"Mr",
       "forename1":"$firstName",
-      "surname":"MORGAN"
+      "surname":"$surname"
    },
-   "defendantName":"Mr $firstName MORGAN",
+   "defendantName":"Mr $firstName $surname",
    "defendantType":"P",
    "defendantSex":"N",
-   "defendantDob":"01/01/1975",
+   "defendantDob":"$dateOfBirth",
    "defendantAge":"20",
    "defendantAddress":{
       "line1":"39 The Street",
