@@ -1,14 +1,32 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
+import org.apache.commons.lang3.builder.EqualsBuilder
+import org.apache.commons.lang3.builder.HashCodeBuilder
 import java.time.LocalDate
 
-interface PNCIdentifier {
+class PNCIdentifier(val pncId: String) {
 
-  val pncId: String
+  val valid: Boolean
+    get() = pncId.isNotEmpty()
+
+  override fun equals(other: Any?): Boolean {
+    return EqualsBuilder.reflectionEquals(this, other)
+  }
+
+  override fun hashCode(): Int {
+    return HashCodeBuilder.reflectionHashCode(this)
+  }
+
+  override fun toString(): String {
+    return pncId
+  }
+
   companion object {
 
-    private const val SLASH = "/"
     private val PNC_REGEX = Regex("\\d{2,4}(/?)\\d{1,7}[A-Z]\$")
+
+    private const val EMPTY_PNC = ""
+    private const val SLASH = "/"
     private const val LONG_PNC_ID_LENGTH = 10
     private const val CENTURY = 100
     private const val YEAR_END = 4
@@ -17,27 +35,23 @@ interface PNCIdentifier {
 
     fun from(inputPncId: String? = ""): PNCIdentifier {
       return when {
-        inputPncId.isNullOrEmpty() -> MissingPNCIdentifier()
-        !isExpectedFormat(inputPncId) -> InvalidPNCIdentifier(inputPncId)
-        else -> validOrInvalid(inputPncId)
+        inputPncId.isNullOrEmpty() -> PNCIdentifier(EMPTY_PNC)
+        isExpectedFormat(inputPncId) -> toCanonicalForm(inputPncId)
+        else -> PNCIdentifier(EMPTY_PNC)
       }
     }
 
     private fun isExpectedFormat(pnc: String): Boolean = pnc.matches(PNC_REGEX)
 
-    private fun validOrInvalid(inputPncId: String): PNCIdentifier {
-      val pnc = toCanonicalForm(inputPncId)
-      return when {
-        (pnc.valid) -> ValidPNCIdentifier(pnc.value)
-        else -> InvalidPNCIdentifier(inputPncId)
-      }
-    }
-
-    private fun toCanonicalForm(pnc: String): PNC {
+    private fun toCanonicalForm(pnc: String): PNCIdentifier {
       val sanitizedPncId = pnc.replace(SLASH, "")
-      return when {
+      val canonicalPnc = when {
         isShortFormFormat(sanitizedPncId) -> canonicalShortForm(sanitizedPncId)
         else -> canonicalLongForm(sanitizedPncId)
+      }
+      return when {
+        (canonicalPnc.valid) -> PNCIdentifier(canonicalPnc.value)
+        else -> PNCIdentifier(EMPTY_PNC)
       }
     }
 
@@ -78,54 +92,10 @@ interface PNCIdentifier {
         else -> throw IllegalArgumentException("Could not get year from digits provided")
       }
     }
-
-    private fun padSerialNumber(serialNumber: String): String =
-      serialNumber.padStart(SERIAL_NUM_LENGTH, '0')
   }
 }
 
-class MissingPNCIdentifier : PNCIdentifier {
-  override val pncId: String
-    get() = ""
-
-  override fun toString(): String {
-    return pncId
-  }
-}
-
-class InvalidPNCIdentifier(private val inputPncId: String) : PNCIdentifier {
-  override val pncId: String
-    get() = ""
-
-  override fun toString(): String {
-    return pncId
-  }
-
-  fun invalidValue(): String = inputPncId
-}
-
-class ValidPNCIdentifier(private val inputPncId: String) : PNCIdentifier {
-
-  override val pncId: String
-    get() = inputPncId
-
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (javaClass != other?.javaClass) return false
-    other as PNCIdentifier
-    return pncId == other.pncId
-  }
-
-  override fun hashCode(): Int {
-    return pncId.hashCode()
-  }
-
-  override fun toString(): String {
-    return pncId
-  }
-}
-
-class PNC(private val checkChar: String, private val serialNum: String, private val yearDigits: String) {
+class PNC(private val checkChar: String, serialNum: String, private val yearDigits: String) {
 
   private val paddedSerialNum: String = padSerialNumber(serialNum)
 
