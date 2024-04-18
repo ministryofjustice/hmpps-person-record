@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Isolation.SERIALIZABLE
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.matcher.DefendantMatcher
@@ -64,7 +65,7 @@ class CourtCaseEventsService(
   private fun partialMatchFound(defendantMatcher: DefendantMatcher, person: Person) {
     trackEvent(HMCTS_PARTIAL_MATCH, defendantMatcher.extractMatchingFields(defendantMatcher.getMatchingItem()))
 
-    val matchResults = defendantMatcher.items!!.take(MAXMATCHES).map { matchService.score(it, person) }
+    val matchResults = defendantMatcher.items!!.take(MAXMATCHES).map { matchResult(it, person) }
 
     matchResults.forEach { matchResult ->
       trackEvent(
@@ -80,6 +81,21 @@ class CourtCaseEventsService(
       )
     }
   }
+
+  private fun matchResult(
+    candidate: DefendantEntity,
+    person: Person,
+  ): MatchResult {
+    if (nullDate(candidate, person)) {
+      return MatchResult("not scored, no date of birth", candidate.person?.personId.toString(), "defendantId", candidate.defendantId ?: "defendant1", "defendantId", person.defendantId ?: "defendant2")
+    }
+    return matchService.score(candidate, person)
+  }
+
+  private fun nullDate(
+    candidate: DefendantEntity,
+    person: Person,
+  ) = candidate.dateOfBirth == null || person.dateOfBirth == null
 
   private fun trackEvent(
     eventType: TelemetryEventType,
