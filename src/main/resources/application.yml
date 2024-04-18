@@ -113,11 +113,11 @@ prisoner-search:
 retry:
   delay: 2000
 
-feature:
-  flags:
-    enable-hmcts-sqs: false
-    enable-delius-search: true
-    enable-nomis-search: true
-    enable-delius-domain-event-sqs: false
+#feature:
+#  flags:
+#    enable-hmcts-sqs: false
+#    enable-delius-search: false
+#    enable-nomis-search: false
+#    enable-delius-domain-event-sqs: false
 
 
