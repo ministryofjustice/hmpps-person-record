@@ -312,7 +312,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncNumber))
     }
 
-    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Boothe"), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Eccles"), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
       HMCTS_PARTIAL_MATCH,
@@ -322,7 +322,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     checkTelemetry(
       SPLINK_MATCH_SCORE,
       mapOf(
-        "Match Probability Score" to "0.999353426",
+        "Match Probability Score" to "0.9897733",
         "Candidate Record UUID" to personEntity.personId.toString(),
         "Candidate Record Identifier Type" to "defendantId",
         "Candidate Record Identifier" to "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777",
@@ -336,7 +336,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   fun `should output correct telemetry and call person-match-score for partial match from libra`() {
     val pncNumber = "2003/0062845E"
 
-    publishHMCTSMessage(libraHearing(pncNumber = pncNumber, firstName = "John"), LIBRA_COURT_CASE)
+    publishHMCTSMessage(libraHearing(pncNumber = pncNumber, firstName = "John", surname = "Eccles"), LIBRA_COURT_CASE)
 
     checkTelemetry(
       HMCTS_RECORD_CREATED,
@@ -347,11 +347,11 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncNumber))
     }
 
-    publishHMCTSMessage(libraHearing(pncNumber = pncNumber, firstName = "Johnathan"), LIBRA_COURT_CASE)
+    publishHMCTSMessage(libraHearing(pncNumber = pncNumber, firstName = "Johnathan", surname = "Eccles"), LIBRA_COURT_CASE)
 
     checkTelemetry(
       HMCTS_PARTIAL_MATCH,
-      mapOf("Date of birth" to "1975-01-01", "Surname" to "MORGAN"),
+      mapOf("Date of birth" to "1975-01-01", "Surname" to "Eccles"),
     )
 
     checkTelemetry(
@@ -368,19 +368,37 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should not call person-match-score if date of birth is not present`() {
-    publishHMCTSMessage(libraHearing(pncNumber = "", firstName = "John", dateOfBirth = ""), LIBRA_COURT_CASE)
+  fun `not a partial match if firstname and surname do not match`() {
+    publishHMCTSMessage(libraHearing(pncNumber = "", dateOfBirth = ""), LIBRA_COURT_CASE)
 
     checkTelemetry(
       HMCTS_RECORD_CREATED,
       mapOf(),
     )
 
-    publishHMCTSMessage(libraHearing(pncNumber = "", firstName = "Johnathan", dateOfBirth = ""), LIBRA_COURT_CASE)
+    publishHMCTSMessage(libraHearing(pncNumber = "", dateOfBirth = ""), LIBRA_COURT_CASE)
 
     checkTelemetry(
       HMCTS_PARTIAL_MATCH,
-      mapOf("Surname" to "MORGAN"),
+      mapOf(),
+      never(),
+    )
+  }
+
+  @Test
+  fun `should not call person-match-score if date of birth is not present`() {
+    publishHMCTSMessage(libraHearing(pncNumber = "", firstName = "John", dateOfBirth = "04/09/1975"), LIBRA_COURT_CASE)
+
+    checkTelemetry(
+      HMCTS_RECORD_CREATED,
+      mapOf(),
+    )
+
+    publishHMCTSMessage(libraHearing(pncNumber = "", firstName = "John", dateOfBirth = ""), LIBRA_COURT_CASE)
+
+    checkTelemetry(
+      HMCTS_PARTIAL_MATCH,
+      mapOf("Forename" to "John", "Surname" to "MORGAN"),
     )
 
     checkTelemetry(
@@ -424,7 +442,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   fun `should output correct telemetry when call to person-match-score fails`() {
     val pncNumber = "2003/0062845E"
 
-    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Clancy", lastName = "Eccles", defendantId = "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777"), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Clancy", lastName = "Andy", defendantId = "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777"), COMMON_PLATFORM_HEARING)
     checkTelemetry(
       HMCTS_RECORD_CREATED,
       mapOf("PNC" to "2003/0062845E"),
@@ -448,18 +466,18 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     }
 
     val secondMatchEntity = PersonEntity.new()
-    val newDefendantEntity = DefendantEntity(pncNumber = PNCIdentifier.from(pncNumber), firstName = "John", surname = "Holt", dateOfBirth = LocalDate.of(1975, 1, 1))
+    val newDefendantEntity = DefendantEntity(pncNumber = PNCIdentifier.from(pncNumber), firstName = "John", surname = "Eccles", dateOfBirth = LocalDate.of(1975, 1, 1))
     newDefendantEntity.person = secondMatchEntity
     secondMatchEntity.defendants.add(newDefendantEntity)
 
     personRepository.saveAndFlush(secondMatchEntity)
 
-    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Boothe"), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Eccles"), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
       SPLINK_MATCH_SCORE,
       mapOf(
-        "Match Probability Score" to "0.999353426",
+        "Match Probability Score" to "0.9897733",
         "Candidate Record UUID" to firstMatchEntity.personId.toString(),
         "Candidate Record Identifier Type" to "defendantId",
         "Candidate Record Identifier" to "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777",
@@ -491,12 +509,12 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncNumber))
     }
 
-    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "Ken", lastName = "Boothe"), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber, firstName = "John", lastName = "Eccles"), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
       SPLINK_MATCH_SCORE,
       mapOf(
-        "Match Probability Score" to "0.999353426",
+        "Match Probability Score" to "0.9897733",
         "Candidate Record UUID" to firstMatchEntity.personId.toString(),
         "Candidate Record Identifier Type" to "defendantId",
         "Candidate Record Identifier" to "9ff7c3e5-eb4c-4e3f-b9e6-b9e78d3ea777",
