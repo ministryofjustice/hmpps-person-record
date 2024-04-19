@@ -35,6 +35,7 @@ class CourtCaseEventsService(
   }
 
   private fun processMessage(person: Person) {
+    // probably not a good idea to do this if PNC is empty. 520 at the moment
     val defendants = defendantRepository.findAllByPncNumber(person.otherIdentifiers?.pncIdentifier!!)
     val defendantMatcher = DefendantMatcher(defendants, person)
     when {

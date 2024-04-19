@@ -12,8 +12,8 @@
       {
         "equalToJson": {
           "unique_id": {
-            "0": "defendant1",
-            "1": "defendant2"
+            "0": "${json-unit.any-string}",
+            "1": "${json-unit.any-string}"
           },
           "first_name": {
             "0": "${json-unit.any-string}",
@@ -21,7 +21,7 @@
           },
           "surname": {
             "0": "${json-unit.any-string}",
-            "1": "${json-unit.any-string}"
+            "1": "Eccles"
           },
           "dob": {
             "0": "${json-unit.any-string}",
