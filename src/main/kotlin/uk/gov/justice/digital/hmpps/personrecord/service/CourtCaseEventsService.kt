@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.ValidPNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.matcher.DefendantMatcher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
@@ -38,7 +37,7 @@ class CourtCaseEventsService(
   private fun processMessage(person: Person) {
     val pncNumber = person.otherIdentifiers?.pncIdentifier!!
     val defendants = when {
-      pncNumber is ValidPNCIdentifier -> defendantRepository.findAllByPncNumber(pncNumber)
+      (pncNumber.valid) -> defendantRepository.findAllByPncNumber(pncNumber)
       else -> findByFirstNameSurname(person.givenName, person.familyName)
     }
 

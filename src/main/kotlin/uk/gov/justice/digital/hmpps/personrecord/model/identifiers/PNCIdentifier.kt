@@ -6,6 +6,9 @@ import java.time.LocalDate
 
 class PNCIdentifier(val pncId: String) {
 
+  val valid: Boolean
+    get() = pncId.isNotEmpty()
+
   override fun equals(other: Any?): Boolean {
     return EqualsBuilder.reflectionEquals(this, other)
   }

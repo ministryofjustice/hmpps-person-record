@@ -14,12 +14,12 @@ class PNCIdentifierTest {
 
   @Test
   fun `should process an empty string`() {
-    assertThat(PNCIdentifier.from("").pncId).isEmpty()
+    assertThat(PNCIdentifier.from("").valid).isFalse()
   }
 
   @Test
   fun `should process a null string`() {
-    assertThat(PNCIdentifier.from(null).pncId).isEmpty()
+    assertThat(PNCIdentifier.from(null).valid).isFalse()
   }
 
   @ParameterizedTest
@@ -59,7 +59,7 @@ class PNCIdentifierTest {
     val pncIdentifier = PNCIdentifier.from(pncId)
 
     // Then
-    assertThat(pncIdentifier.pncId).isEmpty()
+    assertThat(pncIdentifier.valid).isFalse()
   }
 
   @ParameterizedTest
@@ -69,7 +69,7 @@ class PNCIdentifierTest {
     val pncIdentifier = PNCIdentifier.from(pncId)
 
     // Then
-    assertThat(pncIdentifier.pncId).isEmpty()
+    assertThat(pncIdentifier.valid).isFalse()
   }
 
   @ParameterizedTest
@@ -79,7 +79,7 @@ class PNCIdentifierTest {
     val pncIdentifier = PNCIdentifier.from(pncId)
 
     // Then
-    assertThat(pncIdentifier.pncId).isNotEmpty()
+    assertThat(pncIdentifier.valid).isTrue()
   }
 
   @ParameterizedTest
@@ -89,7 +89,7 @@ class PNCIdentifierTest {
     val pncIdentifier = PNCIdentifier.from(pncId)
 
     // Then
-    assertThat(pncIdentifier.pncId).isEmpty()
+    assertThat(pncIdentifier.valid).isFalse()
   }
 
   @Test
