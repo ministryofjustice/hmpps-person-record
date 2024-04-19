@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 class PrisonerMatcher(prisonerDetails: List<Prisoner>?, person: Person) :
   Matcher<Prisoner>(prisonerDetails, person) {
   override fun isPartialMatchItem(item: Prisoner): Boolean {
-    return (item.pncNumber.toString().isNotEmpty() && person.otherIdentifiers?.pncIdentifier == PNCIdentifier.from(item.pncNumber)) ||
+    return person.otherIdentifiers?.pncIdentifier == PNCIdentifier.from(item.pncNumber) ||
       item.firstName.equals(person.givenName, true) ||
       item.lastName.equals(person.familyName, true) ||
       item.dateOfBirth == person.dateOfBirth

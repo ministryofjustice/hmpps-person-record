@@ -12,7 +12,7 @@ class OffenderMatcher(offenderDetails: List<OffenderDetail>?, person: Person) :
     }
   }
   override fun isPartialMatchItem(item: OffenderDetail): Boolean {
-    return (item.otherIds.pncNumber.toString().isNotEmpty() && person.otherIdentifiers?.pncIdentifier == PNCIdentifier.from(item.otherIds.pncNumber)) ||
+    return person.otherIdentifiers?.pncIdentifier == PNCIdentifier.from(item.otherIds.pncNumber) ||
       item.firstName.equals(person.givenName, true) ||
       item.surname.equals(person.familyName, true) ||
       item.dateOfBirth == person.dateOfBirth
