@@ -52,8 +52,8 @@ class CourtCaseEventsService(
     }
   }
 
-  private fun findByFirstNameSurname(firstName: String? = "firstName", surname: String? = "surname"): List<DefendantEntity> {
-    return defendantRepository.findAllByFirstNameAndSurname(firstName!!, surname!!)
+  private fun findByFirstNameSurname(firstName: String?, surname: String?): List<DefendantEntity> {
+    return defendantRepository.findAllByFirstNameAndSurname(firstName, surname!!)
   }
 
   private fun createNewPersonRecordAndProcess(person: Person) {

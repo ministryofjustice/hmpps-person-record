@@ -10,5 +10,5 @@ interface DefendantRepository : JpaRepository<DefendantEntity, Long> {
   fun findByDefendantId(defendantId: String): DefendantEntity?
 
   fun findAllByPncNumber(pncNumber: PNCIdentifier): List<DefendantEntity>
-  fun findAllByFirstNameAndSurname(firstName: String, surname: String): List<DefendantEntity>
+  fun findAllByFirstNameAndSurname(firstName: String?, surname: String?): List<DefendantEntity>
 }
