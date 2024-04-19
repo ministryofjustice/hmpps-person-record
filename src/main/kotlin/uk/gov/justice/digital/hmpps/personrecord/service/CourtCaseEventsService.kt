@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Isolation.SERIALIZABLE
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.ValidPNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.matcher.DefendantMatcher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
@@ -26,7 +26,7 @@ class CourtCaseEventsService(
   private val matchService: MatchService,
 ) {
 
-  @Transactional(isolation = SERIALIZABLE)
+  @Transactional
   fun processPersonFromCourtCaseEvent(person: Person) {
     if (person.otherIdentifiers?.croIdentifier?.valid == false) {
       trackEvent(INVALID_CRO, mapOf("CRO" to person.otherIdentifiers.croIdentifier.inputCro))
@@ -35,8 +35,12 @@ class CourtCaseEventsService(
   }
 
   private fun processMessage(person: Person) {
-    // probably not a good idea to do this if PNC is empty. 520 at the moment
-    val defendants = defendantRepository.findAllByPncNumber(person.otherIdentifiers?.pncIdentifier!!)
+    val pncNumber = person.otherIdentifiers?.pncIdentifier!!
+    val defendants = when {
+      pncNumber is ValidPNCIdentifier -> defendantRepository.findAllByPncNumber(pncNumber)
+      else -> findByFirstNameSurname(person.givenName, person.familyName)
+    }
+
     val defendantMatcher = DefendantMatcher(defendants, person)
     when {
       defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person)
@@ -46,6 +50,11 @@ class CourtCaseEventsService(
       }
     }
   }
+
+  private fun findByFirstNameSurname(firstName: String? = "firstName", surname: String? = "surname"): List<DefendantEntity> {
+    return defendantRepository.findAllByFirstNameAndSurname(firstName!!, surname!!)
+  }
+
   private fun createNewPersonRecordAndProcess(person: Person) {
     val personRecord = personRecordService.createNewPersonAndDefendant(person)
     personRecord.let {
