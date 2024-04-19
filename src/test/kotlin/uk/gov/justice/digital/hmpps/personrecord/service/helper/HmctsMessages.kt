@@ -197,7 +197,7 @@ fun commonPlatformHearing(pncNumber: String = "1981/0154257C") = """
     }
 """.trimIndent()
 
-fun commonPlatformHearingWithOneDefendant(pncNumber: String = "1981/0154257C", firstName: String = "Horace", lastName: String = "Andy", dateOfBirth: String = "1975-01-01", cro: String = "86621/65B", defendantId: String = "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199") = """
+fun commonPlatformHearingWithOneDefendant(pncNumber: String = "1981/0154257C", firstName: String? = "Horace", lastName: String = "Andy", dateOfBirth: String = "1975-01-01", cro: String = "86621/65B", defendantId: String = "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199") = """
     {
       "hearing": {
         "type": {
@@ -259,7 +259,7 @@ fun commonPlatformHearingWithOneDefendant(pncNumber: String = "1981/0154257C", f
                       "postcode": "SA1 1FU"
                     },
                     "dateOfBirth": "$dateOfBirth",
-                    "firstName": "$firstName",
+                    ${firstName?.let { """ "firstName": "$firstName", """.trimIndent() } ?: ""}
                     "gender": "MALE",
                     "lastName": "$lastName",
                     "title": "Mr"
@@ -278,13 +278,13 @@ fun commonPlatformHearingWithOneDefendant(pncNumber: String = "1981/0154257C", f
     }
 """.trimIndent()
 
-fun libraHearing(pncNumber: String? = "2003/0011985X", firstName: String = "Arthur", surname: String = "MORGAN", dateOfBirth: String = "01/01/1975") = """
+fun libraHearing(pncNumber: String? = "2003/0011985X", firstName: String? = "Arthur", surname: String = "MORGAN", dateOfBirth: String = "01/01/1975") = """
 {
    "caseId":1217464,
    "caseNo":"1600032981",
    "name":{
       "title":"Mr",
-      "forename1":"$firstName",
+      ${firstName?.let { """ "forename1": "$firstName", """.trimIndent() } ?: ""}
       "surname":"$surname"
    },
    "defendantName":"Mr $firstName $surname",

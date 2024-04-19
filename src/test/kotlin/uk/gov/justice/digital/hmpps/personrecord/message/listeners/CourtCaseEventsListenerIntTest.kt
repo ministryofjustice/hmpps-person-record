@@ -369,7 +369,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   @Test
   fun `not a partial match if firstname and surname do not match`() {
-    publishHMCTSMessage(libraHearing(pncNumber = "", dateOfBirth = ""), LIBRA_COURT_CASE)
+    publishHMCTSMessage(libraHearing(pncNumber = "", firstName = null, dateOfBirth = ""), LIBRA_COURT_CASE)
 
     checkTelemetry(
       HMCTS_RECORD_CREATED,

@@ -38,7 +38,7 @@ class CourtCaseEventsService(
     val pncNumber = person.otherIdentifiers?.pncIdentifier!!
     val defendants = when {
       (pncNumber.valid) -> defendantRepository.findAllByPncNumber(pncNumber)
-      else -> findByFirstNameSurname(person.givenName, person.familyName)
+      else -> defendantRepository.findAllByFirstNameAndSurname(person.givenName, person.familyName)
     }
 
     val defendantMatcher = DefendantMatcher(defendants, person)
@@ -49,10 +49,6 @@ class CourtCaseEventsService(
         createNewPersonRecordAndProcess(person)
       }
     }
-  }
-
-  private fun findByFirstNameSurname(firstName: String? = "firstName", surname: String? = "surname"): List<DefendantEntity> {
-    return defendantRepository.findAllByFirstNameAndSurname(firstName!!, surname!!)
   }
 
   private fun createNewPersonRecordAndProcess(person: Person) {
