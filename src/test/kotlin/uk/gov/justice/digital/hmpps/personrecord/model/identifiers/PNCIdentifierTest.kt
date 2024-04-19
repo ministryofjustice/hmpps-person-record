@@ -14,12 +14,12 @@ class PNCIdentifierTest {
 
   @Test
   fun `should process an empty string`() {
-    assertThat(PNCIdentifier.from("").pncId).isEmpty()
+    assertThat(PNCIdentifier.from("").valid).isFalse()
   }
 
   @Test
   fun `should process a null string`() {
-    assertThat(PNCIdentifier.from(null).pncId).isEmpty()
+    assertThat(PNCIdentifier.from(null).valid).isFalse()
   }
 
   @ParameterizedTest
@@ -56,40 +56,40 @@ class PNCIdentifierTest {
   )
   fun `should return invalid when PNC id is not the correct length`(pncId: String) {
     // When
-    val invalid = PNCIdentifier.from(pncId) is InvalidPNCIdentifier
+    val pncIdentifier = PNCIdentifier.from(pncId)
 
     // Then
-    assertThat(invalid).isTrue()
+    assertThat(pncIdentifier.valid).isFalse()
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["TOTALLYINVALID", "1X23/1234567A", "1923[1234567A", "1923/1Z34567A", "1923/1234567AA"])
   fun `should return invalid when PNC id is incorrectly formatted`(pncId: String) {
     // When
-    val invalid = PNCIdentifier.from(pncId) is InvalidPNCIdentifier
+    val pncIdentifier = PNCIdentifier.from(pncId)
 
     // Then
-    assertThat(invalid).isTrue()
+    assertThat(pncIdentifier.valid).isFalse()
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["2008/0056560Z", "20030011985X", "20120052494Q", "20230583843L", "2001/0171310W", "2011/0275516Q", "2008/0056560Z", "2003/0062845E", "1981/0154257C"])
   fun `should return valid when PNC id is correctly formatted`(pncId: String) {
     // When
-    val valid = PNCIdentifier.from(pncId) is ValidPNCIdentifier
+    val pncIdentifier = PNCIdentifier.from(pncId)
 
     // Then
-    assertThat(valid).isTrue()
+    assertThat(pncIdentifier.valid).isTrue()
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["20030011985Z", "20120052494O", "20230583843N", "2001/0171310S"])
   fun `should return invalid when PNC id is correctly formatted but not valid`(pncId: String) {
     // When
-    val invalid = PNCIdentifier.from(pncId) is InvalidPNCIdentifier
+    val pncIdentifier = PNCIdentifier.from(pncId)
 
     // Then
-    assertThat(invalid).isTrue()
+    assertThat(pncIdentifier.valid).isFalse()
   }
 
   @Test
@@ -97,7 +97,7 @@ class PNCIdentifierTest {
     val readAllLines = Files.readAllLines(Paths.get("src/test/resources/valid_pncs.csv"), Charsets.UTF_8)
 
     readAllLines.stream().forEach {
-      assertThat((PNCIdentifier.from(it) is ValidPNCIdentifier)).isTrue()
+      assertThat((PNCIdentifier.from(it).pncId)).isNotEmpty()
     }
   }
 
