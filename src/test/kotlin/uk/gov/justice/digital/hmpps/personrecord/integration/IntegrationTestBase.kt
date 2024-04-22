@@ -22,7 +22,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.boot.test.mock.mockito.SpyBean
-import org.springframework.http.HttpHeaders
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -151,17 +150,6 @@ abstract class IntegrationTestBase {
     var wireMockExtension: WireMockExtension = WireMockExtension.newInstance()
       .options(wireMockConfig().port(8090))
       .build()
-  }
-
-  internal fun setAuthorisation(user: String = "hmpps-person-record", roles: List<String> = listOf()): HttpHeaders {
-    val token = jwtHelper.createJwt(
-      subject = user,
-      expiryTime = Duration.ofHours(1L),
-      roles = roles,
-    )
-    val httpHeaders = HttpHeaders()
-    httpHeaders.set(HttpHeaders.AUTHORIZATION, "Bearer $token")
-    return httpHeaders
   }
 
   internal fun WebTestClient.RequestHeadersSpec<*>.authorised(): WebTestClient.RequestBodySpec {
