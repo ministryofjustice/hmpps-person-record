@@ -1,16 +1,23 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors
 
+import feign.FeignException
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.HttpServerErrorException
 import uk.gov.justice.digital.hmpps.personrecord.client.OffenderDetailRestClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.service.ProbationCaseEngagementService
+import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DELIUS_RECORD_CREATION_RECEIVED
 import java.net.URI
 
 const val NEW_OFFENDER_CREATED = "probation-case.engagement.created"
+const val MAX_RETRY_ATTEMPTS: Int = 3
 
 @Component(value = NEW_OFFENDER_CREATED)
 class OffenderCreatedEventProcessor(
@@ -19,7 +26,10 @@ class OffenderCreatedEventProcessor(
   val probationCaseEngagementService: ProbationCaseEngagementService,
 ) : EventProcessor() {
   companion object {
+    @Value("\${retry.delay}")
+    private val retryDelay: Long = 0
     private val log = LoggerFactory.getLogger(this::class.java)
+    private val exceptionsToRetryOn = listOf(HttpClientErrorException::class, HttpServerErrorException::class, FeignException.InternalServerError::class)
   }
   override fun processEvent(domainEvent: DomainEvent) {
     val offenderDetailUrl = domainEvent.detailUrl
@@ -39,9 +49,14 @@ class OffenderCreatedEventProcessor(
       },
     )
   }
-  private fun getNewOffenderDetail(offenderDetailsUrl: String): Result<DeliusOffenderDetail?> = try {
-    Result.success(offenderDetailRestClient.getNewOffenderDetail(URI.create(offenderDetailsUrl).path))
-  } catch (e: Exception) {
-    Result.failure(e)
+
+  private fun getNewOffenderDetail(offenderDetailsUrl: String): Result<DeliusOffenderDetail?> = runBlocking {
+    try {
+      return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, MAX_RETRY_ATTEMPTS, retryDelay) {
+        Result.success(offenderDetailRestClient.getNewOffenderDetail(URI.create(offenderDetailsUrl).path))
+      }
+    } catch (e: Exception) {
+      Result.failure(e)
+    }
   }
 }
