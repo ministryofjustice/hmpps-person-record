@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import feign.FeignException
 import io.awspring.cloud.sqs.annotation.SqsListener
 import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.instrumentation.annotations.WithSpan
@@ -9,6 +10,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
+import org.springframework.web.client.HttpClientErrorException
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.IEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
@@ -41,6 +43,8 @@ class OffenderDomainEventsListener(
 
           try {
             getEventProcessor(domainEvent).process(domainEvent)
+          } catch (e: FeignException.NotFound) {
+              log.info("Discarding message for status code 404")
           } catch (e: Exception) {
             log.error("Failed to process known domain event type:${domainEvent.eventType}", e)
             throw e
