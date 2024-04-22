@@ -10,7 +10,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
-import org.springframework.web.client.HttpClientErrorException
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.IEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
@@ -44,8 +43,8 @@ class OffenderDomainEventsListener(
           try {
             getEventProcessor(domainEvent).process(domainEvent)
           } catch (e: FeignException.NotFound) {
-              log.info("Discarding message for status code 404")
-          } catch (e: Exception) {
+            log.info("Discarding message for status code: ${e.status()}")
+          } catch (e: FeignException) {
             log.error("Failed to process known domain event type:${domainEvent.eventType}", e)
             throw e
           }

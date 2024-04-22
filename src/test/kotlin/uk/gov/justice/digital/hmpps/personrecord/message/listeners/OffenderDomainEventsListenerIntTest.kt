@@ -1,7 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.*
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.matches
+import org.awaitility.kotlin.untilAsserted
+import org.awaitility.kotlin.untilCallTo
+import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
@@ -17,7 +21,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DELIUS_RECORD_CREATION_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_DELIUS_RECORD_NEW_PNC
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
-import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.Duration
 import java.util.concurrent.TimeUnit.SECONDS
 
