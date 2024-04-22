@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import feign.FeignException
 import io.awspring.cloud.sqs.annotation.SqsListener
 import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.instrumentation.annotations.WithSpan
@@ -41,6 +42,8 @@ class OffenderDomainEventsListener(
 
           try {
             getEventProcessor(domainEvent).process(domainEvent)
+          } catch (e: FeignException.NotFound) {
+            log.info("Discarding message for status code: ${e.status()}")
           } catch (e: Exception) {
             log.error("Failed to process known domain event type:${domainEvent.eventType}", e)
             throw e

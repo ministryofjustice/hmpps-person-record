@@ -2,7 +2,9 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
+import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilAsserted
+import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.eq
@@ -18,6 +20,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.AdditionalInformati
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DELIUS_RECORD_CREATION_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_DELIUS_RECORD_NEW_PNC
+import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
+import java.time.Duration
 import java.util.concurrent.TimeUnit.SECONDS
 
 class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
@@ -143,5 +147,26 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.offenders).hasSize(1)
     assertThat(personEntity.offenders[0].pncNumber?.pncId).isEqualTo("")
     assertThat(personEntity.offenders[0].crn).isEqualTo(crn)
+  }
+
+  @Test
+  fun `should not push 404 to dead letter queue`() {
+    // Given
+    val crn = "C4321"
+
+    val crnType = PersonIdentifier("CRN", crn)
+    val personReference = PersonReference(listOf(crnType))
+    val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
+    publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
+
+    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
+
+    await.atMost(Duration.ofSeconds(5)) untilCallTo {
+      cprCourtCaseEventsQueue?.sqsClient?.countAllMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
+    } matches { it == 0 }
+
+    await.atMost(Duration.ofSeconds(5)) untilCallTo {
+      cprCourtCaseEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(cprCourtCaseEventsQueue!!.dlqUrl!!)?.get()
+    } matches { it == 0 }
   }
 }
