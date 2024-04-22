@@ -9,7 +9,6 @@ import org.springframework.web.client.HttpServerErrorException
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonServiceClient
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.PrisonerMatchCriteria
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerDetails
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -45,16 +44,11 @@ class PrisonerService(
     if (featureFlag.isNomisSearchEnabled()) {
       val prisonerMatcher = getPrisonerMatcher(person)
       when {
-        prisonerMatcher.isPncDoesNotMatch() -> pncDoesNotMatch(prisonerMatcher, personEntity, person)
         prisonerMatcher.isExactMatch() -> exactMatchFound(prisonerMatcher, personEntity, person)
         prisonerMatcher.isPartialMatch() -> partialMatchFound(personEntity, person)
         else -> noRecordsFound(personEntity, person)
       }
     }
-  }
-
-  private fun pncDoesNotMatch(prisonerMatcher: PrisonerMatcher, personEntity: PersonEntity, person: Person) {
-    prisonerMatcher.items?.let { trackPncMismatchEvent(it, personEntity, person) }
   }
 
   private fun noRecordsFound(personEntity: PersonEntity, person: Person) {
@@ -147,22 +141,6 @@ class PrisonerService(
         "UUID" to personEntity.personId.toString(),
         "PNC" to person.otherIdentifiers?.pncIdentifier.toString(),
         "Prisoner Number" to person.otherIdentifiers?.prisonNumber,
-      ).filterValues { !it.isNullOrBlank() },
-    )
-  }
-
-  private fun trackPncMismatchEvent(
-    prisonerList: List<Prisoner>,
-    personEntity: PersonEntity,
-    person: Person,
-  ) {
-    telemetryService.trackEvent(
-      TelemetryEventType.NOMIS_PNC_MISMATCH,
-      mapOf(
-        "UUID" to personEntity.personId.toString(),
-        "PNC searched for" to person.otherIdentifiers?.pncIdentifier.toString(),
-        "PNC returned from search" to prisonerList.joinToString(" ") { it.pncNumber.toString() },
-        "Prisoner Number" to prisonerList.singleOrNull()?.prisonerNumber,
       ).filterValues { !it.isNullOrBlank() },
     )
   }

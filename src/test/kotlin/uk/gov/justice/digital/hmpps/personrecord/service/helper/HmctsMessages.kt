@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.helper
 
+import org.testcontainers.shaded.org.bouncycastle.asn1.isismtt.x509.DeclarationOfMajority.dateOfBirth
+
 fun testMessage(messageType: String?) = """
     {
       "Type" : "Notification",
@@ -195,7 +197,7 @@ fun commonPlatformHearing(pncNumber: String = "1981/0154257C") = """
     }
 """.trimIndent()
 
-fun commonPlatformHearingWithOneDefendant(pncNumber: String = "1981/0154257C", firstName: String = "Horace", lastName: String = "Andy", dateOfBirth: String = "1975-01-01", cro: String = "86621/65B", defendantId: String = "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199") = """
+fun commonPlatformHearingWithOneDefendant(pncNumber: String = "1981/0154257C", firstName: String? = "Horace", lastName: String = "Andy", dateOfBirth: String = "1975-01-01", cro: String = "86621/65B", defendantId: String = "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199") = """
     {
       "hearing": {
         "type": {
@@ -257,7 +259,7 @@ fun commonPlatformHearingWithOneDefendant(pncNumber: String = "1981/0154257C", f
                       "postcode": "SA1 1FU"
                     },
                     "dateOfBirth": "$dateOfBirth",
-                    "firstName": "$firstName",
+                    ${firstName?.let { """ "firstName": "$firstName", """.trimIndent() } ?: ""}
                     "gender": "MALE",
                     "lastName": "$lastName",
                     "title": "Mr"
@@ -276,19 +278,19 @@ fun commonPlatformHearingWithOneDefendant(pncNumber: String = "1981/0154257C", f
     }
 """.trimIndent()
 
-fun libraHearing(pncNumber: String? = "2003/0011985X") = """
+fun libraHearing(pncNumber: String? = "2003/0011985X", firstName: String? = "Arthur", surname: String = "MORGAN", dateOfBirth: String = "01/01/1975") = """
 {
    "caseId":1217464,
    "caseNo":"1600032981",
    "name":{
       "title":"Mr",
-      "forename1":"Arthur",
-      "surname":"MORGAN"
+      ${firstName?.let { """ "forename1": "$firstName", """.trimIndent() } ?: ""}
+      "surname":"$surname"
    },
-   "defendantName":"Mr Arthur MORGAN",
+   "defendantName":"Mr $firstName $surname",
    "defendantType":"P",
    "defendantSex":"N",
-   "defendantDob":"01/01/1975",
+   "defendantDob":"$dateOfBirth",
    "defendantAge":"20",
    "defendantAddress":{
       "line1":"39 The Street",
@@ -315,7 +317,7 @@ fun libraHearing(pncNumber: String? = "2003/0011985X") = """
 }
 """.trimIndent()
 
-fun commonPlatformHearingWithNewDefendant() = """
+fun commonPlatformHearingWithNewDefendant(pncNumber: String = "2003/0062845E") = """
     {
       "hearing": {
         "type": {
@@ -346,7 +348,7 @@ fun commonPlatformHearingWithNewDefendant() = """
             "defendants": [
               { 
                 "id": "b5cfae34-9256-43ad-87fb-ac3def34e2ac",
-                "pncId": "2003/0062845E",
+                "pncId": "$pncNumber",
                 "croNumber": "51072/62R",
                 "offences": [
                   {
@@ -609,6 +611,112 @@ fun commonPlatformHearingWithAdditionalFields() = """
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               } 
             ],
+            "id": "D2B61C8A-0684-4764-B401-F0A788BC7CCF",
+            "prosecutionCaseIdentifier": {
+              "caseURN": "25GD34377719"
+            }
+          }
+        ]
+      }
+    }
+""".trimIndent()
+
+fun commonPlatformHearingWithNewDefendantAndNoPnc() = """
+    {
+      "hearing": {
+        "type": {
+          "description": "sentence"
+        },
+        "courtCentre": {
+          "id": "9b583616-049b-30f9-a14f-028a53b7cfe8",
+          "roomId": "7cb09222-49e1-3622-a5a6-ad253d2b3c39",
+          "roomName": "Crown Court 3-1",
+          "code": "B10JQ00"
+        },
+        "hearingDays": [
+          {
+            "listedDurationMinutes": 60,
+            "listingSequence": 0,
+            "sittingDay": "2021-09-08T09:00:00.000Z"
+          },
+          {
+            "listedDurationMinutes": 30,
+            "listingSequence": 1,
+            "sittingDay": "2021-09-09T10:30:00.000Z"
+          }
+        ],
+        "id": "E10E3EF3-8637-40E3-BDED-8ED104A380AC",
+        "jurisdictionType": "CROWN",
+        "prosecutionCases": [
+          {
+            "defendants": [
+              { 
+                "id": "2d41e7b9-0964-48d8-8d2a-3f7e81b34cd7",
+                "pncId": "",
+                "croNumber": "51072/62R",
+                "offences": [
+                  {
+                    "id": "a63d9020-aa6b-4997-92fd-72a692b036de",
+                    "offenceLegislation": "Contrary to section 20 of the Offences Against the    Person Act 1861.",
+                    "offenceTitle": "Wound / inflict grievous bodily harm without intent",
+                    "wording": "on 01/08/2009 at  the County public house, unlawfully and maliciously wounded, John Smith",
+                    "listingNumber": 30,
+                    "offenceCode": "ABC001"
+                  }
+                ],
+                "personDefendant": {
+                  "personDetails": {
+                    "address": {
+                      "address1": "13 broad Street",
+                      "address2": "Cardiff",
+                      "address3": "Wales",
+                      "address4": "UK",
+                      "address5": "Earth",
+                      "postcode": "CF10 1FU"
+                    },
+                    "dateOfBirth": "1960-01-01",
+                    "firstName": "Eric",
+                    "gender": "MALE",
+                    "lastName": "Lassard",
+                    "title": "Mr"
+                  }
+                },
+                "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
+              },
+              { 
+                "id": "2d41e7b9-0964-48d8-8d2a-3f7e81b34cd7",
+                "pncId": "",
+                "croNumber": "75715/64Q",
+                "offences": [
+                  {
+                    "id": "a63d9020-aa6b-4997-92fd-72a692b036de",
+                    "offenceLegislation": "Contrary to section 20 of the Offences Against the    Person Act 1861.",
+                    "offenceTitle": "Wound / inflict grievous bodily harm without intent",
+                    "wording": "on 01/08/2009 at  the County public house, unlawfully and maliciously wounded, John Smith",
+                    "listingNumber": 30,
+                    "offenceCode": "ABC001"
+                  }
+                ],
+                "personDefendant": {
+                  "personDetails": {
+                    "address": {
+                      "address1": "13 broad Street",
+                      "address2": "Cardiff",
+                      "address3": "Wales",
+                      "address4": "UK",
+                      "address5": "Earth",
+                      "postcode": "CF10 1FU"
+                    },
+                    "dateOfBirth": "1960-01-01",
+                    "firstName": "Eric",
+                    "gender": "MALE",
+                    "lastName": "Lassard",
+                    "title": "Mr"
+                  }
+                },
+                "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
+              }
+             ],
             "id": "D2B61C8A-0684-4764-B401-F0A788BC7CCF",
             "prosecutionCaseIdentifier": {
               "caseURN": "25GD34377719"

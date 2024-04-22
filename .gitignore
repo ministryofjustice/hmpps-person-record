@@ -75,3 +75,4 @@ sonar-project.properties
 /volume/
 
 .trivyignore
+.vscode

@@ -218,31 +218,6 @@ class OffenderServiceTest {
   }
 
   @Test
-  fun `should send correct event when pnc does not match`() {
-    // Given
-    val anotherPnc = "2001/0072845E"
-    val personEntity = PersonEntity.new()
-    val dateOfBirth = LocalDate.now()
-    val person = createPerson(dateOfBirth, PNCIdentifier.from(PNC_ID), CRN)
-    val offenderDetails = listOf(createOffenderDetail(dateOfBirth, anotherPnc))
-    whenever(client.findPossibleMatches(OffenderMatchCriteria.from(person))).thenReturn(offenderDetails)
-
-    // When
-    offenderService.processAssociatedOffenders(personEntity, person)
-
-    // Then
-    verifyNoInteractions(personRecordService)
-    verify(telemetryService).trackEvent(
-      TelemetryEventType.DELIUS_PNC_MISMATCH,
-      mapOf(
-        "UUID" to personEntity.personId.toString(),
-        "PNC searched for" to person.otherIdentifiers?.pncIdentifier?.pncId,
-        "PNC returned from search" to offenderDetails.joinToString(" ") { it.otherIds.pncNumber.toString() },
-      ),
-    )
-  }
-
-  @Test
   fun `should retry send correct event when pnc does not match`() {
     // Given
     val anotherPnc = "2001/0072845E"

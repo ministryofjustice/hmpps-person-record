@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.5"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.6"
   kotlin("plugin.spring") version "1.9.23"
   kotlin("jvm") version "1.9.23"
   kotlin("plugin.jpa") version "1.9.23"
@@ -22,26 +22,26 @@ dependencies {
   implementation("io.swagger.core.v3:swagger-annotations:2.2.21")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.1")
   constraints {
-    implementation("org.bouncycastle:bcprov-jdk18on:1.78") {
+    implementation("org.bouncycastle:bcprov-jdk18on:1.78.1") {
       because("1.77 has CVEs")
     }
   }
   implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.1")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:3.1.2")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:3.1.3")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.3.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
   implementation("org.apache.commons:commons-lang3:3.14.0")
 
   runtimeOnly("org.postgresql:postgresql:42.7.3")
-  runtimeOnly("org.flywaydb:flyway-core:10.11.0")
-  runtimeOnly("org.flywaydb:flyway-database-postgresql:10.11.0")
+  runtimeOnly("org.flywaydb:flyway-core:10.11.1")
+  runtimeOnly("org.flywaydb:flyway-database-postgresql:10.11.1")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
   testImplementation("org.testcontainers:junit-jupiter:1.19.7")
   testImplementation("org.testcontainers:postgresql:1.19.7")
   testImplementation("org.testcontainers:localstack:1.19.7")
-  testImplementation("org.wiremock:wiremock-standalone:3.5.2")
+  testImplementation("org.wiremock:wiremock-standalone:3.5.3")
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.5")

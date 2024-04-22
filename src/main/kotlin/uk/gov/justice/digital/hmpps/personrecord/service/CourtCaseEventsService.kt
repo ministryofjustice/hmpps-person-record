@@ -3,20 +3,18 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Isolation.SERIALIZABLE
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.InvalidPNCIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.ValidPNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.matcher.DefendantMatcher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PARTIAL_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_CRO
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_PNC
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MISSING_PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.SPLINK_MATCH_SCORE
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.VALID_PNC
+
+private const val MAXMATCHES: Int = 1
 
 @Service
 class CourtCaseEventsService(
@@ -30,19 +28,19 @@ class CourtCaseEventsService(
 
   @Transactional(isolation = SERIALIZABLE)
   fun processPersonFromCourtCaseEvent(person: Person) {
-    when (val pncIdentifier = person.otherIdentifiers?.pncIdentifier) {
-      is ValidPNCIdentifier -> processValidMessage(pncIdentifier, person)
-      is InvalidPNCIdentifier -> trackEvent(INVALID_PNC, mapOf("PNC" to pncIdentifier.invalidValue()))
-      else -> trackEvent(MISSING_PNC, emptyMap())
-    }
     if (person.otherIdentifiers?.croIdentifier?.valid == false) {
-      trackEvent(INVALID_CRO, mapOf("CRO" to person.otherIdentifiers.croIdentifier.invalidCro))
+      trackEvent(INVALID_CRO, mapOf("CRO" to person.otherIdentifiers.croIdentifier.inputCro))
     }
+    processMessage(person)
   }
 
-  private fun processValidMessage(pncIdentifier: ValidPNCIdentifier, person: Person) {
-    trackEvent(VALID_PNC, mapOf("PNC" to pncIdentifier.toString()))
-    val defendants = defendantRepository.findAllByPncNumber(pncIdentifier)
+  private fun processMessage(person: Person) {
+    val pncNumber = person.otherIdentifiers?.pncIdentifier!!
+    val defendants = when {
+      (pncNumber.valid) -> defendantRepository.findAllByPncNumber(pncNumber)
+      else -> defendantRepository.findAllByFirstNameAndSurname(person.givenName, person.familyName)
+    }
+
     val defendantMatcher = DefendantMatcher(defendants, person)
     when {
       defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person)
@@ -72,7 +70,8 @@ class CourtCaseEventsService(
 
   private fun partialMatchFound(defendantMatcher: DefendantMatcher, person: Person) {
     trackEvent(HMCTS_PARTIAL_MATCH, defendantMatcher.extractMatchingFields(defendantMatcher.getMatchingItem()))
-    val matchResults = defendantMatcher.items!!.map { matchService.score(it, person) }
+
+    val matchResults = defendantMatcher.items!!.take(MAXMATCHES).map { matchResult(it, person) }
 
     matchResults.forEach { matchResult ->
       trackEvent(
@@ -88,6 +87,21 @@ class CourtCaseEventsService(
       )
     }
   }
+
+  private fun matchResult(
+    candidate: DefendantEntity,
+    person: Person,
+  ): MatchResult {
+    if (nullDate(candidate, person)) {
+      return MatchResult("not scored, no date of birth", candidate.person?.personId.toString(), "defendantId", candidate.defendantId ?: "defendant1", "defendantId", person.defendantId ?: "defendant2")
+    }
+    return matchService.score(candidate, person)
+  }
+
+  private fun nullDate(
+    candidate: DefendantEntity,
+    person: Person,
+  ) = candidate.dateOfBirth == null || person.dateOfBirth == null
 
   private fun trackEvent(
     eventType: TelemetryEventType,
