@@ -219,19 +219,11 @@ abstract class IntegrationTestBase {
     return domainEventsTopic?.snsClient?.publish(publishRequest)
   }
 
-  fun createDeliusDetailUrl(crn: String): String {
-    val builder = StringBuilder()
-    builder.append("https://domain-events-and-delius-dev.hmpps.service.justice.gov.uk/probation-case.engagement.created/")
-    builder.append(crn)
-    return builder.toString()
-  }
+  fun createDeliusDetailUrl(crn: String): String =
+    "https://domain-events-and-delius-dev.hmpps.service.justice.gov.uk/probation-case.engagement.created/$crn"
 
-  fun createNomsDetailUrl(nomsNUmber: String): String {
-    val builder = StringBuilder()
-    builder.append("https://prisoner-search-dev.prison.service.justice.gov.uk/prisoner/")
-    builder.append(nomsNUmber)
-    return builder.toString()
-  }
+  fun createNomsDetailUrl(nomsNumber: String): String =
+    "https://prisoner-search-dev.prison.service.justice.gov.uk/prisoner/$nomsNumber"
 
   fun checkTelemetry(
     event: TelemetryEventType,
