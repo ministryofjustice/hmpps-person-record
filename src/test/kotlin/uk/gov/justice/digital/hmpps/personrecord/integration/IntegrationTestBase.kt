@@ -12,6 +12,7 @@ import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.RegisterExtension
+import org.mockito.kotlin.check
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -21,7 +22,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.boot.test.mock.mockito.SpyBean
-import org.springframework.http.HttpHeaders
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -32,7 +32,6 @@ import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.junit.jupiter.Testcontainers
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
-import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
@@ -45,10 +44,10 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.personrecord.service.PrisonerDomainEventService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.Duration
-import java.util.concurrent.CompletableFuture
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -113,10 +112,17 @@ abstract class IntegrationTestBase {
     defendantRepository.deleteAll()
     offenderRepository.deleteAll()
     personRepository.deleteAll()
-    cprCourtCaseEventsQueue?.sqsDlqClient!!.purgeQueue(PurgeQueueRequest.builder().queueUrl(cprCourtCaseEventsQueue?.dlqUrl).build()).get()
-    cprCourtCaseEventsQueue?.sqsClient!!.purgeQueue(PurgeQueueRequest.builder().queueUrl(cprCourtCaseEventsQueue?.queueUrl).build()).get()
-    cprDeliusOffenderEventsQueue?.sqsClient?.purgeQueue(PurgeQueueRequest.builder().queueUrl(cprDeliusOffenderEventsQueue?.queueUrl).build())
+    cprCourtCaseEventsQueue?.sqsDlqClient!!.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(cprCourtCaseEventsQueue?.dlqUrl).build(),
+    ).get()
+    cprCourtCaseEventsQueue?.sqsClient!!.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(cprCourtCaseEventsQueue?.queueUrl).build(),
+    ).get()
+    cprDeliusOffenderEventsQueue?.sqsClient?.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(cprDeliusOffenderEventsQueue?.queueUrl).build(),
+    )
   }
+
   companion object {
 
     /*
@@ -152,17 +158,6 @@ abstract class IntegrationTestBase {
       .build()
   }
 
-  internal fun setAuthorisation(user: String = "hmpps-person-record", roles: List<String> = listOf()): HttpHeaders {
-    val token = jwtHelper.createJwt(
-      subject = user,
-      expiryTime = Duration.ofHours(1L),
-      roles = roles,
-    )
-    val httpHeaders = HttpHeaders()
-    httpHeaders.set(HttpHeaders.AUTHORIZATION, "Bearer $token")
-    return httpHeaders
-  }
-
   internal fun WebTestClient.RequestHeadersSpec<*>.authorised(): WebTestClient.RequestBodySpec {
     val bearerToken = jwtHelper.createJwt(
       subject = "hmpps-person-record",
@@ -186,15 +181,12 @@ abstract class IntegrationTestBase {
 
     courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
-    await untilCallTo {
-      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
+    expectNoMessagesOn(cprCourtCaseEventsQueue)
   }
 
-  private fun assertDomainEventReceiverQueueHasProcessedMessages() {
+  private fun expectNoMessagesOn(queue: HmppsQueue?) {
     await untilCallTo {
-      cprDeliusOffenderEventsQueue?.sqsClient?.countMessagesOnQueue(cprDeliusOffenderEventsQueue!!.queueUrl)
-        ?.get()
+      queue?.sqsClient?.countMessagesOnQueue(queue.queueUrl)?.get()
     } matches { it == 0 }
   }
 
@@ -209,38 +201,26 @@ abstract class IntegrationTestBase {
         ),
       ).build()
 
-    publishOffenderEvent(publishRequest)?.get()
+    domainEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
-    assertDomainEventReceiverQueueHasProcessedMessages()
+    expectNoMessagesOn(cprDeliusOffenderEventsQueue)
   }
 
-  private fun publishOffenderEvent(publishRequest: PublishRequest): CompletableFuture<PublishResponse>? {
-    return domainEventsTopic?.snsClient?.publish(publishRequest)
-  }
+  fun createDeliusDetailUrl(crn: String): String =
+    "https://domain-events-and-delius-dev.hmpps.service.justice.gov.uk/probation-case.engagement.created/$crn"
 
-  fun createDeliusDetailUrl(crn: String): String {
-    val builder = StringBuilder()
-    builder.append("https://domain-events-and-delius-dev.hmpps.service.justice.gov.uk/probation-case.engagement.created/")
-    builder.append(crn)
-    return builder.toString()
-  }
-
-  fun createNomsDetailUrl(nomsNUmber: String): String {
-    val builder = StringBuilder()
-    builder.append("https://prisoner-search-dev.prison.service.justice.gov.uk/prisoner/")
-    builder.append(nomsNUmber)
-    return builder.toString()
-  }
+  fun createNomsDetailUrl(nomsNumber: String): String =
+    "https://prisoner-search-dev.prison.service.justice.gov.uk/prisoner/$nomsNumber"
 
   fun checkTelemetry(
     event: TelemetryEventType,
     expected: Map<String, String>,
     verificationMode: VerificationMode = times(1),
   ) {
-    await untilAsserted {
+    await.atMost(Duration.ofSeconds(3)) untilAsserted {
       verify(telemetryClient, verificationMode).trackEvent(
         eq(event.eventName),
-        org.mockito.kotlin.check {
+        check {
           assertThat(it).containsAllEntriesOf(expected)
         },
         eq(null),
