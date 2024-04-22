@@ -44,6 +44,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.personrecord.service.PrisonerDomainEventService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.Duration
@@ -111,10 +112,17 @@ abstract class IntegrationTestBase {
     defendantRepository.deleteAll()
     offenderRepository.deleteAll()
     personRepository.deleteAll()
-    cprCourtCaseEventsQueue?.sqsDlqClient!!.purgeQueue(PurgeQueueRequest.builder().queueUrl(cprCourtCaseEventsQueue?.dlqUrl).build()).get()
-    cprCourtCaseEventsQueue?.sqsClient!!.purgeQueue(PurgeQueueRequest.builder().queueUrl(cprCourtCaseEventsQueue?.queueUrl).build()).get()
-    cprDeliusOffenderEventsQueue?.sqsClient?.purgeQueue(PurgeQueueRequest.builder().queueUrl(cprDeliusOffenderEventsQueue?.queueUrl).build())
+    cprCourtCaseEventsQueue?.sqsDlqClient!!.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(cprCourtCaseEventsQueue?.dlqUrl).build(),
+    ).get()
+    cprCourtCaseEventsQueue?.sqsClient!!.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(cprCourtCaseEventsQueue?.queueUrl).build(),
+    ).get()
+    cprDeliusOffenderEventsQueue?.sqsClient?.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(cprDeliusOffenderEventsQueue?.queueUrl).build(),
+    )
   }
+
   companion object {
 
     /*
@@ -173,15 +181,12 @@ abstract class IntegrationTestBase {
 
     courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
-    await untilCallTo {
-      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
+    expectNoMessagesOn(cprCourtCaseEventsQueue)
   }
 
-  private fun assertDomainEventReceiverQueueHasProcessedMessages() {
+  private fun expectNoMessagesOn(queue: HmppsQueue?) {
     await untilCallTo {
-      cprDeliusOffenderEventsQueue?.sqsClient?.countMessagesOnQueue(cprDeliusOffenderEventsQueue!!.queueUrl)
-        ?.get()
+      queue?.sqsClient?.countMessagesOnQueue(queue.queueUrl)?.get()
     } matches { it == 0 }
   }
 
@@ -198,7 +203,7 @@ abstract class IntegrationTestBase {
 
     domainEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
-    assertDomainEventReceiverQueueHasProcessedMessages()
+    expectNoMessagesOn(cprDeliusOffenderEventsQueue)
   }
 
   fun createDeliusDetailUrl(crn: String): String =
@@ -212,7 +217,7 @@ abstract class IntegrationTestBase {
     expected: Map<String, String>,
     verificationMode: VerificationMode = times(1),
   ) {
-    await.atMost(Duration.ofSeconds(5)) untilAsserted {
+    await.atMost(Duration.ofSeconds(3)) untilAsserted {
       verify(telemetryClient, verificationMode).trackEvent(
         eq(event.eventName),
         check {
