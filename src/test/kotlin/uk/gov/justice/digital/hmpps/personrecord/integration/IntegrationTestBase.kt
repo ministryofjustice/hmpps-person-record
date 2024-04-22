@@ -12,6 +12,7 @@ import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.RegisterExtension
+import org.mockito.kotlin.check
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -237,10 +238,10 @@ abstract class IntegrationTestBase {
     expected: Map<String, String>,
     verificationMode: VerificationMode = times(1),
   ) {
-    await untilAsserted {
+    await.atMost(Duration.ofSeconds(5)) untilAsserted {
       verify(telemetryClient, verificationMode).trackEvent(
         eq(event.eventName),
-        org.mockito.kotlin.check {
+        check {
           assertThat(it).containsAllEntriesOf(expected)
         },
         eq(null),
