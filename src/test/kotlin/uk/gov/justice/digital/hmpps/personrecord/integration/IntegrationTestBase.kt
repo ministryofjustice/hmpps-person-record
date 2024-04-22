@@ -32,7 +32,6 @@ import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.junit.jupiter.Testcontainers
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
-import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
@@ -48,7 +47,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.Duration
-import java.util.concurrent.CompletableFuture
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -198,13 +196,9 @@ abstract class IntegrationTestBase {
         ),
       ).build()
 
-    publishOffenderEvent(publishRequest)?.get()
+    domainEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
     assertDomainEventReceiverQueueHasProcessedMessages()
-  }
-
-  private fun publishOffenderEvent(publishRequest: PublishRequest): CompletableFuture<PublishResponse>? {
-    return domainEventsTopic?.snsClient?.publish(publishRequest)
   }
 
   fun createDeliusDetailUrl(crn: String): String =
