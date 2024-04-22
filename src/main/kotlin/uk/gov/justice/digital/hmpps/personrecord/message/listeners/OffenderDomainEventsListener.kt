@@ -44,7 +44,7 @@ class OffenderDomainEventsListener(
             getEventProcessor(domainEvent).process(domainEvent)
           } catch (e: FeignException.NotFound) {
             log.info("Discarding message for status code: ${e.status()}")
-          } catch (e: FeignException) {
+          } catch (e: Exception) {
             log.error("Failed to process known domain event type:${domainEvent.eventType}", e)
             throw e
           }
