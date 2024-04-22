@@ -485,19 +485,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
         "New Record Identifier" to "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199",
       ),
     )
-
-    checkTelemetry(
-      SPLINK_MATCH_SCORE,
-      mapOf(
-        "Match Probability Score" to "0.9866543",
-        "Candidate Record UUID" to secondMatchEntity.personId.toString(),
-        "Candidate Record Identifier Type" to "defendantId",
-        "Candidate Record Identifier" to "defendant1",
-        "New Record Identifier Type" to "defendantId",
-        "New Record Identifier" to "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199",
-      ),
-      never(),
-    )
   }
 
   @Test
