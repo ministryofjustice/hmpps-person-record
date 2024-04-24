@@ -23,7 +23,7 @@ class CROIdentifier(val croId: String, val fingerprint: Boolean, val inputCro: S
   companion object {
     private const val EMPTY_CRO = ""
     private const val SLASH = "/"
-    internal const val SERIAL_NUM_LENGTH = 6
+    private const val SERIAL_NUM_LENGTH = 6
 
     private val SF_CRO_REGEX = Regex("^SF\\d{2}/\\d{1,$SERIAL_NUM_LENGTH}[A-Z]\$")
     private val CRO_REGEX = Regex("^\\d{1,$SERIAL_NUM_LENGTH}/\\d{2}[A-Z]\$")
