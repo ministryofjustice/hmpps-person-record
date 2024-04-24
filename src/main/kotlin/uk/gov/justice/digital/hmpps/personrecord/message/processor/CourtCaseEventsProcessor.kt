@@ -9,10 +9,8 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.UNKNOWN
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.CommonPlatformHearingEvent
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.service.CourtCaseEventsService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
@@ -32,28 +30,17 @@ class CourtCaseEventsProcessor(
   fun processEvent(sqsMessage: SQSMessage) {
     log.debug("Received message with id ${sqsMessage.messageId}")
     when (sqsMessage.getMessageType()) {
-      LIBRA_COURT_CASE -> processLibraHearingEvent(
-        objectMapper.readValue<LibraHearingEvent>(
-          sqsMessage.message,
-        ),
-      )
-
       COMMON_PLATFORM_HEARING -> processCommonPlatformHearingEvent(
         objectMapper.readValue<CommonPlatformHearingEvent>(
           sqsMessage.message,
         ),
       )
-
       else -> {
-        log.debug("Received case type ${UNKNOWN.name}")
+        if (sqsMessage.getMessageType()?.equals(UNKNOWN) == true) {
+          log.debug("Received case type ${UNKNOWN.name}")
+        }
       }
     }
-  }
-
-  fun processLibraHearingEvent(libraHearingEvent: LibraHearingEvent) {
-    log.debug("Processing LIBRA event")
-    val person = Person.from(libraHearingEvent)
-    process(person)
   }
 
   fun processCommonPlatformHearingEvent(commonPlatformHearingEvent: CommonPlatformHearingEvent) {

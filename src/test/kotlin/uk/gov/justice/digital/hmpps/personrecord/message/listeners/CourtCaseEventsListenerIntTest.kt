@@ -7,15 +7,12 @@ import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.never
-import org.mockito.kotlin.times
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
@@ -23,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendantAndNoPnc
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
-import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PARTIAL_MATCH
@@ -329,112 +325,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
         "New Record Identifier Type" to "defendantId",
         "New Record Identifier" to "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199",
       ),
-    )
-  }
-
-  @Test
-  fun `should output correct telemetry and call person-match-score for partial match from libra`() {
-    val pncNumber = "2003/0062845E"
-
-    publishHMCTSMessage(libraHearing(pncNumber = pncNumber, firstName = "John", surname = "Eccles"), LIBRA_COURT_CASE)
-
-    checkTelemetry(
-      HMCTS_RECORD_CREATED,
-      mapOf("PNC" to "2003/0062845E"),
-    )
-
-    val personEntity = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncNumber))
-    }
-
-    publishHMCTSMessage(libraHearing(pncNumber = pncNumber, firstName = "Johnathan", surname = "Eccles"), LIBRA_COURT_CASE)
-
-    checkTelemetry(
-      HMCTS_PARTIAL_MATCH,
-      mapOf("Date of birth" to "1975-01-01", "Surname" to "Eccles"),
-    )
-
-    checkTelemetry(
-      SPLINK_MATCH_SCORE,
-      mapOf(
-        "Match Probability Score" to "0.9897733",
-        "Candidate Record UUID" to personEntity.personId.toString(),
-        "Candidate Record Identifier Type" to "defendantId",
-        "Candidate Record Identifier" to "defendant1",
-        "New Record Identifier Type" to "defendantId",
-        "New Record Identifier" to "defendant2",
-      ),
-    )
-  }
-
-  @Test
-  fun `not a partial match if firstname and surname do not match`() {
-    publishHMCTSMessage(libraHearing(pncNumber = "", firstName = null, dateOfBirth = ""), LIBRA_COURT_CASE)
-
-    checkTelemetry(
-      HMCTS_RECORD_CREATED,
-      mapOf(),
-    )
-
-    publishHMCTSMessage(libraHearing(pncNumber = "", dateOfBirth = ""), LIBRA_COURT_CASE)
-
-    checkTelemetry(
-      HMCTS_PARTIAL_MATCH,
-      mapOf(),
-      never(),
-    )
-  }
-
-  @Test
-  fun `should not call person-match-score if date of birth is not present`() {
-    publishHMCTSMessage(libraHearing(pncNumber = "", firstName = "John", dateOfBirth = "04/09/1975"), LIBRA_COURT_CASE)
-
-    checkTelemetry(
-      HMCTS_RECORD_CREATED,
-      mapOf(),
-    )
-
-    publishHMCTSMessage(libraHearing(pncNumber = "", firstName = "John", dateOfBirth = ""), LIBRA_COURT_CASE)
-
-    checkTelemetry(
-      HMCTS_PARTIAL_MATCH,
-      mapOf("Forename" to "John", "Surname" to "MORGAN"),
-    )
-
-    checkTelemetry(
-      SPLINK_MATCH_SCORE,
-      mapOf("Match Probability Score" to "not scored, no date of birth"),
-    )
-  }
-
-  @Test
-  fun `records when only an empty date of birth matches are not partial matches`() {
-    val pncNumber = ""
-
-    publishHMCTSMessage(libraHearing(pncNumber = pncNumber, firstName = "John", surname = "Smith", dateOfBirth = ""), LIBRA_COURT_CASE)
-
-    await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByDefendantsPncNumber(PNCIdentifier.from(pncNumber))
-    }
-
-    publishHMCTSMessage(libraHearing(pncNumber = pncNumber, firstName = "Johnathan", surname = "Jones", dateOfBirth = ""), LIBRA_COURT_CASE)
-
-    checkTelemetry(
-      HMCTS_RECORD_CREATED,
-      mapOf("PNC" to ""),
-      times(2),
-    )
-
-    checkTelemetry(
-      HMCTS_PARTIAL_MATCH,
-      mapOf(),
-      never(),
-    )
-
-    checkTelemetry(
-      SPLINK_MATCH_SCORE,
-      mapOf(),
-      never(),
     )
   }
 
