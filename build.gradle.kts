@@ -41,7 +41,7 @@ dependencies {
   testImplementation("org.testcontainers:junit-jupiter:1.19.7")
   testImplementation("org.testcontainers:postgresql:1.19.7")
   testImplementation("org.testcontainers:localstack:1.19.7")
-  testImplementation("org.wiremock:wiremock-standalone:3.5.3")
+  testImplementation("org.wiremock:wiremock-standalone:3.5.4")
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.5")
