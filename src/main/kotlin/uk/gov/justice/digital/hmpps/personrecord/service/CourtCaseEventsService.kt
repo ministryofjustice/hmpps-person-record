@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Isolation.SERIALIZABLE
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantAliasEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
@@ -20,8 +21,6 @@ private const val MAXMATCHES: Int = 1
 class CourtCaseEventsService(
   private val telemetryService: TelemetryService,
   private val defendantRepository: DefendantRepository,
-  private val personRecordService: PersonRecordService,
-  private val offenderService: OffenderService,
   private val matchService: MatchService,
 ) {
 
@@ -45,20 +44,27 @@ class CourtCaseEventsService(
       defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person)
       defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher, person)
       else -> {
-        createNewPersonRecordAndProcess(person)
+        createNewDefendant(person)
       }
     }
   }
 
-  private fun createNewPersonRecordAndProcess(person: Person) {
-    val personRecord = personRecordService.createNewPersonAndDefendant(person)
-    personRecord.let {
-      offenderService.processAssociatedOffenders(it, person)
-    }
+  private fun createNewDefendant(person: Person) {
+    createDefendant(person)
     trackEvent(
       HMCTS_RECORD_CREATED,
-      mapOf("UUID" to personRecord.personId.toString(), "PNC" to person.otherIdentifiers?.pncIdentifier?.pncId),
+      mapOf("PNC" to person.otherIdentifiers?.pncIdentifier?.pncId),
     )
+  }
+
+  private fun createDefendant(person: Person) {
+    val newDefendantEntity = DefendantEntity.from(person)
+
+    val defendantAliases = DefendantAliasEntity.fromList(person.personAliases)
+    defendantAliases.forEach { defendantAliasEntity -> defendantAliasEntity.defendant = newDefendantEntity }
+    newDefendantEntity.aliases.addAll(defendantAliases)
+
+    defendantRepository.saveAndFlush(newDefendantEntity)
   }
 
   private fun exactMatchFound(defendantMatcher: DefendantMatcher, person: Person) {
