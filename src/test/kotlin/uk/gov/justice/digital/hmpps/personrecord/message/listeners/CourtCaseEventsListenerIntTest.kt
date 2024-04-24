@@ -110,7 +110,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
 
     val personEntity = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByPrisonersPncNumber(pncNumber)
+      personRepository.findByDefendantsPncNumber(pncNumber)
     }
 
     assertThat(personEntity.personId).isNotNull()
@@ -134,13 +134,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.offenders[0].lastName).isEqualTo("Lassard")
     assertThat(personEntity.offenders[0].dateOfBirth).isEqualTo(LocalDate.of(1960, 1, 1))
     assertThat(personEntity.offenders[0].prisonNumber).isEqualTo("A1671AJ")
-    assertThat(personEntity.prisoners).hasSize(1)
-    assertThat(personEntity.prisoners[0].firstName).isEqualTo("ERIC")
-    assertThat(personEntity.prisoners[0].lastName).isEqualTo("Lassard")
-    assertThat(personEntity.prisoners[0].prisonNumber).isEqualTo("A1234AA")
-    assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(pncNumber)
-    assertThat(personEntity.prisoners[0].cro).isEqualTo(CROIdentifier.from("051072/62R"))
-    assertThat(personEntity.prisoners[0].fingerprint).isEqualTo(true)
   }
 
   @Test
@@ -215,7 +208,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
 
     val personEntity = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByPrisonersPncNumber(pncNumber)
+      personRepository.findByDefendantsPncNumber(pncNumber)
     }
 
     assertThat(personEntity.personId).isNotNull()
@@ -243,36 +236,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity.offenders[0].aliases[0].dateOfBirth).isEqualTo(LocalDate.of(1968, 2, 22))
     assertThat(personEntity.offenders[0].aliases[0].surname).isEqualTo("alisSurName")
     assertThat(personEntity.offenders[0].aliases[0].aliasOffenderId).isEqualTo("12345")
-  }
-
-  @Test
-  fun `should create prisoner with additional fields`() {
-    val pncNumber = PNCIdentifier.from("2003/0062845E")
-
-    publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
-
-    val personEntity = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByPrisonersPncNumber(pncNumber)
-    }
-
-    assertThat(personEntity.personId).isNotNull()
-    assertThat(personEntity.prisoners).hasSize(1)
-    assertThat(personEntity.prisoners[0].firstName).isEqualTo("ERIC")
-    assertThat(personEntity.prisoners[0].lastName).isEqualTo("Lassard")
-    assertThat(personEntity.prisoners[0].prisonNumber).isEqualTo("A1234AA")
-    assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(pncNumber)
-    assertThat(personEntity.prisoners[0].offenderId).isEqualTo(356)
-    assertThat(personEntity.prisoners[0].rootOffenderId).isEqualTo(300)
-    assertThat(personEntity.prisoners[0].dateOfBirth).isEqualTo(LocalDate.of(1970, 3, 15))
-    assertThat(personEntity.prisoners[0].cro).isEqualTo(CROIdentifier.from("51072/62R"))
-    assertThat(personEntity.prisoners[0].fingerprint).isEqualTo(true)
-    assertThat(personEntity.prisoners[0].drivingLicenseNumber).isEqualTo("ERIC1234567K")
-    assertThat(personEntity.prisoners[0].nationalInsuranceNumber).isEqualTo("PD123456D")
-    assertThat(personEntity.prisoners[0].address?.postcode).isEqualTo("LI1 5TH")
-    assertThat(personEntity.prisoners[0].sexCode).isNull()
-    assertThat(personEntity.prisoners[0].raceCode).isNull()
-    assertThat(personEntity.prisoners[0].birthPlace).isNull()
-    assertThat(personEntity.prisoners[0].birthCountryCode).isNull()
   }
 
   @Test
@@ -410,23 +373,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     }
 
     assertThat(personEntity.personId).isNotNull()
-    assertThat(personEntity.prisoners).hasSize(1)
-    assertThat(personEntity.prisoners[0].firstName).isEqualTo("ERIC")
-    assertThat(personEntity.prisoners[0].lastName).isEqualTo("Lassard")
-    assertThat(personEntity.prisoners[0].prisonNumber).isEqualTo("A1234AA")
-    assertThat(personEntity.prisoners[0].pncNumber).isEqualTo(PNCIdentifier.from("2003/0062845E"))
-    assertThat(personEntity.prisoners[0].offenderId).isEqualTo(356)
-    assertThat(personEntity.prisoners[0].rootOffenderId).isEqualTo(300)
-    assertThat(personEntity.prisoners[0].dateOfBirth).isEqualTo(LocalDate.of(1970, 3, 15))
-    assertThat(personEntity.prisoners[0].cro).isEqualTo(CROIdentifier.from("51072/62R"))
-    assertThat(personEntity.prisoners[0].fingerprint).isEqualTo(true)
-    assertThat(personEntity.prisoners[0].drivingLicenseNumber).isEqualTo("ERIC1234567K")
-    assertThat(personEntity.prisoners[0].nationalInsuranceNumber).isEqualTo("PD123456D")
-    assertThat(personEntity.prisoners[0].address?.postcode).isEqualTo("LI1 5TH")
-    assertThat(personEntity.prisoners[0].sexCode).isNull()
-    assertThat(personEntity.prisoners[0].raceCode).isNull()
-    assertThat(personEntity.prisoners[0].birthPlace).isNull()
-    assertThat(personEntity.prisoners[0].birthCountryCode).isNull()
 
     assertThat(personEntity.offenders).hasSize(1)
     assertThat(personEntity.offenders[0].pncNumber?.pncId).isEqualTo("")

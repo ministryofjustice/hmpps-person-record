@@ -28,9 +28,6 @@ class PersonEntity(
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
   var defendants: MutableList<DefendantEntity> = mutableListOf(),
 
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
-  var prisoners: MutableList<PrisonerEntity> = mutableListOf(),
-
   @Version
   var version: Int = 0,
 

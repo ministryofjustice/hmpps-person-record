@@ -22,7 +22,6 @@ class CourtCaseEventsService(
   private val defendantRepository: DefendantRepository,
   private val personRecordService: PersonRecordService,
   private val offenderService: OffenderService,
-  private val prisonerService: PrisonerService,
   private val matchService: MatchService,
 ) {
 
@@ -55,7 +54,6 @@ class CourtCaseEventsService(
     val personRecord = personRecordService.createNewPersonAndDefendant(person)
     personRecord.let {
       offenderService.processAssociatedOffenders(it, person)
-      prisonerService.processAssociatedPrisoners(it, person)
     }
     trackEvent(
       HMCTS_RECORD_CREATED,
