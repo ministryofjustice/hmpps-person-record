@@ -36,7 +36,7 @@ class CourtCaseEventsProcessor(
         ),
       )
       else -> {
-        if(sqsMessage.getMessageType()?.equals(UNKNOWN) == true) {
+        if (sqsMessage.getMessageType()?.equals(UNKNOWN) == true) {
           log.debug("Received case type ${UNKNOWN.name}")
         }
       }
