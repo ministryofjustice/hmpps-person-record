@@ -21,4 +21,8 @@ class FeatureFlag(private val environment: Environment) {
   fun isDeliusDomainEventSQSEnabled(): Boolean {
     return environment.getProperty("feature.flags.enable-delius-domain-event-sqs", Boolean::class.java, true)
   }
+
+  fun isLibraMessageProcessingEnabled(): Boolean {
+    return environment.getProperty("feature.flags.enable_libra_message_processing", Boolean::class.java, true)
+  }
 }

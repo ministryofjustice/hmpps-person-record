@@ -36,6 +36,8 @@ generic-service:
     FEATURE_FLAGS_ENABLE_DELIUS_SEARCH: false
     FEATURE_FLAGS_ENABLE_NOMIS_SEARCH: false
     FEATURE_FLAGS_ENABLE_DELIUS_DOMAIN_EVENT_SQS: true
+    FEATURE_FLAGS_ENABLE_LIBRA_MESSAGE_PROCESSING: false
+
 
   # Pre-existing kubernetes secrets to load as environment variables in the deployment.
   # namespace_secrets:

@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.dao.CannotAcquireLockException
 import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
@@ -23,6 +24,7 @@ class CourtCaseEventsProcessor(
   private val objectMapper: ObjectMapper,
   private val courtCaseEventsService: CourtCaseEventsService,
   private val telemetryService: TelemetryService,
+  val featureFlag: FeatureFlag,
 ) {
 
   companion object {
@@ -32,11 +34,16 @@ class CourtCaseEventsProcessor(
   fun processEvent(sqsMessage: SQSMessage) {
     log.debug("Received message with id ${sqsMessage.messageId}")
     when (sqsMessage.getMessageType()) {
-      LIBRA_COURT_CASE -> processLibraHearingEvent(
-        objectMapper.readValue<LibraHearingEvent>(
-          sqsMessage.message,
-        ),
-      )
+      LIBRA_COURT_CASE ->
+        if (featureFlag.isLibraMessageProcessingEnabled()) {
+          processLibraHearingEvent(
+            objectMapper.readValue<LibraHearingEvent>(
+              sqsMessage.message,
+            ),
+          )
+        } else {
+          log.debug("Libra message processing is turned off")
+        }
 
       COMMON_PLATFORM_HEARING -> processCommonPlatformHearingEvent(
         objectMapper.readValue<CommonPlatformHearingEvent>(
