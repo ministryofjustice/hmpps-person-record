@@ -34,7 +34,6 @@ generic-service:
 
     FEATURE_FLAGS_ENABLE_HMCTS_SQS: true
     FEATURE_FLAGS_ENABLE_DELIUS_SEARCH: false
-    FEATURE_FLAGS_ENABLE_NOMIS_SEARCH: false
     FEATURE_FLAGS_ENABLE_DELIUS_DOMAIN_EVENT_SQS: true
 
   # Pre-existing kubernetes secrets to load as environment variables in the deployment.
