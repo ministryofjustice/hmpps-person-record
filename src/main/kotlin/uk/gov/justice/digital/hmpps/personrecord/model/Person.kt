@@ -55,8 +55,6 @@ data class Person(
     fun from(personEntity: PersonEntity?): Person {
       return Person(
         personId = personEntity?.personId,
-        // TODO need to properly define what a Person model object looks like: for now just return Person UUID
-        // TODO pull data from HmctsDefendant Entity?
       )
     }
 
