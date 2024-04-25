@@ -10,18 +10,13 @@ import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.matcher.DefendantMatcher
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PARTIAL_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_CRO
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.SPLINK_MATCH_SCORE
-
-private const val MAXMATCHES: Int = 1
 
 @Service
 class CourtCaseEventsService(
   private val telemetryService: TelemetryService,
   private val defendantRepository: DefendantRepository,
-  private val matchService: MatchService,
 ) {
 
   @Transactional(isolation = SERIALIZABLE)
@@ -42,7 +37,6 @@ class CourtCaseEventsService(
     val defendantMatcher = DefendantMatcher(defendants, person)
     when {
       defendantMatcher.isExactMatch() -> exactMatchFound(defendantMatcher, person)
-      defendantMatcher.isPartialMatch() -> partialMatchFound(defendantMatcher, person)
       else -> {
         createNewDefendant(person)
       }
@@ -71,41 +65,6 @@ class CourtCaseEventsService(
     val elementMap = mapOf("PNC" to person.otherIdentifiers?.pncIdentifier?.pncId, "CRN" to defendantMatcher.getMatchingItem().crn, "UUID" to person.personId.toString())
     trackEvent(HMCTS_EXACT_MATCH, elementMap)
   }
-
-  private fun partialMatchFound(defendantMatcher: DefendantMatcher, person: Person) {
-    trackEvent(HMCTS_PARTIAL_MATCH, defendantMatcher.extractMatchingFields(defendantMatcher.getMatchingItem()))
-
-    val matchResults = defendantMatcher.items!!.take(MAXMATCHES).map { matchResult(it, person) }
-
-    matchResults.forEach { matchResult ->
-      trackEvent(
-        SPLINK_MATCH_SCORE,
-        mapOf(
-          "Match Probability Score" to matchResult.probability,
-          "Candidate Record UUID" to matchResult.candidateRecordUUID,
-          "Candidate Record Identifier Type" to matchResult.candidateRecordIdentifierType,
-          "Candidate Record Identifier" to matchResult.candidateRecordIdentifier,
-          "New Record Identifier Type" to matchResult.newRecordIdentifierType,
-          "New Record Identifier" to matchResult.newRecordIdentifier,
-        ),
-      )
-    }
-  }
-
-  private fun matchResult(
-    candidate: DefendantEntity,
-    person: Person,
-  ): MatchResult {
-    if (nullDate(candidate, person)) {
-      return MatchResult("not scored, no date of birth", candidate.person?.personId.toString(), "defendantId", candidate.defendantId ?: "defendant1", "defendantId", person.defendantId ?: "defendant2")
-    }
-    return matchService.score(candidate, person)
-  }
-
-  private fun nullDate(
-    candidate: DefendantEntity,
-    person: Person,
-  ) = candidate.dateOfBirth == null || person.dateOfBirth == null
 
   private fun trackEvent(
     eventType: TelemetryEventType,

@@ -40,12 +40,9 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
     checkTelemetry(NEW_DELIUS_RECORD_NEW_PNC, mapOf("CRN" to crn))
 
-    val personEntities = await.atMost(10, SECONDS) untilNotNull { personRepository.findPersonEntityByPncNumber(expectedPncNumber) }
-    val personEntity = personEntities[0]
-    assertThat(personEntity.personId).isNotNull()
-    assertThat(personEntity.offenders).hasSize(1)
-    assertThat(personEntity.offenders[0].pncNumber).isEqualTo(expectedPncNumber)
-    assertThat(personEntity.offenders[0].crn).isEqualTo(crn)
+    val offenderEntity = await.atMost(10, SECONDS) untilNotNull { offenderRepository.findByCrn(crn) }
+    assertThat(offenderEntity.pncNumber).isEqualTo(expectedPncNumber)
+    assertThat(offenderEntity.crn).isEqualTo(crn)
   }
 
   @Test
@@ -59,12 +56,10 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
     checkTelemetry(NEW_DELIUS_RECORD_NEW_PNC, mapOf("CRN" to crn))
 
-    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByOffendersCrn(crn) }
+    val offenderEntity = await.atMost(10, SECONDS) untilNotNull { offenderRepository.findByCrn(crn) }
 
-    assertThat(personEntity.personId).isNotNull()
-    assertThat(personEntity.offenders).hasSize(1)
-    assertThat(personEntity.offenders[0].pncNumber?.pncId).isEqualTo("")
-    assertThat(personEntity.offenders[0].crn).isEqualTo(crn)
+    assertThat(offenderEntity.pncNumber?.pncId).isEqualTo("")
+    assertThat(offenderEntity.crn).isEqualTo(crn)
   }
 
   @Test
@@ -122,12 +117,10 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
     checkTelemetry(NEW_DELIUS_RECORD_NEW_PNC, mapOf("CRN" to crn))
 
-    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByOffendersCrn(crn) }
+    val offenderEntity = await.atMost(10, SECONDS) untilNotNull { offenderRepository.findByCrn(crn) }
 
-    assertThat(personEntity.personId).isNotNull()
-    assertThat(personEntity.offenders).hasSize(1)
-    assertThat(personEntity.offenders[0].pncNumber?.pncId).isEqualTo("")
-    assertThat(personEntity.offenders[0].crn).isEqualTo(crn)
+    assertThat(offenderEntity.pncNumber?.pncId).isEqualTo("")
+    assertThat(offenderEntity.crn).isEqualTo(crn)
   }
 
   @Test
@@ -141,12 +134,10 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
     checkTelemetry(NEW_DELIUS_RECORD_NEW_PNC, mapOf("CRN" to crn))
 
-    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByOffendersCrn(crn) }
+    val offenderEntity = await.atMost(10, SECONDS) untilNotNull { offenderRepository.findByCrn(crn) }
 
-    assertThat(personEntity.personId).isNotNull()
-    assertThat(personEntity.offenders).hasSize(1)
-    assertThat(personEntity.offenders[0].pncNumber?.pncId).isEqualTo("")
-    assertThat(personEntity.offenders[0].crn).isEqualTo(crn)
+    assertThat(offenderEntity.pncNumber?.pncId).isEqualTo("")
+    assertThat(offenderEntity.crn).isEqualTo(crn)
   }
 
   @Test
