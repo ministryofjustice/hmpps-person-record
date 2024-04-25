@@ -23,11 +23,11 @@ class ProbationCaseEngagementService(
   }
 
   private fun process(newOffenderDetail: DeliusOffenderDetail) {
-    val offender = offenderRepository.findByCrn(newOffenderDetail.identifiers.crn)
-    if (offender != null) {
-      log.info("Offender already exists, for crn: ${newOffenderDetail.identifiers.crn}")
-    } else {
+    val offenders = offenderRepository.findAllByCrn(newOffenderDetail.identifiers.crn)
+    if (offenders.isNullOrEmpty()) {
       createOffender(newOffenderDetail)
+    } else {
+      log.info("Offender already exists, for crn: ${newOffenderDetail.identifiers.crn}")
     }
   }
 
