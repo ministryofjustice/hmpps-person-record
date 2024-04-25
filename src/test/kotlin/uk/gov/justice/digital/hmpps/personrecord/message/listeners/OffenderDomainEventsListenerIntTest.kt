@@ -63,7 +63,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
         firstName = "Test",
         otherIds = IDs(
           crn = crn,
-          pncNumber = expectedPncNumber.pncId
+          pncNumber = expectedPncNumber.pncId,
         ),
         surname = "Test",
       ),
@@ -77,7 +77,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
         firstName = "Test1",
         otherIds = IDs(
           crn = crn,
-          pncNumber = expectedPncNumber.pncId
+          pncNumber = expectedPncNumber.pncId,
         ),
         surname = "Test1",
       ),
@@ -92,7 +92,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
       eventType = NEW_OFFENDER_CREATED,
       detailUrl = createDeliusDetailUrl(crn),
       personReference = personReference,
-      additionalInformation = null
+      additionalInformation = null,
     )
     publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
