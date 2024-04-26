@@ -31,30 +31,31 @@ class OffenderDomainEventsListener(
   fun onDomainEvent(
     rawMessage: String,
   ) {
-    log.debug("Enter onDomainEvent")
+    if (featureFlag.isDeliusDomainEventSQSDisabled()) {
+      log.debug("Domain event processing switched off.")
+      return
+    }
+
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-    if (featureFlag.isDeliusDomainEventSQSEnabled()) {
-      when (sqsMessage.type) {
-        "Notification" -> {
-          val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
-          log.debug("Received message: type:${domainEvent.eventType}")
 
-          try {
-            getEventProcessor(domainEvent).process(domainEvent)
-          } catch (e: FeignException.NotFound) {
-            log.info("Discarding message for status code: ${e.status()}")
-          } catch (e: Exception) {
-            log.error("Failed to process known domain event type:${domainEvent.eventType}", e)
-            throw e
-          }
-        }
+    when (sqsMessage.type) {
+      "Notification" -> {
+        val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
+        log.debug("Received message: type:${domainEvent.eventType}")
 
-        else -> {
-          log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
+        try {
+          getEventProcessor(domainEvent).process(domainEvent)
+        } catch (e: FeignException.NotFound) {
+          log.info("Discarding message for status code: ${e.status()}")
+        } catch (e: Exception) {
+          log.error("Failed to process known domain event type:${domainEvent.eventType}", e)
+          throw e
         }
       }
-    } else {
-      log.debug("Domain event processing switched off.")
+
+      else -> {
+        log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
+      }
     }
   }
 

@@ -14,7 +14,7 @@ class FeatureFlag(private val environment: Environment) {
     return environment.getProperty("feature.flags.enable-delius-search", Boolean::class.java, true)
   }
 
-  fun isDeliusDomainEventSQSEnabled(): Boolean {
-    return environment.getProperty("feature.flags.enable-delius-domain-event-sqs", Boolean::class.java, true)
+  fun isDeliusDomainEventSQSDisabled(): Boolean {
+    return environment.getProperty("feature.flags.enable-delius-domain-event-sqs", Boolean::class.java, true) == false
   }
 }
