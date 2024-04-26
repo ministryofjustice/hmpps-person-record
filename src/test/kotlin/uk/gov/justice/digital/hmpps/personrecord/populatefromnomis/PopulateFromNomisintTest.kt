@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.populatefromnomis
 
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilNotNull
+import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import java.util.concurrent.TimeUnit.SECONDS
@@ -18,9 +18,8 @@ class PopulateFromNomisintTest : IntegrationTestBase() {
       .isOk
 
     // will have to change to personrepository but this will be near enough
-    val defendants = await.atMost(30, SECONDS) untilNotNull {
-      defendantRepository.findAll()
+    await.atMost(15, SECONDS) untilAsserted {
+      assertThat(defendantRepository.findAll().size).isEqualTo(7)
     }
-    assertThat(defendants.size).isEqualTo(7)
   }
 }
