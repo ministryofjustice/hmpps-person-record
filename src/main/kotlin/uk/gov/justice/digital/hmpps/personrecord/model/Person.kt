@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
@@ -52,14 +52,14 @@ data class Person(
 ) {
   companion object {
 
-    fun from(personEntity: PersonEntity?): Person {
+    fun from(personIdentifierEntity: PersonIdentifierEntity?): Person {
       return Person(
-        personId = personEntity?.personId,
+        personId = personIdentifierEntity?.personId,
       )
     }
 
-    fun from(person: Person): PersonEntity {
-      return PersonEntity(
+    fun from(person: Person): PersonIdentifierEntity {
+      return PersonIdentifierEntity(
         personId = person.personId,
       )
     }

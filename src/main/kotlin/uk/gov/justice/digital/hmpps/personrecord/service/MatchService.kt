@@ -40,7 +40,7 @@ class MatchService(val matchScoreClient: MatchScoreClient, val telemetryService:
 
     return MatchResult(
       matchScore?.matchProbability?.value!!,
-      candidateRecordUUID = candidateRecord.person?.personId.toString(),
+      // candidateRecordUUID = candidateRecord.person?.personId.toString(),
       candidateRecordIdentifierType = "defendantId",
       candidateRecordIdentifier = candidateRecordIdentifier,
       newRecordIdentifierType = "defendantId",
@@ -67,7 +67,7 @@ class MatchService(val matchScoreClient: MatchScoreClient, val telemetryService:
 
 class MatchResult(
   val probability: String,
-  val candidateRecordUUID: String,
+  // val candidateRecordUUID: String,
   val candidateRecordIdentifierType: String,
   val candidateRecordIdentifier: String,
   val newRecordIdentifierType: String,

@@ -9,7 +9,6 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
@@ -88,14 +87,6 @@ class OffenderEntity(
 
   @Column(name = "nationality")
   val nationality: String? = null,
-
-  @ManyToOne(optional = false, cascade = [CascadeType.ALL])
-  @JoinColumn(
-    name = "fk_person_id",
-    referencedColumnName = "id",
-    nullable = true,
-  )
-  var person: PersonEntity? = null,
 
   @OneToOne(cascade = [CascadeType.ALL])
   @JoinColumn(name = "fk_address_id", referencedColumnName = "id", nullable = true)
