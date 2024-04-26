@@ -1,20 +1,17 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
-import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import java.util.*
 
 @Entity
-@Table(name = "person")
-class PersonEntity(
+@Table(name = "person_identifier")
+class PersonIdentifierEntity(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
@@ -22,22 +19,16 @@ class PersonEntity(
   @Column(name = "person_id")
   val personId: UUID? = null,
 
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
-  var offenders: MutableList<OffenderEntity> = mutableListOf(),
-
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
-  var defendants: MutableList<DefendantEntity> = mutableListOf(),
-
   @Version
   var version: Int = 0,
 
 ) {
   companion object {
-    fun new(): PersonEntity {
-      val personEntity = PersonEntity(
+    fun new(): PersonIdentifierEntity {
+      val personIdentifierEntity = PersonIdentifierEntity(
         personId = UUID.randomUUID(),
       )
-      return personEntity
+      return personIdentifierEntity
     }
   }
 }

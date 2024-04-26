@@ -35,7 +35,6 @@ import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.PrisonerCreatedEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.PrisonerUpdatedEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
@@ -68,9 +67,6 @@ abstract class IntegrationTestBase {
 
   @Autowired
   lateinit var hmppsQueueService: HmppsQueueService
-
-  @Autowired
-  lateinit var personRepository: PersonRepository
 
   @Autowired
   lateinit var defendantRepository: DefendantRepository
@@ -107,7 +103,6 @@ abstract class IntegrationTestBase {
   fun beforeEach() {
     defendantRepository.deleteAll()
     offenderRepository.deleteAll()
-    personRepository.deleteAll()
     cprCourtCaseEventsQueue?.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(cprCourtCaseEventsQueue?.dlqUrl).build(),
     ).get()
