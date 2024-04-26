@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defe
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import java.time.LocalDate
 import java.util.UUID
 
@@ -25,6 +26,8 @@ data class Person(
   val familyName: String? = null,
   @Schema(description = "A person's date of birth", example = "1972-08-27")
   val dateOfBirth: LocalDate? = null,
+  val birthPlace: String? = null,
+  val birthCountry: String? = null,
   val otherIdentifiers: OtherIdentifiers? = null,
   val defendantId: String? = null,
   val title: String? = null,
@@ -33,7 +36,9 @@ data class Person(
   val addressLineThree: String? = null,
   val addressLineFour: String? = null,
   val addressLineFive: String? = null,
+  val addressLineSix: String? = null,
   val postcode: String? = null,
+  val addressLineEight: String? = null,
   val sex: String? = null,
   val nationalityOne: String? = null,
   val nationalityTwo: String? = null,
@@ -49,14 +54,9 @@ data class Person(
   val mobile: String? = null,
   val workPhone: String? = null,
   val primaryEmail: String? = null,
+  val sourceSystemType: SourceSystemType
 ) {
   companion object {
-
-    fun from(personIdentifierEntity: PersonIdentifierEntity?): Person {
-      return Person(
-        personId = personIdentifierEntity?.personId,
-      )
-    }
 
     fun from(person: Person): PersonIdentifierEntity {
       return PersonIdentifierEntity(
@@ -74,6 +74,7 @@ data class Person(
           pncIdentifier = PNCIdentifier.from(offenderDetail.otherIds.pncNumber),
           prisonNumber = offenderDetail.otherIds.nomsNumber,
         ),
+        sourceSystemType = SourceSystemType.DELIUS
       )
     }
 
@@ -107,6 +108,7 @@ data class Person(
         mobile = defendant.personDefendant?.personDetails?.contact?.mobile,
         primaryEmail = defendant.personDefendant?.personDetails?.contact?.primaryEmail,
         personAliases = defendant.aliases?.map { PersonAlias.from(it) } ?: emptyList(),
+        sourceSystemType = SourceSystemType.HMCTS
       )
     }
 
@@ -119,6 +121,7 @@ data class Person(
         givenName = libraHearingEvent.name?.forename1,
         familyName = libraHearingEvent.name?.surname,
         dateOfBirth = libraHearingEvent.defendantDob,
+        sourceSystemType = SourceSystemType.HMCTS
       )
     }
   }
@@ -131,5 +134,8 @@ data class OtherIdentifiers(
   val pncIdentifier: PNCIdentifier? = null,
   @Schema(description = "CRO", example = "293110/23X")
   val croIdentifier: CROIdentifier? = null,
+  @Schema(description = "Prisoner Number")
   var prisonNumber: String? = null,
+  @Schema(description = "Most recent prisoner number")
+  var mostRecentPrisonerNumber: String? = null,
 )
