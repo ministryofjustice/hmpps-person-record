@@ -19,19 +19,14 @@ class ProbationCaseEngagementService(
   }
 
   fun processNewOffender(newOffenderDetail: DeliusOffenderDetail) {
-    process(newOffenderDetail)
-  }
-
-  private fun process(newOffenderDetail: DeliusOffenderDetail) {
-    val offenders = offenderRepository.findAllByCrn(newOffenderDetail.identifiers.crn)
-    if (offenders.isNullOrEmpty()) {
+    val crn = newOffenderDetail.identifiers.crn
+    if (offenderRepository.findAllByCrn(crn).isNullOrEmpty()) {
       createOffender(newOffenderDetail)
     } else {
-      log.info("Offender already exists, for crn: ${newOffenderDetail.identifiers.crn}")
+      log.info("Offender already exists for crn: $crn")
     }
   }
 
-  @Suppress("UNCHECKED_CAST")
   private fun trackEvent(eventType: TelemetryEventType, crn: String, pnc: String? = null, uuid: String? = null) {
     telemetryService.trackEvent(
       eventType,
@@ -39,12 +34,11 @@ class ProbationCaseEngagementService(
         "UUID" to uuid,
         "CRN" to crn,
         "PNC" to pnc,
-      ).filterValues { it != null } as Map<String, String>,
+      ).filterValues { it != null },
     )
   }
 
   private fun createOffender(deliusOffenderDetail: DeliusOffenderDetail) {
-    trackEvent(TelemetryEventType.NEW_DELIUS_RECORD_NEW_PNC, deliusOffenderDetail.identifiers.crn, deliusOffenderDetail.identifiers.pnc)
     val offenderEntity = OffenderEntity(
       crn = deliusOffenderDetail.identifiers.crn,
       pncNumber = PNCIdentifier.from(deliusOffenderDetail.identifiers.pnc),
@@ -53,5 +47,10 @@ class ProbationCaseEngagementService(
       dateOfBirth = deliusOffenderDetail.dateOfBirth,
     )
     offenderRepository.saveAndFlush(offenderEntity)
+    trackEvent(
+      TelemetryEventType.NEW_DELIUS_RECORD_NEW_PNC,
+      deliusOffenderDetail.identifiers.crn,
+      deliusOffenderDetail.identifiers.pnc,
+    )
   }
 }
