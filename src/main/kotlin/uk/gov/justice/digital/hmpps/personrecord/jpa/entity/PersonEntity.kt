@@ -113,6 +113,7 @@ class PersonEntity(
 
   @Version
   var version: Int = 0,
+
 ) {
   companion object {
     fun from(person: Person): PersonEntity {

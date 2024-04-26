@@ -1,0 +1,8 @@
+BEGIN;
+
+-- TO BE DECIDED
+ALTER table address
+    ADD COLUMN addressLineSix TEXT DEFAULT NULL,
+    ADD COLUMN addressLineEight TEXT DEFAULT NULL;
+
+COMMIT;
