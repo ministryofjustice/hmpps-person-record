@@ -5,7 +5,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.awspring.cloud.sqs.annotation.SqsListener
 import io.opentelemetry.api.trace.SpanKind.SERVER
 import io.opentelemetry.instrumentation.annotations.WithSpan
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
@@ -24,7 +23,7 @@ class CourtCaseEventsListener(
   val featureFlag: FeatureFlag,
 ) {
   private companion object {
-    val LOG: Logger = LoggerFactory.getLogger(this::class.java)
+    private val log = LoggerFactory.getLogger(this::class.java)
   }
 
   @SqsListener(CPR_COURT_CASE_EVENTS_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
@@ -39,7 +38,7 @@ class CourtCaseEventsListener(
           try {
             courtCaseEventsProcessor.processEvent(sqsMessage)
           } catch (e: Exception) {
-            LOG.error("Failed to process message:${sqsMessage.messageId}", e)
+            log.error("Failed to process message:${sqsMessage.messageId}", e)
             telemetryService.trackEvent(
               HMCTS_PROCESSING_FAILURE,
               mapOf("MESSAGE_ID" to sqsMessage.messageId),
@@ -48,11 +47,11 @@ class CourtCaseEventsListener(
           }
         }
         else -> {
-          LOG.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
+          log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
         }
       }
     } else {
-      LOG.debug("Message processing is switched off")
+      log.debug("Message processing is switched off")
     }
   }
 }

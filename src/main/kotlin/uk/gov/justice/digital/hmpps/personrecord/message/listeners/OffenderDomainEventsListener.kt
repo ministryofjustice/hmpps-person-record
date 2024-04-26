@@ -4,9 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import feign.FeignException
 import io.awspring.cloud.sqs.annotation.SqsListener
-import io.opentelemetry.api.trace.SpanKind
+import io.opentelemetry.api.trace.SpanKind.SERVER
 import io.opentelemetry.instrumentation.annotations.WithSpan
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
@@ -24,38 +23,39 @@ class OffenderDomainEventsListener(
   val featureFlag: FeatureFlag,
 ) {
   private companion object {
-    val log: Logger = LoggerFactory.getLogger(this::class.java)
+    private val log = LoggerFactory.getLogger(this::class.java)
   }
 
   @SqsListener(OFFENDER_EVENTS_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
-  @WithSpan(value = "hmpps-person-record-cpr_delius_offender_events_queue", kind = SpanKind.SERVER)
+  @WithSpan(value = "hmpps-person-record-cpr_delius_offender_events_queue", kind = SERVER)
   fun onDomainEvent(
     rawMessage: String,
   ) {
-    log.debug("Enter onDomainEvent")
+    if (featureFlag.isDeliusDomainEventSQSDisabled()) {
+      log.debug("Domain event processing switched off.")
+      return
+    }
+
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-    if (featureFlag.isDeliusDomainEventSQSEnabled()) {
-      when (sqsMessage.type) {
-        "Notification" -> {
-          val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
-          log.debug("Received message: type:${domainEvent.eventType}")
 
-          try {
-            getEventProcessor(domainEvent).process(domainEvent)
-          } catch (e: FeignException.NotFound) {
-            log.info("Discarding message for status code: ${e.status()}")
-          } catch (e: Exception) {
-            log.error("Failed to process known domain event type:${domainEvent.eventType}", e)
-            throw e
-          }
-        }
+    when (sqsMessage.type) {
+      "Notification" -> {
+        val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
+        log.debug("Received message: type:${domainEvent.eventType}")
 
-        else -> {
-          log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
+        try {
+          getEventProcessor(domainEvent).process(domainEvent)
+        } catch (e: FeignException.NotFound) {
+          log.info("Discarding message for status code: ${e.status()}")
+        } catch (e: Exception) {
+          log.error("Failed to process known domain event type:${domainEvent.eventType}", e)
+          throw e
         }
       }
-    } else {
-      log.debug("Domain event processing switched off.")
+
+      else -> {
+        log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
+      }
     }
   }
 
