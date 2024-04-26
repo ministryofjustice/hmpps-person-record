@@ -24,11 +24,6 @@ class PersonIdentifierEntity(
 
 ) {
   companion object {
-    fun new(): PersonIdentifierEntity {
-      val personIdentifierEntity = PersonIdentifierEntity(
-        personId = UUID.randomUUID(),
-      )
-      return personIdentifierEntity
-    }
+    fun new(): PersonIdentifierEntity = PersonIdentifierEntity(personId = UUID.randomUUID())
   }
 }
