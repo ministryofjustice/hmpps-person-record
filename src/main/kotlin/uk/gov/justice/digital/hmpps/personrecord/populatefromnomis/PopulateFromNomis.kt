@@ -15,14 +15,14 @@ import uk.gov.justice.digital.hmpps.personrecord.client.PrisonServiceClient
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
-import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
+import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 
 private const val OK = "OK"
 
 private const val RETRIES = 10
 private const val DELAY_MILLIS = 5000L
 
-private val retryables = listOf(HttpClientErrorException::class, HttpServerErrorException::class, FeignException.InternalServerError::class)
+private val retryables = listOf(HttpClientErrorException::class, HttpServerErrorException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class)
 
 @RestController
 class PopulateFromNomis(
@@ -50,15 +50,15 @@ class PopulateFromNomis(
 
       for (page in 1..totalPages) {
         numbers.forEach {
-          // TODO retries
-          val prisoner = prisonerSearchClient.getPrisoner(it)
-
-          val prisonerEntity = DefendantEntity(firstName = prisoner.firstName)
-          defendantRepository.save(prisonerEntity)
+          runWithRetry(retryables, RETRIES, DELAY_MILLIS) {
+            val prisoner = prisonerSearchClient.getPrisoner(it)
+            val prisonerEntity = DefendantEntity(firstName = prisoner.firstName)
+            defendantRepository.save(prisonerEntity)
+          }
         }
         // don't really like this, but it saves 1 call to getPrisonerNumbers
         if (page < totalPages) {
-          RetryExecutor.runWithRetry(retryables, RETRIES, DELAY_MILLIS) {
+          runWithRetry(retryables, RETRIES, DELAY_MILLIS) {
             numbers = prisonServiceClient.getPrisonerNumbers(PageParams(page, pageSize))!!.numbers
           }
         }
