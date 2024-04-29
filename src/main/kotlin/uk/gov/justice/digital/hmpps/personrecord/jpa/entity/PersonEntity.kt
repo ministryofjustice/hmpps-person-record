@@ -51,6 +51,10 @@ class PersonEntity(
   @JoinColumn(name = "fk_address_id", referencedColumnName = "id", nullable = true)
   var address: AddressEntity? = null,
 
+  @Column
+  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+  val contacts: MutableList<PersonContactEntity> = mutableListOf(),
+
   @Column(name = "pnc")
   @Convert(converter = PNCIdentifierConverter::class)
   val pnc: PNCIdentifier? = null,
@@ -88,15 +92,6 @@ class PersonEntity(
 
   @Column(name = "arrest_summons_number")
   val arrestSummonsNumber: String? = null,
-
-  @Column(name = "telephone_number")
-  val telephoneNumber: String? = null,
-
-  @Column(name = "mobile_number")
-  val mobileNumber: String? = null,
-
-  @Column(name = "email_address")
-  val emailAddress: String? = null,
 
   @Column(name = "date_of_birth")
   val dateOfBirth: LocalDate? = null,
@@ -136,9 +131,6 @@ class PersonEntity(
         arrestSummonsNumber = person.arrestSummonsNumber,
         masterDefendantId = person.masterDefendantId,
         nationalInsuranceNumber = person.nationalInsuranceNumber,
-        emailAddress = person.primaryEmail,
-        telephoneNumber = person.homePhone,
-        mobileNumber = person.mobile,
         sourceSystem = person.sourceSystemType,
       )
       return personEntity
