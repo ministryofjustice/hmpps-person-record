@@ -29,7 +29,7 @@ class PersonEntity(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
 
-  @Column(name = "title")
+  @Column
   val title: String? = null,
 
   @Column(name = "first_name")
@@ -42,22 +42,22 @@ class PersonEntity(
   val middleNames: String? = null,
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
   val aliases: MutableList<PersonAliasEntity> = mutableListOf(),
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
   var addresses: MutableList<PersonAddressEntity> = mutableListOf(),
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
   val contacts: MutableList<PersonContactEntity> = mutableListOf(),
 
-  @Column(name = "pnc")
+  @Column
   @Convert(converter = PNCIdentifierConverter::class)
   val pnc: PNCIdentifier? = null,
 
-  @Column(name = "crn")
+  @Column
   val crn: String? = null,
 
   @Column(name = "prison_number")
@@ -75,11 +75,11 @@ class PersonEntity(
   @Column(name = "master_defendant_id")
   val masterDefendantId: String? = null,
 
-  @Column(name = "cro")
+  @Column
   @Convert(converter = CROIdentifierConverter::class)
   val cro: CROIdentifier? = null,
 
-  @Column(name = "fingerprint")
+  @Column
   val fingerprint: Boolean = false,
 
   @Column(name = "national_insurance_number")

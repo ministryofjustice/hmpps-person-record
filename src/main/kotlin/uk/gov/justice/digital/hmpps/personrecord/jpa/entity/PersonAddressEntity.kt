@@ -27,7 +27,7 @@ class PersonAddressEntity(
   )
   var person: PersonEntity,
 
-  @Column(name = "postcode")
+  @Column
   val postcode: String? = null,
 
   @Version
