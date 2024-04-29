@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import java.time.LocalDate
 
 internal class DefendantEntityTest {
@@ -35,7 +36,7 @@ internal class DefendantEntityTest {
       addressLineFour = "addressLine4",
       addressLineFive = "addressLine5",
       postcode = "postCode",
-
+      sourceSystemType = SourceSystemType.HMCTS,
     )
     // when
     val defendantEntity = DefendantEntity.from(person)
