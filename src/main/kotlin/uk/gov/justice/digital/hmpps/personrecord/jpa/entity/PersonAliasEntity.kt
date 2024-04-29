@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import java.time.LocalDate
 
 @Entity
 @Table(name = "person_alias")
@@ -36,7 +37,10 @@ class PersonAliasEntity(
   @Column(name = "last_name")
   val lastname: String? = null,
 
+  @Column(name = "date_of_birth")
+  val dateOfBirth: LocalDate? = null,
+
   @Version
   var version: Int = 0,
 
-)
+  )

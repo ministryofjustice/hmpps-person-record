@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS person_alias
     first_name                              TEXT        DEFAULT NULL,
     middle_names                            TEXT        DEFAULT NULL,
     last_name                               TEXT        DEFAULT NULL,
+    date_of_birth                           DATE        DEFAULT NULL,
     version                                 int4        NOT NULL DEFAULT 0,
     fk_person_id                            bigInt      NOT NULL
 );
