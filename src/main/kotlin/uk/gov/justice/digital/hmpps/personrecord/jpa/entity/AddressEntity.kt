@@ -33,14 +33,8 @@ class AddressEntity(
   @Column(name = "address_line_five")
   val addressLineFive: String? = null,
 
-  @Column(name = "address_line_six")
-  val addressLineSix: String? = null,
-
   @Column(name = "postcode")
   val postcode: String? = null,
-
-  @Column(name = "address_line_eight")
-  val addressLineEight: String? = null,
 
   @Version
   var version: Int = 0,
@@ -54,9 +48,7 @@ class AddressEntity(
           addressLineThree = person.addressLineThree,
           addressLineFour = person.addressLineFour,
           addressLineFive = person.addressLineFive,
-          addressLineSix = person.addressLineSix,
           postcode = person.postcode,
-          addressLineEight = person.addressLineEight,
         )
       } else {
         null

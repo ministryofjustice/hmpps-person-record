@@ -10,9 +10,7 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToMany
-import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.CROIdentifierConverter
@@ -47,9 +45,9 @@ class PersonEntity(
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
   val aliases: MutableList<PersonAliasEntity> = mutableListOf(),
 
-  @OneToOne(cascade = [CascadeType.ALL])
-  @JoinColumn(name = "fk_address_id", referencedColumnName = "id", nullable = true)
-  var address: AddressEntity? = null,
+  @Column
+  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+  var addresses: MutableList<PersonAddressEntity> = mutableListOf(),
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)

@@ -10,11 +10,10 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
-import java.time.LocalDate
 
 @Entity
-@Table(name = "person_alias")
-class PersonAliasEntity(
+@Table(name = "person_address")
+class PersonAddressEntity(
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,19 +27,9 @@ class PersonAliasEntity(
   )
   var person: PersonEntity,
 
-  @Column(name = "first_name")
-  val firstName: String? = null,
-
-  @Column(name = "middle_names")
-  val middleNames: String? = null,
-
-  @Column(name = "last_name")
-  val lastname: String? = null,
-
-  @Column(name = "date_of_birth")
-  val dateOfBirth: LocalDate? = null,
+  @Column(name = "postcode")
+  val postcode: String? = null,
 
   @Version
   var version: Int = 0,
-
 )
