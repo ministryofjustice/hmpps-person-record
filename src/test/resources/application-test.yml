@@ -70,3 +70,6 @@ hmpps.sqs:
       read-timeout: 5000
       default-request-headers:
         Accept: application/json
+
+populate-from-nomis:
+    page-size: 1
