@@ -35,6 +35,7 @@ class AddressEntity(
 
   @Column(name = "postcode")
   val postcode: String? = null,
+
   @Version
   var version: Int = 0,
 ) {
