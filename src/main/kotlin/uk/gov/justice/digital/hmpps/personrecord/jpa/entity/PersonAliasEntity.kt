@@ -27,14 +27,14 @@ class PersonAliasEntity (
   )
   var person: PersonEntity,
 
-  @Column
+  @Column(name = "first_name")
   val firstName: String? = null,
 
-  @Column
+  @Column(name = "middle_names")
   val middleNames: String? = null,
 
-  @Column
-  val surname: String? = null,
+  @Column(name = "last_name")
+  val lastname: String? = null,
 
   @Version
   var version: Int = 0,

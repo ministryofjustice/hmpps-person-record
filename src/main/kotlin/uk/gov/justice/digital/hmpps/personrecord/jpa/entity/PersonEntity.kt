@@ -31,16 +31,16 @@ class PersonEntity(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
 
-  @Column
+  @Column(name = "title")
   val title: String? = null,
 
-  @Column
+  @Column(name = "first_name")
   val firstName: String? = null,
 
-  @Column
+  @Column(name = "last_name")
   val lastName: String? = null,
 
-  @Column
+  @Column(name = "middle_names")
   val middleNames: String? = null,
 
   @Column
@@ -51,60 +51,60 @@ class PersonEntity(
   @JoinColumn(name = "fk_address_id", referencedColumnName = "id", nullable = true)
   var address: AddressEntity? = null,
 
-  @Column
+  @Column(name = "pnc")
   @Convert(converter = PNCIdentifierConverter::class)
   val pnc: PNCIdentifier? = null,
 
-  @Column
+  @Column(name = "crn")
   val crn: String? = null,
 
-  @Column
+  @Column(name = "prison_number")
   val prisonNumber: String? = null,
 
-  @Column
+  @Column(name = "most_recent_prisoner_number")
   val mostRecentPrisonerNumber: String? = null,
 
-  @Column
+  @Column(name = "offender_id")
   val offenderId: String? = null,
 
-  @Column
+  @Column(name = "defendant_id")
   val defendantId: String? = null,
 
-  @Column
+  @Column(name = "master_defendant_id")
   val masterDefendantId: String? = null,
 
-  @Column
+  @Column(name = "cro")
   @Convert(converter = CROIdentifierConverter::class)
   val cro: CROIdentifier? = null,
 
-  @Column
+  @Column(name = "fingerprint")
   val fingerprint: Boolean = false,
 
-  @Column
+  @Column(name = "national_insurance_number")
   val nationalInsuranceNumber: String? = null,
 
-  @Column
+  @Column(name = "driver_license_number")
   val driverLicenseNumber: String? = null,
 
-  @Column
+  @Column(name = "arrest_summons_number")
   val arrestSummonsNumber: String? = null,
 
-  @Column
+  @Column(name = "telephone_number")
   val telephoneNumber: String? = null,
 
-  @Column
+  @Column(name = "mobile_number")
   val mobileNumber: String? = null,
 
-  @Column
+  @Column(name = "email_address")
   val emailAddress: String? = null,
 
-  @Column
+  @Column(name = "date_of_birth")
   val dateOfBirth: LocalDate? = null,
 
-  @Column
+  @Column(name = "birth_place")
   val birthPlace: String? = null,
 
-  @Column
+  @Column(name = "birth_country")
   val birthCountry: String? = null,
 
   @Column
