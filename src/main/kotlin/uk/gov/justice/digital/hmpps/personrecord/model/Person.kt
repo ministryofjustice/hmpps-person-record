@@ -54,7 +54,7 @@ data class Person(
   val mobile: String? = null,
   val workPhone: String? = null,
   val primaryEmail: String? = null,
-  val sourceSystemType: SourceSystemType
+  val sourceSystemType: SourceSystemType,
 ) {
   companion object {
 
@@ -74,7 +74,7 @@ data class Person(
           pncIdentifier = PNCIdentifier.from(offenderDetail.otherIds.pncNumber),
           prisonNumber = offenderDetail.otherIds.nomsNumber,
         ),
-        sourceSystemType = SourceSystemType.DELIUS
+        sourceSystemType = SourceSystemType.DELIUS,
       )
     }
 
@@ -108,7 +108,7 @@ data class Person(
         mobile = defendant.personDefendant?.personDetails?.contact?.mobile,
         primaryEmail = defendant.personDefendant?.personDetails?.contact?.primaryEmail,
         personAliases = defendant.aliases?.map { PersonAlias.from(it) } ?: emptyList(),
-        sourceSystemType = SourceSystemType.HMCTS
+        sourceSystemType = SourceSystemType.HMCTS,
       )
     }
 
@@ -121,7 +121,7 @@ data class Person(
         givenName = libraHearingEvent.name?.forename1,
         familyName = libraHearingEvent.name?.surname,
         dateOfBirth = libraHearingEvent.defendantDob,
-        sourceSystemType = SourceSystemType.HMCTS
+        sourceSystemType = SourceSystemType.HMCTS,
       )
     }
   }

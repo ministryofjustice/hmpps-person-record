@@ -56,7 +56,7 @@ class AddressEntity(
           addressLineFive = person.addressLineFive,
           addressLineSix = person.addressLineSix,
           postcode = person.postcode,
-          addressLineEight = person.addressLineEight
+          addressLineEight = person.addressLineEight,
         )
       } else {
         null

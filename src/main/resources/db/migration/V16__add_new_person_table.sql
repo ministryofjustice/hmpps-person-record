@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS person
     birth_place                             TEXT        DEFAULT NULL,
     birth_country                           TEXT        DEFAULT NULL,
     source_system                           int4        DEFAULT NULL,
-    version                                 int4        NOT NULL DEFAULT 0,
+    version                                 int4        NOT NULL DEFAULT 0
 );
 
 COMMIT;

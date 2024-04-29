@@ -45,7 +45,7 @@ class PersonEntity(
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
-  val aliases:  MutableList<PersonAliasEntity> = mutableListOf(),
+  val aliases: MutableList<PersonAliasEntity> = mutableListOf(),
 
   @OneToOne(cascade = [CascadeType.ALL])
   @JoinColumn(name = "fk_address_id", referencedColumnName = "id", nullable = true)

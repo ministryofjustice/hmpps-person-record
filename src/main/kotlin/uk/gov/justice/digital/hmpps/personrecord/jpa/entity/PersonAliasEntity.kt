@@ -13,7 +13,7 @@ import jakarta.persistence.Version
 
 @Entity
 @Table(name = "person_alias")
-class PersonAliasEntity (
+class PersonAliasEntity(
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
