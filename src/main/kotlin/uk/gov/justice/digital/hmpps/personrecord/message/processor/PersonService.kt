@@ -18,24 +18,38 @@ class PersonService(
   private val telemetryService: TelemetryService,
 ) {
 
-  companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
+  fun processPerson(person: Person) {
+    validateCro(person)
+    val existingPersonEntity: PersonEntity? = getPersonEntityBySourceSystem(person)
+    handlePerson(existingPersonEntity, person)
   }
 
-  fun processPerson(person: Person) {
-    if (person.otherIdentifiers?.croIdentifier?.valid == false) {
-      trackEvent(TelemetryEventType.INVALID_CRO, mapOf("CRO" to person.otherIdentifiers.croIdentifier.inputCro))
+  private fun handlePerson(
+    existingPersonEntity: PersonEntity?,
+    person: Person,
+  ) {
+    if (existingPersonEntity != null) {
+      updatePersonEntity(person, existingPersonEntity)
+    } else {
+      createPersonEntity(person)
     }
+  }
+
+  private fun getPersonEntityBySourceSystem(person: Person): PersonEntity? {
     val existingPersonEntity: PersonEntity? = when (person.sourceSystemType) {
       SourceSystemType.HMCTS -> person.defendantId?.let { personRepository.findByDefendantId(it) }
       SourceSystemType.NOMIS -> TODO()
       SourceSystemType.DELIUS -> TODO()
       SourceSystemType.CPR -> TODO()
     }
-    if (existingPersonEntity != null) {
-      updatePersonEntity(person, existingPersonEntity)
-    } else {
-      createPersonEntity(person)
+    return existingPersonEntity
+  }
+
+  private fun validateCro(person: Person) {
+    person.otherIdentifiers?.croIdentifier?.let {
+      if (!it.valid) {
+        trackEvent(TelemetryEventType.INVALID_CRO, mapOf("CRO" to it.inputCro))
+      }
     }
   }
 
@@ -60,7 +74,6 @@ class PersonService(
   private fun updatePersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
     // TODO() update the entity with incoming values
     val updatedPerson = PersonEntity.from(person)
-    updatedPerson.id = personEntity.id
     personRepository.saveAndFlush(updatedPerson)
     return updatedPerson
   }

@@ -47,10 +47,5 @@ class PersonAddressEntity(
     fun fromList(personAddresses: List<PersonAddress>): List<PersonAddressEntity> {
       return personAddresses.mapNotNull { from(it) }
     }
-
-    private fun isAddressDetailsPresent(postcode: String?): Boolean {
-      return sequenceOf(postcode)
-        .filterNotNull().any { it.isNotBlank() }
-    }
   }
 }
