@@ -13,14 +13,15 @@ import org.springframework.web.client.HttpServerErrorException
 import uk.gov.justice.digital.hmpps.personrecord.client.PageParams
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonServiceClient
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.DefendantEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 
 private const val OK = "OK"
 
 private const val RETRIES = 10
-private const val DELAY_MILLIS = 5000L
+private const val DELAY_MILLIS = 3000L
 
 private val retryables = listOf(HttpClientErrorException::class, HttpServerErrorException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class)
 
@@ -29,7 +30,7 @@ class PopulateFromNomis(
   val prisonerSearchClient: PrisonerSearchClient,
   val prisonServiceClient: PrisonServiceClient,
   @Value("\${populate-from-nomis.page-size}") val pageSize: Int,
-  val defendantRepository: DefendantRepository,
+  val repository: PersonRepository,
 ) {
 
   @RequestMapping(method = [RequestMethod.POST], value = ["/populatefromnomis"])
@@ -51,8 +52,8 @@ class PopulateFromNomis(
         numbers.forEach {
           runWithRetry(retryables, RETRIES, DELAY_MILLIS) {
             val prisoner = prisonerSearchClient.getPrisoner(it)
-            val prisonerEntity = DefendantEntity(firstName = prisoner.firstName)
-            defendantRepository.save(prisonerEntity)
+            val person = PersonEntity(firstName = prisoner.firstName, sourceSystem = NOMIS)
+            repository.save(person)
           }
         }
         // don't really like this, but it saves 1 call to getPrisonerNumbers

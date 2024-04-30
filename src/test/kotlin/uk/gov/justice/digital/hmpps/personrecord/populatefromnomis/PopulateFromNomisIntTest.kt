@@ -22,9 +22,9 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
     // will have to change to personrepository but this will be near enough
 
     await.atMost(15, SECONDS) untilAsserted {
-      assertThat(defendantRepository.findAll().size).isEqualTo(7)
+      assertThat(personRepository.findAll().size).isEqualTo(7)
     }
-    val prisoners = defendantRepository.findAll()
+    val prisoners = personRepository.findAll()
     assertThat(prisoners[0].firstName).isEqualTo("PrisonerOneFirstName")
     assertThat(prisoners[1].firstName).isEqualTo("PrisonerTwoFirstName")
     assertThat(prisoners[2].firstName).isEqualTo("PrisonerThreeFirstName")
@@ -81,9 +81,9 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
       .isOk
 
     await.atMost(15, SECONDS) untilAsserted {
-      assertThat(defendantRepository.findAll().size).isEqualTo(7)
+      assertThat(personRepository.findAll().size).isEqualTo(7)
     }
-    val prisoners = defendantRepository.findAll()
+    val prisoners = personRepository.findAll()
     assertThat(prisoners[0].firstName).isEqualTo("PrisonerOneFirstName")
     assertThat(prisoners[1].firstName).isEqualTo("PrisonerTwoFirstName")
     assertThat(prisoners[2].firstName).isEqualTo("PrisonerThreeFirstName")
@@ -127,9 +127,9 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
       .isOk
 
     await.atMost(15, SECONDS) untilAsserted {
-      assertThat(defendantRepository.findAll().size).isEqualTo(7)
+      assertThat(personRepository.findAll().size).isEqualTo(7)
     }
-    val prisoners = defendantRepository.findAll()
+    val prisoners = personRepository.findAll()
     assertThat(prisoners[0].firstName).isEqualTo("PrisonerOneFirstName")
     assertThat(prisoners[1].firstName).isEqualTo("PrisonerTwoFirstName")
     assertThat(prisoners[2].firstName).isEqualTo("PrisonerThreeFirstName")
