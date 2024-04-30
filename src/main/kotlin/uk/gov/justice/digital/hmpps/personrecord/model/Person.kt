@@ -70,37 +70,15 @@ data class Person(
     }
 
     fun from(defendant: Defendant): Person {
-      val contacts: MutableList<PersonContact> = mutableListOf()
-
-      defendant.personDefendant?.personDetails?.contact?.home.let {
-        contacts.add(
-          PersonContact(
-            contactType = ContactType.HOME,
-            contactValue = defendant.personDefendant?.personDetails?.contact?.home,
-          ),
-        )
-      }
-
-      defendant.personDefendant?.personDetails?.contact?.mobile.let {
-        contacts.add(
-          PersonContact(
-            contactType = ContactType.MOBILE,
-            contactValue = defendant.personDefendant?.personDetails?.contact?.mobile,
-          ),
-        )
-      }
-
-      defendant.personDefendant?.personDetails?.contact?.primaryEmail.let {
-        contacts.add(
-          PersonContact(
-            contactType = ContactType.EMAIL,
-            contactValue = defendant.personDefendant?.personDetails?.contact?.primaryEmail,
-          ),
-        )
-      }
+      val contacts: List<PersonContact> = buildContacts(
+        listOf(
+          Pair(ContactType.HOME, defendant.personDefendant?.personDetails?.contact?.home),
+          Pair(ContactType.MOBILE, defendant.personDefendant?.personDetails?.contact?.mobile),
+          Pair(ContactType.EMAIL, defendant.personDefendant?.personDetails?.contact?.primaryEmail),
+        ),
+      )
 
       val address: MutableList<PersonAddress> = mutableListOf()
-
       defendant.personDefendant?.personDetails?.address?.postcode.let {
         address.add(
           PersonAddress(
@@ -109,7 +87,7 @@ data class Person(
         )
       }
 
-      val person = Person(
+      return Person(
         otherIdentifiers = OtherIdentifiers(
           pncIdentifier = PNCIdentifier.from(defendant.pncId),
           croIdentifier = CROIdentifier.from(defendant.croNumber),
@@ -132,7 +110,6 @@ data class Person(
         personAliases = defendant.aliases?.map { PersonAlias.from(it) } ?: emptyList(),
         sourceSystemType = SourceSystemType.HMCTS,
       )
-      return person
     }
 
     fun from(libraHearingEvent: LibraHearingEvent): Person {
@@ -146,6 +123,10 @@ data class Person(
         dateOfBirth = libraHearingEvent.defendantDob,
         sourceSystemType = SourceSystemType.HMCTS,
       )
+    }
+
+    private fun buildContacts(contacts: List<Pair<ContactType, String?>>): List<PersonContact> {
+      return contacts.filter { !it.second.isNullOrEmpty() }.map { PersonContact(it.first, it.second) }
     }
   }
 }

@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processor
 
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonAddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonAliasEntity

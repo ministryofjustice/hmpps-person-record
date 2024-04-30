@@ -8,5 +8,5 @@ enum class TelemetryEventType(val eventName: String) {
   NEW_DELIUS_RECORD_NEW_PNC("CprNDeliusNewRecordCreated"),
   MATCH_CALL_FAILED("CprMatchCallFailed"),
   INVALID_CRO("CprCroInvalid"),
-  CPR_RECORD_CREATED("CprRecordCreated")
+  CPR_RECORD_CREATED("CprRecordCreated"),
 }
