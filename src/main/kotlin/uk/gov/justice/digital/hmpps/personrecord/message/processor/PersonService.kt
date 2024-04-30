@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
@@ -17,33 +16,37 @@ class PersonService(
   private val telemetryService: TelemetryService,
 ) {
 
-  fun processPerson(person: Person) {
-    val existingPersonEntity: PersonEntity? = getPersonEntityBySourceSystem(person)
-    handlePerson(existingPersonEntity, person)
+  fun processPerson(person: Person, callback: () -> PersonEntity?) {
+    val existingPersonEntity: PersonEntity? = callback()
+    handlePerson(person, existingPersonEntity)
   }
 
-  private fun handlePerson(
-    existingPersonEntity: PersonEntity?,
-    person: Person,
-  ) {
-    if (existingPersonEntity != null) {
-      updateExistingPersonEntity(person, existingPersonEntity)
-      trackEvent(TelemetryEventType.CPR_RECORD_UPDATED, mapOf("SourceSystem" to existingPersonEntity.sourceSystem.name))
-    } else {
-      createPersonEntity(person)
-      trackEvent(TelemetryEventType.CPR_RECORD_CREATED, mapOf("SourceSystem" to person.sourceSystemType.name))
+  private fun handlePerson(person: Person, existingPersonEntity: PersonEntity?) {
+    when {
+      (existingPersonEntity == null) -> handlePersonCreation(person)
+      else -> handlePersonUpdate(person, existingPersonEntity)
     }
   }
 
-  private fun getPersonEntityBySourceSystem(person: Person): PersonEntity? {
-    val existingPersonEntity: PersonEntity? = when (person.sourceSystemType) {
-      SourceSystemType.HMCTS -> person.defendantId?.let { personRepository.findByDefendantId(it) }
-      SourceSystemType.NOMIS -> TODO()
-      SourceSystemType.DELIUS -> TODO()
-      SourceSystemType.CPR -> TODO()
-    }
-    return existingPersonEntity
+  private fun handlePersonCreation(person: Person) {
+    createPersonEntity(person)
+    trackEvent(TelemetryEventType.CPR_RECORD_CREATED, mapOf("SourceSystem" to person.sourceSystemType.name))
   }
+
+  private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity) {
+    updateExistingPersonEntity(person, existingPersonEntity)
+    trackEvent(TelemetryEventType.CPR_RECORD_UPDATED, mapOf("SourceSystem" to existingPersonEntity.sourceSystem.name))
+  }
+
+//  private fun getPersonEntityBySourceSystem(person: Person): PersonEntity? {
+//    val existingPersonEntity: PersonEntity? = when (person.sourceSystemType) {
+//      SourceSystemType.HMCTS -> person.defendantId?.let { personRepository.findByDefendantId(it) }
+//      SourceSystemType.NOMIS -> TODO()
+//      SourceSystemType.DELIUS -> TODO()
+//      SourceSystemType.CPR -> TODO()
+//    }
+//    return existingPersonEntity
+//  }
 
   private fun createPersonEntity(person: Person): PersonEntity {
     val newPersonEntity = PersonEntity.from(person)

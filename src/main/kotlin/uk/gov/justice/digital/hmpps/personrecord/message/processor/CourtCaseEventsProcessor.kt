@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.dao.CannotAcquireLockException
 import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
@@ -20,6 +21,7 @@ class CourtCaseEventsProcessor(
   private val objectMapper: ObjectMapper,
   private val personService: PersonService,
   private val telemetryService: TelemetryService,
+  private val personRepository: PersonRepository,
 ) {
 
   companion object {
@@ -69,7 +71,9 @@ class CourtCaseEventsProcessor(
         HMCTS_MESSAGE_RECEIVED,
         mapOf("PNC" to person.otherIdentifiers?.pncIdentifier.toString(), "CRO" to person.otherIdentifiers?.croIdentifier.toString()),
       )
-      personService.processPerson(person)
+      personService.processPerson(person) {
+        person.defendantId?.let { personRepository.findByDefendantId(it) }
+      }
     } catch (e: Exception) {
       when (e) {
         is CannotAcquireLockException, is JpaSystemException -> {
