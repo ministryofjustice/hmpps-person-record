@@ -134,6 +134,4 @@ data class OtherIdentifiers(
   val croIdentifier: CROIdentifier? = null,
   @Schema(description = "Prisoner Number")
   var prisonNumber: String? = null,
-  @Schema(description = "Most recent prisoner number")
-  var mostRecentPrisonerNumber: String? = null,
 )
