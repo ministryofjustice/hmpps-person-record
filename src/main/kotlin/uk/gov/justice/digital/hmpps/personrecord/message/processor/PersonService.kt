@@ -29,9 +29,10 @@ class PersonService(
     person: Person,
   ) {
     if (existingPersonEntity != null) {
-      updatePersonEntity(person, existingPersonEntity)
+      updateExistingPersonEntity(person, existingPersonEntity)
     } else {
       createPersonEntity(person)
+      trackEvent(TelemetryEventType.CPR_RECORD_CREATED, mapOf("SourceSystem" to person.sourceSystemType.name))
     }
   }
 
@@ -55,28 +56,39 @@ class PersonService(
 
   private fun createPersonEntity(person: Person): PersonEntity {
     val newPersonEntity = PersonEntity.from(person)
-
-    val personAddresses = PersonAddressEntity.fromList(person.address)
-    personAddresses.forEach { personAddressEntity -> personAddressEntity.person = newPersonEntity }
-    newPersonEntity.addresses.addAll(personAddresses)
-
-    val personAliases = PersonAliasEntity.fromList(person.personAliases)
-    personAliases.forEach { personAliasEntity -> personAliasEntity.person = newPersonEntity }
-    newPersonEntity.aliases.addAll(personAliases)
-
-    val personContacts = PersonContactEntity.fromList(person.contacts)
-    personContacts.forEach { personContactEntity -> personContactEntity.person = newPersonEntity }
-    newPersonEntity.contacts.addAll(personContacts)
-
+    updatePersonAddresses(person, newPersonEntity)
+    updatePersonAliases(person, newPersonEntity)
+    updatePersonContacts(person, newPersonEntity)
     return personRepository.saveAndFlush(newPersonEntity)
   }
 
-  private fun updatePersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
-    // TODO() update the entity with incoming values
-    val updatedPerson = PersonEntity.from(person)
-    updatedPerson.id = personEntity.id
-    personRepository.saveAndFlush(updatedPerson)
-    return updatedPerson
+  private fun updatePersonAddresses(person: Person, personEntity: PersonEntity) {
+    personEntity.addresses.clear()
+    val personAddresses = PersonAddressEntity.fromList(person.address)
+    personAddresses.forEach { personAddressEntity -> personAddressEntity.person = personEntity }
+    personEntity.addresses.addAll(personAddresses)
+  }
+
+  private fun updatePersonAliases(person: Person, personEntity: PersonEntity) {
+    personEntity.aliases.clear()
+    val personAliases = PersonAliasEntity.fromList(person.personAliases)
+    personAliases.forEach { personAliasEntity -> personAliasEntity.person = personEntity }
+    personEntity.aliases.addAll(personAliases)
+  }
+
+  private fun updatePersonContacts(person: Person, personEntity: PersonEntity) {
+    personEntity.contacts.clear()
+    val personContacts = PersonContactEntity.fromList(person.contacts)
+    personContacts.forEach { personContactEntity -> personContactEntity.person = personEntity }
+    personEntity.contacts.addAll(personContacts)
+  }
+
+  private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
+    val updatedPersonEntity = personEntity.update(person)
+    updatePersonAddresses(person, updatedPersonEntity)
+    updatePersonAliases(person, updatedPersonEntity)
+    updatePersonContacts(person, updatedPersonEntity)
+    return personRepository.saveAndFlush(updatedPersonEntity)
   }
 
   private fun trackEvent(

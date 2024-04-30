@@ -30,72 +30,72 @@ class PersonEntity(
   var id: Long? = null,
 
   @Column
-  val title: String? = null,
+  var title: String? = null,
 
   @Column(name = "first_name")
-  val firstName: String? = null,
+  var firstName: String? = null,
 
   @Column(name = "last_name")
-  val lastName: String? = null,
+  var lastName: String? = null,
 
   @Column(name = "middle_names")
-  val middleNames: String? = null,
+  var middleNames: String? = null,
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
   var aliases: MutableList<PersonAliasEntity> = mutableListOf(),
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
   var addresses: MutableList<PersonAddressEntity> = mutableListOf(),
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
   var contacts: MutableList<PersonContactEntity> = mutableListOf(),
 
   @Column
   @Convert(converter = PNCIdentifierConverter::class)
-  val pnc: PNCIdentifier? = null,
+  var pnc: PNCIdentifier? = null,
 
   @Column
-  val crn: String? = null,
+  var crn: String? = null,
 
   @Column(name = "prison_number")
-  val prisonNumber: String? = null,
+  var prisonNumber: String? = null,
 
   @Column(name = "offender_id")
   val offenderId: String? = null,
 
   @Column(name = "defendant_id")
-  val defendantId: String? = null,
+  var defendantId: String? = null,
 
   @Column(name = "master_defendant_id")
-  val masterDefendantId: String? = null,
+  var masterDefendantId: String? = null,
 
   @Column
   @Convert(converter = CROIdentifierConverter::class)
-  val cro: CROIdentifier? = null,
+  var cro: CROIdentifier? = null,
 
   @Column
-  val fingerprint: Boolean = false,
+  var fingerprint: Boolean = false,
 
   @Column(name = "national_insurance_number")
-  val nationalInsuranceNumber: String? = null,
+  var nationalInsuranceNumber: String? = null,
 
   @Column(name = "driver_license_number")
-  val driverLicenseNumber: String? = null,
+  var driverLicenseNumber: String? = null,
 
   @Column(name = "arrest_summons_number")
-  val arrestSummonsNumber: String? = null,
+  var arrestSummonsNumber: String? = null,
 
   @Column(name = "date_of_birth")
-  val dateOfBirth: LocalDate? = null,
+  var dateOfBirth: LocalDate? = null,
 
   @Column(name = "birth_place")
-  val birthPlace: String? = null,
+  var birthPlace: String? = null,
 
   @Column(name = "birth_country")
-  val birthCountry: String? = null,
+  var birthCountry: String? = null,
 
   @Column
   @Enumerated(EnumType.ORDINAL)
@@ -105,6 +105,27 @@ class PersonEntity(
   var version: Int = 0,
 
 ) {
+  fun update(person: Person): PersonEntity {
+    this.title = person.title
+    this.firstName = person.givenName
+    this.middleNames = person.middleNames?.joinToString(" ") { it }
+    this.lastName = person.familyName
+    this.dateOfBirth = person.dateOfBirth
+    this.birthPlace = person.birthPlace
+    this.birthCountry = person.birthCountry
+    this.defendantId = person.defendantId
+    this.pnc = person.otherIdentifiers?.pncIdentifier
+    this.crn = person.otherIdentifiers?.crn
+    this.cro = person.otherIdentifiers?.croIdentifier
+    this.fingerprint = person.otherIdentifiers?.croIdentifier?.fingerprint ?: false
+    this.prisonNumber = person.otherIdentifiers?.prisonNumber
+    this.driverLicenseNumber = person.driverNumber
+    this.arrestSummonsNumber = person.arrestSummonsNumber
+    this.masterDefendantId = person.masterDefendantId
+    this.nationalInsuranceNumber = person.nationalInsuranceNumber
+    return this
+  }
+
   companion object {
     fun from(person: Person): PersonEntity {
       val personEntity = PersonEntity(
