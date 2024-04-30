@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defe
 data class PersonAlias(
   val firstName: String? = null,
   val lastName: String? = null,
-  val middleName: String? = null,
+  val middleNames: String? = null,
 ) {
   companion object {
 
@@ -13,7 +13,7 @@ data class PersonAlias(
       return PersonAlias(
         firstName = defendantAlias.firstName,
         lastName = defendantAlias.lastName,
-        middleName = defendantAlias.middleName,
+        middleNames = defendantAlias.middleName,
       )
     }
   }

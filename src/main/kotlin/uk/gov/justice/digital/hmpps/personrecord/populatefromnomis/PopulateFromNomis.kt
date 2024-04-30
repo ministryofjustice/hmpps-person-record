@@ -52,8 +52,8 @@ class PopulateFromNomis(
           runWithRetry(retryables, retries, delayMillis) {
             val prisoner = prisonerSearchClient.getPrisoner(it)
             val person = Person.from(prisoner)
-
-            repository.saveAndFlush(PersonEntity.from(person))
+            val personToSave = PersonEntity.from(person)
+            repository.saveAndFlush(personToSave)
           }
         }
         // don't really like this, but it saves 1 call to getPrisonerNumbers

@@ -42,10 +42,10 @@ class DefendantAliasEntity(
 
   companion object {
     private fun from(personAlias: PersonAlias): DefendantAliasEntity? {
-      return if (isAliasPresent(personAlias.firstName, personAlias.middleName, personAlias.lastName)) {
+      return if (isAliasPresent(personAlias.firstName, personAlias.middleNames, personAlias.lastName)) {
         DefendantAliasEntity(
           firstName = personAlias.firstName,
-          middleName = personAlias.middleName,
+          middleName = personAlias.middleNames,
           surname = personAlias.lastName,
         )
       } else {

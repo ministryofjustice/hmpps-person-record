@@ -6,6 +6,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Test
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
@@ -15,14 +16,13 @@ import java.util.concurrent.TimeUnit.SECONDS
 class PopulateFromNomisIntTest : IntegrationTestBase() {
 
   @Test
+  @Transactional
   fun `populate from nomis`() {
     webTestClient.post()
       .uri("/populatefromnomis")
       .exchange()
       .expectStatus()
       .isOk
-
-    // will have to change to personrepository but this will be near enough
 
     await.atMost(15, SECONDS) untilAsserted {
       assertThat(personRepository.findAll().size).isEqualTo(7)
@@ -35,7 +35,10 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
     assertThat(prisoner.pnc).isEqualTo(PNCIdentifier.from("2012/394773H"))
     assertThat(prisoner.cro).isEqualTo(CROIdentifier.from("29906/12J"))
     assertThat(prisoner.dateOfBirth).isEqualTo(LocalDate.of(1975, 4, 2))
-
+    // TODO once aliases have been added to Person
+    // val aliases = listOf(PersonAlias(firstName = "PrisonerOneAliasOneFirstName", middleNames = "PrisonerOneAliasOneMiddleNameOne PrisonerOneAliasOneMiddleNameTwo", lastName = "PrisonerOneAliasOneLastName"),
+    //  PersonAlias(firstName = "PrisonerOneAliasTwoFirstName", middleNames = "PrisonerOneAliasTwoMiddleNameOne PrisonerOneAliasTwoMiddleNameTwo", lastName = "PrisonerOneAliasTwoLastName"))
+    // assertThat(prisoner.aliases).isEqualTo(aliases)
     assertThat(prisoners[1].firstName).isEqualTo("PrisonerTwoFirstName")
     assertThat(prisoners[2].firstName).isEqualTo("PrisonerThreeFirstName")
     assertThat(prisoners[3].firstName).isEqualTo("PrisonerFourFirstName")
