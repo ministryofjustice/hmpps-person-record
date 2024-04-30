@@ -25,7 +25,7 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
       assertThat(personRepository.findAll().size).isEqualTo(7)
     }
     val prisoners = personRepository.findAll()
-    assertThat(prisoners[0].firstName).isEqualTo("PrisonerOneFirstName")
+    assertThat(prisoners[0].prisonNumber).isEqualTo("PrisonerOnePrisonNumber")
     assertThat(prisoners[0].firstName).isEqualTo("PrisonerOneFirstName")
     assertThat(prisoners[0].middleNames).isEqualTo("PrisonerOneMiddleNameOne PrisonerOneMiddleNameTwo")
     assertThat(prisoners[1].firstName).isEqualTo("PrisonerTwoFirstName")

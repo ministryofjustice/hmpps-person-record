@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.PrisonServiceClient
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 
 private const val OK = "OK"
@@ -51,8 +51,9 @@ class PopulateFromNomis(
         numbers.forEach {
           runWithRetry(retryables, retries, delayMillis) {
             val prisoner = prisonerSearchClient.getPrisoner(it)
-            val person = PersonEntity(firstName = prisoner.firstName, middleNames = prisoner.middleNames, sourceSystem = NOMIS)
-            repository.save(person)
+            val person = Person.from(prisoner)
+
+            repository.saveAndFlush(PersonEntity.from(person))
           }
         }
         // don't really like this, but it saves 1 call to getPrisonerNumbers
