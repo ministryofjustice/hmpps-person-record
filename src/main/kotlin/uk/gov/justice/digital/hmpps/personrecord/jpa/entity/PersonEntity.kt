@@ -27,7 +27,7 @@ class PersonEntity(
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long? = null,
+  var id: Long? = null,
 
   @Column
   val title: String? = null,

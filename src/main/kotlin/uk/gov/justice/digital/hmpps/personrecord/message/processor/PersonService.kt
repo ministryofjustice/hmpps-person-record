@@ -74,6 +74,7 @@ class PersonService(
   private fun updatePersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
     // TODO() update the entity with incoming values
     val updatedPerson = PersonEntity.from(person)
+    updatedPerson.id = personEntity.id
     personRepository.saveAndFlush(updatedPerson)
     return updatedPerson
   }
