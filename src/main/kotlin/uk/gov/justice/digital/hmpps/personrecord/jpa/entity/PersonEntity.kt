@@ -63,9 +63,6 @@ class PersonEntity(
   @Column(name = "prison_number")
   val prisonNumber: String? = null,
 
-  @Column(name = "most_recent_prisoner_number")
-  val mostRecentPrisonerNumber: String? = null,
-
   @Column(name = "offender_id")
   val offenderId: String? = null,
 
@@ -124,7 +121,6 @@ class PersonEntity(
         cro = person.otherIdentifiers?.croIdentifier,
         fingerprint = person.otherIdentifiers?.croIdentifier?.fingerprint ?: false,
         prisonNumber = person.otherIdentifiers?.prisonNumber,
-        mostRecentPrisonerNumber = person.otherIdentifiers?.mostRecentPrisonerNumber,
         driverLicenseNumber = person.driverNumber,
         arrestSummonsNumber = person.arrestSummonsNumber,
         masterDefendantId = person.masterDefendantId,
