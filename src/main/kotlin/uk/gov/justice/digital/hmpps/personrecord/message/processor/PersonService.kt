@@ -18,7 +18,6 @@ class PersonService(
 ) {
 
   fun processPerson(person: Person) {
-    validateCro(person)
     val existingPersonEntity: PersonEntity? = getPersonEntityBySourceSystem(person)
     handlePerson(existingPersonEntity, person)
   }
@@ -44,14 +43,6 @@ class PersonService(
       SourceSystemType.CPR -> TODO()
     }
     return existingPersonEntity
-  }
-
-  private fun validateCro(person: Person) {
-    person.otherIdentifiers?.croIdentifier?.let {
-      if (!it.valid) {
-        trackEvent(TelemetryEventType.INVALID_CRO, mapOf("CRO" to it.inputCro))
-      }
-    }
   }
 
   private fun createPersonEntity(person: Person): PersonEntity {

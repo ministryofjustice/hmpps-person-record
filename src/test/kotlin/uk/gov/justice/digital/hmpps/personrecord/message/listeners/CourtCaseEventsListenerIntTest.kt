@@ -91,8 +91,8 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     } matches { it == 0 }
 
     checkTelemetry(
-      HMCTS_RECORD_CREATED,
-      mapOf("PNC" to pncNumber.pncId),
+      CPR_RECORD_CREATED,
+      mapOf("SourceSystem" to "HMCTS"),
     )
   }
 
