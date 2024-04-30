@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import uk.gov.justice.digital.hmpps.personrecord.model.PersonAddress
 
 @Entity
 @Table(name = "person_address")
@@ -25,11 +26,31 @@ class PersonAddressEntity(
     referencedColumnName = "id",
     nullable = false,
   )
-  var person: PersonEntity,
+  var person: PersonEntity? = null,
 
   @Column
   val postcode: String? = null,
 
   @Version
   var version: Int = 0,
-)
+) {
+  companion object {
+    fun from(address: PersonAddress): PersonAddressEntity? {
+      if (!address.postcode.isNullOrEmpty()) {
+        return PersonAddressEntity(
+          postcode = address.postcode,
+        )
+      }
+      return null
+    }
+
+    fun fromList(personAddresses: List<PersonAddress>): List<PersonAddressEntity> {
+      return personAddresses.mapNotNull { from(it) }
+    }
+
+    private fun isAddressDetailsPresent(postcode: String?): Boolean {
+      return sequenceOf(postcode)
+        .filterNotNull().any { it.isNotBlank() }
+    }
+  }
+}

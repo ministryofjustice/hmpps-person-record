@@ -27,7 +27,7 @@ class PersonEntity(
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long? = null,
+  var id: Long? = null,
 
   @Column
   val title: String? = null,
@@ -51,7 +51,7 @@ class PersonEntity(
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
-  val contacts: MutableList<PersonContactEntity> = mutableListOf(),
+  var contacts: MutableList<PersonContactEntity> = mutableListOf(),
 
   @Column
   @Convert(converter = PNCIdentifierConverter::class)
