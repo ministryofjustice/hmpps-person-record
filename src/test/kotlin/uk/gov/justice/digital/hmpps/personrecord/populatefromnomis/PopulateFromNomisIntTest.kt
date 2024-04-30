@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
 
 class PopulateFromNomisIntTest : IntegrationTestBase() {
@@ -33,6 +34,8 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
     assertThat(prisoner.lastName).isEqualTo("PrisonerOneLastName")
     assertThat(prisoner.pnc).isEqualTo(PNCIdentifier.from("2012/394773H"))
     assertThat(prisoner.cro).isEqualTo(CROIdentifier.from("29906/12J"))
+    assertThat(prisoner.dateOfBirth).isEqualTo(LocalDate.of(1975, 4, 2))
+
     assertThat(prisoners[1].firstName).isEqualTo("PrisonerTwoFirstName")
     assertThat(prisoners[2].firstName).isEqualTo("PrisonerThreeFirstName")
     assertThat(prisoners[3].firstName).isEqualTo("PrisonerFourFirstName")

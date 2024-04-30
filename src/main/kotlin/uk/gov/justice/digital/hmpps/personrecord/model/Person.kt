@@ -131,6 +131,7 @@ data class Person(
         givenName = prisoner.firstName,
         middleNames = prisoner.middleNames.split(" "),
         familyName = prisoner.lastName,
+        dateOfBirth = prisoner.dateOfBirth,
         sourceSystemType = NOMIS,
       )
   }
