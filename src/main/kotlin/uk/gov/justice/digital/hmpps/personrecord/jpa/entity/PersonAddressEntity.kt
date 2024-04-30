@@ -36,12 +36,10 @@ class PersonAddressEntity(
 ) {
   companion object {
     fun from(address: PersonAddress): PersonAddressEntity? {
-      if (!address.postcode.isNullOrEmpty()) {
-        return PersonAddressEntity(
-          postcode = address.postcode,
-        )
+      if (address.postcode.isNullOrEmpty()) {
+        return null
       }
-      return null
+      return PersonAddressEntity(postcode = address.postcode)
     }
 
     fun fromList(personAddresses: List<PersonAddress>): List<PersonAddressEntity> {

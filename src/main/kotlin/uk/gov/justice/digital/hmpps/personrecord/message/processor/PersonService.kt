@@ -29,6 +29,7 @@ class PersonService(
   ) {
     if (existingPersonEntity != null) {
       updateExistingPersonEntity(person, existingPersonEntity)
+      trackEvent(TelemetryEventType.CPR_RECORD_UPDATED, mapOf("SourceSystem" to existingPersonEntity.sourceSystem.name))
     } else {
       createPersonEntity(person)
       trackEvent(TelemetryEventType.CPR_RECORD_CREATED, mapOf("SourceSystem" to person.sourceSystemType.name))
@@ -55,10 +56,12 @@ class PersonService(
 
   private fun createPersonEntity(person: Person): PersonEntity {
     val newPersonEntity = PersonEntity.from(person)
-    updatePersonAddresses(person, newPersonEntity)
-    updatePersonAliases(person, newPersonEntity)
-    updatePersonContacts(person, newPersonEntity)
-    return personRepository.saveAndFlush(newPersonEntity)
+    return updateAndSavePersonEntity(person, newPersonEntity)
+  }
+
+  private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
+    val updatedPersonEntity = personEntity.update(person)
+    return updateAndSavePersonEntity(person, updatedPersonEntity)
   }
 
   private fun updatePersonAddresses(person: Person, personEntity: PersonEntity) {
@@ -82,12 +85,11 @@ class PersonService(
     personEntity.contacts.addAll(personContacts)
   }
 
-  private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
-    val updatedPersonEntity = personEntity.update(person)
-    updatePersonAddresses(person, updatedPersonEntity)
-    updatePersonAliases(person, updatedPersonEntity)
-    updatePersonContacts(person, updatedPersonEntity)
-    return personRepository.saveAndFlush(updatedPersonEntity)
+  private fun updateAndSavePersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
+    updatePersonAddresses(person, personEntity)
+    updatePersonAliases(person, personEntity)
+    updatePersonContacts(person, personEntity)
+    return personRepository.saveAndFlush(personEntity)
   }
 
   private fun trackEvent(

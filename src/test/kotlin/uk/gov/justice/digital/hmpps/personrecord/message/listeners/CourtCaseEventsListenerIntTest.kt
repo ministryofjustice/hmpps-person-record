@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_CRO
@@ -131,6 +132,11 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     val updatedPersonEntity = await.atMost(30, SECONDS) untilNotNull {
       personRepository.findByDefendantId(defendantId)
     }
+
+    checkTelemetry(
+      CPR_RECORD_UPDATED,
+      mapOf("SourceSystem" to "HMCTS"),
+    )
 
     assertThat(updatedPersonEntity.lastName).isEqualTo("Smith")
     assertThat(updatedPersonEntity.pnc).isEqualTo(PNCIdentifier.from("1981/0154257C"))

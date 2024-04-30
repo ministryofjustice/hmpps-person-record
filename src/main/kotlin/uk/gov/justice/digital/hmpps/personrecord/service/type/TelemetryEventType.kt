@@ -9,4 +9,5 @@ enum class TelemetryEventType(val eventName: String) {
   MATCH_CALL_FAILED("CprMatchCallFailed"),
   INVALID_CRO("CprCroInvalid"),
   CPR_RECORD_CREATED("CprRecordCreated"),
+  CPR_RECORD_UPDATED("CprRecordUpdated"),
 }
