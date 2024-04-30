@@ -46,16 +46,14 @@ class PersonContactEntity(
 
     private fun from(personContact: PersonContact): PersonContactEntity? {
       return if (personContact.isContactValueNullOrEmpty()) {
-         null
-      } else{
-         PersonContactEntity(contactType = personContact.contactType, contactValue = personContact.contactValue)
+        null
+      } else {
+        PersonContactEntity(contactType = personContact.contactType, contactValue = personContact.contactValue)
       }
-
     }
 
     fun fromList(personContacts: List<PersonContact>): List<PersonContactEntity> {
       return personContacts.mapNotNull { from(it) }
     }
-
   }
 }

@@ -43,7 +43,7 @@ class PersonService(
     val newPersonEntity = PersonEntity.from(person)
 
     val personAddresses = PersonAddressEntity.fromList(person.address)
-    personAddresses.forEach{ personAddressEntity -> personAddressEntity.person = newPersonEntity }
+    personAddresses.forEach { personAddressEntity -> personAddressEntity.person = newPersonEntity }
     newPersonEntity.addresses.addAll(personAddresses)
 
     val personAliases = PersonAliasEntity.fromList(person.personAliases)
@@ -51,7 +51,7 @@ class PersonService(
     newPersonEntity.aliases.addAll(personAliases)
 
     val personContacts = PersonContactEntity.fromList(person.contacts)
-    personContacts.forEach {personContactEntity -> personContactEntity.person = newPersonEntity }
+    personContacts.forEach { personContactEntity -> personContactEntity.person = newPersonEntity }
     newPersonEntity.contacts.addAll(personContacts)
 
     return personRepository.saveAndFlush(newPersonEntity)

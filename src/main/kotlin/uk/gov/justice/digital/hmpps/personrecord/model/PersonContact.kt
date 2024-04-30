@@ -8,9 +8,7 @@ class PersonContact(
   val contactValue: String? = null,
 ) {
 
-    fun isContactValueNullOrEmpty(): Boolean {
-      return contactValue.isNullOrEmpty()
-    }
+  fun isContactValueNullOrEmpty(): Boolean {
+    return contactValue.isNullOrEmpty()
   }
-
-
+}
