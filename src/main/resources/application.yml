@@ -115,3 +115,6 @@ retry:
 
 populate-from-nomis:
   page-size: 1000
+  retry:
+    delay: 3000
+    times: 10

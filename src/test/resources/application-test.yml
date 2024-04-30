@@ -73,3 +73,6 @@ hmpps.sqs:
 
 populate-from-nomis:
     page-size: 1
+    retry:
+      delay: 200
+      times: 10
