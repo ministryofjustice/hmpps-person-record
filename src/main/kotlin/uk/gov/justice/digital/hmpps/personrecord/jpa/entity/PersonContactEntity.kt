@@ -49,7 +49,7 @@ class PersonContactEntity(
     }
 
     fun fromList(personContacts: List<PersonContact>): List<PersonContactEntity> {
-      return personContacts.map { from(it) }
+      return personContacts.filterNot { it.contactValue.isNullOrEmpty() }.map { from(it) }
     }
   }
 }

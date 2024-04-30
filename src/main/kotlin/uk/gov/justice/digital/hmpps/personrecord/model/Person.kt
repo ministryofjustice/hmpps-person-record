@@ -70,12 +70,10 @@ data class Person(
     }
 
     fun from(defendant: Defendant): Person {
-      val contacts: List<PersonContact> = buildContacts(
-        listOf(
-          Pair(ContactType.HOME, defendant.personDefendant?.personDetails?.contact?.home),
-          Pair(ContactType.MOBILE, defendant.personDefendant?.personDetails?.contact?.mobile),
-          Pair(ContactType.EMAIL, defendant.personDefendant?.personDetails?.contact?.primaryEmail),
-        ),
+      val contacts: List<PersonContact> = listOf(
+        PersonContact.from(ContactType.HOME, defendant.personDefendant?.personDetails?.contact?.home),
+        PersonContact.from(ContactType.MOBILE, defendant.personDefendant?.personDetails?.contact?.mobile),
+        PersonContact.from(ContactType.EMAIL, defendant.personDefendant?.personDetails?.contact?.primaryEmail),
       )
 
       val address: MutableList<PersonAddress> = mutableListOf()
@@ -123,10 +121,6 @@ data class Person(
         dateOfBirth = libraHearingEvent.defendantDob,
         sourceSystemType = SourceSystemType.HMCTS,
       )
-    }
-
-    private fun buildContacts(contacts: List<Pair<ContactType, String?>>): List<PersonContact> {
-      return contacts.filter { !it.second.isNullOrEmpty() }.map { PersonContact(it.first, it.second) }
     }
   }
 }
