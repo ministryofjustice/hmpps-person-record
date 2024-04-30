@@ -7,6 +7,7 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import java.util.concurrent.TimeUnit.SECONDS
 
 class PopulateFromNomisIntTest : IntegrationTestBase() {
@@ -29,6 +30,7 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
     assertThat(prisoner.firstName).isEqualTo("PrisonerOneFirstName")
     assertThat(prisoner.middleNames).isEqualTo("PrisonerOneMiddleNameOne PrisonerOneMiddleNameTwo")
     assertThat(prisoner.lastName).isEqualTo("PrisonerOneLastName")
+    assertThat(prisoner.pnc).isEqualTo(PNCIdentifier.from("2012/394773H"))
     assertThat(prisoners[1].firstName).isEqualTo("PrisonerTwoFirstName")
     assertThat(prisoners[2].firstName).isEqualTo("PrisonerThreeFirstName")
     assertThat(prisoners[3].firstName).isEqualTo("PrisonerFourFirstName")

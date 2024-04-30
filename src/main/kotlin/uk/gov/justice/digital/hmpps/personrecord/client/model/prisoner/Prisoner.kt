@@ -12,4 +12,6 @@ data class Prisoner(
   val firstName: String,
   val middleNames: String,
   val lastName: String,
+  @JsonProperty("pncNumberCanonicalLong")
+  val pncIdentifier: String,
 )
