@@ -43,7 +43,7 @@ class PersonEntity(
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
-  val aliases: MutableList<PersonAliasEntity> = mutableListOf(),
+  var aliases: MutableList<PersonAliasEntity> = mutableListOf(),
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
