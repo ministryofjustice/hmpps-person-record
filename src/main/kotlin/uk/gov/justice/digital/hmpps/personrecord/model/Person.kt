@@ -130,6 +130,7 @@ data class Person(
         otherIdentifiers = OtherIdentifiers(prisonNumber = prisoner.prisonNumber),
         givenName = prisoner.firstName,
         middleNames = prisoner.middleNames.split(" "),
+        familyName = prisoner.lastName,
         sourceSystemType = NOMIS,
       )
   }

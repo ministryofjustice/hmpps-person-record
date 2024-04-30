@@ -11,4 +11,5 @@ data class Prisoner(
   val prisonNumber: String,
   val firstName: String,
   val middleNames: String,
+  val lastName: String,
 )
