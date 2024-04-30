@@ -8,5 +8,6 @@ data class Prisoner(
   @NotBlank
   val prisonerNumber: String,
   val firstName: String,
+  val middleNames: String,
 
 )

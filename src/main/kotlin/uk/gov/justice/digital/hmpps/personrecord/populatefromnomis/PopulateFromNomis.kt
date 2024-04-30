@@ -51,7 +51,7 @@ class PopulateFromNomis(
         numbers.forEach {
           runWithRetry(retryables, retries, delayMillis) {
             val prisoner = prisonerSearchClient.getPrisoner(it)
-            val person = PersonEntity(firstName = prisoner.firstName, sourceSystem = NOMIS)
+            val person = PersonEntity(firstName = prisoner.firstName, middleNames = prisoner.middleNames, sourceSystem = NOMIS)
             repository.save(person)
           }
         }
