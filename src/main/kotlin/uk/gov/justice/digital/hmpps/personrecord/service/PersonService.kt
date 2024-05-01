@@ -56,21 +56,18 @@ class PersonService(
   }
 
   private fun updatePersonAddresses(person: Person, personEntity: PersonEntity) {
-    personEntity.addresses.clear()
     val personAddresses = PersonAddressEntity.fromList(person.address)
     personAddresses.forEach { personAddressEntity -> personAddressEntity.person = personEntity }
     personEntity.addresses.addAll(personAddresses)
   }
 
   private fun updatePersonAliases(person: Person, personEntity: PersonEntity) {
-    personEntity.aliases.clear()
     val personAliases = PersonAliasEntity.fromList(person.personAliases)
     personAliases.forEach { personAliasEntity -> personAliasEntity.person = personEntity }
     personEntity.aliases.addAll(personAliases)
   }
 
   private fun updatePersonContacts(person: Person, personEntity: PersonEntity) {
-    personEntity.contacts.clear()
     val personContacts = PersonContactEntity.fromList(person.contacts)
     personContacts.forEach { personContactEntity -> personContactEntity.person = personEntity }
     personEntity.contacts.addAll(personContacts)
