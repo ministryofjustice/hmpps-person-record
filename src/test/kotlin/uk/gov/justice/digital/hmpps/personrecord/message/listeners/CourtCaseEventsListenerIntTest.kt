@@ -134,7 +134,6 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
-
   fun `should create new people with additional fields from common platform message`() {
     val pncNumber1 = PNCIdentifier.from("2003/0062845E")
     val pncNumber2 = PNCIdentifier.from("2008/0056560Z")

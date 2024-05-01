@@ -17,7 +17,6 @@ class PersonService(
   private val telemetryService: TelemetryService,
 ) {
 
-
   @Transactional(isolation = Isolation.SERIALIZABLE)
   fun processPerson(person: Person, callback: () -> PersonEntity?) {
     val existingPersonEntity: PersonEntity? = callback()
