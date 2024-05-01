@@ -87,7 +87,7 @@ data class Person(
 
       return Person(
         otherIdentifiers = OtherIdentifiers(
-          pncIdentifier = PNCIdentifier.from(defendant.pncId),
+          pncIdentifier = defendant.pncId,
           croIdentifier = CROIdentifier.from(defendant.croNumber),
         ),
         givenName = defendant.personDefendant?.personDetails?.firstName,
