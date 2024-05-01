@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.populatefromnomis
 
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -49,11 +50,12 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `populate from nomis retries getPrisoner`() { // TODO no longer calls this endpoint
+  fun `populate from nomis retries get prisoners`() {
     // first call fails
     wireMockExtension.stubFor(
-      WireMock.get("/prisoner/prisonerNumberThree")
-        .inScenario("retry getPrisoner")
+      WireMock.post("/prisoner-search/prisoner-numbers")
+        .withRequestBody(equalToJson("""{"prisonerNumbers": ["prisonerNumberOne"]}"""))
+        .inScenario("retry get prisoners")
         .whenScenarioStateIs(STARTED)
         .willSetStateTo("next request will fail")
         .willReturn(
@@ -64,8 +66,9 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
     )
     // second call fails too
     wireMockExtension.stubFor(
-      WireMock.get("/prisoner/prisonerNumberThree")
-        .inScenario("retry getPrisoner")
+      WireMock.post("/prisoner-search/prisoner-numbers")
+        .withRequestBody(equalToJson("""{"prisonerNumbers": ["prisonerNumberOne"]}"""))
+        .inScenario("retry get prisoners")
         .whenScenarioStateIs("next request will fail")
         .willSetStateTo("next request will succeed")
         .willReturn(
@@ -77,13 +80,14 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
 
     // Third one succeeds
     wireMockExtension.stubFor(
-      WireMock.get("/prisoner/prisonerNumberThree")
-        .inScenario("retry getPrisoner")
+      WireMock.post("/prisoner-search/prisoner-numbers")
+        .withRequestBody(equalToJson("""{"prisonerNumbers": ["prisonerNumberOne"]}"""))
+        .inScenario("retry get prisoners")
         .whenScenarioStateIs("next request will succeed")
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
-            .withStatus(200).withBody("{\n  \"prisonerNumber\": \"A1234AA\",\n  \"pncNumber\": \"12/394773H\",\n  \"pncNumberCanonicalShort\": \"12/394773H\",\n  \"pncNumberCanonicalLong\": \"2012/394773H\",\n  \"croNumber\": \"29906/12J\",\n  \"bookingId\": \"0001200924\",\n  \"bookNumber\": \"38412A\",\n  \"firstName\": \"PrisonerThreeFirstName\",\n  \"middleNames\": \"John James\",\n  \"lastName\": \"Larsen\",\n  \"dateOfBirth\": \"1975-04-02\",\n  \"gender\": \"Female\",\n  \"ethnicity\": \"White: Eng./Welsh/Scot./N.Irish/British\",\n  \"youthOffender\": true,\n  \"maritalStatus\": \"Widowed\",\n  \"religion\": \"Church of England (Anglican)\",\n  \"nationality\": \"Egyptian\",\n  \"status\": \"ACTIVE IN\",\n  \"lastMovementTypeCode\": \"CRT\",\n  \"lastMovementReasonCode\": \"CA\",\n  \"inOutStatus\": \"IN\",\n  \"prisonId\": \"MDI\",\n  \"lastPrisonId\": \"MDI\",\n  \"prisonName\": \"HMP Leeds\",\n  \"cellLocation\": \"A-1-002\",\n  \"aliases\": [\n    {\n      \"firstName\": \"Robert\",\n      \"middleNames\": \"Trevor\",\n      \"lastName\": \"Lorsen\",\n      \"dateOfBirth\": \"1975-04-02\",\n      \"gender\": \"Male\",\n      \"ethnicity\": \"White : Irish\"\n    }\n  ],\n  \"alerts\": [\n    {\n      \"alertType\": \"H\",\n      \"alertCode\": \"HA\",\n      \"active\": true,\n      \"expired\": true\n    }\n  ],\n  \"csra\": \"HIGH\",\n  \"category\": \"C\",\n  \"legalStatus\": \"SENTENCED\",\n  \"imprisonmentStatus\": \"LIFE\",\n  \"imprisonmentStatusDescription\": \"Serving Life Imprisonment\",\n  \"mostSeriousOffence\": \"Robbery\",\n  \"recall\": false,\n  \"indeterminateSentence\": true,\n  \"sentenceStartDate\": \"2020-04-03\",\n  \"releaseDate\": \"2023-05-02\",\n  \"confirmedReleaseDate\": \"2023-05-01\",\n  \"sentenceExpiryDate\": \"2023-05-01\",\n  \"licenceExpiryDate\": \"2023-05-01\",\n  \"homeDetentionCurfewEligibilityDate\": \"2023-05-01\",\n  \"homeDetentionCurfewActualDate\": \"2023-05-01\",\n  \"homeDetentionCurfewEndDate\": \"2023-05-02\",\n  \"topupSupervisionStartDate\": \"2023-04-29\",\n  \"topupSupervisionExpiryDate\": \"2023-05-01\",\n  \"additionalDaysAwarded\": 10,\n  \"nonDtoReleaseDate\": \"2023-05-01\",\n  \"nonDtoReleaseDateType\": \"ARD\",\n  \"receptionDate\": \"2023-05-01\",\n  \"paroleEligibilityDate\": \"2023-05-01\",\n  \"automaticReleaseDate\": \"2023-05-01\",\n  \"postRecallReleaseDate\": \"2023-05-01\",\n  \"conditionalReleaseDate\": \"2023-05-01\",\n  \"actualParoleDate\": \"2023-05-01\",\n  \"tariffDate\": \"2023-05-01\",\n  \"releaseOnTemporaryLicenceDate\": \"2023-05-01\",\n  \"locationDescription\": \"Outside - released from Leeds\",\n  \"restrictedPatient\": true,\n  \"supportingPrisonId\": \"LEI\",\n  \"dischargedHospitalId\": \"HAZLWD\",\n  \"dischargedHospitalDescription\": \"Hazelwood House\",\n  \"dischargeDate\": \"2020-05-01\",\n  \"dischargeDetails\": \"Psychiatric Hospital Discharge to Hazelwood House\",\n  \"currentIncentive\": {\n    \"level\": {\n      \"code\": \"STD\",\n      \"description\": \"Standard\"\n    },\n    \"dateTime\": \"2021-07-05T10:35:17\",\n    \"nextReviewDate\": \"2022-11-10\"\n  },\n  \"heightCentimetres\": 200,\n  \"weightKilograms\": 102,\n  \"hairColour\": \"Blonde\",\n  \"rightEyeColour\": \"Green\",\n  \"leftEyeColour\": \"Hazel\",\n  \"facialHair\": \"Clean Shaven\",\n  \"shapeOfFace\": \"Round\",\n  \"build\": \"Muscular\",\n  \"shoeSize\": 10,\n  \"tattoos\": [\n    {\n      \"bodyPart\": \"Head\",\n      \"comment\": \"Skull and crossbones covering chest\"\n    }\n  ],\n  \"scars\": [\n    {\n      \"bodyPart\": \"Head\",\n      \"comment\": \"Skull and crossbones covering chest\"\n    }\n  ],\n  \"marks\": [\n    {\n      \"bodyPart\": \"Head\",\n      \"comment\": \"Skull and crossbones covering chest\"\n    }\n  ]\n}"),
+            .withStatus(200).withBody("[{\n  \"prisonerNumber\": \"PrisonerOnePrisonNumber\",\n  \"pncNumber\": \"12/394773H\",\n  \"pncNumberCanonicalShort\": \"12/394773H\",\n  \"pncNumberCanonicalLong\": \"2012/394773H\",\n  \"croNumber\": \"29906/12J\",\n  \"bookingId\": \"0001200924\",\n  \"bookNumber\": \"38412A\",\n  \"firstName\": \"PrisonerOneFirstName\",\n  \"middleNames\": \"PrisonerOneMiddleNameOne PrisonerOneMiddleNameTwo\",\n  \"lastName\": \"PrisonerOneLastName\",\n  \"dateOfBirth\": \"1975-04-02\",\n  \"gender\": \"Female\",\n  \"ethnicity\": \"White: Eng./Welsh/Scot./N.Irish/British\",\n  \"youthOffender\": true,\n  \"maritalStatus\": \"Widowed\",\n  \"religion\": \"Church of England (Anglican)\",\n  \"nationality\": \"Egyptian\",\n  \"status\": \"ACTIVE IN\",\n  \"lastMovementTypeCode\": \"CRT\",\n  \"lastMovementReasonCode\": \"CA\",\n  \"inOutStatus\": \"IN\",\n  \"prisonId\": \"MDI\",\n  \"lastPrisonId\": \"MDI\",\n  \"prisonName\": \"HMP Leeds\",\n  \"cellLocation\": \"A-1-002\",\n  \"aliases\": [\n    {\n      \"firstName\": \"PrisonerOneAliasOneFirstName\",\n      \"middleNames\": \"PrisonerOneAliasOneMiddleNameOne PrisonerOneAliasOneMiddleNameTwo\",\n      \"lastName\": \"PrisonerOneAliasOneLastName\",\n      \"dateOfBirth\": \"1975-04-02\",\n      \"gender\": \"Male\",\n      \"ethnicity\": \"White : Irish\"\n    },\n{\n      \"firstName\": \"PrisonerOneAliasTwoFirstName\",\n      \"middleNames\": \"PrisonerOneAliasTwoMiddleNameOne PrisonerOneAliasTwoMiddleNameTwo\",\n      \"lastName\": \"PrisonerOneAliasTwoLastName\",\n      \"dateOfBirth\": \"1975-04-02\",\n      \"gender\": \"Male\",\n      \"ethnicity\": \"White : Irish\"\n    }\n  ],\n  \"alerts\": [\n    {\n      \"alertType\": \"H\",\n      \"alertCode\": \"HA\",\n      \"active\": true,\n      \"expired\": true\n    }\n  ],\n  \"csra\": \"HIGH\",\n  \"category\": \"C\",\n  \"legalStatus\": \"SENTENCED\",\n  \"imprisonmentStatus\": \"LIFE\",\n  \"imprisonmentStatusDescription\": \"Serving Life Imprisonment\",\n  \"mostSeriousOffence\": \"Robbery\",\n  \"recall\": false,\n  \"indeterminateSentence\": true,\n  \"sentenceStartDate\": \"2020-04-03\",\n  \"releaseDate\": \"2023-05-02\",\n  \"confirmedReleaseDate\": \"2023-05-01\",\n  \"sentenceExpiryDate\": \"2023-05-01\",\n  \"licenceExpiryDate\": \"2023-05-01\",\n  \"homeDetentionCurfewEligibilityDate\": \"2023-05-01\",\n  \"homeDetentionCurfewActualDate\": \"2023-05-01\",\n  \"homeDetentionCurfewEndDate\": \"2023-05-02\",\n  \"topupSupervisionStartDate\": \"2023-04-29\",\n  \"topupSupervisionExpiryDate\": \"2023-05-01\",\n  \"additionalDaysAwarded\": 10,\n  \"nonDtoReleaseDate\": \"2023-05-01\",\n  \"nonDtoReleaseDateType\": \"ARD\",\n  \"receptionDate\": \"2023-05-01\",\n  \"paroleEligibilityDate\": \"2023-05-01\",\n  \"automaticReleaseDate\": \"2023-05-01\",\n  \"postRecallReleaseDate\": \"2023-05-01\",\n  \"conditionalReleaseDate\": \"2023-05-01\",\n  \"actualParoleDate\": \"2023-05-01\",\n  \"tariffDate\": \"2023-05-01\",\n  \"releaseOnTemporaryLicenceDate\": \"2023-05-01\",\n  \"locationDescription\": \"Outside - released from Leeds\",\n  \"restrictedPatient\": true,\n  \"supportingPrisonId\": \"LEI\",\n  \"dischargedHospitalId\": \"HAZLWD\",\n  \"dischargedHospitalDescription\": \"Hazelwood House\",\n  \"dischargeDate\": \"2020-05-01\",\n  \"dischargeDetails\": \"Psychiatric Hospital Discharge to Hazelwood House\",\n  \"currentIncentive\": {\n    \"level\": {\n      \"code\": \"STD\",\n      \"description\": \"Standard\"\n    },\n    \"dateTime\": \"2021-07-05T10:35:17\",\n    \"nextReviewDate\": \"2022-11-10\"\n  },\n  \"heightCentimetres\": 200,\n  \"weightKilograms\": 102,\n  \"hairColour\": \"Blonde\",\n  \"rightEyeColour\": \"Green\",\n  \"leftEyeColour\": \"Hazel\",\n  \"facialHair\": \"Clean Shaven\",\n  \"shapeOfFace\": \"Round\",\n  \"build\": \"Muscular\",\n  \"shoeSize\": 10,\n  \"tattoos\": [\n    {\n      \"bodyPart\": \"Head\",\n      \"comment\": \"Skull and crossbones covering chest\"\n    }\n  ],\n  \"scars\": [\n    {\n      \"bodyPart\": \"Head\",\n      \"comment\": \"Skull and crossbones covering chest\"\n    }\n  ],\n  \"marks\": [\n    {\n      \"bodyPart\": \"Head\",\n      \"comment\": \"Skull and crossbones covering chest\"\n    }\n  ]\n}]"),
 
         ),
     )

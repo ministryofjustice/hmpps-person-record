@@ -40,9 +40,7 @@ class PopulateFromNomis(
   }
 
   suspend fun populatePages() {
-    // TODO understand scoping here, how many threads? This dispatcher will give up to 64
-    // https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-dispatchers/-i-o.html
-    CoroutineScope(Dispatchers.IO).launch {
+    CoroutineScope(Dispatchers.Default).launch {
       // if this call fails we will just restart the process, no need to retry
       val prisonerNumbers = prisonServiceClient.getPrisonerNumbers(PageParams(0, pageSize))!!
       val totalPages = prisonerNumbers.totalPages
