@@ -146,6 +146,7 @@ abstract class IntegrationTestBase {
     @RegisterExtension
     var wireMockExtension: WireMockExtension = WireMockExtension.newInstance()
       .options(wireMockConfig().port(8090))
+      .failOnUnmatchedRequests(true)
       .build()
   }
 

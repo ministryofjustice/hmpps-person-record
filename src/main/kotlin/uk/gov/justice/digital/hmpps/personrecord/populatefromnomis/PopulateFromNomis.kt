@@ -12,6 +12,7 @@ import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
 import uk.gov.justice.digital.hmpps.personrecord.client.PageParams
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonServiceClient
+import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerNumbers
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -50,8 +51,8 @@ class PopulateFromNomis(
       for (page in 1..totalPages) {
         numbers.forEach {
           runWithRetry(retryables, retries, delayMillis) {
-            val prisoner = prisonerSearchClient.getPrisoner(it)
-            val person = Person.from(prisoner)
+            val prisoner = prisonerSearchClient.getPrisoners(PrisonerNumbers(listOf(it)))
+            val person = Person.from(prisoner.get(0))
             val personToSave = PersonEntity.from(person)
             repository.saveAndFlush(personToSave)
           }

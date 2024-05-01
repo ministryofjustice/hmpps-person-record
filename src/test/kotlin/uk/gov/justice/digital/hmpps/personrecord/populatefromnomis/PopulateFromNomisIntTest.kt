@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit.SECONDS
 class PopulateFromNomisIntTest : IntegrationTestBase() {
 
   @Test
-  @Transactional
+  @Transactional // Is this dodgy?
   fun `populate from nomis`() {
     webTestClient.post()
       .uri("/populatefromnomis")
@@ -45,10 +45,11 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
     assertThat(prisoners[4].firstName).isEqualTo("PrisonerFiveFirstName")
     assertThat(prisoners[5].firstName).isEqualTo("PrisonerSixFirstName")
     assertThat(prisoners[6].firstName).isEqualTo("PrisonerSevenFirstName")
+    // TODO add 3 prisoners to the last endpoint result and make sure they are all processed
   }
 
   @Test
-  fun `populate from nomis retries getPrisoner`() {
+  fun `populate from nomis retries getPrisoner`() { // TODO no longer calls this endpoint
     // first call fails
     wireMockExtension.stubFor(
       WireMock.get("/prisoner/prisonerNumberThree")
