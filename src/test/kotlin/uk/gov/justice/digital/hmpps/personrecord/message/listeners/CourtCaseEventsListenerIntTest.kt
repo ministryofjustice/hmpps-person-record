@@ -133,6 +133,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
+
   fun `should create new people with additional fields from common platform message`() {
     val pncNumber1 = PNCIdentifier.from("2003/0062845E")
     val pncNumber2 = PNCIdentifier.from("2008/0056560Z")
@@ -180,5 +181,16 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity3.nationalInsuranceNumber).isEqualTo("PC456743D")
     assertThat(personEntity3.defendantId).isEqualTo("b56f8612-0f4c-43e5-840a-8bedb17722ec")
     assertThat(personEntity3.masterDefendantId).isEqualTo("290e0457-1480-4e62-b3c8-7f29ef791c58")
+
+  fun `should process messages with pnc as empty string and null`() {
+    publishHMCTSMessage(commonPlatformHearingWithNewDefendantAndNoPnc(), COMMON_PLATFORM_HEARING)
+
+    val defendantEntity = await.atMost(15, SECONDS) untilNotNull {
+      defendantRepository.findByDefendantId("2d41e7b9-0964-48d8-8d2a-3f7e81b34cd7")
+    }
+    assertThat(defendantEntity.pncNumber?.pncId).isEqualTo("")
+    val secondDefendant = defendantRepository.findByDefendantId(("2d41e7b9-0964-48d8-8d2a-3f7e81b34cd8"))
+    assertThat(secondDefendant?.pncNumber?.pncId).isEqualTo("")
+    assertThat(secondDefendant?.cro?.croId).isEqualTo("075715/64Q")
   }
 }

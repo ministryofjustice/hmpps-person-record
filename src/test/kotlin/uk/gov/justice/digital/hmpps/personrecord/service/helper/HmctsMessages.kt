@@ -652,7 +652,7 @@ fun commonPlatformHearingWithNewDefendantAndNoPnc() = """
             "defendants": [
               { 
                 "id": "2d41e7b9-0964-48d8-8d2a-3f7e81b34cd7",
-                "pncId": "",
+                "pncId": null,
                 "croNumber": "51072/62R",
                 "offences": [
                   {
@@ -684,7 +684,7 @@ fun commonPlatformHearingWithNewDefendantAndNoPnc() = """
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               },
               { 
-                "id": "2d41e7b9-0964-48d8-8d2a-3f7e81b34cd7",
+                "id": "2d41e7b9-0964-48d8-8d2a-3f7e81b34cd8",
                 "pncId": "",
                 "croNumber": "75715/64Q",
                 "offences": [
@@ -707,8 +707,8 @@ fun commonPlatformHearingWithNewDefendantAndNoPnc() = """
                       "address5": "Earth",
                       "postcode": "CF10 1FU"
                     },
-                    "dateOfBirth": "1960-01-01",
-                    "firstName": "Eric",
+                    "dateOfBirth": "1990-12-01",
+                    "firstName": "Fred",
                     "gender": "MALE",
                     "lastName": "Lassard",
                     "title": "Mr"
