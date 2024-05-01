@@ -8,4 +8,7 @@ class PNCIdentifierDeserializer : StdDeserializer<PNCIdentifier>(PNCIdentifier::
 
   override fun deserialize(parser: JsonParser?, context: DeserializationContext?): PNCIdentifier =
     PNCIdentifier.from(parser?.text ?: "")
+
+  override fun getNullValue(ctxt: DeserializationContext?): PNCIdentifier =
+    PNCIdentifier.from()
 }
