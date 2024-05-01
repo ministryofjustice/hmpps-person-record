@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Isolation
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonAddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonAliasEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonContactEntity
@@ -15,6 +17,8 @@ class PersonService(
   private val telemetryService: TelemetryService,
 ) {
 
+
+  @Transactional(isolation = Isolation.SERIALIZABLE)
   fun processPerson(person: Person, callback: () -> PersonEntity?) {
     val existingPersonEntity: PersonEntity? = callback()
     handlePerson(person, existingPersonEntity)

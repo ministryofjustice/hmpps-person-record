@@ -51,7 +51,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     val publishRequest = PublishRequest.builder()
       .topicArn(courtCaseEventsTopic?.arn)
-      .message(commonPlatformHearingWithNewDefendant(pncNumber = pncNumber.pncId))
+      .message(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber.pncId))
       .messageAttributes(
         mapOf(
           "messageType" to MessageAttributeValue.builder().dataType("String")
