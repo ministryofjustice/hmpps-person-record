@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.processor
+package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonAddressEntity
@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Service
@@ -44,8 +43,16 @@ class PersonService(
   }
 
   private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
-    val updatedPersonEntity = personEntity.update(person)
+    var updatedPersonEntity = personEntity.update(person)
+    updatedPersonEntity = removeAllChildEntities(updatedPersonEntity)
     return updateAndSavePersonEntity(person, updatedPersonEntity)
+  }
+
+  private fun removeAllChildEntities(personEntity: PersonEntity): PersonEntity {
+    personEntity.aliases.clear()
+    personEntity.addresses.clear()
+    personEntity.contacts.clear()
+    return personRepository.saveAndFlush(personEntity)
   }
 
   private fun updatePersonAddresses(person: Person, personEntity: PersonEntity) {

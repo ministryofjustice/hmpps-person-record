@@ -42,15 +42,15 @@ class PersonEntity(
   var middleNames: String? = null,
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
   var aliases: MutableList<PersonAliasEntity> = mutableListOf(),
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
   var addresses: MutableList<PersonAddressEntity> = mutableListOf(),
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
   var contacts: MutableList<PersonContactEntity> = mutableListOf(),
 
   @Column

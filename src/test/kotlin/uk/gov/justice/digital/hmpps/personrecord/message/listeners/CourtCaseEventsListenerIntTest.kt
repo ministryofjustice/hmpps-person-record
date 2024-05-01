@@ -108,6 +108,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     }
 
     assertThat(personEntity.lastName).isEqualTo("Andy")
+    assertThat(personEntity.addresses.size).isEqualTo(1)
 
     checkTelemetry(
       CPR_RECORD_CREATED,
@@ -128,6 +129,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(updatedPersonEntity.lastName).isEqualTo("Smith")
     assertThat(updatedPersonEntity.pnc).isEqualTo(PNCIdentifier.from("1981/0154257C"))
     assertThat(updatedPersonEntity.cro).isEqualTo(CROIdentifier.from("86621/65B"))
+    assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
   }
 
   @Test
