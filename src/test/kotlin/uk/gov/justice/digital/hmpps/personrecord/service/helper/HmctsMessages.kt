@@ -380,7 +380,7 @@ fun commonPlatformHearingWithNewDefendant(pncNumber: String = "2003/0062845E") =
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               },
               { 
-                "id": "b5cfae34-9256-43ad-87fb-ac3def34e2ac",
+                "id": "b5cfae34-9256-43ad-87fb-ac3def34e2ab",
                 "pncId": "2003/0062845E",
                 "croNumber": "75715/64Q",
                 "offences": [
@@ -413,7 +413,7 @@ fun commonPlatformHearingWithNewDefendant(pncNumber: String = "2003/0062845E") =
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               },
                            { 
-                "id": "b5cfae34-9256-43ad-87fb-ac3def34e2ac",
+                "id": "b5cfae34-9256-43ad-87fb-ac3def34e2ad",
                 "pncId": "2003/0062845E",
                 "croNumber": "20970/63D",
                 "offences": [
@@ -574,7 +574,7 @@ fun commonPlatformHearingWithAdditionalFields() = """
                 },
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               },
-                           { 
+              { 
                 "id": "b56f8612-0f4c-43e5-840a-8bedb17722ec",
                 "masterDefendantId": "290e0457-1480-4e62-b3c8-7f29ef791c58",
                 "pncId": "20230583843L",
@@ -652,7 +652,7 @@ fun commonPlatformHearingWithNewDefendantAndNoPnc() = """
             "defendants": [
               { 
                 "id": "2d41e7b9-0964-48d8-8d2a-3f7e81b34cd7",
-                "pncId": "",
+                "pncId": null,
                 "croNumber": "51072/62R",
                 "offences": [
                   {
@@ -684,7 +684,7 @@ fun commonPlatformHearingWithNewDefendantAndNoPnc() = """
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               },
               { 
-                "id": "2d41e7b9-0964-48d8-8d2a-3f7e81b34cd7",
+                "id": "2d41e7b9-0964-48d8-8d2a-3f7e81b34cd8",
                 "pncId": "",
                 "croNumber": "75715/64Q",
                 "offences": [
@@ -707,8 +707,8 @@ fun commonPlatformHearingWithNewDefendantAndNoPnc() = """
                       "address5": "Earth",
                       "postcode": "CF10 1FU"
                     },
-                    "dateOfBirth": "1960-01-01",
-                    "firstName": "Eric",
+                    "dateOfBirth": "1990-12-01",
+                    "firstName": "Fred",
                     "gender": "MALE",
                     "lastName": "Lassard",
                     "title": "Mr"

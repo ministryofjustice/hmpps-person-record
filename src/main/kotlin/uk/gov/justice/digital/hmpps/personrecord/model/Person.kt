@@ -1,8 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.model
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonInclude
-import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
@@ -10,23 +7,17 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defe
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class Person(
-  @Schema(description = "The unique person identifier", example = "f4165b62-d9eb-11ed-afa1-0242ac120002")
   val personId: UUID? = null,
-  @Schema(description = "A person's first name", example = "Guinevere")
   val givenName: String? = null,
-  @Schema(description = "A person's middle name(s)", example = "Catherine Anne")
   val middleNames: List<String>? = emptyList(),
-  @Schema(description = "A person's surname", example = "Atherton")
   val familyName: String? = null,
-  @Schema(description = "A person's date of birth", example = "1972-08-27")
   val dateOfBirth: LocalDate? = null,
   val birthPlace: String? = null,
   val birthCountry: String? = null,
@@ -54,6 +45,8 @@ data class Person(
   val mobile: String? = null,
   val workPhone: String? = null,
   val primaryEmail: String? = null,
+  val contacts: List<PersonContact> = emptyList(),
+  val address: List<PersonAddress> = emptyList(),
   val sourceSystemType: SourceSystemType,
 ) {
   companion object {
@@ -79,9 +72,24 @@ data class Person(
     }
 
     fun from(defendant: Defendant): Person {
+      val contacts: List<PersonContact> = listOf(
+        PersonContact.from(ContactType.HOME, defendant.personDefendant?.personDetails?.contact?.home),
+        PersonContact.from(ContactType.MOBILE, defendant.personDefendant?.personDetails?.contact?.mobile),
+        PersonContact.from(ContactType.EMAIL, defendant.personDefendant?.personDetails?.contact?.primaryEmail),
+      )
+
+      val address: MutableList<PersonAddress> = mutableListOf()
+      defendant.personDefendant?.personDetails?.address?.postcode.let {
+        address.add(
+          PersonAddress(
+            postcode = defendant.personDefendant?.personDetails?.address?.postcode,
+          ),
+        )
+      }
+
       return Person(
         otherIdentifiers = OtherIdentifiers(
-          pncIdentifier = PNCIdentifier.from(defendant.pncId),
+          pncIdentifier = defendant.pncId,
           croIdentifier = CROIdentifier.from(defendant.croNumber),
         ),
         givenName = defendant.personDefendant?.personDetails?.firstName,
@@ -91,22 +99,14 @@ data class Person(
         sex = defendant.personDefendant?.personDetails?.gender,
         driverNumber = defendant.personDefendant?.driverNumber,
         arrestSummonsNumber = defendant.personDefendant?.arrestSummonsNumber,
-        addressLineOne = defendant.personDefendant?.personDetails?.address?.address1,
-        addressLineTwo = defendant.personDefendant?.personDetails?.address?.address2,
-        addressLineThree = defendant.personDefendant?.personDetails?.address?.address3,
-        addressLineFour = defendant.personDefendant?.personDetails?.address?.address4,
-        addressLineFive = defendant.personDefendant?.personDetails?.address?.address5,
-        postcode = defendant.personDefendant?.personDetails?.address?.postcode,
         defendantId = defendant.id,
         masterDefendantId = defendant.masterDefendantId,
         nationalityCode = defendant.personDefendant?.personDetails?.nationalityCode,
         nationalInsuranceNumber = defendant.personDefendant?.personDetails?.nationalInsuranceNumber,
         observedEthnicityDescription = defendant.ethnicity?.observedEthnicityDescription,
         selfDefinedEthnicityDescription = defendant.ethnicity?.selfDefinedEthnicityDescription,
-        homePhone = defendant.personDefendant?.personDetails?.contact?.home,
-        workPhone = defendant.personDefendant?.personDetails?.contact?.work,
-        mobile = defendant.personDefendant?.personDetails?.contact?.mobile,
-        primaryEmail = defendant.personDefendant?.personDetails?.contact?.primaryEmail,
+        contacts = contacts,
+        address = address,
         personAliases = defendant.aliases?.map { PersonAlias.from(it) } ?: emptyList(),
         sourceSystemType = SourceSystemType.HMCTS,
       )
@@ -139,12 +139,8 @@ data class Person(
 }
 
 data class OtherIdentifiers(
-  @Schema(description = "CRN", example = "X340906")
   val crn: String? = null,
-  @Schema(description = "PNC Number", example = "1965/0046583U")
   val pncIdentifier: PNCIdentifier? = null,
-  @Schema(description = "CRO", example = "293110/23X")
   val croIdentifier: CROIdentifier? = null,
-  @Schema(description = "Prisoner Number")
   var prisonNumber: String? = null,
 )

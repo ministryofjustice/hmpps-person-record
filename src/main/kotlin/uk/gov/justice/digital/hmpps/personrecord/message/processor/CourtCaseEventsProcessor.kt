@@ -6,12 +6,13 @@ import org.slf4j.LoggerFactory
 import org.springframework.dao.CannotAcquireLockException
 import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.UNKNOWN
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.CommonPlatformHearingEvent
-import uk.gov.justice.digital.hmpps.personrecord.service.CourtCaseEventsService
+import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
@@ -19,8 +20,9 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 @Service
 class CourtCaseEventsProcessor(
   private val objectMapper: ObjectMapper,
-  private val courtCaseEventsService: CourtCaseEventsService,
+  private val personService: PersonService,
   private val telemetryService: TelemetryService,
+  private val personRepository: PersonRepository,
 ) {
 
   companion object {
@@ -70,7 +72,9 @@ class CourtCaseEventsProcessor(
         HMCTS_MESSAGE_RECEIVED,
         mapOf("PNC" to person.otherIdentifiers?.pncIdentifier.toString(), "CRO" to person.otherIdentifiers?.croIdentifier.toString()),
       )
-      courtCaseEventsService.processPersonFromCourtCaseEvent(person)
+      personService.processPerson(person) {
+        person.defendantId?.let { personRepository.findByDefendantId(it) }
+      }
     } catch (e: Exception) {
       when (e) {
         is CannotAcquireLockException, is JpaSystemException -> {
