@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import uk.gov.justice.digital.hmpps.personrecord.model.PersonContact
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 
 @Entity
@@ -28,7 +29,7 @@ class PersonContactEntity(
     referencedColumnName = "id",
     nullable = false,
   )
-  var person: PersonEntity,
+  var person: PersonEntity? = null,
 
   @Column(name = "contact_type")
   @Enumerated(EnumType.STRING)
@@ -40,4 +41,15 @@ class PersonContactEntity(
   @Version
   var version: Int = 0,
 
-)
+) {
+  companion object {
+
+    private fun from(personContact: PersonContact): PersonContactEntity {
+      return PersonContactEntity(contactType = personContact.contactType, contactValue = personContact.contactValue)
+    }
+
+    fun fromList(personContacts: List<PersonContact>): List<PersonContactEntity> {
+      return personContacts.filterNot { it.contactValue.isNullOrEmpty() }.map { from(it) }
+    }
+  }
+}
