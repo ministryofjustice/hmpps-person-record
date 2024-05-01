@@ -37,7 +37,7 @@ internal class PersonTest {
     // Given
     val dateOfBirth = LocalDate.now()
     val defendant = Defendant(
-      pncId = "1979/0026538X",
+      pncId = PNCIdentifier.from("1979/0026538X"),
       personDefendant = PersonDefendant(
         personDetails = PersonDetails(
           firstName = "Stephen",
