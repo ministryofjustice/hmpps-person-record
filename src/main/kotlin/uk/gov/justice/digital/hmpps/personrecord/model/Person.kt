@@ -127,7 +127,7 @@ data class Person(
 
     fun from(prisoner: Prisoner): Person =
       Person(
-        otherIdentifiers = OtherIdentifiers(prisonNumber = prisoner.prisonNumber, pncIdentifier = PNCIdentifier.from(prisoner.pnc), croIdentifier = CROIdentifier.from(prisoner.cro)),
+        otherIdentifiers = OtherIdentifiers(prisonNumber = prisoner.prisonNumber, pncIdentifier = prisoner.pnc, croIdentifier = CROIdentifier.from(prisoner.cro)),
         givenName = prisoner.firstName,
         middleNames = prisoner.middleNames.split(" "),
         familyName = prisoner.lastName,
