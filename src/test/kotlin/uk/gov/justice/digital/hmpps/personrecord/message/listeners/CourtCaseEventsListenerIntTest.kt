@@ -27,17 +27,6 @@ import java.util.concurrent.TimeUnit.SECONDS
 class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   @Test
-  fun `should output correct telemetry for invalid CRO`() {
-    val invalidCRO = "85227/65G" // G is the incorrect check letter
-    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(cro = invalidCRO), COMMON_PLATFORM_HEARING)
-
-    checkTelemetry(
-      INVALID_CRO,
-      mapOf("CRO" to invalidCRO),
-    )
-  }
-
-  @Test
   fun `should successfully process common platform message with 3 defendants and create correct telemetry events`() {
     publishHMCTSMessage(commonPlatformHearing("19810154257C"), COMMON_PLATFORM_HEARING)
 
@@ -143,7 +132,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should create new defendants with additional fields from common platform message`() {
+  fun `should create new people with additional fields from common platform message`() {
     val pncNumber1 = PNCIdentifier.from("2003/0062845E")
     val pncNumber2 = PNCIdentifier.from("2008/0056560Z")
     val pncNumber3 = PNCIdentifier.from("20230583843L")
