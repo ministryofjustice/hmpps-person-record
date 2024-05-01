@@ -199,14 +199,15 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should process messages without pnc`() {
+  fun `should process messages with pnc as empty string and null`() {
     publishHMCTSMessage(commonPlatformHearingWithNewDefendantAndNoPnc(), COMMON_PLATFORM_HEARING)
 
-    val defendantEntity = await.atMost(30, SECONDS) untilNotNull {
+    val defendantEntity = await.atMost(15, SECONDS) untilNotNull {
       defendantRepository.findByDefendantId("2d41e7b9-0964-48d8-8d2a-3f7e81b34cd7")
     }
-
-    assertThat(defendantEntity.defendantId).isEqualTo("2d41e7b9-0964-48d8-8d2a-3f7e81b34cd7")
     assertThat(defendantEntity.pncNumber?.pncId).isEqualTo("")
+    val secondDefendant = defendantRepository.findByDefendantId(("2d41e7b9-0964-48d8-8d2a-3f7e81b34cd8"))
+    assertThat(secondDefendant?.pncNumber?.pncId).isEqualTo("")
+    assertThat(secondDefendant?.cro?.croId).isEqualTo("075715/64Q")
   }
 }
