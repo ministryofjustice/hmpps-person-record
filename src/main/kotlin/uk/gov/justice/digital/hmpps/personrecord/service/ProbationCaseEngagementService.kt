@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OffenderEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NEW_DELIUS_RECORD_NEW_PNC
 
 @Service
 class ProbationCaseEngagementService(
@@ -40,16 +40,16 @@ class ProbationCaseEngagementService(
   private fun createOffender(deliusOffenderDetail: DeliusOffenderDetail) {
     val offenderEntity = OffenderEntity(
       crn = deliusOffenderDetail.identifiers.crn,
-      pncNumber = PNCIdentifier.from(deliusOffenderDetail.identifiers.pnc),
+      pncNumber = deliusOffenderDetail.identifiers.pnc,
       firstName = deliusOffenderDetail.name.forename,
       lastName = deliusOffenderDetail.name.surname,
       dateOfBirth = deliusOffenderDetail.dateOfBirth,
     )
     offenderRepository.saveAndFlush(offenderEntity)
     trackEvent(
-      TelemetryEventType.NEW_DELIUS_RECORD_NEW_PNC,
+      NEW_DELIUS_RECORD_NEW_PNC,
       deliusOffenderDetail.identifiers.crn,
-      deliusOffenderDetail.identifiers.pnc,
+      deliusOffenderDetail.identifiers.pnc.toString(),
     )
   }
 }
