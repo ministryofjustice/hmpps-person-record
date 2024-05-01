@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.INVALID_CRO
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.concurrent.TimeUnit.SECONDS
 

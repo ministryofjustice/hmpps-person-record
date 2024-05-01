@@ -38,16 +38,6 @@ class PersonService(
     trackEvent(TelemetryEventType.CPR_RECORD_UPDATED, mapOf("SourceSystem" to existingPersonEntity.sourceSystem.name))
   }
 
-//  private fun getPersonEntityBySourceSystem(person: Person): PersonEntity? {
-//    val existingPersonEntity: PersonEntity? = when (person.sourceSystemType) {
-//      SourceSystemType.HMCTS -> person.defendantId?.let { personRepository.findByDefendantId(it) }
-//      SourceSystemType.NOMIS -> TODO()
-//      SourceSystemType.DELIUS -> TODO()
-//      SourceSystemType.CPR -> TODO()
-//    }
-//    return existingPersonEntity
-//  }
-
   private fun createPersonEntity(person: Person): PersonEntity {
     val newPersonEntity = PersonEntity.from(person)
     return updateAndSavePersonEntity(person, newPersonEntity)

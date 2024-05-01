@@ -81,14 +81,14 @@ internal class PersonTest {
           address = Address(
             address1 = "1",
             postcode = "LS1 1AB",
-          )
+          ),
         ),
       ),
       aliases = listOf(
         DefendantAlias(
           firstName = "Stephen",
           lastName = "Smith",
-        )
+        ),
       ),
     )
 
