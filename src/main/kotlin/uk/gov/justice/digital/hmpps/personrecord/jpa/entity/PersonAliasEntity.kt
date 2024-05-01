@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import uk.gov.justice.digital.hmpps.personrecord.model.PersonAlias
 import java.time.LocalDate
 
 @Entity
@@ -26,7 +27,7 @@ class PersonAliasEntity(
     referencedColumnName = "id",
     nullable = false,
   )
-  var person: PersonEntity,
+  var person: PersonEntity? = null,
 
   @Column(name = "first_name")
   val firstName: String? = null,
@@ -42,5 +43,27 @@ class PersonAliasEntity(
 
   @Version
   var version: Int = 0,
+) {
+  companion object {
+    private fun from(personAlias: PersonAlias): PersonAliasEntity? {
+      return if (isAliasPresent(personAlias.firstName, personAlias.middleName, personAlias.lastName)) {
+        PersonAliasEntity(
+          firstName = personAlias.firstName,
+          middleNames = personAlias.middleName,
+          lastname = personAlias.lastName,
+        )
+      } else {
+        null
+      }
+    }
 
-)
+    fun fromList(personAliases: List<PersonAlias>): List<PersonAliasEntity> {
+      return personAliases.mapNotNull { from(it) }
+    }
+
+    private fun isAliasPresent(firstName: String?, middleName: String?, surname: String?): Boolean {
+      return sequenceOf(firstName, middleName, surname)
+        .filterNotNull().any { it.isNotBlank() }
+    }
+  }
+}

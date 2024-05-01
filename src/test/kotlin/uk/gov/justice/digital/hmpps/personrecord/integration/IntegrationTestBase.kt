@@ -33,7 +33,6 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.DefendantRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.PrisonerCreatedEventProcessor
@@ -70,9 +69,6 @@ abstract class IntegrationTestBase {
   lateinit var hmppsQueueService: HmppsQueueService
 
   @Autowired
-  lateinit var defendantRepository: DefendantRepository
-
-  @Autowired
   lateinit var offenderRepository: OffenderRepository
 
   @Autowired
@@ -105,7 +101,6 @@ abstract class IntegrationTestBase {
 
   @BeforeEach
   fun beforeEach() {
-    defendantRepository.deleteAll()
     offenderRepository.deleteAll()
     personRepository.deleteAll()
     cprCourtCaseEventsQueue?.sqsDlqClient!!.purgeQueue(

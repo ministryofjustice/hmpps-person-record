@@ -6,7 +6,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder
 class CROIdentifier(val croId: String, val fingerprint: Boolean, val inputCro: String = EMPTY_CRO) {
 
   val valid: Boolean
-    get() = croId.isNotEmpty()
+    get() = croId.isNotEmpty() && croId.isNotEmpty()
 
   override fun equals(other: Any?): Boolean {
     return EqualsBuilder.reflectionEquals(this, other)
