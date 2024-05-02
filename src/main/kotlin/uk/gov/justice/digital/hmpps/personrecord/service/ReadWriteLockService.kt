@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
-import jakarta.persistence.LockModeType
-import org.springframework.data.jpa.repository.Lock
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.concurrent.locks.ReentrantReadWriteLock
