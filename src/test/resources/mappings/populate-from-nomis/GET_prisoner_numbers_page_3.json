@@ -1,13 +1,13 @@
 {
   "request": {
     "method": "GET",
-    "url": "/api/prisoners/getPrisonerNumbers?size=1&page=3"
+    "url": "/api/prisoners/getPrisonerNumbers?size=2&page=3"
   },
   "response": {
     "status": 200,
     "headers": {
       "Content-Type": "application/json"
     },
-    "body": "{\n  \"totalPages\": 7,\n  \"totalElements\": 7,\n  \"first\": false,\n  \"last\": false,\n  \"size\": 0,\n  \"content\": [\n    \"prisonerNumberFour\"\n  ],\n  \"number\": 0,\n  \"sort\": [\n    {\n      \"direction\": \"string\",\n      \"nullHandling\": \"string\",\n      \"ascending\": true,\n      \"property\": \"string\",\n      \"ignoreCase\": true\n    }\n  ],\n  \"numberOfElements\": 0,\n  \"pageable\": {\n    \"offset\": 0,\n    \"sort\": [\n      {\n        \"direction\": \"string\",\n        \"nullHandling\": \"string\",\n        \"ascending\": true,\n        \"property\": \"string\",\n        \"ignoreCase\": true\n      }\n    ],\n    \"pageSize\": 0,\n    \"pageNumber\": 0,\n    \"unpaged\": true,\n    \"paged\": true\n  },\n  \"empty\": true\n}"
+    "body": "{\n  \"totalPages\": 4,\n  \"totalElements\": 7,\n  \"first\": false,\n  \"last\": true,\n  \"size\": 0,\n  \"content\": [\n    \"prisonerNumberSeven\"\n  ],\n  \"number\": 0,\n  \"sort\": [\n    {\n      \"direction\": \"string\",\n      \"nullHandling\": \"string\",\n      \"ascending\": true,\n      \"property\": \"string\",\n      \"ignoreCase\": true\n    }\n  ],\n  \"numberOfElements\": 0,\n  \"pageable\": {\n    \"offset\": 0,\n    \"sort\": [\n      {\n        \"direction\": \"string\",\n        \"nullHandling\": \"string\",\n        \"ascending\": true,\n        \"property\": \"string\",\n        \"ignoreCase\": true\n      }\n    ],\n    \"pageSize\": 0,\n    \"pageNumber\": 0,\n    \"unpaged\": true,\n    \"paged\": true\n  },\n  \"empty\": true\n}"
   }
 }

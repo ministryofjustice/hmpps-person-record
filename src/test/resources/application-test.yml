@@ -72,7 +72,7 @@ hmpps.sqs:
         Accept: application/json
 
 populate-from-nomis:
-    page-size: 1
+    page-size: 2
     retry:
       delay: 200
       times: 10

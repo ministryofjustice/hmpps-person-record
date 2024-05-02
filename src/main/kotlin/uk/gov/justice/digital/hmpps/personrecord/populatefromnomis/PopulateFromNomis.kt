@@ -47,14 +47,15 @@ class PopulateFromNomis(
       var numbers = prisonerNumbers.numbers
 
       for (page in 1..totalPages) {
-        numbers.forEach {
-          runWithRetry(retryables, retries, delayMillis) {
-            val prisoner = prisonerSearchClient.getPrisoners(PrisonerNumbers(listOf(it)))
-            val person = Person.from(prisoner.get(0))
+        runWithRetry(retryables, retries, delayMillis) {
+          val prisoners = prisonerSearchClient.getPrisoners(PrisonerNumbers(numbers))
+          prisoners.forEach {
+            val person = Person.from(it)
             val personToSave = PersonEntity.from(person)
             repository.saveAndFlush(personToSave)
           }
         }
+
         // don't really like this, but it saves 1 call to getPrisonerNumbers
         if (page < totalPages) {
           runWithRetry(retryables, retries, delayMillis) {
