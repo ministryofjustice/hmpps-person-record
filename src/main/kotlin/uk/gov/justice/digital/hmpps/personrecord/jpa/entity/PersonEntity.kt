@@ -152,7 +152,6 @@ class PersonEntity(
       personAliases.forEach { personAliasEntity -> personAliasEntity.person = personEntity }
       personEntity.aliases.addAll(personAliases)
       return personEntity
-      return personEntity
     }
   }
 }
