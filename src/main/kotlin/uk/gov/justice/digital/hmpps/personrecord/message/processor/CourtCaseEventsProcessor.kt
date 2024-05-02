@@ -77,10 +77,7 @@ class CourtCaseEventsProcessor(
       }
     } catch (e: Exception) {
       when (e) {
-        is CannotAcquireLockException, is JpaSystemException -> {
-          log.warn("Expected error when processing $e.message")
-        }
-        is ObjectOptimisticLockingFailureException -> {
+        is ObjectOptimisticLockingFailureException, is CannotAcquireLockException, is JpaSystemException -> {
           log.info("Entity Locked: reprocessing message")
           process(person)
         }
