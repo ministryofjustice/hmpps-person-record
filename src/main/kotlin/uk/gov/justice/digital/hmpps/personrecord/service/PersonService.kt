@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import jakarta.persistence.LockModeType
-import jakarta.transaction.Transactional
 import org.springframework.data.jpa.repository.Lock
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonAddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonAliasEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonContactEntity
@@ -19,7 +19,7 @@ class PersonService(
 ) {
 
   @Transactional
-  @Lock(LockModeType.OPTIMISTIC)
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
   fun processPerson(person: Person, callback: () -> PersonEntity?) {
     val existingPersonEntity: PersonEntity? = callback()
     when {
