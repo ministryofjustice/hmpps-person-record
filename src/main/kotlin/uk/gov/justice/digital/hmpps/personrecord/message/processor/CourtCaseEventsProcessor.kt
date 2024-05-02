@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 import org.springframework.dao.CannotAcquireLockException
-import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -14,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.UNKNOWN
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
+import uk.gov.justice.digital.hmpps.personrecord.service.ReadWriteLockService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 
@@ -23,6 +23,7 @@ class CourtCaseEventsProcessor(
   private val personService: PersonService,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
+  private val readWriteLockService: ReadWriteLockService
 ) {
 
   companion object {
@@ -73,13 +74,14 @@ class CourtCaseEventsProcessor(
   private fun process(person: Person) {
     try {
       personService.processPerson(person) {
-        person.defendantId?.let { personRepository.findByDefendantId(it) }
+        person.defendantId?.let {
+          personRepository.findByDefendantId(it)
+        }
       }
     } catch (e: Exception) {
       when (e) {
-        is ObjectOptimisticLockingFailureException, is CannotAcquireLockException, is JpaSystemException -> {
-          log.info("Entity Locked: reprocessing message")
-          process(person)
+        is CannotAcquireLockException, is JpaSystemException -> {
+          log.warn("Expected error when processing $e.message")
         }
         else -> throw e
       }

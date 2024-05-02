@@ -1,10 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
-import jakarta.persistence.LockModeType
-import org.springframework.data.jpa.repository.Lock
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Isolation
-import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonAddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonAliasEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonContactEntity
@@ -15,14 +11,13 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Service
 class PersonService(
-  private val personRepository: PersonRepository,
   private val telemetryService: TelemetryService,
+  private val personRepository: PersonRepository,
+  private val readWriteLockService: ReadWriteLockService,
 ) {
 
-  @Transactional(isolation = Isolation.READ_COMMITTED)
-  @Lock(LockModeType.OPTIMISTIC)
   fun processPerson(person: Person, callback: () -> PersonEntity?) {
-    val existingPersonEntity: PersonEntity? = callback()
+    val existingPersonEntity: PersonEntity? = readWriteLockService.withWriteLock { callback() }
     when {
       (existingPersonEntity == null) -> handlePersonCreation(person)
       else -> handlePersonUpdate(person, existingPersonEntity)
