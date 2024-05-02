@@ -53,18 +53,14 @@ class PersonAliasEntity(
             middleNames = personAlias.middleName,
             lastName = personAlias.lastName,
           )
-        else ->
-          null
+        else -> null
       }
     }
 
-    fun fromList(personAliases: List<PersonAlias>): List<PersonAliasEntity> {
-      return personAliases.mapNotNull { from(it) }
-    }
+    fun fromList(personAliases: List<PersonAlias>): List<PersonAliasEntity> = personAliases.mapNotNull { from(it) }
 
-    private fun isAliasPresent(firstName: String?, middleName: String?, surname: String?): Boolean {
-      return sequenceOf(firstName, middleName, surname)
+    private fun isAliasPresent(firstName: String?, middleName: String?, surname: String?): Boolean =
+      sequenceOf(firstName, middleName, surname)
         .filterNotNull().any { it.isNotBlank() }
-    }
   }
 }

@@ -26,7 +26,6 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
         firstName = "Jon",
         lastName = "Smyth",
         person = personEntity,
-
       ),
     )
 
