@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 import org.springframework.dao.CannotAcquireLockException
+import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -14,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.UNKNOWN
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_EXACT_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 
 @Service
@@ -62,16 +62,16 @@ class CourtCaseEventsProcessor(
 
     uniqueDefendants.forEach { defendant ->
       val person = Person.from(defendant)
+      telemetryService.trackEvent(
+        HMCTS_MESSAGE_RECEIVED,
+        mapOf("PNC" to person.otherIdentifiers?.pncIdentifier.toString(), "CRO" to person.otherIdentifiers?.croIdentifier.toString()),
+      )
       process(person)
     }
   }
 
   private fun process(person: Person) {
     try {
-      telemetryService.trackEvent(
-        HMCTS_MESSAGE_RECEIVED,
-        mapOf("PNC" to person.otherIdentifiers?.pncIdentifier.toString(), "CRO" to person.otherIdentifiers?.croIdentifier.toString()),
-      )
       personService.processPerson(person) {
         person.defendantId?.let { personRepository.findByDefendantId(it) }
       }
@@ -79,12 +79,11 @@ class CourtCaseEventsProcessor(
       when (e) {
         is CannotAcquireLockException, is JpaSystemException -> {
           log.warn("Expected error when processing $e.message")
-          telemetryService.trackEvent(
-            HMCTS_EXACT_MATCH,
-            mapOf("PNC" to person.otherIdentifiers?.pncIdentifier.toString(), "Exception" to e.message),
-          )
         }
-
+        is ObjectOptimisticLockingFailureException -> {
+          log.info("Entity Locked: reprocessing message")
+          process(person)
+        }
         else -> throw e
       }
     }
