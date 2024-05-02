@@ -1,7 +1,7 @@
 {
   "request": {
     "method": "GET",
-    "url": "/api/prisoners/getPrisonerNumbers?size=2&page=3"
+    "url": "/api/prisoners/prisoner-numbers?size=2&page=3"
   },
   "response": {
     "status": 200,

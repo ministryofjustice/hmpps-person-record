@@ -22,7 +22,7 @@ interface PrisonServiceClient {
   @GetMapping(value = ["/api/offenders/{prisonerNumber}/addresses"])
   fun getPrisonerAddresses(@PathVariable("prisonerNumber") prisonerNumber: String): List<Address>?
 
-  @GetMapping(value = ["/api/prisoners/getPrisonerNumbers"])
+  @GetMapping(value = ["/api/prisoners/prisoner-numbers"])
   fun getPrisonerNumbers(@SpringQueryMap params: PageParams): PrisonerNumbers?
 }
 class PageParams(val page: Int, val size: Int)
