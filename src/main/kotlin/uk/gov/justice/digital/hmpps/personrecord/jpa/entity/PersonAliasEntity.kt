@@ -36,7 +36,7 @@ class PersonAliasEntity(
   val middleNames: String? = null,
 
   @Column(name = "last_name")
-  val lastname: String? = null,
+  val lastName: String? = null,
 
   @Column(name = "date_of_birth")
   val dateOfBirth: LocalDate? = null,
@@ -46,14 +46,15 @@ class PersonAliasEntity(
 ) {
   companion object {
     private fun from(personAlias: PersonAlias): PersonAliasEntity? {
-      return if (isAliasPresent(personAlias.firstName, personAlias.middleName, personAlias.lastName)) {
-        PersonAliasEntity(
-          firstName = personAlias.firstName,
-          middleNames = personAlias.middleName,
-          lastname = personAlias.lastName,
-        )
-      } else {
-        null
+      return when {
+        isAliasPresent(personAlias.firstName, personAlias.middleName, personAlias.lastName) ->
+          PersonAliasEntity(
+            firstName = personAlias.firstName,
+            middleNames = personAlias.middleName,
+            lastName = personAlias.lastName,
+          )
+        else ->
+          null
       }
     }
 

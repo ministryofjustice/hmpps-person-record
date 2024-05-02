@@ -163,9 +163,9 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity1.addresses).isNotEmpty()
     assertThat(personEntity1.aliases.size).isEqualTo(2)
     assertThat(personEntity1.aliases[0].firstName).isEqualTo("aliasFirstName1")
-    assertThat(personEntity1.aliases[0].lastname).isEqualTo("alisLastName1")
+    assertThat(personEntity1.aliases[0].lastName).isEqualTo("alisLastName1")
     assertThat(personEntity1.aliases[1].firstName).isEqualTo("aliasFirstName2")
-    assertThat(personEntity1.aliases[1].lastname).isEqualTo("alisLastName2")
+    assertThat(personEntity1.aliases[1].lastName).isEqualTo("alisLastName2")
 
     assertThat(personEntity2.aliases).isEmpty()
     assertThat(personEntity2.addresses).isNotEmpty()
