@@ -163,9 +163,9 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity1.addresses).isNotEmpty()
     assertThat(personEntity1.aliases.size).isEqualTo(2)
     assertThat(personEntity1.aliases[0].firstName).isEqualTo("aliasFirstName1")
-    assertThat(personEntity1.aliases[0].lastname).isEqualTo("alisLastName1")
+    assertThat(personEntity1.aliases[0].lastName).isEqualTo("alisLastName1")
     assertThat(personEntity1.aliases[1].firstName).isEqualTo("aliasFirstName2")
-    assertThat(personEntity1.aliases[1].lastname).isEqualTo("alisLastName2")
+    assertThat(personEntity1.aliases[1].lastName).isEqualTo("alisLastName2")
 
     assertThat(personEntity2.aliases).isEmpty()
     assertThat(personEntity2.addresses).isNotEmpty()
@@ -181,17 +181,18 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity3.nationalInsuranceNumber).isEqualTo("PC456743D")
     assertThat(personEntity3.defendantId).isEqualTo("b56f8612-0f4c-43e5-840a-8bedb17722ec")
     assertThat(personEntity3.masterDefendantId).isEqualTo("290e0457-1480-4e62-b3c8-7f29ef791c58")
+  }
 
-    fun `should process messages with pnc as empty string and null`() {
-      publishHMCTSMessage(commonPlatformHearingWithNewDefendantAndNoPnc(), COMMON_PLATFORM_HEARING)
+  @Test
+  fun `should process messages with pnc as empty string and null`() {
+    publishHMCTSMessage(commonPlatformHearingWithNewDefendantAndNoPnc(), COMMON_PLATFORM_HEARING)
 
-      val personEntity = await.atMost(15, SECONDS) untilNotNull {
-        personRepository.findByDefendantId("2d41e7b9-0964-48d8-8d2a-3f7e81b34cd7")
-      }
-      assertThat(personEntity.pnc?.pncId).isEqualTo("")
-      val secondPersonEntity = personRepository.findByDefendantId(("2d41e7b9-0964-48d8-8d2a-3f7e81b34cd8"))
-      assertThat(secondPersonEntity?.pnc?.pncId).isEqualTo("")
-      assertThat(secondPersonEntity?.cro?.croId).isEqualTo("075715/64Q")
+    val personEntity = await.atMost(15, SECONDS) untilNotNull {
+      personRepository.findByDefendantId("2d41e7b9-0964-48d8-8d2a-3f7e81b34cd7")
     }
+    assertThat(personEntity.pnc?.pncId).isEqualTo("")
+    val secondPersonEntity = personRepository.findByDefendantId(("2d41e7b9-0964-48d8-8d2a-3f7e81b34cd8"))
+    assertThat(secondPersonEntity?.pnc?.pncId).isEqualTo("")
+    assertThat(secondPersonEntity?.cro?.croId).isEqualTo("075715/64Q")
   }
 }
