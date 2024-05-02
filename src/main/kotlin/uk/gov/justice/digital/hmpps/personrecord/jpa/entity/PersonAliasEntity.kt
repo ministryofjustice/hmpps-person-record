@@ -45,25 +45,21 @@ class PersonAliasEntity(
   var version: Int = 0,
 ) {
   companion object {
-    private fun from(personAlias: PersonAlias): PersonAliasEntity? {
-      return if (isAliasPresent(personAlias.firstName, personAlias.middleNames, personAlias.lastName)) {
-        PersonAliasEntity(
-          firstName = personAlias.firstName,
-          middleNames = personAlias.middleNames,
-          lastName = personAlias.lastName,
-        )
-      } else {
-        null
+    private fun from(personAlias: PersonAlias): PersonAliasEntity? =
+      when {
+        isAliasPresent(personAlias.firstName, personAlias.middleNames, personAlias.lastName) ->
+          PersonAliasEntity(
+            firstName = personAlias.firstName,
+            middleNames = personAlias.middleNames,
+            lastName = personAlias.lastName,
+          )
+        else -> null
       }
-    }
 
-    fun fromList(personAliases: List<PersonAlias>): List<PersonAliasEntity> {
-      return personAliases.mapNotNull { from(it) }
-    }
+    fun fromList(personAliases: List<PersonAlias>): List<PersonAliasEntity> = personAliases.mapNotNull { from(it) }
 
-    private fun isAliasPresent(firstName: String?, middleName: String?, surname: String?): Boolean {
-      return sequenceOf(firstName, middleName, surname)
+    private fun isAliasPresent(firstName: String?, middleName: String?, surname: String?): Boolean =
+      sequenceOf(firstName, middleName, surname)
         .filterNotNull().any { it.isNotBlank() }
-    }
   }
 }

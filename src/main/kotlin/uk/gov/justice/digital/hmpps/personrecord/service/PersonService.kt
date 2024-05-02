@@ -20,10 +20,6 @@ class PersonService(
   @Transactional(isolation = Isolation.SERIALIZABLE)
   fun processPerson(person: Person, callback: () -> PersonEntity?) {
     val existingPersonEntity: PersonEntity? = callback()
-    handlePerson(person, existingPersonEntity)
-  }
-
-  private fun handlePerson(person: Person, existingPersonEntity: PersonEntity?) {
     when {
       (existingPersonEntity == null) -> handlePersonCreation(person)
       else -> handlePersonUpdate(person, existingPersonEntity)
@@ -31,7 +27,7 @@ class PersonService(
   }
 
   private fun handlePersonCreation(person: Person) {
-    createPersonEntity(person)
+    updateAndSavePersonEntity(person, PersonEntity.from(person))
     trackEvent(TelemetryEventType.CPR_RECORD_CREATED, mapOf("SourceSystem" to person.sourceSystemType.name))
   }
 
@@ -40,15 +36,9 @@ class PersonService(
     trackEvent(TelemetryEventType.CPR_RECORD_UPDATED, mapOf("SourceSystem" to existingPersonEntity.sourceSystem.name))
   }
 
-  private fun createPersonEntity(person: Person): PersonEntity {
-    val newPersonEntity = PersonEntity.from(person)
-    return updateAndSavePersonEntity(person, newPersonEntity)
-  }
-
   private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
     var updatedPersonEntity = personEntity.update(person)
     updatedPersonEntity = removeAllChildEntities(updatedPersonEntity)
-    updatePersonAliases(person, personEntity)
     updatePersonAliases(person, personEntity)
     return updateAndSavePersonEntity(person, updatedPersonEntity)
   }
