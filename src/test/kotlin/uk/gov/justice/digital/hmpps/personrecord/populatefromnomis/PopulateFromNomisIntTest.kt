@@ -121,7 +121,7 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
   fun `populate from nomis retries getPrisonerNumbers`() {
     // first call fails
     wireMockExtension.stubFor(
-      WireMock.get("/api/prisoners/getPrisonerNumbers?size=1&page=1")
+      WireMock.get("/api/prisoners/prisoner-numbers?size=1&page=1")
         .inScenario("retry getPrisonerNumbers")
         .whenScenarioStateIs(STARTED)
         .willSetStateTo("next request will succeed")
@@ -133,7 +133,7 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
     )
     // second call succeeds
     wireMockExtension.stubFor(
-      WireMock.get("/api/prisoners/getPrisonerNumbers?size=1&page=1")
+      WireMock.get("/api/prisoners/prisoner-numbers?size=1&page=1")
         .inScenario("retry getPrisonerNumbers")
         .whenScenarioStateIs("next request will succeed")
         .willReturn(
