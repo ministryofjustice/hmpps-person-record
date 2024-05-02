@@ -101,7 +101,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should write offender without PNC if PNC is invalid`() {
+  fun `should write offender without PNC if PNC is missing`() {
     val crn = "XXX5678"
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))

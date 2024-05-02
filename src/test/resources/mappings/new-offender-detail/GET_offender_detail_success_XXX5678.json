@@ -14,6 +14,6 @@
     "headers": {
       "Content-Type": "application/json"
     },
-    "body": "{\n  \"identifiers\": {\n    \"crn\": \"XXX5678\",\n    \"pnc\": \"PN/1234560XX\"\n  },\n  \"name\": {\n    \"forename\": \"David\",\n    \"surname\": \"BOWIE\",\n    \"otherNames\": []\n  },\n  \"dateOfBirth\": \"1939-10-10\"\n}"
+    "body": "{\n  \"identifiers\": {\n    \"crn\": \"XXX5678\"\n  },\n  \"name\": {\n    \"forename\": \"David\",\n    \"surname\": \"BOWIE\",\n    \"otherNames\": []\n  },\n  \"dateOfBirth\": \"1939-10-10\"\n}"
   }
 }
