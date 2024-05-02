@@ -36,7 +36,7 @@ class PersonAliasEntity(
   val middleNames: String? = null,
 
   @Column(name = "last_name")
-  val lastname: String? = null,
+  val lastName: String? = null,
 
   @Column(name = "date_of_birth")
   val dateOfBirth: LocalDate? = null,
@@ -50,7 +50,7 @@ class PersonAliasEntity(
         PersonAliasEntity(
           firstName = personAlias.firstName,
           middleNames = personAlias.middleNames,
-          lastname = personAlias.lastName,
+          lastName = personAlias.lastName,
         )
       } else {
         null

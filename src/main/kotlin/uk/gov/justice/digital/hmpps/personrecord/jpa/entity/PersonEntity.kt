@@ -147,7 +147,11 @@ class PersonEntity(
         masterDefendantId = person.masterDefendantId,
         nationalInsuranceNumber = person.nationalInsuranceNumber,
         sourceSystem = person.sourceSystemType,
+
       )
+      val personAliases = PersonAliasEntity.fromList(person.personAliases)
+      personAliases.forEach { personAliasEntity -> personAliasEntity.person = personEntity }
+      personEntity.aliases.addAll(personAliases)
       return personEntity
     }
   }

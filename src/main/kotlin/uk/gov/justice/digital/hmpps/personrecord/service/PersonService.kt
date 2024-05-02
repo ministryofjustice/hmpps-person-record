@@ -48,6 +48,8 @@ class PersonService(
   private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
     var updatedPersonEntity = personEntity.update(person)
     updatedPersonEntity = removeAllChildEntities(updatedPersonEntity)
+    updatePersonAliases(person, personEntity)
+    updatePersonAliases(person, personEntity)
     return updateAndSavePersonEntity(person, updatedPersonEntity)
   }
 
@@ -78,7 +80,6 @@ class PersonService(
 
   private fun updateAndSavePersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
     updatePersonAddresses(person, personEntity)
-    updatePersonAliases(person, personEntity)
     updatePersonContacts(person, personEntity)
     return personRepository.saveAndFlush(personEntity)
   }

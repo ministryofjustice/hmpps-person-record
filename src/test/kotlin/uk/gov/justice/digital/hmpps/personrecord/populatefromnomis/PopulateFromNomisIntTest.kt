@@ -9,6 +9,7 @@ import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Test
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonAliasEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import java.time.LocalDate
@@ -26,7 +27,7 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
       .isOk
 
     await.atMost(15, SECONDS) untilAsserted {
-      assertThat(personRepository.findAll().size).isEqualTo(6)
+      assertThat(personRepository.findAll().size).isEqualTo(7)
     }
     val prisoners = personRepository.findAll()
     val prisoner = prisoners[0]
@@ -36,17 +37,22 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
     assertThat(prisoner.pnc).isEqualTo(PNCIdentifier.from("2012/394773H"))
     assertThat(prisoner.cro).isEqualTo(CROIdentifier.from("29906/12J"))
     assertThat(prisoner.dateOfBirth).isEqualTo(LocalDate.of(1975, 4, 2))
-    // TODO once aliases have been added to Person
-    // val aliases = listOf(PersonAlias(firstName = "PrisonerOneAliasOneFirstName", middleNames = "PrisonerOneAliasOneMiddleNameOne PrisonerOneAliasOneMiddleNameTwo", lastName = "PrisonerOneAliasOneLastName"),
-    //  PersonAlias(firstName = "PrisonerOneAliasTwoFirstName", middleNames = "PrisonerOneAliasTwoMiddleNameOne PrisonerOneAliasTwoMiddleNameTwo", lastName = "PrisonerOneAliasTwoLastName"))
-    // assertThat(prisoner.aliases).isEqualTo(aliases)
+    val aliases = listOf(
+      PersonAliasEntity(firstName = "PrisonerOneAliasOneFirstName", middleNames = "PrisonerOneAliasOneMiddleNameOne PrisonerOneAliasOneMiddleNameTwo", lastName = "PrisonerOneAliasOneLastName"),
+      PersonAliasEntity(firstName = "PrisonerOneAliasTwoFirstName", middleNames = "PrisonerOneAliasTwoMiddleNameOne PrisonerOneAliasTwoMiddleNameTwo", lastName = "PrisonerOneAliasTwoLastName"),
+    )
+    assertThat(prisoner.aliases[0].firstName).isEqualTo("PrisonerOneAliasOneFirstName")
+    assertThat(prisoner.aliases[0].middleNames).isEqualTo("PrisonerOneAliasOneMiddleNameOne PrisonerOneAliasOneMiddleNameTwo")
+    assertThat(prisoner.aliases[0].lastName).isEqualTo("PrisonerOneAliasOneLastName")
+    assertThat(prisoner.aliases[1].firstName).isEqualTo("PrisonerOneAliasTwoFirstName")
+    assertThat(prisoner.aliases[1].middleNames).isEqualTo("PrisonerOneAliasTwoMiddleNameOne PrisonerOneAliasTwoMiddleNameTwo")
+    assertThat(prisoner.aliases[1].lastName).isEqualTo("PrisonerOneAliasTwoLastName")
     assertThat(prisoners[1].firstName).isEqualTo("PrisonerTwoFirstName")
     assertThat(prisoners[2].firstName).isEqualTo("PrisonerThreeFirstName")
     assertThat(prisoners[3].firstName).isEqualTo("PrisonerFourFirstName")
     assertThat(prisoners[4].firstName).isEqualTo("PrisonerFiveFirstName")
     assertThat(prisoners[5].firstName).isEqualTo("PrisonerSixFirstName")
     assertThat(prisoners[6].firstName).isEqualTo("PrisonerSevenFirstName")
-    // TODO add 3 prisoners to the last endpoint result and make sure they are all processed
   }
 
   @Test

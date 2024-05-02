@@ -24,7 +24,7 @@ class PersonRepositoryIntTest : IntegrationTestBase() {
     val aliases = mutableListOf(
       PersonAliasEntity(
         firstName = "Jon",
-        lastname = "Smyth",
+        lastName = "Smyth",
         person = personEntity,
 
       ),
