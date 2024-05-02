@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import jakarta.persistence.LockModeType
+import org.springframework.data.jpa.repository.Lock
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -10,7 +12,7 @@ class ReadWriteLockService {
   private val lock = ReentrantReadWriteLock()
 
   @Transactional(readOnly = true)
-  fun <R> withReadLock(block: () -> R): R {
+  fun <T> withReadLock(block: () -> T?): T? {
     lock.readLock().lock()
     try {
       return block()
@@ -20,7 +22,7 @@ class ReadWriteLockService {
   }
 
   @Transactional
-  fun <R> withWriteLock(block: () -> R): R {
+  fun <T> withWriteLock(block: () -> T?): T? {
     lock.writeLock().lock()
     try {
       return block()

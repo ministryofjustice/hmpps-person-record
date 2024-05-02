@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.UNKNOWN
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
-import uk.gov.justice.digital.hmpps.personrecord.service.ReadWriteLockService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 
@@ -23,7 +22,6 @@ class CourtCaseEventsProcessor(
   private val personService: PersonService,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
-  private val readWriteLockService: ReadWriteLockService
 ) {
 
   companion object {

@@ -17,10 +17,12 @@ class PersonService(
 ) {
 
   fun processPerson(person: Person, callback: () -> PersonEntity?) {
-    val existingPersonEntity: PersonEntity? = readWriteLockService.withWriteLock { callback() }
-    when {
-      (existingPersonEntity == null) -> handlePersonCreation(person)
-      else -> handlePersonUpdate(person, existingPersonEntity)
+    readWriteLockService.withWriteLock {
+      val existingPersonEntity: PersonEntity? = callback()
+      when {
+        (existingPersonEntity == null) -> handlePersonCreation(person)
+        else -> handlePersonUpdate(person, existingPersonEntity)
+      }
     }
   }
 
