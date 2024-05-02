@@ -45,8 +45,8 @@ class PersonAliasEntity(
   var version: Int = 0,
 ) {
   companion object {
-    private fun from(personAlias: PersonAlias): PersonAliasEntity? {
-      return when {
+    private fun from(personAlias: PersonAlias): PersonAliasEntity? =
+      when {
         isAliasPresent(personAlias.firstName, personAlias.middleNames, personAlias.lastName) ->
           PersonAliasEntity(
             firstName = personAlias.firstName,
@@ -55,7 +55,6 @@ class PersonAliasEntity(
           )
         else -> null
       }
-    }
 
     fun fromList(personAliases: List<PersonAlias>): List<PersonAliasEntity> = personAliases.mapNotNull { from(it) }
 

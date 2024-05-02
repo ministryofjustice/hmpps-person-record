@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.model
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
@@ -8,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDate
 import java.util.*
 
@@ -122,6 +124,17 @@ data class Person(
         sourceSystemType = SourceSystemType.HMCTS,
       )
     }
+
+    fun from(prisoner: Prisoner): Person =
+      Person(
+        otherIdentifiers = OtherIdentifiers(prisonNumber = prisoner.prisonNumber, pncIdentifier = prisoner.pnc, croIdentifier = CROIdentifier.from(prisoner.cro)),
+        givenName = prisoner.firstName,
+        middleNames = prisoner.middleNames.split(" "),
+        familyName = prisoner.lastName,
+        dateOfBirth = prisoner.dateOfBirth,
+        sourceSystemType = NOMIS,
+        personAliases = prisoner.aliases,
+      )
   }
 }
 
