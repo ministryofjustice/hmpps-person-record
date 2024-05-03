@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
@@ -20,11 +21,10 @@ class ReadWriteLockService {
     }
   }
 
-  @Transactional(isolation = Isolation.READ_COMMITTED)
   fun <T> withWriteLock(block: () -> T?): T? {
     lock.writeLock().lock()
-    try {
-      return block()
+    return try {
+      block()
     } finally {
       lock.writeLock().unlock()
     }

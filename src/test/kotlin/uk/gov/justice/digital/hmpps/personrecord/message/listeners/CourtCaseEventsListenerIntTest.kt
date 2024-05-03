@@ -86,7 +86,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     checkTelemetry(
       CPR_RECORD_UPDATED,
       mapOf("SourceSystem" to "HMCTS"),
-      times(99),
+      times(999),
     )
   }
 
