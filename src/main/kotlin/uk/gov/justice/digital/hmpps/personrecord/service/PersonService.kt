@@ -38,7 +38,7 @@ class PersonService(
 
   private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
     var updatedPersonEntity = personEntity.update(person)
-    updatedPersonEntity =  removeAllChildEntities(updatedPersonEntity)
+    updatedPersonEntity = removeAllChildEntities(updatedPersonEntity)
     updatePersonAliases(person, personEntity)
     return updateAndSavePersonEntity(person, updatedPersonEntity)
   }
