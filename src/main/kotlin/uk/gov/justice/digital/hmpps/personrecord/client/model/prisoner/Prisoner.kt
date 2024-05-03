@@ -15,7 +15,7 @@ data class Prisoner(
   @JsonProperty("prisonerNumber")
   val prisonNumber: String,
   val firstName: String,
-  val middleNames: String,
+  val middleNames: String? = "",
   val lastName: String,
   @JsonProperty("pncNumberCanonicalLong")
   @JsonDeserialize(using = PNCIdentifierDeserializer::class)
