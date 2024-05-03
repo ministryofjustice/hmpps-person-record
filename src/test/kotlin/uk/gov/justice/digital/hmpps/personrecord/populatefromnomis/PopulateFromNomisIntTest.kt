@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -42,6 +43,7 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
     assertThat(prisoner.aliases[1].firstName).isEqualTo("PrisonerOneAliasTwoFirstName")
     assertThat(prisoner.aliases[1].middleNames).isEqualTo("PrisonerOneAliasTwoMiddleNameOne PrisonerOneAliasTwoMiddleNameTwo")
     assertThat(prisoner.aliases[1].lastName).isEqualTo("PrisonerOneAliasTwoLastName")
+    assertThat(prisoner.sourceSystem).isEqualTo(NOMIS)
     assertThat(prisoners[1].firstName).isEqualTo("PrisonerTwoFirstName")
     assertThat(prisoners[2].firstName).isEqualTo("PrisonerThreeFirstName")
     assertThat(prisoners[3].firstName).isEqualTo("PrisonerFourFirstName")

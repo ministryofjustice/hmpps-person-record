@@ -4,7 +4,7 @@ import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Convert
 import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
+import jakarta.persistence.EnumType.STRING
 import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
@@ -98,7 +98,7 @@ class PersonEntity(
   var birthCountry: String? = null,
 
   @Column
-  @Enumerated(EnumType.ORDINAL)
+  @Enumerated(STRING)
   val sourceSystem: SourceSystemType,
 
   @Version
