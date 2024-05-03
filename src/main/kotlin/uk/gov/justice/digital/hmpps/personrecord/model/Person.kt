@@ -133,7 +133,7 @@ data class Person(
         familyName = prisoner.lastName,
         dateOfBirth = prisoner.dateOfBirth,
         sourceSystemType = NOMIS,
-        personAliases = prisoner.aliases,
+        personAliases = prisoner.aliases ?: emptyList(),
       )
   }
 }
