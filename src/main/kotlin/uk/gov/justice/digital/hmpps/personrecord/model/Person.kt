@@ -129,7 +129,7 @@ data class Person(
       Person(
         otherIdentifiers = OtherIdentifiers(prisonNumber = prisoner.prisonNumber, pncIdentifier = prisoner.pnc, croIdentifier = CROIdentifier.from(prisoner.cro)),
         givenName = prisoner.firstName,
-        middleNames = prisoner.middleNames.split(" "),
+        middleNames = prisoner.middleNames?.split(" ") ?: emptyList(),
         familyName = prisoner.lastName,
         dateOfBirth = prisoner.dateOfBirth,
         sourceSystemType = NOMIS,
