@@ -49,6 +49,7 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
     assertThat(prisoners[5].firstName).isEqualTo("PrisonerSixFirstName")
     assertThat(prisoners[6].firstName).isEqualTo("PrisonerSevenFirstName")
     assertThat(prisoners[6].middleNames).isEqualTo("")
+    assertThat(prisoners[6].cro).isEqualTo(CROIdentifier.from(""))
   }
 
   @Test

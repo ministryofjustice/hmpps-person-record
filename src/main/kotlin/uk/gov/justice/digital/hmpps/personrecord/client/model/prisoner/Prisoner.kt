@@ -21,7 +21,7 @@ data class Prisoner(
   @JsonDeserialize(using = PNCIdentifierDeserializer::class)
   val pnc: PNCIdentifier? = PNCIdentifier.from(),
   @JsonProperty("croNumber")
-  val cro: String,
+  val cro: String? = "",
   val dateOfBirth: LocalDate,
   val aliases: List<PersonAlias>,
 )
