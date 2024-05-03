@@ -27,6 +27,7 @@ class SecurityConfiguration {
             "/info/**",
             "/ping",
             "/queue-admin/retry-all-dlqs",
+            "/populatefromnomis",
           ).permitAll()
       }
       .oauth2ResourceServer { oauth2ResourceServer ->
