@@ -112,6 +112,7 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
     assertThat(prisoners[4].firstName).isEqualTo("PrisonerFiveFirstName")
     assertThat(prisoners[5].firstName).isEqualTo("PrisonerSixFirstName")
     assertThat(prisoners[6].firstName).isEqualTo("PrisonerSevenFirstName")
+    assertThat(prisoners[6].aliases.size).isEqualTo(0)
   }
 
   @Test

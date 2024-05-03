@@ -23,5 +23,5 @@ data class Prisoner(
   @JsonProperty("croNumber")
   val cro: String? = "",
   val dateOfBirth: LocalDate,
-  val aliases: List<PersonAlias>,
+  val aliases: List<PersonAlias>?,
 )
