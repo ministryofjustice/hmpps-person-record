@@ -9,7 +9,6 @@ import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Test
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonAliasEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import java.time.LocalDate
@@ -36,12 +35,8 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
     assertThat(prisoner.lastName).isEqualTo("PrisonerOneLastName")
     assertThat(prisoner.pnc).isEqualTo(PNCIdentifier.from("2012/394773H"))
     assertThat(prisoner.cro).isEqualTo(CROIdentifier.from("29906/12J"))
-    assertThat(prisoner.dateOfBirth).isEqualTo(LocalDate.of(1975, 4, 2))
-    val aliases = listOf(
-      PersonAliasEntity(firstName = "PrisonerOneAliasOneFirstName", middleNames = "PrisonerOneAliasOneMiddleNameOne PrisonerOneAliasOneMiddleNameTwo", lastName = "PrisonerOneAliasOneLastName"),
-      PersonAliasEntity(firstName = "PrisonerOneAliasTwoFirstName", middleNames = "PrisonerOneAliasTwoMiddleNameOne PrisonerOneAliasTwoMiddleNameTwo", lastName = "PrisonerOneAliasTwoLastName"),
-    )
-    assertThat(prisoner.aliases[0].firstName).isEqualTo("PrisonerOneAliasOneFirstName")
+    assertThat(prisoner.dateOfBirth).isEqualTo(LocalDate.of(1975, 4, 2))gs
+      assertThat(prisoner.aliases[0].firstName).isEqualTo("PrisonerOneAliasOneFirstName")
     assertThat(prisoner.aliases[0].middleNames).isEqualTo("PrisonerOneAliasOneMiddleNameOne PrisonerOneAliasOneMiddleNameTwo")
     assertThat(prisoner.aliases[0].lastName).isEqualTo("PrisonerOneAliasOneLastName")
     assertThat(prisoner.aliases[1].firstName).isEqualTo("PrisonerOneAliasTwoFirstName")
@@ -53,6 +48,7 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
     assertThat(prisoners[4].firstName).isEqualTo("PrisonerFiveFirstName")
     assertThat(prisoners[5].firstName).isEqualTo("PrisonerSixFirstName")
     assertThat(prisoners[6].firstName).isEqualTo("PrisonerSevenFirstName")
+    assertThat(prisoners[6].middleNames).isEqualTo("")
   }
 
   @Test
