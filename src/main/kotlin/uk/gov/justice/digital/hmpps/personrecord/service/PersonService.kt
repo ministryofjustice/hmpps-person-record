@@ -37,17 +37,17 @@ class PersonService(
   }
 
   private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
-    var updatedPersonEntity = personEntity.update(person)
-    updatedPersonEntity = removeAllChildEntities(updatedPersonEntity)
-    updatePersonAliases(person, personEntity)
-    return updateAndSavePersonEntity(person, updatedPersonEntity)
+      removeAllChildEntities(personEntity)
+      val updatedPersonEntity = personEntity.update(person)
+      updatePersonAliases(person, personEntity)
+      return updateAndSavePersonEntity(person, updatedPersonEntity)
   }
 
-  private fun removeAllChildEntities(personEntity: PersonEntity): PersonEntity {
+  private fun removeAllChildEntities(personEntity: PersonEntity) {
     personEntity.aliases.clear()
     personEntity.addresses.clear()
     personEntity.contacts.clear()
-    return personRepository.saveAndFlush(personEntity)
+    personRepository.saveAndFlush(personEntity)
   }
 
   private fun updatePersonAddresses(person: Person, personEntity: PersonEntity) {
