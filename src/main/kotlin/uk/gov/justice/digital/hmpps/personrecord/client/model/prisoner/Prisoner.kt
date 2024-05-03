@@ -15,13 +15,13 @@ data class Prisoner(
   @JsonProperty("prisonerNumber")
   val prisonNumber: String,
   val firstName: String,
-  val middleNames: String? = "",
+  val middleNames: String?,
   val lastName: String,
   @JsonProperty("pncNumberCanonicalLong")
   @JsonDeserialize(using = PNCIdentifierDeserializer::class)
-  val pnc: PNCIdentifier? = PNCIdentifier.from(),
+  val pnc: PNCIdentifier?,
   @JsonProperty("croNumber")
-  val cro: String,
+  val cro: String?,
   val dateOfBirth: LocalDate,
-  val aliases: List<PersonAlias>,
+  val aliases: List<PersonAlias>?,
 )

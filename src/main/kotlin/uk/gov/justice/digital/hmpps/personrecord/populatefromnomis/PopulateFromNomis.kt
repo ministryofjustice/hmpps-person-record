@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 
 private const val OK = "OK"
-private const val TEMPORARY_LIMIT = 4
 
 private val retryables = listOf(HttpClientErrorException::class, HttpServerErrorException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class)
 
@@ -47,7 +46,7 @@ class PopulateFromNomis(
       val totalPages = prisonerNumbers.totalPages
       var numbers = prisonerNumbers.numbers
 
-      for (page in 1..TEMPORARY_LIMIT) { // totalPages but just doing first 4 pages = 4000 records to see how it performs
+      for (page in 1..totalPages) {
         runWithRetry(retryables, retries, delayMillis) {
           val prisoners = prisonerSearchClient.getPrisoners(PrisonerNumbers(numbers))
           prisoners.forEach {
