@@ -1,13 +1,15 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import feign.FeignException
 import kotlinx.coroutines.delay
 import kotlin.reflect.KClass
 
 object RetryExecutor {
+  private val retryables = listOf(feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class)
   suspend fun <T> runWithRetry(
-    exceptions: List<KClass<out Exception>>,
     maxAttempts: Int,
     delay: Long,
+    exceptions: List<KClass<out Exception>> = retryables,
     retryFunction: suspend () -> T,
   ): T {
     var lastException: Exception? = null
