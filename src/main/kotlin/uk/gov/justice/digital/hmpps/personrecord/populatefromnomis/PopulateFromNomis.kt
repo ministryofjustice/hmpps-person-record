@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRe
 
 private const val OK = "OK"
 
-private val retryables = listOf(HttpClientErrorException::class, HttpServerErrorException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class)
+private val retryables = listOf(HttpClientErrorException::class, HttpServerErrorException::class, feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class)
 
 @RestController
 class PopulateFromNomis(
@@ -48,12 +48,11 @@ class PopulateFromNomis(
 
       for (page in 1..totalPages) {
         runWithRetry(retryables, retries, delayMillis) {
-          val prisoners = prisonerSearchClient.getPrisoners(PrisonerNumbers(numbers))
-          prisoners.forEach {
-            val person = Person.from(it)
-            val personToSave = PersonEntity.from(person)
-            repository.saveAndFlush(personToSave)
-          }
+          prisonerSearchClient.getPrisoners(PrisonerNumbers(numbers))
+        }?.forEach {
+          val person = Person.from(it)
+          val personToSave = PersonEntity.from(person)
+          repository.saveAndFlush(personToSave)
         }
 
         // don't really like this, but it saves 1 call to getPrisonerNumbers
