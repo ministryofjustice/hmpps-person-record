@@ -129,9 +129,7 @@ abstract class IntegrationTestBase {
     @BeforeAll
     @JvmStatic
     fun beforeAll() {
-      if (System.getenv("CI").isNullOrEmpty()) {
-        postgresSQLContainer.start()
-      }
+      postgresSQLContainer.start()
     }
 
     @DynamicPropertySource
