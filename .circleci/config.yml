@@ -3,26 +3,6 @@ version: 2.1
 orbs:
   hmpps: ministryofjustice/hmpps@8
 
-executors:
-  builder:
-    docker:
-      - image: cimg/openjdk:21.0.0-browsers
-        environment:
-          SPRING_PROFILES_ACTIVE: test
-          DATABASE_USERNAME: root
-          DATABASE_PASSWORD: dev
-          DATABASE_NAME: personrecordservicetest
-          DATABASE_ENDPOINT: 127.0.0.1:5432
-      - image: cimg/postgres:16.1
-        environment:
-          POSTGRES_USER: root
-          POSTGRES_DB: personrecordservicetest
-          POSTGRES_PASSWORD: dev
-    working_directory: ~/app
-  machine_executor:
-    machine:
-      image: ubuntu-2204:2023.10.1
-
 parameters:
   alerts-slack-channel:
     type: string
@@ -33,7 +13,11 @@ parameters:
 
 jobs:
   validate:
-    executor: machine_executor
+    executor:
+      name: java_localstack_postgres
+      jdk_tag: "21.0"
+      localstack_tag: "3.0"
+      postgres_tag: "16.0"
     steps:
       - checkout
       - restore_cache:
