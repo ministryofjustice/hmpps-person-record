@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.client.HttpClientErrorException
-import org.springframework.web.client.HttpServerErrorException
 import uk.gov.justice.digital.hmpps.personrecord.client.PageParams
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonServiceClient
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerNumbers
@@ -21,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRe
 
 private const val OK = "OK"
 
-private val retryables = listOf(HttpClientErrorException::class, HttpServerErrorException::class, feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class)
+private val retryables = listOf(feign.RetryableException::class, FeignException.InternalServerError::class)
 
 @RestController
 class PopulateFromNomis(
