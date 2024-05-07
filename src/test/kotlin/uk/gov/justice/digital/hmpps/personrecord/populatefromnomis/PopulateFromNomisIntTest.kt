@@ -94,7 +94,7 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withFixedDelay(5500),
+            .withFixedDelay(500),
         ),
     )
 

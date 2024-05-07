@@ -63,11 +63,11 @@ hmpps.sqs:
     probationoffenderevents:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
 
+spring:
   cloud.openfeign.client.config:
     default:
-      logger-level: full
       connect-timeout: 5000
-      read-timeout: 5000
+      read-timeout: 300
       default-request-headers:
         Accept: application/json
 
