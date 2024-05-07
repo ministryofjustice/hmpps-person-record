@@ -1,12 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors
 
-import feign.FeignException
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import org.springframework.web.client.HttpClientErrorException
-import org.springframework.web.client.HttpServerErrorException
 import uk.gov.justice.digital.hmpps.personrecord.client.OffenderDetailRestClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
@@ -29,7 +26,6 @@ class OffenderCreatedEventProcessor(
     @Value("\${retry.delay}")
     private val retryDelay: Long = 0
     private val log = LoggerFactory.getLogger(this::class.java)
-    private val exceptionsToRetryOn = listOf(HttpClientErrorException::class, HttpServerErrorException::class, FeignException.InternalServerError::class)
   }
   override fun processEvent(domainEvent: DomainEvent) {
     val offenderDetailUrl = domainEvent.detailUrl
@@ -52,7 +48,7 @@ class OffenderCreatedEventProcessor(
 
   private fun getNewOffenderDetail(offenderDetailsUrl: String): Result<DeliusOffenderDetail?> = runBlocking {
     try {
-      return@runBlocking RetryExecutor.runWithRetry(exceptionsToRetryOn, MAX_RETRY_ATTEMPTS, retryDelay) {
+      return@runBlocking RetryExecutor.runWithRetry(MAX_RETRY_ATTEMPTS, retryDelay) {
         Result.success(offenderDetailRestClient.getNewOffenderDetail(URI.create(offenderDetailsUrl).path))
       }
     } catch (e: Exception) {

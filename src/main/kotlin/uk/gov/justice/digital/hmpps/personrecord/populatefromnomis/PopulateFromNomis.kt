@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.populatefromnomis
 
-import feign.FeignException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -8,8 +7,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.client.HttpClientErrorException
-import org.springframework.web.client.HttpServerErrorException
 import uk.gov.justice.digital.hmpps.personrecord.client.PageParams
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonServiceClient
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerNumbers
@@ -20,8 +17,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 
 private const val OK = "OK"
-
-private val retryables = listOf(HttpClientErrorException::class, HttpServerErrorException::class, feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class)
 
 @RestController
 class PopulateFromNomis(
@@ -47,7 +42,7 @@ class PopulateFromNomis(
       var numbers = prisonerNumbers.numbers
 
       for (page in 1..totalPages) {
-        runWithRetry(retryables, retries, delayMillis) {
+        runWithRetry(retries, delayMillis) {
           prisonerSearchClient.getPrisoners(PrisonerNumbers(numbers))
         }?.forEach {
           val person = Person.from(it)
@@ -57,7 +52,7 @@ class PopulateFromNomis(
 
         // don't really like this, but it saves 1 call to getPrisonerNumbers
         if (page < totalPages) {
-          runWithRetry(retryables, retries, delayMillis) {
+          runWithRetry(retries, delayMillis) {
             numbers = prisonServiceClient.getPrisonerNumbers(PageParams(page, pageSize))!!.numbers
           }
         }
