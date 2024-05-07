@@ -59,6 +59,12 @@ workflows:
           filters:
             tags:
               ignore: /.*/
+      - checkout
+      - run:
+          command: ./scripts/generate-schema-report.sh
+      - store_artifacts:
+          path: /schema-spy-report
+          destination: db-schema
       - hmpps/helm_lint:
           name: helm_lint
       - hmpps/build_multiplatform_docker:
@@ -158,3 +164,20 @@ workflows:
           context:
             - veracode-credentials
             - hmpps-common-vars
+
+  generate-db-schema-docs:
+    triggers:
+      - schedule:
+          cron: "0 7 * * 1"
+          filters:
+            branches:
+              only:
+                - main
+    jobs:
+      - checkout
+      - run:
+          command: ./scripts/generate-schema-report.sh
+      - store_artifacts:
+          path: /schema-spy-report
+
+
