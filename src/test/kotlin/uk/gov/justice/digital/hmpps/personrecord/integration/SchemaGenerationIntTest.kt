@@ -37,5 +37,6 @@ class SchemaGenerationIntTest : IntegrationTestBase() {
         "build/reports/schemaspy.tar.gz",
       )
     }
+    ProcessBuilder().command("unzip", "build/reports/schemaspy.tar.gz")
   }
 }

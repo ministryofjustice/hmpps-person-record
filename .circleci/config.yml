@@ -43,7 +43,6 @@ workflows:
           filters:
             tags:
               ignore: /.*/
-      - generate-schema
       - hmpps/helm_lint:
           name: helm_lint
       - hmpps/build_multiplatform_docker:
