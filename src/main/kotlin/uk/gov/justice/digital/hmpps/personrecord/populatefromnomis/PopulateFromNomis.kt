@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.populatefromnomis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -41,6 +42,7 @@ class PopulateFromNomis(
       val totalPages = prisonerNumbers.totalPages
       var numbers = prisonerNumbers.numbers
 
+      log.info("Starting NOMIS seeding, total pages: $totalPages")
       for (page in 1..totalPages) {
         runWithRetry(retries, delayMillis) {
           prisonerSearchClient.getPrisoners(PrisonerNumbers(numbers))
@@ -57,6 +59,11 @@ class PopulateFromNomis(
           }
         }
       }
+      log.info("NOMIS seeding finished, approx records ${totalPages * pageSize}")
     }
+  }
+
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
