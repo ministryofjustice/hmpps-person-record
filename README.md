@@ -8,6 +8,12 @@
 ## Prerequisites
 - JDK 21 needs to be installed
 
+## Running tests
+```
+docker compose up -d postgres  localstack-hmpps-person-record
+./gradlew check
+```
+
 
 ## Running Service Locally
 
