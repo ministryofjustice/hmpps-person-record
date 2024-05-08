@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   hmpps: ministryofjustice/hmpps@8
+  kubernetes: circleci/kubernetes@1.29.3
 
 parameters:
   alerts-slack-channel:

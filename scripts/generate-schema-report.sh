@@ -47,4 +47,3 @@ kubectl cp "$pod_name:/output" schema-spy-report -n hmpps-person-record-dev
 
 # Clean up
 delete_pod
-
