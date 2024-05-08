@@ -37,6 +37,7 @@ class SchemaGenerationIntTest : IntegrationTestBase() {
         "build/reports/schemaspy.tar.gz",
       )
     }
-    ProcessBuilder().command("unzip", "build/reports/schemaspy.tar.gz")
+    ProcessBuilder().command("mkdir", "-p", "build/reports/schemaspy").start()
+    ProcessBuilder().command("tar", "-xzvf", "build/reports/schemaspy.tar.gz", "-C", "build/reports/schemaspy").start()
   }
 }
