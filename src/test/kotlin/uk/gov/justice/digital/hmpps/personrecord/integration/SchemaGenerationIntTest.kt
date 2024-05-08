@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.integration
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer
 
-class SchemaGenerationIntTest: IntegrationTestBase() {
+class SchemaGenerationIntTest : IntegrationTestBase() {
 
   @Test
   fun `should generate schema`() {

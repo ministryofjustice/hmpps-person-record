@@ -35,20 +35,6 @@ jobs:
       - store_artifacts:
           path: build/reports/tests
 
-  generate-schema:
-    executor:
-      name: hmpps/java_localstack_postgres
-      jdk_tag: "21.0"
-      localstack_tag: "3.0"
-      postgres_tag: "16.1"
-    steps:
-      - checkout
-      - hmpps/k8s_setup
-      - run:
-          command: ./scripts/generate-schema-report.sh
-      - store_artifacts:
-          path: /schema-spy-report
-
 workflows:
   version: 2
   build-test-and-deploy:
@@ -157,20 +143,3 @@ workflows:
           context:
             - veracode-credentials
             - hmpps-common-vars
-
-#  generate-db-schema-docs:
-#    triggers:
-#      - schedule:
-#          cron: "0 7 * * 1"
-#          filters:
-#            branches:
-#              only:
-#                - main
-#    jobs:
-#      - checkout
-#      - run:
-#          command: ./scripts/generate-schema-report.sh
-#      - store_artifacts:
-#          path: /schema-spy-report
-
-
