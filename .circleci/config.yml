@@ -44,6 +44,7 @@ jobs:
       postgres_tag: "16.1"
     steps:
       - checkout
+      - kubernetes/install-kubectl
       - run:
           command: ./scripts/generate-schema-report.sh
       - store_artifacts:
