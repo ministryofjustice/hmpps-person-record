@@ -8,4 +8,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 interface PersonRepository : JpaRepository<PersonEntity, Long> {
 
   fun findByDefendantId(defendantId: String): PersonEntity?
+
+  fun findByCrn(crn: String): PersonEntity?
 }

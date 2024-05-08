@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model
 
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
@@ -66,6 +67,19 @@ data class Person(
           crn = offenderDetail.otherIds.crn,
           pncIdentifier = PNCIdentifier.from(offenderDetail.otherIds.pncNumber),
           prisonNumber = offenderDetail.otherIds.nomsNumber,
+        ),
+        sourceSystemType = SourceSystemType.DELIUS,
+      )
+    }
+
+    fun from(deliusOffenderDetail: DeliusOffenderDetail): Person {
+      return Person(
+        givenName = deliusOffenderDetail.name.forename,
+        familyName = deliusOffenderDetail.name.surname,
+        dateOfBirth = deliusOffenderDetail.dateOfBirth,
+        otherIdentifiers = OtherIdentifiers(
+          crn = deliusOffenderDetail.identifiers.crn,
+          pncIdentifier = deliusOffenderDetail.identifiers.pnc,
         ),
         sourceSystemType = SourceSystemType.DELIUS,
       )
