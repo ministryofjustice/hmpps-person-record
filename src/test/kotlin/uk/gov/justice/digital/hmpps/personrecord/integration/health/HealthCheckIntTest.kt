@@ -9,11 +9,6 @@ import java.util.function.Consumer
 class HealthCheckIntTest : IntegrationTestBase() {
 
   @Test
-  fun `should start postgres container`() {
-    assertThat(Companion.postgresSQLContainer.isRunning).isTrue
-  }
-
-  @Test
   fun `Health page reports ok`() {
     webTestClient.get()
       .uri("/health")
