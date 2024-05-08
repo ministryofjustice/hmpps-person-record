@@ -1,8 +1,9 @@
-
 #!/usr/bin/env bash
 set -euo pipefail
 
 pod_name=schemaspy
+
+kubectl config use-context live.cloud-platform.service.justice.gov.uk
 
 # Delete pod on script exit
 function delete_pod() { kubectl delete pod "$pod_name" -n hmpps-person-record-dev; }
