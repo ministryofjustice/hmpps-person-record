@@ -36,7 +36,11 @@ jobs:
           path: build/reports/tests
 
   generate-schema:
-    executor: machine_executor
+    executor:
+      name: hmpps/java_localstack_postgres
+      jdk_tag: "21.0"
+      localstack_tag: "3.0"
+      postgres_tag: "16.1"
     steps:
       - checkout
       - run:
