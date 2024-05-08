@@ -78,4 +78,6 @@ sonar-project.properties
 .vscode
 
 # schemaspy
-/schema-spy-report
+/schemaspy
+schemaspy.tar.gz
+schemaspy.tar
