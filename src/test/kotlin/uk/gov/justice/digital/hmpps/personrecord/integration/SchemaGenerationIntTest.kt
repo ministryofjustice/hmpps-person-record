@@ -17,7 +17,7 @@ class SchemaGenerationIntTest : IntegrationTestBase() {
       withCommand("sleep 300000")
     }.use { schemaSpy ->
       schemaSpy.start()
-      schemaSpy.execInContainer(
+      val execInContainer = schemaSpy.execInContainer(
         "/usr/local/bin/schemaspy",
         "-host",
         "host.docker.internal",
@@ -34,6 +34,9 @@ class SchemaGenerationIntTest : IntegrationTestBase() {
         "-p",
         "dev",
       )
+      println(execInContainer.stdout)
+      println(execInContainer.stderr)
+      println(execInContainer.exitCode)
 
       schemaSpy.execInContainer("tar", "-czvf", "/output/output.tar.gz", "/output")
 
