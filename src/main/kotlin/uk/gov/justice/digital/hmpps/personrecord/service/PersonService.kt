@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Isolation
-import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonAddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonAliasEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonContactEntity
@@ -13,16 +11,18 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Service
 class PersonService(
-  private val personRepository: PersonRepository,
   private val telemetryService: TelemetryService,
+  private val personRepository: PersonRepository,
+  private val readWriteLockService: ReadWriteLockService,
 ) {
 
-  @Transactional(isolation = Isolation.SERIALIZABLE)
   fun processPerson(person: Person, callback: () -> PersonEntity?) {
-    val existingPersonEntity: PersonEntity? = callback()
-    when {
-      (existingPersonEntity == null) -> handlePersonCreation(person)
-      else -> handlePersonUpdate(person, existingPersonEntity)
+    readWriteLockService.withWriteLock {
+      val existingPersonEntity: PersonEntity? = callback()
+      when {
+        (existingPersonEntity == null) -> handlePersonCreation(person)
+        else -> handlePersonUpdate(person, existingPersonEntity)
+      }
     }
   }
 

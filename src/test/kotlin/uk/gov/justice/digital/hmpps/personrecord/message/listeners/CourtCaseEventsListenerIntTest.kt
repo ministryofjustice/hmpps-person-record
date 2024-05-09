@@ -7,6 +7,7 @@ import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.times
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
@@ -81,6 +82,11 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     checkTelemetry(
       CPR_RECORD_CREATED,
       mapOf("SourceSystem" to "HMCTS"),
+    )
+    checkTelemetry(
+      CPR_RECORD_UPDATED,
+      mapOf("SourceSystem" to "HMCTS"),
+      times(99),
     )
   }
 
