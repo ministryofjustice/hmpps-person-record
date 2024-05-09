@@ -39,6 +39,32 @@ jobs:
       - store_artifacts:
           path: build/reports/schemaspy/output
           destination: schema
+  generate-schema:
+    executor:
+      name: hmpps/java_localstack_postgres
+      jdk_tag: "21.0"
+      localstack_tag: "3.0"
+      postgres_tag: "16.1"
+    steps:
+      - checkout
+      - run:
+          name: Install schemaspy
+          command: curl -L https://github.com/schemaspy/schemaspy/releases/download/v6.2.4/schemaspy-6.2.4.jar --output /tmp/schemaspy.jar
+            - run:
+                name: Generate database schema report
+                command: |
+                  java -jar /tmp/schemaspy.jar \
+                    -t pgsql \
+                    -db postgres \
+                    -host localhost \
+                    -port 5432 \
+                    -s personrecordservice \
+                    -u root \
+                    -p dev \
+                    -o /schemaspy
+      - store_artifacts:
+          path: /schemaspy/output
+          destination: schema
 
 workflows:
   version: 2
@@ -48,6 +74,7 @@ workflows:
           filters:
             tags:
               ignore: /.*/
+      - generate-schema
       - hmpps/helm_lint:
           name: helm_lint
       - hmpps/build_multiplatform_docker:
