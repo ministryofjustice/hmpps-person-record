@@ -20,7 +20,7 @@ class SchemaGenerationIntTest : IntegrationTestBase() {
       val execInContainer = schemaSpy.execInContainer(
         "/usr/local/bin/schemaspy",
         "-host",
-        "host.docker.internal",
+        "localhost",
         "-port",
         "5432",
         "-db",
