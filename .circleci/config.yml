@@ -53,6 +53,7 @@ jobs:
       - run:
           name: Generate database schema report
           command: |
+            mkdir -p /schemaspy
             java -jar /tmp/schemaspy.jar \
               -t pgsql \
               -db postgres \
