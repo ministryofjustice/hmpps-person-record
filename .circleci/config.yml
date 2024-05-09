@@ -66,13 +66,14 @@ jobs:
               -host localhost \
               -port 5432 \
               -s personrecordservice \
-              -cat personrecordservice \
               -vizjs \
               -u root \
               -p dev \
               -o /tmp/schemaspy
+      - run:
+          command: ls -a /tmp/schemaspy
       - store_artifacts:
-          path: /tmp/schemaspy/output
+          path: /tmp/schemaspy
           destination: schema
 
 workflows:
