@@ -20,7 +20,7 @@ class SchemaGenerationIntTest : IntegrationTestBase() {
       val execInContainer = schemaSpy.execInContainer(
         "/usr/local/bin/schemaspy",
         "-host",
-        "localhost",
+        "127.0.0.1",
         "-port",
         "5432",
         "-db",
@@ -28,7 +28,7 @@ class SchemaGenerationIntTest : IntegrationTestBase() {
         "-t",
         "pgsql",
         "-s",
-        "personrecordservicetest",
+        "personrecordservice",
         "-u",
         "root",
         "-p",
