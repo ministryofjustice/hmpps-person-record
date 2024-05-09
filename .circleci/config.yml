@@ -50,18 +50,18 @@ jobs:
       - run:
           name: Install schemaspy
           command: curl -L https://github.com/schemaspy/schemaspy/releases/download/v6.2.4/schemaspy-6.2.4.jar --output /tmp/schemaspy.jar
-            - run:
-                name: Generate database schema report
-                command: |
-                  java -jar /tmp/schemaspy.jar \
-                    -t pgsql \
-                    -db postgres \
-                    -host localhost \
-                    -port 5432 \
-                    -s personrecordservice \
-                    -u root \
-                    -p dev \
-                    -o /schemaspy
+      - run:
+          name: Generate database schema report
+          command: |
+            java -jar /tmp/schemaspy.jar \
+              -t pgsql \
+              -db postgres \
+              -host localhost \
+              -port 5432 \
+              -s personrecordservice \
+              -u root \
+              -p dev \
+              -o /schemaspy
       - store_artifacts:
           path: /schemaspy/output
           destination: schema
