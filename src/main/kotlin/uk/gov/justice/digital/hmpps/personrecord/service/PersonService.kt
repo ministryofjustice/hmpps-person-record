@@ -28,7 +28,7 @@ class PersonService(
 
   private fun handlePersonCreation(person: Person) {
     updateAndSavePersonEntity(person, PersonEntity.from(person))
-    trackEvent(TelemetryEventType.CPR_RECORD_CREATED, mapOf("SourceSystem" to person.sourceSystemType.name))
+    trackEvent(TelemetryEventType.CPR_RECORD_CREATED, mapOf("SourceSystem" to person.sourceSystemType.name)) // TODO add an identifier here
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity) {
