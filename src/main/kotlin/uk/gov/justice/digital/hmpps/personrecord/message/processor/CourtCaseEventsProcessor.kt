@@ -73,7 +73,11 @@ class CourtCaseEventsProcessor(
     try {
       personService.processPerson(person) {
         person.defendantId?.let {
-          personRepository.findByDefendantId(it)
+          val possibleMatches = personRepository.findAllByDefendantId(it)
+          when {
+            possibleMatches.isNullOrEmpty() -> null
+            else -> possibleMatches[0]
+          }
         }
       }
     } catch (e: Exception) {
