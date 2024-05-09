@@ -54,6 +54,9 @@ jobs:
           name: Install postgres jdbc driver
           command: curl -L https://jdbc.postgresql.org/download/postgresql-42.7.3.jar --output /tmp/postgres-driver.jar
       - run:
+          name: run check to init db
+          command: ./gradlew check
+      - run:
           name: Generate database schema report
           command: |
             java -jar /tmp/schemaspy.jar \
