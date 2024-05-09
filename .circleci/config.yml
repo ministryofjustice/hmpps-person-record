@@ -35,6 +35,10 @@ jobs:
           path: build/test-results
       - store_artifacts:
           path: build/reports/tests
+          destination: test
+      - store_artifacts:
+          path: build/reports/schemaspy/output
+          destination: schema
 
 workflows:
   version: 2
