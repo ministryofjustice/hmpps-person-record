@@ -53,7 +53,6 @@ jobs:
       - run:
           name: Generate database schema report
           command: |
-            mkdir -p /schemaspy
             java -jar /tmp/schemaspy.jar \
               -t pgsql \
               -db postgres \
@@ -62,9 +61,9 @@ jobs:
               -s personrecordservice \
               -u root \
               -p dev \
-              -o /schemaspy
+              -o /tmp/schemaspy
       - store_artifacts:
-          path: /schemaspy/output
+          path: /tmp/schemaspy/output
           destination: schema
 
 workflows:
