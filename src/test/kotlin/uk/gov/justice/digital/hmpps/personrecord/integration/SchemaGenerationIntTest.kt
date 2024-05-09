@@ -1,7 +1,12 @@
 package uk.gov.justice.digital.hmpps.personrecord.integration
 
+import org.assertj.core.api.Assertions.assertThat
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer
+import java.nio.file.Files
+import java.nio.file.Paths
 
 class SchemaGenerationIntTest : IntegrationTestBase() {
 
@@ -39,5 +44,8 @@ class SchemaGenerationIntTest : IntegrationTestBase() {
     }
     ProcessBuilder().command("mkdir", "-p", "build/reports/schemaspy").start()
     ProcessBuilder().command("tar", "-xzvf", "build/reports/schemaspy.tar.gz", "-C", "build/reports/schemaspy").start()
+    await untilAsserted {
+      assertThat(Files.exists(Paths.get("build/reports/schemaspy/output/index.html"))).isTrue()
+    }
   }
 }
