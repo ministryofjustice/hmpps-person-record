@@ -51,10 +51,14 @@ jobs:
           name: Install schemaspy
           command: curl -L https://github.com/schemaspy/schemaspy/releases/download/v6.2.4/schemaspy-6.2.4.jar --output /tmp/schemaspy.jar
       - run:
+          name: Install postgres jdbc driver
+          command: curl -L https://jdbc.postgresql.org/download/postgresql-42.7.3.jar --output /tmp/postgres-driver.jar
+      - run:
           name: Generate database schema report
           command: |
             java -jar /tmp/schemaspy.jar \
               -t pgsql \
+              -dp /tmp/postgres-driver.jar \
               -db postgres \
               -host localhost \
               -port 5432 \
