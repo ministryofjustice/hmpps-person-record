@@ -14,7 +14,9 @@ generic-service:
     PRISONER_SEARCH_BASE_URL: https://prisoner-search.prison.service.justice.gov.uk
     DOMAIN_EVENT_AND_DELIUS_API_BASE_URL: https://domain-events-and-delius.hmpps.service.justice.gov.uk
     PRISON_SERVICE_BASE_URL: https://api.prison.service.justice.gov.uk
-
+    FEATURE_FLAGS_ENABLE_HMCTS_SQS: false
+    FEATURE_FLAGS_ENABLE_DELIUS_DOMAIN_EVENT_SQS: false
+    
 generic-prometheus-alerts:
   sqsOldestAlertQueueNames:
     - "hmpps-person-record-prod-cpr_court_case_events_queue"
