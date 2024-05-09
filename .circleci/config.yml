@@ -19,6 +19,7 @@ jobs:
       localstack_tag: "3.0"
       postgres_tag: "16.1"
     steps:
+      - setup_remote_docker
       - checkout
       - restore_cache:
           keys:
