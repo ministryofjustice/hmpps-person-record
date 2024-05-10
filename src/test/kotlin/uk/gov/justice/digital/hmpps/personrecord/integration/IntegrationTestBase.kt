@@ -17,13 +17,11 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.verification.VerificationMode
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
-import org.springframework.test.web.servlet.MockMvc
 import org.testcontainers.junit.jupiter.Testcontainers
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
@@ -45,11 +43,7 @@ import java.time.Duration
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
 @Testcontainers
-@AutoConfigureMockMvc
 abstract class IntegrationTestBase {
-
-  @Autowired
-  lateinit var mockMvc: MockMvc
 
   @Autowired
   lateinit var webTestClient: WebTestClient
