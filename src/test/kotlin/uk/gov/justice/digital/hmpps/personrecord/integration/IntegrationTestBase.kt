@@ -24,7 +24,6 @@ import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.servlet.MockMvc
-import org.testcontainers.junit.jupiter.Testcontainers
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
@@ -44,7 +43,6 @@ import java.time.Duration
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
-@Testcontainers
 @AutoConfigureMockMvc
 abstract class IntegrationTestBase {
 

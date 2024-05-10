@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.helper
 
-import org.testcontainers.shaded.org.bouncycastle.asn1.isismtt.x509.DeclarationOfMajority.dateOfBirth
-
 fun testMessage(messageType: String?) = """
     {
       "Type" : "Notification",
