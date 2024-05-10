@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendantAndNoPnc
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
+import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithSameDefendantIdTwice
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
@@ -55,7 +56,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     val publishRequest = PublishRequest.builder()
       .topicArn(courtCaseEventsTopic?.arn)
-      .message(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber.pncId))
+      .message(commonPlatformHearingWithSameDefendantIdTwice(pncNumber = pncNumber.pncId))
       .messageAttributes(
         mapOf(
           "messageType" to MessageAttributeValue.builder().dataType("String")
@@ -89,7 +90,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     checkTelemetry(
       CPR_RECORD_UPDATED,
       mapOf("SourceSystem" to "HMCTS"),
-      times(99),
+      times(199),
     )
   }
 
