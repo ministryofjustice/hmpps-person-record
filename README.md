@@ -10,10 +10,8 @@
 
 ## Running tests
 ```
-docker compose up -d postgres  localstack-hmpps-person-record
-./gradlew check
+$ make test
 ```
-
 
 ## Running Service Locally
 
@@ -21,11 +19,17 @@ Mostly runs against dev services, uses localstack for the queues
 
 Ensure all docker containers are up and running:
 
-`$ docker compose up -d`
+`$ make start-containers`
 
 Which should start the following containers: (verify with `$ docker ps` if necessary)
 - postgres
 - localstack-hmpps-person-record
+
+To stop the containers:
+
+```
+$ make stop-containers
+```
 
 Start the service ensuring the local spring boot profile is set:
 
