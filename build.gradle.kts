@@ -38,7 +38,6 @@ dependencies {
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
-  testImplementation("org.testcontainers:junit-jupiter:1.19.7")
   testImplementation("org.wiremock:wiremock-standalone:3.5.4")
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.5")
