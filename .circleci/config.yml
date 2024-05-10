@@ -13,7 +13,9 @@ orbs:
           An HTML report is generated and is available on the artifacts tab of the circleci job
         executor:
           name: hmpps/java_localstack_postgres
-          tag: "21.0"
+          jdk_tag: "21.0"
+          localstack_tag: "3.0"
+          postgres_tag: "16.1"
         parameters:
           initialise_database:
             type: string
