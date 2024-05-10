@@ -4,6 +4,8 @@ orbs:
   hmpps: ministryofjustice/hmpps@8
 
   test-orb:
+    orbs:
+      hmpps: ministryofjustice/hmpps@8
     jobs:
       database_schema_report:
         description: >
