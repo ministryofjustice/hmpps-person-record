@@ -11,7 +11,10 @@ import org.mockito.kotlin.times
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
+import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
@@ -88,6 +91,29 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       mapOf("SourceSystem" to "HMCTS"),
       times(99),
     )
+  }
+
+  @Test
+  fun `should choose one and update when there are duplicate defendants - bug fix for CPR-331`() {
+    personRepository.saveAndFlush(PersonEntity.from(Person.from(Defendant(id = "b5cfae34-9256-43ad-87fb-ac3def34e2ac"))))
+    personRepository.saveAndFlush(PersonEntity.from(Person.from(Defendant(id = "b5cfae34-9256-43ad-87fb-ac3def34e2ac"))))
+
+    publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
+
+    checkTelemetry(
+      HMCTS_MESSAGE_RECEIVED,
+      mapOf("CRO" to "051072/62R", "PNC" to "2003/0062845E"),
+    )
+
+    checkTelemetry(
+      CPR_RECORD_UPDATED,
+      mapOf("SourceSystem" to "HMCTS"),
+    )
+
+    val personEntities = await.atMost(30, SECONDS) untilNotNull {
+      personRepository.findAllByDefendantId("b5cfae34-9256-43ad-87fb-ac3def34e2ac")
+    }
+    assertThat(personEntities.size).isEqualTo(2)
   }
 
   @Test
