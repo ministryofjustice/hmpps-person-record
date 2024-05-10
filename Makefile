@@ -1,4 +1,3 @@
-
 test: start-containers format
 	./gradlew check
 
