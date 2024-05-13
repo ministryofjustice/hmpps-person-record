@@ -45,7 +45,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
     checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS"))
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(personEntity.pnc).isEqualTo(expectedPncNumber)
@@ -91,7 +91,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
     checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS"))
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
@@ -152,7 +152,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
     checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS"))
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
@@ -169,7 +169,7 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
     publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
     checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS"))
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
