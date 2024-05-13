@@ -11,7 +11,7 @@ orbs:
         description: >
           Job to generate a schema report for a postgres database, using schemaspy. Runs against postgres in docker
           An HTML report is generated and is available on the artifacts tab of the circleci job
-        executor: <<parameters.executor_param>>
+        executor: << parameters.executor_param >>
         parameters:
           executor_param:
             type: executor
@@ -127,7 +127,7 @@ workflows:
               ignore: /.*/
       - test-orb/database_schema_report:
           schema: "personrecordservice"
-          executor:
+          executor_param:
             name: hmpps/java_localstack_postgres
             jdk_tag: "21.0"
             localstack_tag: "3.0"
