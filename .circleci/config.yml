@@ -15,6 +15,11 @@ orbs:
         parameters:
           executor_param:
             type: executor
+            default: |
+              name: hmpps/java_localstack_postgres
+              jdk_tag: "21.0"
+              localstack_tag: "3.0"
+              postgres_tag: "16.1"
             description: executor to use
           initialise_database:
             type: string
@@ -127,11 +132,6 @@ workflows:
               ignore: /.*/
       - test-orb/database_schema_report:
           schema: "personrecordservice"
-          executor_param:
-            name: hmpps/java_localstack_postgres
-            jdk_tag: "21.0"
-            localstack_tag: "3.0"
-            postgres_tag: "16.1"
       - hmpps/helm_lint:
           name: helm_lint
       - hmpps/build_multiplatform_docker:
