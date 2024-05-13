@@ -24,6 +24,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
+import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OffenderRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -123,7 +124,7 @@ abstract class IntegrationTestBase {
     return header("authorization", "Bearer $bearerToken") as WebTestClient.RequestBodySpec
   }
 
-  internal fun publishHMCTSMessage(message: String, messageType: MessageType) {
+  internal fun publishHMCTSMessage(message: String, messageType: MessageType): String {
     val publishRequest = PublishRequest.builder()
       .topicArn(courtCaseEventsTopic?.arn)
       .message(message)
@@ -131,13 +132,16 @@ abstract class IntegrationTestBase {
         mapOf(
           "messageType" to MessageAttributeValue.builder().dataType("String")
             .stringValue(messageType.name).build(),
+          "messageId" to MessageAttributeValue.builder().dataType("String")
+            .stringValue("d3242a9f-c1cd-4d16-bd46-b7d33ccc9849").build(),
         ),
       )
       .build()
 
-    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+    val response: PublishResponse? = courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
     expectNoMessagesOn(cprCourtCaseEventsQueue)
+    return response!!.messageId()
   }
 
   private fun expectNoMessagesOn(queue: HmppsQueue?) {

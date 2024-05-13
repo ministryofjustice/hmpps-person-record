@@ -35,6 +35,7 @@ class CourtCaseEventsProcessor(
         objectMapper.readValue<CommonPlatformHearingEvent>(
           sqsMessage.message,
         ),
+        sqsMessage.messageId,
       )
       else -> {
         if (sqsMessage.getMessageType()?.equals(UNKNOWN) == true) {
@@ -44,7 +45,7 @@ class CourtCaseEventsProcessor(
     }
   }
 
-  fun processCommonPlatformHearingEvent(commonPlatformHearingEvent: CommonPlatformHearingEvent) {
+  fun processCommonPlatformHearingEvent(commonPlatformHearingEvent: CommonPlatformHearingEvent, messageId: String?) {
     log.debug("Processing COMMON PLATFORM event")
 
     val uniqueDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
@@ -63,7 +64,11 @@ class CourtCaseEventsProcessor(
       val person = Person.from(defendant)
       telemetryService.trackEvent(
         HMCTS_MESSAGE_RECEIVED,
-        mapOf("PNC" to person.otherIdentifiers?.pncIdentifier.toString(), "CRO" to person.otherIdentifiers?.croIdentifier.toString()),
+        mapOf(
+          "PNC" to person.otherIdentifiers?.pncIdentifier.toString(),
+          "CRO" to person.otherIdentifiers?.croIdentifier.toString(),
+          "messageId" to messageId,
+        ),
       )
       process(person)
     }

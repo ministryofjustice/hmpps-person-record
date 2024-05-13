@@ -32,19 +32,19 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   @Test
   fun `should successfully process common platform message with 3 defendants and create correct telemetry events`() {
-    publishHMCTSMessage(commonPlatformHearing("19810154257C"), COMMON_PLATFORM_HEARING)
+    val messageId = publishHMCTSMessage(commonPlatformHearing("19810154257C"), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to "1981/0154257C"),
+      mapOf("PNC" to "1981/0154257C", "messageId" to messageId),
     )
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to "2008/0056560Z"),
+      mapOf("PNC" to "2008/0056560Z", "messageId" to messageId),
     )
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to ""),
+      mapOf("PNC" to "", "messageId" to messageId),
     )
   }
 
