@@ -17,16 +17,14 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.verification.VerificationMode
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
-import org.springframework.test.web.servlet.MockMvc
-import org.testcontainers.junit.jupiter.Testcontainers
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
+import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.PrisonerCreatedEventProcessor
@@ -43,12 +41,7 @@ import java.time.Duration
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
-@Testcontainers
-@AutoConfigureMockMvc
 abstract class IntegrationTestBase {
-
-  @Autowired
-  lateinit var mockMvc: MockMvc
 
   @Autowired
   lateinit var webTestClient: WebTestClient
@@ -126,7 +119,7 @@ abstract class IntegrationTestBase {
     return header("authorization", "Bearer $bearerToken") as WebTestClient.RequestBodySpec
   }
 
-  internal fun publishHMCTSMessage(message: String, messageType: MessageType) {
+  internal fun publishHMCTSMessage(message: String, messageType: MessageType): String {
     val publishRequest = PublishRequest.builder()
       .topicArn(courtCaseEventsTopic?.arn)
       .message(message)
@@ -134,13 +127,16 @@ abstract class IntegrationTestBase {
         mapOf(
           "messageType" to MessageAttributeValue.builder().dataType("String")
             .stringValue(messageType.name).build(),
+          "messageId" to MessageAttributeValue.builder().dataType("String")
+            .stringValue("d3242a9f-c1cd-4d16-bd46-b7d33ccc9849").build(),
         ),
       )
       .build()
 
-    courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+    val response: PublishResponse? = courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
     expectNoMessagesOn(cprCourtCaseEventsQueue)
+    return response!!.messageId()
   }
 
   private fun expectNoMessagesOn(queue: HmppsQueue?) {

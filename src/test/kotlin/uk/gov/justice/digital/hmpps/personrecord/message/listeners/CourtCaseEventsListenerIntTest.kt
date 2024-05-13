@@ -7,10 +7,14 @@ import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.times
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
+import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
@@ -28,19 +32,19 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   @Test
   fun `should successfully process common platform message with 3 defendants and create correct telemetry events`() {
-    publishHMCTSMessage(commonPlatformHearing("19810154257C"), COMMON_PLATFORM_HEARING)
+    val messageId = publishHMCTSMessage(commonPlatformHearing("19810154257C"), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to "1981/0154257C"),
+      mapOf("PNC" to "1981/0154257C", "messageId" to messageId),
     )
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to "2008/0056560Z"),
+      mapOf("PNC" to "2008/0056560Z", "messageId" to messageId),
     )
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to ""),
+      mapOf("PNC" to "", "messageId" to messageId),
     )
   }
 
@@ -82,6 +86,34 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SourceSystem" to "HMCTS"),
     )
+    checkTelemetry(
+      CPR_RECORD_UPDATED,
+      mapOf("SourceSystem" to "HMCTS"),
+      times(99),
+    )
+  }
+
+  @Test
+  fun `should choose one and update when there are duplicate defendants - bug fix for CPR-331`() {
+    personRepository.saveAndFlush(PersonEntity.from(Person.from(Defendant(id = "b5cfae34-9256-43ad-87fb-ac3def34e2ac"))))
+    personRepository.saveAndFlush(PersonEntity.from(Person.from(Defendant(id = "b5cfae34-9256-43ad-87fb-ac3def34e2ac"))))
+
+    publishHMCTSMessage(commonPlatformHearingWithNewDefendant(), COMMON_PLATFORM_HEARING)
+
+    checkTelemetry(
+      HMCTS_MESSAGE_RECEIVED,
+      mapOf("CRO" to "051072/62R", "PNC" to "2003/0062845E"),
+    )
+
+    checkTelemetry(
+      CPR_RECORD_UPDATED,
+      mapOf("SourceSystem" to "HMCTS"),
+    )
+
+    val personEntities = await.atMost(30, SECONDS) untilNotNull {
+      personRepository.findAllByDefendantId("b5cfae34-9256-43ad-87fb-ac3def34e2ac")
+    }
+    assertThat(personEntities.size).isEqualTo(2)
   }
 
   @Test

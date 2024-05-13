@@ -6,10 +6,6 @@ management.endpoint:
   health.cache.time-to-live: 0
   info.cache.time-to-live: 0
 
-database:
-  schema:
-    name: personrecordservicetest
-
 match-score:
   base-url: http://localhost:8090
 
@@ -36,7 +32,6 @@ feature:
 
 retry:
   delay: 200
-
 
 hmpps.sqs:
   enabled: true
