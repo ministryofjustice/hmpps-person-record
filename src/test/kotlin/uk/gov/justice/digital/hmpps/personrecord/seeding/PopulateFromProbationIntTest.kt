@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -40,7 +40,7 @@ class PopulateFromProbationIntTest : IntegrationTestBase() {
     assertThat(pop.aliases[1].firstName).isEqualTo("POPOneAliasTwoFirstName")
     assertThat(pop.aliases[1].middleNames).isEqualTo("POPOneAliasTwoMiddleNameOne POPOneAliasTwoMiddleNameTwo")
     assertThat(pop.aliases[1].lastName).isEqualTo("POPOneAliasTwoLastName")
-    assertThat(pop.sourceSystem).isEqualTo(NOMIS)
+    assertThat(pop.sourceSystem).isEqualTo(DELIUS)
     assertThat(pops[1].firstName).isEqualTo("POPTwoFirstName")
     assertThat(pops[2].firstName).isEqualTo("POPThreeFirstName")
     assertThat(pops[3].firstName).isEqualTo("POPFourFirstName")
