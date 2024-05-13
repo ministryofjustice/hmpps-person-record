@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/all-probation-cases?page=3&size=2&sort=id,asc"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\n    \"content\": [\n        {\n            \"identifiers\": {\n                \"deliusId\": 2500000501,\n                \"crn\": \"D001029\"\n            },\n            \"name\": {\n                \"forename\": \"POPSevenFirstName\",\n           \"middleName\":\"POPSevenMiddleNameOne POPSevenMiddleNameTwo\",     \"surname\": \"POPSevenLastName\"\n            },\n            \"dateOfBirth\": \"1980-08-29\",\n            \"gender\": {\n                \"code\": \"M\",\n                \"description\": \"Male\"\n            },\n            \"aliases\": [],\n            \"addresses\": []\n        },\n  ])"
+  }
+}

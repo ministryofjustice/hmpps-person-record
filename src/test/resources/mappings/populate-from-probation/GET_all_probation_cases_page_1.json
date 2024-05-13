@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/all-probation-cases?page=1&size=2&sort=id,asc"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\n    \"content\": [\n        {\n            \"identifiers\": {\n                \"deliusId\": 2500000501,\n                \"crn\": \"D001025\"\n            },\n            \"name\": {\n                \"forename\": \"POPThreeFirstName\",\n           \"middleName\":\"POPThreeMiddleNameOne POPThreeMiddleNameTwo\",     \"surname\": \"POPThreeLastName\"\n            },\n            \"dateOfBirth\": \"1980-08-29\",\n            \"gender\": {\n                \"code\": \"M\",\n                \"description\": \"Male\"\n            },\n            \"aliases\": [],\n            \"addresses\": []\n        },\n        {\n            \"identifiers\": {\n                \"deliusId\": 2500000503,\n                \"crn\": \"D001026\"\n            },\n            \"name\": {\n                    \"forename\": \"POPFourFirstName\",\n           \"middleName\":\"POPFourMiddleNameOne POPFourMiddleNameTwo\",     \"surname\": \"POPFourLastName\"\n          },\n            \"dateOfBirth\": \"1990-05-18\",\n            \"gender\": {\n                \"code\": \"M\",\n                \"description\": \"Male\"\n            },\n            \"aliases\": [],\n            \"addresses\": []\n        }])"
+  }
+}
