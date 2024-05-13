@@ -3,6 +3,12 @@ version: 2.1
 orbs:
   hmpps: ministryofjustice/hmpps@8
 
+
+
+  test-orb:
+    orbs:
+      hmpps: ministryofjustice/hmpps@8
+
   executors:
     our_executor:
       docker:
@@ -54,10 +60,6 @@ orbs:
         java_options:
           default: -Xmx512m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.workers.max=1
           type: string
-
-  test-orb:
-    orbs:
-      hmpps: ministryofjustice/hmpps@8
 
     jobs:
       database_schema_report:
