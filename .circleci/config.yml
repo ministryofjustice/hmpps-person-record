@@ -68,7 +68,7 @@ orbs:
         parameters:
           executor_param:
             type: executor
-            default: our-executor
+            default: our_executor
             description: executor to use
           initialise_database:
             type: string
