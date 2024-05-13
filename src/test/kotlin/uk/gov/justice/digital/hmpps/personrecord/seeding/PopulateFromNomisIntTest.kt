@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.populatefromnomis
+package uk.gov.justice.digital.hmpps.personrecord.seeding
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson

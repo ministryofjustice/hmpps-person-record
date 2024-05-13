@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.populatefromnomis
+package uk.gov.justice.digital.hmpps.personrecord.seeding
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
