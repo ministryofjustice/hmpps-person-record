@@ -1,4 +1,4 @@
-test: start-containers format stop-containers
+test: stop-containers start-containers format
 	./gradlew check
 
 format:

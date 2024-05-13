@@ -56,16 +56,26 @@ class OffenderDomainEventsListenerIntTest : IntegrationTestBase() {
   fun `should handle multiple records with same crn, updates first`() {
     // Given
     val crn = "XXX1234"
-    personRepository.saveAndFlush(PersonEntity.from(Person.from(
-      DeliusOffenderDetail(
-        name = Name(surname = "Smith"),
-        identifiers = Identifiers(crn = crn)))
-    ))
-    personRepository.saveAndFlush(PersonEntity.from(Person.from(
-      DeliusOffenderDetail(
-        name = Name(surname = "Smith"),
-        identifiers = Identifiers(crn = crn)))
-    ))
+    personRepository.saveAndFlush(
+      PersonEntity.from(
+        Person.from(
+          DeliusOffenderDetail(
+            name = Name(surname = "Smith"),
+            identifiers = Identifiers(crn = crn),
+          ),
+        ),
+      ),
+    )
+    personRepository.saveAndFlush(
+      PersonEntity.from(
+        Person.from(
+          DeliusOffenderDetail(
+            name = Name(surname = "Smith"),
+            identifiers = Identifiers(crn = crn),
+          ),
+        ),
+      ),
+    )
 
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
