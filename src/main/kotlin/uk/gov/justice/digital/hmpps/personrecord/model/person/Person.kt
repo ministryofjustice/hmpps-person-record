@@ -42,12 +42,6 @@ data class Person(
       )
     }
 
-    fun from(offenderDetail: DeliusOffenderDetail): Person {
-      return Person(
-        givenName = offenderDetail.name.forename,
-        sourceSystemType = SourceSystemType.DELIUS,
-      )
-    }
     fun from(offenderDetail: OffenderDetail): Person {
       return Person(
         givenName = offenderDetail.firstName,
