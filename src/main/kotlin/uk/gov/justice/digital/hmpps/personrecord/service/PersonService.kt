@@ -4,6 +4,7 @@ import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.CannotAcquireLockException
 import org.springframework.orm.ObjectOptimisticLockingFailureException
+import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AliasEntity
@@ -23,7 +24,7 @@ class PersonService(
 
   @Value("\${retry.delay}")
   private val retryDelay: Long = 0
-  private val retryExceptions = listOf(ObjectOptimisticLockingFailureException::class, CannotAcquireLockException::class)
+  private val retryExceptions = listOf(ObjectOptimisticLockingFailureException::class, CannotAcquireLockException::class, JpaSystemException::class)
 
   fun processMessage(person: Person, callback: () -> List<PersonEntity>?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, retryExceptions) {
