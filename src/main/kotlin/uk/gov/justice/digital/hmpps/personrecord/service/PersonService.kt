@@ -16,24 +16,29 @@ class PersonService(
   private val readWriteLockService: ReadWriteLockService,
 ) {
 
-  fun processPerson(person: Person, callback: () -> PersonEntity?) {
+  fun processPerson(person: Person, callback: () -> List<PersonEntity>?) {
     readWriteLockService.withWriteLock {
-      val existingPersonEntity: PersonEntity? = callback()
+      val existingPersonEntities: List<PersonEntity>? = callback()
       when {
-        (existingPersonEntity == null) -> handlePersonCreation(person)
-        else -> handlePersonUpdate(person, existingPersonEntity)
+        (existingPersonEntities.isNullOrEmpty()) -> handlePersonCreation(person)
+        else -> {
+          if (existingPersonEntities.size > 1) {
+            trackEvent(TelemetryEventType.CPR_MULTIPLE_RECORDS_FOUND, person)
+          }
+          handlePersonUpdate(person, existingPersonEntities[0])
+        }
       }
     }
   }
 
   private fun handlePersonCreation(person: Person) {
     updateAndSavePersonEntity(person, PersonEntity.from(person))
-    trackEvent(TelemetryEventType.CPR_RECORD_CREATED, mapOf("SourceSystem" to person.sourceSystemType.name)) // TODO add an identifier here
+    trackEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity) {
     updateExistingPersonEntity(person, existingPersonEntity)
-    trackEvent(TelemetryEventType.CPR_RECORD_UPDATED, mapOf("SourceSystem" to existingPersonEntity.sourceSystem.name))
+    trackEvent(TelemetryEventType.CPR_RECORD_UPDATED, person)
   }
 
   private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
@@ -76,8 +81,14 @@ class PersonService(
 
   private fun trackEvent(
     eventType: TelemetryEventType,
-    elementMap: Map<String, String?>,
+    person: Person,
+    elementMap: Map<String, String?> = emptyMap(),
   ) {
-    telemetryService.trackEvent(eventType, elementMap)
+    val identifierMap = mapOf(
+      "SourceSystem" to person.sourceSystemType.name,
+      "DefendantId" to person.defendantId,
+      "CRN" to (person.otherIdentifiers?.crn ?: ""),
+    )
+    telemetryService.trackEvent(eventType, identifierMap + elementMap)
   }
 }

@@ -7,7 +7,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Test
-import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
@@ -18,7 +17,6 @@ import java.util.concurrent.TimeUnit.SECONDS
 class PopulateFromNomisIntTest : IntegrationTestBase() {
 
   @Test
-  @Transactional // Is this dodgy?
   fun `populate from nomis`() {
     webTestClient.post()
       .uri("/populatefromnomis")
@@ -29,6 +27,7 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
     await.atMost(15, SECONDS) untilAsserted {
       assertThat(personRepository.findAll().size).isEqualTo(7)
     }
+
     val prisoners = personRepository.findAll()
     val prisoner = prisoners[0]
     assertThat(prisoner.firstName).isEqualTo("PrisonerOneFirstName")
