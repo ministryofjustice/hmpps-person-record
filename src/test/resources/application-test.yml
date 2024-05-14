@@ -19,9 +19,12 @@ prisoner-search:
   base-url: http://localhost:8090
 
 domain-event-and-delius-api:
-  base_url: http://localhost:8090
+  base-url: http://localhost:8090
 
 prison-service:
+  base-url: http://localhost:8090
+
+core-person-record-and-delius:
   base-url: http://localhost:8090
 
 feature:
@@ -68,3 +71,9 @@ populate-from-nomis:
     retry:
       delay: 200
       times: 10
+
+populate-from-probation:
+  page-size: 2
+  retry:
+    delay: 200
+    times: 10

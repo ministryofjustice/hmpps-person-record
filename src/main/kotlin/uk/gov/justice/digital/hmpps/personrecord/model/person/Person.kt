@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model.person
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
@@ -10,6 +11,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.HMCTS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDate
 import java.util.*
@@ -52,20 +55,35 @@ data class Person(
           pncIdentifier = PNCIdentifier.from(offenderDetail.otherIds.pncNumber),
           prisonNumber = offenderDetail.otherIds.nomsNumber,
         ),
-        sourceSystemType = SourceSystemType.DELIUS,
+        sourceSystemType = DELIUS,
       )
     }
 
     fun from(deliusOffenderDetail: DeliusOffenderDetail): Person {
       return Person(
         givenName = deliusOffenderDetail.name.forename,
+        middleNames = deliusOffenderDetail.name.otherNames,
         familyName = deliusOffenderDetail.name.surname,
         dateOfBirth = deliusOffenderDetail.dateOfBirth,
         otherIdentifiers = OtherIdentifiers(
           crn = deliusOffenderDetail.identifiers.crn,
           pncIdentifier = deliusOffenderDetail.identifiers.pnc,
         ),
-        sourceSystemType = SourceSystemType.DELIUS,
+        sourceSystemType = DELIUS,
+      )
+    }
+    fun from(probationCase: ProbationCase): Person {
+      return Person(
+        givenName = probationCase.name.firstName,
+        middleNames = probationCase.name.middleNames?.split(" ") ?: emptyList(),
+        familyName = probationCase.name.lastName,
+        dateOfBirth = probationCase.dateOfBirth,
+        otherIdentifiers = OtherIdentifiers(
+          crn = probationCase.identifiers.crn,
+          pncIdentifier = probationCase.identifiers.pnc,
+        ),
+        aliases = probationCase.aliases?.map { Alias.from(it) } ?: emptyList(),
+        sourceSystemType = DELIUS,
       )
     }
 
@@ -102,7 +120,7 @@ data class Person(
         contacts = contacts,
         addresses = addresses,
         aliases = defendant.aliases?.map { Alias.from(it) } ?: emptyList(),
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       )
     }
 
@@ -115,7 +133,7 @@ data class Person(
         givenName = libraHearingEvent.name?.forename1,
         familyName = libraHearingEvent.name?.surname,
         dateOfBirth = libraHearingEvent.defendantDob,
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       )
     }
 
