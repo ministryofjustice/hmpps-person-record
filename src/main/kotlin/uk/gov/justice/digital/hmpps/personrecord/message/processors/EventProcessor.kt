@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors
+package uk.gov.justice.digital.hmpps.personrecord.message.processors
 
 import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent

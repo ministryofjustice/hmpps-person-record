@@ -1,7 +1,8 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors
+package uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis
 
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.EventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.service.PrisonerDomainEventService
 
