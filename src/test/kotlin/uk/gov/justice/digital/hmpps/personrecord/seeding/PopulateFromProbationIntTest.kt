@@ -55,7 +55,7 @@ class PopulateFromProbationIntTest : IntegrationTestBase() {
   fun `populate from probation retries`() {
     // first call fails
     wireMockExtension.stubFor(
-      WireMock.get("all-probation-cases?page=0&size=2&sort=id,asc")
+      WireMock.get("all-probation-cases?size=2&page=0&sort=id%2Casc")
         .inScenario("retry")
         .whenScenarioStateIs(STARTED)
         .willSetStateTo("next request will fail")
@@ -67,7 +67,7 @@ class PopulateFromProbationIntTest : IntegrationTestBase() {
     )
     // second call fails too
     wireMockExtension.stubFor(
-      WireMock.get("all-probation-cases?page=0&size=2&sort=id,asc")
+      WireMock.get("all-probation-cases?size=2&page=0&sort=id%2Casc")
         .inScenario("retry")
         .whenScenarioStateIs("next request will fail")
         .willSetStateTo("next request will time out")
@@ -79,7 +79,7 @@ class PopulateFromProbationIntTest : IntegrationTestBase() {
     )
 
     // third call times out
-    WireMock.get("all-probation-cases?page=0&size=2&sort=id,asc")
+    WireMock.get("all-probation-cases?size=2&page=0&sort=id%2Casc")
       .inScenario("retry")
       .whenScenarioStateIs("next request will time out")
       .willSetStateTo("next request will succeed")
@@ -91,7 +91,7 @@ class PopulateFromProbationIntTest : IntegrationTestBase() {
       )
 
     // Fourth call succeeds
-    WireMock.get("all-probation-cases?page=0&size=2&sort=id,asc")
+    WireMock.get("all-probation-cases?size=2&page=0&sort=id%2Casc")
       .inScenario("retry")
       .whenScenarioStateIs("next request will succeed")
       .willReturn(

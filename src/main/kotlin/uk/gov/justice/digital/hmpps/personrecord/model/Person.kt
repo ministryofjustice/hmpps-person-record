@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model
 
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
@@ -57,6 +58,12 @@ data class Person(
       )
     }
 
+    fun from(offenderDetail: DeliusOffenderDetail): Person {
+      return Person(
+        givenName = offenderDetail.name.forename,
+        sourceSystemType = SourceSystemType.DELIUS,
+      )
+    }
     fun from(offenderDetail: OffenderDetail): Person {
       return Person(
         givenName = offenderDetail.firstName,
