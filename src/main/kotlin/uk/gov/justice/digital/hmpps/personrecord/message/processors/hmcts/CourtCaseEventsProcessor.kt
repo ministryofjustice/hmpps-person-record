@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.processor
+package uk.gov.justice.digital.hmpps.personrecord.message.processors.hmcts
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue

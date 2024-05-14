@@ -14,9 +14,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifie
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.NEW_OFFENDER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.PRISONER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.PRISONER_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.delius.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PRISONER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonReference

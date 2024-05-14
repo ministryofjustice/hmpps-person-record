@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors.IEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.IEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
 
