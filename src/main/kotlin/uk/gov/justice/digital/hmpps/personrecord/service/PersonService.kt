@@ -27,11 +27,11 @@ class PersonService(
 
   fun processMessage(person: Person, callback: () -> List<PersonEntity>?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, retryExceptions) {
-      processPerson(person, callback)
+      readWriteLockService.withWriteLock { processPerson(person, callback) }
     }
   }
 
-  private fun processPerson(person: Person, callback: () -> List<PersonEntity>?) = readWriteLockService.withWriteLock {
+  private fun processPerson(person: Person, callback: () -> List<PersonEntity>?) {
     val existingPersonEntities: List<PersonEntity>? = callback()
     when {
       (existingPersonEntities.isNullOrEmpty()) -> handlePersonCreation(person)
