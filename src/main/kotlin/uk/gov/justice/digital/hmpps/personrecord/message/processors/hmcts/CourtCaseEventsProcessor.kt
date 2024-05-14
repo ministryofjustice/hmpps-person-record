@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 import org.springframework.dao.CannotAcquireLockException
+import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -85,6 +86,10 @@ class CourtCaseEventsProcessor(
       when (e) {
         is CannotAcquireLockException, is JpaSystemException -> {
           log.warn("Expected error when processing $e.message")
+        }
+        is ObjectOptimisticLockingFailureException -> {
+          log.info("Locking exception, retrying message")
+          process(person)
         }
         else -> throw e
       }
