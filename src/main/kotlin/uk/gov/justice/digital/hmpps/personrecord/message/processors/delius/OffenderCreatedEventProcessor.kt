@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOff
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.EventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.model.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService

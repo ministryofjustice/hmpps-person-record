@@ -18,11 +18,11 @@ import uk.gov.justice.digital.hmpps.personrecord.message.processors.delius.NEW_O
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MULTIPLE_RECORDS_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED

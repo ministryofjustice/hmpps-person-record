@@ -12,12 +12,12 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
-import uk.gov.justice.digital.hmpps.personrecord.model.PersonContact
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 
 @Entity
-@Table(name = "person_contact")
-class PersonContactEntity(
+@Table(name = "contact")
+class ContactEntity(
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,12 +44,12 @@ class PersonContactEntity(
 ) {
   companion object {
 
-    private fun from(personContact: PersonContact): PersonContactEntity {
-      return PersonContactEntity(contactType = personContact.contactType, contactValue = personContact.contactValue)
+    private fun from(contact: Contact): ContactEntity {
+      return ContactEntity(contactType = contact.contactType, contactValue = contact.contactValue)
     }
 
-    fun fromList(personContacts: List<PersonContact>): List<PersonContactEntity> {
-      return personContacts.filterNot { it.contactValue.isNullOrEmpty() }.map { from(it) }
+    fun fromList(contacts: List<Contact>): List<ContactEntity> {
+      return contacts.filterNot { it.contactValue.isNullOrEmpty() }.map { from(it) }
     }
   }
 }
