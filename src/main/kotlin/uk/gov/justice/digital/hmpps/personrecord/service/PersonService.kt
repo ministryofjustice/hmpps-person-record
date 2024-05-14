@@ -1,5 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import kotlinx.coroutines.runBlocking
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.dao.CannotAcquireLockException
+import org.springframework.orm.ObjectOptimisticLockingFailureException
+import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AliasEntity
@@ -7,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Service
@@ -16,17 +22,25 @@ class PersonService(
   private val readWriteLockService: ReadWriteLockService,
 ) {
 
-  fun processPerson(person: Person, callback: () -> List<PersonEntity>?) {
-    readWriteLockService.withWriteLock {
-      val existingPersonEntities: List<PersonEntity>? = callback()
-      when {
-        (existingPersonEntities.isNullOrEmpty()) -> handlePersonCreation(person)
-        else -> {
-          if (existingPersonEntities.size > 1) {
-            trackEvent(TelemetryEventType.CPR_MULTIPLE_RECORDS_FOUND, person)
-          }
-          handlePersonUpdate(person, existingPersonEntities[0])
+  @Value("\${retry.delay}")
+  private val retryDelay: Long = 0
+  private val retryExceptions = listOf(ObjectOptimisticLockingFailureException::class, CannotAcquireLockException::class, JpaSystemException::class)
+
+  fun processMessage(person: Person, callback: () -> List<PersonEntity>?) = runBlocking {
+    runWithRetry(MAX_ATTEMPTS, retryDelay, retryExceptions) {
+      readWriteLockService.withWriteLock { processPerson(person, callback) }
+    }
+  }
+
+  private fun processPerson(person: Person, callback: () -> List<PersonEntity>?) {
+    val existingPersonEntities: List<PersonEntity>? = callback()
+    when {
+      (existingPersonEntities.isNullOrEmpty()) -> handlePersonCreation(person)
+      else -> {
+        if (existingPersonEntities.size > 1) {
+          trackEvent(TelemetryEventType.CPR_MULTIPLE_RECORDS_FOUND, person)
         }
+        handlePersonUpdate(person, existingPersonEntities[0])
       }
     }
   }
@@ -90,5 +104,9 @@ class PersonService(
       "CRN" to (person.otherIdentifiers?.crn ?: ""),
     )
     telemetryService.trackEvent(eventType, identifierMap + elementMap)
+  }
+
+  companion object {
+    const val MAX_ATTEMPTS: Int = 3
   }
 }
