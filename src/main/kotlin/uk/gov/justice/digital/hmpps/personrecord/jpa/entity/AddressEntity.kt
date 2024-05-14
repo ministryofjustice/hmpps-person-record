@@ -13,8 +13,8 @@ import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonAddress
 
 @Entity
-@Table(name = "person_address")
-class PersonAddressEntity(
+@Table(name = "address")
+class AddressEntity(
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,14 +35,14 @@ class PersonAddressEntity(
   var version: Int = 0,
 ) {
   companion object {
-    fun from(address: PersonAddress): PersonAddressEntity? {
+    fun from(address: PersonAddress): AddressEntity? {
       if (address.postcode.isNullOrEmpty()) {
         return null
       }
-      return PersonAddressEntity(postcode = address.postcode)
+      return AddressEntity(postcode = address.postcode)
     }
 
-    fun fromList(personAddresses: List<PersonAddress>): List<PersonAddressEntity> {
+    fun fromList(personAddresses: List<PersonAddress>): List<AddressEntity> {
       return personAddresses.mapNotNull { from(it) }
     }
   }

@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonAddressEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonAliasEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonContactEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AliasEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.Person
@@ -56,19 +56,19 @@ class PersonService(
   }
 
   private fun updatePersonAddresses(person: Person, personEntity: PersonEntity) {
-    val personAddresses = PersonAddressEntity.fromList(person.address)
+    val personAddresses = AddressEntity.fromList(person.address)
     personAddresses.forEach { personAddressEntity -> personAddressEntity.person = personEntity }
     personEntity.addresses.addAll(personAddresses)
   }
 
   private fun updatePersonAliases(person: Person, personEntity: PersonEntity) {
-    val personAliases = PersonAliasEntity.fromList(person.personAliases)
+    val personAliases = AliasEntity.fromList(person.personAliases)
     personAliases.forEach { personAliasEntity -> personAliasEntity.person = personEntity }
     personEntity.aliases.addAll(personAliases)
   }
 
   private fun updatePersonContacts(person: Person, personEntity: PersonEntity) {
-    val personContacts = PersonContactEntity.fromList(person.contacts)
+    val personContacts = ContactEntity.fromList(person.contacts)
     personContacts.forEach { personContactEntity -> personContactEntity.person = personEntity }
     personEntity.contacts.addAll(personContacts)
   }
