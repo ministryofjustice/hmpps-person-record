@@ -12,7 +12,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
-import uk.gov.justice.digital.hmpps.personrecord.model.PersonContact
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 
 @Entity
@@ -44,11 +44,11 @@ class ContactEntity(
 ) {
   companion object {
 
-    private fun from(contact: PersonContact): ContactEntity {
+    private fun from(contact: Contact): ContactEntity {
       return ContactEntity(contactType = contact.contactType, contactValue = contact.contactValue)
     }
 
-    fun fromList(contacts: List<PersonContact>): List<ContactEntity> {
+    fun fromList(contacts: List<Contact>): List<ContactEntity> {
       return contacts.filterNot { it.contactValue.isNullOrEmpty() }.map { from(it) }
     }
   }

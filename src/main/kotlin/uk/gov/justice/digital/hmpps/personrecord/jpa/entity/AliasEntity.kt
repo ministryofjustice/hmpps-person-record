@@ -10,7 +10,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
-import uk.gov.justice.digital.hmpps.personrecord.model.PersonAlias
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import java.time.LocalDate
 
 @Entity
@@ -45,7 +45,7 @@ class AliasEntity(
   var version: Int = 0,
 ) {
   companion object {
-    private fun from(alias: PersonAlias): AliasEntity? =
+    private fun from(alias: Alias): AliasEntity? =
       when {
         isAliasPresent(alias.firstName, alias.middleNames, alias.lastName) ->
           AliasEntity(
@@ -56,7 +56,7 @@ class AliasEntity(
         else -> null
       }
 
-    fun fromList(aliases: List<PersonAlias>): List<AliasEntity> = aliases.mapNotNull { from(it) }
+    fun fromList(aliases: List<Alias>): List<AliasEntity> = aliases.mapNotNull { from(it) }
 
     private fun isAliasPresent(firstName: String?, middleNames: String?, surname: String?): Boolean =
       sequenceOf(firstName, middleNames, surname)

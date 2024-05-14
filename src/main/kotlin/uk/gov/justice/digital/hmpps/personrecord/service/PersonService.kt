@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AliasEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Service
@@ -56,13 +56,13 @@ class PersonService(
   }
 
   private fun updatePersonAddresses(person: Person, personEntity: PersonEntity) {
-    val personAddresses = AddressEntity.fromList(person.address)
+    val personAddresses = AddressEntity.fromList(person.addresses)
     personAddresses.forEach { personAddressEntity -> personAddressEntity.person = personEntity }
     personEntity.addresses.addAll(personAddresses)
   }
 
   private fun updatePersonAliases(person: Person, personEntity: PersonEntity) {
-    val personAliases = AliasEntity.fromList(person.personAliases)
+    val personAliases = AliasEntity.fromList(person.aliases)
     personAliases.forEach { personAliasEntity -> personAliasEntity.person = personEntity }
     personEntity.aliases.addAll(personAliases)
   }

@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Pers
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.libra.Name
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import java.time.LocalDate
 
@@ -100,8 +101,8 @@ internal class PersonTest {
     assertThat(person.contacts[0].contactValue).isEqualTo("01234567890")
     assertThat(person.contacts[1].contactType).isEqualTo(ContactType.MOBILE)
     assertThat(person.contacts[1].contactValue).isEqualTo("91234567890")
-    assertThat(person.personAliases[0].firstName).isEqualTo("Stephen")
-    assertThat(person.personAliases[0].lastName).isEqualTo("Smith")
-    assertThat(person.address[0].postcode).isEqualTo("LS1 1AB")
+    assertThat(person.aliases[0].firstName).isEqualTo("Stephen")
+    assertThat(person.aliases[0].lastName).isEqualTo("Smith")
+    assertThat(person.addresses[0].postcode).isEqualTo("LS1 1AB")
   }
 }
