@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
-import org.slf4j.LoggerFactory
+import kotlinx.coroutines.runBlocking
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.dao.CannotAcquireLockException
 import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
@@ -9,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Service
@@ -18,12 +21,13 @@ class PersonService(
   private val readWriteLockService: ReadWriteLockService,
 ) {
 
-  fun processMessage(person: Person, callback: () -> List<PersonEntity>?) {
-    try {
+  @Value("\${retry.delay}")
+  private val retryDelay: Long = 0
+  private val retryExceptions = listOf(ObjectOptimisticLockingFailureException::class, CannotAcquireLockException::class)
+
+  fun processMessage(person: Person, callback: () -> List<PersonEntity>?) = runBlocking {
+    runWithRetry(MAX_ATTEMPTS, retryDelay, retryExceptions) {
       processPerson(person, callback)
-    } catch (e: ObjectOptimisticLockingFailureException) {
-      log.info("Locking exception: ${e.message}, retrying message")
-      processMessage(person, callback)
     }
   }
 
@@ -102,6 +106,6 @@ class PersonService(
   }
 
   companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
+    const val MAX_ATTEMPTS: Int = 3
   }
 }
