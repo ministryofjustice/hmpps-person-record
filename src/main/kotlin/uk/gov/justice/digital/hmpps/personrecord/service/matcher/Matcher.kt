@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.matcher
 
-import uk.gov.justice.digital.hmpps.personrecord.model.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 
 abstract class Matcher<T>(val items: List<T>?, protected val person: Person) {
   abstract fun isMatchingItem(item: T): Boolean

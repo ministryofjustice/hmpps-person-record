@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.MatchRequestData
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
 
 const val MAX_RETRY_ATTEMPTS: Int = 3
