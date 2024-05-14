@@ -39,7 +39,7 @@ spring:
             client-authentication-method: client_secret_basic
             authorization-grant-type: client_credentials
             client-id: ${core-person-record-and-delius.client-id}
-            client-secret: ${ core-person-record-and-delius.client-secret}
+            client-secret: ${core-person-record-and-delius.client-secret}
         provider:
           nomis-oauth-service:
             token-uri: ${nomis-oauth.base-url}/auth/oauth/token
