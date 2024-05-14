@@ -25,6 +25,10 @@ generic-service:
           deny all;
           return 401;
         }
+        location /populatefromprobation {
+          deny all;
+          return 401;
+        }
 
   # Environment variables to load into the deployment
   env:

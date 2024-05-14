@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.DefendantAlias
 
 data class Alias(
@@ -9,11 +10,19 @@ data class Alias(
 ) {
   companion object {
 
-    fun from(defendantAlias: DefendantAlias): Alias {
+    fun from(alias: DefendantAlias): Alias {
       return Alias(
-        firstName = defendantAlias.firstName,
-        lastName = defendantAlias.lastName,
-        middleNames = defendantAlias.middleName,
+        firstName = alias.firstName,
+        lastName = alias.lastName,
+        middleNames = alias.middleName,
+      )
+    }
+
+    fun from(alias: ProbationCaseAlias): Alias {
+      return Alias(
+        firstName = alias.name.firstName,
+        lastName = alias.name.lastName,
+        middleNames = alias.name.middleNames,
       )
     }
   }
