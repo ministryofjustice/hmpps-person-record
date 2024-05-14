@@ -37,10 +37,10 @@ class PopulateFromProbation(
           0,
           pageSize,
         ),
-      )?.totalPages ?: (1 - 1)
+      )?.totalPages ?: 1
 
       log.info("Starting DELIUS seeding, total pages: $totalPages")
-      for (page in 0..totalPages) {
+      for (page in 0..<totalPages) {
         RetryExecutor.runWithRetry(retries, delayMillis) {
           corePersonRecordAndDeliusClient.getProbationCases(CorePersonRecordAndDeliusClientPageParams(page, pageSize))
         }?.cases?.forEach {
