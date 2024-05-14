@@ -6,7 +6,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Test
-import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -16,7 +15,6 @@ import java.util.concurrent.TimeUnit.SECONDS
 class PopulateFromProbationIntTest : IntegrationTestBase() {
 
   @Test
-  @Transactional // Is this dodgy?
   fun `populate from probation`() {
     webTestClient.post()
       .uri("/populatefromprobation")
