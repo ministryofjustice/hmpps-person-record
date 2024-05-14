@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import org.slf4j.LoggerFactory
+import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AliasEntity
@@ -16,17 +18,24 @@ class PersonService(
   private val readWriteLockService: ReadWriteLockService,
 ) {
 
-  fun processPerson(person: Person, callback: () -> List<PersonEntity>?) {
-    readWriteLockService.withWriteLock {
-      val existingPersonEntities: List<PersonEntity>? = callback()
-      when {
-        (existingPersonEntities.isNullOrEmpty()) -> handlePersonCreation(person)
-        else -> {
-          if (existingPersonEntities.size > 1) {
-            trackEvent(TelemetryEventType.CPR_MULTIPLE_RECORDS_FOUND, person)
-          }
-          handlePersonUpdate(person, existingPersonEntities[0])
+  fun processMessage(person: Person, callback: () -> List<PersonEntity>?) {
+    try {
+      processPerson(person, callback)
+    } catch (e: ObjectOptimisticLockingFailureException) {
+      log.info("Locking exception: ${e.message}, retrying message")
+      processMessage(person, callback)
+    }
+  }
+
+  private fun processPerson(person: Person, callback: () -> List<PersonEntity>?) = readWriteLockService.withWriteLock {
+    val existingPersonEntities: List<PersonEntity>? = callback()
+    when {
+      (existingPersonEntities.isNullOrEmpty()) -> handlePersonCreation(person)
+      else -> {
+        if (existingPersonEntities.size > 1) {
+          trackEvent(TelemetryEventType.CPR_MULTIPLE_RECORDS_FOUND, person)
         }
+        handlePersonUpdate(person, existingPersonEntities[0])
       }
     }
   }
@@ -90,5 +99,9 @@ class PersonService(
       "CRN" to (person.otherIdentifiers?.crn ?: ""),
     )
     telemetryService.trackEvent(eventType, identifierMap + elementMap)
+  }
+
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
