@@ -1,12 +1,12 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonAddressEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonAliasEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonContactEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AliasEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Service
@@ -16,24 +16,29 @@ class PersonService(
   private val readWriteLockService: ReadWriteLockService,
 ) {
 
-  fun processPerson(person: Person, callback: () -> PersonEntity?) {
+  fun processPerson(person: Person, callback: () -> List<PersonEntity>?) {
     readWriteLockService.withWriteLock {
-      val existingPersonEntity: PersonEntity? = callback()
+      val existingPersonEntities: List<PersonEntity>? = callback()
       when {
-        (existingPersonEntity == null) -> handlePersonCreation(person)
-        else -> handlePersonUpdate(person, existingPersonEntity)
+        (existingPersonEntities.isNullOrEmpty()) -> handlePersonCreation(person)
+        else -> {
+          if (existingPersonEntities.size > 1) {
+            trackEvent(TelemetryEventType.CPR_MULTIPLE_RECORDS_FOUND, person)
+          }
+          handlePersonUpdate(person, existingPersonEntities[0])
+        }
       }
     }
   }
 
   private fun handlePersonCreation(person: Person) {
     updateAndSavePersonEntity(person, PersonEntity.from(person))
-    trackEvent(TelemetryEventType.CPR_RECORD_CREATED, mapOf("SourceSystem" to person.sourceSystemType.name)) // TODO add an identifier here
+    trackEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity) {
     updateExistingPersonEntity(person, existingPersonEntity)
-    trackEvent(TelemetryEventType.CPR_RECORD_UPDATED, mapOf("SourceSystem" to existingPersonEntity.sourceSystem.name))
+    trackEvent(TelemetryEventType.CPR_RECORD_UPDATED, person)
   }
 
   private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
@@ -51,19 +56,19 @@ class PersonService(
   }
 
   private fun updatePersonAddresses(person: Person, personEntity: PersonEntity) {
-    val personAddresses = PersonAddressEntity.fromList(person.address)
+    val personAddresses = AddressEntity.fromList(person.addresses)
     personAddresses.forEach { personAddressEntity -> personAddressEntity.person = personEntity }
     personEntity.addresses.addAll(personAddresses)
   }
 
   private fun updatePersonAliases(person: Person, personEntity: PersonEntity) {
-    val personAliases = PersonAliasEntity.fromList(person.personAliases)
+    val personAliases = AliasEntity.fromList(person.aliases)
     personAliases.forEach { personAliasEntity -> personAliasEntity.person = personEntity }
     personEntity.aliases.addAll(personAliases)
   }
 
   private fun updatePersonContacts(person: Person, personEntity: PersonEntity) {
-    val personContacts = PersonContactEntity.fromList(person.contacts)
+    val personContacts = ContactEntity.fromList(person.contacts)
     personContacts.forEach { personContactEntity -> personContactEntity.person = personEntity }
     personEntity.contacts.addAll(personContacts)
   }
@@ -76,8 +81,14 @@ class PersonService(
 
   private fun trackEvent(
     eventType: TelemetryEventType,
-    elementMap: Map<String, String?>,
+    person: Person,
+    elementMap: Map<String, String?> = emptyMap(),
   ) {
-    telemetryService.trackEvent(eventType, elementMap)
+    val identifierMap = mapOf(
+      "SourceSystem" to person.sourceSystemType.name,
+      "DefendantId" to person.defendantId,
+      "CRN" to (person.otherIdentifiers?.crn ?: ""),
+    )
+    telemetryService.trackEvent(eventType, identifierMap + elementMap)
   }
 }

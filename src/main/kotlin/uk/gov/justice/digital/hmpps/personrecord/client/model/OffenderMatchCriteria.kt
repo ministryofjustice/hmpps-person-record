@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model
 
-import uk.gov.justice.digital.hmpps.personrecord.model.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import java.time.LocalDate
 
 data class OffenderMatchCriteria(

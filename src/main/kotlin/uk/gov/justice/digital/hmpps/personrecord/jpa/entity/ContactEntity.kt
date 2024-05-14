@@ -1,15 +1,19 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ContactDetails
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerDetails
-import uk.gov.justice.digital.hmpps.personrecord.model.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 
 @Entity
 @Table(name = "contact")
@@ -19,61 +23,33 @@ class ContactEntity(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
 
-  @Column(name = "home_phone")
-  val homePhone: String? = null,
+  @ManyToOne(optional = false, cascade = [CascadeType.ALL])
+  @JoinColumn(
+    name = "fk_person_id",
+    referencedColumnName = "id",
+    nullable = false,
+  )
+  var person: PersonEntity? = null,
 
-  @Column(name = "work_phone")
-  val workPhone: String? = null,
+  @Column(name = "contact_type")
+  @Enumerated(EnumType.STRING)
+  val contactType: ContactType,
 
-  @Column(name = "mobile")
-  val mobile: String? = null,
-
-  @Column(name = "primary_email")
-  val primaryEmail: String? = null,
+  @Column(name = "contact_value")
+  val contactValue: String? = null,
 
   @Version
   var version: Int = 0,
 
 ) {
   companion object {
-    fun from(person: Person): ContactEntity? {
-      return if (isContactDetailsPresent(person.homePhone, person.workPhone, person.mobile, person.primaryEmail)) {
-        ContactEntity(
-          homePhone = person.homePhone,
-          workPhone = person.workPhone,
-          mobile = person.mobile,
-          primaryEmail = person.primaryEmail,
-        )
-      } else {
-        null
-      }
+
+    private fun from(contact: Contact): ContactEntity {
+      return ContactEntity(contactType = contact.contactType, contactValue = contact.contactValue)
     }
 
-    fun from(contactDetails: ContactDetails): ContactEntity? {
-      return if (isContactDetailsPresent(contactDetails.getHomePhone(), null, contactDetails.getMobilePhone(), contactDetails.getEmail())) {
-        ContactEntity(
-          homePhone = contactDetails.getHomePhone(),
-          mobile = contactDetails.getMobilePhone(),
-          primaryEmail = contactDetails.getEmail(),
-        )
-      } else {
-        null
-      }
-    }
-
-    fun from(prisonerDetails: PrisonerDetails): ContactEntity? {
-      return if (isContactDetailsPresent(prisonerDetails.getHomeAddress()?.getHomePhone(), null, prisonerDetails.getHomeAddress()?.getMobilePhone(), null)) {
-        ContactEntity(
-          homePhone = prisonerDetails.getHomeAddress()?.getHomePhone(),
-          mobile = prisonerDetails.getHomeAddress()?.getMobilePhone(),
-        )
-      } else {
-        null
-      }
-    }
-    private fun isContactDetailsPresent(homePhone: String?, workPhone: String?, mobile: String?, primaryEmail: String?): Boolean {
-      return sequenceOf(homePhone, workPhone, mobile, primaryEmail)
-        .filterNotNull().any { it.isNotBlank() }
+    fun fromList(contacts: List<Contact>): List<ContactEntity> {
+      return contacts.filterNot { it.contactValue.isNullOrEmpty() }.map { from(it) }
     }
   }
 }
