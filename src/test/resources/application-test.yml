@@ -1,6 +1,6 @@
 server:
   shutdown: immediate
-
+  port: 8084
 
 management.endpoint:
   health.cache.time-to-live: 0
