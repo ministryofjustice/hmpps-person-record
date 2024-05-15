@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendantAndNoPnc
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
+import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithSameDefendantIdTwice
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MULTIPLE_RECORDS_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -37,15 +38,15 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to "1981/0154257C", "messageId" to messageId),
+      mapOf("PNC" to "1981/0154257C", "MESSAGE_ID" to messageId),
     )
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to "2008/0056560Z", "messageId" to messageId),
+      mapOf("PNC" to "2008/0056560Z", "MESSAGE_ID" to messageId),
     )
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to "", "messageId" to messageId),
+      mapOf("PNC" to "", "MESSAGE_ID" to messageId),
     )
   }
 
@@ -56,7 +57,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     val publishRequest = PublishRequest.builder()
       .topicArn(courtCaseEventsTopic?.arn)
-      .message(commonPlatformHearingWithOneDefendant(pncNumber = pncNumber.pncId))
+      .message(commonPlatformHearingWithSameDefendantIdTwice(pncNumber = pncNumber.pncId))
       .messageAttributes(
         mapOf(
           "messageType" to MessageAttributeValue.builder().dataType("String")
@@ -90,7 +91,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     checkTelemetry(
       CPR_RECORD_UPDATED,
       mapOf("SourceSystem" to "HMCTS"),
-      times(99),
+      times(199),
     )
   }
 

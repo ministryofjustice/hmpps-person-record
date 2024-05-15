@@ -65,7 +65,7 @@ class CourtCaseEventsProcessor(
         mapOf(
           "PNC" to person.otherIdentifiers?.pncIdentifier.toString(),
           "CRO" to person.otherIdentifiers?.croIdentifier.toString(),
-          "messageId" to messageId,
+          "MESSAGE_ID" to messageId,
         ),
       )
       process(person)
