@@ -38,15 +38,15 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to "1981/0154257C", "messageId" to messageId),
+      mapOf("PNC" to "1981/0154257C", "MESSAGE_ID" to messageId),
     )
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to "2008/0056560Z", "messageId" to messageId),
+      mapOf("PNC" to "2008/0056560Z", "MESSAGE_ID" to messageId),
     )
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to "", "messageId" to messageId),
+      mapOf("PNC" to "", "MESSAGE_ID" to messageId),
     )
   }
 
