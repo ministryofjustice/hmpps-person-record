@@ -14,6 +14,7 @@ import org.mockito.verification.VerificationMode
 import org.springframework.boot.builder.SpringApplicationBuilder
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
+import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.HmppsPersonRecord
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
@@ -30,7 +31,7 @@ class MultiNodeTestBase {
 
 
   @Test
-  fun `should have requests from 2 instances`() {
+  fun `should handle requests from 2 instances`() {
     val instance1: SpringApplicationBuilder = SpringApplicationBuilder(HmppsPersonRecord::class.java)
       .profiles("test")
     instance1.run()
@@ -42,6 +43,10 @@ class MultiNodeTestBase {
     val courtCaseEventsQueue =
       (instance1.context().getBean("hmppsQueueService") as HmppsQueueService)
         .findByQueueId("cprcourtcaseeventsqueue")
+
+    courtCaseEventsQueue?.sqsDlqClient!!.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(courtCaseEventsQueue.dlqUrl).build(),
+    ).get()
 
     val instance2: SpringApplicationBuilder = SpringApplicationBuilder(HmppsPersonRecord::class.java)
       .profiles("test", "test-different-port")
@@ -78,6 +83,6 @@ class MultiNodeTestBase {
     await untilCallTo {
       courtCaseEventsQueue?.sqsDlqClient?.countMessagesOnQueue(courtCaseEventsQueue.dlqUrl!!)?.get()
     } matches { it == 0 }
-  }
 
+  }
 }

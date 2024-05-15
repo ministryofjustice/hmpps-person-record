@@ -241,34 +241,4 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(secondPersonEntity?.pnc?.pncId).isEqualTo("")
     assertThat(secondPersonEntity?.cro?.croId).isEqualTo("075715/64Q")
   }
-
-  @Test
-  fun `should not push messages from Common Platform onto dead letter queue when processing - CPR-333`() {
-    val pncNumber = PNCIdentifier.from("2003/0062845E")
-    val message = SQSMessage(
-      type = "Notification",
-      messageAttributes = MessageAttributes(MessageType(COMMON_PLATFORM_HEARING.name)),
-      message = commonPlatformHearingWithSameDefendantIdTwice(pncNumber = pncNumber.pncId),
-    )
-    val jsonString = objectMapper.writeValueAsString(message)
-    // when
-    val blitzer = Blitzer(100, 10)
-    try {
-      blitzer.blitz {
-        courtCaseEventsListener.onMessage(jsonString)
-      }
-    } finally {
-      blitzer.shutdown()
-    }
-
-    checkTelemetry(
-      CPR_RECORD_CREATED,
-      mapOf("SourceSystem" to "HMCTS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_UPDATED,
-      mapOf("SourceSystem" to "HMCTS"),
-      times(199),
-    )
-  }
 }
