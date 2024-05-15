@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.OffenderDetailClientOAut
 
 @FeignClient(
   name = "offender-detail",
-  url = "\${domain-event-and-delius-api.base_url}",
+  url = "\${domain-event-and-delius-api.base-url}",
   configuration = [OffenderDetailClientOAuth2Config::class],
 )
 interface OffenderDetailRestClient {

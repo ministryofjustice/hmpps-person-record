@@ -1,6 +1,8 @@
-package uk.gov.justice.digital.hmpps.personrecord.model
+package uk.gov.justice.digital.hmpps.personrecord.model.person
 
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
@@ -9,6 +11,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.HMCTS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDate
 import java.util.*
@@ -24,29 +28,13 @@ data class Person(
   val otherIdentifiers: OtherIdentifiers? = null,
   val defendantId: String? = null,
   val title: String? = null,
-  val addressLineOne: String? = null,
-  val addressLineTwo: String? = null,
-  val addressLineThree: String? = null,
-  val addressLineFour: String? = null,
-  val addressLineFive: String? = null,
-  val postcode: String? = null,
-  val sex: String? = null,
-  val nationalityOne: String? = null,
-  val nationalityTwo: String? = null,
-  val personAliases: List<PersonAlias> = emptyList(),
+  val aliases: List<Alias> = emptyList(),
   val driverNumber: String? = null,
   val arrestSummonsNumber: String? = null,
   val masterDefendantId: String? = null,
-  val nationalityCode: String? = null,
   val nationalInsuranceNumber: String? = null,
-  val observedEthnicityDescription: String? = null,
-  val selfDefinedEthnicityDescription: String? = null,
-  val homePhone: String? = null,
-  val mobile: String? = null,
-  val workPhone: String? = null,
-  val primaryEmail: String? = null,
-  val contacts: List<PersonContact> = emptyList(),
-  val address: List<PersonAddress> = emptyList(),
+  val contacts: List<Contact> = emptyList(),
+  val addresses: List<Address> = emptyList(),
   val sourceSystemType: SourceSystemType,
 ) {
   companion object {
@@ -67,21 +55,49 @@ data class Person(
           pncIdentifier = PNCIdentifier.from(offenderDetail.otherIds.pncNumber),
           prisonNumber = offenderDetail.otherIds.nomsNumber,
         ),
-        sourceSystemType = SourceSystemType.DELIUS,
+        sourceSystemType = DELIUS,
+      )
+    }
+
+    fun from(deliusOffenderDetail: DeliusOffenderDetail): Person {
+      return Person(
+        givenName = deliusOffenderDetail.name.forename,
+        middleNames = deliusOffenderDetail.name.otherNames,
+        familyName = deliusOffenderDetail.name.surname,
+        dateOfBirth = deliusOffenderDetail.dateOfBirth,
+        otherIdentifiers = OtherIdentifiers(
+          crn = deliusOffenderDetail.identifiers.crn,
+          pncIdentifier = deliusOffenderDetail.identifiers.pnc,
+        ),
+        sourceSystemType = DELIUS,
+      )
+    }
+    fun from(probationCase: ProbationCase): Person {
+      return Person(
+        givenName = probationCase.name.firstName,
+        middleNames = probationCase.name.middleNames?.split(" ") ?: emptyList(),
+        familyName = probationCase.name.lastName,
+        dateOfBirth = probationCase.dateOfBirth,
+        otherIdentifiers = OtherIdentifiers(
+          crn = probationCase.identifiers.crn,
+          pncIdentifier = probationCase.identifiers.pnc,
+        ),
+        aliases = probationCase.aliases?.map { Alias.from(it) } ?: emptyList(),
+        sourceSystemType = DELIUS,
       )
     }
 
     fun from(defendant: Defendant): Person {
-      val contacts: List<PersonContact> = listOf(
-        PersonContact.from(ContactType.HOME, defendant.personDefendant?.personDetails?.contact?.home),
-        PersonContact.from(ContactType.MOBILE, defendant.personDefendant?.personDetails?.contact?.mobile),
-        PersonContact.from(ContactType.EMAIL, defendant.personDefendant?.personDetails?.contact?.primaryEmail),
+      val contacts: List<Contact> = listOf(
+        Contact.from(ContactType.HOME, defendant.personDefendant?.personDetails?.contact?.home),
+        Contact.from(ContactType.MOBILE, defendant.personDefendant?.personDetails?.contact?.mobile),
+        Contact.from(ContactType.EMAIL, defendant.personDefendant?.personDetails?.contact?.primaryEmail),
       )
 
-      val address: MutableList<PersonAddress> = mutableListOf()
+      val addresses: MutableList<Address> = mutableListOf()
       defendant.personDefendant?.personDetails?.address?.postcode.let {
-        address.add(
-          PersonAddress(
+        addresses.add(
+          Address(
             postcode = defendant.personDefendant?.personDetails?.address?.postcode,
           ),
         )
@@ -96,19 +112,15 @@ data class Person(
         familyName = defendant.personDefendant?.personDetails?.lastName,
         middleNames = defendant.personDefendant?.personDetails?.middleName?.split(" "),
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
-        sex = defendant.personDefendant?.personDetails?.gender,
         driverNumber = defendant.personDefendant?.driverNumber,
         arrestSummonsNumber = defendant.personDefendant?.arrestSummonsNumber,
         defendantId = defendant.id,
         masterDefendantId = defendant.masterDefendantId,
-        nationalityCode = defendant.personDefendant?.personDetails?.nationalityCode,
         nationalInsuranceNumber = defendant.personDefendant?.personDetails?.nationalInsuranceNumber,
-        observedEthnicityDescription = defendant.ethnicity?.observedEthnicityDescription,
-        selfDefinedEthnicityDescription = defendant.ethnicity?.selfDefinedEthnicityDescription,
         contacts = contacts,
-        address = address,
-        personAliases = defendant.aliases?.map { PersonAlias.from(it) } ?: emptyList(),
-        sourceSystemType = SourceSystemType.HMCTS,
+        addresses = addresses,
+        aliases = defendant.aliases?.map { Alias.from(it) } ?: emptyList(),
+        sourceSystemType = HMCTS,
       )
     }
 
@@ -121,7 +133,7 @@ data class Person(
         givenName = libraHearingEvent.name?.forename1,
         familyName = libraHearingEvent.name?.surname,
         dateOfBirth = libraHearingEvent.defendantDob,
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       )
     }
 
@@ -133,7 +145,7 @@ data class Person(
         familyName = prisoner.lastName,
         dateOfBirth = prisoner.dateOfBirth,
         sourceSystemType = NOMIS,
-        personAliases = prisoner.aliases ?: emptyList(),
+        aliases = prisoner.aliases ?: emptyList(),
       )
   }
 }

@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners.processors
+package uk.gov.justice.digital.hmpps.personrecord.message.processors.delius
 
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -6,8 +6,11 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.OffenderDetailRestClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOffenderDetail
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.EventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.service.ProbationCaseEngagementService
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DELIUS_RECORD_CREATION_RECEIVED
@@ -20,7 +23,8 @@ const val MAX_RETRY_ATTEMPTS: Int = 3
 class OffenderCreatedEventProcessor(
   val telemetryService: TelemetryService,
   val offenderDetailRestClient: OffenderDetailRestClient,
-  val probationCaseEngagementService: ProbationCaseEngagementService,
+  val personService: PersonService,
+  val personRepository: PersonRepository,
 ) : EventProcessor() {
   companion object {
     @Value("\${retry.delay}")
@@ -37,7 +41,11 @@ class OffenderCreatedEventProcessor(
     log.debug("Entered processEvent with  url $offenderDetailUrl")
     getNewOffenderDetail(offenderDetailUrl).fold(
       onSuccess = { deliusOffenderDetail ->
-        deliusOffenderDetail?.let(probationCaseEngagementService::processNewOffender)
+        deliusOffenderDetail?.let {
+          personService.processMessage(Person.from(deliusOffenderDetail)) {
+            personRepository.findAllByCrn(deliusOffenderDetail.identifiers.crn)
+          }
+        }
       },
       onFailure = {
         log.error("Error retrieving new offender detail: ${it.message}")

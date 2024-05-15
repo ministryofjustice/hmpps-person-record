@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.integration.health
+package uk.gov.justice.digital.hmpps.personrecord.controller
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -63,5 +63,14 @@ class HealthCheckIntTest : IntegrationTestBase() {
       .isOk
       .expectBody()
       .jsonPath("status").isEqualTo("UP")
+  }
+
+  @Test
+  fun `should return OK for info endpoint`() {
+    webTestClient.get()
+      .uri("/info")
+      .exchange()
+      .expectStatus()
+      .isOk
   }
 }

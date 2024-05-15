@@ -1,17 +1,15 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.processor
+package uk.gov.justice.digital.hmpps.personrecord.message.processors.hmcts
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
-import org.springframework.dao.CannotAcquireLockException
-import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.UNKNOWN
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.CommonPlatformHearingEvent
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
@@ -35,6 +33,7 @@ class CourtCaseEventsProcessor(
         objectMapper.readValue<CommonPlatformHearingEvent>(
           sqsMessage.message,
         ),
+        sqsMessage.messageId,
       )
       else -> {
         if (sqsMessage.getMessageType()?.equals(UNKNOWN) == true) {
@@ -44,7 +43,7 @@ class CourtCaseEventsProcessor(
     }
   }
 
-  fun processCommonPlatformHearingEvent(commonPlatformHearingEvent: CommonPlatformHearingEvent) {
+  fun processCommonPlatformHearingEvent(commonPlatformHearingEvent: CommonPlatformHearingEvent, messageId: String?) {
     log.debug("Processing COMMON PLATFORM event")
 
     val uniqueDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
@@ -63,29 +62,20 @@ class CourtCaseEventsProcessor(
       val person = Person.from(defendant)
       telemetryService.trackEvent(
         HMCTS_MESSAGE_RECEIVED,
-        mapOf("PNC" to person.otherIdentifiers?.pncIdentifier.toString(), "CRO" to person.otherIdentifiers?.croIdentifier.toString()),
+        mapOf(
+          "PNC" to person.otherIdentifiers?.pncIdentifier.toString(),
+          "CRO" to person.otherIdentifiers?.croIdentifier.toString(),
+          "messageId" to messageId,
+        ),
       )
       process(person)
     }
   }
 
   private fun process(person: Person) {
-    try {
-      personService.processPerson(person) {
-        person.defendantId?.let {
-          val possibleMatches = personRepository.findAllByDefendantId(it)
-          when {
-            possibleMatches.isNullOrEmpty() -> null
-            else -> possibleMatches[0]
-          }
-        }
-      }
-    } catch (e: Exception) {
-      when (e) {
-        is CannotAcquireLockException, is JpaSystemException -> {
-          log.warn("Expected error when processing $e.message")
-        }
-        else -> throw e
+    personService.processMessage(person) {
+      person.defendantId?.let {
+        personRepository.findAllByDefendantId(it)
       }
     }
   }

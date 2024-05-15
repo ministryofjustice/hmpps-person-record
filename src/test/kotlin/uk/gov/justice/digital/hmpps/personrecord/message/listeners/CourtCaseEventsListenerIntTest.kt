@@ -12,17 +12,19 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithAdditionalFields
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendantAndNoPnc
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
+
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithSameDefendantIdTwice
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MULTIPLE_RECORDS_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
@@ -33,19 +35,19 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
   @Test
   fun `should successfully process common platform message with 3 defendants and create correct telemetry events`() {
-    publishHMCTSMessage(commonPlatformHearing("19810154257C"), COMMON_PLATFORM_HEARING)
+    val messageId = publishHMCTSMessage(commonPlatformHearing("19810154257C"), COMMON_PLATFORM_HEARING)
 
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to "1981/0154257C"),
+      mapOf("PNC" to "1981/0154257C", "messageId" to messageId),
     )
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to "2008/0056560Z"),
+      mapOf("PNC" to "2008/0056560Z", "messageId" to messageId),
     )
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to ""),
+      mapOf("PNC" to "", "messageId" to messageId),
     )
   }
 
@@ -107,8 +109,13 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     )
 
     checkTelemetry(
+      CPR_MULTIPLE_RECORDS_FOUND,
+      mapOf("SourceSystem" to "HMCTS", "DefendantId" to "b5cfae34-9256-43ad-87fb-ac3def34e2ac"),
+    )
+
+    checkTelemetry(
       CPR_RECORD_UPDATED,
-      mapOf("SourceSystem" to "HMCTS"),
+      mapOf("SourceSystem" to "HMCTS", "DefendantId" to "b5cfae34-9256-43ad-87fb-ac3def34e2ac"),
     )
 
     val personEntities = await.atMost(30, SECONDS) untilNotNull {
