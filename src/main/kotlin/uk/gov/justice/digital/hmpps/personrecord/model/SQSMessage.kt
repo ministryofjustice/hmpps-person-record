@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.model
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotBlank
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SQSMessage(
@@ -18,12 +17,19 @@ data class SQSMessage(
   @JsonProperty(value = "MessageAttributes")
   val messageAttributes: MessageAttributes? = null,
 ) {
-  fun getMessageType(): MessageType? {
-    return messageAttributes?.messageType
+  fun getMessageType(): String? {
+    return messageAttributes?.messageType?.value
   }
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class MessageAttributes(
-  val messageType: MessageType? = null,
+  @JsonProperty(value = "messageType")
+  val messageType: MessageType?,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class MessageType(
+  @JsonProperty("Value")
+  val value: String?,
 )

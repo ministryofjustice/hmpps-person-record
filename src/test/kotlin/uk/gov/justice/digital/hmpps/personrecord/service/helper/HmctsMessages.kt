@@ -778,6 +778,12 @@ fun commonPlatformHearingWithSameDefendantIdTwice(pncNumber: String) = """
                       "address5": "Earth",
                       "postcode": "CF10 1FU"
                     },
+                    "contact": {
+                      "home": "0207345678",
+                      "work": "0203788776",
+                      "mobile": "078590345677",
+                      "primaryEmail": "email@email.com"
+                    },
                     "dateOfBirth": "1960-01-01",
                     "firstName": "Eric",
                     "gender": "MALE",
@@ -810,6 +816,11 @@ fun commonPlatformHearingWithSameDefendantIdTwice(pncNumber: String) = """
                       "address4": "UK",
                       "address5": "Earth",
                       "postcode": "CF10 1FU"
+                    },
+                    "contact": {
+                      "home": "0207345678",
+                      "work": "0203788776",
+                      "mobile": "078590345677"
                     },
                     "dateOfBirth": "1990-12-01",
                     "firstName": "Fred",

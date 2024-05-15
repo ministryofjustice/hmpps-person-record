@@ -8,10 +8,14 @@ import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.times
+import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.MessageAttributes
+import uk.gov.justice.digital.hmpps.personrecord.model.MessageType
+import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
@@ -31,6 +35,9 @@ import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.concurrent.TimeUnit.SECONDS
 
 class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
+
+  @Autowired
+  lateinit var courtCaseEventsListener: CourtCaseEventsListener
 
   @Test
   fun `should successfully process common platform message with 3 defendants and create correct telemetry events`() {
@@ -66,7 +73,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       )
       .build()
     // when
-    val blitzer = Blitzer(100, 5)
+    val blitzer = Blitzer(100, 10)
     try {
       blitzer.blitz {
         courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
@@ -143,7 +150,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     val defendantId = "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199"
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(), COMMON_PLATFORM_HEARING)
 
-    val personEntity = await.atMost(30, SECONDS) untilNotNull {
+    val personEntity = await.atMost(10, SECONDS) untilNotNull {
       personRepository.findByDefendantId(defendantId)
     }
 
@@ -233,5 +240,35 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     val secondPersonEntity = personRepository.findByDefendantId(("2d41e7b9-0964-48d8-8d2a-3f7e81b34cd8"))
     assertThat(secondPersonEntity?.pnc?.pncId).isEqualTo("")
     assertThat(secondPersonEntity?.cro?.croId).isEqualTo("075715/64Q")
+  }
+
+  @Test
+  fun `should not push messages from Common Platform onto dead letter queue when processing - CPR-333`() {
+    val pncNumber = PNCIdentifier.from("2003/0062845E")
+    val message = SQSMessage(
+      type = "Notification",
+      messageAttributes = MessageAttributes(MessageType(COMMON_PLATFORM_HEARING.name)),
+      message = commonPlatformHearingWithSameDefendantIdTwice(pncNumber = pncNumber.pncId),
+    )
+    val jsonString = objectMapper.writeValueAsString(message)
+    // when
+    val blitzer = Blitzer(100, 10)
+    try {
+      blitzer.blitz {
+        courtCaseEventsListener.onMessage(jsonString)
+      }
+    } finally {
+      blitzer.shutdown()
+    }
+
+    checkTelemetry(
+      CPR_RECORD_CREATED,
+      mapOf("SourceSystem" to "HMCTS"),
+    )
+    checkTelemetry(
+      CPR_RECORD_UPDATED,
+      mapOf("SourceSystem" to "HMCTS"),
+      times(199),
+    )
   }
 }
