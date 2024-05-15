@@ -1,16 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.integration
 
-import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
-import org.mockito.verification.VerificationMode
 import org.springframework.boot.builder.SpringApplicationBuilder
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
@@ -19,37 +13,43 @@ import uk.gov.justice.digital.hmpps.personrecord.HmppsPersonRecord
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithSameDefendantIdTwice
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
-import java.time.Duration
-
 
 class MultiNodeTestBase {
-
 
   @Test
   fun `should handle requests from 2 instances`() {
     val instance1: SpringApplicationBuilder = SpringApplicationBuilder(HmppsPersonRecord::class.java)
-      .profiles("test")
+      .profiles("test", "test-instance-1")
     instance1.run()
 
     val courtCaseEventsTopic =
       (instance1.context().getBean("hmppsQueueService") as HmppsQueueService)
-      .findByTopicId("courtcaseeventstopic")
+        .findByTopicId("courtcaseeventstopic")
 
     val courtCaseEventsQueue =
       (instance1.context().getBean("hmppsQueueService") as HmppsQueueService)
         .findByQueueId("cprcourtcaseeventsqueue")
+    val cprDeliusOffenderEventsQueue =
+      (instance1.context().getBean("hmppsQueueService") as HmppsQueueService)
+        .findByQueueId("cprdeliusoffendereventsqueue")
 
     courtCaseEventsQueue?.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(courtCaseEventsQueue.dlqUrl).build(),
     ).get()
+    courtCaseEventsQueue.sqsClient.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(courtCaseEventsQueue.queueUrl).build(),
+    ).get()
+    cprDeliusOffenderEventsQueue?.sqsClient?.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(cprDeliusOffenderEventsQueue.queueUrl).build(),
+    )
+    cprDeliusOffenderEventsQueue?.sqsDlqClient?.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(cprDeliusOffenderEventsQueue.dlqUrl).build(),
+    )
 
     val instance2: SpringApplicationBuilder = SpringApplicationBuilder(HmppsPersonRecord::class.java)
-      .profiles("test", "test-different-port")
+      .profiles("test", "test-instance-2")
     instance2.run()
 
     // given
@@ -77,12 +77,14 @@ class MultiNodeTestBase {
 
     // then
     await untilCallTo {
-      courtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(courtCaseEventsQueue.queueUrl)?.get()
+      courtCaseEventsQueue.sqsClient.countMessagesOnQueue(courtCaseEventsQueue.queueUrl).get()
     } matches { it == 0 }
 
     await untilCallTo {
-      courtCaseEventsQueue?.sqsDlqClient?.countMessagesOnQueue(courtCaseEventsQueue.dlqUrl!!)?.get()
+      courtCaseEventsQueue.sqsDlqClient?.countMessagesOnQueue(courtCaseEventsQueue.dlqUrl!!)?.get()
     } matches { it == 0 }
 
+    instance1.context().close()
+    instance2.context().close()
   }
 }

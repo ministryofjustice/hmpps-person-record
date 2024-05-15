@@ -29,7 +29,8 @@ class PersonService(
     ObjectOptimisticLockingFailureException::class,
     CannotAcquireLockException::class,
     JpaSystemException::class,
-    JpaObjectRetrievalFailureException::class)
+    JpaObjectRetrievalFailureException::class,
+  )
 
   fun processMessage(person: Person, callback: () -> List<PersonEntity>?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, retryExceptions) {
