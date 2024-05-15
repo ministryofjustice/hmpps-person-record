@@ -2,8 +2,6 @@
 # Per environment values which override defaults in hmpps-person-record/values.yaml
 
 generic-service:
-  replicaCount: 1
-
   ingress:
     host: hmpps-person-record-preprod.hmpps.service.justice.gov.uk
     tlsSecretName: hmpps-person-record-preprod-cert-secret
