@@ -8,7 +8,6 @@ import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.times
-import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
@@ -32,9 +31,6 @@ import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.concurrent.TimeUnit.SECONDS
 
 class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
-
-  @Autowired
-  lateinit var courtCaseEventsListener: CourtCaseEventsListener
 
   @Test
   fun `should successfully process common platform message with 3 defendants and create correct telemetry events`() {
