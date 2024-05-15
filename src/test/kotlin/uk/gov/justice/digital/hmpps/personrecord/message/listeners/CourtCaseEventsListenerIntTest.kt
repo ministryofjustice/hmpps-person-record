@@ -22,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHe
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendantAndNoPnc
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithOneDefendant
-
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithSameDefendantIdTwice
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MULTIPLE_RECORDS_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
