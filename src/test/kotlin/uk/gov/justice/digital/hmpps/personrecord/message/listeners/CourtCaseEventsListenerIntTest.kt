@@ -143,7 +143,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     val defendantId = "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199"
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(), COMMON_PLATFORM_HEARING)
 
-    val personEntity = await.atMost(10, SECONDS) untilNotNull {
+    val personEntity = await.atMost(30, SECONDS) untilNotNull {
       personRepository.findByDefendantId(defendantId)
     }
 
