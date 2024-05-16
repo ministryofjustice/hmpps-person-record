@@ -21,21 +21,20 @@ import java.time.Duration
 
 abstract class MultiNodeTestBase {
 
+  internal val hmppsQueueService = instance1.context().getBean("hmppsQueueService", HmppsQueueService::class.java)
+
   internal val courtCaseEventsTopic =
-    (instance1.context().getBean("hmppsQueueService") as HmppsQueueService)
-      .findByTopicId("courtcaseeventstopic")
+    hmppsQueueService.findByTopicId("courtcaseeventstopic")
 
   internal val courtCaseEventsQueue =
-    (instance1.context().getBean("hmppsQueueService") as HmppsQueueService)
-      .findByQueueId("cprcourtcaseeventsqueue")
+    hmppsQueueService.findByQueueId("cprcourtcaseeventsqueue")
 
   internal val cprDeliusOffenderEventsQueue =
-    (instance1.context().getBean("hmppsQueueService") as HmppsQueueService)
-      .findByQueueId("cprdeliusoffendereventsqueue")
+    hmppsQueueService.findByQueueId("cprdeliusoffendereventsqueue")
 
-  internal val telemetryClient = (instance1.context().getBean("telemetryClient") as TelemetryClient)
+  internal val telemetryClient = instance1.context().getBean("telemetryClient", TelemetryClient::class.java)
 
-  internal val personRepository: PersonRepository = (instance1.context().getBean("personRepository") as PersonRepository)
+  internal val personRepository: PersonRepository = instance1.context().getBean("personRepository", PersonRepository::class.java)
 
   internal fun checkTelemetry(
     event: TelemetryEventType,
