@@ -66,7 +66,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       )
       .build()
     // when
-    val blitzer = Blitzer(100, 5)
+    val blitzer = Blitzer(100, 10)
     try {
       blitzer.blitz {
         courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()

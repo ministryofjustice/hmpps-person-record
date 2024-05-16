@@ -25,7 +25,7 @@ class SQSMessageTest {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     // then
     assertThat(sqsMessage).isNotNull()
-    assertThat(sqsMessage.getMessageType()).isEqualTo(MessageType.LIBRA_COURT_CASE)
+    assertThat(sqsMessage.getMessageType()).isEqualTo(MessageType.LIBRA_COURT_CASE.name)
   }
 
   @Test
@@ -36,17 +36,6 @@ class SQSMessageTest {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     // then
     assertThat(sqsMessage).isNotNull()
-    assertThat(sqsMessage.getMessageType()).isEqualTo(MessageType.COMMON_PLATFORM_HEARING)
-  }
-
-  @Test
-  fun `should convert to sqs message of type unknown from json`() {
-    // given
-    val rawMessage = testMessage(null)
-    // when
-    val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-    // then
-    assertThat(sqsMessage).isNotNull()
-    assertThat(sqsMessage.getMessageType()).isEqualTo(MessageType.UNKNOWN)
+    assertThat(sqsMessage.getMessageType()).isEqualTo(MessageType.COMMON_PLATFORM_HEARING.name)
   }
 }
