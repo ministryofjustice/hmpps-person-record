@@ -2,13 +2,11 @@ package uk.gov.justice.digital.hmpps.personrecord.config
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.integration.MultiNodeTestBase
 
-internal class FeatureFlagTest : IntegrationTestBase() {
+internal class FeatureFlagTest : MultiNodeTestBase() {
 
-  @Autowired
-  private lateinit var featureFlag: FeatureFlag
+  private var featureFlag = getBean("featureFlag", FeatureFlag::class.java)
 
   @Test
   fun `should return true when hmcts sqs feature is enabled`() {

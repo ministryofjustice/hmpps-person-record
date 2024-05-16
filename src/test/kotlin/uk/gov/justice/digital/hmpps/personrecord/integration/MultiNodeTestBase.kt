@@ -21,7 +21,10 @@ import java.time.Duration
 
 abstract class MultiNodeTestBase {
 
-  internal val hmppsQueueService = instance1.context().getBean("hmppsQueueService", HmppsQueueService::class.java)
+  internal val hmppsQueueService = getBean("hmppsQueueService", HmppsQueueService::class.java)
+
+  internal fun <T> getBean(name: String, clazz: Class<T>) =
+    instance1.context().getBean(name, clazz)
 
   internal val courtCaseEventsTopic =
     hmppsQueueService.findByTopicId("courtcaseeventstopic")
@@ -32,7 +35,7 @@ abstract class MultiNodeTestBase {
   internal val cprDeliusOffenderEventsQueue =
     hmppsQueueService.findByQueueId("cprdeliusoffendereventsqueue")
 
-  internal val telemetryClient = instance1.context().getBean("telemetryClient", TelemetryClient::class.java)
+  internal val telemetryClient = getBean("telemetryClient", TelemetryClient::class.java)
 
   internal val personRepository: PersonRepository = instance1.context().getBean("personRepository", PersonRepository::class.java)
 
