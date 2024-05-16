@@ -14,7 +14,7 @@ class TelemetryConfig {
 
   @Bean
   @Conditional(AppInsightKeyAbsentCondition::class)
-  fun getTelemetryClient(): TelemetryClient {
+  fun telemetryClient(): TelemetryClient {
     return TelemetryClient()
   }
 

@@ -48,5 +48,7 @@ class CourtCaseEventsListenerMultiNodeIntTest : MultiNodeTestBase() {
     await untilCallTo {
       courtCaseEventsQueue?.sqsDlqClient?.countMessagesOnQueue(courtCaseEventsQueue.dlqUrl!!)?.get()
     } matches { it == 0 }
+
+//    assertThat(personRepository.findAll().size).isEqualTo(1)
   }
 }

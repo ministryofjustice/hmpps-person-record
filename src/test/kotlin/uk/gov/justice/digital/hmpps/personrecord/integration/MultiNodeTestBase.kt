@@ -1,12 +1,23 @@
 package uk.gov.justice.digital.hmpps.personrecord.integration
 
+import com.microsoft.applicationinsights.TelemetryClient
+import org.assertj.core.api.Assertions.assertThat
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.verification.VerificationMode
 import org.springframework.boot.builder.SpringApplicationBuilder
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.HmppsPersonRecord
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import java.time.Duration
 
 abstract class MultiNodeTestBase {
 
@@ -22,8 +33,29 @@ abstract class MultiNodeTestBase {
     (instance1.context().getBean("hmppsQueueService") as HmppsQueueService)
       .findByQueueId("cprdeliusoffendereventsqueue")
 
+  internal val telemetryClient = (instance1.context().getBean("telemetryClient") as TelemetryClient)
+
+  internal val personRepository: PersonRepository = (instance1.context().getBean("personRepository") as PersonRepository)
+
+  internal fun checkTelemetry(
+    event: TelemetryEventType,
+    expected: Map<String, String>,
+    verificationMode: VerificationMode = times(1),
+  ) {
+    await.atMost(Duration.ofSeconds(3)) untilAsserted {
+      verify(telemetryClient, verificationMode).trackEvent(
+        eq(event.eventName),
+        org.mockito.kotlin.check {
+          assertThat(it).containsAllEntriesOf(expected)
+        },
+        eq(null),
+      )
+    }
+  }
+
   @BeforeEach
   fun beforeEach() {
+    personRepository.deleteAll()
     courtCaseEventsQueue?.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(courtCaseEventsQueue.dlqUrl).build(),
     ).get()
