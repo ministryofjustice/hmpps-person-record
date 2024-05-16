@@ -134,9 +134,15 @@ orbs:
                   -u << parameters.user >> \
                   -p << parameters.password >> \
                   -o /tmp/schemaspy
+          - run:
+              name: generate index file
+              command: |
+                echo '<html><body><a href="schema/index.html">Open Schema Report</a></body></html>' > /tmp/index.html
           - store_artifacts:
               path: /tmp/schemaspy
               destination: schema
+          - store_artifacts:
+              path: /tmp/index.html
 
 parameters:
   alerts-slack-channel:
