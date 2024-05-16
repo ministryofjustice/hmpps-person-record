@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model.person
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Alias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
@@ -26,7 +27,7 @@ data class Person(
   val otherIdentifiers: OtherIdentifiers? = null,
   val defendantId: String? = null,
   val title: String? = null,
-  val aliases: List<Alias> = emptyList(),
+  val names: List<Name> = emptyList(),
   val driverNumber: String? = null,
   val arrestSummonsNumber: String? = null,
   val masterDefendantId: String? = null,
@@ -80,7 +81,7 @@ data class Person(
           crn = probationCase.identifiers.crn,
           pncIdentifier = probationCase.identifiers.pnc,
         ),
-        aliases = probationCase.aliases?.map { Alias.from(it) } ?: emptyList(),
+        names = probationCase.aliases?.map { Name.from(it) } ?: emptyList(),
         sourceSystemType = DELIUS,
       )
     }
@@ -117,7 +118,7 @@ data class Person(
         nationalInsuranceNumber = defendant.personDefendant?.personDetails?.nationalInsuranceNumber,
         contacts = contacts,
         addresses = addresses,
-        aliases = defendant.aliases?.map { Alias.from(it) } ?: emptyList(),
+        names = defendant.aliases?.map { Name.from(it) } ?: emptyList(),
         sourceSystemType = HMCTS,
       )
     }
@@ -135,16 +136,22 @@ data class Person(
       )
     }
 
-    fun from(prisoner: Prisoner): Person =
-      Person(
-        otherIdentifiers = OtherIdentifiers(prisonNumber = prisoner.prisonNumber, pncIdentifier = prisoner.pnc, croIdentifier = prisoner.cro),
+    fun from(prisoner: Prisoner): Person {
+      val names: List<Name> = prisoner.aliases?.map { alias: Alias -> Name.from(alias) } ?: emptyList()
+      return Person(
+        otherIdentifiers = OtherIdentifiers(
+          prisonNumber = prisoner.prisonNumber,
+          pncIdentifier = prisoner.pnc,
+          croIdentifier = prisoner.cro,
+        ),
         givenName = prisoner.firstName,
         middleNames = prisoner.middleNames?.split(" ") ?: emptyList(),
         familyName = prisoner.lastName,
         dateOfBirth = prisoner.dateOfBirth,
         sourceSystemType = NOMIS,
-        aliases = prisoner.aliases ?: emptyList(),
+        names = names,
       )
+    }
   }
 }
 

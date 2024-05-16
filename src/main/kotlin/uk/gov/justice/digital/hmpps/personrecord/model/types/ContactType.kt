@@ -4,5 +4,5 @@ enum class ContactType {
   HOME,
   MOBILE,
   EMAIL,
-  ALTERNATE
+  ALTERNATE,
 }

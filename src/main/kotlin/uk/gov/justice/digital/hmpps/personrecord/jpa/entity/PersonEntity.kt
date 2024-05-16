@@ -43,7 +43,7 @@ class PersonEntity(
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
-  var aliases: MutableList<AliasEntity> = mutableListOf(),
+  var aliases: MutableList<NameEntity> = mutableListOf(),
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
@@ -138,7 +138,7 @@ class PersonEntity(
         nationalInsuranceNumber = person.nationalInsuranceNumber,
         sourceSystem = person.sourceSystemType,
       )
-      val personAliases = AliasEntity.fromList(person.aliases)
+      val personAliases = NameEntity.fromList(person.names)
       personAliases.forEach { personAliasEntity -> personAliasEntity.person = personEntity }
       personEntity.aliases.addAll(personAliases)
       return personEntity

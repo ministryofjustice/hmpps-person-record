@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifierDeserializer
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifierDeserializer
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)

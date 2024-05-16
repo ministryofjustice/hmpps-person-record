@@ -8,8 +8,8 @@ import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
 import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AliasEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NameEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -82,7 +82,7 @@ class PersonService(
   }
 
   private fun updatePersonAliases(person: Person, personEntity: PersonEntity) {
-    val personAliases = AliasEntity.fromList(person.aliases)
+    val personAliases = NameEntity.fromList(person.names)
     personAliases.forEach { personAliasEntity -> personAliasEntity.person = personEntity }
     personEntity.aliases.addAll(personAliases)
   }

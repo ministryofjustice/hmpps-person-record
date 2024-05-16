@@ -101,8 +101,8 @@ internal class PersonTest {
     assertThat(person.contacts[0].contactValue).isEqualTo("01234567890")
     assertThat(person.contacts[1].contactType).isEqualTo(ContactType.MOBILE)
     assertThat(person.contacts[1].contactValue).isEqualTo("91234567890")
-    assertThat(person.aliases[0].firstName).isEqualTo("Stephen")
-    assertThat(person.aliases[0].lastName).isEqualTo("Smith")
+    assertThat(person.names[0].firstName).isEqualTo("Stephen")
+    assertThat(person.names[0].lastName).isEqualTo("Smith")
     assertThat(person.addresses[0].postcode).isEqualTo("LS1 1AB")
   }
 }
