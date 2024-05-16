@@ -137,13 +137,14 @@ orbs:
           - run:
               name: generate index file
               command: |
-                echo '<html><body><a href="schema/index.html">Open Schema Report</a></body></html>' > /tmp/index.html
-          - store_artifacts:
-              path: /tmp/schemaspy
-              destination: schema
+                echo '<html><body><a href="schema/report/index.html">Open Schema Report</a></body></html>' > /tmp/index.html
           - store_artifacts:
               path: /tmp/index.html
-              destination: /
+              destination: schema/index.html
+          - store_artifacts:
+              path: /tmp/schemaspy
+              destination: schema/report
+
 
 parameters:
   alerts-slack-channel:
