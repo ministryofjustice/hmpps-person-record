@@ -137,7 +137,7 @@ orbs:
           - run:
               name: generate index file
               command: |
-                echo '<html><body><a href="schema/report/index.html">Open Schema Report</a></body></html>' > /tmp/index.html
+                echo '<html><head><meta http-equiv="refresh" content="0; url=report/index.html" /></head><body><a href="report/index.html">Open Schema Report</a></body></html>' > /tmp/index.html
           - store_artifacts:
               path: /tmp/index.html
               destination: schema/index.html
