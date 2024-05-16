@@ -8,6 +8,7 @@ import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.person.name.Names
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
@@ -27,25 +28,26 @@ class PopulateFromProbationIntTest : IntegrationTestBase() {
     }
     val pops = personRepository.findAll()
     val pop = pops[0]
-    assertThat(pop.firstName).isEqualTo("POPOneFirstName")
-    assertThat(pop.middleNames).isEqualTo("POPOneMiddleNameOne POPOneMiddleNameTwo")
-    assertThat(pop.lastName).isEqualTo("POPOneLastName")
+    assertThat(Names.from(pop.names).preferred?.firstName).isEqualTo("POPOneFirstName")
+    assertThat(Names.from(pop.names).preferred?.middleNames).isEqualTo("POPOneMiddleNameOne POPOneMiddleNameTwo")
+    assertThat(Names.from(pop.names).preferred?.lastName).isEqualTo("POPOneLastName")
     assertThat(pop.crn).isEqualTo("D001022")
-    assertThat(pop.dateOfBirth).isEqualTo(LocalDate.of(1980, 8, 29))
-    assertThat(pop.aliases[0].firstName).isEqualTo("POPOneAliasOneFirstName")
-    assertThat(pop.aliases[0].middleNames).isEqualTo("POPOneAliasOneMiddleNameOne POPOneAliasOneMiddleNameTwo")
-    assertThat(pop.aliases[0].lastName).isEqualTo("POPOneAliasOneLastName")
-    assertThat(pop.aliases[1].firstName).isEqualTo("POPOneAliasTwoFirstName")
-    assertThat(pop.aliases[1].middleNames).isEqualTo("POPOneAliasTwoMiddleNameOne POPOneAliasTwoMiddleNameTwo")
-    assertThat(pop.aliases[1].lastName).isEqualTo("POPOneAliasTwoLastName")
+    assertThat(Names.from(pop.names).preferred?.dateOfBirth).isEqualTo(LocalDate.of(1980, 8, 29))
+    assertThat(Names.from(pop.names).aliases[0].firstName).isEqualTo("POPOneAliasOneFirstName")
+    assertThat(Names.from(pop.names).aliases[0].middleNames).isEqualTo("POPOneAliasOneMiddleNameOne POPOneAliasOneMiddleNameTwo")
+    assertThat(Names.from(pop.names).aliases[0].lastName).isEqualTo("POPOneAliasOneLastName")
+    assertThat(Names.from(pop.names).aliases[1].firstName).isEqualTo("POPOneAliasTwoFirstName")
+    assertThat(Names.from(pop.names).aliases[1].middleNames).isEqualTo("POPOneAliasTwoMiddleNameOne POPOneAliasTwoMiddleNameTwo")
+    assertThat(Names.from(pop.names).aliases[1].lastName).isEqualTo("POPOneAliasTwoLastName")
     assertThat(pop.sourceSystem).isEqualTo(DELIUS)
-    assertThat(pops[1].firstName).isEqualTo("POPTwoFirstName")
-    assertThat(pops[2].firstName).isEqualTo("POPThreeFirstName")
-    assertThat(pops[3].firstName).isEqualTo("POPFourFirstName")
-    assertThat(pops[4].firstName).isEqualTo("POPFiveFirstName")
-    assertThat(pops[5].firstName).isEqualTo("POPSixFirstName")
-    assertThat(pops[6].firstName).isEqualTo("POPSevenFirstName")
-    assertThat(pops[6].middleNames).isEqualTo("")
+    assertThat(Names.from(pops[0].names).preferred?.firstName).isEqualTo("POPOneFirstName")
+    assertThat(Names.from(pops[1].names).preferred?.firstName).isEqualTo("POPTwoFirstName")
+    assertThat(Names.from(pops[2].names).preferred?.firstName).isEqualTo("POPThreeFirstName")
+    assertThat(Names.from(pops[3].names).preferred?.firstName).isEqualTo("POPFourFirstName")
+    assertThat(Names.from(pops[4].names).preferred?.firstName).isEqualTo("POPFiveFirstName")
+    assertThat(Names.from(pops[5].names).preferred?.firstName).isEqualTo("POPSixFirstName")
+    assertThat(Names.from(pops[6].names).preferred?.firstName).isEqualTo("POPSevenFirstName")
+    assertThat(Names.from(pops[6].names).preferred?.middleNames).isEqualTo("")
     assertThat(pops[6].cro).isEqualTo(CROIdentifier.from(""))
   }
 
@@ -119,13 +121,13 @@ class PopulateFromProbationIntTest : IntegrationTestBase() {
     }
 
     val pops = personRepository.findAll()
-    assertThat(pops[0].firstName).isEqualTo("POPOneFirstName")
-    assertThat(pops[1].firstName).isEqualTo("POPTwoFirstName")
-    assertThat(pops[2].firstName).isEqualTo("POPThreeFirstName")
-    assertThat(pops[3].firstName).isEqualTo("POPFourFirstName")
-    assertThat(pops[4].firstName).isEqualTo("POPFiveFirstName")
-    assertThat(pops[5].firstName).isEqualTo("POPSixFirstName")
-    assertThat(pops[6].firstName).isEqualTo("POPSevenFirstName")
-    assertThat(pops[6].aliases.size).isEqualTo(0)
+    assertThat(Names.from(pops[0].names).preferred?.firstName).isEqualTo("POPOneFirstName")
+    assertThat(Names.from(pops[1].names).preferred?.firstName).isEqualTo("POPTwoFirstName")
+    assertThat(Names.from(pops[2].names).preferred?.firstName).isEqualTo("POPThreeFirstName")
+    assertThat(Names.from(pops[3].names).preferred?.firstName).isEqualTo("POPFourFirstName")
+    assertThat(Names.from(pops[4].names).preferred?.firstName).isEqualTo("POPFiveFirstName")
+    assertThat(Names.from(pops[5].names).preferred?.firstName).isEqualTo("POPSixFirstName")
+    assertThat(Names.from(pops[6].names).preferred?.firstName).isEqualTo("POPSevenFirstName")
+    assertThat(Names.from(pops[7].names).aliases.size).isEqualTo(0)
   }
 }

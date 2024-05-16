@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.name.Names
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
 
 const val MAX_RETRY_ATTEMPTS: Int = 3
@@ -22,12 +23,13 @@ class MatchService(val matchScoreClient: MatchScoreClient, val telemetryService:
   fun score(candidateRecord: PersonEntity, newRecord: Person): MatchResult {
     val candidateRecordIdentifier = candidateRecord.defendantId ?: "defendant1"
     val newRecordIdentifier = newRecord.defendantId ?: "defendant2"
+    val names = Names.from(candidateRecord.names)
 
     val matchRequest = MatchRequest(
       uniqueId = MatchRequestData(candidateRecordIdentifier, newRecordIdentifier),
-      firstName = MatchRequestData(candidateRecord.firstName, newRecord.givenName),
-      surname = MatchRequestData(candidateRecord.lastName, newRecord.familyName),
-      dateOfBirth = MatchRequestData(candidateRecord.dateOfBirth.toString(), newRecord.dateOfBirth.toString()),
+      firstName = MatchRequestData(names.preferred?.firstName, newRecord.names.preferred?.firstName),
+      surname = MatchRequestData(names.preferred?.lastName, newRecord.names.preferred?.lastName),
+      dateOfBirth = MatchRequestData(names.preferred?.dateOfBirth.toString(), newRecord.names.preferred?.dateOfBirth.toString()),
       pncNumber = MatchRequestData(candidateRecord.pnc?.pncId, newRecord.otherIdentifiers?.pncIdentifier?.pncId),
     )
 

@@ -12,7 +12,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Name
+import uk.gov.justice.digital.hmpps.personrecord.model.person.name.Name
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import java.time.LocalDate
 
@@ -31,6 +31,9 @@ class NameEntity(
     nullable = false,
   )
   var person: PersonEntity? = null,
+
+  @Column
+  var title: String? = null,
 
   @Column(name = "first_name")
   val firstName: String? = null,
@@ -54,8 +57,9 @@ class NameEntity(
   companion object {
     private fun from(name: Name): NameEntity? =
       when {
-        isAliasPresent(name.firstName, name.middleNames, name.lastName) ->
+        isAliasPresent(name.title, name.firstName, name.middleNames, name.lastName) ->
           NameEntity(
+            title = name.title,
             firstName = name.firstName,
             middleNames = name.middleNames,
             lastName = name.lastName,
@@ -67,8 +71,8 @@ class NameEntity(
 
     fun fromList(names: List<Name>): List<NameEntity> = names.mapNotNull { from(it) }
 
-    private fun isAliasPresent(firstName: String?, middleNames: String?, surname: String?): Boolean =
-      sequenceOf(firstName, middleNames, surname)
+    private fun isAliasPresent(title: String?, firstName: String?, middleNames: String?, surname: String?): Boolean =
+      sequenceOf(title, firstName, middleNames, surname)
         .filterNotNull().any { it.isNotBlank() }
   }
 }

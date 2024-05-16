@@ -17,6 +17,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defe
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.name.Names
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithAdditionalFields
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithNewDefendant
@@ -147,7 +149,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       personRepository.findByDefendantId(defendantId)
     }
 
-    assertThat(personEntity.lastName).isEqualTo("Andy")
+    assertThat(Names.from(personEntity.names).preferred?.lastName).isEqualTo("Andy")
     assertThat(personEntity.addresses.size).isEqualTo(1)
 
     checkTelemetry(
@@ -166,7 +168,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       mapOf("SourceSystem" to "HMCTS"),
     )
 
-    assertThat(updatedPersonEntity.lastName).isEqualTo("Smith")
+    assertThat(Names.from(updatedPersonEntity.names).preferred?.lastName).isEqualTo("Smith")
     assertThat(updatedPersonEntity.pnc).isEqualTo(PNCIdentifier.from("1981/0154257C"))
     assertThat(updatedPersonEntity.cro).isEqualTo(CROIdentifier.from("86621/65B"))
     assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
@@ -195,18 +197,20 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity1.pnc).isEqualTo(pncNumber1)
     assertThat(personEntity1.defendantId).isEqualTo("b5cfae34-9256-43ad-87fb-ac3def34e2ac")
     assertThat(personEntity1.masterDefendantId).isEqualTo("eeb71c73-573b-444e-9dc3-4e5998d1be65")
-    assertThat(personEntity1.firstName).isEqualTo("Eric")
-    assertThat(personEntity1.middleNames).isEqualTo("mName1 mName2")
-    assertThat(personEntity1.lastName).isEqualTo("Lassard")
+    assertThat(Names.from(personEntity1.names).preferred?.firstName).isEqualTo("Eric")
+    assertThat(Names.from(personEntity1.names).preferred?.middleNames).isEqualTo("mName1 mName2")
+    assertThat(Names.from(personEntity1.names).preferred?.lastName).isEqualTo("Lassard")
     assertThat(personEntity1.contacts).isEmpty()
     assertThat(personEntity1.addresses).isNotEmpty()
-    assertThat(personEntity1.aliases.size).isEqualTo(2)
-    assertThat(personEntity1.aliases[0].firstName).isEqualTo("aliasFirstName1")
-    assertThat(personEntity1.aliases[0].lastName).isEqualTo("alisLastName1")
-    assertThat(personEntity1.aliases[1].firstName).isEqualTo("aliasFirstName2")
-    assertThat(personEntity1.aliases[1].lastName).isEqualTo("alisLastName2")
+    assertThat(Names.from(personEntity1.names).aliases.size).isEqualTo(2)
+    assertThat(Names.from(personEntity1.names).aliases[0].firstName).isEqualTo("aliasFirstName1")
+    assertThat(Names.from(personEntity1.names).aliases[0].lastName).isEqualTo("alisLastName1")
+    assertThat(Names.from(personEntity1.names).aliases[0].type).isEqualTo(NameType.ALIAS)
+    assertThat(Names.from(personEntity1.names).aliases[1].firstName).isEqualTo("aliasFirstName2")
+    assertThat(Names.from(personEntity1.names).aliases[1].lastName).isEqualTo("alisLastName2")
+    assertThat(Names.from(personEntity1.names).aliases[1].type).isEqualTo(NameType.ALIAS)
 
-    assertThat(personEntity2.aliases).isEmpty()
+    assertThat(Names.from(personEntity2.names).aliases).isEmpty()
     assertThat(personEntity2.addresses).isNotEmpty()
     assertThat(personEntity2.addresses[0].postcode).isEqualTo("CF10 1FU")
     assertThat(personEntity2.pnc).isEqualTo(pncNumber2)
@@ -214,7 +218,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity2.defendantId).isEqualTo("cc36c035-6e82-4d04-94c2-2a5728f11481")
     assertThat(personEntity2.masterDefendantId).isEqualTo("1f6847a2-6663-44dd-b945-fe2c20961d0a")
 
-    assertThat(personEntity3.aliases).isEmpty()
+    assertThat(Names.from(personEntity3.names).aliases).isEmpty()
     assertThat(personEntity3.contacts.size).isEqualTo(0)
     assertThat(personEntity3.pnc).isEqualTo(pncNumber3)
     assertThat(personEntity3.nationalInsuranceNumber).isEqualTo("PC456743D")

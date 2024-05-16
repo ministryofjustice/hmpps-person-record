@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
-import java.time.LocalDate
 
 @Entity
 @Table(name = "person")
@@ -30,20 +29,8 @@ class PersonEntity(
   var id: Long? = null,
 
   @Column
-  var title: String? = null,
-
-  @Column(name = "first_name")
-  var firstName: String? = null,
-
-  @Column(name = "last_name")
-  var lastName: String? = null,
-
-  @Column(name = "middle_names")
-  var middleNames: String? = null,
-
-  @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
-  var aliases: MutableList<NameEntity> = mutableListOf(),
+  var names: MutableList<NameEntity> = mutableListOf(),
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
@@ -88,9 +75,6 @@ class PersonEntity(
   @Column(name = "arrest_summons_number")
   var arrestSummonsNumber: String? = null,
 
-  @Column(name = "date_of_birth")
-  var dateOfBirth: LocalDate? = null,
-
   @Column
   @Enumerated(STRING)
   val sourceSystem: SourceSystemType,
@@ -100,11 +84,6 @@ class PersonEntity(
 
 ) {
   fun update(person: Person): PersonEntity {
-    this.title = person.title
-    this.firstName = person.givenName
-    this.middleNames = person.middleNames?.joinToString(" ") { it }
-    this.lastName = person.familyName
-    this.dateOfBirth = person.dateOfBirth
     this.defendantId = person.defendantId
     this.pnc = person.otherIdentifiers?.pncIdentifier
     this.crn = person.otherIdentifiers?.crn
@@ -121,11 +100,6 @@ class PersonEntity(
   companion object {
     fun from(person: Person): PersonEntity {
       val personEntity = PersonEntity(
-        title = person.title,
-        firstName = person.givenName,
-        middleNames = person.middleNames?.joinToString(" ") { it },
-        lastName = person.familyName,
-        dateOfBirth = person.dateOfBirth,
         defendantId = person.defendantId,
         pnc = person.otherIdentifiers?.pncIdentifier,
         crn = person.otherIdentifiers?.crn,
@@ -138,9 +112,9 @@ class PersonEntity(
         nationalInsuranceNumber = person.nationalInsuranceNumber,
         sourceSystem = person.sourceSystemType,
       )
-      val personAliases = NameEntity.fromList(person.names)
-      personAliases.forEach { personAliasEntity -> personAliasEntity.person = personEntity }
-      personEntity.aliases.addAll(personAliases)
+      val personNames = NameEntity.fromList(person.names.build())
+      personNames.forEach { personNamesEntity -> personNamesEntity.person = personEntity }
+      personEntity.names.addAll(personNames)
       return personEntity
     }
   }

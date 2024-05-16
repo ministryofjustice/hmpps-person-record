@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.model.person
+package uk.gov.justice.digital.hmpps.personrecord.model.person.name
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Alias
@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import java.time.LocalDate
 
 data class Name(
+  val title: String? = null,
   val firstName: String? = null,
   val lastName: String? = null,
   val middleNames: String? = null,

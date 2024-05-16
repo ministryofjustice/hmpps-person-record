@@ -10,24 +10,22 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defe
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.person.name.Name
+import uk.gov.justice.digital.hmpps.personrecord.model.person.name.Names
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.HMCTS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
-import java.time.LocalDate
 import java.util.*
 
 data class Person(
   val personId: UUID? = null,
-  val givenName: String? = null,
-  val middleNames: List<String>? = emptyList(),
-  val familyName: String? = null,
-  val dateOfBirth: LocalDate? = null,
   val otherIdentifiers: OtherIdentifiers? = null,
   val defendantId: String? = null,
   val title: String? = null,
-  val names: List<Name> = emptyList(),
+  val names: Names,
   val driverNumber: String? = null,
   val arrestSummonsNumber: String? = null,
   val masterDefendantId: String? = null,
@@ -46,9 +44,14 @@ data class Person(
 
     fun from(offenderDetail: OffenderDetail): Person {
       return Person(
-        givenName = offenderDetail.firstName,
-        familyName = offenderDetail.surname,
-        dateOfBirth = offenderDetail.dateOfBirth,
+        names = Names(
+          preferred = Name(
+            firstName = offenderDetail.firstName,
+            lastName = offenderDetail.surname,
+            dateOfBirth = offenderDetail.dateOfBirth,
+            type = NameType.PREFERRED,
+          ),
+        ),
         otherIdentifiers = OtherIdentifiers(
           crn = offenderDetail.otherIds.crn,
           pncIdentifier = PNCIdentifier.from(offenderDetail.otherIds.pncNumber),
@@ -59,11 +62,25 @@ data class Person(
     }
 
     fun from(deliusOffenderDetail: DeliusOffenderDetail): Person {
+      Names(
+        preferred = Name(
+          firstName = deliusOffenderDetail.name.forename,
+          middleNames = deliusOffenderDetail.name.otherNames?.joinToString(" ") { it },
+          lastName = deliusOffenderDetail.name.surname,
+          dateOfBirth = deliusOffenderDetail.dateOfBirth,
+          type = NameType.PREFERRED,
+        ),
+      )
       return Person(
-        givenName = deliusOffenderDetail.name.forename,
-        middleNames = deliusOffenderDetail.name.otherNames,
-        familyName = deliusOffenderDetail.name.surname,
-        dateOfBirth = deliusOffenderDetail.dateOfBirth,
+        names = Names(
+          preferred = Name(
+            firstName = deliusOffenderDetail.name.forename,
+            middleNames = deliusOffenderDetail.name.otherNames?.joinToString(" ") { it },
+            lastName = deliusOffenderDetail.name.surname,
+            dateOfBirth = deliusOffenderDetail.dateOfBirth,
+            type = NameType.PREFERRED,
+          ),
+        ),
         otherIdentifiers = OtherIdentifiers(
           crn = deliusOffenderDetail.identifiers.crn,
           pncIdentifier = deliusOffenderDetail.identifiers.pnc,
@@ -71,17 +88,23 @@ data class Person(
         sourceSystemType = DELIUS,
       )
     }
+
     fun from(probationCase: ProbationCase): Person {
       return Person(
-        givenName = probationCase.name.firstName,
-        middleNames = probationCase.name.middleNames?.split(" ") ?: emptyList(),
-        familyName = probationCase.name.lastName,
-        dateOfBirth = probationCase.dateOfBirth,
         otherIdentifiers = OtherIdentifiers(
           crn = probationCase.identifiers.crn,
           pncIdentifier = probationCase.identifiers.pnc,
         ),
-        names = probationCase.aliases?.map { Name.from(it) } ?: emptyList(),
+        names = Names(
+          preferred = Name(
+            firstName = probationCase.name.firstName,
+            middleNames = probationCase.name.middleNames,
+            lastName = probationCase.name.lastName,
+            dateOfBirth = probationCase.dateOfBirth,
+            type = NameType.PREFERRED,
+          ),
+          aliases = probationCase.aliases?.map { Name.from(it) } ?: emptyList(),
+        ),
         sourceSystemType = DELIUS,
       )
     }
@@ -107,10 +130,17 @@ data class Person(
           pncIdentifier = defendant.pncId,
           croIdentifier = CROIdentifier.from(defendant.croNumber),
         ),
-        givenName = defendant.personDefendant?.personDetails?.firstName,
-        familyName = defendant.personDefendant?.personDetails?.lastName,
-        middleNames = defendant.personDefendant?.personDetails?.middleName?.split(" "),
-        dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
+        names = Names(
+          preferred = Name(
+            title = defendant.personDefendant?.personDetails?.title,
+            firstName = defendant.personDefendant?.personDetails?.firstName,
+            lastName = defendant.personDefendant?.personDetails?.lastName,
+            middleNames = defendant.personDefendant?.personDetails?.middleName,
+            dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
+            type = NameType.PREFERRED,
+          ),
+          aliases = defendant.aliases?.map { Name.from(it) } ?: emptyList(),
+        ),
         driverNumber = defendant.personDefendant?.driverNumber,
         arrestSummonsNumber = defendant.personDefendant?.arrestSummonsNumber,
         defendantId = defendant.id,
@@ -118,7 +148,6 @@ data class Person(
         nationalInsuranceNumber = defendant.personDefendant?.personDetails?.nationalInsuranceNumber,
         contacts = contacts,
         addresses = addresses,
-        names = defendant.aliases?.map { Name.from(it) } ?: emptyList(),
         sourceSystemType = HMCTS,
       )
     }
@@ -129,27 +158,36 @@ data class Person(
           pncIdentifier = PNCIdentifier.from(libraHearingEvent.pnc),
           croIdentifier = CROIdentifier.from(libraHearingEvent.cro),
         ),
-        givenName = libraHearingEvent.name?.forename1,
-        familyName = libraHearingEvent.name?.surname,
-        dateOfBirth = libraHearingEvent.defendantDob,
+        names = Names(
+          preferred = Name(
+            firstName = libraHearingEvent.name?.forename1,
+            lastName = libraHearingEvent.name?.surname,
+            dateOfBirth = libraHearingEvent.defendantDob,
+            type = NameType.PREFERRED,
+          ),
+        ),
         sourceSystemType = HMCTS,
       )
     }
 
     fun from(prisoner: Prisoner): Person {
-      val names: List<Name> = prisoner.aliases?.map { alias: Alias -> Name.from(alias) } ?: emptyList()
       return Person(
         otherIdentifiers = OtherIdentifiers(
           prisonNumber = prisoner.prisonNumber,
           pncIdentifier = prisoner.pnc,
           croIdentifier = prisoner.cro,
         ),
-        givenName = prisoner.firstName,
-        middleNames = prisoner.middleNames?.split(" ") ?: emptyList(),
-        familyName = prisoner.lastName,
-        dateOfBirth = prisoner.dateOfBirth,
+        names = Names(
+          preferred = Name(
+            firstName = prisoner.firstName,
+            middleNames = prisoner.middleNames,
+            lastName = prisoner.lastName,
+            dateOfBirth = prisoner.dateOfBirth,
+            type = NameType.PREFERRED,
+          ),
+          aliases = prisoner.aliases?.map { alias: Alias -> Name.from(alias) } ?: emptyList(),
+        ),
         sourceSystemType = NOMIS,
-        names = names,
       )
     }
   }

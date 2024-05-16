@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.person.name.Names
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
@@ -30,26 +32,29 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
 
     val prisoners = personRepository.findAll()
     val prisoner = prisoners[0]
-    assertThat(prisoner.firstName).isEqualTo("PrisonerOneFirstName")
-    assertThat(prisoner.middleNames).isEqualTo("PrisonerOneMiddleNameOne PrisonerOneMiddleNameTwo")
-    assertThat(prisoner.lastName).isEqualTo("PrisonerOneLastName")
+    val prisonerNames = Names.from(prisoner.names)
+    assertThat(prisonerNames.preferred?.firstName).isEqualTo("PrisonerOneFirstName")
+    assertThat(prisonerNames.preferred?.middleNames).isEqualTo("PrisonerOneMiddleNameOne PrisonerOneMiddleNameTwo")
+    assertThat(prisonerNames.preferred?.lastName).isEqualTo("PrisonerOneLastName")
     assertThat(prisoner.pnc).isEqualTo(PNCIdentifier.from("2012/394773H"))
     assertThat(prisoner.cro).isEqualTo(CROIdentifier.from("29906/12J"))
-    assertThat(prisoner.dateOfBirth).isEqualTo(LocalDate.of(1975, 4, 2))
-    assertThat(prisoner.aliases[0].firstName).isEqualTo("PrisonerOneAliasOneFirstName")
-    assertThat(prisoner.aliases[0].middleNames).isEqualTo("PrisonerOneAliasOneMiddleNameOne PrisonerOneAliasOneMiddleNameTwo")
-    assertThat(prisoner.aliases[0].lastName).isEqualTo("PrisonerOneAliasOneLastName")
-    assertThat(prisoner.aliases[1].firstName).isEqualTo("PrisonerOneAliasTwoFirstName")
-    assertThat(prisoner.aliases[1].middleNames).isEqualTo("PrisonerOneAliasTwoMiddleNameOne PrisonerOneAliasTwoMiddleNameTwo")
-    assertThat(prisoner.aliases[1].lastName).isEqualTo("PrisonerOneAliasTwoLastName")
+    assertThat(prisonerNames.preferred?.dateOfBirth).isEqualTo(LocalDate.of(1975, 4, 2))
+    assertThat(prisonerNames.aliases[0].firstName).isEqualTo("PrisonerOneAliasOneFirstName")
+    assertThat(prisonerNames.aliases[0].middleNames).isEqualTo("PrisonerOneAliasOneMiddleNameOne PrisonerOneAliasOneMiddleNameTwo")
+    assertThat(prisonerNames.aliases[0].lastName).isEqualTo("PrisonerOneAliasOneLastName")
+    assertThat(prisonerNames.aliases[0].type).isEqualTo(NameType.ALIAS)
+    assertThat(prisonerNames.aliases[1].firstName).isEqualTo("PrisonerOneAliasTwoFirstName")
+    assertThat(prisonerNames.aliases[1].middleNames).isEqualTo("PrisonerOneAliasTwoMiddleNameOne PrisonerOneAliasTwoMiddleNameTwo")
+    assertThat(prisonerNames.aliases[1].lastName).isEqualTo("PrisonerOneAliasTwoLastName")
+    assertThat(prisonerNames.aliases[1].type).isEqualTo(NameType.ALIAS)
     assertThat(prisoner.sourceSystem).isEqualTo(NOMIS)
-    assertThat(prisoners[1].firstName).isEqualTo("PrisonerTwoFirstName")
-    assertThat(prisoners[2].firstName).isEqualTo("PrisonerThreeFirstName")
-    assertThat(prisoners[3].firstName).isEqualTo("PrisonerFourFirstName")
-    assertThat(prisoners[4].firstName).isEqualTo("PrisonerFiveFirstName")
-    assertThat(prisoners[5].firstName).isEqualTo("PrisonerSixFirstName")
-    assertThat(prisoners[6].firstName).isEqualTo("PrisonerSevenFirstName")
-    assertThat(prisoners[6].middleNames).isEqualTo("")
+    assertThat(Names.from(prisoners[1].names).preferred?.firstName).isEqualTo("PrisonerTwoFirstName")
+    assertThat(Names.from(prisoners[2].names).preferred?.firstName).isEqualTo("PrisonerThreeFirstName")
+    assertThat(Names.from(prisoners[3].names).preferred?.firstName).isEqualTo("PrisonerFourFirstName")
+    assertThat(Names.from(prisoners[4].names).preferred?.firstName).isEqualTo("PrisonerFiveFirstName")
+    assertThat(Names.from(prisoners[5].names).preferred?.firstName).isEqualTo("PrisonerSixFirstName")
+    assertThat(Names.from(prisoners[6].names).preferred?.firstName).isEqualTo("PrisonerSevenFirstName")
+    assertThat(Names.from(prisoners[6].names).preferred?.middleNames).isEqualTo("")
     assertThat(prisoners[6].cro).isEqualTo(CROIdentifier.from(""))
   }
 
@@ -123,14 +128,14 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
     }
 
     val prisoners = personRepository.findAll()
-    assertThat(prisoners[0].firstName).isEqualTo("PrisonerOneFirstName")
-    assertThat(prisoners[1].firstName).isEqualTo("PrisonerTwoFirstName")
-    assertThat(prisoners[2].firstName).isEqualTo("PrisonerThreeFirstName")
-    assertThat(prisoners[3].firstName).isEqualTo("PrisonerFourFirstName")
-    assertThat(prisoners[4].firstName).isEqualTo("PrisonerFiveFirstName")
-    assertThat(prisoners[5].firstName).isEqualTo("PrisonerSixFirstName")
-    assertThat(prisoners[6].firstName).isEqualTo("PrisonerSevenFirstName")
-    assertThat(prisoners[6].aliases.size).isEqualTo(0)
+    assertThat(Names.from(prisoners[0].names).preferred?.firstName).isEqualTo("PrisonerOneFirstName")
+    assertThat(Names.from(prisoners[1].names).preferred?.firstName).isEqualTo("PrisonerTwoFirstName")
+    assertThat(Names.from(prisoners[2].names).preferred?.firstName).isEqualTo("PrisonerThreeFirstName")
+    assertThat(Names.from(prisoners[3].names).preferred?.firstName).isEqualTo("PrisonerFourFirstName")
+    assertThat(Names.from(prisoners[4].names).preferred?.firstName).isEqualTo("PrisonerFiveFirstName")
+    assertThat(Names.from(prisoners[5].names).preferred?.firstName).isEqualTo("PrisonerSixFirstName")
+    assertThat(Names.from(prisoners[6].names).preferred?.firstName).isEqualTo("PrisonerSevenFirstName")
+    assertThat(Names.from(prisoners[1].names).aliases.size).isEqualTo(0)
   }
 
   @Test
@@ -170,12 +175,12 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
       assertThat(personRepository.findAll().size).isEqualTo(7)
     }
     val prisoners = personRepository.findAll()
-    assertThat(prisoners[0].firstName).isEqualTo("PrisonerOneFirstName")
-    assertThat(prisoners[1].firstName).isEqualTo("PrisonerTwoFirstName")
-    assertThat(prisoners[2].firstName).isEqualTo("PrisonerThreeFirstName")
-    assertThat(prisoners[3].firstName).isEqualTo("PrisonerFourFirstName")
-    assertThat(prisoners[4].firstName).isEqualTo("PrisonerFiveFirstName")
-    assertThat(prisoners[5].firstName).isEqualTo("PrisonerSixFirstName")
-    assertThat(prisoners[6].firstName).isEqualTo("PrisonerSevenFirstName")
+    assertThat(Names.from(prisoners[0].names).preferred?.firstName).isEqualTo("PrisonerOneFirstName")
+    assertThat(Names.from(prisoners[1].names).preferred?.firstName).isEqualTo("PrisonerTwoFirstName")
+    assertThat(Names.from(prisoners[2].names).preferred?.firstName).isEqualTo("PrisonerThreeFirstName")
+    assertThat(Names.from(prisoners[3].names).preferred?.firstName).isEqualTo("PrisonerFourFirstName")
+    assertThat(Names.from(prisoners[4].names).preferred?.firstName).isEqualTo("PrisonerFiveFirstName")
+    assertThat(Names.from(prisoners[5].names).preferred?.firstName).isEqualTo("PrisonerSixFirstName")
+    assertThat(Names.from(prisoners[6].names).preferred?.firstName).isEqualTo("PrisonerSevenFirstName")
   }
 }
