@@ -143,6 +143,7 @@ orbs:
               destination: schema
           - store_artifacts:
               path: /tmp/index.html
+              destination: /
 
 parameters:
   alerts-slack-channel:
