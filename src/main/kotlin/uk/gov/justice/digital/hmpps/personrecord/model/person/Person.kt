@@ -23,8 +23,6 @@ data class Person(
   val middleNames: List<String>? = emptyList(),
   val familyName: String? = null,
   val dateOfBirth: LocalDate? = null,
-  val birthPlace: String? = null,
-  val birthCountry: String? = null,
   val otherIdentifiers: OtherIdentifiers? = null,
   val defendantId: String? = null,
   val title: String? = null,

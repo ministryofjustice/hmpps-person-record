@@ -91,12 +91,6 @@ class PersonEntity(
   @Column(name = "date_of_birth")
   var dateOfBirth: LocalDate? = null,
 
-  @Column(name = "birth_place")
-  var birthPlace: String? = null,
-
-  @Column(name = "birth_country")
-  var birthCountry: String? = null,
-
   @Column
   @Enumerated(STRING)
   val sourceSystem: SourceSystemType,
@@ -111,8 +105,6 @@ class PersonEntity(
     this.middleNames = person.middleNames?.joinToString(" ") { it }
     this.lastName = person.familyName
     this.dateOfBirth = person.dateOfBirth
-    this.birthPlace = person.birthPlace
-    this.birthCountry = person.birthCountry
     this.defendantId = person.defendantId
     this.pnc = person.otherIdentifiers?.pncIdentifier
     this.crn = person.otherIdentifiers?.crn
@@ -134,8 +126,6 @@ class PersonEntity(
         middleNames = person.middleNames?.joinToString(" ") { it },
         lastName = person.familyName,
         dateOfBirth = person.dateOfBirth,
-        birthPlace = person.birthPlace,
-        birthCountry = person.birthCountry,
         defendantId = person.defendantId,
         pnc = person.otherIdentifiers?.pncIdentifier,
         crn = person.otherIdentifiers?.crn,
