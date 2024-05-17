@@ -42,11 +42,11 @@ class CourtCaseEventsListenerMultiNodeIntTest : MultiNodeTestBase() {
 
     // then
     await untilCallTo {
-      courtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(courtCaseEventsQueue.queueUrl)?.get()
+      courtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(courtCaseEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
 
     await untilCallTo {
-      courtCaseEventsQueue?.sqsDlqClient?.countMessagesOnQueue(courtCaseEventsQueue.dlqUrl!!)?.get()
+      courtCaseEventsQueue?.sqsDlqClient?.countMessagesOnQueue(courtCaseEventsQueue!!.dlqUrl!!)?.get()
     } matches { it == 0 }
 
 //    assertThat(personRepository.findAll().size).isEqualTo(1)
