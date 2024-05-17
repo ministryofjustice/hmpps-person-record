@@ -6,13 +6,13 @@ import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.integration.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
 
-class PopulateFromProbationIntTest : IntegrationTestBase() {
+class PopulateFromProbationIntTest : WebTestBase() {
 
   @Test
   fun `populate from probation`() {

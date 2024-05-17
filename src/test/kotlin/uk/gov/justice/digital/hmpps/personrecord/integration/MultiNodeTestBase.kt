@@ -14,11 +14,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.verification.VerificationMode
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.boot.test.mock.mockito.SpyBean
-import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.web.reactive.server.WebTestClient
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
@@ -28,7 +24,6 @@ import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.Prison
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PrisonerUpdatedEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
-import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.personrecord.service.PrisonerDomainEventService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.hmpps.sqs.HmppsQueue
@@ -37,21 +32,13 @@ import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.Duration
 
 @ExtendWith(MultiApplicationContextExtension::class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
-@ActiveProfiles("test")
-abstract class MultiNodeTestBase {
-
-  @Autowired
-  lateinit var webTestClient: WebTestClient
+abstract class MultiNodeTestBase : IntegrationTestBase() {
 
   @Autowired
   lateinit var objectMapper: ObjectMapper
 
   @Autowired
   lateinit var hmppsQueueService: HmppsQueueService
-
-  @Autowired
-  internal lateinit var jwtHelper: JwtAuthHelper
 
   @SpyBean
   lateinit var prisonerCreatedEventProcessor: PrisonerCreatedEventProcessor
@@ -146,15 +133,6 @@ abstract class MultiNodeTestBase {
 
   fun createNomsDetailUrl(nomsNumber: String): String =
     "https://prisoner-search-dev.prison.service.justice.gov.uk/prisoner/$nomsNumber"
-
-  internal fun WebTestClient.RequestHeadersSpec<*>.authorised(): WebTestClient.RequestBodySpec {
-    val bearerToken = jwtHelper.createJwt(
-      subject = "hmpps-person-record",
-      expiryTime = Duration.ofMinutes(1L),
-      roles = listOf(),
-    )
-    return header("authorization", "Bearer $bearerToken") as WebTestClient.RequestBodySpec
-  }
 
   @BeforeEach
   fun beforeEach() {

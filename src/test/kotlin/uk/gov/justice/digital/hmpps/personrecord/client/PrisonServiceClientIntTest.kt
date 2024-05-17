@@ -3,10 +3,10 @@ package uk.gov.justice.digital.hmpps.personrecord.client
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.integration.WebTestBase
 import java.time.LocalDate
 
-class PrisonServiceClientIntTest : IntegrationTestBase() {
+class PrisonServiceClientIntTest : WebTestBase() {
 
   @Autowired
   lateinit var restClient: PrisonServiceClient
