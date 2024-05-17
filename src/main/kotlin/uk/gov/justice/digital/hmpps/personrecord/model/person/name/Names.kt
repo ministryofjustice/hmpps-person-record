@@ -4,7 +4,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NameEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 
 data class Names(
-  val preferred: Name? = null,
+  val preferred: Name,
   val aliases: List<Name> = emptyList(),
   val nickname: Name? = null,
   val maiden: Name? = null,
@@ -17,7 +17,7 @@ data class Names(
   companion object {
     fun from(names: MutableList<NameEntity>): Names {
       return Names(
-        preferred = convert(names.filter { it.type == NameType.PREFERRED }).getOrNull(0),
+        preferred = convert(names.filter { it.type == NameType.PREFERRED })[0],
         aliases = convert(names.filter { it.type == NameType.ALIAS }),
         nickname = convert(names.filter { it.type == NameType.NICKNAME }).getOrNull(0),
         maiden = convert(names.filter { it.type == NameType.MAIDEN }).getOrNull(0),

@@ -149,7 +149,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       personRepository.findByDefendantId(defendantId)
     }
 
-    assertThat(Names.from(personEntity.names).preferred?.lastName).isEqualTo("Andy")
+    assertThat(Names.from(personEntity.names).preferred.lastName).isEqualTo("Andy")
     assertThat(personEntity.addresses.size).isEqualTo(1)
 
     checkTelemetry(
@@ -168,7 +168,7 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
       mapOf("SourceSystem" to "HMCTS"),
     )
 
-    assertThat(Names.from(updatedPersonEntity.names).preferred?.lastName).isEqualTo("Smith")
+    assertThat(Names.from(updatedPersonEntity.names).preferred.lastName).isEqualTo("Smith")
     assertThat(updatedPersonEntity.pnc).isEqualTo(PNCIdentifier.from("1981/0154257C"))
     assertThat(updatedPersonEntity.cro).isEqualTo(CROIdentifier.from("86621/65B"))
     assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
@@ -197,9 +197,9 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
     assertThat(personEntity1.pnc).isEqualTo(pncNumber1)
     assertThat(personEntity1.defendantId).isEqualTo("b5cfae34-9256-43ad-87fb-ac3def34e2ac")
     assertThat(personEntity1.masterDefendantId).isEqualTo("eeb71c73-573b-444e-9dc3-4e5998d1be65")
-    assertThat(Names.from(personEntity1.names).preferred?.firstName).isEqualTo("Eric")
-    assertThat(Names.from(personEntity1.names).preferred?.middleNames).isEqualTo("mName1 mName2")
-    assertThat(Names.from(personEntity1.names).preferred?.lastName).isEqualTo("Lassard")
+    assertThat(Names.from(personEntity1.names).preferred.firstName).isEqualTo("Eric")
+    assertThat(Names.from(personEntity1.names).preferred.middleNames).isEqualTo("mName1 mName2")
+    assertThat(Names.from(personEntity1.names).preferred.lastName).isEqualTo("Lassard")
     assertThat(personEntity1.contacts).isEmpty()
     assertThat(personEntity1.addresses).isNotEmpty()
     assertThat(Names.from(personEntity1.names).aliases.size).isEqualTo(2)

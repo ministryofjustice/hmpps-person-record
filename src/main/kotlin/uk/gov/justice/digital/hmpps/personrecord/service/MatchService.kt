@@ -27,9 +27,9 @@ class MatchService(val matchScoreClient: MatchScoreClient, val telemetryService:
 
     val matchRequest = MatchRequest(
       uniqueId = MatchRequestData(candidateRecordIdentifier, newRecordIdentifier),
-      firstName = MatchRequestData(names.preferred?.firstName, newRecord.names.preferred?.firstName),
-      surname = MatchRequestData(names.preferred?.lastName, newRecord.names.preferred?.lastName),
-      dateOfBirth = MatchRequestData(names.preferred?.dateOfBirth.toString(), newRecord.names.preferred?.dateOfBirth.toString()),
+      firstName = MatchRequestData(names.preferred.firstName, newRecord.names.preferred.firstName),
+      surname = MatchRequestData(names.preferred.lastName, newRecord.names.preferred.lastName),
+      dateOfBirth = MatchRequestData(names.preferred.dateOfBirth.toString(), newRecord.names.preferred.dateOfBirth.toString()),
       pncNumber = MatchRequestData(candidateRecord.pnc?.pncId, newRecord.otherIdentifiers?.pncIdentifier?.pncId),
     )
 
