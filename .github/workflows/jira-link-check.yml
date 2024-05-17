@@ -1,7 +1,4 @@
-name: Validate PR Title
-
 on:
-  push:
   pull_request:
     types: [opened, edited, reopened]
 
