@@ -57,7 +57,7 @@ class NameEntity(
   companion object {
     private fun from(name: Name): NameEntity? =
       when {
-        isAliasPresent(name.title, name.firstName, name.middleNames, name.lastName) ->
+        nameExists(name.firstName, name.middleNames, name.lastName) ->
           NameEntity(
             title = name.title,
             firstName = name.firstName,
@@ -71,8 +71,8 @@ class NameEntity(
 
     fun fromList(names: List<Name>): List<NameEntity> = names.mapNotNull { from(it) }
 
-    private fun isAliasPresent(title: String?, firstName: String?, middleNames: String?, surname: String?): Boolean =
-      sequenceOf(title, firstName, middleNames, surname)
+    private fun nameExists(firstName: String?, middleNames: String?, surname: String?): Boolean =
+      sequenceOf(firstName, middleNames, surname)
         .filterNotNull().any { it.isNotBlank() }
   }
 }
