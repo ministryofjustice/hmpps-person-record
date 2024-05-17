@@ -1,0 +1,17 @@
+name: Validate PR Title
+
+on:
+  pull_request:
+    types: [opened, edited, reopened]
+
+jobs:
+  check-jira-link:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR include jira ticket
+        id: validate
+        run: |
+          if [[ ! "${{ github.event.pull_request.title }}" =~ ^CPR-(\d)+.*$ ]]; then
+            echo "PR title does not start with 'CPR-XXX', must include ticket number"
+            exit 1
+          fi
