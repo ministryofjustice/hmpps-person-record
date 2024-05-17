@@ -2,11 +2,11 @@ package uk.gov.justice.digital.hmpps.personrecord.controller
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.integration.MultiNodeTestBase
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.function.Consumer
-class HealthCheckIntTest : IntegrationTestBase() {
+class HealthCheckIntTest : MultiNodeTestBase() {
 
   @Test
   fun `Health page reports ok`() {

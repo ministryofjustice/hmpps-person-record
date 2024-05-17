@@ -17,12 +17,14 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.web.reactive.server.WebTestClient
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
+import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -35,7 +37,13 @@ import java.time.Duration
 abstract class MultiNodeTestBase {
 
   @Autowired
+  lateinit var webTestClient: WebTestClient
+
+  @Autowired
   lateinit var hmppsQueueService: HmppsQueueService
+
+  @Autowired
+  internal lateinit var jwtHelper: JwtAuthHelper
 
   internal val courtCaseEventsTopic by lazy {
     hmppsQueueService.findByTopicId("courtcaseeventstopic")
@@ -94,6 +102,15 @@ abstract class MultiNodeTestBase {
     await untilCallTo {
       queue?.sqsClient?.countMessagesOnQueue(queue.queueUrl)?.get()
     } matches { it == 0 }
+  }
+
+  internal fun WebTestClient.RequestHeadersSpec<*>.authorised(): WebTestClient.RequestBodySpec {
+    val bearerToken = jwtHelper.createJwt(
+      subject = "hmpps-person-record",
+      expiryTime = Duration.ofMinutes(1L),
+      roles = listOf(),
+    )
+    return header("authorization", "Bearer $bearerToken") as WebTestClient.RequestBodySpec
   }
 
   @BeforeEach

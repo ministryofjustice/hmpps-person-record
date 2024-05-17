@@ -108,15 +108,6 @@ abstract class IntegrationTestBase {
       .build()
   }
 
-  internal fun WebTestClient.RequestHeadersSpec<*>.authorised(): WebTestClient.RequestBodySpec {
-    val bearerToken = jwtHelper.createJwt(
-      subject = "hmpps-person-record",
-      expiryTime = Duration.ofMinutes(1L),
-      roles = listOf(),
-    )
-    return header("authorization", "Bearer $bearerToken") as WebTestClient.RequestBodySpec
-  }
-
   private fun expectNoMessagesOn(queue: HmppsQueue?) {
     await untilCallTo {
       queue?.sqsClient?.countMessagesOnQueue(queue.queueUrl)?.get()
