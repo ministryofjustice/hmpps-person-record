@@ -69,11 +69,11 @@ class PersonService(
     personRepository.saveAndFlush(updatedPersonEntity)
   }
 
-  private fun removeAllChildEntities(personEntity: PersonEntity): PersonEntity {
+  private fun removeAllChildEntities(personEntity: PersonEntity) {
     personEntity.names.clear()
     personEntity.addresses.clear()
     personEntity.contacts.clear()
-    return personRepository.saveAndFlush(personEntity)
+    personRepository.saveAndFlush(personEntity)
   }
 
   private fun trackEvent(

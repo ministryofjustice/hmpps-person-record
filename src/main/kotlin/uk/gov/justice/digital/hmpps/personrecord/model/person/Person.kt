@@ -49,6 +49,7 @@ data class Person(
             firstName = offenderDetail.firstName,
             lastName = offenderDetail.surname,
             dateOfBirth = offenderDetail.dateOfBirth,
+            middleNames = offenderDetail.middleNames?.joinToString(" ") { it },
             type = NameType.PREFERRED,
           ),
         ),
