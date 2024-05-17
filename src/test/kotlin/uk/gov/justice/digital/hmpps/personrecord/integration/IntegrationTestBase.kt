@@ -24,13 +24,11 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
-import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PrisonerCreatedEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PrisonerUpdatedEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.personrecord.service.PrisonerDomainEventService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -117,26 +115,6 @@ abstract class IntegrationTestBase {
       roles = listOf(),
     )
     return header("authorization", "Bearer $bearerToken") as WebTestClient.RequestBodySpec
-  }
-
-  internal fun publishHMCTSMessage(message: String, messageType: MessageType): String {
-    val publishRequest = PublishRequest.builder()
-      .topicArn(courtCaseEventsTopic?.arn)
-      .message(message)
-      .messageAttributes(
-        mapOf(
-          "messageType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(messageType.name).build(),
-          "messageId" to MessageAttributeValue.builder().dataType("String")
-            .stringValue("d3242a9f-c1cd-4d16-bd46-b7d33ccc9849").build(),
-        ),
-      )
-      .build()
-
-    val response: PublishResponse? = courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
-
-    expectNoMessagesOn(cprCourtCaseEventsQueue)
-    return response!!.messageId()
   }
 
   private fun expectNoMessagesOn(queue: HmppsQueue?) {

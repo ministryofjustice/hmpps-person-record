@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.times
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
-import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.integration.MultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
@@ -30,7 +30,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.concurrent.TimeUnit.SECONDS
 
-class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
+class CourtCaseEventsListenerIntTest : MultiNodeTestBase() {
 
   @Test
   fun `should successfully process common platform message with 3 defendants and create correct telemetry events`() {
@@ -77,11 +77,11 @@ class CourtCaseEventsListenerIntTest : IntegrationTestBase() {
 
     // then
     await untilCallTo {
-      cprCourtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.queueUrl)?.get()
+      courtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(courtCaseEventsQueue.queueUrl)?.get()
     } matches { it == 0 }
 
     await untilCallTo {
-      cprCourtCaseEventsQueue?.sqsDlqClient?.countMessagesOnQueue(cprCourtCaseEventsQueue!!.dlqUrl!!)?.get()
+      courtCaseEventsQueue?.sqsDlqClient?.countMessagesOnQueue(courtCaseEventsQueue.dlqUrl!!)?.get()
     } matches { it == 0 }
 
     checkTelemetry(
