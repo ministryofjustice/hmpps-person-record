@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.integration
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.applicationinsights.TelemetryClient
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -23,8 +24,12 @@ import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PrisonerCreatedEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PrisonerUpdatedEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
+import uk.gov.justice.digital.hmpps.personrecord.service.PrisonerDomainEventService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -40,10 +45,26 @@ abstract class MultiNodeTestBase {
   lateinit var webTestClient: WebTestClient
 
   @Autowired
+  lateinit var objectMapper: ObjectMapper
+
+  @Autowired
   lateinit var hmppsQueueService: HmppsQueueService
 
   @Autowired
   internal lateinit var jwtHelper: JwtAuthHelper
+
+  @SpyBean
+  lateinit var prisonerCreatedEventProcessor: PrisonerCreatedEventProcessor
+
+  @SpyBean
+  lateinit var prisonerUpdatedEventProcessor: PrisonerUpdatedEventProcessor
+
+  @SpyBean
+  lateinit var prisonerDomainEventService: PrisonerDomainEventService
+
+  val domainEventsTopic by lazy {
+    hmppsQueueService.findByTopicId("domainevents")
+  }
 
   internal val courtCaseEventsTopic by lazy {
     hmppsQueueService.findByTopicId("courtcaseeventstopic")
@@ -52,7 +73,7 @@ abstract class MultiNodeTestBase {
   val courtCaseEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprcourtcaseeventsqueue")
   }
-  internal val cprDeliusOffenderEventsQueue by lazy {
+  val offenderEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprdeliusoffendereventsqueue")
   }
 
@@ -104,6 +125,28 @@ abstract class MultiNodeTestBase {
     } matches { it == 0 }
   }
 
+  fun publishOffenderDomainEvent(eventType: String, domainEvent: DomainEvent) {
+    val domainEventAsString = objectMapper.writeValueAsString(domainEvent)
+    val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
+      .message(domainEventAsString)
+      .messageAttributes(
+        mapOf(
+          "eventType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(eventType).build(),
+        ),
+      ).build()
+
+    domainEventsTopic?.snsClient?.publish(publishRequest)?.get()
+
+    expectNoMessagesOn(offenderEventsQueue)
+  }
+
+  fun createDeliusDetailUrl(crn: String): String =
+    "https://domain-events-and-delius-dev.hmpps.service.justice.gov.uk/probation-case.engagement.created/$crn"
+
+  fun createNomsDetailUrl(nomsNumber: String): String =
+    "https://prisoner-search-dev.prison.service.justice.gov.uk/prisoner/$nomsNumber"
+
   internal fun WebTestClient.RequestHeadersSpec<*>.authorised(): WebTestClient.RequestBodySpec {
     val bearerToken = jwtHelper.createJwt(
       subject = "hmpps-person-record",
@@ -122,11 +165,11 @@ abstract class MultiNodeTestBase {
     courtCaseEventsQueue!!.sqsClient.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(courtCaseEventsQueue!!.queueUrl).build(),
     ).get()
-    cprDeliusOffenderEventsQueue?.sqsClient?.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(cprDeliusOffenderEventsQueue!!.queueUrl).build(),
+    offenderEventsQueue?.sqsClient?.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(offenderEventsQueue!!.queueUrl).build(),
     )
-    cprDeliusOffenderEventsQueue?.sqsDlqClient?.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(cprDeliusOffenderEventsQueue!!.dlqUrl).build(),
+    offenderEventsQueue?.sqsDlqClient?.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(offenderEventsQueue!!.dlqUrl).build(),
     )
   }
 }
