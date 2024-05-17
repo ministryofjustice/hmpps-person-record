@@ -1,6 +1,8 @@
 BEGIN;
 -------------------------------------------------------
 
+TRUNCATE TABLE person CASCADE;
+
 ALTER TABLE person
     DROP COLUMN IF EXISTS birth_place,
     DROP COLUMN IF EXISTS birth_country;
