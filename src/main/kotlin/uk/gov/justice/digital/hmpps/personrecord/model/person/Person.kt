@@ -62,15 +62,6 @@ data class Person(
     }
 
     fun from(deliusOffenderDetail: DeliusOffenderDetail): Person {
-      Names(
-        preferred = Name(
-          firstName = deliusOffenderDetail.name.forename,
-          middleNames = deliusOffenderDetail.name.otherNames?.joinToString(" ") { it },
-          lastName = deliusOffenderDetail.name.surname,
-          dateOfBirth = deliusOffenderDetail.dateOfBirth,
-          type = NameType.PREFERRED,
-        ),
-      )
       return Person(
         names = Names(
           preferred = Name(

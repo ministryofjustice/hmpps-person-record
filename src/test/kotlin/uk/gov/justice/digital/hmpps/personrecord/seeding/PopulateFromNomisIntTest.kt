@@ -36,6 +36,7 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
     assertThat(prisonerNames.preferred?.firstName).isEqualTo("PrisonerOneFirstName")
     assertThat(prisonerNames.preferred?.middleNames).isEqualTo("PrisonerOneMiddleNameOne PrisonerOneMiddleNameTwo")
     assertThat(prisonerNames.preferred?.lastName).isEqualTo("PrisonerOneLastName")
+    assertThat(prisonerNames.preferred?.type).isEqualTo(NameType.PREFERRED)
     assertThat(prisoner.pnc).isEqualTo(PNCIdentifier.from("2012/394773H"))
     assertThat(prisoner.cro).isEqualTo(CROIdentifier.from("29906/12J"))
     assertThat(prisonerNames.preferred?.dateOfBirth).isEqualTo(LocalDate.of(1975, 4, 2))
@@ -54,7 +55,7 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
     assertThat(Names.from(prisoners[4].names).preferred?.firstName).isEqualTo("PrisonerFiveFirstName")
     assertThat(Names.from(prisoners[5].names).preferred?.firstName).isEqualTo("PrisonerSixFirstName")
     assertThat(Names.from(prisoners[6].names).preferred?.firstName).isEqualTo("PrisonerSevenFirstName")
-    assertThat(Names.from(prisoners[6].names).preferred?.middleNames).isEqualTo("")
+    assertThat(Names.from(prisoners[6].names).preferred?.middleNames).isEqualTo(null)
     assertThat(prisoners[6].cro).isEqualTo(CROIdentifier.from(""))
   }
 
@@ -135,7 +136,7 @@ class PopulateFromNomisIntTest : IntegrationTestBase() {
     assertThat(Names.from(prisoners[4].names).preferred?.firstName).isEqualTo("PrisonerFiveFirstName")
     assertThat(Names.from(prisoners[5].names).preferred?.firstName).isEqualTo("PrisonerSixFirstName")
     assertThat(Names.from(prisoners[6].names).preferred?.firstName).isEqualTo("PrisonerSevenFirstName")
-    assertThat(Names.from(prisoners[1].names).aliases.size).isEqualTo(0)
+    assertThat(Names.from(prisoners[6].names).aliases.size).isEqualTo(0)
   }
 
   @Test

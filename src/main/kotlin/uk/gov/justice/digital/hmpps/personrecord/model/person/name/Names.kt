@@ -9,9 +9,9 @@ data class Names(
   val nickname: Name? = null,
   val maiden: Name? = null,
 ) {
-  fun build(): List<Name> {
-    val names: List<Name?> = listOf(preferred, nickname, maiden) + aliases
-    return names.filterNotNull() + aliases
+  fun build(): MutableList<NameEntity> {
+    val names: List<Name> = listOfNotNull(preferred, nickname, maiden) + aliases
+    return NameEntity.fromList(names).toMutableList()
   }
 
   companion object {
@@ -31,6 +31,7 @@ data class Names(
           firstName = it.firstName,
           middleNames = it.middleNames,
           lastName = it.lastName,
+          dateOfBirth = it.dateOfBirth,
           type = it.type,
         )
       }

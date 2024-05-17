@@ -47,7 +47,7 @@ class PopulateFromProbationIntTest : IntegrationTestBase() {
     assertThat(Names.from(pops[4].names).preferred?.firstName).isEqualTo("POPFiveFirstName")
     assertThat(Names.from(pops[5].names).preferred?.firstName).isEqualTo("POPSixFirstName")
     assertThat(Names.from(pops[6].names).preferred?.firstName).isEqualTo("POPSevenFirstName")
-    assertThat(Names.from(pops[6].names).preferred?.middleNames).isEqualTo("")
+    assertThat(Names.from(pops[6].names).preferred?.middleNames).isEqualTo(null)
     assertThat(pops[6].cro).isEqualTo(CROIdentifier.from(""))
   }
 
@@ -128,6 +128,6 @@ class PopulateFromProbationIntTest : IntegrationTestBase() {
     assertThat(Names.from(pops[4].names).preferred?.firstName).isEqualTo("POPFiveFirstName")
     assertThat(Names.from(pops[5].names).preferred?.firstName).isEqualTo("POPSixFirstName")
     assertThat(Names.from(pops[6].names).preferred?.firstName).isEqualTo("POPSevenFirstName")
-    assertThat(Names.from(pops[7].names).aliases.size).isEqualTo(0)
+    assertThat(Names.from(pops[6].names).aliases.size).isEqualTo(0)
   }
 }
