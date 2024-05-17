@@ -12,7 +12,7 @@ import org.mockito.kotlin.verify
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
-import uk.gov.justice.digital.hmpps.personrecord.integration.MultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.delius.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PRISONER_CREATED
@@ -31,7 +31,7 @@ import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
 import java.util.concurrent.TimeUnit.SECONDS
 
-class OffenderDomainEventsListenerIntTest : MultiNodeTestBase() {
+class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should receive the message successfully when new offender event published`() {

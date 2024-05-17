@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.times
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
-import uk.gov.justice.digital.hmpps.personrecord.integration.MultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
@@ -30,7 +30,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.concurrent.TimeUnit.SECONDS
 
-class CourtCaseEventsListenerIntTest : MultiNodeTestBase() {
+class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should successfully process common platform message with 3 defendants and create correct telemetry events`() {

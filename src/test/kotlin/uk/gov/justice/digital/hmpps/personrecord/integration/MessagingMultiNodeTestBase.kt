@@ -19,7 +19,6 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PrisonerCreatedEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PrisonerUpdatedEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
@@ -32,7 +31,7 @@ import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.Duration
 
 @ExtendWith(MultiApplicationContextExtension::class)
-abstract class MultiNodeTestBase : IntegrationTestBase() {
+abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   @Autowired
   lateinit var objectMapper: ObjectMapper
@@ -66,9 +65,6 @@ abstract class MultiNodeTestBase : IntegrationTestBase() {
 
   @SpyBean
   lateinit var telemetryClient: TelemetryClient
-
-  @Autowired
-  lateinit var personRepository: PersonRepository
 
   internal fun checkTelemetry(
     event: TelemetryEventType,
@@ -135,8 +131,7 @@ abstract class MultiNodeTestBase : IntegrationTestBase() {
     "https://prisoner-search-dev.prison.service.justice.gov.uk/prisoner/$nomsNumber"
 
   @BeforeEach
-  fun beforeEach() {
-    personRepository.deleteAll()
+  fun beforeEachMessagingTest() {
     courtCaseEventsQueue!!.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(courtCaseEventsQueue!!.dlqUrl).build(),
     ).get()

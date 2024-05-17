@@ -7,13 +7,13 @@ import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
-import uk.gov.justice.digital.hmpps.personrecord.integration.MultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithSameDefendantIdTwice
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 
-class CourtCaseEventsListenerMultiNodeIntTest : MultiNodeTestBase() {
+class CourtCaseEventsListenerMultiNodeIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should handle requests from 2 instances`() {
