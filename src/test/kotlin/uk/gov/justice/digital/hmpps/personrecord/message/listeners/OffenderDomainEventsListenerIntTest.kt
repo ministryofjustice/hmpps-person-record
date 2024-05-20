@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
+import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
@@ -29,6 +32,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DELIUS_RECORD_CREATION_RECEIVED
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
+import java.util.UUID
 import java.util.concurrent.TimeUnit.SECONDS
 
 class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
@@ -54,7 +58,17 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should handle multiple records with same crn, updates first`() {
-    val crn = "XXX1234"
+    val crn = UUID.randomUUID().toString()
+    oauthSetup.stubFor(
+      WireMock.get("/probation-case.engagement.created/$crn")
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(200)
+            .withBody("{\n  \"identifiers\": {\n    \"crn\": \"$crn\",\n    \"pnc\": \"2020/0476873U\"\n  },\n  \"name\": {\n    \"forename\": \"David\",\n    \"surname\": \"BOWIE\",\n    \"otherNames\": []\n  },\n  \"dateOfBirth\": \"1939-10-10\"\n}"),
+        ),
+    )
+
     personRepository.saveAndFlush(
       PersonEntity.from(
         Person.from(
@@ -92,7 +106,16 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should write offender without PNC if PNC is missing`() {
-    val crn = "XXX5678"
+    val crn = UUID.randomUUID().toString()
+    oauthSetup.stubFor(
+      WireMock.get("/probation-case.engagement.created/$crn")
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(200)
+            .withBody("{\n  \"identifiers\": {\n    \"crn\": \"$crn\"\n  },\n  \"name\": {\n    \"forename\": \"David\",\n    \"surname\": \"BOWIE\",\n    \"otherNames\": []\n  },\n  \"dateOfBirth\": \"1939-10-10\"\n}"),
+        ),
+    )
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)

@@ -2,7 +2,7 @@
   "priority": 99,
   "request": {
     "method": "GET",
-    "urlPattern": "/probation-case.engagement.created/[A-Z0-9]*",
+    "urlPattern": "/probation-case.engagement.created/[A-Z0-9-]*",
     "headers" : {
       "Content-Type": {
         "equalTo": "application/json"

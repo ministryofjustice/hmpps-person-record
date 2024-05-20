@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.commonPlatformHearingWithSameDefendantIdTwice
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
+import java.util.UUID
 
 class CourtCaseEventsListenerMultiNodeIntTest : MessagingMultiNodeTestBase() {
 
@@ -19,10 +20,10 @@ class CourtCaseEventsListenerMultiNodeIntTest : MessagingMultiNodeTestBase() {
   fun `should handle requests from 2 instances`() {
     // given
     val pncNumber = PNCIdentifier.from("2003/0062845E")
-
+    val defendantId = UUID.randomUUID().toString()
     val publishRequest = PublishRequest.builder()
       .topicArn(courtCaseEventsTopic?.arn)
-      .message(commonPlatformHearingWithSameDefendantIdTwice(pncNumber = pncNumber.pncId))
+      .message(commonPlatformHearingWithSameDefendantIdTwice(defendantId = defendantId, pncNumber = pncNumber.pncId))
       .messageAttributes(
         mapOf(
           "messageType" to MessageAttributeValue.builder().dataType("String")
