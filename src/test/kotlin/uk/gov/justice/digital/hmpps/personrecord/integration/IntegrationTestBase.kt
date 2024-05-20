@@ -14,7 +14,7 @@ class IntegrationTestBase {
 
     @JvmStatic
     @RegisterExtension
-    var oauthSetup: WireMockExtension = WireMockExtension.newInstance()
+    var wiremock: WireMockExtension = WireMockExtension.newInstance()
       .options(wireMockConfig().port(8090))
       .failOnUnmatchedRequests(true)
       .build()

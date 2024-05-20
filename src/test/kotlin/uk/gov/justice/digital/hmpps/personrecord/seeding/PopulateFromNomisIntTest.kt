@@ -14,9 +14,12 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.service.helper.onePrisoner
+import uk.gov.justice.digital.hmpps.personrecord.service.helper.prisonerNumbersResponse
+import uk.gov.justice.digital.hmpps.personrecord.service.helper.twoPrisoners
 import java.time.LocalDate
+import java.util.UUID
 import java.util.concurrent.TimeUnit.SECONDS
-import kotlin.test.Ignore
 
 class PopulateFromNomisIntTest : WebTestBase() {
 
@@ -72,12 +75,31 @@ class PopulateFromNomisIntTest : WebTestBase() {
   }
 
   @Test
-  @Ignore
   fun `populate from nomis retries get prisoners`() {
+    val prisonNumberOne: String = UUID.randomUUID().toString()
+    val prisonNumberTwo: String = UUID.randomUUID().toString()
+    val prisonNumberThree: String = UUID.randomUUID().toString()
+    val prisonNumberFour: String = UUID.randomUUID().toString()
+    val prisonNumberFive: String = UUID.randomUUID().toString()
+    val prisonNumberSix: String = UUID.randomUUID().toString()
+    val prisonNumberSeven: String = UUID.randomUUID().toString()
+
+    wiremock.stubFor(
+      WireMock.get("/api/prisoners/prisoner-numbers?size=2&page=0")
+        .inScenario("retry get prisoners")
+        .whenScenarioStateIs(STARTED)
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(prisonerNumbersResponse(listOf(prisonNumberOne, prisonNumberTwo)))
+            .withStatus(200),
+        ),
+    )
+
     // first call fails
-    oauthSetup.stubFor(
+    wiremock.stubFor(
       WireMock.post("/prisoner-search/prisoner-numbers")
-        .withRequestBody(equalToJson("""{"prisonerNumbers": ["prisonerNumberOne","prisonerNumberTwo"]}"""))
+        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
         .inScenario("retry get prisoners")
         .whenScenarioStateIs(STARTED)
         .willSetStateTo("next request will fail")
@@ -87,10 +109,11 @@ class PopulateFromNomisIntTest : WebTestBase() {
             .withStatus(500),
         ),
     )
+
     // second call fails too
-    oauthSetup.stubFor(
+    wiremock.stubFor(
       WireMock.post("/prisoner-search/prisoner-numbers")
-        .withRequestBody(equalToJson("""{"prisonerNumbers": ["prisonerNumberOne","prisonerNumberTwo"]}"""))
+        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
         .inScenario("retry get prisoners")
         .whenScenarioStateIs("next request will fail")
         .willSetStateTo("next request will time out")
@@ -102,9 +125,9 @@ class PopulateFromNomisIntTest : WebTestBase() {
     )
 
     // third call times out
-    oauthSetup.stubFor(
+    wiremock.stubFor(
       WireMock.post("/prisoner-search/prisoner-numbers")
-        .withRequestBody(equalToJson("""{"prisonerNumbers": ["prisonerNumberOne","prisonerNumberTwo"]}"""))
+        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
         .inScenario("retry get prisoners")
         .whenScenarioStateIs("next request will time out")
         .willSetStateTo("next request will succeed")
@@ -117,16 +140,92 @@ class PopulateFromNomisIntTest : WebTestBase() {
     )
 
     // Fourth call succeeds
-    oauthSetup.stubFor(
+    wiremock.stubFor(
       WireMock.post("/prisoner-search/prisoner-numbers")
-        .withRequestBody(equalToJson("""{"prisonerNumbers": ["prisonerNumberOne","prisonerNumberTwo"]}"""))
+        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
         .inScenario("retry get prisoners")
         .whenScenarioStateIs("next request will succeed")
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withBody("[{\n  \"prisonerNumber\": \"1\",\n  \"pncNumber\": \"12/394773H\",\n  \"pncNumberCanonicalShort\": \"12/394773H\",\n  \"pncNumberCanonicalLong\": \"2012/394773H\",\n  \"croNumber\": \"29906/12J\",\n  \"bookingId\": \"0001200924\",\n  \"bookNumber\": \"38412A\",\n  \"firstName\": \"PrisonerOneFirstName\",\n  \"middleNames\": \"PrisonerOneMiddleNameOne PrisonerOneMiddleNameTwo\",\n  \"lastName\": \"PrisonerOneLastName\",\n  \"dateOfBirth\": \"1975-04-02\",\n  \"gender\": \"Female\",\n  \"ethnicity\": \"White: Eng./Welsh/Scot./N.Irish/British\",\n  \"youthOffender\": true,\n  \"maritalStatus\": \"Widowed\",\n  \"religion\": \"Church of England (Anglican)\",\n  \"nationality\": \"Egyptian\",\n  \"status\": \"ACTIVE IN\",\n  \"lastMovementTypeCode\": \"CRT\",\n  \"lastMovementReasonCode\": \"CA\",\n  \"inOutStatus\": \"IN\",\n  \"prisonId\": \"MDI\",\n  \"lastPrisonId\": \"MDI\",\n  \"prisonName\": \"HMP Leeds\",\n  \"cellLocation\": \"A-1-002\",\n  \"aliases\": [\n    {\n      \"firstName\": \"PrisonerOneAliasOneFirstName\",\n      \"middleNames\": \"PrisonerOneAliasOneMiddleNameOne PrisonerOneAliasOneMiddleNameTwo\",\n      \"lastName\": \"PrisonerOneAliasOneLastName\",\n      \"dateOfBirth\": \"1975-04-02\",\n      \"gender\": \"Male\",\n      \"ethnicity\": \"White : Irish\"\n    },\n{\n      \"firstName\": \"PrisonerOneAliasTwoFirstName\",\n      \"middleNames\": \"PrisonerOneAliasTwoMiddleNameOne PrisonerOneAliasTwoMiddleNameTwo\",\n      \"lastName\": \"PrisonerOneAliasTwoLastName\",\n      \"dateOfBirth\": \"1975-04-02\",\n      \"gender\": \"Male\",\n      \"ethnicity\": \"White : Irish\"\n    }\n  ],\n  \"alerts\": [\n    {\n      \"alertType\": \"H\",\n      \"alertCode\": \"HA\",\n      \"active\": true,\n      \"expired\": true\n    }\n  ],\n  \"csra\": \"HIGH\",\n  \"category\": \"C\",\n  \"legalStatus\": \"SENTENCED\",\n  \"imprisonmentStatus\": \"LIFE\",\n  \"imprisonmentStatusDescription\": \"Serving Life Imprisonment\",\n  \"mostSeriousOffence\": \"Robbery\",\n  \"recall\": false,\n  \"indeterminateSentence\": true,\n  \"sentenceStartDate\": \"2020-04-03\",\n  \"releaseDate\": \"2023-05-02\",\n  \"confirmedReleaseDate\": \"2023-05-01\",\n  \"sentenceExpiryDate\": \"2023-05-01\",\n  \"licenceExpiryDate\": \"2023-05-01\",\n  \"homeDetentionCurfewEligibilityDate\": \"2023-05-01\",\n  \"homeDetentionCurfewActualDate\": \"2023-05-01\",\n  \"homeDetentionCurfewEndDate\": \"2023-05-02\",\n  \"topupSupervisionStartDate\": \"2023-04-29\",\n  \"topupSupervisionExpiryDate\": \"2023-05-01\",\n  \"additionalDaysAwarded\": 10,\n  \"nonDtoReleaseDate\": \"2023-05-01\",\n  \"nonDtoReleaseDateType\": \"ARD\",\n  \"receptionDate\": \"2023-05-01\",\n  \"paroleEligibilityDate\": \"2023-05-01\",\n  \"automaticReleaseDate\": \"2023-05-01\",\n  \"postRecallReleaseDate\": \"2023-05-01\",\n  \"conditionalReleaseDate\": \"2023-05-01\",\n  \"actualParoleDate\": \"2023-05-01\",\n  \"tariffDate\": \"2023-05-01\",\n  \"releaseOnTemporaryLicenceDate\": \"2023-05-01\",\n  \"locationDescription\": \"Outside - released from Leeds\",\n  \"restrictedPatient\": true,\n  \"supportingPrisonId\": \"LEI\",\n  \"dischargedHospitalId\": \"HAZLWD\",\n  \"dischargedHospitalDescription\": \"Hazelwood House\",\n  \"dischargeDate\": \"2020-05-01\",\n  \"dischargeDetails\": \"Psychiatric Hospital Discharge to Hazelwood House\",\n  \"currentIncentive\": {\n    \"level\": {\n      \"code\": \"STD\",\n      \"description\": \"Standard\"\n    },\n    \"dateTime\": \"2021-07-05T10:35:17\",\n    \"nextReviewDate\": \"2022-11-10\"\n  },\n  \"heightCentimetres\": 200,\n  \"weightKilograms\": 102,\n  \"hairColour\": \"Blonde\",\n  \"rightEyeColour\": \"Green\",\n  \"leftEyeColour\": \"Hazel\",\n  \"facialHair\": \"Clean Shaven\",\n  \"shapeOfFace\": \"Round\",\n  \"build\": \"Muscular\",\n  \"shoeSize\": 10,\n  \"tattoos\": [\n    {\n      \"bodyPart\": \"Head\",\n      \"comment\": \"Skull and crossbones covering chest\"\n    }\n  ],\n  \"scars\": [\n    {\n      \"bodyPart\": \"Head\",\n      \"comment\": \"Skull and crossbones covering chest\"\n    }\n  ],\n  \"marks\": [\n    {\n      \"bodyPart\": \"Head\",\n      \"comment\": \"Skull and crossbones covering chest\"\n    }\n  ]\n},{\n  \"prisonerNumber\": \"2\",\n  \"pncNumber\": \"12/394773H\",\n  \"pncNumberCanonicalShort\": \"12/394773H\",\n  \"pncNumberCanonicalLong\": \"2012/394773H\",\n  \"croNumber\": \"29906/12J\",\n  \"bookingId\": \"0001200924\",\n  \"bookNumber\": \"38412A\",\n  \"firstName\": \"PrisonerTwoFirstName\",\n  \"middleNames\": \"John James\",\n  \"lastName\": \"Larsen\",\n  \"dateOfBirth\": \"1975-04-02\",\n  \"gender\": \"Female\",\n  \"ethnicity\": \"White: Eng./Welsh/Scot./N.Irish/British\",\n  \"youthOffender\": true,\n  \"maritalStatus\": \"Widowed\",\n  \"religion\": \"Church of England (Anglican)\",\n  \"nationality\": \"Egyptian\",\n  \"status\": \"ACTIVE IN\",\n  \"lastMovementTypeCode\": \"CRT\",\n  \"lastMovementReasonCode\": \"CA\",\n  \"inOutStatus\": \"IN\",\n  \"prisonId\": \"MDI\",\n  \"lastPrisonId\": \"MDI\",\n  \"prisonName\": \"HMP Leeds\",\n  \"cellLocation\": \"A-1-002\",\n  \"aliases\": [\n    {\n      \"firstName\": \"Robert\",\n      \"middleNames\": \"Trevor\",\n      \"lastName\": \"Lorsen\",\n      \"dateOfBirth\": \"1975-04-02\",\n      \"gender\": \"Male\",\n      \"ethnicity\": \"White : Irish\"\n    }\n  ],\n  \"alerts\": [\n    {\n      \"alertType\": \"H\",\n      \"alertCode\": \"HA\",\n      \"active\": true,\n      \"expired\": true\n    }\n  ],\n  \"csra\": \"HIGH\",\n  \"category\": \"C\",\n  \"legalStatus\": \"SENTENCED\",\n  \"imprisonmentStatus\": \"LIFE\",\n  \"imprisonmentStatusDescription\": \"Serving Life Imprisonment\",\n  \"mostSeriousOffence\": \"Robbery\",\n  \"recall\": false,\n  \"indeterminateSentence\": true,\n  \"sentenceStartDate\": \"2020-04-03\",\n  \"releaseDate\": \"2023-05-02\",\n  \"confirmedReleaseDate\": \"2023-05-01\",\n  \"sentenceExpiryDate\": \"2023-05-01\",\n  \"licenceExpiryDate\": \"2023-05-01\",\n  \"homeDetentionCurfewEligibilityDate\": \"2023-05-01\",\n  \"homeDetentionCurfewActualDate\": \"2023-05-01\",\n  \"homeDetentionCurfewEndDate\": \"2023-05-02\",\n  \"topupSupervisionStartDate\": \"2023-04-29\",\n  \"topupSupervisionExpiryDate\": \"2023-05-01\",\n  \"additionalDaysAwarded\": 10,\n  \"nonDtoReleaseDate\": \"2023-05-01\",\n  \"nonDtoReleaseDateType\": \"ARD\",\n  \"receptionDate\": \"2023-05-01\",\n  \"paroleEligibilityDate\": \"2023-05-01\",\n  \"automaticReleaseDate\": \"2023-05-01\",\n  \"postRecallReleaseDate\": \"2023-05-01\",\n  \"conditionalReleaseDate\": \"2023-05-01\",\n  \"actualParoleDate\": \"2023-05-01\",\n  \"tariffDate\": \"2023-05-01\",\n  \"releaseOnTemporaryLicenceDate\": \"2023-05-01\",\n  \"locationDescription\": \"Outside - released from Leeds\",\n  \"restrictedPatient\": true,\n  \"supportingPrisonId\": \"LEI\",\n  \"dischargedHospitalId\": \"HAZLWD\",\n  \"dischargedHospitalDescription\": \"Hazelwood House\",\n  \"dischargeDate\": \"2020-05-01\",\n  \"dischargeDetails\": \"Psychiatric Hospital Discharge to Hazelwood House\",\n  \"currentIncentive\": {\n    \"level\": {\n      \"code\": \"STD\",\n      \"description\": \"Standard\"\n    },\n    \"dateTime\": \"2021-07-05T10:35:17\",\n    \"nextReviewDate\": \"2022-11-10\"\n  },\n  \"heightCentimetres\": 200,\n  \"weightKilograms\": 102,\n  \"hairColour\": \"Blonde\",\n  \"rightEyeColour\": \"Green\",\n  \"leftEyeColour\": \"Hazel\",\n  \"facialHair\": \"Clean Shaven\",\n  \"shapeOfFace\": \"Round\",\n  \"build\": \"Muscular\",\n  \"shoeSize\": 10,\n  \"tattoos\": [\n    {\n      \"bodyPart\": \"Head\",\n      \"comment\": \"Skull and crossbones covering chest\"\n    }\n  ],\n  \"scars\": [\n    {\n      \"bodyPart\": \"Head\",\n      \"comment\": \"Skull and crossbones covering chest\"\n    }\n  ],\n  \"marks\": [\n    {\n      \"bodyPart\": \"Head\",\n      \"comment\": \"Skull and crossbones covering chest\"\n    }\n  ]\n}]"),
+            .withBody(twoPrisoners(prisonNumberOne, "PrisonerOne", prisonNumberTwo, "PrisonerTwo")),
+
+        ),
+    )
+
+    wiremock.stubFor(
+      WireMock.get("/api/prisoners/prisoner-numbers?size=2&page=1")
+        .inScenario("retry get prisoners")
+        .whenScenarioStateIs("next request will succeed")
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(prisonerNumbersResponse(listOf(prisonNumberThree, prisonNumberFour)))
+            .withStatus(200),
+        ),
+    )
+
+    wiremock.stubFor(
+      WireMock.post("/prisoner-search/prisoner-numbers")
+        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberThree","$prisonNumberFour"]}"""))
+        .inScenario("retry get prisoners")
+        .whenScenarioStateIs("next request will succeed")
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(200)
+            .withBody(twoPrisoners(prisonNumberThree, "PrisonerThree", prisonNumberFour, "PrisonerFour")),
+
+        ),
+    )
+
+    wiremock.stubFor(
+      WireMock.get("/api/prisoners/prisoner-numbers?size=2&page=2")
+        .inScenario("retry get prisoners")
+        .whenScenarioStateIs("next request will succeed")
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(prisonerNumbersResponse(listOf(prisonNumberFive, prisonNumberSix)))
+            .withStatus(200),
+        ),
+    )
+    wiremock.stubFor(
+      WireMock.post("/prisoner-search/prisoner-numbers")
+        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberFive","$prisonNumberSix"]}"""))
+        .inScenario("retry get prisoners")
+        .whenScenarioStateIs("next request will succeed")
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(200)
+            .withBody(twoPrisoners(prisonNumberFive, "PrisonerFive", prisonNumberSix, "PrisonerSix")),
+
+        ),
+    )
+    wiremock.stubFor(
+      WireMock.get("/api/prisoners/prisoner-numbers?size=2&page=3")
+        .inScenario("retry get prisoners")
+        .whenScenarioStateIs("next request will succeed")
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(prisonerNumbersResponse(listOf(prisonNumberSeven)))
+            .withStatus(200),
+        ),
+    )
+
+    wiremock.stubFor(
+      WireMock.post("/prisoner-search/prisoner-numbers")
+        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberSeven"]}"""))
+        .inScenario("retry get prisoners")
+        .whenScenarioStateIs("next request will succeed")
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(200)
+            .withBody(onePrisoner(prisonNumberSeven, "PrisonerSeven")),
 
         ),
     )
@@ -137,27 +236,24 @@ class PopulateFromNomisIntTest : WebTestBase() {
       .expectStatus()
       .isOk
 
-    await.atMost(15, SECONDS) untilAsserted {
-      assertThat(personRepository.findAll().size).isEqualTo(7)
+    val prisonerOne = await.atMost(15, SECONDS) untilNotNull {
+      personRepository.findByPrisonNumber(prisonNumberOne)
     }
 
-    val prisoners = personRepository.findAll()
-    prisoners.sortBy { it.prisonNumber }
-    assertThat(prisoners[0].firstName).isEqualTo("PrisonerOneFirstName")
-    assertThat(prisoners[1].firstName).isEqualTo("PrisonerTwoFirstName")
-    assertThat(prisoners[2].firstName).isEqualTo("PrisonerThreeFirstName")
-    assertThat(prisoners[3].firstName).isEqualTo("PrisonerFourFirstName")
-    assertThat(prisoners[4].firstName).isEqualTo("PrisonerFiveFirstName")
-    assertThat(prisoners[5].firstName).isEqualTo("PrisonerSixFirstName")
-    assertThat(prisoners[6].firstName).isEqualTo("PrisonerSevenFirstName")
-    assertThat(prisoners[6].aliases.size).isEqualTo(0)
+    assertThat(prisonerOne.firstName).isEqualTo("PrisonerOneFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberTwo)?.firstName).isEqualTo("PrisonerTwoFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberThree)?.firstName).isEqualTo("PrisonerThreeFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberFour)?.firstName).isEqualTo("PrisonerFourFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberFive)?.firstName).isEqualTo("PrisonerFiveFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberSix)?.firstName).isEqualTo("PrisonerSixFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberSix)?.aliases?.size).isEqualTo(0)
+    assertThat(personRepository.findByPrisonNumber(prisonNumberSeven)?.firstName).isEqualTo("PrisonerSevenFirstName")
   }
 
   @Test
-  @Ignore
   fun `populate from nomis retries getPrisonerNumbers`() {
     // first call fails
-    oauthSetup.stubFor(
+    wiremock.stubFor(
       WireMock.get("/api/prisoners/prisoner-numbers?size=1&page=1")
         .inScenario("retry getPrisonerNumbers")
         .whenScenarioStateIs(STARTED)
@@ -169,7 +265,7 @@ class PopulateFromNomisIntTest : WebTestBase() {
         ),
     )
     // second call succeeds
-    oauthSetup.stubFor(
+    wiremock.stubFor(
       WireMock.get("/api/prisoners/prisoner-numbers?size=1&page=1")
         .inScenario("retry getPrisonerNumbers")
         .whenScenarioStateIs("next request will succeed")

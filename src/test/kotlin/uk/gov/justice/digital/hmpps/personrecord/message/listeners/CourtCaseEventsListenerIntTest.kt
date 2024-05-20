@@ -7,6 +7,7 @@ import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.times
 import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
@@ -72,7 +73,6 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should not push messages from Common Platform onto dead letter queue when processing fails because of could not serialize access due to read write dependencies among transactions`() {
-    // given
     val pncNumber = PNCIdentifier.from("2003/0062845E")
     val defendantId = UUID.randomUUID().toString()
     val publishRequest = PublishRequest.builder()
@@ -85,7 +85,6 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
         ),
       )
       .build()
-    // when
     val blitzer = Blitzer(100, 10)
     try {
       blitzer.blitz {
@@ -95,7 +94,6 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
       blitzer.shutdown()
     }
 
-    // then
     await untilCallTo {
       courtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(courtCaseEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }

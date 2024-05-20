@@ -57,7 +57,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
   @Test
   fun `populate from probation retries`() {
     // first call works
-    oauthSetup.stubFor(
+    wiremock.stubFor(
       WireMock.get("/all-probation-cases?size=2&page=0&sort=id%2Casc")
         .inScenario("retry")
         .whenScenarioStateIs(STARTED)
@@ -72,7 +72,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
         ),
     )
     // second call fails
-    oauthSetup.stubFor(
+    wiremock.stubFor(
       WireMock.get("/all-probation-cases?size=2&page=0&sort=id%2Casc")
         .inScenario("retry")
         .whenScenarioStateIs("next request will fail")
@@ -85,7 +85,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
     )
 
     // third call times out
-    oauthSetup.stubFor(
+    wiremock.stubFor(
       WireMock.get("/all-probation-cases?size=2&page=0&sort=id%2Casc")
         .inScenario("retry")
         .whenScenarioStateIs("next request will time out")
@@ -99,7 +99,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
     )
 
     // Fourth call succeeds
-    oauthSetup.stubFor(
+    wiremock.stubFor(
       WireMock.get("/all-probation-cases?size=2&page=0&sort=id%2Casc")
         .inScenario("retry")
         .whenScenarioStateIs("next request will succeed")

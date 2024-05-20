@@ -62,7 +62,7 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should handle multiple records with same crn, updates first`() {
     val crn = UUID.randomUUID().toString()
-    oauthSetup.stubFor(
+    wiremock.stubFor(
       WireMock.get("/probation-case.engagement.created/$crn")
         .willReturn(
           WireMock.aResponse()
@@ -110,7 +110,7 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should write offender without PNC if PNC is missing`() {
     val crn = UUID.randomUUID().toString()
-    oauthSetup.stubFor(
+    wiremock.stubFor(
       WireMock.get("/probation-case.engagement.created/$crn")
         .willReturn(
           WireMock.aResponse()
