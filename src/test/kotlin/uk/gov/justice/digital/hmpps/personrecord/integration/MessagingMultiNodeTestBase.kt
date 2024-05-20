@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.integration
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.microsoft.applicationinsights.TelemetryClient
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
@@ -61,8 +60,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   @Autowired
   lateinit var telemetryRepository: TelemetryTestRepository
-
-  lateinit var otherTelemetryClient: TelemetryClient
 
   internal fun checkTelemetry(
     event: TelemetryEventType,
@@ -127,7 +124,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     "https://prisoner-search-dev.prison.service.justice.gov.uk/prisoner/$nomsNumber"
 
   @BeforeEach
-  fun beforeEachMessagingTestx() {
+  fun beforeEachMessagingTest() {
     telemetryRepository.deleteAll()
     courtCaseEventsQueue!!.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(courtCaseEventsQueue!!.dlqUrl).build(),
