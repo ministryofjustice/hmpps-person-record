@@ -6,13 +6,18 @@ import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.integration.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
 
 class PopulateFromProbationIntTest : WebTestBase() {
+
+  @Autowired
+  lateinit var personRepository: PersonRepository
 
   @Test
   fun `populate from probation`() {

@@ -7,10 +7,12 @@ import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
@@ -31,6 +33,9 @@ import java.util.*
 import java.util.concurrent.TimeUnit.SECONDS
 
 class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
+
+  @Autowired
+  lateinit var personRepository: PersonRepository
 
   @Test
   fun `should successfully process common platform message with 3 defendants and create correct telemetry events`() {

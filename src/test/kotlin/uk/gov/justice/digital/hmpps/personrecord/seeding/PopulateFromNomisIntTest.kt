@@ -8,7 +8,9 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.integration.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
@@ -18,6 +20,9 @@ import kotlin.test.Ignore
 
 class PopulateFromNomisIntTest : WebTestBase() {
 
+  @Autowired
+  lateinit var personRepository: PersonRepository
+
   @Test
   fun `populate from nomis`() {
     webTestClient.post()
@@ -26,7 +31,7 @@ class PopulateFromNomisIntTest : WebTestBase() {
       .expectStatus()
       .isOk
 
-    await.atMost(15, SECONDS) untilNotNull  {
+    await.atMost(15, SECONDS) untilNotNull {
       personRepository.findByPrisonNumber("1")
     }
 

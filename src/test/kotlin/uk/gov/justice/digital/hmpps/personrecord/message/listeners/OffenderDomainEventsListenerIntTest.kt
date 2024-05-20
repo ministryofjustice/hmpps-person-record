@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
-import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
@@ -12,11 +10,13 @@ import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
+import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.delius.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PRISONER_UPDATED
@@ -36,6 +36,9 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit.SECONDS
 
 class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
+
+  @Autowired
+  lateinit var personRepository: PersonRepository
 
   @Test
   fun `should receive the message successfully when new offender event published`() {
