@@ -12,7 +12,7 @@ import org.springframework.lang.NonNull
 
 @Configuration
 @Profile("!test")
-private class TelemetryConfig {
+class TelemetryConfig {
 
   @Bean
   @Conditional(AppInsightKeyAbsentCondition::class)

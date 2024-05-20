@@ -44,17 +44,16 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
     publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
-    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
-
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(personEntity.pnc).isEqualTo(expectedPncNumber)
     assertThat(personEntity.crn).isEqualTo(crn)
+
+    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
   }
 
   @Test
   fun `should handle multiple records with same crn, updates first`() {
-    // Given
     val crn = "XXX1234"
     personRepository.saveAndFlush(
       PersonEntity.from(
@@ -82,14 +81,13 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
     publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
+    val personEntities = await.atMost(10, SECONDS) untilNotNull { personRepository.findAllByCrn(crn) }
+    assertThat(personEntities.size).isEqualTo(2)
     checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
 
     checkTelemetry(CPR_MULTIPLE_RECORDS_FOUND, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
 
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
-
-    val personEntities = await.atMost(10, SECONDS) untilNotNull { personRepository.findAllByCrn(crn) }
-    assertThat(personEntities.size).isEqualTo(2)
   }
 
   @Test
@@ -99,14 +97,13 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val personReference = PersonReference(listOf(crnType))
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
     publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
-
-    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
-
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
     assertThat(personEntity.pnc?.pncId).isEqualTo("")
     assertThat(personEntity.crn).isEqualTo(crn)
+
+    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
   }
 
   @Test
@@ -161,10 +158,10 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
     publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
+    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+
     checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
-
-    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
     assertThat(personEntity.pnc?.pncId).isEqualTo("")
     assertThat(personEntity.crn).isEqualTo(crn)
@@ -178,13 +175,13 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
     publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
-    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
-
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
     assertThat(personEntity.pnc?.pncId).isEqualTo("")
     assertThat(personEntity.crn).isEqualTo(crn)
+
+    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
   }
 
   @Test
@@ -197,8 +194,6 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
     publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
-    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
-
     await.atMost(Duration.ofSeconds(5)) untilCallTo {
       offenderEventsQueue?.sqsClient?.countAllMessagesOnQueue(offenderEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
@@ -206,5 +201,6 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     await.atMost(Duration.ofSeconds(5)) untilCallTo {
       offenderEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(offenderEventsQueue!!.dlqUrl!!)?.get()
     } matches { it == 0 }
+    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
   }
 }

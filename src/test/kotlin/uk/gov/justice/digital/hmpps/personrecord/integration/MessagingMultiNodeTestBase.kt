@@ -2,20 +2,15 @@ package uk.gov.justice.digital.hmpps.personrecord.integration
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.applicationinsights.TelemetryClient
+import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
+import org.json.JSONObject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.kotlin.any
-import org.mockito.kotlin.atLeast
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.SpyBean
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
@@ -26,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.service.PrisonerDomainEventService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
@@ -64,7 +60,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   }
 
   @Autowired
-  lateinit var telemetryClient: TelemetryClient
+  lateinit var telemetryRepository: TelemetryTestRepository
 
   lateinit var otherTelemetryClient: TelemetryClient
 
@@ -72,19 +68,14 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     event: TelemetryEventType,
     expected: Map<String, String>,
   ) {
-    val verificationMode = atLeast(1)
+    val allEvents = telemetryRepository.findAllByEvent(event.eventName)
 
-    verify(otherTelemetryClient, verificationMode).trackEvent(
-      any(),
-      any(),
-      any(),
-    )
-
-    verify(telemetryClient, verificationMode).trackEvent(
-      any(),
-      any(),
-      any(),
-    )
+    assertThat(allEvents).anyMatch {
+      expected.entries.map {
+          (k, v) ->
+        JSONObject(it.properties).get(k).equals(v)
+      }.all { it }
+    }.withFailMessage("Failed to match $event with properties $expected to ${allEvents?.forEach{it.properties}}")
   }
 
   internal fun publishHMCTSMessage(message: String, messageType: MessageType): String {
@@ -137,6 +128,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   @BeforeEach
   fun beforeEachMessagingTestx() {
+    telemetryRepository.deleteAll()
     courtCaseEventsQueue!!.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(courtCaseEventsQueue!!.dlqUrl).build(),
     ).get()
@@ -149,26 +141,5 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     offenderEventsQueue?.sqsDlqClient?.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(offenderEventsQueue!!.dlqUrl).build(),
     )
-  }
-}
-
-@Configuration
-@Profile("test")
-private class TelemetryConfig {
-
-  @Bean
-  fun telemetryClient(): TelemetryClient {
-    return OurTelemetryClient()
-  }
-
-  class OurTelemetryClient : TelemetryClient() {
-    override fun trackEvent(
-      name: String?,
-      properties: MutableMap<String, String>?,
-      metrics: MutableMap<String, Double>?,
-    ) {
-      // store this stuff and make it accessible somehow
-      println("Overridden telemetry client called with $name")
-    }
   }
 }
