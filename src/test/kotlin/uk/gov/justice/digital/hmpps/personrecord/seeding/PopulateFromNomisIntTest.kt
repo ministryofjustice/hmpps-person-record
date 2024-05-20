@@ -56,7 +56,7 @@ class PopulateFromNomisIntTest : WebTestBase() {
   @Test
   fun `populate from nomis retries get prisoners`() {
     // first call fails
-    wireMockExtension.stubFor(
+    oauthSetup.stubFor(
       WireMock.post("/prisoner-search/prisoner-numbers")
         .withRequestBody(equalToJson("""{"prisonerNumbers": ["prisonerNumberOne","prisonerNumberTwo"]}"""))
         .inScenario("retry get prisoners")
@@ -69,7 +69,7 @@ class PopulateFromNomisIntTest : WebTestBase() {
         ),
     )
     // second call fails too
-    wireMockExtension.stubFor(
+    oauthSetup.stubFor(
       WireMock.post("/prisoner-search/prisoner-numbers")
         .withRequestBody(equalToJson("""{"prisonerNumbers": ["prisonerNumberOne","prisonerNumberTwo"]}"""))
         .inScenario("retry get prisoners")
@@ -83,7 +83,7 @@ class PopulateFromNomisIntTest : WebTestBase() {
     )
 
     // third call times out
-    wireMockExtension.stubFor(
+    oauthSetup.stubFor(
       WireMock.post("/prisoner-search/prisoner-numbers")
         .withRequestBody(equalToJson("""{"prisonerNumbers": ["prisonerNumberOne","prisonerNumberTwo"]}"""))
         .inScenario("retry get prisoners")
@@ -98,7 +98,7 @@ class PopulateFromNomisIntTest : WebTestBase() {
     )
 
     // Fourth call succeeds
-    wireMockExtension.stubFor(
+    oauthSetup.stubFor(
       WireMock.post("/prisoner-search/prisoner-numbers")
         .withRequestBody(equalToJson("""{"prisonerNumbers": ["prisonerNumberOne","prisonerNumberTwo"]}"""))
         .inScenario("retry get prisoners")
@@ -136,7 +136,7 @@ class PopulateFromNomisIntTest : WebTestBase() {
   @Test
   fun `populate from nomis retries getPrisonerNumbers`() {
     // first call fails
-    wireMockExtension.stubFor(
+    oauthSetup.stubFor(
       WireMock.get("/api/prisoners/prisoner-numbers?size=1&page=1")
         .inScenario("retry getPrisonerNumbers")
         .whenScenarioStateIs(STARTED)
@@ -148,7 +148,7 @@ class PopulateFromNomisIntTest : WebTestBase() {
         ),
     )
     // second call succeeds
-    wireMockExtension.stubFor(
+    oauthSetup.stubFor(
       WireMock.get("/api/prisoners/prisoner-numbers?size=1&page=1")
         .inScenario("retry getPrisonerNumbers")
         .whenScenarioStateIs("next request will succeed")

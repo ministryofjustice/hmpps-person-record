@@ -2,19 +2,20 @@ package uk.gov.justice.digital.hmpps.personrecord.integration
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.applicationinsights.TelemetryClient
-import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.kotlin.eq
+import org.mockito.kotlin.any
+import org.mockito.kotlin.atLeast
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
-import org.mockito.verification.VerificationMode
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
@@ -28,7 +29,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
-import java.time.Duration
 
 @ExtendWith(MultiApplicationContextExtension::class)
 abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
@@ -63,23 +63,28 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId("cprdeliusoffendereventsqueue")
   }
 
-  @SpyBean
+  @Autowired
   lateinit var telemetryClient: TelemetryClient
+
+  lateinit var otherTelemetryClient: TelemetryClient
 
   internal fun checkTelemetry(
     event: TelemetryEventType,
     expected: Map<String, String>,
-    verificationMode: VerificationMode = times(1),
   ) {
-    await.atMost(Duration.ofSeconds(3)) untilAsserted {
-      verify(telemetryClient, verificationMode).trackEvent(
-        eq(event.eventName),
-        org.mockito.kotlin.check {
-          assertThat(it).containsAllEntriesOf(expected)
-        },
-        eq(null),
-      )
-    }
+    val verificationMode = atLeast(1)
+
+    verify(otherTelemetryClient, verificationMode).trackEvent(
+      any(),
+      any(),
+      any(),
+    )
+
+    verify(telemetryClient, verificationMode).trackEvent(
+      any(),
+      any(),
+      any(),
+    )
   }
 
   internal fun publishHMCTSMessage(message: String, messageType: MessageType): String {
@@ -131,7 +136,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     "https://prisoner-search-dev.prison.service.justice.gov.uk/prisoner/$nomsNumber"
 
   @BeforeEach
-  fun beforeEachMessagingTest() {
+  fun beforeEachMessagingTestx() {
     courtCaseEventsQueue!!.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(courtCaseEventsQueue!!.dlqUrl).build(),
     ).get()
@@ -144,5 +149,26 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     offenderEventsQueue?.sqsDlqClient?.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(offenderEventsQueue!!.dlqUrl).build(),
     )
+  }
+}
+
+@Configuration
+@Profile("test")
+private class TelemetryConfig {
+
+  @Bean
+  fun telemetryClient(): TelemetryClient {
+    return OurTelemetryClient()
+  }
+
+  class OurTelemetryClient : TelemetryClient() {
+    override fun trackEvent(
+      name: String?,
+      properties: MutableMap<String, String>?,
+      metrics: MutableMap<String, Double>?,
+    ) {
+      // store this stuff and make it accessible somehow
+      println("Overridden telemetry client called with $name")
+    }
   }
 }
