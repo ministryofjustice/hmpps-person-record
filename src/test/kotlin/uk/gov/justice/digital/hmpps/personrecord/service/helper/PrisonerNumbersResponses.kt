@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.helper
 
-fun prisonerNumbersResponse(prisonerNumbers: List<String>) = """
+fun prisonerNumbersResponse(prisonerNumbers: List<String>, totalPages: Int = 4) = """
 {
-  "totalPages": 4,
+  "totalPages": $totalPages,
   "totalElements": 7,
   "first": true,
   "last": false,
