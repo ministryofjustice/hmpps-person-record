@@ -26,6 +26,12 @@ import uk.gov.justice.digital.hmpps.personrecord.model.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.service.helper.emptyPnc
+import uk.gov.justice.digital.hmpps.personrecord.service.helper.missingPnc
+import uk.gov.justice.digital.hmpps.personrecord.service.helper.newProbationRecord
+import uk.gov.justice.digital.hmpps.personrecord.service.helper.notFoundResponse
+import uk.gov.justice.digital.hmpps.personrecord.service.helper.nullPnc
+import uk.gov.justice.digital.hmpps.personrecord.service.helper.prisonerNumbersResponse
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MULTIPLE_RECORDS_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -43,8 +49,10 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should receive the message successfully when new offender event published`() {
     // Given
-    val crn = "XXX1234"
-    val expectedPncNumber = PNCIdentifier.from("2020/0476873U")
+    val crn = UUID.randomUUID().toString()
+    val pnc = "2020/0476873U"
+    patchRequest("/probation-case.engagement.created/$crn", newProbationRecord(crn, pnc))
+    val expectedPncNumber = PNCIdentifier.from(pnc)
 
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
@@ -62,15 +70,7 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should handle multiple records with same crn, updates first`() {
     val crn = UUID.randomUUID().toString()
-    wiremock.stubFor(
-      WireMock.get("/probation-case.engagement.created/$crn")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody("{\n  \"identifiers\": {\n    \"crn\": \"$crn\",\n    \"pnc\": \"2020/0476873U\"\n  },\n  \"name\": {\n    \"forename\": \"David\",\n    \"surname\": \"BOWIE\",\n    \"otherNames\": []\n  },\n  \"dateOfBirth\": \"1939-10-10\"\n}"),
-        ),
-    )
+    patchRequest("/probation-case.engagement.created/$crn", newProbationRecord(crn))
 
     personRepository.saveAndFlush(
       PersonEntity.from(
@@ -110,15 +110,8 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should write offender without PNC if PNC is missing`() {
     val crn = UUID.randomUUID().toString()
-    wiremock.stubFor(
-      WireMock.get("/probation-case.engagement.created/$crn")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody("{\n  \"identifiers\": {\n    \"crn\": \"$crn\"\n  },\n  \"name\": {\n    \"forename\": \"David\",\n    \"surname\": \"BOWIE\",\n    \"otherNames\": []\n  },\n  \"dateOfBirth\": \"1939-10-10\"\n}"),
-        ),
-    )
+    patchRequest("/probation-case.engagement.created/$crn", missingPnc(crn))
+
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
@@ -178,7 +171,9 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should handle new offender details with null pnc`() {
-    val crn = "E610461"
+    val crn = UUID.randomUUID().toString()
+    patchRequest("/probation-case.engagement.created/$crn", nullPnc(crn))
+
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
@@ -195,7 +190,9 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should handle new offender details with an empty pnc`() {
-    val crn = "E610462"
+    val crn = UUID.randomUUID().toString()
+    patchRequest("/probation-case.engagement.created/$crn", emptyPnc(crn))
+
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
@@ -213,7 +210,8 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should not push 404 to dead letter queue`() {
     // Given
-    val crn = "C4321"
+    val crn = UUID.randomUUID().toString()
+    patchRequest("/probation-case.engagement.created/$crn", notFoundResponse(crn), 404)
 
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))

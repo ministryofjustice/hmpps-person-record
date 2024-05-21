@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.integration
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.SpyBean
+import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
@@ -64,7 +66,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   internal fun checkTelemetry(
     event: TelemetryEventType,
     expected: Map<String, String>,
-    times: Int = 1
+    times: Int = 1,
   ) {
     val allEvents = telemetryRepository.findAllByEvent(event.eventName)
     val matchingEvents = allEvents?.filter {
@@ -118,6 +120,18 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     domainEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
     expectNoMessagesOn(offenderEventsQueue)
+  }
+
+  fun patchRequest(url: String, body: String, statusCode: Int = 200) {
+    wiremock.stubFor(
+      WireMock.get(url)
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(statusCode)
+            .withBody(body),
+        ),
+    )
   }
 
   fun createDeliusDetailUrl(crn: String): String =
