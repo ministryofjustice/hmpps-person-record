@@ -106,11 +106,11 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SourceSystem" to "HMCTS", "DefendantId" to defendantId),
     )
-//    checkTelemetry(
-//      CPR_RECORD_UPDATED,
-//      mapOf("SourceSystem" to "HMCTS"),
-//      times(199),
-//    )
+    checkTelemetry(
+      CPR_RECORD_UPDATED,
+      mapOf("SourceSystem" to "HMCTS"),
+      199,
+    )
   }
 
   @Test

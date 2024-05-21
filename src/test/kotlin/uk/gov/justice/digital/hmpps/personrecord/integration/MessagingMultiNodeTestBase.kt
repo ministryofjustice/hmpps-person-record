@@ -64,15 +64,18 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   internal fun checkTelemetry(
     event: TelemetryEventType,
     expected: Map<String, String>,
+    times: Int = 1
   ) {
     val allEvents = telemetryRepository.findAllByEvent(event.eventName)
-
-    assertThat(allEvents).anyMatch {
+    val matchingEvents = allEvents?.filter {
       expected.entries.map {
           (k, v) ->
         JSONObject(it.properties).get(k).equals(v)
       }.all { it }
-    }.withFailMessage("Failed to match $event with properties $expected to ${allEvents?.forEach{it.properties}}")
+    }
+    assertThat(matchingEvents?.size)
+      .isEqualTo(times)
+      .withFailMessage("Failed to match $event with properties $expected to ${allEvents?.forEach{it.properties}}")
   }
 
   internal fun publishHMCTSMessage(message: String, messageType: MessageType): String {
