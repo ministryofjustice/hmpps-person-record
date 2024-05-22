@@ -42,7 +42,7 @@ dependencies {
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.5")
-  testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.24")
+  testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.23")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.1")
   testImplementation("org.jmock:jmock:2.13.1")
 }
