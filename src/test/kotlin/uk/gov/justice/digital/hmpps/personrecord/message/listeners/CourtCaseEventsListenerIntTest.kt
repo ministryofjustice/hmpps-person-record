@@ -122,11 +122,14 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
     personRepository.saveAndFlush(PersonEntity.from(Person.from(Defendant(id = id1))))
     personRepository.saveAndFlush(PersonEntity.from(Person.from(Defendant(id = id1))))
 
-    publishHMCTSMessage(commonPlatformHearingWithNewDefendant(defendantIds = listOf(id1, id2, id3)), COMMON_PLATFORM_HEARING)
+    val messageId = publishHMCTSMessage(
+      commonPlatformHearingWithNewDefendant(defendantIds = listOf(id1, id2, id3)),
+      COMMON_PLATFORM_HEARING,
+    )
 
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
-      mapOf("CRO" to "051072/62R", "PNC" to "2003/0062845E"),
+      mapOf("CRO" to "051072/62R", "PNC" to "2003/0062845E", "MESSAGE_ID" to messageId),
     )
 
     checkTelemetry(
