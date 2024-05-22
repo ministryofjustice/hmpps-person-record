@@ -115,7 +115,7 @@ class PopulateFromNomisIntTest : WebTestBase() {
 
     val prisoner7 = personRepository.findByPrisonNumber(prisonNumberSeven)!!
     assertThat(Names.from(prisoner7.names).preferred.firstName).isEqualTo("PrisonerSevenFirstName")
-    assertThat(Names.from(prisoner7.names).preferred.middleNames).isEqualTo(null)
+    assertThat(Names.from(prisoner7.names).preferred.middleNames).isEqualTo("")
     assertThat(prisoner7.cro).isEqualTo(CROIdentifier.from(""))
   }
 
