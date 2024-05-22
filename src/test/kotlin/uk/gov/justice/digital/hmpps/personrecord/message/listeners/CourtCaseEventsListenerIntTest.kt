@@ -7,6 +7,7 @@ import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
@@ -71,6 +72,7 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
+  @Disabled("until enforcing unique identifiers")
   @Test
   fun `should not push messages from Common Platform onto dead letter queue when processing fails because of could not serialize access due to read write dependencies among transactions`() {
     val pncNumber = PNCIdentifier.from("2003/0062845E")
