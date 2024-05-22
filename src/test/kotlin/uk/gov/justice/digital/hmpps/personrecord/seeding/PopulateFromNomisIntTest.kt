@@ -13,9 +13,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
-import uk.gov.justice.digital.hmpps.personrecord.service.helper.onePrisoner
-import uk.gov.justice.digital.hmpps.personrecord.service.helper.prisonerNumbersResponse
-import uk.gov.justice.digital.hmpps.personrecord.service.helper.twoPrisoners
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.onePrisoner
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerNumbersResponse
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.twoPrisoners
 import java.time.LocalDate
 import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.SECONDS

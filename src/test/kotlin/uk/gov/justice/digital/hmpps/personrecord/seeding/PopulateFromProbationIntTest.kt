@@ -11,8 +11,8 @@ import uk.gov.justice.digital.hmpps.personrecord.integration.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
-import uk.gov.justice.digital.hmpps.personrecord.service.helper.allProbationCasesResponse
-import uk.gov.justice.digital.hmpps.personrecord.service.helper.allProbationCasesSingleResponse
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.allProbationCasesResponse
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.allProbationCasesSingleResponse
 import java.time.LocalDate
 import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.SECONDS

@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.service.helper
+package uk.gov.justice.digital.hmpps.personrecord.test.messages
 
 fun testMessage(messageType: String?) = """
     {

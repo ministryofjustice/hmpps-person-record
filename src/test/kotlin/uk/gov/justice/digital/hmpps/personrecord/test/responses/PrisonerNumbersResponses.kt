@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.service.helper
+package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
 fun prisonerNumbersResponse(prisonerNumbers: List<String>, totalPages: Int = 4) = """
 {
