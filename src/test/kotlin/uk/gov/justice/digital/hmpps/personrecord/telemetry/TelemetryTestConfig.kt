@@ -15,7 +15,7 @@ class TelemetryTestConfig {
     return OurTelemetryClient(telemetryRepository, objectMapper)
   }
 
-  class OurTelemetryClient(val telemetryRepository: TelemetryTestRepository, val objectMapper: ObjectMapper) : TelemetryClient() {
+  class OurTelemetryClient(private val telemetryRepository: TelemetryTestRepository, private val objectMapper: ObjectMapper) : TelemetryClient() {
     override fun trackEvent(
       event: String?,
       properties: MutableMap<String, String>?,
