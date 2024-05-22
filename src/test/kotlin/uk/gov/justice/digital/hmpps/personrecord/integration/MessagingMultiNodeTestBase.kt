@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
+import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.json.JSONObject
 import org.junit.jupiter.api.BeforeEach
@@ -24,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestReposito
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
+import java.util.concurrent.TimeUnit
 
 @ExtendWith(MultiApplicationContextExtension::class)
 abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
@@ -63,16 +65,17 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     expected: Map<String, String>,
     times: Int = 1,
   ) {
-    val allEvents = telemetryRepository.findAllByEvent(event.eventName)
-    val matchingEvents = allEvents?.filter {
-      expected.entries.map {
-          (k, v) ->
-        JSONObject(it.properties).get(k).equals(v)
-      }.all { it }
+    await.atMost(3, TimeUnit.SECONDS) untilAsserted {
+      val allEvents = telemetryRepository.findAllByEvent(event.eventName)
+      val matchingEvents = allEvents?.filter {
+        expected.entries.map { (k, v) ->
+          JSONObject(it.properties).get(k).equals(v)
+        }.all { it }
+      }
+      assertThat(matchingEvents?.size)
+        .isEqualTo(times)
+        .withFailMessage("Failed to match $event with properties $expected to ${allEvents?.forEach { it.properties }}")
     }
-    assertThat(matchingEvents?.size)
-      .isEqualTo(times)
-      .withFailMessage("Failed to match $event with properties $expected to ${allEvents?.forEach{it.properties}}")
   }
 
   internal fun publishHMCTSMessage(message: String, messageType: MessageType): String {
