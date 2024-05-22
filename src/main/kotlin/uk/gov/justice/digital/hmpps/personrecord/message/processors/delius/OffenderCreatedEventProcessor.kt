@@ -31,6 +31,7 @@ class OffenderCreatedEventProcessor(
     private val retryDelay: Long = 0
     private val log = LoggerFactory.getLogger(this::class.java)
   }
+
   override fun processEvent(domainEvent: DomainEvent) {
     val offenderDetailUrl = domainEvent.detailUrl
     val crnIdentifier = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }

@@ -12,4 +12,6 @@ interface PersonRepository : JpaRepository<PersonEntity, Long> {
 
   fun findByCrn(crn: String): PersonEntity?
   fun findAllByCrn(crn: String): List<PersonEntity>?
+
+  fun findByPrisonNumber(prisonNumber: String): PersonEntity?
 }

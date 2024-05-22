@@ -33,7 +33,7 @@ feature:
     enable-delius-domain-event-sqs: true
 
 retry:
-  delay: 300
+  delay: 500
 
 hmpps.sqs:
   enabled: true
