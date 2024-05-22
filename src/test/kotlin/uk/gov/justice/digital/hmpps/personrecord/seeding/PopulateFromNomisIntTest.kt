@@ -74,10 +74,10 @@ class PopulateFromNomisIntTest : WebTestBase() {
       .isOk
 
     await.atMost(15, SECONDS) untilNotNull {
-      personRepository.findByPrisonNumber("1")
+      personRepository.findByPrisonNumber(prisonNumberOne)
     }
 
-    val prisoner1 = personRepository.findByPrisonNumber("1")!!
+    val prisoner1 = personRepository.findByPrisonNumber(prisonNumberOne)!!
     assertThat(prisoner1.firstName).isEqualTo("PrisonerOneFirstName")
     assertThat(prisoner1.middleNames).isEqualTo("PrisonerOneMiddleNameOne PrisonerOneMiddleNameTwo")
     assertThat(prisoner1.lastName).isEqualTo("PrisonerOneLastName")
@@ -92,22 +92,22 @@ class PopulateFromNomisIntTest : WebTestBase() {
     assertThat(prisoner1.aliases[1].lastName).isEqualTo("PrisonerOneAliasTwoLastName")
     assertThat(prisoner1.sourceSystem).isEqualTo(NOMIS)
 
-    val prisoner2 = personRepository.findByPrisonNumber("2")!!
+    val prisoner2 = personRepository.findByPrisonNumber(prisonNumberTwo)!!
     assertThat(prisoner2.firstName).isEqualTo("PrisonerTwoFirstName")
 
-    val prisoner3 = personRepository.findByPrisonNumber("3")!!
+    val prisoner3 = personRepository.findByPrisonNumber(prisonNumberThree)!!
     assertThat(prisoner3.firstName).isEqualTo("PrisonerThreeFirstName")
 
-    val prisoner4 = personRepository.findByPrisonNumber("4")!!
+    val prisoner4 = personRepository.findByPrisonNumber(prisonNumberFour)!!
     assertThat(prisoner4.firstName).isEqualTo("PrisonerFourFirstName")
 
-    val prisoner5 = personRepository.findByPrisonNumber("5")!!
+    val prisoner5 = personRepository.findByPrisonNumber(prisonNumberFive)!!
     assertThat(prisoner5.firstName).isEqualTo("PrisonerFiveFirstName")
 
-    val prisoner6 = personRepository.findByPrisonNumber("6")!!
+    val prisoner6 = personRepository.findByPrisonNumber(prisonNumberSix)!!
     assertThat(prisoner6.firstName).isEqualTo("PrisonerSixFirstName")
 
-    val prisoner7 = personRepository.findByPrisonNumber("7")!!
+    val prisoner7 = personRepository.findByPrisonNumber(prisonNumberSeven)!!
     assertThat(prisoner7.firstName).isEqualTo("PrisonerSevenFirstName")
     assertThat(prisoner7.middleNames).isEqualTo("")
     assertThat(prisoner7.cro).isEqualTo(CROIdentifier.from(""))
@@ -212,11 +212,11 @@ class PopulateFromNomisIntTest : WebTestBase() {
       .expectStatus()
       .isOk
 
-    val prisonerOne = await.atMost(15, SECONDS) untilNotNull {
-      personRepository.findByPrisonNumber(prisonNumberOne)
+    await.atMost(15, SECONDS) untilNotNull {
+      personRepository.findByPrisonNumber(prisonNumberSeven)
     }
 
-    assertThat(prisonerOne.firstName).isEqualTo("PrisonerOneFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberOne)?.firstName).isEqualTo("PrisonerOneFirstName")
     assertThat(personRepository.findByPrisonNumber(prisonNumberTwo)?.firstName).isEqualTo("PrisonerTwoFirstName")
     assertThat(personRepository.findByPrisonNumber(prisonNumberThree)?.firstName).isEqualTo("PrisonerThreeFirstName")
     assertThat(personRepository.findByPrisonNumber(prisonNumberFour)?.firstName).isEqualTo("PrisonerFourFirstName")

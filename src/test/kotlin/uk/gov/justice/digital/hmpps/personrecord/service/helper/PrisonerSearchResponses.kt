@@ -1,17 +1,17 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.helper
 
-fun onePrisoner(prisonNumberOne: String, prefixOne: String) = """
+fun onePrisoner(prisonNumber: String, prefix: String) = """
   [{
-    "prisonerNumber": "$prisonNumberOne",
+    "prisonerNumber": "$prisonNumber",
     "pncNumber": "12/394773H",
     "pncNumberCanonicalShort": "12/394773H",
     "pncNumberCanonicalLong": "2012/394773H",
-    "croNumber": "29906/12J",
+    "croNumber": "",
     "bookingId": "0001200924",
     "bookNumber": "38412A",
-    "firstName": "${prefixOne}FirstName",
-    "middleNames": "${prefixOne}MiddleNameOne ${prefixOne}MiddleNameTwo",
-    "lastName": "${prefixOne}LastName",
+    "firstName": "${prefix}FirstName",
+    "middleNames": "",
+    "lastName": "${prefix}LastName",
     "dateOfBirth": "1975-04-02",
     "gender": "Female",
     "ethnicity": "White: Eng./Welsh/Scot./N.Irish/British",
@@ -29,17 +29,17 @@ fun onePrisoner(prisonNumberOne: String, prefixOne: String) = """
     "cellLocation": "A-1-002",
     "aliases": [
       {
-        "firstName": "${prefixOne}AliasOneFirstName",
-        "middleNames": "${prefixOne}AliasOneMiddleNameOne ${prefixOne}AliasOneMiddleNameTwo",
-        "lastName": "${prefixOne}AliasOneLastName",
+        "firstName": "${prefix}AliasOneFirstName",
+        "middleNames": "${prefix}AliasOneMiddleNameOne ${prefix}AliasOneMiddleNameTwo",
+        "lastName": "${prefix}AliasOneLastName",
         "dateOfBirth": "1975-04-02",
         "gender": "Male",
         "ethnicity": "White : Irish"
       },
   {
-        "firstName": "${prefixOne}AliasTwoFirstName",
-        "middleNames": "${prefixOne}AliasTwoMiddleNameOne ${prefixOne}AliasTwoMiddleNameTwo",
-        "lastName": "${prefixOne}AliasTwoLastName",
+        "firstName": "${prefix}AliasTwoFirstName",
+        "middleNames": "${prefix}AliasTwoMiddleNameOne ${prefix}AliasTwoMiddleNameTwo",
+        "lastName": "${prefix}AliasTwoLastName",
         "dateOfBirth": "1975-04-02",
         "gender": "Male",
         "ethnicity": "White : Irish"
