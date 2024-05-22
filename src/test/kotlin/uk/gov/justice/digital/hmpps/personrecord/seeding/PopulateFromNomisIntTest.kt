@@ -74,7 +74,7 @@ class PopulateFromNomisIntTest : WebTestBase() {
       .isOk
 
     await.atMost(15, SECONDS) untilNotNull {
-      personRepository.findByPrisonNumber(prisonNumberOne)
+      personRepository.findByPrisonNumber(prisonNumberSeven)
     }
 
     val prisoner1 = personRepository.findByPrisonNumber(prisonNumberOne)!!
