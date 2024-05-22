@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.model.OffenderMatchCriteria
-import uk.gov.justice.digital.hmpps.personrecord.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.integration.WebTestBase
 
-class ProbationOffenderSearchClientIntTest : IntegrationTestBase() {
+class ProbationOffenderSearchClientIntTest : WebTestBase() {
 
   @Autowired
   lateinit var restClient: ProbationOffenderSearchClient

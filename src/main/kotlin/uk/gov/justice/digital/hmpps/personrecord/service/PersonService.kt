@@ -21,10 +21,9 @@ class PersonService(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   private val readWriteLockService: ReadWriteLockService,
+  @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
-  @Value("\${retry.delay}")
-  private val retryDelay: Long = 0
   private val retryExceptions = listOf(
     ObjectOptimisticLockingFailureException::class,
     CannotAcquireLockException::class,

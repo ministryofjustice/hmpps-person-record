@@ -7,7 +7,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
-import uk.gov.justice.digital.hmpps.personrecord.service.helper.libraHearing
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 
 class LibraHearingEventTest {
 

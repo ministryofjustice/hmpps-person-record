@@ -15,9 +15,9 @@ import uk.gov.justice.digital.hmpps.personrecord.message.processors.hmcts.CourtC
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.helper.testMessage
-import uk.gov.justice.digital.hmpps.personrecord.service.helper.testMessageWithUnknownType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.testMessage
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.testMessageWithUnknownType
 import kotlin.test.assertFailsWith
 
 @Suppress("INLINE_FROM_HIGHER_PLATFORM")
