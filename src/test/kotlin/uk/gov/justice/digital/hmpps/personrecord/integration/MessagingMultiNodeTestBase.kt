@@ -11,15 +11,12 @@ import org.json.JSONObject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.SpyBean
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PrisonerUpdatedEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
-import uk.gov.justice.digital.hmpps.personrecord.service.PrisonerDomainEventService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import uk.gov.justice.hmpps.sqs.HmppsQueue
@@ -35,12 +32,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   @Autowired
   lateinit var hmppsQueueService: HmppsQueueService
-
-  @SpyBean
-  lateinit var prisonerUpdatedEventProcessor: PrisonerUpdatedEventProcessor
-
-  @SpyBean
-  lateinit var prisonerDomainEventService: PrisonerDomainEventService
 
   val domainEventsTopic by lazy {
     hmppsQueueService.findByTopicId("domainevents")
@@ -146,10 +137,10 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     courtCaseEventsQueue!!.sqsClient.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(courtCaseEventsQueue!!.queueUrl).build(),
     ).get()
-    offenderEventsQueue?.sqsClient?.purgeQueue(
+    offenderEventsQueue!!.sqsClient.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(offenderEventsQueue!!.queueUrl).build(),
     )
-    offenderEventsQueue?.sqsDlqClient?.purgeQueue(
+    offenderEventsQueue!!.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(offenderEventsQueue!!.dlqUrl).build(),
     )
   }

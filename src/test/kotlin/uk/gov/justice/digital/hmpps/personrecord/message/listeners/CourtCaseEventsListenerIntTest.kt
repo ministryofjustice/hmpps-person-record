@@ -75,20 +75,11 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should not push messages from Common Platform onto dead letter queue when processing fails because of could not serialize access due to read write dependencies among transactions`() {
     val pncNumber = PNCIdentifier.from("2003/0062845E")
     val defendantId = randomUUID().toString()
-    val publishRequest = PublishRequest.builder()
-      .topicArn(courtCaseEventsTopic?.arn)
-      .message(commonPlatformHearingWithSameDefendantIdTwice(defendantId = defendantId, pncNumber = pncNumber.pncId))
-      .messageAttributes(
-        mapOf(
-          "messageType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(COMMON_PLATFORM_HEARING.name).build(),
-        ),
-      )
-      .build()
+    buildPublishRequest(defendantId, pncNumber)
     val blitzer = Blitzer(100, 10)
     try {
       blitzer.blitz {
-        courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+        courtCaseEventsTopic?.snsClient?.publish(buildPublishRequest(defendantId, pncNumber))?.get()
       }
     } finally {
       blitzer.shutdown()
@@ -112,6 +103,20 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
       199,
     )
   }
+
+  private fun buildPublishRequest(
+    defendantId: String,
+    pncNumber: PNCIdentifier,
+  ): PublishRequest? = PublishRequest.builder()
+    .topicArn(courtCaseEventsTopic?.arn)
+    .message(commonPlatformHearingWithSameDefendantIdTwice(defendantId = defendantId, pncNumber = pncNumber.pncId))
+    .messageAttributes(
+      mapOf(
+        "messageType" to MessageAttributeValue.builder().dataType("String")
+          .stringValue(COMMON_PLATFORM_HEARING.name).build(),
+      ),
+    )
+    .build()
 
   @Test
   fun `should choose one and update when there are duplicate defendants - bug fix for CPR-331`() {
