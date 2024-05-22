@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.service.helper
+package uk.gov.justice.digital.hmpps.personrecord.test.messages
 
 fun testMessage(messageType: String?) = """
     {
@@ -36,7 +36,7 @@ fun testMessageWithUnknownType(messageType: String?) = """
      }    
 """.trimIndent()
 
-fun commonPlatformHearing(pncNumber: String = "1981/0154257C") = """
+fun commonPlatformHearing(pncNumber: String = "1981/0154257C", defendantIds: List<String>) = """
     {
       "hearing": {
         "type": {
@@ -66,7 +66,7 @@ fun commonPlatformHearing(pncNumber: String = "1981/0154257C") = """
           {
             "defendants": [
               { 
-                "id": "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199",
+                "id": "${defendantIds[0]}",
                 "pncId": "$pncNumber",
                 "croNumber": "12345ABCDEF",
                 "offences": [
@@ -107,7 +107,7 @@ fun commonPlatformHearing(pncNumber: String = "1981/0154257C") = """
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               },
               {
-                "id": "a3e8f57a-900f-4057-ab2c-ebe6887f98e1",
+                "id": "${defendantIds[1]}",
                 "pncId": "2008/0056560Z",
                 "croNumber": "12345ABCDEF",
                 "offences": [
@@ -148,7 +148,7 @@ fun commonPlatformHearing(pncNumber: String = "1981/0154257C") = """
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               },
               {
-                "id": "903c4c54-f667-4770-8fdf-1adbb5957c25",
+                "id": "${defendantIds[2]}",
                 "offences": [
                   {
                     "id": "1391ADC2-7A43-48DC-8523-3D28B9DCD2B7",
@@ -195,7 +195,7 @@ fun commonPlatformHearing(pncNumber: String = "1981/0154257C") = """
     }
 """.trimIndent()
 
-fun commonPlatformHearingWithOneDefendant(pncNumber: String = "1981/0154257C", firstName: String? = "Horace", lastName: String = "Andy", dateOfBirth: String = "1975-01-01", cro: String = "86621/65B", defendantId: String = "0ab7c3e5-eb4c-4e3f-b9e6-b9e78d3ea199") = """
+fun commonPlatformHearingWithOneDefendant(pncNumber: String = "1981/0154257C", firstName: String? = "Horace", lastName: String = "Andy", dateOfBirth: String = "1975-01-01", cro: String = "86621/65B", defendantId: String) = """
     {
       "hearing": {
         "type": {
@@ -315,7 +315,10 @@ fun libraHearing(pncNumber: String? = "2003/0011985X", firstName: String? = "Art
 }
 """.trimIndent()
 
-fun commonPlatformHearingWithNewDefendant(pncNumber: String = "2003/0062845E") = """
+fun commonPlatformHearingWithNewDefendant(
+  pncNumber: String = "2003/0062845E",
+  defendantIds: List<String>,
+) = """
     {
       "hearing": {
         "type": {
@@ -345,7 +348,7 @@ fun commonPlatformHearingWithNewDefendant(pncNumber: String = "2003/0062845E") =
           {
             "defendants": [
               { 
-                "id": "b5cfae34-9256-43ad-87fb-ac3def34e2ac",
+                "id": "${defendantIds[0]}",
                 "pncId": "$pncNumber",
                 "croNumber": "51072/62R",
                 "offences": [
@@ -378,7 +381,7 @@ fun commonPlatformHearingWithNewDefendant(pncNumber: String = "2003/0062845E") =
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               },
               { 
-                "id": "b5cfae34-9256-43ad-87fb-ac3def34e2ab",
+                "id": "${defendantIds[1]}",
                 "pncId": "2003/0062845E",
                 "croNumber": "75715/64Q",
                 "offences": [
@@ -411,7 +414,7 @@ fun commonPlatformHearingWithNewDefendant(pncNumber: String = "2003/0062845E") =
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               },
                            { 
-                "id": "b5cfae34-9256-43ad-87fb-ac3def34e2ad",
+                "id": "${defendantIds[2]}",
                 "pncId": "2003/0062845E",
                 "croNumber": "20970/63D",
                 "offences": [
@@ -454,7 +457,7 @@ fun commonPlatformHearingWithNewDefendant(pncNumber: String = "2003/0062845E") =
     }
 """.trimIndent()
 
-fun commonPlatformHearingWithAdditionalFields() = """
+fun commonPlatformHearingWithAdditionalFields(defendantIds: List<String>) = """
     {
       "hearing": {
         "type": {
@@ -484,7 +487,7 @@ fun commonPlatformHearingWithAdditionalFields() = """
           {
             "defendants": [
               { 
-                "id": "b5cfae34-9256-43ad-87fb-ac3def34e2ac",
+                "id": "${defendantIds[0]}",
                 "masterDefendantId": "eeb71c73-573b-444e-9dc3-4e5998d1be65",
                 "pncId": "2003/0062845E",
                 "croNumber": "33577/63G",
@@ -529,7 +532,7 @@ fun commonPlatformHearingWithAdditionalFields() = """
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               },
               { 
-                "id": "cc36c035-6e82-4d04-94c2-2a5728f11481",
+                "id": "${defendantIds[1]}",
                 "masterDefendantId": "1f6847a2-6663-44dd-b945-fe2c20961d0a",
                 "pncId": "2008/0056560Z",
                 "croNumber": "78182/63Q",
@@ -573,7 +576,7 @@ fun commonPlatformHearingWithAdditionalFields() = """
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               },
               { 
-                "id": "b56f8612-0f4c-43e5-840a-8bedb17722ec",
+                "id": "${defendantIds[2]}",
                 "masterDefendantId": "290e0457-1480-4e62-b3c8-7f29ef791c58",
                 "pncId": "20230583843L",
                 "croNumber": "15542/64K",
@@ -619,7 +622,7 @@ fun commonPlatformHearingWithAdditionalFields() = """
     }
 """.trimIndent()
 
-fun commonPlatformHearingWithNewDefendantAndNoPnc() = """
+fun commonPlatformHearingWithNewDefendantAndNoPnc(defendantIds: List<String>) = """
     {
       "hearing": {
         "type": {
@@ -649,7 +652,7 @@ fun commonPlatformHearingWithNewDefendantAndNoPnc() = """
           {
             "defendants": [
               { 
-                "id": "2d41e7b9-0964-48d8-8d2a-3f7e81b34cd7",
+                "id": "${defendantIds[0]}",
                 "pncId": null,
                 "croNumber": "51072/62R",
                 "offences": [
@@ -682,7 +685,7 @@ fun commonPlatformHearingWithNewDefendantAndNoPnc() = """
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               },
               { 
-                "id": "2d41e7b9-0964-48d8-8d2a-3f7e81b34cd8",
+                "id": "${defendantIds[1]}",
                 "pncId": "",
                 "croNumber": "75715/64Q",
                 "offences": [
@@ -725,7 +728,7 @@ fun commonPlatformHearingWithNewDefendantAndNoPnc() = """
     }
 """.trimIndent()
 
-fun commonPlatformHearingWithSameDefendantIdTwice(pncNumber: String) = """
+fun commonPlatformHearingWithSameDefendantIdTwice(defendantId: String, pncNumber: String) = """
     {
       "hearing": {
         "type": {
@@ -755,7 +758,7 @@ fun commonPlatformHearingWithSameDefendantIdTwice(pncNumber: String) = """
           {
             "defendants": [
               { 
-                "id": "2d41e7b9-0964-48d8-8d2a-3f7e81b34cd7",
+                "id": "$defendantId",
                 "pncId": "$pncNumber",
                 "croNumber": "51072/62R",
                 "offences": [
@@ -794,7 +797,7 @@ fun commonPlatformHearingWithSameDefendantIdTwice(pncNumber: String) = """
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               },
               { 
-                "id": "2d41e7b9-0964-48d8-8d2a-3f7e81b34cd7",
+                "id": "$defendantId",
                 "pncId": "$pncNumber",
                 "croNumber": "75715/64Q",
                 "offences": [

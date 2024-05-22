@@ -16,10 +16,10 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
-  implementation("jakarta.validation:jakarta.validation-api:3.0.2")
+  implementation("jakarta.validation:jakarta.validation-api:3.1.0")
   implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
-  implementation("io.swagger.core.v3:swagger-annotations:2.2.21")
+  implementation("io.swagger.core.v3:swagger-annotations:2.2.22")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.1")
   constraints {
     implementation("org.bouncycastle:bcprov-jdk18on:1.78.1") {
@@ -28,13 +28,13 @@ dependencies {
   }
   implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.1")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:3.1.3")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.3.0")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.4.0")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
   implementation("org.apache.commons:commons-lang3:3.14.0")
 
   runtimeOnly("org.postgresql:postgresql:42.7.3")
-  runtimeOnly("org.flywaydb:flyway-core:10.12.0")
-  runtimeOnly("org.flywaydb:flyway-database-postgresql:10.12.0")
+  runtimeOnly("org.flywaydb:flyway-core:10.13.0")
+  runtimeOnly("org.flywaydb:flyway-database-postgresql:10.13.0")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
@@ -45,6 +45,7 @@ dependencies {
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.23")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.1")
   testImplementation("org.jmock:jmock:2.13.1")
+  testImplementation("io.hypersistence:hypersistence-utils-hibernate-63:3.7.0")
 }
 
 java {

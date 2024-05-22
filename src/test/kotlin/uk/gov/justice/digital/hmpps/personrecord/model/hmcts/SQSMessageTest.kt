@@ -6,7 +6,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.service.helper.testMessage
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.testMessage
 
 class SQSMessageTest {
 
