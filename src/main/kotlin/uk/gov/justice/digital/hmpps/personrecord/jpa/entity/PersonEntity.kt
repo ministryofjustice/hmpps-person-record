@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConv
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.name.Names
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 
 @Entity
@@ -96,6 +97,10 @@ class PersonEntity(
     this.nationalInsuranceNumber = person.nationalInsuranceNumber
     updateChildEntities(person)
     return this
+  }
+
+  fun getNames(): Names {
+    return Names.from(this.names)
   }
 
   private fun updateChildEntities(person: Person) {

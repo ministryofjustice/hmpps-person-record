@@ -49,28 +49,28 @@ class PopulateFromProbationIntTest : WebTestBase() {
     }
 
     val popOne = personRepository.findByCrn(crnOne)!!
-    assertThat(Names.from(popOne.names).preferred.firstName).isEqualTo("POPOneFirstName")
-    assertThat(Names.from(popOne.names).preferred.middleNames).isEqualTo("POPOneMiddleNameOne POPOneMiddleNameTwo")
-    assertThat(Names.from(popOne.names).preferred.lastName).isEqualTo("POPOneLastName")
+    assertThat(popOne.getNames().preferred.firstName).isEqualTo("POPOneFirstName")
+    assertThat(popOne.getNames().preferred.middleNames).isEqualTo("POPOneMiddleNameOne POPOneMiddleNameTwo")
+    assertThat(popOne.getNames().preferred.lastName).isEqualTo("POPOneLastName")
     assertThat(popOne.crn).isEqualTo(crnOne)
-    assertThat(Names.from(popOne.names).preferred.dateOfBirth).isEqualTo(LocalDate.of(1980, 8, 29))
-    assertThat(Names.from(popOne.names).aliases[0].firstName).isEqualTo("POPOneAliasOneFirstName")
-    assertThat(Names.from(popOne.names).aliases[0].middleNames).isEqualTo("POPOneAliasOneMiddleNameOne POPOneAliasOneMiddleNameTwo")
-    assertThat(Names.from(popOne.names).aliases[0].lastName).isEqualTo("POPOneAliasOneLastName")
-    assertThat(Names.from(popOne.names).aliases[1].firstName).isEqualTo("POPOneAliasTwoFirstName")
-    assertThat(Names.from(popOne.names).aliases[1].middleNames).isEqualTo("POPOneAliasTwoMiddleNameOne POPOneAliasTwoMiddleNameTwo")
-    assertThat(Names.from(popOne.names).aliases[1].lastName).isEqualTo("POPOneAliasTwoLastName")
+    assertThat(popOne.getNames().preferred.dateOfBirth).isEqualTo(LocalDate.of(1980, 8, 29))
+    assertThat(popOne.getNames().aliases[0].firstName).isEqualTo("POPOneAliasOneFirstName")
+    assertThat(popOne.getNames().aliases[0].middleNames).isEqualTo("POPOneAliasOneMiddleNameOne POPOneAliasOneMiddleNameTwo")
+    assertThat(popOne.getNames().aliases[0].lastName).isEqualTo("POPOneAliasOneLastName")
+    assertThat(popOne.getNames().aliases[1].firstName).isEqualTo("POPOneAliasTwoFirstName")
+    assertThat(popOne.getNames().aliases[1].middleNames).isEqualTo("POPOneAliasTwoMiddleNameOne POPOneAliasTwoMiddleNameTwo")
+    assertThat(popOne.getNames().aliases[1].lastName).isEqualTo("POPOneAliasTwoLastName")
     assertThat(popOne.sourceSystem).isEqualTo(DELIUS)
-    assertThat(Names.from(personRepository.findByCrn(crnTwo)!!.names).preferred.firstName).isEqualTo("POPTwoFirstName")
-    assertThat(Names.from(personRepository.findByCrn(crnThree)!!.names).preferred.firstName).isEqualTo("POPThreeFirstName")
-    assertThat(Names.from(personRepository.findByCrn(crnFour)!!.names).preferred.firstName).isEqualTo("POPFourFirstName")
-    assertThat(Names.from(personRepository.findByCrn(crnFive)!!.names).preferred.firstName).isEqualTo("POPFiveFirstName")
-    assertThat(Names.from(personRepository.findByCrn(crnSix)!!.names).preferred.firstName).isEqualTo("POPSixFirstName")
+    assertThat(personRepository.findByCrn(crnTwo)!!.getNames().preferred.firstName).isEqualTo("POPTwoFirstName")
+    assertThat(personRepository.findByCrn(crnThree)!!.getNames().preferred.firstName).isEqualTo("POPThreeFirstName")
+    assertThat(personRepository.findByCrn(crnFour)!!.getNames().preferred.firstName).isEqualTo("POPFourFirstName")
+    assertThat(personRepository.findByCrn(crnFive)!!.getNames().preferred.firstName).isEqualTo("POPFiveFirstName")
+    assertThat(personRepository.findByCrn(crnSix)!!.getNames().preferred.firstName).isEqualTo("POPSixFirstName")
     val popSeven = personRepository.findByCrn(crnSeven)!!
-    assertThat(Names.from(popSeven.names).preferred.firstName).isEqualTo("POPSevenFirstName")
-    assertThat(Names.from(popSeven.names).preferred.middleNames).isEqualTo(null)
+    assertThat(popSeven.getNames().preferred.firstName).isEqualTo("POPSevenFirstName")
+    assertThat(popSeven.getNames().preferred.middleNames).isEqualTo(null)
     assertThat(popSeven.cro).isEqualTo(CROIdentifier.from(""))
-    assertThat(Names.from(popSeven.names).aliases.size).isEqualTo(0)
+    assertThat(popSeven.getNames().aliases.size).isEqualTo(0)
   }
 
   @Test
@@ -118,8 +118,8 @@ class PopulateFromProbationIntTest : WebTestBase() {
       personRepository.findByCrn(crnTwo)
     }
 
-    assertThat(Names.from(personRepository.findByCrn(crnOne)!!.names).preferred.firstName).isEqualTo("POPOneFirstName")
-    assertThat(Names.from(personRepository.findByCrn(crnTwo)!!.names).preferred.firstName).isEqualTo("POPTwoFirstName")
+    assertThat(personRepository.findByCrn(crnOne)!!.getNames().preferred.firstName).isEqualTo("POPOneFirstName")
+    assertThat(personRepository.findByCrn(crnTwo)!!.getNames().preferred.firstName).isEqualTo("POPTwoFirstName")
   }
 
   private fun stubResponse(firstCrn: String, firstPrefix: String, secondCrn: String, secondPrefix: String, page: Int, scenarioName: String, scenarioState: String, totalPages: Int = 4) {

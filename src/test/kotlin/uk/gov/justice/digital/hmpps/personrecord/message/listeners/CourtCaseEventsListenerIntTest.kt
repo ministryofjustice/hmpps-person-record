@@ -183,7 +183,7 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
       personRepository.findByDefendantId(defendantId)
     }
 
-    assertThat(Names.from(personEntity.names).preferred.lastName).isEqualTo("Andy")
+    assertThat(personEntity.getNames().preferred.lastName).isEqualTo("Andy")
     assertThat(personEntity.addresses.size).isEqualTo(1)
 
     checkTelemetry(
@@ -203,7 +203,7 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
     await.atMost(15, SECONDS) untilAsserted {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
-      assertThat(Names.from(updatedPersonEntity.names).preferred.lastName).isEqualTo("Smith")
+      assertThat(updatedPersonEntity.getNames().preferred.lastName).isEqualTo("Smith")
       assertThat(updatedPersonEntity.pnc).isEqualTo(PNCIdentifier.from("1981/0154257C"))
       assertThat(updatedPersonEntity.cro).isEqualTo(CROIdentifier.from("86621/65B"))
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
@@ -241,20 +241,20 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
     assertThat(personEntity1.pnc).isEqualTo(pncNumber1)
     assertThat(personEntity1.masterDefendantId).isEqualTo("eeb71c73-573b-444e-9dc3-4e5998d1be65")
-    assertThat(Names.from(personEntity1.names).preferred.firstName).isEqualTo("Eric")
-    assertThat(Names.from(personEntity1.names).preferred.middleNames).isEqualTo("mName1 mName2")
-    assertThat(Names.from(personEntity1.names).preferred.lastName).isEqualTo("Lassard")
+    assertThat(personEntity1.getNames().preferred.firstName).isEqualTo("Eric")
+    assertThat(personEntity1.getNames().preferred.middleNames).isEqualTo("mName1 mName2")
+    assertThat(personEntity1.getNames().preferred.lastName).isEqualTo("Lassard")
     assertThat(personEntity1.contacts).isEmpty()
     assertThat(personEntity1.addresses).isNotEmpty()
-    assertThat(Names.from(personEntity1.names).aliases.size).isEqualTo(2)
-    assertThat(Names.from(personEntity1.names).aliases[0].firstName).isEqualTo("aliasFirstName1")
-    assertThat(Names.from(personEntity1.names).aliases[0].lastName).isEqualTo("alisLastName1")
-    assertThat(Names.from(personEntity1.names).aliases[0].type).isEqualTo(NameType.ALIAS)
-    assertThat(Names.from(personEntity1.names).aliases[1].firstName).isEqualTo("aliasFirstName2")
-    assertThat(Names.from(personEntity1.names).aliases[1].lastName).isEqualTo("alisLastName2")
-    assertThat(Names.from(personEntity1.names).aliases[1].type).isEqualTo(NameType.ALIAS)
+    assertThat(personEntity1.getNames().aliases.size).isEqualTo(2)
+    assertThat(personEntity1.getNames().aliases[0].firstName).isEqualTo("aliasFirstName1")
+    assertThat(personEntity1.getNames().aliases[0].lastName).isEqualTo("alisLastName1")
+    assertThat(personEntity1.getNames().aliases[0].type).isEqualTo(NameType.ALIAS)
+    assertThat(personEntity1.getNames().aliases[1].firstName).isEqualTo("aliasFirstName2")
+    assertThat(personEntity1.getNames().aliases[1].lastName).isEqualTo("alisLastName2")
+    assertThat(personEntity1.getNames().aliases[1].type).isEqualTo(NameType.ALIAS)
 
-    assertThat(Names.from(personEntity2.names).aliases).isEmpty()
+    assertThat(personEntity2.getNames().aliases).isEmpty()
     assertThat(personEntity2.addresses).isNotEmpty()
     assertThat(personEntity2.addresses[0].postcode).isEqualTo("CF10 1FU")
     assertThat(personEntity2.pnc).isEqualTo(pncNumber2)
