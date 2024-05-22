@@ -17,17 +17,7 @@ fun allProbationCasesSingleResponse(firstCrn: String, firstPrefix: String) = """
                 "code": "M",
                 "description": "Male"
             },
-            "aliases": [{"name": {
-                        "forename": "${firstPrefix}AliasOneFirstName",
-                     "middleName":    "${firstPrefix}AliasOneMiddleNameOne ${firstPrefix}AliasOneMiddleNameTwo",
-                        "surname": "${firstPrefix}AliasOneLastName"
-                    },
-                    "dateOfBirth": "1967-11-04"},{"name": {
-                        "forename": "${firstPrefix}AliasTwoFirstName",
-            "middleName":             "${firstPrefix}AliasTwoMiddleNameOne ${firstPrefix}AliasTwoMiddleNameTwo",
-                        "surname": "${firstPrefix}AliasTwoLastName"
-                    },
-                    "dateOfBirth": "1967-11-04"}],
+            "aliases": [],
             "addresses": []
         }],
     "pageable": {
@@ -56,7 +46,7 @@ fun allProbationCasesSingleResponse(firstCrn: String, firstPrefix: String) = """
  },
     "empty": false}
 """.trimIndent()
-fun allProbationCasesResponse(firstCrn: String, firstPrefix: String, secondCrn: String, secondPrefix: String) = """
+fun allProbationCasesResponse(firstCrn: String, firstPrefix: String, secondCrn: String, secondPrefix: String, totalPages: Int = 4) = """
   {
     "content": [
         {
@@ -116,7 +106,7 @@ fun allProbationCasesResponse(firstCrn: String, firstPrefix: String, secondCrn: 
         "unpaged": false
     },
     "totalElements": 7,
-    "totalPages": 4,
+    "totalPages": $totalPages,
     "last": false,
     "numberOfElements": 2,
     "first": true,

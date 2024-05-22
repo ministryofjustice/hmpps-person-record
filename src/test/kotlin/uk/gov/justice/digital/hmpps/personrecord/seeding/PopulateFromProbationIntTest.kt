@@ -4,7 +4,6 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -65,33 +64,24 @@ class PopulateFromProbationIntTest : WebTestBase() {
     assertThat(personRepository.findByCrn(crnFour)!!.firstName).isEqualTo("POPFourFirstName")
     assertThat(personRepository.findByCrn(crnFive)!!.firstName).isEqualTo("POPFiveFirstName")
     assertThat(personRepository.findByCrn(crnSix)!!.firstName).isEqualTo("POPSixFirstName")
-    assertThat(personRepository.findByCrn(crnSeven)!!.firstName).isEqualTo("POPSevenFirstName")
-    assertThat(personRepository.findByCrn(crnSeven)!!.middleNames).isEqualTo("")
-    assertThat(personRepository.findByCrn(crnSeven)!!.cro).isEqualTo(CROIdentifier.from(""))
+    val popSeven = personRepository.findByCrn(crnSeven)!!
+    assertThat(popSeven.firstName).isEqualTo("POPSevenFirstName")
+    assertThat(popSeven.middleNames).isEqualTo("")
+    assertThat(popSeven.cro).isEqualTo(CROIdentifier.from(""))
+    assertThat(popSeven.aliases.size).isEqualTo(0)
   }
 
   @Test
   fun `populate from probation retries`() {
-    // first call works
+    val scenarioName = "retry"
+    val crnOne: String = randomUUID().toString()
+    val crnTwo: String = randomUUID().toString()
+
+    // first call fails
     wiremock.stubFor(
       WireMock.get("/all-probation-cases?size=2&page=0&sort=id%2Casc")
-        .inScenario("retry")
+        .inScenario(scenarioName)
         .whenScenarioStateIs(STARTED)
-        .willSetStateTo("next request will fail")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(
-              "{\n    \"content\": [\n        {\n            \"identifiers\": {\n                \"deliusId\": 2500000501,\n                \"crn\": \"D001022\"\n            },\n            \"name\": {\n                \"forename\": \"POPOneFirstNameOne\",\n           \"middleName\":\"POPOneMiddleNameOne POPOneMiddleNameTwo\",     \"surname\": \"POPOneLastName\"\n            },\n            \"dateOfBirth\": \"1980-08-29\",\n            \"gender\": {\n                \"code\": \"M\",\n                \"description\": \"Male\"\n            },\n            \"aliases\": [{\"name\": {\n                        \"forename\": \"POPOneAliasOneFirstName\",\n                     \"middleName\":    \"POPOneAliasOneMiddleNameOne POPOneAliasOneMiddleNameTwo\",\n                        \"surname\": \"POPOneAliasOneLastName\"\n                    },\n                    \"dateOfBirth\": \"1967-11-04\"},{\"name\": {\n                        \"forename\": \"POPOneAliasTwoFirstName\",\n            \"middleName\":             \"POPOneAliasTwoMiddleNameOne POPOneAliasTwoMiddleNameTwo\",\n                        \"surname\": \"POPOneAliasTwoLastName\"\n                    },\n                    \"dateOfBirth\": \"1967-11-04\"}],\n            \"addresses\": []\n        },\n        {\n            \"identifiers\": {\n                \"deliusId\": 2500000503,\n                \"crn\": \"D001024\"\n            },\n            \"name\": {\n                \"forename\": \"POPTwoFirstName\",\n           \"middleName\":\"POPTwoMiddleNameOne POPTwoMiddleNameTwo\",     \"surname\": \"POPTwoLastName\"\n            },\n            \"dateOfBirth\": \"1990-05-18\",\n            \"gender\": {\n                \"code\": \"M\",\n                \"description\": \"Male\"\n            },\n            \"aliases\": [],\n            \"addresses\": []\n        }],\n    \"pageable\": {\n        \"pageNumber\": 6004,\n        \"pageSize\": 100,\n        \"sort\": {\n            \"unsorted\": false,\n            \"sorted\": true,\n            \"empty\": false\n        },\n        \"offset\": 600400,\n        \"paged\": true,\n        \"unpaged\": false\n    },\n    \"totalElements\": 7,\n    \"totalPages\": 4,\n    \"last\": false,\n    \"numberOfElements\": 2,\n    \"first\": true,\n    \"size\": 2,\n    \"number\": 1,\n    \"sort\": {\n        \"unsorted\": false,\n        \"sorted\": true,\n        \"empty\": false\n },\n    \"empty\": false}",
-            ),
-        ),
-    )
-    // second call fails
-    wiremock.stubFor(
-      WireMock.get("/all-probation-cases?size=2&page=0&sort=id%2Casc")
-        .inScenario("retry")
-        .whenScenarioStateIs("next request will fail")
         .willSetStateTo("next request will time out")
         .willReturn(
           WireMock.aResponse()
@@ -103,7 +93,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
     // third call times out
     wiremock.stubFor(
       WireMock.get("/all-probation-cases?size=2&page=0&sort=id%2Casc")
-        .inScenario("retry")
+        .inScenario(scenarioName)
         .whenScenarioStateIs("next request will time out")
         .willSetStateTo("next request will succeed")
         .willReturn(
@@ -114,20 +104,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
         ),
     )
 
-    // Fourth call succeeds
-    wiremock.stubFor(
-      WireMock.get("/all-probation-cases?size=2&page=0&sort=id%2Casc")
-        .inScenario("retry")
-        .whenScenarioStateIs("next request will succeed")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(
-              "{\n    \"content\": [\n        {\n            \"identifiers\": {\n                \"deliusId\": 2500000501,\n                \"crn\": \"D001022\"\n            },\n            \"name\": {\n                \"forename\": \"POPOneFirstName\",\n           \"middleName\":\"POPOneMiddleNameOne POPOneMiddleNameTwo\",     \"surname\": \"POPOneLastName\"\n            },\n            \"dateOfBirth\": \"1980-08-29\",\n            \"gender\": {\n                \"code\": \"M\",\n                \"description\": \"Male\"\n            },\n            \"aliases\": [{\"name\": {\n                        \"forename\": \"POPOneAliasOneFirstName\",\n                     \"middleName\":    \"POPOneAliasOneMiddleNameOne POPOneAliasOneMiddleNameTwo\",\n                        \"surname\": \"POPOneAliasOneLastName\"\n                    },\n                    \"dateOfBirth\": \"1967-11-04\"},{\"name\": {\n                        \"forename\": \"POPOneAliasTwoFirstName\",\n            \"middleName\":             \"POPOneAliasTwoMiddleNameOne POPOneAliasTwoMiddleNameTwo\",\n                        \"surname\": \"POPOneAliasTwoLastName\"\n                    },\n                    \"dateOfBirth\": \"1967-11-04\"}],\n            \"addresses\": []\n        },\n        {\n            \"identifiers\": {\n                \"deliusId\": 2500000503,\n                \"crn\": \"D001024\"\n            },\n            \"name\": {\n                \"forename\": \"POPTwoFirstName\",\n           \"middleName\":\"POPTwoMiddleNameOne POPTwoMiddleNameTwo\",     \"surname\": \"POPTwoLastName\"\n            },\n            \"dateOfBirth\": \"1990-05-18\",\n            \"gender\": {\n                \"code\": \"M\",\n                \"description\": \"Male\"\n            },\n            \"aliases\": [],\n            \"addresses\": []\n        }],\n    \"pageable\": {\n        \"pageNumber\": 6004,\n        \"pageSize\": 100,\n        \"sort\": {\n            \"unsorted\": false,\n            \"sorted\": true,\n            \"empty\": false\n        },\n        \"offset\": 600400,\n        \"paged\": true,\n        \"unpaged\": false\n    },\n    \"totalElements\": 7,\n    \"totalPages\": 4,\n    \"last\": false,\n    \"numberOfElements\": 2,\n    \"first\": true,\n    \"size\": 2,\n    \"number\": 1,\n    \"sort\": {\n        \"unsorted\": false,\n        \"sorted\": true,\n        \"empty\": false\n },\n    \"empty\": false}",
-            ),
-        ),
-    )
+    stubResponse(crnOne, "POPOne", crnTwo, "POPTwo", 0, scenarioName, STARTED, 1)
 
     webTestClient.post()
       .uri("/populatefromprobation")
@@ -135,22 +112,15 @@ class PopulateFromProbationIntTest : WebTestBase() {
       .expectStatus()
       .isOk
 
-    await.atMost(15, SECONDS) untilAsserted {
-      assertThat(personRepository.findAll().size).isEqualTo(7)
+    await.atMost(15, SECONDS) untilNotNull {
+      personRepository.findByCrn(crnTwo)
     }
 
-    val pops = personRepository.findAll()
-    assertThat(pops[0].firstName).isEqualTo("POPOneFirstName")
-    assertThat(pops[1].firstName).isEqualTo("POPTwoFirstName")
-    assertThat(pops[2].firstName).isEqualTo("POPThreeFirstName")
-    assertThat(pops[3].firstName).isEqualTo("POPFourFirstName")
-    assertThat(pops[4].firstName).isEqualTo("POPFiveFirstName")
-    assertThat(pops[5].firstName).isEqualTo("POPSixFirstName")
-    assertThat(pops[6].firstName).isEqualTo("POPSevenFirstName")
-    assertThat(pops[6].aliases.size).isEqualTo(0)
+    assertThat(personRepository.findByCrn(crnOne)!!.firstName).isEqualTo("POPOneFirstName")
+    assertThat(personRepository.findByCrn(crnTwo)!!.firstName).isEqualTo("POPTwoFirstName")
   }
 
-  private fun stubResponse(firstCrn: String, firstPrefix: String, secondCrn: String, secondPrefix: String, page: Int, scenarioName: String, scenarioState: String) {
+  private fun stubResponse(firstCrn: String, firstPrefix: String, secondCrn: String, secondPrefix: String, page: Int, scenarioName: String, scenarioState: String, totalPages: Int = 4) {
     wiremock.stubFor(
       WireMock.get("/all-probation-cases?size=2&page=$page&sort=id%2Casc")
         .inScenario(scenarioName)
@@ -158,7 +128,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(allProbationCasesResponse(firstCrn, firstPrefix, secondCrn, secondPrefix))
+            .withBody(allProbationCasesResponse(firstCrn, firstPrefix, secondCrn, secondPrefix, totalPages))
             .withStatus(200),
         ),
     )
