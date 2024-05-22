@@ -36,9 +36,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   lateinit var hmppsQueueService: HmppsQueueService
 
   @SpyBean
-  lateinit var prisonerCreatedEventProcessor: PrisonerCreatedEventProcessor
-
-  @SpyBean
   lateinit var prisonerUpdatedEventProcessor: PrisonerUpdatedEventProcessor
 
   @SpyBean

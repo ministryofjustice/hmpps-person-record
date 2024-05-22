@@ -401,7 +401,6 @@ class PopulateFromNomisIntTest : WebTestBase() {
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
             .withBody(twoPrisoners(firstNumber, firstPrefix, secondNumber, secondPrefix)),
-
         ),
     )
   }
