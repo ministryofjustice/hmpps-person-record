@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 
-import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
@@ -31,7 +30,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.helper.missingPnc
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.newProbationRecord
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.notFoundResponse
 import uk.gov.justice.digital.hmpps.personrecord.service.helper.nullPnc
-import uk.gov.justice.digital.hmpps.personrecord.service.helper.prisonerNumbersResponse
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MULTIPLE_RECORDS_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
