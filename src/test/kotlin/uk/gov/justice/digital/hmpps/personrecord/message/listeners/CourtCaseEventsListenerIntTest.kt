@@ -26,7 +26,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithAdditionalFields
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithNewDefendantAndNoPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithOneDefendant
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithSameDefendantIdTwice
@@ -123,13 +122,11 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should choose one and update when there are duplicate defendants - bug fix for CPR-331`() {
     val id1 = randomUUID().toString()
-    val id2 = randomUUID().toString()
-    val id3 = randomUUID().toString()
     personRepository.saveAndFlush(PersonEntity.from(Person.from(Defendant(id = id1))))
     personRepository.saveAndFlush(PersonEntity.from(Person.from(Defendant(id = id1))))
 
     val messageId = publishHMCTSMessage(
-      commonPlatformHearingWithNewDefendant(defendantIds = listOf(id1, id2, id3)),
+      commonPlatformHearingWithOneDefendant(pncNumber = "2003/0062845E", cro = "051072/62R", defendantId = id1),
       COMMON_PLATFORM_HEARING,
     )
 
@@ -148,7 +145,7 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("SourceSystem" to "HMCTS", "DefendantId" to id1),
     )
 
-    val personEntities = await.atMost(30, SECONDS) untilNotNull {
+    val personEntities = await.atMost(10, SECONDS) untilNotNull {
       personRepository.findAllByDefendantId(id1)
     }
     assertThat(personEntities.size).isEqualTo(2)
