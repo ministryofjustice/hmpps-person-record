@@ -18,8 +18,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConv
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.name.Names
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
-import java.time.LocalDate
 
 @Entity
 @Table(name = "person")
@@ -30,20 +30,8 @@ class PersonEntity(
   var id: Long? = null,
 
   @Column
-  var title: String? = null,
-
-  @Column(name = "first_name")
-  var firstName: String? = null,
-
-  @Column(name = "last_name")
-  var lastName: String? = null,
-
-  @Column(name = "middle_names")
-  var middleNames: String? = null,
-
-  @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
-  var aliases: MutableList<AliasEntity> = mutableListOf(),
+  var names: MutableList<NameEntity> = mutableListOf(),
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
@@ -88,15 +76,6 @@ class PersonEntity(
   @Column(name = "arrest_summons_number")
   var arrestSummonsNumber: String? = null,
 
-  @Column(name = "date_of_birth")
-  var dateOfBirth: LocalDate? = null,
-
-  @Column(name = "birth_place")
-  var birthPlace: String? = null,
-
-  @Column(name = "birth_country")
-  var birthCountry: String? = null,
-
   @Column
   @Enumerated(STRING)
   val sourceSystem: SourceSystemType,
@@ -106,13 +85,6 @@ class PersonEntity(
 
 ) {
   fun update(person: Person): PersonEntity {
-    this.title = person.title
-    this.firstName = person.givenName
-    this.middleNames = person.middleNames?.joinToString(" ") { it }
-    this.lastName = person.familyName
-    this.dateOfBirth = person.dateOfBirth
-    this.birthPlace = person.birthPlace
-    this.birthCountry = person.birthCountry
     this.defendantId = person.defendantId
     this.pnc = person.otherIdentifiers?.pncIdentifier
     this.crn = person.otherIdentifiers?.crn
@@ -123,19 +95,41 @@ class PersonEntity(
     this.arrestSummonsNumber = person.arrestSummonsNumber
     this.masterDefendantId = person.masterDefendantId
     this.nationalInsuranceNumber = person.nationalInsuranceNumber
+    updateChildEntities(person)
     return this
+  }
+
+  fun getNames(): Names {
+    return Names.from(this.names)
+  }
+
+  private fun updateChildEntities(person: Person) {
+    updatePersonAddresses(person)
+    updatePersonContacts(person)
+    updatePersonNames(person)
+  }
+
+  private fun updatePersonAddresses(person: Person) {
+    val personAddresses = AddressEntity.fromList(person.addresses)
+    personAddresses.forEach { personAddressEntity -> personAddressEntity.person = this }
+    this.addresses.addAll(personAddresses)
+  }
+
+  private fun updatePersonNames(person: Person) {
+    val personNames: List<NameEntity> = person.names.build()
+    personNames.forEach { personNameEntity -> personNameEntity.person = this }
+    this.names.addAll(personNames)
+  }
+
+  private fun updatePersonContacts(person: Person) {
+    val personContacts = ContactEntity.fromList(person.contacts)
+    personContacts.forEach { personContactEntity -> personContactEntity.person = this }
+    this.contacts.addAll(personContacts)
   }
 
   companion object {
     fun from(person: Person): PersonEntity {
       val personEntity = PersonEntity(
-        title = person.title,
-        firstName = person.givenName,
-        middleNames = person.middleNames?.joinToString(" ") { it },
-        lastName = person.familyName,
-        dateOfBirth = person.dateOfBirth,
-        birthPlace = person.birthPlace,
-        birthCountry = person.birthCountry,
         defendantId = person.defendantId,
         pnc = person.otherIdentifiers?.pncIdentifier,
         crn = person.otherIdentifiers?.crn,
@@ -148,9 +142,7 @@ class PersonEntity(
         nationalInsuranceNumber = person.nationalInsuranceNumber,
         sourceSystem = person.sourceSystemType,
       )
-      val personAliases = AliasEntity.fromList(person.aliases)
-      personAliases.forEach { personAliasEntity -> personAliasEntity.person = personEntity }
-      personEntity.aliases.addAll(personAliases)
+      personEntity.updateChildEntities(person)
       return personEntity
     }
   }

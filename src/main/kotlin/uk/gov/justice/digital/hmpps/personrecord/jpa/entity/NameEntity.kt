@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType.STRING
+import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
@@ -10,12 +12,13 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
+import uk.gov.justice.digital.hmpps.personrecord.model.person.name.Name
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import java.time.LocalDate
 
 @Entity
-@Table(name = "alias")
-class AliasEntity(
+@Table(name = "name")
+class NameEntity(
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,6 +32,9 @@ class AliasEntity(
   )
   var person: PersonEntity? = null,
 
+  @Column
+  var title: String? = null,
+
   @Column(name = "first_name")
   val firstName: String? = null,
 
@@ -41,24 +47,31 @@ class AliasEntity(
   @Column(name = "date_of_birth")
   val dateOfBirth: LocalDate? = null,
 
+  @Column
+  @Enumerated(STRING)
+  val type: NameType,
+
   @Version
   var version: Int = 0,
 ) {
   companion object {
-    private fun from(alias: Alias): AliasEntity? =
+    private fun from(name: Name): NameEntity? =
       when {
-        isAliasPresent(alias.firstName, alias.middleNames, alias.lastName) ->
-          AliasEntity(
-            firstName = alias.firstName,
-            middleNames = alias.middleNames,
-            lastName = alias.lastName,
+        nameExists(name.firstName, name.middleNames, name.lastName) ->
+          NameEntity(
+            title = name.title,
+            firstName = name.firstName,
+            middleNames = name.middleNames,
+            lastName = name.lastName,
+            dateOfBirth = name.dateOfBirth,
+            type = name.type,
           )
         else -> null
       }
 
-    fun fromList(aliases: List<Alias>): List<AliasEntity> = aliases.mapNotNull { from(it) }
+    fun fromList(names: List<Name>): List<NameEntity> = names.mapNotNull { from(it) }
 
-    private fun isAliasPresent(firstName: String?, middleNames: String?, surname: String?): Boolean =
+    private fun nameExists(firstName: String?, middleNames: String?, surname: String?): Boolean =
       sequenceOf(firstName, middleNames, surname)
         .filterNotNull().any { it.isNotBlank() }
   }
