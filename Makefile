@@ -9,3 +9,5 @@ start-containers:
 
 stop-containers:
 	docker compose down
+
+restart-containers: stop-containers start-containers
