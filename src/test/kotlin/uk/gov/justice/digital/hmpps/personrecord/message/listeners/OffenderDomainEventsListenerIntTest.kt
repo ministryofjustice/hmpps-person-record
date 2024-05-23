@@ -7,11 +7,7 @@ import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOffenderDetail
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.delius.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PRISONER_CREATED
@@ -21,10 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MULTIPLE_RECORDS_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DELIUS_RECORD_CREATION_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NOMIS_CREATE_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.NOMIS_UPDATE_MESSAGE_RECEIVED
@@ -62,46 +55,6 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
-  }
-
-  @Test
-  fun `should handle multiple records with same crn, updates first`() {
-    val crn = UUID.randomUUID().toString()
-    patchRequest(probationDomainCreatedEventUrl(crn), newProbationRecord(crn))
-
-    personRepository.saveAndFlush(
-      PersonEntity.from(
-        Person.from(
-          DeliusOffenderDetail(
-            name = Name(surname = "Smith"),
-            identifiers = Identifiers(crn = crn),
-          ),
-        ),
-      ),
-    )
-    personRepository.saveAndFlush(
-      PersonEntity.from(
-        Person.from(
-          DeliusOffenderDetail(
-            name = Name(surname = "Smith"),
-            identifiers = Identifiers(crn = crn),
-          ),
-        ),
-      ),
-    )
-
-    val crnType = PersonIdentifier("CRN", crn)
-    val personReference = PersonReference(listOf(crnType))
-    val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
-    publishOffenderDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
-
-    val personEntities = await.atMost(10, SECONDS) untilNotNull { personRepository.findAllByCrn(crn) }
-    assertThat(personEntities.size).isEqualTo(2)
-    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
-
-    checkTelemetry(CPR_MULTIPLE_RECORDS_FOUND, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
-
-    checkTelemetry(CPR_RECORD_UPDATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
   }
 
   @Test

@@ -44,7 +44,7 @@ class OffenderCreatedEventProcessor(
       onSuccess = { deliusOffenderDetail ->
         deliusOffenderDetail?.let {
           personService.processMessage(Person.from(deliusOffenderDetail)) {
-            personRepository.findAllByCrn(deliusOffenderDetail.identifiers.crn)
+            personRepository.findByCrn(deliusOffenderDetail.identifiers.crn)
           }
         }
       },

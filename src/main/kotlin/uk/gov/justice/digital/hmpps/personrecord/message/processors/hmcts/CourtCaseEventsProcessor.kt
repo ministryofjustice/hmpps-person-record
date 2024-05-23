@@ -72,7 +72,7 @@ class CourtCaseEventsProcessor(
   private fun process(person: Person) {
     personService.processMessage(person) {
       person.defendantId?.let {
-        personRepository.findAllByDefendantId(it)
+        personRepository.findByDefendantId(it)
       }
     }
   }

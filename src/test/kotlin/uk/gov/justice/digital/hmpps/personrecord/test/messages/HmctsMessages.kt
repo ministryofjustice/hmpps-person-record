@@ -657,7 +657,7 @@ fun commonPlatformHearingWithSameDefendantIdTwice(defendantId: String, pncNumber
               { 
                 "id": "$defendantId",
                 "pncId": "$pncNumber",
-                "croNumber": "75715/64Q",
+                "croNumber": "51072/62R",
                 "offences": [
                   {
                     "id": "a63d9020-aa6b-4997-92fd-72a692b036de",

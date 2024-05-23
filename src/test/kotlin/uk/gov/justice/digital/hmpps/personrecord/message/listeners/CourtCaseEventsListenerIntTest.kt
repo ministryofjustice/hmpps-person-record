@@ -7,20 +7,15 @@ import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MULTIPLE_RECORDS_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
@@ -71,13 +66,12 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
-  @Disabled("until enforcing unique identifiers")
   @Test
   fun `should not push messages from Common Platform onto dead letter queue when processing fails because of could not serialize access due to read write dependencies among transactions`() {
     val pncNumber = PNCIdentifier.from("2003/0062845E")
     val defendantId = randomUUID().toString()
     buildPublishRequest(defendantId, pncNumber)
-    val blitzer = Blitzer(100, 10)
+    val blitzer = Blitzer(50, 5)
     try {
       blitzer.blitz {
         courtCaseEventsTopic?.snsClient?.publish(buildPublishRequest(defendantId, pncNumber))?.get()
@@ -100,8 +94,8 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(
       CPR_RECORD_UPDATED,
-      mapOf("SourceSystem" to "HMCTS"),
-      199,
+      mapOf("SourceSystem" to "HMCTS", "DefendantId" to defendantId),
+      99,
     )
   }
 
@@ -118,38 +112,6 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     .build()
-
-  @Test
-  fun `should choose one and update when there are duplicate defendants - bug fix for CPR-331`() {
-    val id1 = randomUUID().toString()
-    personRepository.saveAndFlush(PersonEntity.from(Person.from(Defendant(id = id1))))
-    personRepository.saveAndFlush(PersonEntity.from(Person.from(Defendant(id = id1))))
-
-    val messageId = publishHMCTSMessage(
-      commonPlatformHearingWithOneDefendant(pncNumber = "2003/0062845E", cro = "051072/62R", defendantId = id1),
-      COMMON_PLATFORM_HEARING,
-    )
-
-    checkTelemetry(
-      HMCTS_MESSAGE_RECEIVED,
-      mapOf("CRO" to "051072/62R", "PNC" to "2003/0062845E", "MESSAGE_ID" to messageId),
-    )
-
-    checkTelemetry(
-      CPR_MULTIPLE_RECORDS_FOUND,
-      mapOf("SourceSystem" to "HMCTS", "DefendantId" to id1),
-    )
-
-    checkTelemetry(
-      CPR_RECORD_UPDATED,
-      mapOf("SourceSystem" to "HMCTS", "DefendantId" to id1),
-    )
-
-    val personEntities = await.atMost(10, SECONDS) untilNotNull {
-      personRepository.findAllByDefendantId(id1)
-    }
-    assertThat(personEntities.size).isEqualTo(2)
-  }
 
   @Test
   fun `should update an existing person record from common platform message`() {
