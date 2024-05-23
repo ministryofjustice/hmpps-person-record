@@ -64,6 +64,8 @@ spring:
       read-timeout: 300
       default-request-headers:
         Accept: application/json
+  flyway:
+    out-of-order: true
 
 populate-from-nomis:
     page-size: 2

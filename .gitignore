@@ -76,3 +76,4 @@ sonar-project.properties
 
 .trivyignore
 .vscode
+bin
