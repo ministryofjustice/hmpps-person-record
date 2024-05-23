@@ -1,8 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import kotlinx.coroutines.runBlocking
+import org.hibernate.exception.ConstraintViolationException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.CannotAcquireLockException
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
 import org.springframework.orm.jpa.JpaSystemException
@@ -29,24 +31,21 @@ class PersonService(
     CannotAcquireLockException::class,
     JpaSystemException::class,
     JpaObjectRetrievalFailureException::class,
+    DataIntegrityViolationException::class,
+    ConstraintViolationException::class,
   )
 
-  fun processMessage(person: Person, callback: () -> List<PersonEntity>?) = runBlocking {
+  fun processMessage(person: Person, callback: () -> PersonEntity?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, retryExceptions) {
       readWriteLockService.withWriteLock { processPerson(person, callback) }
     }
   }
 
-  private fun processPerson(person: Person, callback: () -> List<PersonEntity>?) {
-    val existingPersonEntities: List<PersonEntity>? = callback()
+  private fun processPerson(person: Person, callback: () -> PersonEntity?) {
+    val existingPersonEntities: PersonEntity? = callback()
     when {
-      (existingPersonEntities.isNullOrEmpty()) -> handlePersonCreation(person)
-      else -> {
-        if (existingPersonEntities.size > 1) {
-          trackEvent(TelemetryEventType.CPR_MULTIPLE_RECORDS_FOUND, person)
-        }
-        handlePersonUpdate(person, existingPersonEntities[0])
-      }
+      (existingPersonEntities == null) -> handlePersonCreation(person)
+      else -> handlePersonUpdate(person, existingPersonEntities)
     }
   }
 

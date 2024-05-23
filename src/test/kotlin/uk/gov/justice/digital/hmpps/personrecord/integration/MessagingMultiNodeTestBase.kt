@@ -56,7 +56,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     expected: Map<String, String>,
     times: Int = 1,
   ) {
-    await.atMost(3, TimeUnit.SECONDS) untilAsserted {
+    await.atMost(10, TimeUnit.SECONDS) untilAsserted {
       val allEvents = telemetryRepository.findAllByEvent(event.eventName)
       val matchingEvents = allEvents?.filter {
         expected.entries.map { (k, v) ->

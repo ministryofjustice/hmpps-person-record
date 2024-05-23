@@ -18,6 +18,7 @@ object RetryExecutor {
         return retryFunction()
       } catch (e: Exception) {
         if (e::class in exceptions) {
+          println("Retrying on exception, on ${e.message}")
           lastException = e
         } else {
           throw e
