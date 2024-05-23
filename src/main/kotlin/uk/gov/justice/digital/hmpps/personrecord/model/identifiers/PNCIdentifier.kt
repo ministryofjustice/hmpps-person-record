@@ -1,21 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
-import org.apache.commons.lang3.builder.EqualsBuilder
-import org.apache.commons.lang3.builder.HashCodeBuilder
 import java.time.LocalDate
 
-class PNCIdentifier(val pncId: String) {
+data class PNCIdentifier(val pncId: String) {
 
   val valid: Boolean
     get() = pncId.isNotEmpty()
-
-  override fun equals(other: Any?): Boolean {
-    return EqualsBuilder.reflectionEquals(this, other)
-  }
-
-  override fun hashCode(): Int {
-    return HashCodeBuilder.reflectionHashCode(this)
-  }
 
   override fun toString(): String {
     return pncId

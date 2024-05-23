@@ -1,20 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
-import org.apache.commons.lang3.builder.EqualsBuilder
-import org.apache.commons.lang3.builder.HashCodeBuilder
-
-class CROIdentifier(val croId: String, val fingerprint: Boolean, val inputCro: String = EMPTY_CRO) {
+data class CROIdentifier(val croId: String, val fingerprint: Boolean, val inputCro: String = EMPTY_CRO) {
 
   val valid: Boolean
     get() = croId.isNotEmpty() && croId.isNotEmpty()
-
-  override fun equals(other: Any?): Boolean {
-    return EqualsBuilder.reflectionEquals(this, other)
-  }
-
-  override fun hashCode(): Int {
-    return HashCodeBuilder.reflectionHashCode(this)
-  }
 
   override fun toString(): String {
     return croId
