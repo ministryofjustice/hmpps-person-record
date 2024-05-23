@@ -7,6 +7,10 @@ data class PNCIdentifier(val pncId: String) {
   val valid: Boolean
     get() = pncId.isNotEmpty()
 
+  override fun toString(): String {
+    return pncId
+  }
+
   companion object {
 
     internal const val SERIAL_NUM_LENGTH = 7
