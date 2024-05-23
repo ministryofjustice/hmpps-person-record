@@ -63,9 +63,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
           JSONObject(it.properties).get(k).equals(v)
         }.all { it }
       }
-      assertThat(matchingEvents?.size)
-        .isEqualTo(times)
-        .withFailMessage("Failed to match $event with properties $expected to ${allEvents?.forEach { it.properties }}")
+      assertThat(matchingEvents?.size).`as`("Missing data $event $expected and actual data $allEvents").isEqualTo(times)
     }
   }
 

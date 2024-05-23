@@ -28,7 +28,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithAdditionalFields
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithNewDefendant
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithNewDefendantAndNoPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithOneDefendant
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithSameDefendantIdTwice
@@ -125,13 +124,11 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should choose one and update when there are duplicate defendants - bug fix for CPR-331`() {
     val id1 = randomUUID().toString()
-    val id2 = randomUUID().toString()
-    val id3 = randomUUID().toString()
     personRepository.saveAndFlush(PersonEntity.from(Person.from(Defendant(id = id1))))
     personRepository.saveAndFlush(PersonEntity.from(Person.from(Defendant(id = id1))))
 
     val messageId = publishHMCTSMessage(
-      commonPlatformHearingWithNewDefendant(defendantIds = listOf(id1, id2, id3)),
+      commonPlatformHearingWithOneDefendant(pncNumber = "2003/0062845E", cro = "051072/62R", defendantId = id1),
       COMMON_PLATFORM_HEARING,
     )
 
@@ -150,28 +147,10 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("SourceSystem" to "HMCTS", "DefendantId" to id1),
     )
 
-    val personEntities = await.atMost(30, SECONDS) untilNotNull {
+    val personEntities = await.atMost(10, SECONDS) untilNotNull {
       personRepository.findAllByDefendantId(id1)
     }
     assertThat(personEntities.size).isEqualTo(2)
-  }
-
-  @Test
-  fun `should create new person record from common platform message`() {
-    val id1 = randomUUID().toString()
-    val id2 = randomUUID().toString()
-    val id3 = randomUUID().toString()
-    publishHMCTSMessage(commonPlatformHearingWithNewDefendant(defendantIds = listOf(id1, id2, id3)), COMMON_PLATFORM_HEARING)
-
-    val personEntity = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByDefendantId(id1)
-    }
-
-    assertThat(personEntity.pnc).isEqualTo(PNCIdentifier.from("2003/0062845E"))
-    assertThat(personEntity.cro).isEqualTo(CROIdentifier.from("51072/62R"))
-    assertThat(personEntity.fingerprint).isEqualTo(true)
-    assertThat(personEntity.addresses.size).isEqualTo(1)
-    assertThat(personEntity.addresses[0].postcode).isEqualTo("CF10 1FU")
   }
 
   @Test
@@ -206,6 +185,7 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.getNames().preferred.lastName).isEqualTo("Smith")
       assertThat(updatedPersonEntity.pnc).isEqualTo(PNCIdentifier.from("1981/0154257C"))
       assertThat(updatedPersonEntity.cro).isEqualTo(CROIdentifier.from("86621/65B"))
+      assertThat(updatedPersonEntity.fingerprint).isEqualTo(true)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
     }
 

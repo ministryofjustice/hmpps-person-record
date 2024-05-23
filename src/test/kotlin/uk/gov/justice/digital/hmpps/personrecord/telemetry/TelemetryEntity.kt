@@ -10,7 +10,7 @@ import jakarta.persistence.Version
 
 @Entity
 @Table(name = "telemetry")
-class TelemetryEntity(
+data class TelemetryEntity(
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,4 +24,5 @@ class TelemetryEntity(
 
   @Version
   var version: Int = 0,
+
 )
