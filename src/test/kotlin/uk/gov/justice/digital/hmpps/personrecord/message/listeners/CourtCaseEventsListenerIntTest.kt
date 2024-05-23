@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defe
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.person.name.Names
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MULTIPLE_RECORDS_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -241,7 +240,7 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity2.contacts.size).isEqualTo(3)
     assertThat(personEntity2.masterDefendantId).isEqualTo("1f6847a2-6663-44dd-b945-fe2c20961d0a")
 
-    assertThat(Names.from(personEntity3.names).aliases).isEmpty()
+    assertThat(personEntity3.getNames().aliases).isEmpty()
     assertThat(personEntity3.contacts.size).isEqualTo(0)
     assertThat(personEntity3.pnc).isEqualTo(pncNumber3)
     assertThat(personEntity3.nationalInsuranceNumber).isEqualTo("PC456743D")
