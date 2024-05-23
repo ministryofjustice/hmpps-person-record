@@ -71,7 +71,7 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val pncNumber = PNCIdentifier.from("2003/0062845E")
     val defendantId = randomUUID().toString()
     buildPublishRequest(defendantId, pncNumber)
-    val blitzer = Blitzer(30, 5)
+    val blitzer = Blitzer(50, 5)
     try {
       blitzer.blitz {
         courtCaseEventsTopic?.snsClient?.publish(buildPublishRequest(defendantId, pncNumber))?.get()
@@ -95,7 +95,7 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       CPR_RECORD_UPDATED,
       mapOf("SourceSystem" to "HMCTS", "DefendantId" to defendantId),
-      59,
+      99,
     )
   }
 

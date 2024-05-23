@@ -111,6 +111,6 @@ class PersonService(
   }
 
   companion object {
-    const val MAX_ATTEMPTS: Int = 3
+    const val MAX_ATTEMPTS: Int = 5
   }
 }
