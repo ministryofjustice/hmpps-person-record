@@ -29,7 +29,6 @@ core-person-record-and-delius:
 feature:
   flags:
     enable-hmcts-sqs: true
-    enable-delius-search: true
     enable-delius-domain-event-sqs: true
 
 retry:
