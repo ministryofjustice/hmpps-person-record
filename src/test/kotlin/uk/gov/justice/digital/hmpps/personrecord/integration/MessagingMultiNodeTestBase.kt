@@ -48,8 +48,13 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   val courtCaseEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprcourtcaseeventsqueue")
   }
+
   val offenderEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprdeliusoffendereventsqueue")
+  }
+
+  val prisonerEventsQueue by lazy {
+    hmppsQueueService.findByQueueId("cprnomiseventsqueue")
   }
 
   @Autowired
@@ -97,7 +102,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     } matches { it == 0 }
   }
 
-  fun publishOffenderDomainEvent(eventType: String, domainEvent: DomainEvent) {
+  fun publishDomainEvent(eventType: String, domainEvent: DomainEvent) {
     val domainEventAsString = objectMapper.writeValueAsString(domainEvent)
     val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
       .message(domainEventAsString)
@@ -111,6 +116,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     domainEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
     expectNoMessagesOn(offenderEventsQueue)
+    expectNoMessagesOn(prisonerEventsQueue)
   }
 
   fun patchRequest(url: String, body: String, statusCode: Int = 200) {
@@ -144,6 +150,12 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
     offenderEventsQueue!!.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(offenderEventsQueue!!.dlqUrl).build(),
+    )
+    prisonerEventsQueue!!.sqsClient.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(prisonerEventsQueue!!.queueUrl).build(),
+    )
+    prisonerEventsQueue!!.sqsDlqClient!!.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(prisonerEventsQueue!!.dlqUrl).build(),
     )
   }
 }

@@ -68,6 +68,10 @@ generic-service:
       HMPPS_SQS_QUEUES_CPRDELIUSOFFENDEREVENTSQUEUE_QUEUE_NAME: "sqs_queue_name"
     sqs-cpr-delius-offender-events-dlq-secret:
       HMPPS_SQS_QUEUES_CPRDELIUSOFFENDEREVENTSQUEUE_DLQ_NAME: "sqs_queue_name"
+    sqs-cpr-nomis-events-secret:
+      HMPPS_SQS_QUEUES_CPRNOMISEVENTSQUEUE_QUEUE_NAME: "sqs_queue_name"
+    sqs-cpr-nomis-events-dlq-secret:
+      HMPPS_SQS_QUEUES_CPRNOMISEVENTSQUEUE_DLQ_NAME: "sqs_queue_name"
 
     hmpps-person-record-rds-instance-output:
       DATABASE_NAME: "database_name"
