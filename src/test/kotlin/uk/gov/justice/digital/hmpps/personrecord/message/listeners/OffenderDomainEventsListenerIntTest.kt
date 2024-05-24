@@ -6,9 +6,7 @@ import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.delius.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
@@ -25,9 +23,6 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit.SECONDS
 
 class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
-
-  @Autowired
-  lateinit var personRepository: PersonRepository
 
   private fun probationDomainCreatedEventUrl(crn: String) = "/probation-case.engagement.created/$crn"
 

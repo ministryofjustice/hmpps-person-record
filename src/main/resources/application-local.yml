@@ -46,5 +46,4 @@ hmpps.sqs:
 
 feature.flags:
   enable-hmcts-sqs: true
-  enable-delius-search: true
   enable-delius-domain-event-sqs: true

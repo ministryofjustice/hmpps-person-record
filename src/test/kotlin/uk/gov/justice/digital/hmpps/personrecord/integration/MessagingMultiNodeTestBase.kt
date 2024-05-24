@@ -15,6 +15,7 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -26,6 +27,9 @@ import java.util.concurrent.TimeUnit
 
 @ExtendWith(MultiApplicationContextExtension::class)
 abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
+
+  @Autowired
+  lateinit var personRepository: PersonRepository
 
   @Autowired
   lateinit var objectMapper: ObjectMapper
