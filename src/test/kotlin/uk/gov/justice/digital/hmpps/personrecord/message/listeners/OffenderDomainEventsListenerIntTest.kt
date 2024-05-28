@@ -7,7 +7,6 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.delius.NEW_OFFENDER_CREATED
@@ -91,7 +90,6 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should not push 404 to dead letter queue`() {
     val crn = UUID.randomUUID().toString()
-    // STUB here
     stub404Response(crn)
 
     val crnType = PersonIdentifier("CRN", crn)
@@ -109,13 +107,11 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
   }
 
-  @Disabled
   @Test
   fun `should receive the message successfully when OFFENDER_ADDRESS_CHANGED`() {
     val crn = UUID.randomUUID().toString()
     val pnc = "2020/0476873U"
     val probationCaseResponseSetup = ProbationCaseResponseSetup(crn = crn, pnc = pnc, prefix = "POPOne")
-    println(probationCaseResponse(probationCaseResponseSetup))
     stubSingleResponse(probationCaseResponseSetup, scenarioName, STARTED)
     val expectedPncNumber = PNCIdentifier.from(pnc)
 
