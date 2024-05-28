@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DOMAIN_EVENT_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
@@ -33,7 +34,6 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(personEntity.pnc).isEqualTo(PNCIdentifier("2020/0476873U"))
-    assertThat(personEntity.crn).isEqualTo(crn)
 
     checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to NEW_OFFENDER_CREATED, "SourceSystem" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
@@ -45,7 +45,6 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
     assertThat(personEntity.pnc?.pncId).isEqualTo("")
-    assertThat(personEntity.crn).isEqualTo(crn)
 
     checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to NEW_OFFENDER_CREATED, "SourceSystem" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
@@ -58,7 +57,6 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
     assertThat(personEntity.pnc?.pncId).isEqualTo("")
-    assertThat(personEntity.crn).isEqualTo(crn)
 
     checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to NEW_OFFENDER_CREATED, "SourceSystem" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
@@ -85,19 +83,22 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should receive the message successfully when OFFENDER_ADDRESS_CHANGED`() {
-    val crn = domainEvent("OFFENDER_ADDRESS_CHANGED", "2020/0476873U")
+  fun `should process OFFENDER_ADDRESS_CHANGED event successfully`() {
+    val crn = domainEvent(NEW_OFFENDER_CREATED, "2020/0476873U")
+    await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to NEW_OFFENDER_CREATED, "SourceSystem" to "DELIUS"))
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
+    domainEvent("OFFENDER_ADDRESS_CHANGED", "2020/0476873U", crn)
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(personEntity.pnc).isEqualTo(PNCIdentifier("2020/0476873U"))
-    assertThat(personEntity.crn).isEqualTo(crn)
 
     checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to "OFFENDER_ADDRESS_CHANGED", "SourceSystem" to "DELIUS"))
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
+    checkTelemetry(CPR_RECORD_UPDATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
+    // TODO actually change the record and assert on it
   }
 
-  private fun domainEvent(eventType: String, pnc: String?): String {
-    val crn = UUID.randomUUID().toString()
+  private fun domainEvent(eventType: String, pnc: String?, crn: String = UUID.randomUUID().toString()): String {
     val probationCaseResponseSetup = ProbationCaseResponseSetup(crn = crn, pnc = pnc, prefix = "POPOne")
     stubSingleResponse(probationCaseResponseSetup, scenarioName, STARTED)
 
