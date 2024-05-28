@@ -4,8 +4,8 @@ import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.client.OffenderDetailRestClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOffenderDetail
+import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.EventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DELIUS_RECORD_CREATION_RECEIVED
-import java.net.URI
 
 const val NEW_OFFENDER_CREATED = "probation-case.engagement.created"
 const val MAX_RETRY_ATTEMPTS: Int = 3
@@ -22,7 +21,7 @@ const val MAX_RETRY_ATTEMPTS: Int = 3
 @Component(value = NEW_OFFENDER_CREATED)
 class OffenderCreatedEventProcessor(
   val telemetryService: TelemetryService,
-  val offenderDetailRestClient: OffenderDetailRestClient,
+  val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
   val personService: PersonService,
   val personRepository: PersonRepository,
 ) : EventProcessor() {
@@ -33,18 +32,16 @@ class OffenderCreatedEventProcessor(
   }
 
   override fun processEvent(domainEvent: DomainEvent) {
-    val offenderDetailUrl = domainEvent.detailUrl
-    val crnIdentifier = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }
+    val crn = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }!!.value
     telemetryService.trackEvent(
       DELIUS_RECORD_CREATION_RECEIVED,
-      mapOf("CRN" to crnIdentifier?.value),
+      mapOf("CRN" to crn),
     )
-    log.debug("Entered processEvent with  url $offenderDetailUrl")
-    getNewOffenderDetail(offenderDetailUrl).fold(
-      onSuccess = { deliusOffenderDetail ->
-        deliusOffenderDetail?.let {
-          personService.processMessage(Person.from(deliusOffenderDetail)) {
-            personRepository.findByCrn(deliusOffenderDetail.identifiers.crn)
+    getProbationCase(crn).fold(
+      onSuccess = {
+        it?.let {
+          personService.processMessage(Person.from(it)) {
+            personRepository.findByCrn(crn)
           }
         }
       },
@@ -55,10 +52,10 @@ class OffenderCreatedEventProcessor(
     )
   }
 
-  private fun getNewOffenderDetail(offenderDetailsUrl: String): Result<DeliusOffenderDetail?> = runBlocking {
+  private fun getProbationCase(crn: String): Result<ProbationCase?> = runBlocking {
     try {
       return@runBlocking RetryExecutor.runWithRetry(MAX_RETRY_ATTEMPTS, retryDelay) {
-        Result.success(offenderDetailRestClient.getNewOffenderDetail(URI.create(offenderDetailsUrl).path))
+        Result.success(corePersonRecordAndDeliusClient.getProbationCase(crn))
       }
     } catch (e: Exception) {
       Result.failure(e)
