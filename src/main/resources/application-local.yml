@@ -4,9 +4,6 @@ match-score:
 nomis-oauth:
   base-url: https://sign-in-dev.hmpps.service.justice.gov.uk
 
-offender-search:
-  base-url: https://probation-offender-search-dev.hmpps.service.justice.gov.uk
-
 prisoner-search:
   base-url: https://prisoner-search-dev.prison.service.justice.gov.uk
 
