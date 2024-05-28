@@ -29,16 +29,7 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should receive the message successfully when new offender event published`() {
-    val crn = UUID.randomUUID().toString()
-    val pnc = "2020/0476873U"
-    val probationCaseResponseSetup = ProbationCaseResponseSetup(pnc = "2020/0476873U", crn = crn, prefix = "POPOne")
-    stubSingleResponse(probationCaseResponseSetup, scenarioName, STARTED)
-    val expectedPncNumber = PNCIdentifier(pnc)
-
-    val crnType = PersonIdentifier("CRN", crn)
-    val personReference = PersonReference(listOf(crnType))
-    val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
-    publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
+    val (crn, expectedPncNumber) = domainEvent(NEW_OFFENDER_CREATED)
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(personEntity.pnc).isEqualTo(expectedPncNumber)
