@@ -9,7 +9,6 @@ import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.delius.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonReference
@@ -22,9 +21,11 @@ import java.time.Duration
 import java.util.UUID
 import java.util.concurrent.TimeUnit.SECONDS
 
+const val NEW_OFFENDER_CREATED = "probation-case.engagement.created"
+
 class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
-  private val scenarioName: String = "scemario"
+  private val scenarioName: String = "scenario"
 
   @Test
   fun `should receive the message successfully when new offender event published`() {

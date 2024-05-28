@@ -9,7 +9,7 @@ import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.delius.OffenderCreatedEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.delius.OffenderEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
 
@@ -17,7 +17,7 @@ const val OFFENDER_EVENTS_QUEUE_CONFIG_KEY = "cprdeliusoffendereventsqueue"
 
 @Component
 class OffenderDomainEventsListener(
-  val eventProcessor: OffenderCreatedEventProcessor,
+  val eventProcessor: OffenderEventProcessor,
   val objectMapper: ObjectMapper,
   val featureFlag: FeatureFlag,
 ) {
@@ -43,7 +43,7 @@ class OffenderDomainEventsListener(
         log.debug("Received message: type:${domainEvent.eventType}")
 
         try {
-          eventProcessor.process(domainEvent)
+          eventProcessor.processEvent(domainEvent)
         } catch (e: FeignException.NotFound) {
           log.info("Discarding message for status code: ${e.status()}")
         } catch (e: Exception) {
