@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DELIUS_RECORD_CREATION_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DOMAIN_EVENT_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
@@ -44,7 +44,7 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.pnc).isEqualTo(expectedPncNumber)
     assertThat(personEntity.crn).isEqualTo(crn)
 
-    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to NEW_OFFENDER_CREATED, "SourceSystem" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
   }
 
@@ -64,7 +64,7 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.pnc?.pncId).isEqualTo("")
     assertThat(personEntity.crn).isEqualTo(crn)
 
-    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to NEW_OFFENDER_CREATED, "SourceSystem" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
   }
 
@@ -84,7 +84,7 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.pnc?.pncId).isEqualTo("")
     assertThat(personEntity.crn).isEqualTo(crn)
 
-    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to NEW_OFFENDER_CREATED, "SourceSystem" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
   }
 
@@ -105,7 +105,7 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     await.atMost(Duration.ofSeconds(5)) untilCallTo {
       offenderEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(offenderEventsQueue!!.dlqUrl!!)?.get()
     } matches { it == 0 }
-    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to NEW_OFFENDER_CREATED, "SourceSystem" to "DELIUS"))
   }
 
   @Test
@@ -131,8 +131,7 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.pnc).isEqualTo(expectedPncNumber)
     assertThat(personEntity.crn).isEqualTo(crn)
 
-    // DELIUS_RECORD_CREATION_RECEIVED is not the correct telemetry event
-    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to "OFFENDER_ADDRESS_CHANGED", "SourceSystem" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
   }
 

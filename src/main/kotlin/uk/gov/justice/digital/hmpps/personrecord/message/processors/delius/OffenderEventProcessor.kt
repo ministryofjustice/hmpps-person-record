@@ -9,10 +9,11 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DELIUS_RECORD_CREATION_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DOMAIN_EVENT_RECEIVED
 
 const val MAX_RETRY_ATTEMPTS: Int = 3
 
@@ -32,8 +33,8 @@ class OffenderEventProcessor(
   fun processEvent(domainEvent: DomainEvent) {
     val crn = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }!!.value
     telemetryService.trackEvent(
-      DELIUS_RECORD_CREATION_RECEIVED,
-      mapOf("CRN" to crn),
+      DOMAIN_EVENT_RECEIVED,
+      mapOf("CRN" to crn, "eventType" to domainEvent.eventType, "SourceSystem" to SourceSystemType.DELIUS.name),
     )
     getProbationCase(crn).fold(
       onSuccess = {
