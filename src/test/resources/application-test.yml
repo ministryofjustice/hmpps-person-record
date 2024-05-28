@@ -11,9 +11,6 @@ match-score:
 nomis-oauth:
   base-url: http://localhost:8090
 
-offender-search:
-  base-url: http://localhost:8090
-
 prisoner-search:
   base-url: http://localhost:8090
 

@@ -10,12 +10,6 @@ spring:
           issuer-uri: ${nomis-oauth.issuer-base-url:${nomis-oauth.base-url}}/auth/issuer
       client:
         registration:
-          offender-search:
-            provider:  nomis-oauth-service
-            client-authentication-method: client_secret_basic
-            authorization-grant-type: client_credentials
-            client-id: ${offender-search.client-id}
-            client-secret: ${offender-search.client-secret}
           prisoner-search:
             provider: nomis-oauth-service
             client-authentication-method: client_secret_basic
@@ -109,9 +103,6 @@ management:
     info:
       cache:
         time-to-live: 2000ms
-
-offender-search:
-  offender-detail: /search
 
 prisoner-search:
   possible-matches: /prisoner-search/possible-matches
