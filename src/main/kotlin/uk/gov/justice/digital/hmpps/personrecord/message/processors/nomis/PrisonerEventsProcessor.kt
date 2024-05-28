@@ -31,7 +31,7 @@ class PrisonerEventsProcessor(
   }
 
   fun processEvent(domainEvent: DomainEvent) {
-    val prisonNumber = domainEvent.additionalInformation?.prisonNumber ?: ""
+    val prisonNumber = domainEvent.additionalInformation?.prisonNumber!!
     telemetryService.trackEvent(
       TelemetryEventType.DOMAIN_EVENT_RECEIVED,
       mapOf("eventType" to domainEvent.eventType, "PRISON_NUMBER" to prisonNumber, "SourceSystem" to SourceSystemType.NOMIS.name),
