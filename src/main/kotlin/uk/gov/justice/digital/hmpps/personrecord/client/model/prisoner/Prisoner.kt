@@ -29,14 +29,14 @@ data class Prisoner(
   val cro: CROIdentifier?,
   val dateOfBirth: LocalDate,
   val aliases: List<Alias>?,
-  val emailAddresses: List<EmailAddress>? = emptyList(),
-  val phoneNumbers: List<PhoneNumber>? = emptyList(),
+  val emailAddresses: List<EmailAddress> = emptyList(),
+  val phoneNumbers: List<PhoneNumber> = emptyList(),
 ) {
   fun getHomePhone(): String? {
-    return phoneNumbers?.firstOrNull { it.type == "HOME" }?.number
+    return phoneNumbers.firstOrNull { it.type == "HOME" }?.number
   }
 
   fun getMobilePhone(): String? {
-    return phoneNumbers?.firstOrNull { it.type == "MOB" }?.number
+    return phoneNumbers.firstOrNull { it.type == "MOB" }?.number
   }
 }

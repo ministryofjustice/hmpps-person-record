@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PrisonerEventsProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SQSMessageType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NOTIFICATION
 
 const val PRISONER_EVENTS_QUEUE_CONFIG_KEY = "cprnomiseventsqueue"
 
@@ -33,7 +33,7 @@ class PrisonerDomainEventsListener(
   ) {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     when (sqsMessage.type) {
-      SQSMessageType.NOTIFICATION -> {
+      NOTIFICATION -> {
         val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
         handleEvent(domainEvent)
       }

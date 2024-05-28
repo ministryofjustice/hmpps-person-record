@@ -32,8 +32,8 @@ internal class PersonTest {
 
     // Then
     assertThat(person.otherIdentifiers?.pncIdentifier).isEqualTo(PNCIdentifier.from("1979/0026538X"))
-    assertThat(person.givenName).isEqualTo("Stephen")
-    assertThat(person.familyName).isEqualTo("King")
+    assertThat(person.firstName).isEqualTo("Stephen")
+    assertThat(person.lastName).isEqualTo("King")
     assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
   }
 
@@ -58,8 +58,8 @@ internal class PersonTest {
 
     // Then
     assertThat(person.otherIdentifiers?.pncIdentifier).isEqualTo(PNCIdentifier.from("1979/0026538X"))
-    assertThat(person.givenName).isEqualTo("Stephen")
-    assertThat(person.familyName).isEqualTo("King")
+    assertThat(person.firstName).isEqualTo("Stephen")
+    assertThat(person.lastName).isEqualTo("King")
     assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
   }
 

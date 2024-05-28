@@ -19,9 +19,9 @@ import java.util.*
 
 data class Person(
   val personId: UUID? = null,
-  val givenName: String? = null,
+  val firstName: String? = null,
   val middleNames: List<String>? = emptyList(),
-  val familyName: String? = null,
+  val lastName: String? = null,
   val dateOfBirth: LocalDate? = null,
   val birthPlace: String? = null,
   val birthCountry: String? = null,
@@ -47,8 +47,8 @@ data class Person(
 
     fun from(offenderDetail: OffenderDetail): Person {
       return Person(
-        givenName = offenderDetail.firstName,
-        familyName = offenderDetail.surname,
+        firstName = offenderDetail.firstName,
+        lastName = offenderDetail.surname,
         dateOfBirth = offenderDetail.dateOfBirth,
         otherIdentifiers = OtherIdentifiers(
           crn = offenderDetail.otherIds.crn,
@@ -61,9 +61,9 @@ data class Person(
 
     fun from(deliusOffenderDetail: DeliusOffenderDetail): Person {
       return Person(
-        givenName = deliusOffenderDetail.name.forename,
+        firstName = deliusOffenderDetail.name.forename,
         middleNames = deliusOffenderDetail.name.otherNames,
-        familyName = deliusOffenderDetail.name.surname,
+        lastName = deliusOffenderDetail.name.surname,
         dateOfBirth = deliusOffenderDetail.dateOfBirth,
         otherIdentifiers = OtherIdentifiers(
           crn = deliusOffenderDetail.identifiers.crn,
@@ -74,9 +74,9 @@ data class Person(
     }
     fun from(probationCase: ProbationCase): Person {
       return Person(
-        givenName = probationCase.name.firstName,
+        firstName = probationCase.name.firstName,
         middleNames = probationCase.name.middleNames?.split(" ") ?: emptyList(),
-        familyName = probationCase.name.lastName,
+        lastName = probationCase.name.lastName,
         dateOfBirth = probationCase.dateOfBirth,
         otherIdentifiers = OtherIdentifiers(
           crn = probationCase.identifiers.crn,
@@ -108,8 +108,8 @@ data class Person(
           pncIdentifier = defendant.pncId,
           croIdentifier = CROIdentifier.from(defendant.croNumber),
         ),
-        givenName = defendant.personDefendant?.personDetails?.firstName,
-        familyName = defendant.personDefendant?.personDetails?.lastName,
+        firstName = defendant.personDefendant?.personDetails?.firstName,
+        lastName = defendant.personDefendant?.personDetails?.lastName,
         middleNames = defendant.personDefendant?.personDetails?.middleName?.split(" "),
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
         driverNumber = defendant.personDefendant?.driverNumber,
@@ -130,23 +130,32 @@ data class Person(
           pncIdentifier = PNCIdentifier.from(libraHearingEvent.pnc),
           croIdentifier = CROIdentifier.from(libraHearingEvent.cro),
         ),
-        givenName = libraHearingEvent.name?.forename1,
-        familyName = libraHearingEvent.name?.surname,
+        firstName = libraHearingEvent.name?.forename1,
+        lastName = libraHearingEvent.name?.surname,
         dateOfBirth = libraHearingEvent.defendantDob,
         sourceSystemType = HMCTS,
       )
     }
 
-    fun from(prisoner: Prisoner): Person =
-      Person(
-        otherIdentifiers = OtherIdentifiers(prisonNumber = prisoner.prisonNumber, pncIdentifier = prisoner.pnc, croIdentifier = prisoner.cro),
-        givenName = prisoner.firstName,
+    fun from(prisoner: Prisoner): Person {
+//      val emails: List<Contact> = prisoner.emailAddresses.map { Contact.from(ContactType.EMAIL, it.email) }
+//      val phoneNumbers: List<Contact> = listOf()
+
+      return Person(
+        otherIdentifiers = OtherIdentifiers(
+          prisonNumber = prisoner.prisonNumber,
+          pncIdentifier = prisoner.pnc,
+          croIdentifier = prisoner.cro,
+        ),
+        title = prisoner.title,
+        firstName = prisoner.firstName,
         middleNames = prisoner.middleNames?.split(" ") ?: emptyList(),
-        familyName = prisoner.lastName,
+        lastName = prisoner.lastName,
         dateOfBirth = prisoner.dateOfBirth,
-        sourceSystemType = NOMIS,
         aliases = prisoner.aliases ?: emptyList(),
+        sourceSystemType = NOMIS,
       )
+    }
   }
 }
 

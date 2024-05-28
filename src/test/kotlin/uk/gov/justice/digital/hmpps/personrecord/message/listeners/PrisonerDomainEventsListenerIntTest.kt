@@ -3,11 +3,11 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.AdditionalInformation
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Events.PRISONER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Events.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DOMAIN_EVENT_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.test.PRISONER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.test.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.prisonerSearchResponse
 import java.util.UUID
 

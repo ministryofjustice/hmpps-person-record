@@ -16,8 +16,8 @@ data class OffenderMatchCriteria(
   companion object {
     fun from(person: Person): OffenderMatchCriteria {
       return OffenderMatchCriteria(
-        firstName = person.givenName,
-        surname = person.familyName,
+        firstName = person.firstName,
+        surname = person.lastName,
         dateOfBirth = person.dateOfBirth,
         pncNumber = person.otherIdentifiers?.pncIdentifier?.pncId,
         croNumber = person.otherIdentifiers?.croIdentifier?.croId,
