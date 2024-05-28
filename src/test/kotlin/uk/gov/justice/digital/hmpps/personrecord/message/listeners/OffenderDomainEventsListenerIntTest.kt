@@ -83,19 +83,19 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should process OFFENDER_ADDRESS_CHANGED event successfully`() {
+  fun `should process OFFENDER_DETAILS_CHANGED event successfully`() {
     val crn = domainEvent(NEW_OFFENDER_CREATED, "2020/0476873U")
-    await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
-    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to NEW_OFFENDER_CREATED, "SourceSystem" to "DELIUS"))
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
-    domainEvent("OFFENDER_ADDRESS_CHANGED", "2020/0476873U", crn)
-
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(personEntity.pnc).isEqualTo(PNCIdentifier("2020/0476873U"))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to NEW_OFFENDER_CREATED, "SourceSystem" to "DELIUS"))
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
+    domainEvent("OFFENDER_DETAILS_CHANGED", "2003/0062845E", crn)
 
-    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to "OFFENDER_ADDRESS_CHANGED", "SourceSystem" to "DELIUS"))
+    val updatedPersonEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+    assertThat(updatedPersonEntity.pnc).isEqualTo(PNCIdentifier("2003/0062845E"))
+
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to "OFFENDER_DETAILS_CHANGED", "SourceSystem" to "DELIUS"))
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
-    // TODO actually change the record and assert on it
   }
 
   private fun domainEvent(eventType: String, pnc: String?, crn: String = UUID.randomUUID().toString()): String {
