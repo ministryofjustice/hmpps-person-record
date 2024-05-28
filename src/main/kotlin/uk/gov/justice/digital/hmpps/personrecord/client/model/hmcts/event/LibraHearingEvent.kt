@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event
+package uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.event
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
@@ -6,8 +6,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.OptBoolean
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.libra.Address
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.libra.Name
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.libra.Address
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.libra.Name
 import java.time.LocalDate
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

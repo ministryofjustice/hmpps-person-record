@@ -1,12 +1,15 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.commonplatform.DefendantAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.DefendantAlias
+import java.time.LocalDate
 
 data class Alias(
+  val title: String? = null,
   val firstName: String? = null,
   val lastName: String? = null,
   val middleNames: String? = null,
+  val dateOfBirth: LocalDate? = null,
 ) {
   companion object {
 
