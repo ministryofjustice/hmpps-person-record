@@ -106,7 +106,7 @@ class PersonService(
       "SourceSystem" to person.sourceSystemType.name,
       "DEFENDANT_ID" to person.defendantId,
       "CRN" to (person.otherIdentifiers?.crn ?: ""),
-      "NOMS_NUMBER" to person.otherIdentifiers?.prisonNumber,
+      "PRISON_NUMBER" to person.otherIdentifiers?.prisonNumber,
     )
     telemetryService.trackEvent(eventType, identifierMap + elementMap)
   }

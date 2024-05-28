@@ -31,16 +31,16 @@ class PrisonerEventsProcessor(
   }
 
   fun processEvent(domainEvent: DomainEvent) {
-    val nomsNumber = domainEvent.additionalInformation?.nomsNumber ?: ""
+    val prisonNumber = domainEvent.additionalInformation?.prisonNumber ?: ""
     telemetryService.trackEvent(
       TelemetryEventType.DOMAIN_EVENT_RECEIVED,
-      mapOf("eventType" to domainEvent.eventType, "NOMS_NUMBER" to nomsNumber, "SourceSystem" to SourceSystemType.NOMIS.name),
+      mapOf("eventType" to domainEvent.eventType, "PRISON_NUMBER" to prisonNumber, "SourceSystem" to SourceSystemType.NOMIS.name),
     )
-    getPrisonerDetails(nomsNumber).fold(
+    getPrisonerDetails(prisonNumber).fold(
       onSuccess = {
         it?.let {
           personService.processMessage(Person.from(it)) {
-            personRepository.findByPrisonNumber(nomsNumber)
+            personRepository.findByPrisonNumber(prisonNumber)
           }
         }
       },

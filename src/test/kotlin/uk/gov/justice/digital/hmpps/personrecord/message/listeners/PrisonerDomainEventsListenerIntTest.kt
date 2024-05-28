@@ -30,17 +30,17 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should receive the message successfully when prisoner created event published`() {
     // Given
-    val nomsNumber = UUID.randomUUID().toString()
-    stubPrisonerResponse(nomsNumber)
+    val prisonNumber = UUID.randomUUID().toString()
+    stubPrisonerResponse(prisonNumber)
 
-    val additionalInformation = AdditionalInformation(nomsNumber = nomsNumber, categoriesChanged = emptyList())
-    val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(nomsNumber), personReference = null, additionalInformation = additionalInformation)
+    val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
+    val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
     publishDomainEvent(PRISONER_CREATED, domainEvent)
 
-    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("NOMS_NUMBER" to nomsNumber, "eventType" to PRISONER_CREATED, "SourceSystem" to "NOMIS"))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "eventType" to PRISONER_CREATED, "SourceSystem" to "NOMIS"))
 
     await.atMost(15, SECONDS) untilAsserted {
-      val personEntity = personRepository.findByPrisonNumber(nomsNumber)!!
+      val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
       assertThat(personEntity.title).isEqualTo("Ms")
       assertThat(personEntity.firstName).isEqualTo("Robert")
       assertThat(personEntity.middleNames).isEqualTo("John James")
@@ -65,19 +65,19 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       CPR_RECORD_CREATED,
-      mapOf("SourceSystem" to "NOMIS", "NOMS_NUMBER" to nomsNumber),
+      mapOf("SourceSystem" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
     )
   }
 
   @Test
   fun `should receive the message successfully when prisoner updated event published`() {
     // Given
-    val nomsNumber = UUID.randomUUID().toString()
+    val prisonNumber = UUID.randomUUID().toString()
     personRepository.saveAndFlush(
       PersonEntity.from(
         Person.from(
           Prisoner(
-            prisonNumber = nomsNumber,
+            prisonNumber = prisonNumber,
             title = "Ms",
             firstName = "Robert",
             middleNames = "John James",
@@ -91,31 +91,31 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByPrisonNumber(nomsNumber)
+      personRepository.findByPrisonNumber(prisonNumber)
     }
 
-    stubPrisonerResponse(nomsNumber)
+    stubPrisonerResponse(prisonNumber)
 
-    val additionalInformation = AdditionalInformation(nomsNumber = nomsNumber, categoriesChanged = listOf("SENTENCE"))
-    val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, detailUrl = createNomsDetailUrl(nomsNumber), personReference = null, additionalInformation = additionalInformation)
+    val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
+    val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
     publishDomainEvent(PRISONER_UPDATED, domainEvent)
 
-    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("NOMS_NUMBER" to nomsNumber, "eventType" to PRISONER_UPDATED, "SourceSystem" to "NOMIS"))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "eventType" to PRISONER_UPDATED, "SourceSystem" to "NOMIS"))
 
     checkTelemetry(
       CPR_RECORD_UPDATED,
-      mapOf("SourceSystem" to "NOMIS", "NOMS_NUMBER" to nomsNumber),
+      mapOf("SourceSystem" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
     )
   }
 
-  fun stubPrisonerResponse(nomsNumber: String) {
+  fun stubPrisonerResponse(prisonNumber: String) {
     wiremock.stubFor(
-      WireMock.get("/prisoner/$nomsNumber")
+      WireMock.get("/prisoner/$prisonNumber")
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withBody(prisonerSearchResponse(nomsNumber)),
+            .withBody(prisonerSearchResponse(prisonNumber)),
         ),
     )
   }
