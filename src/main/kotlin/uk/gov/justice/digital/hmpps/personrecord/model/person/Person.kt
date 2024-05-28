@@ -138,8 +138,14 @@ data class Person(
     }
 
     fun from(prisoner: Prisoner): Person {
-//      val emails: List<Contact> = prisoner.emailAddresses.map { Contact.from(ContactType.EMAIL, it.email) }
-//      val phoneNumbers: List<Contact> = listOf()
+      val emails: List<Contact> = prisoner.emailAddresses.map { Contact.from(ContactType.EMAIL, it.email) }
+      val phoneNumbers: List<Contact> = listOf(
+        Contact.from(ContactType.HOME, prisoner.getHomePhone()),
+        Contact.from(ContactType.MOBILE, prisoner.getMobilePhone()),
+      )
+      val contacts: List<Contact> = emails + phoneNumbers
+
+      val addresses: List<Address> = prisoner.addresses.map { Address(it.postcode) }
 
       return Person(
         otherIdentifiers = OtherIdentifiers(
@@ -153,6 +159,8 @@ data class Person(
         lastName = prisoner.lastName,
         dateOfBirth = prisoner.dateOfBirth,
         aliases = prisoner.aliases ?: emptyList(),
+        contacts = contacts,
+        addresses = addresses,
         sourceSystemType = NOMIS,
       )
     }

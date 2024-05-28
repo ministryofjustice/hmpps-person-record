@@ -6,6 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Address(
   @JsonProperty("postalCode")
-  val postCode: String? = null,
+  val postcode: String? = null,
   val addressType: String? = null,
 )

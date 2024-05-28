@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifierDeserializer
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifierDeserializer
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import java.time.LocalDate
 
@@ -31,12 +32,13 @@ data class Prisoner(
   val aliases: List<Alias>?,
   val emailAddresses: List<EmailAddress> = emptyList(),
   val phoneNumbers: List<PhoneNumber> = emptyList(),
+  val addresses: List<Address> = emptyList(),
 ) {
   fun getHomePhone(): String? {
-    return phoneNumbers.firstOrNull { it.type == "HOME" }?.number
+    return phoneNumbers.firstOrNull { it.type?.contains("HOME") == true }?.number
   }
 
   fun getMobilePhone(): String? {
-    return phoneNumbers.firstOrNull { it.type == "MOB" }?.number
+    return phoneNumbers.firstOrNull { it.type?.contains("MOB") == true }?.number
   }
 }
