@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -27,8 +28,8 @@ class PrisonerEventsProcessor(
   fun processEvent(domainEvent: DomainEvent) {
     val nomsNumber = domainEvent.additionalInformation?.nomsNumber ?: ""
     telemetryService.trackEvent(
-      TelemetryEventType.NOMIS_MESSAGE_RECEIVED,
-      mapOf("eventType" to domainEvent.eventType, "NOMS_NUMBER" to nomsNumber),
+      TelemetryEventType.DOMAIN_EVENT_RECEIVED,
+      mapOf("eventType" to domainEvent.eventType, "NOMS_NUMBER" to nomsNumber, "SourceSystem" to SourceSystemType.NOMIS.name),
     )
     getPrisonerDetails(nomsNumber).fold(
       onSuccess = {

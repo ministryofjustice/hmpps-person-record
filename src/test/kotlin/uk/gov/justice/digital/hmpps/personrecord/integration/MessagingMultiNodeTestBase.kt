@@ -68,7 +68,11 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       val allEvents = telemetryRepository.findAllByEvent(event.eventName)
       val matchingEvents = allEvents?.filter {
         expected.entries.map { (k, v) ->
-          JSONObject(it.properties).get(k).equals(v)
+          val jsonObject = JSONObject(it.properties)
+          when {
+            (jsonObject.has(k)) -> jsonObject.get(k).equals(v)
+            else -> false
+          }
         }.all { it }
       }
       assertThat(matchingEvents?.size).`as`("Missing data $event $expected and actual data $allEvents").isEqualTo(times)

@@ -1,14 +1,13 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Events.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Events.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DOMAIN_EVENT_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.prisonerSearchResponse
 import java.util.UUID
 
@@ -24,7 +23,7 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(nomsNumber), personReference = null, additionalInformation = additionalInformation)
     publishDomainEvent(PRISONER_CREATED, domainEvent)
 
-    checkTelemetry(TelemetryEventType.NOMIS_MESSAGE_RECEIVED, mapOf("NOMS_NUMBER" to nomsNumber, "eventType" to PRISONER_CREATED))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("NOMS_NUMBER" to nomsNumber, "eventType" to PRISONER_CREATED, "SourceSystem" to "NOMIS"))
   }
 
   @Test
@@ -37,7 +36,7 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, detailUrl = createNomsDetailUrl(nomsNumber), personReference = null, additionalInformation = additionalInformation)
     publishDomainEvent(PRISONER_UPDATED, domainEvent)
 
-    checkTelemetry(TelemetryEventType.NOMIS_MESSAGE_RECEIVED, mapOf("NOMS_NUMBER" to nomsNumber, "eventType" to PRISONER_UPDATED))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("NOMS_NUMBER" to nomsNumber, "eventType" to PRISONER_UPDATED, "SourceSystem" to "NOMIS"))
   }
 
   fun stubPrisonerResponse(nomsNumber: String) {
@@ -47,7 +46,7 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withBody(prisonerSearchResponse(nomsNumber))
+            .withBody(prisonerSearchResponse(nomsNumber)),
         ),
     )
   }
