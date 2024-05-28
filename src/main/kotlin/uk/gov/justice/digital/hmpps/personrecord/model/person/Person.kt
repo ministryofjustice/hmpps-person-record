@@ -144,7 +144,6 @@ data class Person(
         Contact.from(ContactType.MOBILE, prisoner.getMobilePhone()),
       )
       val contacts: List<Contact> = emails + phoneNumbers
-
       val addresses: List<Address> = prisoner.addresses.map { Address(it.postcode) }
 
       return Person(
@@ -158,7 +157,7 @@ data class Person(
         middleNames = prisoner.middleNames?.split(" ") ?: emptyList(),
         lastName = prisoner.lastName,
         dateOfBirth = prisoner.dateOfBirth,
-        aliases = prisoner.aliases ?: emptyList(),
+        aliases = prisoner.aliases?.map { Alias.from(it) } ?: emptyList(),
         contacts = contacts,
         addresses = addresses,
         sourceSystemType = NOMIS,

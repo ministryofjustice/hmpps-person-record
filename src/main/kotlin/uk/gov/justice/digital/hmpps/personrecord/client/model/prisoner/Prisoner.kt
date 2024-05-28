@@ -9,8 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifierDeserializer
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifierDeserializer
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -29,7 +27,7 @@ data class Prisoner(
   @JsonDeserialize(using = CROIdentifierDeserializer::class)
   val cro: CROIdentifier?,
   val dateOfBirth: LocalDate,
-  val aliases: List<Alias>?,
+  val aliases: List<PrisonerAlias> = emptyList(),
   val emailAddresses: List<EmailAddress> = emptyList(),
   val phoneNumbers: List<PhoneNumber> = emptyList(),
   val addresses: List<Address> = emptyList(),

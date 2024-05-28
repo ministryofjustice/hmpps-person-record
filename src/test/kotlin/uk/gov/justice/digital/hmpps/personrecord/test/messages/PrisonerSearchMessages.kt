@@ -3,9 +3,9 @@ package uk.gov.justice.digital.hmpps.personrecord.test.messages
 fun prisonerSearchResponse(nomsNumber: String) = """
   {
     "prisonerNumber": "$nomsNumber",
-    "pncNumber": "12/394773H",
-    "pncNumberCanonicalShort": "12/394773H",
-    "pncNumberCanonicalLong": "2012/394773H",
+    "pncNumber": "2003/0062845E",
+    "pncNumberCanonicalShort": "03/0062845E",
+    "pncNumberCanonicalLong": "2003/0062845E",
     "croNumber": "29906/12J",
     "bookingId": "0001200924",
     "bookNumber": "38412A",

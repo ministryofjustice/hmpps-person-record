@@ -6,8 +6,11 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -18,6 +21,8 @@ const val MAX_RETRY_ATTEMPTS: Int = 3
 class PrisonerEventsProcessor(
   val telemetryService: TelemetryService,
   val prisonerSearchClient: PrisonerSearchClient,
+  val personService: PersonService,
+  val personRepository: PersonRepository,
 ) {
   companion object {
     @Value("\${retry.delay}")
@@ -33,8 +38,11 @@ class PrisonerEventsProcessor(
     )
     getPrisonerDetails(nomsNumber).fold(
       onSuccess = {
-        // To be completed in CPR-296
-        log.info("Not processing nomis message")
+        it?.let {
+          personService.processMessage(Person.from(it)) {
+            personRepository.findByPrisonNumber(nomsNumber)
+          }
+        }
       },
       onFailure = {
         log.error("Error retrieving prisoner detail: ${it.message}")

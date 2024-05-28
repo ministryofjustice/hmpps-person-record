@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class Alias(
+data class PrisonerAlias(
   val firstName: String? = null,
   val lastName: String? = null,
-  val middleNames: List<String>? = emptyList(),
-  val dob: LocalDate? = null,
+  val middleNames: String? = null,
+  val dateOfBirth: LocalDate? = null,
 )
