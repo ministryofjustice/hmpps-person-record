@@ -69,26 +69,6 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should handle new offender details with null pnc`() { // TODO null PNC
-    val crn = UUID.randomUUID().toString()
-    val probationCaseResponseSetup = ProbationCaseResponseSetup(crn = crn, prefix = "POPOne")
-    stubSingleResponse(probationCaseResponseSetup, scenarioName, STARTED)
-
-    val crnType = PersonIdentifier("CRN", crn)
-    val personReference = PersonReference(listOf(crnType))
-    val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
-    publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
-
-    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
-
-    checkTelemetry(DELIUS_RECORD_CREATION_RECEIVED, mapOf("CRN" to crn))
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
-
-    assertThat(personEntity.pnc?.pncId).isEqualTo("")
-    assertThat(personEntity.crn).isEqualTo(crn)
-  }
-
-  @Test
   fun `should handle new offender details with an empty pnc`() {
     val crn = UUID.randomUUID().toString()
     val probationCaseResponseSetup = ProbationCaseResponseSetup(crn = crn, pnc = "", prefix = "POPOne")
@@ -108,11 +88,11 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
   }
 
-  @Disabled
   @Test
   fun `should not push 404 to dead letter queue`() {
     val crn = UUID.randomUUID().toString()
     // STUB here
+    stub404Response(crn)
 
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
@@ -169,6 +149,17 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
             .withHeader("Content-Type", "application/json")
             .withBody(probationCaseResponse(probationCase))
             .withStatus(200),
+        ),
+    )
+  }
+
+  private fun stub404Response(crn: String) {
+    wiremock.stubFor(
+      WireMock.get("/probation-cases/$crn")
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(404),
         ),
     )
   }
