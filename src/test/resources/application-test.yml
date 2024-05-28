@@ -11,13 +11,7 @@ match-score:
 nomis-oauth:
   base-url: http://localhost:8090
 
-offender-search:
-  base-url: http://localhost:8090
-
 prisoner-search:
-  base-url: http://localhost:8090
-
-domain-event-and-delius-api:
   base-url: http://localhost:8090
 
 prison-service:
@@ -47,7 +41,7 @@ hmpps.sqs:
       queueName: cpr_delius_offender_events_queue
       dlqName: cpr_delius_offender_events_queue_dlq
       subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ "probation-case.engagement.created"] }'
+      subscribeFilter: '{"eventType":[ "probation-case.engagement.created", "OFFENDER_ADDRESS_CHANGED", "OFFENDER_DETAILS_CHANGED", "OFFENDER_ALIAS_CHANGED"] }'
     cprnomiseventsqueue:
       queueName: cpr_nomis_events_queue
       dlqName: cpr_nomis_events_dlq

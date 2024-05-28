@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.integration
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
@@ -117,18 +116,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
     expectNoMessagesOn(offenderEventsQueue)
     expectNoMessagesOn(prisonerEventsQueue)
-  }
-
-  fun patchRequest(url: String, body: String, statusCode: Int = 200) {
-    wiremock.stubFor(
-      WireMock.get(url)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(statusCode)
-            .withBody(body),
-        ),
-    )
   }
 
   fun createDeliusDetailUrl(crn: String): String =

@@ -4,14 +4,8 @@ match-score:
 nomis-oauth:
   base-url: https://sign-in-dev.hmpps.service.justice.gov.uk
 
-offender-search:
-  base-url: https://probation-offender-search-dev.hmpps.service.justice.gov.uk
-
 prisoner-search:
   base-url: https://prisoner-search-dev.prison.service.justice.gov.uk
-
-domain-event-and-delius-api:
-  base-url: https://domain-events-and-delius-dev.hmpps.service.justice.gov.uk
 
 prison-service:
   base-url: https://prison-api-dev.prison.service.justice.gov.uk
@@ -32,7 +26,7 @@ hmpps.sqs:
       queueName: cpr_delius_offender_events_queue
       dlqName: cpr_delius_offender_events_queue_dlq
       subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ "probation-case.engagement.created"] }'
+      subscribeFilter: '{"eventType":[ "probation-case.engagement.created", "OFFENDER_ADDRESS_CHANGED", "OFFENDER_DETAILS_CHANGED", "OFFENDER_ALIAS_CHANGED"] }'
     cprnomiseventsqueue:
       queueName: cpr_nomis_events_queue
       dlqName: cpr_nomis_events_dlq

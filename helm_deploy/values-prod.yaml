@@ -10,9 +10,7 @@ generic-service:
     SPRING_PROFILES_ACTIVE: "prod"
     MATCH_SCORE_BASE_URL: https://hmpps-person-match-score.hmpps.service.justice.gov.uk
     NOMIS_OAUTH_BASE_URL: https://sign-in.hmpps.service.justice.gov.uk
-    OFFENDER_SEARCH_BASE_URL: https://probation-offender-search.hmpps.service.justice.gov.uk
     PRISONER_SEARCH_BASE_URL: https://prisoner-search.prison.service.justice.gov.uk
-    DOMAIN_EVENT_AND_DELIUS_API_BASE_URL: https://domain-events-and-delius.hmpps.service.justice.gov.uk
     PRISON_SERVICE_BASE_URL: https://prison-api.prison.service.justice.gov.uk
     CORE_PERSON_RECORD_AND_DELIUS_BASE_URL: https://core-person-record-and-delius.hmpps.service.justice.gov.uk
 
