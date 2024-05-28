@@ -33,7 +33,7 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val pnc = "2020/0476873U"
     val probationCaseResponseSetup = ProbationCaseResponseSetup(pnc = "2020/0476873U", crn = crn, prefix = "POPOne")
     stubSingleResponse(probationCaseResponseSetup, scenarioName, STARTED)
-    val expectedPncNumber = PNCIdentifier.from(pnc)
+    val expectedPncNumber = PNCIdentifier(pnc)
 
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
@@ -110,22 +110,7 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should receive the message successfully when OFFENDER_ADDRESS_CHANGED`() {
-    val crn = UUID.randomUUID().toString()
-    val pnc = "2020/0476873U"
-    val probationCaseResponseSetup = ProbationCaseResponseSetup(crn = crn, pnc = pnc, prefix = "POPOne")
-    stubSingleResponse(probationCaseResponseSetup, scenarioName, STARTED)
-    val expectedPncNumber = PNCIdentifier.from(pnc)
-
-    val crnType = PersonIdentifier("CRN", crn)
-    val personReference = PersonReference(listOf(crnType))
-
-    val domainEvent = DomainEvent(
-      eventType = "OFFENDER_ADDRESS_CHANGED",
-      detailUrl = createDeliusDetailUrl(crn),
-      personReference = personReference,
-      additionalInformation = null,
-    )
-    publishDomainEvent("OFFENDER_ADDRESS_CHANGED", domainEvent)
+    val (crn, expectedPncNumber) = domainEvent("OFFENDER_ADDRESS_CHANGED")
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(personEntity.pnc).isEqualTo(expectedPncNumber)
@@ -133,6 +118,26 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to "OFFENDER_ADDRESS_CHANGED", "SourceSystem" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
+  }
+
+  private fun domainEvent(eventType: String): Pair<String, PNCIdentifier> {
+    val crn = UUID.randomUUID().toString()
+    val pnc = "2020/0476873U"
+    val probationCaseResponseSetup = ProbationCaseResponseSetup(crn = crn, pnc = pnc, prefix = "POPOne")
+    stubSingleResponse(probationCaseResponseSetup, scenarioName, STARTED)
+    val expectedPncNumber = PNCIdentifier(pnc)
+
+    val crnType = PersonIdentifier("CRN", crn)
+    val personReference = PersonReference(listOf(crnType))
+
+    val domainEvent = DomainEvent(
+      eventType = eventType,
+      detailUrl = createDeliusDetailUrl(crn),
+      personReference = personReference,
+      additionalInformation = null,
+    )
+    publishDomainEvent(eventType, domainEvent)
+    return Pair(crn, expectedPncNumber)
   }
 
   private fun stubSingleResponse(probationCase: ProbationCaseResponseSetup, scenarioName: String, scenarioState: String) {
