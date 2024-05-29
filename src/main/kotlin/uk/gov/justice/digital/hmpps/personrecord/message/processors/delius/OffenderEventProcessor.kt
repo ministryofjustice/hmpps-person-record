@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
@@ -34,7 +35,7 @@ class OffenderEventProcessor(
     val crn = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }!!.value
     telemetryService.trackEvent(
       DOMAIN_EVENT_RECEIVED,
-      mapOf("CRN" to crn, "eventType" to domainEvent.eventType, "SourceSystem" to SourceSystemType.DELIUS.name),
+      mapOf(EventKeys.CRN to crn, EventKeys.EVENT_TYPE to domainEvent.eventType, EventKeys.SOURCE_SYSTEM to SourceSystemType.DELIUS.name),
     )
     getProbationCase(crn).fold(
       onSuccess = {

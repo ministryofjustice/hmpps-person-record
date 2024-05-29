@@ -36,8 +36,8 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(personEntity.pnc).isEqualTo(PNCIdentifier("2020/0476873U"))
 
-    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to NEW_OFFENDER_CREATED, "SourceSystem" to "DELIUS"))
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
   }
 
   @Test
@@ -47,8 +47,8 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
     assertThat(personEntity.pnc?.pncId).isEqualTo("")
 
-    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to NEW_OFFENDER_CREATED, "SourceSystem" to "DELIUS"))
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
   }
 
   @Test
@@ -59,8 +59,8 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
     assertThat(personEntity.pnc?.pncId).isEqualTo("")
 
-    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to NEW_OFFENDER_CREATED, "SourceSystem" to "DELIUS"))
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
   }
 
   @Test
@@ -80,7 +80,7 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     await.atMost(Duration.ofSeconds(5)) untilCallTo {
       offenderEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(offenderEventsQueue!!.dlqUrl!!)?.get()
     } matches { it == 0 }
-    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to NEW_OFFENDER_CREATED, "SourceSystem" to "DELIUS"))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
   }
 
   @Test
@@ -88,15 +88,15 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val crn = domainEvent(NEW_OFFENDER_CREATED, "2020/0476873U")
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(personEntity.pnc).isEqualTo(PNCIdentifier("2020/0476873U"))
-    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to NEW_OFFENDER_CREATED, "SourceSystem" to "DELIUS"))
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
     domainEvent("OFFENDER_DETAILS_CHANGED", "2003/0062845E", crn)
 
     val updatedPersonEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(updatedPersonEntity.pnc).isEqualTo(PNCIdentifier("2003/0062845E"))
 
-    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "eventType" to "OFFENDER_DETAILS_CHANGED", "SourceSystem" to "DELIUS"))
-    checkTelemetry(CPR_RECORD_UPDATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to "OFFENDER_DETAILS_CHANGED", "SOURCE_SYSTEM" to "DELIUS"))
+    checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
   }
 
   private fun domainEvent(eventType: String, pnc: String?, crn: String = UUID.randomUUID().toString(), additionalInformation: AdditionalInformation? = null): String {

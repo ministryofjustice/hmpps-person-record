@@ -85,11 +85,11 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       CPR_RECORD_CREATED,
-      mapOf("SourceSystem" to "HMCTS", "DEFENDANT_ID" to defendantId),
+      mapOf("SOURCE_SYSTEM" to "HMCTS", "DEFENDANT_ID" to defendantId),
     )
     checkTelemetry(
       CPR_RECORD_UPDATED,
-      mapOf("SourceSystem" to "HMCTS", "DEFENDANT_ID" to defendantId),
+      mapOf("SOURCE_SYSTEM" to "HMCTS", "DEFENDANT_ID" to defendantId),
       99,
     )
   }
@@ -122,7 +122,7 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       CPR_RECORD_CREATED,
-      mapOf("SourceSystem" to "HMCTS", "DEFENDANT_ID" to defendantId),
+      mapOf("SOURCE_SYSTEM" to "HMCTS", "DEFENDANT_ID" to defendantId),
     )
 
     val messageId = publishHMCTSMessage(
@@ -146,7 +146,7 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       CPR_RECORD_UPDATED,
-      mapOf("SourceSystem" to "HMCTS", "DEFENDANT_ID" to defendantId),
+      mapOf("SOURCE_SYSTEM" to "HMCTS", "DEFENDANT_ID" to defendantId),
     )
   }
 

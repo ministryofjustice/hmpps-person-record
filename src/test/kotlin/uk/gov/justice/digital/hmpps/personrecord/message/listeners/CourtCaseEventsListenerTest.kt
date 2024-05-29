@@ -14,13 +14,13 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.hmcts.CourtCaseEventsProcessor
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.testMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.testMessageWithUnknownType
 import kotlin.test.assertFailsWith
 
-@Suppress("INLINE_FROM_HIGHER_PLATFORM")
 @ExtendWith(MockitoExtension::class)
 class CourtCaseEventsListenerTest {
   @Mock
@@ -68,7 +68,10 @@ class CourtCaseEventsListenerTest {
     )
 
     // then
-    verify(telemetryService).trackEvent(TelemetryEventType.HMCTS_PROCESSING_FAILURE, mapOf("MESSAGE_ID" to "5bc08be0-16e9-5da9-b9ec-d2c870a59bad"))
+    verify(telemetryService).trackEvent(
+      TelemetryEventType.HMCTS_PROCESSING_FAILURE,
+      mapOf(EventKeys.MESSAGE_ID to "5bc08be0-16e9-5da9-b9ec-d2c870a59bad"),
+    )
   }
 
   @Test

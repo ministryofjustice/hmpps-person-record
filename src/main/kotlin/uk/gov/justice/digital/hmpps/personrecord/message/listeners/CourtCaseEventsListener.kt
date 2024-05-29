@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.hmcts.CourtCaseEventsProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NOTIFICATION
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PROCESSING_FAILURE
 
@@ -34,14 +36,14 @@ class CourtCaseEventsListener(
     if (featureFlag.isHmctsSQSEnabled()) {
       val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
       when (sqsMessage.type) {
-        "Notification" -> {
+        NOTIFICATION -> {
           try {
             courtCaseEventsProcessor.processEvent(sqsMessage)
           } catch (e: Exception) {
             log.error("Failed to process message:${sqsMessage.messageId}", e)
             telemetryService.trackEvent(
               HMCTS_PROCESSING_FAILURE,
-              mapOf("MESSAGE_ID" to sqsMessage.messageId),
+              mapOf(MESSAGE_ID to sqsMessage.messageId),
             )
             throw e
           }

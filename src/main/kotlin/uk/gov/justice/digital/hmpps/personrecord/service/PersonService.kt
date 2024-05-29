@@ -77,13 +77,13 @@ class PersonService(
   private fun trackEvent(
     eventType: TelemetryEventType,
     person: Person,
-    elementMap: Map<String, String?> = emptyMap(),
+    elementMap: Map<EventKeys, String?> = emptyMap(),
   ) {
     val identifierMap = mapOf(
-      "SourceSystem" to person.sourceSystemType.name,
-      "DEFENDANT_ID" to person.defendantId,
-      "CRN" to (person.otherIdentifiers?.crn ?: ""),
-      "PRISON_NUMBER" to person.otherIdentifiers?.prisonNumber,
+      EventKeys.SOURCE_SYSTEM to person.sourceSystemType.name,
+      EventKeys.DEFENDANT_ID to person.defendantId,
+      EventKeys.CRN to (person.otherIdentifiers?.crn ?: ""),
+      EventKeys.PRISON_NUMBER to person.otherIdentifiers?.prisonNumber,
     )
     telemetryService.trackEvent(eventType, identifierMap + elementMap)
   }

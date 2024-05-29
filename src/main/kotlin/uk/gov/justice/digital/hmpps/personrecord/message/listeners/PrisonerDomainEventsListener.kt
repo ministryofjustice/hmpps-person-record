@@ -13,6 +13,10 @@ import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.Prison
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NOTIFICATION
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
+import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 
 const val PRISONER_EVENTS_QUEUE_CONFIG_KEY = "cprnomiseventsqueue"
 
@@ -21,6 +25,7 @@ class PrisonerDomainEventsListener(
   val context: ApplicationContext,
   val objectMapper: ObjectMapper,
   val prisonerEventsProcessor: PrisonerEventsProcessor,
+  val telemetryService: TelemetryService,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -35,19 +40,22 @@ class PrisonerDomainEventsListener(
     when (sqsMessage.type) {
       NOTIFICATION -> {
         val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
-        handleEvent(domainEvent)
+        handleEvent(domainEvent, sqsMessage.messageId)
       }
       else -> log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
     }
   }
 
-  fun handleEvent(domainEvent: DomainEvent) {
+  fun handleEvent(domainEvent: DomainEvent, messageId: String?) {
     try {
       prisonerEventsProcessor.processEvent(domainEvent)
     } catch (e: FeignException.NotFound) {
       log.info("Discarding message for status code: ${e.status()}")
     } catch (e: Exception) {
-      log.error("Failed to process known domain event type:${domainEvent.eventType}", e)
+      telemetryService.trackEvent(
+        MESSAGE_PROCESSING_FAILED,
+        mapOf(EventKeys.EVENT_TYPE to domainEvent.eventType, EventKeys.SOURCE_SYSTEM to SourceSystemType.DELIUS.name, EventKeys.MESSAGE_ID to messageId),
+      )
       throw e
     }
   }
