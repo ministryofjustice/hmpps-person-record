@@ -9,9 +9,6 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
 import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AliasEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -50,7 +47,7 @@ class PersonService(
   }
 
   private fun handlePersonCreation(person: Person) {
-    updateAndSavePersonEntity(person, PersonEntity.from(person))
+    createPersonEntity(person)
     trackEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
   }
 
@@ -59,11 +56,10 @@ class PersonService(
     trackEvent(TelemetryEventType.CPR_RECORD_UPDATED, person)
   }
 
-  private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
-    var updatedPersonEntity = personEntity.update(person)
-    updatedPersonEntity = removeAllChildEntities(updatedPersonEntity)
-    updatePersonAliases(person, personEntity)
-    return updateAndSavePersonEntity(person, updatedPersonEntity)
+  private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity) {
+    removeAllChildEntities(personEntity)
+    val updatedPersonEntity = personEntity.update(person)
+    personRepository.saveAndFlush(updatedPersonEntity)
   }
 
   private fun removeAllChildEntities(personEntity: PersonEntity): PersonEntity {
@@ -73,28 +69,9 @@ class PersonService(
     return personRepository.saveAndFlush(personEntity)
   }
 
-  private fun updatePersonAddresses(person: Person, personEntity: PersonEntity) {
-    val personAddresses = AddressEntity.fromList(person.addresses)
-    personAddresses.forEach { personAddressEntity -> personAddressEntity.person = personEntity }
-    personEntity.addresses.addAll(personAddresses)
-  }
-
-  private fun updatePersonAliases(person: Person, personEntity: PersonEntity) {
-    val personAliases = AliasEntity.fromList(person.aliases)
-    personAliases.forEach { personAliasEntity -> personAliasEntity.person = personEntity }
-    personEntity.aliases.addAll(personAliases)
-  }
-
-  private fun updatePersonContacts(person: Person, personEntity: PersonEntity) {
-    val personContacts = ContactEntity.fromList(person.contacts)
-    personContacts.forEach { personContactEntity -> personContactEntity.person = personEntity }
-    personEntity.contacts.addAll(personContacts)
-  }
-
-  private fun updateAndSavePersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
-    updatePersonAddresses(person, personEntity)
-    updatePersonContacts(person, personEntity)
-    return personRepository.saveAndFlush(personEntity)
+  private fun createPersonEntity(person: Person) {
+    val personEntity = PersonEntity.from(person)
+    personRepository.saveAndFlush(personEntity)
   }
 
   private fun trackEvent(

@@ -115,7 +115,32 @@ class PersonEntity(
     this.arrestSummonsNumber = person.arrestSummonsNumber
     this.masterDefendantId = person.masterDefendantId
     this.nationalInsuranceNumber = person.nationalInsuranceNumber
+    updateChildEntities(person)
     return this
+  }
+
+  private fun updateChildEntities(person: Person) {
+    updatePersonAddresses(person)
+    updatePersonContacts(person)
+    updatePersonAliases(person)
+  }
+
+  private fun updatePersonAddresses(person: Person) {
+    val personAddresses = AddressEntity.fromList(person.addresses)
+    personAddresses.forEach { personAddressEntity -> personAddressEntity.person = this }
+    this.addresses.addAll(personAddresses)
+  }
+
+  private fun updatePersonAliases(person: Person) {
+    val personAliases = AliasEntity.fromList(person.aliases)
+    personAliases.forEach { personAliasEntity -> personAliasEntity.person = this }
+    this.aliases.addAll(personAliases)
+  }
+
+  private fun updatePersonContacts(person: Person) {
+    val personContacts = ContactEntity.fromList(person.contacts)
+    personContacts.forEach { personContactEntity -> personContactEntity.person = this }
+    this.contacts.addAll(personContacts)
   }
 
   companion object {
@@ -138,9 +163,7 @@ class PersonEntity(
         nationalInsuranceNumber = person.nationalInsuranceNumber,
         sourceSystem = person.sourceSystemType,
       )
-      val personAliases = AliasEntity.fromList(person.aliases)
-      personAliases.forEach { personAliasEntity -> personAliasEntity.person = personEntity }
-      personEntity.aliases.addAll(personAliases)
+      personEntity.updateChildEntities(person)
       return personEntity
     }
   }
