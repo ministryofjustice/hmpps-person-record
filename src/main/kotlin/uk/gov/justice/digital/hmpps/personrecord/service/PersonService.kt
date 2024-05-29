@@ -9,9 +9,6 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
 import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AliasEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ContactEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -71,7 +68,6 @@ class PersonService(
     personEntity.contacts.clear()
     return personRepository.saveAndFlush(personEntity)
   }
-
 
   private fun createPersonEntity(person: Person) {
     val personEntity = PersonEntity.from(person)
