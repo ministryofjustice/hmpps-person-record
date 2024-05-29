@@ -17,11 +17,21 @@ class QueueAdminIntTest() : WebTestBase() {
   }
 
   @Test
-  fun `should return 401 for unauthorised request to purge dead letter queue`() {
+  fun `should return FORBIDDEN for request to purge dead letter queue with wrong role`() {
     webTestClient
       .put()
       .uri("/queue-admin/purge-queue/cpr_court_case_events_queue_dlq")
       .authorised(listOf("WRONG_ROLE"))
+      .exchange()
+      .expectStatus()
+      .isForbidden
+  }
+
+  @Test
+  fun `should return UNAUTHORISED for unauthorised request to purge dead letter queue`() {
+    webTestClient
+      .put()
+      .uri("/queue-admin/purge-queue/cpr_court_case_events_queue_dlq")
       .exchange()
       .expectStatus()
       .isUnauthorized
