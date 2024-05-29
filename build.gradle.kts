@@ -1,8 +1,8 @@
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.6"
-  kotlin("plugin.spring") version "1.9.23"
-  kotlin("jvm") version "1.9.23"
-  kotlin("plugin.jpa") version "1.9.23"
+  kotlin("plugin.spring") version "1.9.24"
+  kotlin("jvm") version "1.9.24"
+  kotlin("plugin.jpa") version "1.9.24"
   id("io.gitlab.arturbosch.detekt") version "1.23.6"
 }
 
@@ -41,7 +41,7 @@ dependencies {
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.5")
-  testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.23")
+  testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.24")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.1")
   testImplementation("org.jmock:jmock:2.13.1")
   testImplementation("io.hypersistence:hypersistence-utils-hibernate-63:3.7.5")
