@@ -7,12 +7,11 @@ import io.awspring.cloud.sqs.annotation.SqsListener
 import io.opentelemetry.api.trace.SpanKind.SERVER
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PrisonerEventsProcessor
-import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.model.types.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
@@ -22,7 +21,6 @@ const val PRISONER_EVENTS_QUEUE_CONFIG_KEY = "cprnomiseventsqueue"
 
 @Component
 class PrisonerDomainEventsListener(
-  val context: ApplicationContext,
   val objectMapper: ObjectMapper,
   val prisonerEventsProcessor: PrisonerEventsProcessor,
   val telemetryService: TelemetryService,
@@ -54,7 +52,11 @@ class PrisonerDomainEventsListener(
     } catch (e: Exception) {
       telemetryService.trackEvent(
         MESSAGE_PROCESSING_FAILED,
-        mapOf(EventKeys.EVENT_TYPE to domainEvent.eventType, EventKeys.SOURCE_SYSTEM to SourceSystemType.DELIUS.name, EventKeys.MESSAGE_ID to messageId),
+        mapOf(
+          EventKeys.EVENT_TYPE to domainEvent.eventType,
+          EventKeys.SOURCE_SYSTEM to SourceSystemType.NOMIS.name,
+          EventKeys.MESSAGE_ID to messageId,
+        ),
       )
       throw e
     }

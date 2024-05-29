@@ -1,0 +1,17 @@
+package uk.gov.justice.digital.hmpps.personrecord.test.messages
+
+fun prisonerDomainEvent(eventType: String?, prisonNumber: String, messageId: String?) = """
+  {
+    "Type": "Notification",
+    "MessageId": "$messageId",
+    "TopicArn": "arn:aws:sns:eu-west-2:000000000000:0fad8016-1982-4a2a-bc90-f39934bd78ca",
+    "Message": "{\"eventType\":\"$eventType\",\"detailUrl\":\"https://prisoner-search-dev.prison.service.justice.gov.uk/prisoner/$prisonNumber\",\"personReference\":null,\"additionalInformation\":{\"categoriesChanged\":[],\"nomsNumber\":\"$prisonNumber\"}}",
+    "MessageAttributes": {
+      "eventType": {
+        "Type": "String",
+        "Value": "$eventType"
+      }
+    },
+    "SignatureVersion": "1"
+  }   
+""".trimIndent()
