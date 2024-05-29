@@ -101,9 +101,9 @@ class PersonEntity(
 ) {
   fun update(person: Person): PersonEntity {
     this.title = person.title
-    this.firstName = person.givenName
+    this.firstName = person.firstName
     this.middleNames = person.middleNames?.joinToString(" ") { it }
-    this.lastName = person.familyName
+    this.lastName = person.lastName
     this.dateOfBirth = person.dateOfBirth
     this.defendantId = person.defendantId
     this.pnc = person.otherIdentifiers?.pncIdentifier
@@ -147,9 +147,9 @@ class PersonEntity(
     fun from(person: Person): PersonEntity {
       val personEntity = PersonEntity(
         title = person.title,
-        firstName = person.givenName,
+        firstName = person.firstName,
         middleNames = person.middleNames?.joinToString(" ") { it },
-        lastName = person.familyName,
+        lastName = person.lastName,
         dateOfBirth = person.dateOfBirth,
         defendantId = person.defendantId,
         pnc = person.otherIdentifiers?.pncIdentifier,
