@@ -13,11 +13,11 @@ abstract class WebTestBase : IntegrationTestBase() {
   @Autowired
   internal lateinit var jwtHelper: JwtAuthHelper
 
-  internal fun WebTestClient.RequestHeadersSpec<*>.authorised(): WebTestClient.RequestBodySpec {
+  internal fun WebTestClient.RequestHeadersSpec<*>.authorised(roles: List<String> = listOf("ROLE_QUEUE_ADMIN")): WebTestClient.RequestBodySpec {
     val bearerToken = jwtHelper.createJwt(
       subject = "hmpps-person-record",
       expiryTime = Duration.ofMinutes(1L),
-      roles = listOf(),
+      roles = roles,
     )
     return header("authorization", "Bearer $bearerToken") as WebTestClient.RequestBodySpec
   }

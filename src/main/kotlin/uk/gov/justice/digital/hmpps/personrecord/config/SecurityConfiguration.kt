@@ -30,6 +30,7 @@ class SecurityConfiguration {
             "/populatefromnomis",
             "/populatefromprobation",
           ).permitAll()
+        authorize.requestMatchers("/queue-admin/purge-queue/**").hasRole("QUEUE_ADMIN")
       }
       .oauth2ResourceServer { oauth2ResourceServer ->
         oauth2ResourceServer
