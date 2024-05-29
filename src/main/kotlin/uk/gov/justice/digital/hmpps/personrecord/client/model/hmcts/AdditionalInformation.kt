@@ -7,5 +7,5 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class AdditionalInformation(
   val categoriesChanged: List<String>? = emptyList(),
   @JsonProperty("nomsNumber")
-  val prisonNumber: String,
+  val prisonNumber: String? = null,
 )

@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.delius.OffenderEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NOTIFICATION
 
 const val OFFENDER_EVENTS_QUEUE_CONFIG_KEY = "cprdeliusoffendereventsqueue"
 
@@ -38,7 +39,7 @@ class OffenderDomainEventsListener(
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
 
     when (sqsMessage.type) {
-      "Notification" -> {
+      NOTIFICATION -> {
         val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
         log.debug("Received message: type:${domainEvent.eventType}")
 
