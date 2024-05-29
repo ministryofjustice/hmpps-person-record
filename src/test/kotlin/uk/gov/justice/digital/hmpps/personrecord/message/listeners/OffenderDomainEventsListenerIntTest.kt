@@ -8,6 +8,7 @@ import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.PersonIdentifier
@@ -98,7 +99,7 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SourceSystem" to "DELIUS", "CRN" to crn))
   }
 
-  private fun domainEvent(eventType: String, pnc: String?, crn: String = UUID.randomUUID().toString()): String {
+  private fun domainEvent(eventType: String, pnc: String?, crn: String = UUID.randomUUID().toString(), additionalInformation: AdditionalInformation? = null): String {
     val probationCaseResponseSetup = ProbationCaseResponseSetup(crn = crn, pnc = pnc, prefix = "POPOne")
     stubSingleResponse(probationCaseResponseSetup, scenarioName, STARTED)
 
@@ -109,7 +110,7 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
       eventType = eventType,
       detailUrl = createDeliusDetailUrl(crn),
       personReference = personReference,
-      additionalInformation = null,
+      additionalInformation = additionalInformation,
     )
     publishDomainEvent(eventType, domainEvent)
     return crn
