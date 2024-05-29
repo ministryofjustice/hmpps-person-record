@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model
 
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.AdditionalInformation
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.AdditionalInformation
 
 data class DomainEvent(
   val eventType: String,

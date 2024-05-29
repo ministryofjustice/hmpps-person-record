@@ -2,14 +2,14 @@ package uk.gov.justice.digital.hmpps.personrecord.model
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Address
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Contact
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.Defendant
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.DefendantAlias
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.PersonDefendant
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.commonplatform.PersonDetails
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.event.LibraHearingEvent
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.libra.Name
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.commonplatform.Address
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.commonplatform.Contact
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.commonplatform.Defendant
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.commonplatform.DefendantAlias
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.commonplatform.PersonDefendant
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.commonplatform.PersonDetails
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.event.LibraHearingEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.libra.Name
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
@@ -32,8 +32,8 @@ internal class PersonTest {
 
     // Then
     assertThat(person.otherIdentifiers?.pncIdentifier).isEqualTo(PNCIdentifier.from("1979/0026538X"))
-    assertThat(person.givenName).isEqualTo("Stephen")
-    assertThat(person.familyName).isEqualTo("King")
+    assertThat(person.firstName).isEqualTo("Stephen")
+    assertThat(person.lastName).isEqualTo("King")
     assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
   }
 
@@ -58,8 +58,8 @@ internal class PersonTest {
 
     // Then
     assertThat(person.otherIdentifiers?.pncIdentifier).isEqualTo(PNCIdentifier.from("1979/0026538X"))
-    assertThat(person.givenName).isEqualTo("Stephen")
-    assertThat(person.familyName).isEqualTo("King")
+    assertThat(person.firstName).isEqualTo("Stephen")
+    assertThat(person.lastName).isEqualTo("King")
     assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
   }
 

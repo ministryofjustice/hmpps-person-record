@@ -14,9 +14,9 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import uk.gov.justice.hmpps.sqs.HmppsQueue
@@ -68,7 +68,11 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       val allEvents = telemetryRepository.findAllByEvent(event.eventName)
       val matchingEvents = allEvents?.filter {
         expected.entries.map { (k, v) ->
-          JSONObject(it.properties).get(k).equals(v)
+          val jsonObject = JSONObject(it.properties)
+          when {
+            (jsonObject.has(k)) -> jsonObject.get(k).equals(v)
+            else -> false
+          }
         }.all { it }
       }
       assertThat(matchingEvents?.size).`as`("Missing data $event $expected and actual data $allEvents").isEqualTo(times)

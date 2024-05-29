@@ -52,6 +52,7 @@ class AliasEntity(
             firstName = alias.firstName,
             middleNames = alias.middleNames,
             lastName = alias.lastName,
+            dateOfBirth = alias.dateOfBirth,
           )
         else -> null
       }
