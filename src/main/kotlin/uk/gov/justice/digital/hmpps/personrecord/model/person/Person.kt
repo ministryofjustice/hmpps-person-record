@@ -2,8 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.model.person
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.event.LibraHearingEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.DeliusOffenderDetail
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.OffenderDetail
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
@@ -23,13 +21,11 @@ data class Person(
   val middleNames: List<String>? = emptyList(),
   val lastName: String? = null,
   val dateOfBirth: LocalDate? = null,
-  val birthPlace: String? = null,
-  val birthCountry: String? = null,
   val otherIdentifiers: OtherIdentifiers? = null,
   val defendantId: String? = null,
   val title: String? = null,
   val aliases: List<Alias> = emptyList(),
-  val driverNumber: String? = null,
+  val driverLicenseNumber: String? = null,
   val arrestSummonsNumber: String? = null,
   val masterDefendantId: String? = null,
   val nationalInsuranceNumber: String? = null,
@@ -45,35 +41,14 @@ data class Person(
       )
     }
 
-    fun from(offenderDetail: OffenderDetail): Person {
-      return Person(
-        firstName = offenderDetail.firstName,
-        lastName = offenderDetail.surname,
-        dateOfBirth = offenderDetail.dateOfBirth,
-        otherIdentifiers = OtherIdentifiers(
-          crn = offenderDetail.otherIds.crn,
-          pncIdentifier = PNCIdentifier.from(offenderDetail.otherIds.pncNumber),
-          prisonNumber = offenderDetail.otherIds.nomsNumber,
-        ),
-        sourceSystemType = DELIUS,
-      )
-    }
-
-    fun from(deliusOffenderDetail: DeliusOffenderDetail): Person {
-      return Person(
-        firstName = deliusOffenderDetail.name.forename,
-        middleNames = deliusOffenderDetail.name.otherNames,
-        lastName = deliusOffenderDetail.name.surname,
-        dateOfBirth = deliusOffenderDetail.dateOfBirth,
-        otherIdentifiers = OtherIdentifiers(
-          crn = deliusOffenderDetail.identifiers.crn,
-          pncIdentifier = deliusOffenderDetail.identifiers.pnc,
-        ),
-        sourceSystemType = DELIUS,
-      )
-    }
     fun from(probationCase: ProbationCase): Person {
+      val contacts: List<Contact> = listOf(
+        Contact.from(ContactType.HOME, probationCase.contactDetails?.telephone),
+        Contact.from(ContactType.MOBILE, probationCase.contactDetails?.mobile),
+        Contact.from(ContactType.EMAIL, probationCase.contactDetails?.email),
+      )
       return Person(
+        title = probationCase.title?.value,
         firstName = probationCase.name.firstName,
         middleNames = probationCase.name.middleNames?.split(" ") ?: emptyList(),
         lastName = probationCase.name.lastName,
@@ -81,8 +56,13 @@ data class Person(
         otherIdentifiers = OtherIdentifiers(
           crn = probationCase.identifiers.crn,
           pncIdentifier = probationCase.identifiers.pnc,
+          croIdentifier = probationCase.identifiers.cro,
+          prisonNumber = probationCase.identifiers.prisonNumber,
         ),
+        nationalInsuranceNumber = probationCase.identifiers.nationalInsuranceNumber,
         aliases = probationCase.aliases?.map { Alias.from(it) } ?: emptyList(),
+        addresses = probationCase.addresses.map { Address(it.postcode) },
+        contacts = contacts,
         sourceSystemType = DELIUS,
       )
     }
@@ -112,7 +92,7 @@ data class Person(
         lastName = defendant.personDefendant?.personDetails?.lastName,
         middleNames = defendant.personDefendant?.personDetails?.middleName?.split(" "),
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
-        driverNumber = defendant.personDefendant?.driverNumber,
+        driverLicenseNumber = defendant.personDefendant?.driverNumber,
         arrestSummonsNumber = defendant.personDefendant?.arrestSummonsNumber,
         defendantId = defendant.id,
         masterDefendantId = defendant.masterDefendantId,
@@ -165,10 +145,3 @@ data class Person(
     }
   }
 }
-
-data class OtherIdentifiers(
-  val crn: String? = null,
-  val pncIdentifier: PNCIdentifier? = null,
-  val croIdentifier: CROIdentifier? = null,
-  var prisonNumber: String? = null,
-)

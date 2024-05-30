@@ -111,7 +111,7 @@ class PersonEntity(
     this.cro = person.otherIdentifiers?.croIdentifier
     this.fingerprint = person.otherIdentifiers?.croIdentifier?.fingerprint ?: false
     this.prisonNumber = person.otherIdentifiers?.prisonNumber
-    this.driverLicenseNumber = person.driverNumber
+    this.driverLicenseNumber = person.driverLicenseNumber
     this.arrestSummonsNumber = person.arrestSummonsNumber
     this.masterDefendantId = person.masterDefendantId
     this.nationalInsuranceNumber = person.nationalInsuranceNumber
@@ -157,7 +157,7 @@ class PersonEntity(
         cro = person.otherIdentifiers?.croIdentifier,
         fingerprint = person.otherIdentifiers?.croIdentifier?.fingerprint ?: false,
         prisonNumber = person.otherIdentifiers?.prisonNumber,
-        driverLicenseNumber = person.driverNumber,
+        driverLicenseNumber = person.driverLicenseNumber,
         arrestSummonsNumber = person.arrestSummonsNumber,
         masterDefendantId = person.masterDefendantId,
         nationalInsuranceNumber = person.nationalInsuranceNumber,
