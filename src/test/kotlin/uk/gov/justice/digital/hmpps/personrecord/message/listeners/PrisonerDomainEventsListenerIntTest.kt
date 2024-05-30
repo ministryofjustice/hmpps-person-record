@@ -6,11 +6,11 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.AdditionalInformation
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -37,7 +37,7 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
     publishDomainEvent(PRISONER_CREATED, domainEvent)
 
-    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "eventType" to PRISONER_CREATED, "SourceSystem" to "NOMIS"))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
 
     await.atMost(15, SECONDS) untilAsserted {
       val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
@@ -65,7 +65,7 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       CPR_RECORD_CREATED,
-      mapOf("SourceSystem" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
+      mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
     )
   }
 
@@ -100,11 +100,11 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
     publishDomainEvent(PRISONER_UPDATED, domainEvent)
 
-    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "eventType" to PRISONER_UPDATED, "SourceSystem" to "NOMIS"))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_UPDATED, "SOURCE_SYSTEM" to "NOMIS"))
 
     checkTelemetry(
       CPR_RECORD_UPDATED,
-      mapOf("SourceSystem" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
+      mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
     )
   }
 

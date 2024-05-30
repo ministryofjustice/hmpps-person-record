@@ -6,9 +6,10 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.event.CommonPlatformHearingEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
@@ -60,9 +61,9 @@ class CourtCaseEventsProcessor(
       telemetryService.trackEvent(
         HMCTS_MESSAGE_RECEIVED,
         mapOf(
-          "PNC" to person.otherIdentifiers?.pncIdentifier.toString(),
-          "CRO" to person.otherIdentifiers?.croIdentifier.toString(),
-          "MESSAGE_ID" to messageId,
+          EventKeys.PNC to person.otherIdentifiers?.pncIdentifier.toString(),
+          EventKeys.CRO to person.otherIdentifiers?.croIdentifier.toString(),
+          EventKeys.MESSAGE_ID to messageId,
         ),
       )
       process(person)

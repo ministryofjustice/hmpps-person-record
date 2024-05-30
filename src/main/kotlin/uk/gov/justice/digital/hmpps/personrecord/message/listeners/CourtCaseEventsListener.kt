@@ -7,11 +7,15 @@ import io.opentelemetry.api.trace.SpanKind.SERVER
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.hmcts.CourtCaseEventsProcessor
-import uk.gov.justice.digital.hmpps.personrecord.model.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_PROCESSING_FAILURE
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 
 const val CPR_COURT_CASE_EVENTS_QUEUE_CONFIG_KEY = "cprcourtcaseeventsqueue"
 
@@ -34,14 +38,16 @@ class CourtCaseEventsListener(
     if (featureFlag.isHmctsSQSEnabled()) {
       val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
       when (sqsMessage.type) {
-        "Notification" -> {
+        NOTIFICATION -> {
           try {
             courtCaseEventsProcessor.processEvent(sqsMessage)
           } catch (e: Exception) {
-            log.error("Failed to process message:${sqsMessage.messageId}", e)
             telemetryService.trackEvent(
-              HMCTS_PROCESSING_FAILURE,
-              mapOf("MESSAGE_ID" to sqsMessage.messageId),
+              MESSAGE_PROCESSING_FAILED,
+              mapOf(
+                MESSAGE_ID to sqsMessage.messageId,
+                SOURCE_SYSTEM to SourceSystemType.HMCTS.name,
+              ),
             )
             throw e
           }
