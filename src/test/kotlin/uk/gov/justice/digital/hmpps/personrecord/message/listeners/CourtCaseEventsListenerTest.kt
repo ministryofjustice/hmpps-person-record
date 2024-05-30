@@ -69,8 +69,11 @@ class CourtCaseEventsListenerTest {
 
     // then
     verify(telemetryService).trackEvent(
-      TelemetryEventType.HMCTS_PROCESSING_FAILURE,
-      mapOf(EventKeys.MESSAGE_ID to "5bc08be0-16e9-5da9-b9ec-d2c870a59bad"),
+      TelemetryEventType.MESSAGE_PROCESSING_FAILED,
+      mapOf(
+        EventKeys.MESSAGE_ID to "5bc08be0-16e9-5da9-b9ec-d2c870a59bad",
+        EventKeys.SOURCE_SYSTEM to "HMCTS",
+      ),
     )
   }
 
