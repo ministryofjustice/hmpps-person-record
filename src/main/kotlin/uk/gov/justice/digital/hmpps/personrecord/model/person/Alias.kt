@@ -26,6 +26,7 @@ data class Alias(
         firstName = alias.name.firstName,
         lastName = alias.name.lastName,
         middleNames = alias.name.middleNames,
+        dateOfBirth = alias.dateOfBirth,
       )
     }
 
