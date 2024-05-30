@@ -45,8 +45,8 @@ class PrisonerDomainEventsListenerTest {
     val messageId = UUID.randomUUID().toString()
     val rawMessage = prisonerDomainEvent(PRISONER_CREATED, prisonNumber, messageId = messageId)
     whenever(prisonerEventsProcessor.processEvent(any())).thenThrow(IllegalArgumentException("Something went wrong"))
-
     // when
+
     assertFailsWith<IllegalArgumentException>(
       block = { prisonerDomainEventListener.onDomainEvent(rawMessage = rawMessage) },
     )
@@ -54,7 +54,11 @@ class PrisonerDomainEventsListenerTest {
     // then
     verify(telemetryService).trackEvent(
       TelemetryEventType.MESSAGE_PROCESSING_FAILED,
-      mapOf(EventKeys.MESSAGE_ID to messageId),
+      mapOf(
+        EventKeys.MESSAGE_ID to messageId,
+        EventKeys.SOURCE_SYSTEM to "NOMIS",
+        EventKeys.EVENT_TYPE to "prisoner-offender-search.prisoner.created",
+      ),
     )
   }
 }
