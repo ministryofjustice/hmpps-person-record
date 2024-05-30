@@ -11,14 +11,11 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.delius.OffenderEventProcessor
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PrisonerEventsProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.NEW_OFFENDER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.test.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.offenderDomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.prisonerDomainEvent
 import java.util.UUID
 import kotlin.test.assertFailsWith
 
