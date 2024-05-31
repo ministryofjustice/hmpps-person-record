@@ -40,7 +40,7 @@ class OffenderEventProcessor(
     getProbationCase(crn).fold(
       onSuccess = {
         it?.let {
-          personService.processMessage(Person.from(it)) {
+          personService.processMessage(Person.from(it), domainEvent.eventType) {
             personRepository.findByCrn(crn)
           }
         }

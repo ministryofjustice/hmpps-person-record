@@ -7,4 +7,6 @@ enum class TelemetryEventType(val eventName: String) {
   MESSAGE_PROCESSING_FAILED("CprMessageProcessingFailed"),
   CPR_RECORD_CREATED("CprRecordCreated"),
   CPR_RECORD_UPDATED("CprRecordUpdated"),
+  CPR_UPDATE_RECORD_DOES_NOT_EXIST("CprUpdateRecordDoesNotExist"),
+  CPR_NEW_RECORD_EXISTS("CprNewRecordExists"),
 }
