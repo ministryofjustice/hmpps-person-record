@@ -1,10 +1,12 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.offender
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class Name(
-  val forename: String? = null,
-  val surname: String? = null,
-  val otherNames: List<String>? = emptyList(),
+  @JsonProperty("forename")
+  val firstName: String? = null,
+  @JsonProperty("surname")
+  val lastName: String? = null,
+  @JsonProperty("middleName")
+  val middleNames: String? = null,
 )
