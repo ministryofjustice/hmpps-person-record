@@ -13,7 +13,12 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
+import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_NEW_RECORD_EXISTS
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
 
 @Service
 class PersonService(
@@ -32,26 +37,32 @@ class PersonService(
     ConstraintViolationException::class,
   )
 
-  fun processMessage(person: Person, callback: () -> PersonEntity?) = runBlocking {
+  fun processMessage(person: Person, event: String? = null, callback: () -> PersonEntity?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, retryExceptions) {
-      readWriteLockService.withWriteLock { processPerson(person, callback) }
+      readWriteLockService.withWriteLock { processPerson(person, event, callback) }
     }
   }
 
-  private fun processPerson(person: Person, callback: () -> PersonEntity?) {
+  private fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) {
     val existingPersonEntities: PersonEntity? = callback()
     when {
-      (existingPersonEntities == null) -> handlePersonCreation(person)
-      else -> handlePersonUpdate(person, existingPersonEntities)
+      (existingPersonEntities == null) -> handlePersonCreation(person, event)
+      else -> handlePersonUpdate(person, existingPersonEntities, event)
     }
   }
 
-  private fun handlePersonCreation(person: Person) {
+  private fun handlePersonCreation(person: Person, event: String?) {
+    if (isUpdateEvent(event)) {
+      trackEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
+    }
     createPersonEntity(person)
     trackEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
   }
 
-  private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity) {
+  private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?) {
+    if (isCreateEvent(event)) {
+      trackEvent(CPR_NEW_RECORD_EXISTS, person)
+    }
     updateExistingPersonEntity(person, existingPersonEntity)
     trackEvent(TelemetryEventType.CPR_RECORD_UPDATED, person)
   }
@@ -73,6 +84,10 @@ class PersonService(
     val personEntity = PersonEntity.from(person)
     personRepository.saveAndFlush(personEntity)
   }
+
+  private fun isUpdateEvent(event: String?) = listOf(PRISONER_UPDATED).contains(event)
+
+  private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
 
   private fun trackEvent(
     eventType: TelemetryEventType,

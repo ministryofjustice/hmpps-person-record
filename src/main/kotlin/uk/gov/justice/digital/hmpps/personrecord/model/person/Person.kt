@@ -32,6 +32,7 @@ data class Person(
   val contacts: List<Contact> = emptyList(),
   val addresses: List<Address> = emptyList(),
   val sourceSystemType: SourceSystemType,
+  val eventType: String? = null,
 ) {
   companion object {
 
@@ -137,7 +138,7 @@ data class Person(
         middleNames = prisoner.middleNames?.split(" ") ?: emptyList(),
         lastName = prisoner.lastName,
         dateOfBirth = prisoner.dateOfBirth,
-        aliases = prisoner.aliases?.map { Alias.from(it) } ?: emptyList(),
+        aliases = prisoner.aliases.map { Alias.from(it) } ?: emptyList(),
         contacts = contacts,
         addresses = addresses,
         sourceSystemType = NOMIS,

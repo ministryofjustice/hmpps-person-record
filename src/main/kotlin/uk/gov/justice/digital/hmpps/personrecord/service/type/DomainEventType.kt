@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.test
+package uk.gov.justice.digital.hmpps.personrecord.service.type
 
 // Prisoner
 const val PRISONER_CREATED = "prisoner-offender-search.prisoner.created"

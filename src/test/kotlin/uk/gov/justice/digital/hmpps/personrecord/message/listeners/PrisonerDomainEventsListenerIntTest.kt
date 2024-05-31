@@ -15,11 +15,11 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DOMAIN_EVENT_RECEIVED
-import uk.gov.justice.digital.hmpps.personrecord.test.PRISONER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.test.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.prisonerSearchResponse
 import java.time.LocalDate
 import java.util.UUID

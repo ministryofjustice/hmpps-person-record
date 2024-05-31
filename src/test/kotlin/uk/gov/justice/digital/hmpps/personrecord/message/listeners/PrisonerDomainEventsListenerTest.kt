@@ -12,8 +12,8 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PrisonerEventsProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.test.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.prisonerDomainEvent
 import java.util.UUID
 import kotlin.test.assertFailsWith
