@@ -32,7 +32,6 @@ data class Person(
   val contacts: List<Contact> = emptyList(),
   val addresses: List<Address> = emptyList(),
   val sourceSystemType: SourceSystemType,
-  val eventType: String? = null,
 ) {
   companion object {
 
