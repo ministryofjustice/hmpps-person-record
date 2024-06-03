@@ -92,7 +92,7 @@ class PersonService(
     PRISONER_UPDATED,
     OFFENDER_DETAILS_CHANGED,
     OFFENDER_ALIAS_CHANGED,
-    OFFENDER_ADDRESS_CHANGED
+    OFFENDER_ADDRESS_CHANGED,
   ).contains(event)
 
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
