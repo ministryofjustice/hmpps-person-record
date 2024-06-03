@@ -243,5 +243,7 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.pnc).isEqualTo(PNCIdentifier.from("2003/0011985X"))
     assertThat(person.cro).isEqualTo(CROIdentifier.from("85227/65L"))
     assertThat(person.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
+    assertThat(person.addresses.size).isEqualTo(1)
+    assertThat(person.addresses[0].postcode).isEqualTo("NT4 6YH")
   }
 }
