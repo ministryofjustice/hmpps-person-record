@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
@@ -22,7 +23,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithNewDefendantAndNoPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithOneDefendant
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithSameDefendantIdTwice
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
+import java.time.LocalDate
 import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -215,5 +218,32 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val secondPersonEntity = personRepository.findByDefendantId(id2)
     assertThat(secondPersonEntity?.pnc?.pncId).isEqualTo("")
     assertThat(secondPersonEntity?.cro?.croId).isEqualTo("075715/64Q")
+  }
+
+  @Test
+  fun `should process libra messages`() {
+    // Use first name as unique as no ids that aren't canonical
+    val id = randomUUID().toString()
+    val messageId = publishHMCTSMessage(libraHearing(firstName = id), LIBRA_COURT_CASE)
+
+    checkTelemetry(
+      HMCTS_MESSAGE_RECEIVED,
+      mapOf(
+        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
+        "MESSAGE_ID" to messageId,
+      ),
+    )
+
+    val person = await.atMost(30, SECONDS) untilNotNull {
+      personRepository.findByFirstName(id)
+    }
+
+    assertThat(person.title).isEqualTo("Mr")
+    assertThat(person.lastName).isEqualTo("MORGAN")
+    assertThat(person.pnc).isEqualTo(PNCIdentifier.from("2003/0011985X"))
+    assertThat(person.cro).isEqualTo(CROIdentifier.from("85227/65L"))
+    assertThat(person.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
+    assertThat(person.addresses.size).isEqualTo(1)
+    assertThat(person.addresses[0].postcode).isEqualTo("NT4 6YH")
   }
 }

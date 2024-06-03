@@ -5,7 +5,9 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.event.CommonPlatformHearingEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -27,22 +29,19 @@ class CourtCaseEventsProcessor(
   }
 
   fun processEvent(sqsMessage: SQSMessage) {
-    log.debug("Received message with id ${sqsMessage.messageId}")
     when (val messageType = sqsMessage.getMessageType()) {
-      COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(
-        objectMapper.readValue<CommonPlatformHearingEvent>(
-          sqsMessage.message,
-        ),
-        sqsMessage.messageId,
-      )
+      COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
+      LIBRA_COURT_CASE.name -> processLibraEvent(sqsMessage)
       else -> {
         log.debug("Received case type $messageType")
       }
     }
   }
 
-  fun processCommonPlatformHearingEvent(commonPlatformHearingEvent: CommonPlatformHearingEvent, messageId: String?) {
-    log.debug("Processing COMMON PLATFORM event")
+  fun processCommonPlatformHearingEvent(sqsMessage: SQSMessage) {
+    val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(
+      sqsMessage.message,
+    )
 
     val uniqueDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
       .flatMap { it.defendants }
@@ -51,7 +50,7 @@ class CourtCaseEventsProcessor(
           it.personDefendant?.personDetails?.lastName +
           it.personDefendant?.personDetails?.dateOfBirth +
           it.pncId +
-          it.croNumber
+          it.cro
       }
     val pncValues = uniqueDefendants.joinToString(" ") { it.pncId.toString() }
     log.debug("Processing CP Event with ${uniqueDefendants.size} distinct defendants with pnc $pncValues")
@@ -63,18 +62,35 @@ class CourtCaseEventsProcessor(
         mapOf(
           EventKeys.PNC to person.otherIdentifiers?.pncIdentifier.toString(),
           EventKeys.CRO to person.otherIdentifiers?.croIdentifier.toString(),
-          EventKeys.MESSAGE_ID to messageId,
+          EventKeys.EVENT_TYPE to COMMON_PLATFORM_HEARING.name,
+          EventKeys.MESSAGE_ID to sqsMessage.messageId,
         ),
       )
-      process(person)
+      personService.processMessage(person) {
+        person.defendantId?.let {
+          personRepository.findByDefendantId(it)
+        }
+      }
     }
   }
 
-  private fun process(person: Person) {
+  fun processLibraEvent(sqsMessage: SQSMessage) {
+    val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(sqsMessage.message)
+    val person = Person.from(libraHearingEvent)
+
+    telemetryService.trackEvent(
+      HMCTS_MESSAGE_RECEIVED,
+      mapOf(
+        EventKeys.PNC to person.otherIdentifiers?.pncIdentifier.toString(),
+        EventKeys.CRO to person.otherIdentifiers?.croIdentifier.toString(),
+        EventKeys.EVENT_TYPE to LIBRA_COURT_CASE.name,
+        EventKeys.MESSAGE_ID to sqsMessage.messageId,
+      ),
+    )
+
     personService.processMessage(person) {
-      person.defendantId?.let {
-        personRepository.findByDefendantId(it)
-      }
+      // Treat as create for each libra message as no DefendantId (for now...)
+      null
     }
   }
 }

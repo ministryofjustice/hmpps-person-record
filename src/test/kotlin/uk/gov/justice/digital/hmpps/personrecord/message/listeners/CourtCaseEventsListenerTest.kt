@@ -42,7 +42,7 @@ class CourtCaseEventsListenerTest {
       telemetryService = telemetryService,
       featureFlag = featureFlag,
     )
-    whenever(featureFlag.isHmctsSQSEnabled()).thenReturn(true)
+    whenever(featureFlag.isHmctsSQSDisabled()).thenReturn(false)
   }
 
   @Test
@@ -72,6 +72,7 @@ class CourtCaseEventsListenerTest {
       TelemetryEventType.MESSAGE_PROCESSING_FAILED,
       mapOf(
         EventKeys.MESSAGE_ID to "5bc08be0-16e9-5da9-b9ec-d2c870a59bad",
+        EventKeys.EVENT_TYPE to COMMON_PLATFORM_HEARING.name,
         EventKeys.SOURCE_SYSTEM to "HMCTS",
       ),
     )
@@ -81,7 +82,7 @@ class CourtCaseEventsListenerTest {
   fun `should not call the processor when the feature flag is false`() {
     // given
     val rawMessage = testMessage(LIBRA_COURT_CASE.name)
-    whenever(featureFlag.isHmctsSQSEnabled()).thenReturn(false)
+    whenever(featureFlag.isHmctsSQSDisabled()).thenReturn(true)
     // when
     courtCaseEventsListener.onMessage(rawMessage = rawMessage)
 

@@ -5,8 +5,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.event.LibraH
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -86,7 +84,7 @@ data class Person(
       return Person(
         otherIdentifiers = OtherIdentifiers(
           pncIdentifier = defendant.pncId,
-          croIdentifier = CROIdentifier.from(defendant.croNumber),
+          croIdentifier = defendant.cro,
         ),
         firstName = defendant.personDefendant?.personDetails?.firstName,
         lastName = defendant.personDefendant?.personDetails?.lastName,
@@ -105,14 +103,17 @@ data class Person(
     }
 
     fun from(libraHearingEvent: LibraHearingEvent): Person {
+      val addresses = listOf(Address(libraHearingEvent.defendantAddress?.postcode))
       return Person(
+        title = libraHearingEvent.name?.title,
         otherIdentifiers = OtherIdentifiers(
-          pncIdentifier = PNCIdentifier.from(libraHearingEvent.pnc),
-          croIdentifier = CROIdentifier.from(libraHearingEvent.cro),
+          pncIdentifier = libraHearingEvent.pnc,
+          croIdentifier = libraHearingEvent.cro,
         ),
-        firstName = libraHearingEvent.name?.forename1,
-        lastName = libraHearingEvent.name?.surname,
-        dateOfBirth = libraHearingEvent.defendantDob,
+        firstName = libraHearingEvent.name?.firstName,
+        lastName = libraHearingEvent.name?.lastName,
+        dateOfBirth = libraHearingEvent.dateOfBirth,
+        addresses = addresses,
         sourceSystemType = HMCTS,
       )
     }
