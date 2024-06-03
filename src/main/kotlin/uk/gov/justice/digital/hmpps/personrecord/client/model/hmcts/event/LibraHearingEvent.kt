@@ -3,25 +3,29 @@ package uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.event
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.OptBoolean
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.libra.Address
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.libra.Name
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifierDeserializer
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifierDeserializer
 import java.time.LocalDate
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class LibraHearingEvent(
   val name: Name? = null,
-  val defendantName: String? = null,
-  val defendantSex: String? = null,
+  @JsonProperty("defendantDob")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy", lenient = OptBoolean.TRUE)
   @JsonDeserialize(using = LocalDateDeserializer::class)
-  val defendantDob: LocalDate? = null,
+  val dateOfBirth: LocalDate? = null,
   val defendantAddress: Address? = null,
-  val cro: String? = null,
-  val pnc: String? = null,
-  val nationality1: String? = null,
-  val nationality2: String? = null,
+  @JsonDeserialize(using = CROIdentifierDeserializer::class)
+  val cro: CROIdentifier? = CROIdentifier.from(),
+  @JsonDeserialize(using = PNCIdentifierDeserializer::class)
+  val pnc: PNCIdentifier? = PNCIdentifier.from(),
 )

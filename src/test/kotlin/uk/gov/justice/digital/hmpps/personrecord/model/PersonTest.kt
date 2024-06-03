@@ -22,9 +22,9 @@ internal class PersonTest {
     // Given
     val dateOfBirth = LocalDate.now()
     val libraHearingEvent = LibraHearingEvent(
-      pnc = "1979/0026538X",
-      name = Name(forename1 = "Stephen", surname = "King"),
-      defendantDob = dateOfBirth,
+      pnc = PNCIdentifier.from("1979/0026538X"),
+      name = Name(title = "Mr", firstName = "Stephen", lastName = "King"),
+      dateOfBirth = dateOfBirth,
     )
 
     // When
@@ -33,6 +33,7 @@ internal class PersonTest {
     // Then
     assertThat(person.otherIdentifiers?.pncIdentifier).isEqualTo(PNCIdentifier.from("1979/0026538X"))
     assertThat(person.firstName).isEqualTo("Stephen")
+    assertThat(person.title).isEqualTo("Mr")
     assertThat(person.lastName).isEqualTo("King")
     assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
   }

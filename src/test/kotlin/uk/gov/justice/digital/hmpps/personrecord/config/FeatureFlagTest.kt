@@ -12,7 +12,7 @@ internal class FeatureFlagTest : IntegrationTestBase() {
 
   @Test
   fun `should return true when hmcts sqs feature is enabled`() {
-    assertThat(featureFlag.isHmctsSQSEnabled()).isTrue
+    assertThat(featureFlag.isHmctsSQSDisabled()).isFalse()
   }
 
   @Test

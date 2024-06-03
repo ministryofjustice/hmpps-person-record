@@ -36,8 +36,9 @@ class CourtCaseEventsListener(
   fun onMessage(
     rawMessage: String,
   ) {
-    if (featureFlag.isHmctsSQSEnabled()) {
+    if (featureFlag.isHmctsSQSDisabled()) {
       log.debug("HMCTS Message processing is switched off")
+      return
     }
 
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)

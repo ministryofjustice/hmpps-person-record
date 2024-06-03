@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
@@ -50,7 +50,7 @@ class CourtCaseEventsProcessor(
           it.personDefendant?.personDetails?.lastName +
           it.personDefendant?.personDetails?.dateOfBirth +
           it.pncId +
-          it.croNumber
+          it.cro
       }
     val pncValues = uniqueDefendants.joinToString(" ") { it.pncId.toString() }
     log.debug("Processing CP Event with ${uniqueDefendants.size} distinct defendants with pnc $pncValues")
@@ -89,7 +89,7 @@ class CourtCaseEventsProcessor(
     )
 
     personService.processMessage(person) {
-      // Treat as create for each libra message as no DefendantId
+      // Treat as create for each libra message as no DefendantId (for now...)
       null
     }
   }

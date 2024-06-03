@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
@@ -26,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithSameDefendantIdTwice
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
+import java.time.LocalDate
 import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -222,7 +222,9 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process libra messages`() {
-    val messageId = publishHMCTSMessage(libraHearing(), LIBRA_COURT_CASE)
+    // Use first name as unique as no ids that aren't canonical
+    val id = randomUUID().toString()
+    val messageId = publishHMCTSMessage(libraHearing(firstName = id), LIBRA_COURT_CASE)
 
     checkTelemetry(
       HMCTS_MESSAGE_RECEIVED,
@@ -231,6 +233,15 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
         "MESSAGE_ID" to messageId,
       ),
     )
-    ch
+
+    val person = await.atMost(30, SECONDS) untilNotNull {
+      personRepository.findByFirstName(id)
+    }
+
+    assertThat(person.title).isEqualTo("Mr")
+    assertThat(person.lastName).isEqualTo("MORGAN")
+    assertThat(person.pnc).isEqualTo(PNCIdentifier.from("2003/0011985X"))
+    assertThat(person.cro).isEqualTo(CROIdentifier.from("85227/65L"))
+    assertThat(person.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
   }
 }
