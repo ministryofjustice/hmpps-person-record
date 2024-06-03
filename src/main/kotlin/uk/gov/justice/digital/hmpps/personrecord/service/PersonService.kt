@@ -14,6 +14,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CHANGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DETAILS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -85,7 +88,12 @@ class PersonService(
     personRepository.saveAndFlush(personEntity)
   }
 
-  private fun isUpdateEvent(event: String?) = listOf(PRISONER_UPDATED).contains(event)
+  private fun isUpdateEvent(event: String?) = listOf(
+    PRISONER_UPDATED,
+    OFFENDER_DETAILS_CHANGED,
+    OFFENDER_ALIAS_CHANGED,
+    OFFENDER_ADDRESS_CHANGED
+  ).contains(event)
 
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
 
