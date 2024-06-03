@@ -11,9 +11,11 @@ import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
@@ -22,6 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithNewDefendantAndNoPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithOneDefendant
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithSameDefendantIdTwice
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.SECONDS
@@ -215,5 +218,19 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val secondPersonEntity = personRepository.findByDefendantId(id2)
     assertThat(secondPersonEntity?.pnc?.pncId).isEqualTo("")
     assertThat(secondPersonEntity?.cro?.croId).isEqualTo("075715/64Q")
+  }
+
+  @Test
+  fun `should process libra messages`() {
+    val messageId = publishHMCTSMessage(libraHearing(), LIBRA_COURT_CASE)
+
+    checkTelemetry(
+      HMCTS_MESSAGE_RECEIVED,
+      mapOf(
+        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
+        "MESSAGE_ID" to messageId,
+      ),
+    )
+    ch
   }
 }

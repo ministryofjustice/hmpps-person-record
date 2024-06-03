@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.hmcts.CourtCaseEventsProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
@@ -36,28 +37,31 @@ class CourtCaseEventsListener(
     rawMessage: String,
   ) {
     if (featureFlag.isHmctsSQSEnabled()) {
-      val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-      when (sqsMessage.type) {
-        NOTIFICATION -> {
-          try {
-            courtCaseEventsProcessor.processEvent(sqsMessage)
-          } catch (e: Exception) {
-            telemetryService.trackEvent(
-              MESSAGE_PROCESSING_FAILED,
-              mapOf(
-                MESSAGE_ID to sqsMessage.messageId,
-                SOURCE_SYSTEM to SourceSystemType.HMCTS.name,
-              ),
-            )
-            throw e
-          }
-        }
-        else -> {
-          log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
-        }
+      log.debug("HMCTS Message processing is switched off")
+    }
+
+    val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
+    when (sqsMessage.type) {
+      NOTIFICATION -> handleEvent(sqsMessage)
+      else -> {
+        log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
       }
-    } else {
-      log.debug("Message processing is switched off")
+    }
+  }
+
+  fun handleEvent(sqsMessage: SQSMessage) {
+    try {
+      courtCaseEventsProcessor.processEvent(sqsMessage)
+    } catch (e: Exception) {
+      telemetryService.trackEvent(
+        MESSAGE_PROCESSING_FAILED,
+        mapOf(
+          SOURCE_SYSTEM to SourceSystemType.HMCTS.name,
+          EVENT_TYPE to sqsMessage.getMessageType(),
+          MESSAGE_ID to sqsMessage.messageId,
+        ),
+      )
+      throw e
     }
   }
 }

@@ -13,7 +13,6 @@ import java.time.LocalDate
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class LibraHearingEvent(
-  val urn: String? = null,
   val name: Name? = null,
   val defendantName: String? = null,
   val defendantSex: String? = null,
