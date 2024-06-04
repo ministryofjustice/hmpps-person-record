@@ -24,4 +24,4 @@ generic-prometheus-alerts:
     - "hmpps-person-record-preprod-cpr_delius_offender_events_dlq"
     - "hmpps-person-record-preprod-cpr_nomis_events_dlq"
   sqsAlertsTotalMessagesThreshold: 1
-  sqsAlertsOldestThreshold: 15
+  sqsAlertsOldestThreshold: 2
