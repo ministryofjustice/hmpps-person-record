@@ -38,8 +38,8 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 
   runtimeOnly("org.postgresql:postgresql:42.7.3")
-  runtimeOnly("org.flywaydb:flyway-core:10.13.0")
-  runtimeOnly("org.flywaydb:flyway-database-postgresql:10.13.0")
+  runtimeOnly("org.flywaydb:flyway-core:10.14.0")
+  runtimeOnly("org.flywaydb:flyway-database-postgresql:10.14.0")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
