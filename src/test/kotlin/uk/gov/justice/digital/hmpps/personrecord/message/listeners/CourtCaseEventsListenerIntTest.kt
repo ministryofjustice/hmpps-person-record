@@ -246,4 +246,6 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo("NT4 6YH")
   }
+
+  // need a test to handle concurrent reads for libra messages???
 }

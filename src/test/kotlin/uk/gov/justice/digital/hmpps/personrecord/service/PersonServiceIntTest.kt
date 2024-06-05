@@ -19,6 +19,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
 
   @BeforeEach
   override fun beforeEach() {
+    super.beforeEach()
     // need to delete as obscure fields to search on???
     personRepository.deleteAll()
   }

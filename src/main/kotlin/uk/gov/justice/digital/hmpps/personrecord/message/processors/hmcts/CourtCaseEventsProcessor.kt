@@ -89,6 +89,7 @@ class CourtCaseEventsProcessor(
         EventKeys.MESSAGE_ID to sqsMessage.messageId,
       ),
     )
+
     val personEntities: List<PersonEntity> = personService.findCandidateRecords(person)
     telemetryService.trackEvent(
       TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH,
