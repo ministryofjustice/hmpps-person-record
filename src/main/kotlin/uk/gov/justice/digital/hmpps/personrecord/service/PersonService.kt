@@ -5,6 +5,7 @@ import org.hibernate.exception.ConstraintViolationException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.CannotAcquireLockException
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
 import org.springframework.orm.jpa.JpaSystemException
@@ -101,11 +102,16 @@ class PersonService(
   fun findCandidateRecords(person: Person): List<PersonEntity> {
     return readWriteLockService.withReadLock {
       personRepository.findAll(
-        PersonSpecification.exactMatch(person.otherIdentifiers?.pncIdentifier.toString(), PersonSpecification.PNC)
-          .or(PersonSpecification.exactMatch(person.driverLicenseNumber, PersonSpecification.DRIVER_LICENSE_NUMBER))
-          .or(PersonSpecification.exactMatch(person.nationalInsuranceNumber, PersonSpecification.NI))
-          .or(PersonSpecification.exactMatch(person.otherIdentifiers?.croIdentifier.toString(), PersonSpecification.CRO))
-          .or(PersonSpecification.soundex(person.firstName, PersonSpecification.FIRST_NAME)),
+        Specification.where(
+          PersonSpecification.exactMatch(person.otherIdentifiers?.pncIdentifier.toString(), PersonSpecification.PNC)
+            .or(PersonSpecification.exactMatch(person.driverLicenseNumber, PersonSpecification.DRIVER_LICENSE_NUMBER))
+            .or(PersonSpecification.exactMatch(person.nationalInsuranceNumber, PersonSpecification.NI))
+            .or(PersonSpecification.exactMatch(person.otherIdentifiers?.croIdentifier.toString(), PersonSpecification.CRO))
+            .or(
+              PersonSpecification.soundex(person.firstName, PersonSpecification.FIRST_NAME)
+                .and(PersonSpecification.soundex(person.lastName, PersonSpecification.LAST_NAME)),
+            ),
+        ),
       )
     }
   }

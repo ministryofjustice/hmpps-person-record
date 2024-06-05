@@ -125,6 +125,28 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntities[0].firstName).isEqualTo("Steven")
   }
 
+  @Test
+  fun `should find candidate records on soundex matches on last name`() {
+    createPerson(
+      Person(
+        lastName = "Smith",
+        sourceSystemType = SourceSystemType.HMCTS,
+      ),
+    )
+    createPerson(
+      Person(
+        lastName = "Micheal",
+        sourceSystemType = SourceSystemType.HMCTS,
+      ),
+    )
+
+    val searchingPerson = Person(lastName = "Smythe", sourceSystemType = SourceSystemType.HMCTS)
+    val personEntities = personService.findCandidateRecords(searchingPerson)
+
+    assertThat(personEntities.size).isEqualTo(1)
+    assertThat(personEntities[0].lastName).isEqualTo("Smith")
+  }
+
   private fun createPerson(person: Person): PersonEntity {
     return personRepository.saveAndFlush(PersonEntity.from(person))
   }
