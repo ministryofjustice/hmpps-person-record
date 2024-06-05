@@ -102,7 +102,9 @@ class PersonService(
     return readWriteLockService.withReadLock {
       personRepository.findAll(
         PersonSpecification.pncEquals(person.otherIdentifiers?.pncIdentifier.toString())
-          .or(PersonSpecification.driverLicenseEquals(person.driverLicenseNumber)),
+          .or(PersonSpecification.driverLicenseEquals(person.driverLicenseNumber))
+          .or(PersonSpecification.nationalInsuranceNumberEquals(person.nationalInsuranceNumber))
+          .or(PersonSpecification.croEquals(person.otherIdentifiers?.croIdentifier.toString())),
       )
     }
   }

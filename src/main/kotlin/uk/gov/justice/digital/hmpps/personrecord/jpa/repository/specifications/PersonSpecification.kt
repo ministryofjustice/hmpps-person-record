@@ -13,10 +13,26 @@ object PersonSpecification {
     }
   }
 
+  fun croEquals(cro: String?): Specification<PersonEntity> {
+    return Specification { root, _, criteriaBuilder ->
+      cro?.let {
+        criteriaBuilder.equal(root.get<String>("cro"), it)
+      }
+    }
+  }
+
   fun driverLicenseEquals(driverLicenseNumber: String?): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
       driverLicenseNumber?.let {
         criteriaBuilder.equal(root.get<String>("driverLicenseNumber"), it)
+      }
+    }
+  }
+
+  fun nationalInsuranceNumberEquals(nationalInsuranceNumber: String?): Specification<PersonEntity> {
+    return Specification { root, _, criteriaBuilder ->
+      nationalInsuranceNumber?.let {
+        criteriaBuilder.equal(root.get<String>("nationalInsuranceNumber"), it)
       }
     }
   }
