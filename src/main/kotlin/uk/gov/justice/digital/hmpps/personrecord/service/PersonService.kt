@@ -101,7 +101,8 @@ class PersonService(
   fun findCandidateRecords(person: Person): List<PersonEntity> {
     return readWriteLockService.withReadLock {
       personRepository.findAll(
-        PersonSpecification.pncEquals(person.otherIdentifiers?.pncIdentifier.toString()),
+        PersonSpecification.pncEquals(person.otherIdentifiers?.pncIdentifier.toString())
+          .or(PersonSpecification.driverLicenseEquals(person.driverLicenseNumber)),
       )
     }
   }

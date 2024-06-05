@@ -42,6 +42,26 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntities[0].pnc).isEqualTo(PNCIdentifier.from("2003/0011985X"))
   }
 
+  @Test
+  fun `should find candidate records on exact matches on driver license number`() {
+    val personToFind = Person(
+      driverLicenseNumber = "01234567890",
+      sourceSystemType = SourceSystemType.HMCTS,
+    )
+    createPerson(personToFind)
+    createPerson(
+      Person(
+        driverLicenseNumber = "0987654321",
+        sourceSystemType = SourceSystemType.HMCTS,
+      ),
+    )
+
+    val personEntities = personService.findCandidateRecords(personToFind)
+
+    assertThat(personEntities.size).isEqualTo(1)
+    assertThat(personEntities[0].driverLicenseNumber).isEqualTo("01234567890")
+  }
+
   private fun createPerson(person: Person): PersonEntity {
     return personRepository.saveAndFlush(PersonEntity.from(person))
   }
