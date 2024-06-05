@@ -5,34 +5,27 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 
 object PersonSpecification {
 
-  fun pncEquals(pnc: String?): Specification<PersonEntity> {
+  const val PNC = "pnc"
+  const val CRO = "cro"
+  const val NI = "nationalInsuranceNumber"
+  const val DRIVER_LICENSE_NUMBER = "driverLicenseNumber"
+  const val FIRST_NAME = "firstName"
+
+  fun exactMatch(input: String?, field: String): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      pnc?.let {
-        criteriaBuilder.equal(root.get<String>("pnc"), it)
+      input?.let {
+        criteriaBuilder.equal(root.get<String>(field), it)
       }
     }
   }
 
-  fun croEquals(cro: String?): Specification<PersonEntity> {
+  fun soundex(input: String?, field: String): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      cro?.let {
-        criteriaBuilder.equal(root.get<String>("cro"), it)
-      }
-    }
-  }
-
-  fun driverLicenseEquals(driverLicenseNumber: String?): Specification<PersonEntity> {
-    return Specification { root, _, criteriaBuilder ->
-      driverLicenseNumber?.let {
-        criteriaBuilder.equal(root.get<String>("driverLicenseNumber"), it)
-      }
-    }
-  }
-
-  fun nationalInsuranceNumberEquals(nationalInsuranceNumber: String?): Specification<PersonEntity> {
-    return Specification { root, _, criteriaBuilder ->
-      nationalInsuranceNumber?.let {
-        criteriaBuilder.equal(root.get<String>("nationalInsuranceNumber"), it)
+      input?.let {
+        criteriaBuilder.equal(
+          criteriaBuilder.function("SOUNDEX", String::class.java, root.get<String>(field)),
+          criteriaBuilder.function("SOUNDEX", String::class.java, criteriaBuilder.literal(input)),
+        )
       }
     }
   }

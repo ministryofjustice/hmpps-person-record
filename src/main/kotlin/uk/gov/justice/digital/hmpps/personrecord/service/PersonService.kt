@@ -101,10 +101,11 @@ class PersonService(
   fun findCandidateRecords(person: Person): List<PersonEntity> {
     return readWriteLockService.withReadLock {
       personRepository.findAll(
-        PersonSpecification.pncEquals(person.otherIdentifiers?.pncIdentifier.toString())
-          .or(PersonSpecification.driverLicenseEquals(person.driverLicenseNumber))
-          .or(PersonSpecification.nationalInsuranceNumberEquals(person.nationalInsuranceNumber))
-          .or(PersonSpecification.croEquals(person.otherIdentifiers?.croIdentifier.toString())),
+        PersonSpecification.exactMatch(person.otherIdentifiers?.pncIdentifier.toString(), PersonSpecification.PNC)
+          .or(PersonSpecification.exactMatch(person.driverLicenseNumber, PersonSpecification.DRIVER_LICENSE_NUMBER))
+          .or(PersonSpecification.exactMatch(person.nationalInsuranceNumber, PersonSpecification.NI))
+          .or(PersonSpecification.exactMatch(person.otherIdentifiers?.croIdentifier.toString(), PersonSpecification.CRO))
+          .or(PersonSpecification.soundex(person.firstName, PersonSpecification.FIRST_NAME)),
       )
     }
   }
