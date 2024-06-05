@@ -74,7 +74,7 @@ tasks {
   }
 }
 
-configurations.matching { it.name == "detekt" }.all {
+configurations.matching { it.name == "detekt" || it.name == "kapt" }.all {
   resolutionStrategy.eachDependency {
     if (requested.group == "org.jetbrains.kotlin") {
       useVersion(io.gitlab.arturbosch.detekt.getSupportedKotlinVersion())

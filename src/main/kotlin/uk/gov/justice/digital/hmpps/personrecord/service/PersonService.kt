@@ -11,6 +11,7 @@ import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
@@ -96,6 +97,14 @@ class PersonService(
   ).contains(event)
 
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
+
+  fun findCandidateRecords(person: Person): List<PersonEntity> {
+    return readWriteLockService.withReadLock {
+      personRepository.findAll(
+        PersonSpecification.pncEquals(person.otherIdentifiers?.pncIdentifier.toString()),
+      )
+    }
+  }
 
   private fun trackEvent(
     eventType: TelemetryEventType,
