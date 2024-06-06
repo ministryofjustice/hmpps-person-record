@@ -27,7 +27,7 @@ class SecurityConfiguration {
             "/info/**",
             "/ping",
             "/queue-admin/retry-all-dlqs",
-            "/populatefromnomis",
+            "/populatefromprison",
             "/populatefromprobation",
           ).permitAll()
         authorize.requestMatchers("/queue-admin/purge-queue/**").hasRole("QUEUE_ADMIN")

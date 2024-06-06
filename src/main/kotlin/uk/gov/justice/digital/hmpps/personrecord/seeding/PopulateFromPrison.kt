@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRe
 private const val OK = "OK"
 
 @RestController
-class PopulateFromNomis(
+class PopulateFromPrison(
   val prisonerSearchClient: PrisonerSearchClient,
   val prisonServiceClient: PrisonServiceClient,
   @Value("\${populate-from-nomis.page-size}") val pageSize: Int,
@@ -29,7 +29,7 @@ class PopulateFromNomis(
   val repository: PersonRepository,
 ) {
 
-  @RequestMapping(method = [RequestMethod.POST], value = ["/populatefromnomis"])
+  @RequestMapping(method = [RequestMethod.POST], value = ["/populatefromprison"])
   suspend fun populate(): String {
     populatePages()
     return OK
