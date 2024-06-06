@@ -100,6 +100,18 @@ class PersonService(
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
 
   fun findCandidateRecords(person: Person): List<PersonEntity> {
+    val postcodeSpecifications = person.addresses.map { PersonSpecification.levenshteinPostcode(it.postcode) }
+
+    val soundexFirstLastName = Specification.where(
+      PersonSpecification.soundex(person.firstName, PersonSpecification.FIRST_NAME)
+        .and(PersonSpecification.soundex(person.lastName, PersonSpecification.LAST_NAME)),
+    )
+
+    val levenshteinDobPostcode = Specification.where(
+      PersonSpecification.levenshteinDate(person.dateOfBirth, PersonSpecification.DOB)
+        .or(PersonSpecification.combineSpecificationsWithOr(postcodeSpecifications)),
+    )
+
     return readWriteLockService.withReadLock {
       personRepository.findAll(
         Specification.where(
@@ -107,10 +119,7 @@ class PersonService(
             .or(PersonSpecification.exactMatch(person.driverLicenseNumber, PersonSpecification.DRIVER_LICENSE_NUMBER))
             .or(PersonSpecification.exactMatch(person.nationalInsuranceNumber, PersonSpecification.NI))
             .or(PersonSpecification.exactMatch(person.otherIdentifiers?.croIdentifier.toString(), PersonSpecification.CRO))
-            .or(
-              PersonSpecification.soundex(person.firstName, PersonSpecification.FIRST_NAME)
-                .and(PersonSpecification.soundex(person.lastName, PersonSpecification.LAST_NAME)),
-            ),
+            .or(soundexFirstLastName.and(levenshteinDobPostcode)),
         ),
       )
     }

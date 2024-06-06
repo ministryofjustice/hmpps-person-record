@@ -8,9 +8,11 @@ import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeT
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import java.time.LocalDate
 
 class PersonServiceIntTest : MessagingMultiNodeTestBase() {
 
@@ -146,6 +148,85 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
 
     assertThat(personEntities.size).isEqualTo(1)
     assertThat(personEntities[0].lastName).isEqualTo("Smith")
+  }
+
+  @Test
+  fun `should find candidate records on Levenshtein matches on dob`() {
+    createPerson(
+      Person(
+        lastName = "Smith",
+        dateOfBirth = LocalDate.of(1975, 1, 1),
+        sourceSystemType = SourceSystemType.HMCTS,
+      ),
+    )
+    createPerson(
+      Person(
+        lastName = "Micheal",
+        dateOfBirth = LocalDate.of(1986, 4, 2),
+        sourceSystemType = SourceSystemType.HMCTS,
+      ),
+    )
+
+    val searchingPerson = Person(lastName = "Smith", dateOfBirth = LocalDate.of(1975, 2, 1), sourceSystemType = SourceSystemType.HMCTS)
+    val personEntities = personService.findCandidateRecords(searchingPerson)
+
+    assertThat(personEntities.size).isEqualTo(1)
+    assertThat(personEntities[0].dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
+  }
+
+  @Test
+  fun `should find candidate records on Levenshtein matches on postcode`() {
+    createPerson(
+      Person(
+        lastName = "Smythe",
+        addresses = listOf(Address(postcode = "LS1 1AB")),
+        sourceSystemType = SourceSystemType.HMCTS,
+      ),
+    )
+    createPerson(
+      Person(
+        lastName = "Micheal",
+        addresses = listOf(Address(postcode = "ZB5 78O")),
+        sourceSystemType = SourceSystemType.HMCTS,
+      ),
+    )
+
+    val searchingPerson = Person(
+      lastName = "Smith",
+      addresses = listOf(Address(postcode = "LS2 1AC"), Address(postcode = "LD2 3BC")),
+      sourceSystemType = SourceSystemType.HMCTS,
+    )
+    val personEntities = personService.findCandidateRecords(searchingPerson)
+
+    assertThat(personEntities.size).isEqualTo(1)
+    assertThat(personEntities[0].addresses[0].postcode).isEqualTo("LS1 1AB")
+  }
+
+  @Test
+  fun `should not find candidate records on matching postcode but not name`() {
+    createPerson(
+      Person(
+        lastName = "Smith",
+        addresses = listOf(Address(postcode = "LS1 1AB")),
+        sourceSystemType = SourceSystemType.HMCTS,
+      ),
+    )
+    createPerson(
+      Person(
+        lastName = "Micheal",
+        addresses = listOf(Address(postcode = "ZB5 78O")),
+        sourceSystemType = SourceSystemType.HMCTS,
+      ),
+    )
+
+    val searchingPerson = Person(
+      lastName = "Stevenson",
+      addresses = listOf(Address(postcode = "LS1 1AB")),
+      sourceSystemType = SourceSystemType.HMCTS,
+    )
+    val personEntities = personService.findCandidateRecords(searchingPerson)
+
+    assertThat(personEntities.size).isEqualTo(0)
   }
 
   private fun createPerson(person: Person): PersonEntity {
