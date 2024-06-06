@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.ProbationCaseResponseSetup
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.offender.ProbationCaseResponseSetup
 
 fun probationCaseResponse(probationCase: ProbationCaseResponseSetup) = """
     {

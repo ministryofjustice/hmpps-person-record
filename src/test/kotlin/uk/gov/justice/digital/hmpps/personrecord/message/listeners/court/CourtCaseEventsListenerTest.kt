@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.BeforeEach
@@ -13,6 +13,7 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.CourtCaseEventsListener
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.hmcts.CourtCaseEventsProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService

@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.commonplatform
 
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
-import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
@@ -23,13 +22,11 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithNewDefendantAndNoPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithOneDefendant
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithSameDefendantIdTwice
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
-import java.time.LocalDate
 import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.SECONDS
 
-class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
+class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should successfully process common platform message with 3 defendants and create correct telemetry events`() {
@@ -96,20 +93,6 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
       99,
     )
   }
-
-  private fun buildPublishRequest(
-    defendantId: String,
-    pncNumber: PNCIdentifier,
-  ): PublishRequest? = PublishRequest.builder()
-    .topicArn(courtCaseEventsTopic?.arn)
-    .message(commonPlatformHearingWithSameDefendantIdTwice(defendantId = defendantId, pncNumber = pncNumber.pncId))
-    .messageAttributes(
-      mapOf(
-        "messageType" to MessageAttributeValue.builder().dataType("String")
-          .stringValue(COMMON_PLATFORM_HEARING.name).build(),
-      ),
-    )
-    .build()
 
   @Test
   fun `should update an existing person record from common platform message`() {
@@ -220,32 +203,17 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPersonEntity?.cro?.croId).isEqualTo("075715/64Q")
   }
 
-  @Test
-  fun `should process libra messages`() {
-    // Use first name as unique as no ids that aren't canonical
-    val id = randomUUID().toString()
-    val messageId = publishHMCTSMessage(libraHearing(firstName = id), LIBRA_COURT_CASE)
-
-    checkTelemetry(
-      HMCTS_MESSAGE_RECEIVED,
+  private fun buildPublishRequest(
+    defendantId: String,
+    pncNumber: PNCIdentifier,
+  ): PublishRequest? = PublishRequest.builder()
+    .topicArn(courtCaseEventsTopic?.arn)
+    .message(commonPlatformHearingWithSameDefendantIdTwice(defendantId = defendantId, pncNumber = pncNumber.pncId))
+    .messageAttributes(
       mapOf(
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "MESSAGE_ID" to messageId,
+        "messageType" to MessageAttributeValue.builder().dataType("String")
+          .stringValue(COMMON_PLATFORM_HEARING.name).build(),
       ),
     )
-
-    val person = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByFirstName(id)
-    }
-
-    assertThat(person.title).isEqualTo("Mr")
-    assertThat(person.lastName).isEqualTo("MORGAN")
-    assertThat(person.pnc).isEqualTo(PNCIdentifier.from("2003/0011985X"))
-    assertThat(person.cro).isEqualTo(CROIdentifier.from("85227/65L"))
-    assertThat(person.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
-    assertThat(person.addresses.size).isEqualTo(1)
-    assertThat(person.addresses[0].postcode).isEqualTo("NT4 6YH")
-  }
-
-  // need a test to handle concurrent reads for libra messages???
+    .build()
 }

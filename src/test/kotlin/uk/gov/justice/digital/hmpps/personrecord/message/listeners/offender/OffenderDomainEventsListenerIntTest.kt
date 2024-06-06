@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners.offender
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED

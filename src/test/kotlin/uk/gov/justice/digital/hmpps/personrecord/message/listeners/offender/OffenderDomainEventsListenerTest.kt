@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners.offender
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.BeforeEach
@@ -10,6 +10,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.OffenderDomainEventsListener
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.delius.OffenderEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
