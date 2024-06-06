@@ -21,7 +21,7 @@ generic-service:
           deny all;
           return 401;
         }
-        location /populatefromnomis {
+        location /populatefromprison {
           deny all;
           return 401;
         }
@@ -38,9 +38,6 @@ generic-service:
     APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY)"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
     HMPPS_SQS_USE_WEB_TOKEN: true
-
-    FEATURE_FLAGS_ENABLE_HMCTS_SQS: true
-    FEATURE_FLAGS_ENABLE_DELIUS_DOMAIN_EVENT_SQS: true
 
   # Pre-existing kubernetes secrets to load as environment variables in the deployment.
   # namespace_secrets:

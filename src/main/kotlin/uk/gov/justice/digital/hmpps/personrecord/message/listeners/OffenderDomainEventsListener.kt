@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.delius.OffenderEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
@@ -24,7 +23,6 @@ const val OFFENDER_EVENTS_QUEUE_CONFIG_KEY = "cprdeliusoffendereventsqueue"
 class OffenderDomainEventsListener(
   val eventProcessor: OffenderEventProcessor,
   val objectMapper: ObjectMapper,
-  val featureFlag: FeatureFlag,
   val telemetryService: TelemetryService,
 ) {
   private companion object {
@@ -36,11 +34,6 @@ class OffenderDomainEventsListener(
   fun onDomainEvent(
     rawMessage: String,
   ) {
-    if (featureFlag.isDeliusDomainEventSQSDisabled()) {
-      log.debug("Domain event processing switched off.")
-      return
-    }
-
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     when (sqsMessage.type) {
       NOTIFICATION -> {

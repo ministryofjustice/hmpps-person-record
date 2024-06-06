@@ -7,6 +7,7 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.integration.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
@@ -17,6 +18,7 @@ import java.time.LocalDate
 import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.SECONDS
 
+@ActiveProfiles("seeding")
 class PopulateFromProbationIntTest : WebTestBase() {
 
   @Autowired

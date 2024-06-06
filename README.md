@@ -35,6 +35,20 @@ Start the service ensuring the local spring boot profile is set:
 
 `$ ./gradlew bootRun --args='--spring.profiles.active=local'`
 
+## Seeding data
+
+Pause message consumption (scale pods down to 0 and silence alerts)
+Delete all data with source system of NOMIS or DELIUS as appropriate
+
+Get a shell on the hmpps-person-record pod (this is for dev):
+```kubectl exec -it deployment/hmpps-person-record -n hmpps-person-record-dev -- bash
+
+# takes 2-3 hours
+curl -i -X POST http://localhost:8080/populatefromprison 
+
+# takes 7-8 hours
+curl -i -X POST http://localhost:8080/populatefromprobation
+```
 
 ## process a Common Platform message
 
