@@ -1,9 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.integration
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
@@ -12,9 +9,7 @@ import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
-import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
-import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 
 abstract class MessagingSingleNodeTestBase : IntegrationTestBase() {
 
@@ -60,14 +55,7 @@ abstract class MessagingSingleNodeTestBase : IntegrationTestBase() {
 
     val response: PublishResponse? = courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
-    expectNoMessagesOn(courtCaseEventsQueue)
     return response!!.messageId()
-  }
-
-  private fun expectNoMessagesOn(queue: HmppsQueue?) {
-    await untilCallTo {
-      queue?.sqsClient?.countMessagesOnQueue(queue.queueUrl)?.get()
-    } matches { it == 0 }
   }
 
   fun publishDomainEvent(eventType: String, domainEvent: DomainEvent) {

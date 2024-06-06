@@ -16,7 +16,6 @@ class PrisonerDomainEventsListenerDisabledIntTest : MessagingSingleNodeTestBase(
 
   @Test
   fun `should not receive messages when seeding`() {
-    // Given
     val prisonNumber = UUID.randomUUID().toString()
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
