@@ -8,6 +8,7 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.integration.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
@@ -20,13 +21,14 @@ import java.time.LocalDate
 import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.SECONDS
 
+@ActiveProfiles("seeding")
 class PopulateFromPrisonIntTest : WebTestBase() {
 
   @Autowired
   lateinit var personRepository: PersonRepository
 
   @Test
-  fun `populate from nomis`() {
+  fun `populate from prison`() {
     val scenarioName = "populate"
     val prisonNumberOne: String = randomUUID().toString()
     val prisonNumberTwo: String = randomUUID().toString()
@@ -114,7 +116,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
   }
 
   @Test
-  fun `populate from nomis retries get prisoners`() {
+  fun `populate from prison retries get prisoners`() {
     val prisonNumberOne: String = randomUUID().toString()
     val prisonNumberTwo: String = randomUUID().toString()
     val prisonNumberThree: String = randomUUID().toString()
@@ -227,7 +229,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
   }
 
   @Test
-  fun `populate from nomis retries getPrisonerNumbers`() {
+  fun `populate from prison retries getPrisonerNumbers`() {
     val prisonNumberOne: String = randomUUID().toString()
     val prisonNumberTwo: String = randomUUID().toString()
     val prisonNumberThree: String = randomUUID().toString()
