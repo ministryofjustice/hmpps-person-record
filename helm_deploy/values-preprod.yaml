@@ -7,7 +7,7 @@ generic-service:
     tlsSecretName: hmpps-person-record-preprod-cert-secret
 
   env:
-    SPRING_PROFILES_ACTIVE: "preprod"
+    SPRING_PROFILES_ACTIVE: "preprod, seeding"
     MATCH_SCORE_BASE_URL: https://hmpps-person-match-score-preprod.hmpps.service.justice.gov.uk
     NOMIS_OAUTH_BASE_URL: https://sign-in-preprod.hmpps.service.justice.gov.uk
     PRISONER_SEARCH_BASE_URL: https://prisoner-search-preprod.prison.service.justice.gov.uk
