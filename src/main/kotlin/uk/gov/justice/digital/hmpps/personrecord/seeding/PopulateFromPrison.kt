@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
@@ -20,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRe
 private const val OK = "OK"
 
 @RestController
+@Profile("seeding")
 class PopulateFromPrison(
   val prisonerSearchClient: PrisonerSearchClient,
   val prisonServiceClient: PrisonServiceClient,
