@@ -21,7 +21,7 @@ generic-service:
           deny all;
           return 401;
         }
-        location /populatefromnomis {
+        location /populatefromprison {
           deny all;
           return 401;
         }

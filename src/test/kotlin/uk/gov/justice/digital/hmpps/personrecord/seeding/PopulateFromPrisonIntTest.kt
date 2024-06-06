@@ -20,7 +20,7 @@ import java.time.LocalDate
 import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.SECONDS
 
-class PopulateFromNomisIntTest : WebTestBase() {
+class PopulateFromPrisonIntTest : WebTestBase() {
 
   @Autowired
   lateinit var personRepository: PersonRepository
@@ -68,7 +68,7 @@ class PopulateFromNomisIntTest : WebTestBase() {
 
     stubSinglePrisonerDetail(prisonNumberSeven, scenarioName, STARTED)
     webTestClient.post()
-      .uri("/populatefromnomis")
+      .uri("/populatefromprison")
       .exchange()
       .expectStatus()
       .isOk
@@ -207,7 +207,7 @@ class PopulateFromNomisIntTest : WebTestBase() {
     stubSinglePrisonerDetail(prisonNumberSeven, scenarioName, "next request will succeed")
 
     webTestClient.post()
-      .uri("/populatefromnomis")
+      .uri("/populatefromprison")
       .exchange()
       .expectStatus()
       .isOk
@@ -295,7 +295,7 @@ class PopulateFromNomisIntTest : WebTestBase() {
         ),
     )
     webTestClient.post()
-      .uri("/populatefromnomis")
+      .uri("/populatefromprison")
       .exchange()
       .expectStatus()
       .isOk
