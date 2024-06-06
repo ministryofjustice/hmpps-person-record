@@ -37,7 +37,3 @@ hmpps.sqs:
       arn: arn:aws:sns:eu-west-2:000000000000:courtcaseeventstopic
     domainevents:
       arn: arn:aws:sns:eu-west-2:000000000000:domainevents
-
-feature.flags:
-  enable-hmcts-sqs: true
-  enable-delius-domain-event-sqs: true

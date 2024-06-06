@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.hmcts.CourtCaseEventsProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
@@ -25,7 +24,6 @@ class CourtCaseEventsListener(
   val objectMapper: ObjectMapper,
   val courtCaseEventsProcessor: CourtCaseEventsProcessor,
   val telemetryService: TelemetryService,
-  val featureFlag: FeatureFlag,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -36,11 +34,6 @@ class CourtCaseEventsListener(
   fun onMessage(
     rawMessage: String,
   ) {
-    if (featureFlag.isHmctsSQSDisabled()) {
-      log.debug("HMCTS Message processing is switched off")
-      return
-    }
-
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     when (sqsMessage.type) {
       NOTIFICATION -> handleEvent(sqsMessage)

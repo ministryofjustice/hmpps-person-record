@@ -9,7 +9,6 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.personrecord.config.FeatureFlag
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.delius.OffenderEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
@@ -28,9 +27,6 @@ class OffenderDomainEventsListenerTest {
   @Mock
   private lateinit var telemetryService: TelemetryService
 
-  @Mock
-  private lateinit var featureFlag: FeatureFlag
-
   private lateinit var offenderDomainEventsListener: OffenderDomainEventsListener
 
   @BeforeEach
@@ -39,7 +35,6 @@ class OffenderDomainEventsListenerTest {
       objectMapper = ObjectMapper(),
       eventProcessor = offenderEventsProcessor,
       telemetryService = telemetryService,
-      featureFlag = featureFlag,
     )
   }
 
