@@ -28,7 +28,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
   lateinit var personRepository: PersonRepository
 
   @Test
-  fun `populate from nomis`() {
+  fun `populate from prison`() {
     val scenarioName = "populate"
     val prisonNumberOne: String = randomUUID().toString()
     val prisonNumberTwo: String = randomUUID().toString()
@@ -116,7 +116,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
   }
 
   @Test
-  fun `populate from nomis retries get prisoners`() {
+  fun `populate from prison retries get prisoners`() {
     val prisonNumberOne: String = randomUUID().toString()
     val prisonNumberTwo: String = randomUUID().toString()
     val prisonNumberThree: String = randomUUID().toString()
@@ -229,7 +229,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
   }
 
   @Test
-  fun `populate from nomis retries getPrisonerNumbers`() {
+  fun `populate from prison retries getPrisonerNumbers`() {
     val prisonNumberOne: String = randomUUID().toString()
     val prisonNumberTwo: String = randomUUID().toString()
     val prisonNumberThree: String = randomUUID().toString()
