@@ -89,7 +89,10 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(
       CPR_RECORD_UPDATED,
-      mapOf("SOURCE_SYSTEM" to "HMCTS", "DEFENDANT_ID" to defendantId),
+      mapOf(
+        "SOURCE_SYSTEM" to "HMCTS",
+        "DEFENDANT_ID" to defendantId,
+      ),
       99,
     )
   }
