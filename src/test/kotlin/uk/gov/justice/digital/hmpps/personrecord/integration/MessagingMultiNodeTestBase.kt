@@ -1,12 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.integration
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
-import org.json.JSONObject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -17,12 +14,9 @@ import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
-import java.util.concurrent.TimeUnit
 
 @ExtendWith(MultiApplicationContextExtension::class)
 abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
@@ -54,29 +48,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   val prisonerEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprnomiseventsqueue")
-  }
-
-  @Autowired
-  lateinit var telemetryRepository: TelemetryTestRepository
-
-  internal fun checkTelemetry(
-    event: TelemetryEventType,
-    expected: Map<String, String>,
-    times: Int = 1,
-  ) {
-    await.atMost(3, TimeUnit.SECONDS) untilAsserted {
-      val allEvents = telemetryRepository.findAllByEvent(event.eventName)
-      val matchingEvents = allEvents?.filter {
-        expected.entries.map { (k, v) ->
-          val jsonObject = JSONObject(it.properties)
-          when {
-            (jsonObject.has(k)) -> jsonObject.get(k).equals(v)
-            else -> false
-          }
-        }.all { it }
-      }
-      assertThat(matchingEvents?.size).`as`("Missing data $event $expected and actual data $allEvents").isEqualTo(times)
-    }
   }
 
   internal fun publishHMCTSMessage(message: String, messageType: MessageType): String {

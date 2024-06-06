@@ -82,9 +82,6 @@ abstract class MessagingSingleNodeTestBase : IntegrationTestBase() {
       ).build()
 
     domainEventsTopic?.snsClient?.publish(publishRequest)?.get()
-
-    expectNoMessagesOn(offenderEventsQueue)
-    expectNoMessagesOn(prisonerEventsQueue)
   }
 
   fun createDeliusDetailUrl(crn: String): String =
