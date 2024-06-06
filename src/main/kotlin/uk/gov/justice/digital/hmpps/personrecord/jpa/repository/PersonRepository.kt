@@ -14,5 +14,4 @@ interface PersonRepository : JpaSpecificationExecutor<PersonEntity>, JpaReposito
 
   fun findByPrisonNumber(prisonNumber: String): PersonEntity?
 
-  fun findByFirstName(firstName: String): PersonEntity?
 }
