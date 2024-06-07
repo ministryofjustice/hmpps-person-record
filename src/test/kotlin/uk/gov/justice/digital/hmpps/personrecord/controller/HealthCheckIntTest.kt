@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.controller
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.integration.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.function.Consumer
