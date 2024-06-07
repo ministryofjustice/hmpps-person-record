@@ -3,18 +3,16 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingSingleNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithOneDefendant
-import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
+import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.util.UUID.randomUUID
 
 @ActiveProfiles("seeding")
-@Disabled("This works when run in isolation but not as part of check.")
 class CourtCaseEventsListenerDisabledIntTest : MessagingSingleNodeTestBase() {
 
   @Test
@@ -22,7 +20,7 @@ class CourtCaseEventsListenerDisabledIntTest : MessagingSingleNodeTestBase() {
     val defendantId = randomUUID().toString()
     val messageId = publishCourtMessage(commonPlatformHearingWithOneDefendant(defendantId = defendantId, pncNumber = "19810154257C"), COMMON_PLATFORM_HEARING)
     await untilCallTo {
-      courtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(courtCaseEventsQueue!!.queueUrl)?.get()
+      courtCaseEventsQueue?.sqsClient?.countAllMessagesOnQueue(courtCaseEventsQueue!!.queueUrl)?.get()
     } matches { it == 1 }
 
     checkTelemetry(

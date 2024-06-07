@@ -15,7 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDO
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -29,7 +29,7 @@ class IntegrationTestBase {
     expected: Map<String, String>,
     times: Int = 1,
   ) {
-    await.atMost(3, TimeUnit.SECONDS) untilAsserted {
+    await.atMost(1, SECONDS) untilAsserted {
       val allEvents = telemetryRepository.findAllByEvent(event.eventName)
       val matchingEvents = allEvents?.filter {
         expected.entries.map { (k, v) ->
