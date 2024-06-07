@@ -20,7 +20,7 @@ class CourtCaseEventsListenerDisabledIntTest : MessagingSingleNodeTestBase() {
   @Test
   fun `should not process any messages`() {
     val defendantId = randomUUID().toString()
-    val messageId = publishHMCTSMessage(commonPlatformHearingWithOneDefendant(defendantId = defendantId, pncNumber = "19810154257C"), COMMON_PLATFORM_HEARING)
+    val messageId = publishCourtMessage(commonPlatformHearingWithOneDefendant(defendantId = defendantId, pncNumber = "19810154257C"), COMMON_PLATFORM_HEARING)
     await untilCallTo {
       courtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(courtCaseEventsQueue!!.queueUrl)?.get()
     } matches { it == 1 }

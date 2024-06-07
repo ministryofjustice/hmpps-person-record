@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import java.util.UUID
 
 abstract class MessagingSingleNodeTestBase : IntegrationTestBase() {
 
@@ -39,7 +40,7 @@ abstract class MessagingSingleNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId("cprnomiseventsqueue")
   }
 
-  internal fun publishHMCTSMessage(message: String, messageType: MessageType): String {
+  internal fun publishCourtMessage(message: String, messageType: MessageType): String {
     val publishRequest = PublishRequest.builder()
       .topicArn(courtCaseEventsTopic?.arn)
       .message(message)
@@ -48,7 +49,7 @@ abstract class MessagingSingleNodeTestBase : IntegrationTestBase() {
           "messageType" to MessageAttributeValue.builder().dataType("String")
             .stringValue(messageType.name).build(),
           "messageId" to MessageAttributeValue.builder().dataType("String")
-            .stringValue("d3242a9f-c1cd-4d16-bd46-b7d33ccc9849").build(),
+            .stringValue(UUID.randomUUID().toString()).build(),
         ),
       )
       .build()
