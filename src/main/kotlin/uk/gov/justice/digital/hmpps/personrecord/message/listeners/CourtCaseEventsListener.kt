@@ -6,6 +6,7 @@ import io.awspring.cloud.sqs.annotation.SqsListener
 import io.opentelemetry.api.trace.SpanKind.SERVER
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
@@ -20,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 const val CPR_COURT_CASE_EVENTS_QUEUE_CONFIG_KEY = "cprcourtcaseeventsqueue"
 
 @Component
+@Profile("!seeding")
 class CourtCaseEventsListener(
   val objectMapper: ObjectMapper,
   val courtCaseEventsProcessor: CourtCaseEventsProcessor,
