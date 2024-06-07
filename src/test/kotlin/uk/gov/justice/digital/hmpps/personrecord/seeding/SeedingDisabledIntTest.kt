@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.seeding
 
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.integration.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 
 class SeedingDisabledIntTest : WebTestBase() {
 

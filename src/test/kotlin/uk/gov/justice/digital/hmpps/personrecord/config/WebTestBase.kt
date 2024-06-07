@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.integration
+package uk.gov.justice.digital.hmpps.personrecord.config
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.reactive.server.WebTestClient
