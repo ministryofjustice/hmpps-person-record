@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.integration
+package uk.gov.justice.digital.hmpps.personrecord.config
 
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.ExtensionContext

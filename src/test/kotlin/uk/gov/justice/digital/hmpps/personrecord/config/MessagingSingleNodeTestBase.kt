@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.integration
+package uk.gov.justice.digital.hmpps.personrecord.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.BeforeEach

@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
-import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingSingleNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.MessagingSingleNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithOneDefendant
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue

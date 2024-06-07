@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.integration
+package uk.gov.justice.digital.hmpps.personrecord.config
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
