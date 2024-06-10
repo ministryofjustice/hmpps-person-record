@@ -93,7 +93,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to "HMCTS",
         "DEFENDANT_ID" to defendantId,
       ),
-      99,
+      49,
     )
   }
 

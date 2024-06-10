@@ -4,7 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.personrecord.integration.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
@@ -221,6 +221,33 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
     val searchingPerson = Person(
       lastName = "Stevenson",
       addresses = listOf(Address(postcode = "LS1 1AB")),
+      sourceSystemType = SourceSystemType.HMCTS,
+    )
+    val personEntities = personService.findCandidateRecords(searchingPerson)
+
+    assertThat(personEntities.size).isEqualTo(0)
+  }
+
+  @Test
+  fun `should not find candidate records on matching dob but not name`() {
+    createPerson(
+      Person(
+        lastName = "Smith",
+        dateOfBirth = LocalDate.of(1975, 1, 1),
+        sourceSystemType = SourceSystemType.HMCTS,
+      ),
+    )
+    createPerson(
+      Person(
+        lastName = "Micheal",
+        dateOfBirth = LocalDate.of(1988, 4, 5),
+        sourceSystemType = SourceSystemType.HMCTS,
+      ),
+    )
+
+    val searchingPerson = Person(
+      lastName = "Stevenson",
+      dateOfBirth = LocalDate.of(1975, 1, 1),
       sourceSystemType = SourceSystemType.HMCTS,
     )
     val personEntities = personService.findCandidateRecords(searchingPerson)
