@@ -98,9 +98,6 @@ management:
       cache:
         time-to-live: 2000ms
 
-prisoner-search:
-  possible-matches: /prisoner-search/possible-matches
-
 retry:
   delay: 2000
 
