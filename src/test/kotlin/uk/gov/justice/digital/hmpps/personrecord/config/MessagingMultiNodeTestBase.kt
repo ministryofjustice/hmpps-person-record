@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.Do
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.offender.ProbationCaseResponseSetup
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ProbationCaseResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService

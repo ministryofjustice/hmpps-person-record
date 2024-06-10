@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.offender.ProbationCaseResponseSetup
-
 fun probationCaseResponse(probationCase: ProbationCaseResponseSetup) = """
     {
       "identifiers": {
@@ -50,3 +48,5 @@ fun probationCaseResponse(probationCase: ProbationCaseResponseSetup) = """
       }
     }
 """.trimIndent()
+
+data class ProbationCaseResponseSetup(val crn: String, val pnc: String? = null, val prefix: String, val prisonNumber: String)
