@@ -9,6 +9,8 @@ enum class EventKeys {
   MESSAGE_ID,
   SOURCE_SYSTEM,
   EVENT_TYPE,
+  RECORD_COUNT,
+  SEARCH_VERSION,
 
   // Identifiers
   CRN,
