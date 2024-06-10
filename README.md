@@ -49,7 +49,7 @@ Start the service ensuring the local spring boot profile is set:
 3. Get a shell on the hmpps-person-record pod (this is for dev):
 ```kubectl exec -it deployment/hmpps-person-record -n hmpps-person-record-preprod -- bash
 
-# takes 2-3 hours
+# takes 90 minutes -3 hours
 curl -i -X POST http://localhost:8080/populatefromprison 
 
 # takes 7-8 hours
