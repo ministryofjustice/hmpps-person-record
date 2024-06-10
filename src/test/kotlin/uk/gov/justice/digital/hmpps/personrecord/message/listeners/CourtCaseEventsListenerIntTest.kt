@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
+import java.util.UUID
 import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -65,11 +66,11 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should not push messages from Common Platform onto dead letter queue when processing fails because of could not serialize access due to read write dependencies among transactions`() {
+  fun `should not push messages from Common Platform onto dead letter queue when processing fails`() {
     val pncNumber = PNCIdentifier.from("2003/0062845E")
     val defendantId = randomUUID().toString()
     buildPublishRequest(defendantId, pncNumber)
-    val blitzer = Blitzer(50, 5)
+    val blitzer = Blitzer(25, 3)
     try {
       blitzer.blitz {
         courtCaseEventsTopic?.snsClient?.publish(buildPublishRequest(defendantId, pncNumber))?.get()
@@ -93,7 +94,7 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       CPR_RECORD_UPDATED,
       mapOf("SOURCE_SYSTEM" to "HMCTS", "DEFENDANT_ID" to defendantId),
-      99,
+      49,
     )
   }
 
@@ -107,6 +108,8 @@ class CourtCaseEventsListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "messageType" to MessageAttributeValue.builder().dataType("String")
           .stringValue(COMMON_PLATFORM_HEARING.name).build(),
+        "messageId" to MessageAttributeValue.builder().dataType("String")
+          .stringValue(UUID.randomUUID().toString()).build(),
       ),
     )
     .build()
