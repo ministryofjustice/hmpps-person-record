@@ -10,6 +10,7 @@ enum class EventKeys {
   SOURCE_SYSTEM,
   EVENT_TYPE,
   RECORD_COUNT,
+  SEARCH_VERSION,
 
   // Identifiers
   CRN,

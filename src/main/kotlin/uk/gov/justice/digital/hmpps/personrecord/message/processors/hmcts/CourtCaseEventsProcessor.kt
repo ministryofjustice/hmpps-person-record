@@ -99,6 +99,7 @@ class CourtCaseEventsProcessor(
         EventKeys.RECORD_COUNT to personEntities.size.toString(),
         EventKeys.EVENT_TYPE to LIBRA_COURT_CASE.name,
         EventKeys.MESSAGE_ID to sqsMessage.messageId,
+        EventKeys.SEARCH_VERSION to "1",
       ),
     )
     personService.processMessage(person) {
