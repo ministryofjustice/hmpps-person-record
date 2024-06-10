@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prisoner
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.BeforeEach
@@ -9,31 +9,32 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.delius.OffenderEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.PrisonerDomainEventsListener
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PrisonerEventsProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.offenderDomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.prisonerDomainEvent
 import java.util.UUID
 import kotlin.test.assertFailsWith
 
 @ExtendWith(MockitoExtension::class)
-class OffenderDomainEventsListenerTest {
+class PrisonerDomainEventsListenerTest {
 
   @Mock
-  private lateinit var offenderEventsProcessor: OffenderEventProcessor
+  private lateinit var prisonerEventsProcessor: PrisonerEventsProcessor
 
   @Mock
   private lateinit var telemetryService: TelemetryService
 
-  private lateinit var offenderDomainEventsListener: OffenderDomainEventsListener
+  private lateinit var prisonerDomainEventListener: PrisonerDomainEventsListener
 
   @BeforeEach
   fun setUp() {
-    offenderDomainEventsListener = OffenderDomainEventsListener(
+    prisonerDomainEventListener = PrisonerDomainEventsListener(
       objectMapper = ObjectMapper(),
-      eventProcessor = offenderEventsProcessor,
+      prisonerEventsProcessor = prisonerEventsProcessor,
       telemetryService = telemetryService,
     )
   }
@@ -41,14 +42,14 @@ class OffenderDomainEventsListenerTest {
   @Test
   fun `should create correct telemetry event when exception thrown`() {
     // given
-    val crn = UUID.randomUUID().toString()
+    val prisonNumber = UUID.randomUUID().toString()
     val messageId = UUID.randomUUID().toString()
-    val rawMessage = offenderDomainEvent(NEW_OFFENDER_CREATED, crn, messageId = messageId)
-    whenever(offenderEventsProcessor.processEvent(any())).thenThrow(IllegalArgumentException("Something went wrong"))
+    val rawMessage = prisonerDomainEvent(PRISONER_CREATED, prisonNumber, messageId = messageId)
+    whenever(prisonerEventsProcessor.processEvent(any())).thenThrow(IllegalArgumentException("Something went wrong"))
     // when
 
     assertFailsWith<IllegalArgumentException>(
-      block = { offenderDomainEventsListener.onDomainEvent(rawMessage = rawMessage) },
+      block = { prisonerDomainEventListener.onDomainEvent(rawMessage = rawMessage) },
     )
 
     // then
@@ -56,8 +57,8 @@ class OffenderDomainEventsListenerTest {
       TelemetryEventType.MESSAGE_PROCESSING_FAILED,
       mapOf(
         EventKeys.MESSAGE_ID to messageId,
-        EventKeys.SOURCE_SYSTEM to "DELIUS",
-        EventKeys.EVENT_TYPE to "probation-case.engagement.created",
+        EventKeys.SOURCE_SYSTEM to "NOMIS",
+        EventKeys.EVENT_TYPE to "prisoner-offender-search.prisoner.created",
       ),
     )
   }

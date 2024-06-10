@@ -5,12 +5,14 @@ import org.hibernate.exception.ConstraintViolationException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.CannotAcquireLockException
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
 import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
@@ -96,6 +98,32 @@ class PersonService(
   ).contains(event)
 
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
+
+  fun findCandidateRecords(person: Person): List<PersonEntity> {
+    val postcodeSpecifications = person.addresses.map { PersonSpecification.levenshteinPostcode(it.postcode) }
+
+    val soundexFirstLastName = Specification.where(
+      PersonSpecification.soundex(person.firstName, PersonSpecification.FIRST_NAME)
+        .and(PersonSpecification.soundex(person.lastName, PersonSpecification.LAST_NAME)),
+    )
+
+    val levenshteinDobPostcode = Specification.where(
+      PersonSpecification.levenshteinDate(person.dateOfBirth, PersonSpecification.DOB)
+        .or(PersonSpecification.combineSpecificationsWithOr(postcodeSpecifications)),
+    )
+
+    return readWriteLockService.withReadLock {
+      personRepository.findAll(
+        Specification.where(
+          PersonSpecification.exactMatch(person.otherIdentifiers?.pncIdentifier.toString(), PersonSpecification.PNC)
+            .or(PersonSpecification.exactMatch(person.driverLicenseNumber, PersonSpecification.DRIVER_LICENSE_NUMBER))
+            .or(PersonSpecification.exactMatch(person.nationalInsuranceNumber, PersonSpecification.NI))
+            .or(PersonSpecification.exactMatch(person.otherIdentifiers?.croIdentifier.toString(), PersonSpecification.CRO))
+            .or(soundexFirstLastName.and(levenshteinDobPostcode)),
+        ),
+      )
+    }
+  }
 
   private fun trackEvent(
     eventType: TelemetryEventType,

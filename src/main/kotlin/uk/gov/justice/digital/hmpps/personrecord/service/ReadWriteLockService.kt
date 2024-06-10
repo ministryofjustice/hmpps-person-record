@@ -8,7 +8,7 @@ class ReadWriteLockService {
 
   private val lock = ReentrantReadWriteLock()
 
-  fun <T> withReadLock(block: () -> T?): T? {
+  fun <T> withReadLock(block: () -> T): T {
     lock.readLock().lock()
     try {
       return block()

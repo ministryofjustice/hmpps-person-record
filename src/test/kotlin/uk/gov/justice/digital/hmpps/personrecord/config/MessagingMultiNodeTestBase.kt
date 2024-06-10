@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.stubbing.Scenario
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
@@ -12,11 +14,17 @@ import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.offender.ProbationCaseResponseSetup
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
+import java.util.UUID
 
 @ExtendWith(MultiApplicationContextExtension::class)
 abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
@@ -91,6 +99,36 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
     expectNoMessagesOn(offenderEventsQueue)
     expectNoMessagesOn(prisonerEventsQueue)
+  }
+
+  fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = UUID.randomUUID().toString(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = UUID.randomUUID().toString()): String {
+    val probationCaseResponseSetup = ProbationCaseResponseSetup(crn = crn, pnc = pnc, prefix = "POPOne", prisonNumber = prisonNumber)
+    stubSingleProbationResponse(probationCaseResponseSetup)
+
+    val crnType = PersonIdentifier("CRN", crn)
+    val personReference = PersonReference(listOf(crnType))
+
+    val domainEvent = DomainEvent(
+      eventType = eventType,
+      detailUrl = createDeliusDetailUrl(crn),
+      personReference = personReference,
+      additionalInformation = additionalInformation,
+    )
+    publishDomainEvent(eventType, domainEvent)
+    return crn
+  }
+  private fun stubSingleProbationResponse(probationCase: ProbationCaseResponseSetup, scenarioName: String? = "scenarioName", scenarioState: String? = Scenario.STARTED) {
+    wiremock.stubFor(
+      WireMock.get("/probation-cases/${probationCase.crn}")
+        .inScenario(scenarioName)
+        .whenScenarioStateIs(scenarioState)
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(probationCaseResponse(probationCase))
+            .withStatus(200),
+        ),
+    )
   }
 
   fun createDeliusDetailUrl(crn: String): String =

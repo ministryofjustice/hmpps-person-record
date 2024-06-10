@@ -276,26 +276,26 @@ fun commonPlatformHearingWithOneDefendant(pncNumber: String = "1981/0154257C", f
     }
 """.trimIndent()
 
-fun libraHearing(pncNumber: String? = "2003/0011985X", firstName: String? = "Arthur", surname: String = "MORGAN", dateOfBirth: String = "01/01/1975") = """
+fun libraHearing(pncNumber: String? = "2003/0011985X", firstName: String? = "Arthur", lastName: String = "MORGAN", dateOfBirth: String = "01/01/1975", cro: String = "85227/65L", postcode: String = "NT4 6YH") = """
 {
    "caseId":1217464,
    "caseNo":"1600032981",
    "name":{
       "title":"Mr",
       ${firstName?.let { """ "forename1": "$firstName", """.trimIndent() } ?: ""}
-      "surname":"$surname"
+      "surname":"$lastName"
    },
-   "defendantName":"Mr $firstName $surname",
+   "defendantName":"Mr $firstName $lastName",
    "defendantType":"P",
    "defendantSex":"N",
    "defendantDob":"$dateOfBirth",
    "defendantAge":"20",
    "defendantAddress":{
-      "line1":"39 The Street",
-      "line2":"Newtown",
-      "pcode":"NT4 6YH"
+      "line1": "39 The Street",
+      "line2": "Newtown",
+      "pcode": "$postcode"
    },
-   "cro":"85227/65L",
+   "cro":"$cro",
    ${pncNumber?.let { """ "pnc": "$pncNumber", """.trimIndent() } ?: ""}
    "listNo":"1st",
    "nationality1":"Angolan",

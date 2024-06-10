@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prisoner
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_NEW_RECORD_EXISTS
@@ -42,7 +43,7 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
 
     await.atMost(15, SECONDS) untilAsserted {
-      val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
+      val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
       assertThat(personEntity.title).isEqualTo("Ms")
       assertThat(personEntity.firstName).isEqualTo("Robert")
       assertThat(personEntity.middleNames).isEqualTo("John James")
@@ -96,7 +97,7 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     val prisonNumber = createPrisoner()
 
     await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByPrisonNumber(prisonNumber)
+      personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)
     }
 
     stubPrisonerResponse(prisonNumber)
@@ -115,7 +116,6 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should log correct telemetry on updated event but no record exists`() {
-    // Given
     val prisonNumber = UUID.randomUUID().toString()
     stubPrisonerResponse(prisonNumber)
 
@@ -125,6 +125,20 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_UPDATED, "SOURCE_SYSTEM" to "NOMIS"))
     checkTelemetry(CPR_UPDATE_RECORD_DOES_NOT_EXIST, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
+    checkTelemetry(
+      CPR_RECORD_CREATED,
+      mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
+    )
+  }
+
+  @Test
+  fun `should allow a person to be created from a prison event when an offender record already exists with the prisonNumber`() {
+    val prisonNumber = UUID.randomUUID().toString()
+    probationDomainEventAndResponseSetup(eventType = OFFENDER_ALIAS_CHANGED, pnc = "", prisonNumber = prisonNumber)
+    val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
+    val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
+    stubPrisonerResponse(prisonNumber)
+    publishDomainEvent(PRISONER_UPDATED, domainEvent)
     checkTelemetry(
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
