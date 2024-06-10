@@ -55,7 +55,6 @@ data class Person(
           crn = probationCase.identifiers.crn,
           pncIdentifier = probationCase.identifiers.pnc,
           croIdentifier = probationCase.identifiers.cro,
-          prisonNumber = probationCase.identifiers.prisonNumber,
         ),
         nationalInsuranceNumber = probationCase.identifiers.nationalInsuranceNumber,
         aliases = probationCase.aliases?.map { Alias.from(it) } ?: emptyList(),
