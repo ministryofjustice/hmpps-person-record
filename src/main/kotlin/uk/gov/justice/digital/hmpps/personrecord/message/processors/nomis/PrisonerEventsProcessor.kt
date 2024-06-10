@@ -41,7 +41,7 @@ class PrisonerEventsProcessor(
       onSuccess = {
         it?.let {
           personService.processMessage(Person.from(it), domainEvent.eventType) {
-            personRepository.findByPrisonNumber(prisonNumber)
+            personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)
           }
         }
       },

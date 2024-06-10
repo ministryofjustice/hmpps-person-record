@@ -1,14 +1,12 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.offender
 
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonReference
@@ -20,7 +18,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREAT
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DOMAIN_EVENT_RECEIVED
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
 import java.time.LocalDate
@@ -36,7 +33,7 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should receive the message successfully when new offender event published`() {
     val prisonNumber = UUID.randomUUID().toString()
-    val crn = domainEvent(NEW_OFFENDER_CREATED, "2020/0476873U", prisonNumber = prisonNumber)
+    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, "2020/0476873U", prisonNumber = prisonNumber)
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(personEntity.firstName).isEqualTo("POPOneFirstName")
@@ -69,7 +66,7 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should write offender without PNC if PNC is missing`() {
-    val crn = domainEvent(NEW_OFFENDER_CREATED, null)
+    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, null)
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
     assertThat(personEntity.pnc?.pncId).isEqualTo("")
@@ -80,7 +77,7 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should handle new offender details with an empty pnc`() {
-    val crn = domainEvent(NEW_OFFENDER_CREATED, "")
+    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, "")
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
@@ -112,49 +109,18 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process OFFENDER_DETAILS_CHANGED event successfully`() {
-    val crn = domainEvent(NEW_OFFENDER_CREATED, "2020/0476873U")
+    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, "2020/0476873U")
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(personEntity.pnc).isEqualTo(PNCIdentifier("2020/0476873U"))
     checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
-    domainEvent("OFFENDER_DETAILS_CHANGED", "2003/0062845E", crn)
+    probationDomainEventAndResponseSetup("OFFENDER_DETAILS_CHANGED", "2003/0062845E", crn)
 
     val updatedPersonEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(updatedPersonEntity.pnc).isEqualTo(PNCIdentifier("2003/0062845E"))
 
     checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to "OFFENDER_DETAILS_CHANGED", "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
-  }
-
-  private fun domainEvent(eventType: String, pnc: String?, crn: String = UUID.randomUUID().toString(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = UUID.randomUUID().toString()): String {
-    val probationCaseResponseSetup = ProbationCaseResponseSetup(crn = crn, pnc = pnc, prefix = "POPOne", prisonNumber = prisonNumber)
-    stubSingleResponse(probationCaseResponseSetup, scenarioName, STARTED)
-
-    val crnType = PersonIdentifier("CRN", crn)
-    val personReference = PersonReference(listOf(crnType))
-
-    val domainEvent = DomainEvent(
-      eventType = eventType,
-      detailUrl = createDeliusDetailUrl(crn),
-      personReference = personReference,
-      additionalInformation = additionalInformation,
-    )
-    publishDomainEvent(eventType, domainEvent)
-    return crn
-  }
-
-  private fun stubSingleResponse(probationCase: ProbationCaseResponseSetup, scenarioName: String, scenarioState: String) {
-    wiremock.stubFor(
-      WireMock.get("/probation-cases/${probationCase.crn}")
-        .inScenario(scenarioName)
-        .whenScenarioStateIs(scenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(probationCaseResponse(probationCase))
-            .withStatus(200),
-        ),
-    )
   }
 
   private fun stub404Response(crn: String) {
