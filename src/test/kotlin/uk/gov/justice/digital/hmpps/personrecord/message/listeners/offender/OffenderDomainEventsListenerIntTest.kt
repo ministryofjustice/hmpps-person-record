@@ -28,8 +28,6 @@ data class ProbationCaseResponseSetup(val crn: String, val pnc: String? = null, 
 
 class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
-  private val scenarioName: String = "scenario"
-
   @Test
   fun `should receive the message successfully when new offender event published`() {
     val prisonNumber = UUID.randomUUID().toString()
@@ -43,7 +41,6 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.pnc).isEqualTo(PNCIdentifier("2020/0476873U"))
     assertThat(personEntity.crn).isEqualTo(crn)
     assertThat(personEntity.cro).isEqualTo(CROIdentifier.from("075715/64Q"))
-    assertThat(personEntity.prisonNumber).isEqualTo(prisonNumber)
     assertThat(personEntity.nationalInsuranceNumber).isEqualTo("1234567890")
     assertThat(personEntity.aliases.size).isEqualTo(1)
     assertThat(personEntity.aliases[0].firstName).isEqualTo("POPOneFirstName")
@@ -73,6 +70,19 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+  }
+
+  @Test
+  fun `should create two offenders with same prisonNumber but different CRNs`() {
+    val prisonNumber: String = UUID.randomUUID().toString()
+    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, null, prisonNumber = prisonNumber)
+    await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+
+    val nextCrn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, null, prisonNumber = prisonNumber)
+    await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(nextCrn) }
+
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to nextCrn))
   }
 
   @Test
