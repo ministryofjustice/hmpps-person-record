@@ -32,9 +32,8 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should receive the message successfully when prisoner created event published`() {
-    // Given
     val prisonNumber = UUID.randomUUID().toString()
-    stubPrisonerResponse(prisonNumber)
+    stubPrisonResponse(prisonNumber)
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -74,10 +73,9 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should log correct telemetry on created event but record already exists`() {
-    // Given
     val prisonNumber = createPrisoner()
 
-    stubPrisonerResponse(prisonNumber)
+    stubPrisonResponse(prisonNumber)
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -93,14 +91,13 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should receive the message successfully when prisoner updated event published`() {
-    // Given
     val prisonNumber = createPrisoner()
 
     await.atMost(30, SECONDS) untilNotNull {
       personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)
     }
 
-    stubPrisonerResponse(prisonNumber)
+    stubPrisonResponse(prisonNumber)
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
     val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -117,7 +114,7 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should log correct telemetry on updated event but no record exists`() {
     val prisonNumber = UUID.randomUUID().toString()
-    stubPrisonerResponse(prisonNumber)
+    stubPrisonResponse(prisonNumber)
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -137,7 +134,7 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     probationDomainEventAndResponseSetup(eventType = OFFENDER_ALIAS_CHANGED, pnc = "", prisonNumber = prisonNumber)
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
-    stubPrisonerResponse(prisonNumber)
+    stubPrisonResponse(prisonNumber)
     publishDomainEvent(PRISONER_UPDATED, domainEvent)
     checkTelemetry(
       CPR_RECORD_CREATED,
@@ -166,7 +163,7 @@ class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     return prisonNumber
   }
 
-  fun stubPrisonerResponse(prisonNumber: String) {
+  private fun stubPrisonResponse(prisonNumber: String) {
     wiremock.stubFor(
       WireMock.get("/prisoner/$prisonNumber")
         .willReturn(
