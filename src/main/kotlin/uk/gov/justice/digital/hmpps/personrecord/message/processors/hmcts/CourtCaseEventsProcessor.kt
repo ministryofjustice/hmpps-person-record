@@ -9,11 +9,14 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 
 @Service
@@ -88,17 +91,17 @@ class CourtCaseEventsProcessor(
       ),
     )
 
-//    val personEntities: List<PersonEntity> = personService.findCandidateRecords(person)
-//    telemetryService.trackEvent(
-//      TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH,
-//      mapOf(
-//        EventKeys.SOURCE_SYSTEM to SourceSystemType.HMCTS.name,
-//        EventKeys.RECORD_COUNT to personEntities.size.toString(),
-//        EventKeys.EVENT_TYPE to LIBRA_COURT_CASE.name,
-//        EventKeys.MESSAGE_ID to sqsMessage.messageId,
-//        EventKeys.SEARCH_VERSION to "1",
-//      ),
-//    )
+    val personEntities: List<PersonEntity> = personService.findCandidateRecords(person)
+    telemetryService.trackEvent(
+      TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH,
+      mapOf(
+        EventKeys.SOURCE_SYSTEM to SourceSystemType.HMCTS.name,
+        EventKeys.RECORD_COUNT to personEntities.size.toString(),
+        EventKeys.EVENT_TYPE to LIBRA_COURT_CASE.name,
+        EventKeys.MESSAGE_ID to sqsMessage.messageId,
+        EventKeys.SEARCH_VERSION to "1",
+      ),
+    )
     personService.processMessage(person) {
       // Treat as create for each libra message as no DefendantId (for now...)
       null
