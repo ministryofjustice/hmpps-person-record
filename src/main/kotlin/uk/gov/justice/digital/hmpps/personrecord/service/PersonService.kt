@@ -5,6 +5,8 @@ import org.hibernate.exception.ConstraintViolationException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.CannotAcquireLockException
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
@@ -99,7 +101,7 @@ class PersonService(
 
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
 
-  fun findCandidateRecords(person: Person): List<PersonEntity> {
+  fun findCandidateRecords(person: Person): Page<PersonEntity> {
     val postcodeSpecifications = person.addresses.map { PersonSpecification.levenshteinPostcode(it.postcode) }
 
     val soundexFirstLastName = Specification.where(
@@ -121,6 +123,7 @@ class PersonService(
             .or(PersonSpecification.exactMatch(person.otherIdentifiers?.croIdentifier.toString(), PersonSpecification.CRO))
             .or(soundexFirstLastName.and(levenshteinDobPostcode)),
         ),
+        Pageable.ofSize(50)
       )
     }
   }

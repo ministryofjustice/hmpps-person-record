@@ -96,7 +96,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "SOURCE_SYSTEM" to "HMCTS",
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "RECORD_COUNT" to "1000000",
+        "RECORD_COUNT" to "50",
         "SEARCH_VERSION" to "1",
         "MESSAGE_ID" to messageId,
       ),

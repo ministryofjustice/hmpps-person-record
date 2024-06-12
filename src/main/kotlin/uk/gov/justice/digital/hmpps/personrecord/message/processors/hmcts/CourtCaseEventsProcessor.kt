@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.hmcts
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.LIBRA_COURT_CASE
@@ -91,7 +92,7 @@ class CourtCaseEventsProcessor(
       ),
     )
 
-    val personEntities: List<PersonEntity> = personService.findCandidateRecords(person)
+    val personEntities: Page<PersonEntity> = personService.findCandidateRecords(person)
     telemetryService.trackEvent(
       TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
