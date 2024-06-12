@@ -24,8 +24,6 @@ import java.time.LocalDate
 import java.util.UUID
 import java.util.concurrent.TimeUnit.SECONDS
 
-data class ProbationCaseResponseSetup(val crn: String, val pnc: String? = null, val prefix: String, val prisonNumber: String)
-
 class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test

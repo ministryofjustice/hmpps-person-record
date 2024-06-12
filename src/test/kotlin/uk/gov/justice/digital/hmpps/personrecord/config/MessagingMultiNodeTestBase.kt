@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.stubbing.Scenario
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
@@ -19,7 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.Do
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.offender.ProbationCaseResponseSetup
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ProbationCaseResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -117,11 +116,9 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     publishDomainEvent(eventType, domainEvent)
     return crn
   }
-  private fun stubSingleProbationResponse(probationCase: ProbationCaseResponseSetup, scenarioName: String? = "scenarioName", scenarioState: String? = Scenario.STARTED) {
+  private fun stubSingleProbationResponse(probationCase: ProbationCaseResponseSetup) {
     wiremock.stubFor(
       WireMock.get("/probation-cases/${probationCase.crn}")
-        .inScenario(scenarioName)
-        .whenScenarioStateIs(scenarioState)
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
