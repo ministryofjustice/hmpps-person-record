@@ -123,7 +123,7 @@ class PersonService(
             .or(PersonSpecification.exactMatch(person.otherIdentifiers?.croIdentifier.toString(), PersonSpecification.CRO))
             .or(soundexFirstLastName.and(levenshteinDobPostcode)),
         ),
-        Pageable.ofSize(50)
+        Pageable.ofSize(PAGE_SIZE),
       )
     }
   }
@@ -144,5 +144,6 @@ class PersonService(
 
   companion object {
     const val MAX_ATTEMPTS: Int = 5
+    const val PAGE_SIZE: Int = 50
   }
 }

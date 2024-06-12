@@ -8,6 +8,7 @@ import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
@@ -32,7 +33,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
   @BeforeEach
   override fun beforeEach() {
     super.beforeEach()
-//    personRepository.deleteAll()
+    personRepository.deleteAll()
     telemetryRepository.deleteAll()
   }
 
@@ -65,27 +66,28 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should process libra with large amount of candidates`() {
-//    val blitzer = Blitzer(1000000, 10)
-//    try {
-//      blitzer.blitz {
-//        personRepository.saveAndFlush(
-//          PersonEntity.from(
-//            Person(
-//              firstName = "Jane",
-//              lastName = "Smith",
-//              addresses = listOf(Address(postcode = "LS1 1AB")),
-//              sourceSystemType = SourceSystemType.HMCTS,
-//            ),
-//          ),
-//        )
-//      }
-//    } finally {
-//      blitzer.shutdown()
-//    }
-//
-//    await.atMost(300, SECONDS) untilAsserted { assertThat(personRepository.findAll().size).isEqualTo(1000000) }
-//    println("Inserted Data")
+  @Disabled("Disabling as it takes too long to run in a CI context - out of memory errors")
+  fun `should process libra with large amount of candidates - CPR-354`() {
+    await untilAsserted { assertThat(personRepository.findAll().size).isEqualTo(0) }
+    val blitzer = Blitzer(1000000, 10)
+    try {
+      blitzer.blitz {
+        personRepository.saveAndFlush(
+          PersonEntity.from(
+            Person(
+              firstName = "Jane",
+              lastName = "Smith",
+              addresses = listOf(Address(postcode = "LS1 1AB")),
+              sourceSystemType = SourceSystemType.HMCTS,
+            ),
+          ),
+        )
+      }
+    } finally {
+      blitzer.shutdown()
+    }
+
+    await.atMost(300, SECONDS) untilAsserted { assertThat(personRepository.findAll().size).isEqualTo(1000000) }
 
     val messageId = publishHMCTSMessage(libraHearing(firstName = "Jayne", lastName = "Smith", postcode = "LS2 1AB"), LIBRA_COURT_CASE)
 
@@ -96,7 +98,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "SOURCE_SYSTEM" to "HMCTS",
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "RECORD_COUNT" to "50",
+        "RECORD_COUNT" to "1000000",
         "SEARCH_VERSION" to "1",
         "MESSAGE_ID" to messageId,
       ),

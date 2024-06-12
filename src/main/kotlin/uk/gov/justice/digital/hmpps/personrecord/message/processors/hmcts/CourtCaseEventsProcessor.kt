@@ -92,12 +92,12 @@ class CourtCaseEventsProcessor(
       ),
     )
 
-    val personEntities: Page<PersonEntity> = personService.findCandidateRecords(person)
+    val pageablePersonEntities: Page<PersonEntity> = personService.findCandidateRecords(person)
     telemetryService.trackEvent(
       TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         EventKeys.SOURCE_SYSTEM to SourceSystemType.HMCTS.name,
-        EventKeys.RECORD_COUNT to personEntities.size.toString(),
+        EventKeys.RECORD_COUNT to pageablePersonEntities.totalElements.toString(),
         EventKeys.EVENT_TYPE to LIBRA_COURT_CASE.name,
         EventKeys.MESSAGE_ID to sqsMessage.messageId,
         EventKeys.SEARCH_VERSION to "1",
