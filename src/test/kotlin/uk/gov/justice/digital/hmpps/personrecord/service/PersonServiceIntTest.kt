@@ -41,8 +41,8 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
 
     val personEntities = personService.findCandidateRecords(personToFind)
 
-    assertThat(personEntities.size).isEqualTo(1)
-    assertThat(personEntities[0].pnc).isEqualTo(PNCIdentifier.from("2003/0011985X"))
+    assertThat(personEntities.totalElements).isEqualTo(1)
+    assertThat(personEntities.get().findFirst().get().pnc).isEqualTo(PNCIdentifier.from("2003/0011985X"))
   }
 
   @Test
@@ -61,8 +61,8 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
 
     val personEntities = personService.findCandidateRecords(personToFind)
 
-    assertThat(personEntities.size).isEqualTo(1)
-    assertThat(personEntities[0].driverLicenseNumber).isEqualTo("01234567890")
+    assertThat(personEntities.totalElements).isEqualTo(1)
+    assertThat(personEntities.get().findFirst().get().driverLicenseNumber).isEqualTo("01234567890")
   }
 
   @Test
@@ -81,8 +81,8 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
 
     val personEntities = personService.findCandidateRecords(personToFind)
 
-    assertThat(personEntities.size).isEqualTo(1)
-    assertThat(personEntities[0].nationalInsuranceNumber).isEqualTo("PG1234567C")
+    assertThat(personEntities.totalElements).isEqualTo(1)
+    assertThat(personEntities.get().findFirst().get().nationalInsuranceNumber).isEqualTo("PG1234567C")
   }
 
   @Test
@@ -101,8 +101,8 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
 
     val personEntities = personService.findCandidateRecords(personToFind)
 
-    assertThat(personEntities.size).isEqualTo(1)
-    assertThat(personEntities[0].cro).isEqualTo(CROIdentifier.from("86621/65B"))
+    assertThat(personEntities.totalElements).isEqualTo(1)
+    assertThat(personEntities.get().findFirst().get().cro).isEqualTo(CROIdentifier.from("86621/65B"))
   }
 
   @Test
@@ -123,8 +123,8 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
     val searchingPerson = Person(firstName = "Stephen", sourceSystemType = SourceSystemType.HMCTS)
     val personEntities = personService.findCandidateRecords(searchingPerson)
 
-    assertThat(personEntities.size).isEqualTo(1)
-    assertThat(personEntities[0].firstName).isEqualTo("Steven")
+    assertThat(personEntities.totalElements).isEqualTo(1)
+    assertThat(personEntities.get().findFirst().get().firstName).isEqualTo("Steven")
   }
 
   @Test
@@ -145,8 +145,8 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
     val searchingPerson = Person(lastName = "Smythe", sourceSystemType = SourceSystemType.HMCTS)
     val personEntities = personService.findCandidateRecords(searchingPerson)
 
-    assertThat(personEntities.size).isEqualTo(1)
-    assertThat(personEntities[0].lastName).isEqualTo("Smith")
+    assertThat(personEntities.totalElements).isEqualTo(1)
+    assertThat(personEntities.get().findFirst().get().lastName).isEqualTo("Smith")
   }
 
   @Test
@@ -169,8 +169,8 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
     val searchingPerson = Person(lastName = "Smith", dateOfBirth = LocalDate.of(1975, 2, 1), sourceSystemType = SourceSystemType.HMCTS)
     val personEntities = personService.findCandidateRecords(searchingPerson)
 
-    assertThat(personEntities.size).isEqualTo(1)
-    assertThat(personEntities[0].dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
+    assertThat(personEntities.totalElements).isEqualTo(1)
+    assertThat(personEntities.get().findFirst().get().dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
   }
 
   @Test
@@ -197,8 +197,8 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
     )
     val personEntities = personService.findCandidateRecords(searchingPerson)
 
-    assertThat(personEntities.size).isEqualTo(1)
-    assertThat(personEntities[0].addresses[0].postcode).isEqualTo("LS1 1AB")
+    assertThat(personEntities.totalElements).isEqualTo(1)
+    assertThat(personEntities.get().findFirst().get().addresses[0].postcode).isEqualTo("LS1 1AB")
   }
 
   @Test
@@ -225,7 +225,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
     )
     val personEntities = personService.findCandidateRecords(searchingPerson)
 
-    assertThat(personEntities.size).isEqualTo(0)
+    assertThat(personEntities.totalElements).isEqualTo(0)
   }
 
   @Test
@@ -252,7 +252,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
     )
     val personEntities = personService.findCandidateRecords(searchingPerson)
 
-    assertThat(personEntities.size).isEqualTo(0)
+    assertThat(personEntities.totalElements).isEqualTo(0)
   }
 
   private fun createPerson(person: Person): PersonEntity {
