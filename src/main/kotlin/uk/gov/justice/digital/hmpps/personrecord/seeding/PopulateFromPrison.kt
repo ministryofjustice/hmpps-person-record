@@ -44,7 +44,7 @@ class PopulateFromPrison(
       val totalPages = prisonerNumbers.totalPages
       var numbers = prisonerNumbers.numbers
 
-      log.info("Starting NOMIS seeding, total pages: $totalPages")
+      log.info("Starting Prison seeding, total pages: $totalPages")
       for (page in 1..totalPages) {
         runWithRetry(retries, delayMillis) {
           prisonerSearchClient.getPrisonNumbers(PrisonNumbers(numbers))
@@ -61,7 +61,7 @@ class PopulateFromPrison(
           }
         }
       }
-      log.info("NOMIS seeding finished, approx records ${totalPages * pageSize}")
+      log.info("Prison seeding finished, approx records ${totalPages * pageSize}")
     }
   }
 
