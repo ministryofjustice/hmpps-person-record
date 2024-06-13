@@ -102,26 +102,15 @@ class PersonService(
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
 
   fun findCandidateRecords(person: Person): Page<PersonEntity> {
-    val postcodeSpecifications = person.addresses.map {
-      PersonSpecification.isNotNull(it.postcode).and(PersonSpecification.levenshteinPostcode(it.postcode))
-    }
+    val postcodeSpecifications = person.addresses.map { PersonSpecification.levenshteinPostcode(it.postcode) }
 
     val soundexFirstLastName = Specification.where(
-      PersonSpecification.isNotNull(person.firstName).and(PersonSpecification.isNotNull(person.lastName))
-        .and(
-          PersonSpecification.soundex(person.firstName, PersonSpecification.FIRST_NAME)
-            .and(PersonSpecification.soundex(person.lastName, PersonSpecification.LAST_NAME)),
-        ),
+      PersonSpecification.soundex(person.firstName, PersonSpecification.FIRST_NAME)
+        .and(PersonSpecification.soundex(person.lastName, PersonSpecification.LAST_NAME)),
     )
 
-    val levenshteinDob = Specification.where(
-      PersonSpecification.isNotNull(person.dateOfBirth.toString())
-        .and(PersonSpecification.levenshteinDate(person.dateOfBirth, PersonSpecification.DOB)),
-    )
-
-    val levenshteinPostcode = Specification.where(
-      PersonSpecification.combineSpecificationsWithOr(postcodeSpecifications),
-    )
+    val levenshteinDob = Specification.where(PersonSpecification.levenshteinDate(person.dateOfBirth, PersonSpecification.DOB))
+    val levenshteinPostcode = Specification.where(PersonSpecification.combineSpecificationsWithOr(postcodeSpecifications))
 
     return readWriteLockService.withReadLock {
       personRepository.findAll(

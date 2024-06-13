@@ -15,6 +15,7 @@ import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
@@ -99,7 +100,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to "HMCTS",
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "1000000",
-        "SEARCH_VERSION" to "1.1",
+        "SEARCH_VERSION" to PersonSpecification.SEARCH_VERSION,
         "MESSAGE_ID" to messageId,
       ),
     )
@@ -145,7 +146,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to "HMCTS",
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "1",
-        "SEARCH_VERSION" to "1.1",
+        "SEARCH_VERSION" to PersonSpecification.SEARCH_VERSION,
         "MESSAGE_ID" to messageId,
       ),
     )

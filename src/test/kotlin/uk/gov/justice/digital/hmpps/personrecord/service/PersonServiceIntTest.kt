@@ -111,6 +111,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
       Person(
         firstName = "Steven",
         lastName = "Smith",
+        dateOfBirth = LocalDate.of(1975, 2, 1),
         sourceSystemType = SourceSystemType.HMCTS,
       ),
     )
@@ -118,6 +119,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
       Person(
         firstName = "Micheal",
         lastName = "Smith",
+        dateOfBirth = LocalDate.of(1975, 2, 1),
         sourceSystemType = SourceSystemType.HMCTS,
       ),
     )
@@ -125,6 +127,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
     val searchingPerson = Person(
       firstName = "Stephen",
       lastName = "Smith",
+      dateOfBirth = LocalDate.of(1975, 2, 1),
       sourceSystemType = SourceSystemType.HMCTS,
     )
     val personEntities = personService.findCandidateRecords(searchingPerson)
@@ -139,6 +142,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
       Person(
         firstName = "Stephen",
         lastName = "Smith",
+        dateOfBirth = LocalDate.of(1975, 2, 1),
         sourceSystemType = SourceSystemType.HMCTS,
       ),
     )
@@ -146,6 +150,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
       Person(
         firstName = "Stephen",
         lastName = "Micheal",
+        dateOfBirth = LocalDate.of(1975, 2, 1),
         sourceSystemType = SourceSystemType.HMCTS,
       ),
     )
@@ -153,6 +158,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
     val searchingPerson = Person(
       firstName = "Stephen",
       lastName = "Smythe",
+      dateOfBirth = LocalDate.of(1975, 2, 1),
       sourceSystemType = SourceSystemType.HMCTS,
     )
     val personEntities = personService.findCandidateRecords(searchingPerson)

@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.event.LibraH
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
@@ -100,7 +101,7 @@ class CourtCaseEventsProcessor(
         EventKeys.RECORD_COUNT to pageablePersonEntities.totalElements.toString(),
         EventKeys.EVENT_TYPE to LIBRA_COURT_CASE.name,
         EventKeys.MESSAGE_ID to sqsMessage.messageId,
-        EventKeys.SEARCH_VERSION to "1.1",
+        EventKeys.SEARCH_VERSION to PersonSpecification.SEARCH_VERSION,
       ),
     )
     personService.processMessage(person) {
