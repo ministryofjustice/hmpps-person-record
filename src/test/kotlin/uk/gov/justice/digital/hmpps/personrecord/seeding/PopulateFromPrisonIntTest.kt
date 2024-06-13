@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.onePrisoner
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerNumbersResponse
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonNumbersResponse
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.twoPrisoners
 import java.time.LocalDate
 import java.util.UUID.randomUUID
@@ -241,7 +241,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(prisonerNumbersResponse(listOf(prisonNumberOne, prisonNumberTwo), 2))
+            .withBody(prisonNumbersResponse(listOf(prisonNumberOne, prisonNumberTwo), 2))
             .withStatus(200),
         ),
     )
@@ -278,7 +278,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(prisonerNumbersResponse(listOf(prisonNumberThree), 2))
+            .withBody(prisonNumbersResponse(listOf(prisonNumberThree), 2))
             .withStatus(200),
 
         ),
@@ -354,7 +354,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(prisonerNumbersResponse(listOf(prisonNumberSeven)))
+            .withBody(prisonNumbersResponse(listOf(prisonNumberSeven)))
             .withStatus(200),
         ),
     )
@@ -368,7 +368,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
-            .withBody(prisonerNumbersResponse(listOf(prisonNumberOne, prisonNumberTwo)))
+            .withBody(prisonNumbersResponse(listOf(prisonNumberOne, prisonNumberTwo)))
             .withStatus(200),
         ),
     )

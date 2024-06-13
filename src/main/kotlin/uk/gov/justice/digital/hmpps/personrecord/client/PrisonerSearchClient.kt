@@ -19,7 +19,7 @@ interface PrisonerSearchClient {
   fun getPrisoner(@PathVariable("prisonerNumber") prisonerNumber: String): Prisoner
 
   @PostMapping(value = ["/prisoner-search/prisoner-numbers"])
-  fun getPrisoners(@RequestBody prisonerNumbers: PrisonerNumbers): List<Prisoner>?
+  fun getPrisonNumbers(@RequestBody prisonNumbers: PrisonNumbers): List<Prisoner>?
 }
 
-class PrisonerNumbers(val prisonerNumbers: List<String>)
+class PrisonNumbers(val prisonerNumbers: List<String>)

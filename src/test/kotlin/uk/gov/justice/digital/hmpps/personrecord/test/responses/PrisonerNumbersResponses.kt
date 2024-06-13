@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
-fun prisonerNumbersResponse(prisonerNumbers: List<String>, totalPages: Int = 4) = """
+fun prisonNumbersResponse(prisonNumbers: List<String>, totalPages: Int = 4) = """
 {
   "totalPages": $totalPages,
   "totalElements": 7,
@@ -8,7 +8,7 @@ fun prisonerNumbersResponse(prisonerNumbers: List<String>, totalPages: Int = 4) 
   "last": false,
   "size": 0,
   "content": [
-    "${prisonerNumbers.joinToString("\",\"")}"
+    "${prisonNumbers.joinToString("\",\"")}"
   ],
   "number": 0,
   "sort": [

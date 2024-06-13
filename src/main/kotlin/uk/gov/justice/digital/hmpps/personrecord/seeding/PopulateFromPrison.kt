@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.client.PageParams
+import uk.gov.justice.digital.hmpps.personrecord.client.PrisonNumbers
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonServiceClient
-import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerNumbers
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -40,14 +40,14 @@ class PopulateFromPrison(
   suspend fun populatePages() {
     CoroutineScope(Dispatchers.Default).launch {
       // if this call fails we will just restart the process, no need to retry
-      val prisonerNumbers = prisonServiceClient.getPrisonerNumbers(PageParams(0, pageSize))!!
+      val prisonerNumbers = prisonServiceClient.getPrisonNumbers(PageParams(0, pageSize))!!
       val totalPages = prisonerNumbers.totalPages
       var numbers = prisonerNumbers.numbers
 
       log.info("Starting NOMIS seeding, total pages: $totalPages")
       for (page in 1..totalPages) {
         runWithRetry(retries, delayMillis) {
-          prisonerSearchClient.getPrisoners(PrisonerNumbers(numbers))
+          prisonerSearchClient.getPrisonNumbers(PrisonNumbers(numbers))
         }?.forEach {
           val person = Person.from(it)
           val personToSave = PersonEntity.from(person)
@@ -57,7 +57,7 @@ class PopulateFromPrison(
         // don't really like this, but it saves 1 call to getPrisonerNumbers
         if (page < totalPages) {
           runWithRetry(retries, delayMillis) {
-            numbers = prisonServiceClient.getPrisonerNumbers(PageParams(page, pageSize))!!.numbers
+            numbers = prisonServiceClient.getPrisonNumbers(PageParams(page, pageSize))!!.numbers
           }
         }
       }

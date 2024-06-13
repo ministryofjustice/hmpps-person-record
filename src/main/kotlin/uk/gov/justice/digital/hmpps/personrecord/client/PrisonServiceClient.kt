@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.client
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.cloud.openfeign.SpringQueryMap
 import org.springframework.web.bind.annotation.GetMapping
-import uk.gov.justice.digital.hmpps.personrecord.client.model.PrisonerNumbers
+import uk.gov.justice.digital.hmpps.personrecord.client.model.PrisonNumbers
 import uk.gov.justice.digital.hmpps.personrecord.config.PrisonServiceOAuth2Config
 
 @FeignClient(
@@ -14,6 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.config.PrisonServiceOAuth2Confi
 interface PrisonServiceClient {
 
   @GetMapping(value = ["/api/prisoners/prisoner-numbers"])
-  fun getPrisonerNumbers(@SpringQueryMap params: PageParams): PrisonerNumbers?
+  fun getPrisonNumbers(@SpringQueryMap params: PageParams): PrisonNumbers?
 }
 class PageParams(val page: Int, val size: Int)
