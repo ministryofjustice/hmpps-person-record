@@ -27,6 +27,12 @@ object PersonSpecification {
     }
   }
 
+  fun isNotNull(input: String?): Specification<PersonEntity> {
+    return Specification { _, _, criteriaBuilder ->
+      criteriaBuilder.isNotNull(criteriaBuilder.literal(input))
+    }
+  }
+
   fun soundex(input: String?, field: String): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
       input?.let {

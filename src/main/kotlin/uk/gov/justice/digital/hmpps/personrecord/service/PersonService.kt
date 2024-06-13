@@ -102,16 +102,25 @@ class PersonService(
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
 
   fun findCandidateRecords(person: Person): Page<PersonEntity> {
-    val postcodeSpecifications = person.addresses.map { PersonSpecification.levenshteinPostcode(it.postcode) }
+    val postcodeSpecifications = person.addresses.map {
+      PersonSpecification.isNotNull(it.postcode).and(PersonSpecification.levenshteinPostcode(it.postcode))
+    }
 
     val soundexFirstLastName = Specification.where(
-      PersonSpecification.soundex(person.firstName, PersonSpecification.FIRST_NAME)
-        .and(PersonSpecification.soundex(person.lastName, PersonSpecification.LAST_NAME)),
+      PersonSpecification.isNotNull(person.firstName).and(PersonSpecification.isNotNull(person.lastName))
+        .and(
+          PersonSpecification.soundex(person.firstName, PersonSpecification.FIRST_NAME)
+            .and(PersonSpecification.soundex(person.lastName, PersonSpecification.LAST_NAME)),
+        ),
     )
 
-    val levenshteinDobPostcode = Specification.where(
-      PersonSpecification.levenshteinDate(person.dateOfBirth, PersonSpecification.DOB)
-        .or(PersonSpecification.combineSpecificationsWithOr(postcodeSpecifications)),
+    val levenshteinDob = Specification.where(
+      PersonSpecification.isNotNull(person.dateOfBirth.toString())
+        .and(PersonSpecification.levenshteinDate(person.dateOfBirth, PersonSpecification.DOB)),
+    )
+
+    val levenshteinPostcode = Specification.where(
+      PersonSpecification.combineSpecificationsWithOr(postcodeSpecifications),
     )
 
     return readWriteLockService.withReadLock {
@@ -121,7 +130,7 @@ class PersonService(
             .or(PersonSpecification.exactMatch(person.driverLicenseNumber, PersonSpecification.DRIVER_LICENSE_NUMBER))
             .or(PersonSpecification.exactMatch(person.nationalInsuranceNumber, PersonSpecification.NI))
             .or(PersonSpecification.exactMatch(person.otherIdentifiers?.croIdentifier.toString(), PersonSpecification.CRO))
-            .or(soundexFirstLastName.and(levenshteinDobPostcode)),
+            .or(soundexFirstLastName.and(levenshteinDob.or(levenshteinPostcode))),
         ),
         Pageable.ofSize(PAGE_SIZE),
       )
