@@ -40,9 +40,9 @@ class PopulateFromPrison(
   suspend fun populatePages() {
     CoroutineScope(Dispatchers.Default).launch {
       // if this call fails we will just restart the process, no need to retry
-      val prisonerNumbers = prisonServiceClient.getPrisonNumbers(PageParams(0, pageSize))!!
-      val totalPages = prisonerNumbers.totalPages
-      var numbers = prisonerNumbers.numbers
+      val prisonNumbers = prisonServiceClient.getPrisonNumbers(PageParams(0, pageSize))!!
+      val totalPages = prisonNumbers.totalPages
+      var numbers = prisonNumbers.numbers
 
       log.info("Starting Prison seeding, total pages: $totalPages")
       for (page in 1..totalPages) {
