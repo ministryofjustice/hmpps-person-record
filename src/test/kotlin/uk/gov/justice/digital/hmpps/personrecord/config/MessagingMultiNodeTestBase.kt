@@ -131,8 +131,8 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   fun createDeliusDetailUrl(crn: String): String =
     "https://domain-events-and-delius-dev.hmpps.service.justice.gov.uk/probation-case.engagement.created/$crn"
 
-  fun createNomsDetailUrl(nomsNumber: String): String =
-    "https://prisoner-search-dev.prison.service.justice.gov.uk/prisoner/$nomsNumber"
+  fun createNomsDetailUrl(prisonNumber: String): String =
+    "https://prisoner-search-dev.prison.service.justice.gov.uk/prisoner/$prisonNumber"
 
   @BeforeEach
   fun beforeEachMessagingTest() {

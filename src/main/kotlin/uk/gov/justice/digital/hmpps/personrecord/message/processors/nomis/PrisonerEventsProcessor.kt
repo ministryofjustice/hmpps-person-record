@@ -52,10 +52,10 @@ class PrisonerEventsProcessor(
     )
   }
 
-  private fun getPrisonerDetails(nomsNumber: String): Result<Prisoner?> = runBlocking {
+  private fun getPrisonerDetails(prisonNumber: String): Result<Prisoner?> = runBlocking {
     try {
       return@runBlocking RetryExecutor.runWithRetry(MAX_RETRY_ATTEMPTS, retryDelay) {
-        Result.success(prisonerSearchClient.getPrisoner(nomsNumber))
+        Result.success(prisonerSearchClient.getPrisoner(prisonNumber))
       }
     } catch (e: Exception) {
       Result.failure(e)
