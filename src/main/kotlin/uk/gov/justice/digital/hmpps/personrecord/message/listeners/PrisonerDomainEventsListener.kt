@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PrisonerEventsProcessor
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonEventsProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
@@ -24,7 +24,7 @@ const val PRISONER_EVENTS_QUEUE_CONFIG_KEY = "cprnomiseventsqueue"
 @Profile("!seeding")
 class PrisonerDomainEventsListener(
   val objectMapper: ObjectMapper,
-  val prisonerEventsProcessor: PrisonerEventsProcessor,
+  val prisonEventsProcessor: PrisonEventsProcessor,
   val telemetryService: TelemetryService,
 ) {
   private companion object {
@@ -48,7 +48,7 @@ class PrisonerDomainEventsListener(
 
   fun handleEvent(domainEvent: DomainEvent, messageId: String?) {
     try {
-      prisonerEventsProcessor.processEvent(domainEvent)
+      prisonEventsProcessor.processEvent(domainEvent)
     } catch (e: FeignException.NotFound) {
       log.info("Discarding message for status code: ${e.status()}")
     } catch (e: Exception) {

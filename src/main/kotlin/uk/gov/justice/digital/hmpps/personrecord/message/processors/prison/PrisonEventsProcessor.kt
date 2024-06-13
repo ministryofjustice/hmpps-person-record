@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis
+package uk.gov.justice.digital.hmpps.personrecord.message.processors.prison
 
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 const val MAX_RETRY_ATTEMPTS: Int = 3
 
 @Service
-class PrisonerEventsProcessor(
+class PrisonEventsProcessor(
   val telemetryService: TelemetryService,
   val prisonerSearchClient: PrisonerSearchClient,
   val personService: PersonService,

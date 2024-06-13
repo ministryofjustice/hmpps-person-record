@@ -10,7 +10,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.PrisonerDomainEventsListener
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PrisonerEventsProcessor
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonEventsProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
@@ -23,7 +23,7 @@ import kotlin.test.assertFailsWith
 class PrisonerDomainEventsListenerTest {
 
   @Mock
-  private lateinit var prisonerEventsProcessor: PrisonerEventsProcessor
+  private lateinit var prisonEventsProcessor: PrisonEventsProcessor
 
   @Mock
   private lateinit var telemetryService: TelemetryService
@@ -34,7 +34,7 @@ class PrisonerDomainEventsListenerTest {
   fun setUp() {
     prisonerDomainEventListener = PrisonerDomainEventsListener(
       objectMapper = ObjectMapper(),
-      prisonerEventsProcessor = prisonerEventsProcessor,
+      prisonEventsProcessor = prisonEventsProcessor,
       telemetryService = telemetryService,
     )
   }
@@ -45,7 +45,7 @@ class PrisonerDomainEventsListenerTest {
     val prisonNumber = UUID.randomUUID().toString()
     val messageId = UUID.randomUUID().toString()
     val rawMessage = prisonerDomainEvent(PRISONER_CREATED, prisonNumber, messageId = messageId)
-    whenever(prisonerEventsProcessor.processEvent(any())).thenThrow(IllegalArgumentException("Something went wrong"))
+    whenever(prisonEventsProcessor.processEvent(any())).thenThrow(IllegalArgumentException("Something went wrong"))
     // when
 
     assertFailsWith<IllegalArgumentException>(
