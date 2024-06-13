@@ -32,6 +32,5 @@ generic-prometheus-alerts:
     - "hmpps-person-record-development-cpr_delius_offender_events_dlq"
     - "hmpps-person-record-development-cpr_nomis_events_dlq"
   sqsAlertsTotalMessagesThreshold: 1
-  sqsAlertsOldestThreshold: 2
   rdsAlertsDatabases:
     cloud-platform-21758fcf16e3a488: "hmpps-person-record-database"
