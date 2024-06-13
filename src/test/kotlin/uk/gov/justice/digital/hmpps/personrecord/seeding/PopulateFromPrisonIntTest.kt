@@ -254,7 +254,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withBody(twoPrisoners(prisonNumberOne, "prisonerNumberOne", prisonNumberTwo, "prisonerNumberTwo")),
+            .withBody(twoPrisoners(prisonNumberOne, "prisonNumberOne", prisonNumberTwo, "prisonNumberTwo")),
         ),
     )
 

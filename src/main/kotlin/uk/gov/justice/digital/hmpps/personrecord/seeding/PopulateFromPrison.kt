@@ -54,7 +54,7 @@ class PopulateFromPrison(
           repository.saveAndFlush(personToSave)
         }
 
-        // don't really like this, but it saves 1 call to getPrisonerNumbers
+        // don't really like this, but it saves 1 call to getPrisonNumbers
         if (page < totalPages) {
           runWithRetry(retries, delayMillis) {
             numbers = prisonServiceClient.getPrisonNumbers(PageParams(page, pageSize))!!.numbers
