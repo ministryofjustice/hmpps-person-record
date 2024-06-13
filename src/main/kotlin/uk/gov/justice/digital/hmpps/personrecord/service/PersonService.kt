@@ -109,10 +109,8 @@ class PersonService(
         .and(PersonSpecification.soundex(person.lastName, PersonSpecification.LAST_NAME)),
     )
 
-    val levenshteinDobPostcode = Specification.where(
-      PersonSpecification.levenshteinDate(person.dateOfBirth, PersonSpecification.DOB)
-        .or(PersonSpecification.combineSpecificationsWithOr(postcodeSpecifications)),
-    )
+    val levenshteinDob = Specification.where(PersonSpecification.levenshteinDate(person.dateOfBirth, PersonSpecification.DOB))
+    val levenshteinPostcode = Specification.where(PersonSpecification.combineSpecificationsWithOr(postcodeSpecifications))
 
     return readWriteLockService.withReadLock {
       personRepository.findAll(
@@ -121,7 +119,7 @@ class PersonService(
             .or(PersonSpecification.exactMatch(person.driverLicenseNumber, PersonSpecification.DRIVER_LICENSE_NUMBER))
             .or(PersonSpecification.exactMatch(person.nationalInsuranceNumber, PersonSpecification.NI))
             .or(PersonSpecification.exactMatch(person.otherIdentifiers?.croIdentifier.toString(), PersonSpecification.CRO))
-            .or(soundexFirstLastName.and(levenshteinDobPostcode)),
+            .or(soundexFirstLastName.and(levenshteinDob.or(levenshteinPostcode))),
         ),
         Pageable.ofSize(PAGE_SIZE),
       )

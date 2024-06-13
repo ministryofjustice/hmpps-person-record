@@ -8,6 +8,8 @@ import java.time.LocalDate
 
 object PersonSpecification {
 
+  const val SEARCH_VERSION = "1.1"
+
   const val PNC = "pnc"
   const val CRO = "cro"
   const val NI = "nationalInsuranceNumber"
@@ -29,41 +31,44 @@ object PersonSpecification {
 
   fun soundex(input: String?, field: String): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      input?.let {
+      criteriaBuilder.and(
+        criteriaBuilder.isNotNull(criteriaBuilder.literal(input)),
         criteriaBuilder.equal(
           criteriaBuilder.function("SOUNDEX", String::class.java, root.get<String>(field)),
           criteriaBuilder.function("SOUNDEX", String::class.java, criteriaBuilder.literal(input)),
-        )
-      }
+        ),
+      )
     }
   }
 
   fun levenshteinPostcode(input: String?, limit: Int = 2): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      input?.let {
-        val addressJoin = root.join<PersonEntity, AddressEntity>("addresses", JoinType.INNER)
+      val addressJoin = root.join<PersonEntity, AddressEntity>("addresses", JoinType.INNER)
+      criteriaBuilder.and(
+        criteriaBuilder.isNotNull(criteriaBuilder.literal(input)),
         criteriaBuilder.le(
-          criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(it), addressJoin.get<String>(POSTCODE)),
+          criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(input), addressJoin.get<String>(POSTCODE)),
           limit,
-        )
-      }
+        ),
+      )
     }
   }
 
   fun levenshteinDate(input: LocalDate?, field: String, limit: Int = 2): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      input?.let {
-        val dbDateAsString = criteriaBuilder.function(
-          "TO_CHAR",
-          String::class.java,
-          root.get<LocalDate>(field),
-          criteriaBuilder.literal(DATE_FORMAT),
-        )
+      val dbDateAsString = criteriaBuilder.function(
+        "TO_CHAR",
+        String::class.java,
+        root.get<LocalDate>(field),
+        criteriaBuilder.literal(DATE_FORMAT),
+      )
+      criteriaBuilder.and(
+        criteriaBuilder.isNotNull(criteriaBuilder.literal(input)),
         criteriaBuilder.le(
-          criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(it.toString()), dbDateAsString),
+          criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(input.toString()), dbDateAsString),
           limit,
-        )
-      }
+        ),
+      )
     }
   }
 
