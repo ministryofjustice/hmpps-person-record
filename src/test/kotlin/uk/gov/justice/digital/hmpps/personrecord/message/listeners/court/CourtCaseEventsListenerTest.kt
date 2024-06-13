@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.testMessage
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.testMessageWithUnknownType
 import kotlin.test.assertFailsWith
 
 @ExtendWith(MockitoExtension::class)
@@ -41,27 +40,22 @@ class CourtCaseEventsListenerTest {
 
   @Test
   fun `should not call the processor when type is unknown`() {
-    // given
-    val rawMessage = testMessageWithUnknownType(COMMON_PLATFORM_HEARING.name)
-    // when
+    val rawMessage = testMessage(COMMON_PLATFORM_HEARING.name, "Unknown")
+
     courtCaseEventsListener.onMessage(rawMessage = rawMessage)
 
-    // then
     verifyNoInteractions(courtCaseEventsProcessor)
   }
 
   @Test
   fun `should create correct telemetry event when exception thrown`() {
-    // given
     val rawMessage = testMessage(COMMON_PLATFORM_HEARING.name)
     whenever(courtCaseEventsProcessor.processEvent(any())).thenThrow(IllegalArgumentException("Something went wrong"))
 
-    // when
     assertFailsWith<IllegalArgumentException>(
       block = { courtCaseEventsListener.onMessage(rawMessage = rawMessage) },
     )
 
-    // then
     verify(telemetryService).trackEvent(
       TelemetryEventType.MESSAGE_PROCESSING_FAILED,
       mapOf(
