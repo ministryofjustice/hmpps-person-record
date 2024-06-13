@@ -99,7 +99,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to "HMCTS",
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "1000000",
-        "SEARCH_VERSION" to "1",
+        "SEARCH_VERSION" to "1.1",
         "MESSAGE_ID" to messageId,
       ),
     )
@@ -145,7 +145,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to "HMCTS",
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "1",
-        "SEARCH_VERSION" to "1",
+        "SEARCH_VERSION" to "1.1",
         "MESSAGE_ID" to messageId,
       ),
     )
