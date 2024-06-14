@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
-fun prisonerSearchResponse(nomsNumber: String) = """
+fun prisonerSearchResponse(prisonNumber: String) = """
   {
-    "prisonerNumber": "$nomsNumber",
+    "prisonerNumber": "$prisonNumber",
     "pncNumber": "2003/0062845E",
     "pncNumberCanonicalShort": "03/0062845E",
     "pncNumberCanonicalLong": "2003/0062845E",
