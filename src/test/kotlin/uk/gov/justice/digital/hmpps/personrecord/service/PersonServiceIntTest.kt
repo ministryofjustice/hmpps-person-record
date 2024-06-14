@@ -28,25 +28,33 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should find candidate records only in searching source system`() {
     val personToFind = Person(
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("2003/0011985X")),
+      firstName = "Stephen",
+      lastName = "Smith",
+      dateOfBirth = LocalDate.of(1975, 1, 1),
       sourceSystemType = SourceSystemType.LIBRA,
     )
     createPerson(personToFind)
     createPerson(
       Person(
-        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("1981/0154257C")),
+        firstName = "Stephen",
+        lastName = "Smith",
+        dateOfBirth = LocalDate.of(1975, 1, 1),
         sourceSystemType = SourceSystemType.HMCTS,
       ),
     )
     createPerson(
       Person(
-        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("1981/0154257C")),
+        firstName = "Stephen",
+        lastName = "Smith",
+        dateOfBirth = LocalDate.of(1975, 1, 1),
         sourceSystemType = SourceSystemType.NOMIS,
       ),
     )
     createPerson(
       Person(
-        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("1981/0154257C")),
+        firstName = "Stephen",
+        lastName = "Smith",
+        dateOfBirth = LocalDate.of(1975, 1, 1),
         sourceSystemType = SourceSystemType.DELIUS,
       ),
     )
@@ -54,7 +62,6 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
     val personEntities = personService.findCandidateRecords(personToFind)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(personEntities.get().findFirst().get().pnc).isEqualTo(PNCIdentifier.from("2003/0011985X"))
     assertThat(personEntities.get().findFirst().get().sourceSystem).isEqualTo(SourceSystemType.LIBRA)
   }
 
