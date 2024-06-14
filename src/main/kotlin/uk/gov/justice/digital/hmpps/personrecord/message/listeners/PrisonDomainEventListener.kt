@@ -22,7 +22,7 @@ const val PRISONER_EVENTS_QUEUE_CONFIG_KEY = "cprnomiseventsqueue"
 
 @Component
 @Profile("!seeding")
-class PrisonerDomainEventsListener(
+class PrisonDomainEventListener(
   val objectMapper: ObjectMapper,
   val prisonEventsProcessor: PrisonEventsProcessor,
   val telemetryService: TelemetryService,
