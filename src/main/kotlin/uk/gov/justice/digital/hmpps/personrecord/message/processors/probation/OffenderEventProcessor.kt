@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.processors.delius
+package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory

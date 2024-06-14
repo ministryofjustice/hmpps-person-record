@@ -10,7 +10,7 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.OffenderDomainEventsListener
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.delius.OffenderEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.OffenderEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
