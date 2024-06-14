@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.messages
 
-fun prisonerDomainEvent(eventType: String?, prisonNumber: String, messageId: String?) = """
+fun prisonDomainEvent(eventType: String?, prisonNumber: String, messageId: String?) = """
   {
     "Type": "Notification",
     "MessageId": "$messageId",
