@@ -115,11 +115,13 @@ class PersonService(
     return readWriteLockService.withReadLock {
       personRepository.findAll(
         Specification.where(
-          PersonSpecification.exactMatch(person.otherIdentifiers?.pncIdentifier.toString(), PersonSpecification.PNC)
-            .or(PersonSpecification.exactMatch(person.driverLicenseNumber, PersonSpecification.DRIVER_LICENSE_NUMBER))
-            .or(PersonSpecification.exactMatch(person.nationalInsuranceNumber, PersonSpecification.NI))
-            .or(PersonSpecification.exactMatch(person.otherIdentifiers?.croIdentifier.toString(), PersonSpecification.CRO))
-            .or(soundexFirstLastName.and(levenshteinDob.or(levenshteinPostcode))),
+          PersonSpecification.exactMatch(person.sourceSystemType.name, PersonSpecification.SOURCE_SYSTEM).and(
+            PersonSpecification.exactMatch(person.otherIdentifiers?.pncIdentifier.toString(), PersonSpecification.PNC)
+              .or(PersonSpecification.exactMatch(person.driverLicenseNumber, PersonSpecification.DRIVER_LICENSE_NUMBER))
+              .or(PersonSpecification.exactMatch(person.nationalInsuranceNumber, PersonSpecification.NI))
+              .or(PersonSpecification.exactMatch(person.otherIdentifiers?.croIdentifier.toString(), PersonSpecification.CRO))
+              .or(soundexFirstLastName.and(levenshteinDob.or(levenshteinPostcode))),
+          ),
         ),
         Pageable.ofSize(PAGE_SIZE),
       )
