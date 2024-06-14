@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 const val MAX_RETRY_ATTEMPTS: Int = 3
 
 @Service
-class PrisonEventsProcessor(
+class PrisonEventProcessor(
   val telemetryService: TelemetryService,
   val prisonerSearchClient: PrisonerSearchClient,
   val personService: PersonService,

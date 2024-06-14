@@ -12,26 +12,26 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonEventsProcessor
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 
-const val PRISONER_EVENTS_QUEUE_CONFIG_KEY = "cprnomiseventsqueue"
+const val PRISON_EVENT_QUEUE_CONFIG_KEY = "cprnomiseventsqueue"
 
 @Component
 @Profile("!seeding")
 class PrisonDomainEventListener(
   val objectMapper: ObjectMapper,
-  val prisonEventsProcessor: PrisonEventsProcessor,
+  val prisonEventProcessor: PrisonEventProcessor,
   val telemetryService: TelemetryService,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  @SqsListener(PRISONER_EVENTS_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
+  @SqsListener(PRISON_EVENT_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
   @WithSpan(value = "hmpps-person-record-cpr_nomis_events_queue", kind = SERVER)
   fun onDomainEvent(
     rawMessage: String,
@@ -48,7 +48,7 @@ class PrisonDomainEventListener(
 
   fun handleEvent(domainEvent: DomainEvent, messageId: String?) {
     try {
-      prisonEventsProcessor.processEvent(domainEvent)
+      prisonEventProcessor.processEvent(domainEvent)
     } catch (e: FeignException.NotFound) {
       log.info("Discarding message for status code: ${e.status()}")
     } catch (e: Exception) {
