@@ -49,11 +49,11 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId("cprcourtcaseeventsqueue")
   }
 
-  val offenderEventsQueue by lazy {
+  val probationEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprdeliusoffendereventsqueue")
   }
 
-  val prisonerEventsQueue by lazy {
+  private val prisonEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprnomiseventsqueue")
   }
 
@@ -96,8 +96,8 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
     domainEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
-    expectNoMessagesOn(offenderEventsQueue)
-    expectNoMessagesOn(prisonerEventsQueue)
+    expectNoMessagesOn(probationEventsQueue)
+    expectNoMessagesOn(prisonEventsQueue)
   }
 
   fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = UUID.randomUUID().toString(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = UUID.randomUUID().toString()): String {
@@ -142,17 +142,17 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     courtCaseEventsQueue!!.sqsClient.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(courtCaseEventsQueue!!.queueUrl).build(),
     ).get()
-    offenderEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(offenderEventsQueue!!.queueUrl).build(),
+    probationEventsQueue!!.sqsClient.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(probationEventsQueue!!.queueUrl).build(),
     )
-    offenderEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(offenderEventsQueue!!.dlqUrl).build(),
+    probationEventsQueue!!.sqsDlqClient!!.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(probationEventsQueue!!.dlqUrl).build(),
     )
-    prisonerEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonerEventsQueue!!.queueUrl).build(),
+    prisonEventsQueue!!.sqsClient.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.queueUrl).build(),
     )
-    prisonerEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonerEventsQueue!!.dlqUrl).build(),
+    prisonEventsQueue!!.sqsDlqClient!!.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.dlqUrl).build(),
     )
   }
 }

@@ -106,11 +106,11 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
     await.atMost(Duration.ofSeconds(5)) untilCallTo {
-      offenderEventsQueue?.sqsClient?.countAllMessagesOnQueue(offenderEventsQueue!!.queueUrl)?.get()
+      probationEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
 
     await.atMost(Duration.ofSeconds(5)) untilCallTo {
-      offenderEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(offenderEventsQueue!!.dlqUrl!!)?.get()
+      probationEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(probationEventsQueue!!.dlqUrl!!)?.get()
     } matches { it == 0 }
     checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
   }
