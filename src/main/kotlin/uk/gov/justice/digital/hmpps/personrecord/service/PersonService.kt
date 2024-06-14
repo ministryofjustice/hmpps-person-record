@@ -15,6 +15,12 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.CRO
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.DRIVER_LICENSE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.NI
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.PNC
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.SOURCE_SYSTEM
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.exactMatch
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
@@ -115,11 +121,11 @@ class PersonService(
     return readWriteLockService.withReadLock {
       personRepository.findAll(
         Specification.where(
-          PersonSpecification.exactMatch(person.sourceSystemType.name, PersonSpecification.SOURCE_SYSTEM).and(
-            PersonSpecification.exactMatch(person.otherIdentifiers?.pncIdentifier.toString(), PersonSpecification.PNC)
-              .or(PersonSpecification.exactMatch(person.driverLicenseNumber, PersonSpecification.DRIVER_LICENSE_NUMBER))
-              .or(PersonSpecification.exactMatch(person.nationalInsuranceNumber, PersonSpecification.NI))
-              .or(PersonSpecification.exactMatch(person.otherIdentifiers?.croIdentifier.toString(), PersonSpecification.CRO))
+          exactMatch(person.sourceSystemType.name, SOURCE_SYSTEM).and(
+            exactMatch(person.otherIdentifiers?.pncIdentifier?.toString(), PNC)
+              .or(exactMatch(person.driverLicenseNumber, DRIVER_LICENSE_NUMBER))
+              .or(exactMatch(person.nationalInsuranceNumber, NI))
+              .or(exactMatch(person.otherIdentifiers?.croIdentifier?.toString(), CRO))
               .or(soundexFirstLastName.and(levenshteinDob.or(levenshteinPostcode))),
           ),
         ),

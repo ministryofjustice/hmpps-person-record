@@ -86,6 +86,32 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
+  fun `should not find candidates which only match on empty PNC`() {
+    val personToFind = Person(
+      firstName = "Miroslav",
+      lastName = "Klose",
+      dateOfBirth = LocalDate.of(1975, 2, 1),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("")),
+      sourceSystemType = SourceSystemType.HMCTS,
+    )
+    createPerson(personToFind)
+    createPerson(
+      Person(
+        firstName = "Horst",
+        lastName = "Hrubesch",
+        dateOfBirth = LocalDate.of(1975, 2, 1),
+        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("")),
+        sourceSystemType = SourceSystemType.HMCTS,
+      ),
+    )
+
+    val personEntities = personService.findCandidateRecords(personToFind)
+
+    assertThat(personEntities.totalElements).isEqualTo(1)
+    assertThat(personEntities.get().findFirst().get().firstName).isEqualTo("Miroslav")
+  }
+
+  @Test
   fun `should find candidate records on exact matches on driver license number`() {
     val personToFind = Person(
       driverLicenseNumber = "01234567890",
