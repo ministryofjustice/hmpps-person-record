@@ -8,7 +8,7 @@ import java.time.LocalDate
 
 object PersonSpecification {
 
-  const val SEARCH_VERSION = "1.1"
+  const val SEARCH_VERSION = "1.2"
 
   const val PNC = "pnc"
   const val CRO = "cro"
@@ -17,6 +17,7 @@ object PersonSpecification {
   const val FIRST_NAME = "firstName"
   const val LAST_NAME = "lastName"
   const val DOB = "dateOfBirth"
+  const val SOURCE_SYSTEM = "sourceSystem"
 
   private const val POSTCODE = "postcode"
   private const val DATE_FORMAT = "YYYY-MM-DD"

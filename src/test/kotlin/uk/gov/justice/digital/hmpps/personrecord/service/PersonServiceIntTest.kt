@@ -26,6 +26,46 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
+  fun `should find candidate records only in searching source system`() {
+    val personToFind = Person(
+      firstName = "Stephen",
+      lastName = "Smith",
+      dateOfBirth = LocalDate.of(1975, 1, 1),
+      sourceSystemType = SourceSystemType.LIBRA,
+    )
+    createPerson(personToFind)
+    createPerson(
+      Person(
+        firstName = "Stephen",
+        lastName = "Smith",
+        dateOfBirth = LocalDate.of(1975, 1, 1),
+        sourceSystemType = SourceSystemType.HMCTS,
+      ),
+    )
+    createPerson(
+      Person(
+        firstName = "Stephen",
+        lastName = "Smith",
+        dateOfBirth = LocalDate.of(1975, 1, 1),
+        sourceSystemType = SourceSystemType.NOMIS,
+      ),
+    )
+    createPerson(
+      Person(
+        firstName = "Stephen",
+        lastName = "Smith",
+        dateOfBirth = LocalDate.of(1975, 1, 1),
+        sourceSystemType = SourceSystemType.DELIUS,
+      ),
+    )
+
+    val personEntities = personService.findCandidateRecords(personToFind)
+
+    assertThat(personEntities.totalElements).isEqualTo(1)
+    assertThat(personEntities.get().findFirst().get().sourceSystem).isEqualTo(SourceSystemType.LIBRA)
+  }
+
+  @Test
   fun `should find candidate records on exact matches on PNC`() {
     val personToFind = Person(
       otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("2003/0011985X")),

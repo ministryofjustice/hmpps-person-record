@@ -117,7 +117,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
           firstName = "Jane",
           lastName = "Smith",
           addresses = listOf(Address(postcode = "LS1 1AB")),
-          sourceSystemType = SourceSystemType.HMCTS,
+          sourceSystemType = SourceSystemType.LIBRA,
         ),
       ),
     )
@@ -127,7 +127,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
           firstName = "Steve",
           lastName = "Micheal",
           addresses = listOf(Address(postcode = "RF14 5DG")),
-          sourceSystemType = SourceSystemType.HMCTS,
+          sourceSystemType = SourceSystemType.LIBRA,
         ),
       ),
     )
