@@ -10,6 +10,7 @@ plugins {
   kotlin("jvm") version "2.0.0"
   kotlin("plugin.jpa") version "2.0.0"
   id("io.gitlab.arturbosch.detekt") version "1.23.6"
+  id("org.jetbrains.kotlinx.kover") version "0.7.6"
 }
 
 configurations {
@@ -71,6 +72,7 @@ detekt {
 tasks {
   getByName("check") {
     dependsOn(":ktlintCheck", "detekt")
+    finalizedBy("koverHtmlReport")
   }
 }
 
