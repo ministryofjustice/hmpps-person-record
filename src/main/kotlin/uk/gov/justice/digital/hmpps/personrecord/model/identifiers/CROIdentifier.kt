@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 data class CROIdentifier(val croId: String, val fingerprint: Boolean, val inputCro: String = EMPTY_CRO) {
 
   val valid: Boolean
-    get() = croId.isNotEmpty() && croId.isNotEmpty()
+    get() = croId.isNotEmpty()
 
   override fun toString(): String {
     return croId
