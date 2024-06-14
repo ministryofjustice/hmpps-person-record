@@ -9,7 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.PrisonDomainEventListener
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.PrisonEventListener
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
@@ -20,7 +20,7 @@ import java.util.UUID
 import kotlin.test.assertFailsWith
 
 @ExtendWith(MockitoExtension::class)
-class PrisonDomainEventListenerTest {
+class PrisonEventListenerTest {
 
   @Mock
   private lateinit var prisonEventProcessor: PrisonEventProcessor
@@ -28,11 +28,11 @@ class PrisonDomainEventListenerTest {
   @Mock
   private lateinit var telemetryService: TelemetryService
 
-  private lateinit var prisonerDomainEventListener: PrisonDomainEventListener
+  private lateinit var prisonerDomainEventListener: PrisonEventListener
 
   @BeforeEach
   fun setUp() {
-    prisonerDomainEventListener = PrisonDomainEventListener(
+    prisonerDomainEventListener = PrisonEventListener(
       objectMapper = ObjectMapper(),
       prisonEventProcessor = prisonEventProcessor,
       telemetryService = telemetryService,
