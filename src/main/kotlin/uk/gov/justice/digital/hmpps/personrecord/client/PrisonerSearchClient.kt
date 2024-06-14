@@ -15,11 +15,11 @@ import uk.gov.justice.digital.hmpps.personrecord.config.PrisonerSearchClientOAut
 )
 interface PrisonerSearchClient {
 
-  @GetMapping(value = ["/prisoner/{prisonerNumber}"])
-  fun getPrisoner(@PathVariable("prisonerNumber") prisonerNumber: String): Prisoner
+  @GetMapping(value = ["/prisoner/{prisonNumber}"])
+  fun getPrisoner(@PathVariable("prisonNumber") prisonNumber: String): Prisoner
 
   @PostMapping(value = ["/prisoner-search/prisoner-numbers"])
-  fun getPrisoners(@RequestBody prisonerNumbers: PrisonerNumbers): List<Prisoner>?
+  fun getPrisonNumbers(@RequestBody prisonNumbers: PrisonNumbers): List<Prisoner>?
 }
 
-class PrisonerNumbers(val prisonerNumbers: List<String>)
+class PrisonNumbers(val prisonNumbers: List<String>)
