@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit.SECONDS
 class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
-  fun `should receive the message successfully when new offender event published`() {
+  fun `creates person when when new offender created event is published`() {
     val prisonNumber = UUID.randomUUID().toString()
     val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, "2020/0476873U", prisonNumber = prisonNumber)
 
