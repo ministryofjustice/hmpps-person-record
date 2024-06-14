@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners.offender
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat

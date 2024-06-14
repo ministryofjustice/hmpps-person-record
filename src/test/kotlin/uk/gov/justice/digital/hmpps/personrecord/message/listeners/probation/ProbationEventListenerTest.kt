@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners.offender
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.BeforeEach
@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.offenderDomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.probationEvent
 import java.util.UUID
 import kotlin.test.assertFailsWith
 
@@ -44,7 +44,7 @@ class ProbationEventListenerTest {
     // given
     val crn = UUID.randomUUID().toString()
     val messageId = UUID.randomUUID().toString()
-    val rawMessage = offenderDomainEvent(NEW_OFFENDER_CREATED, crn, messageId = messageId)
+    val rawMessage = probationEvent(NEW_OFFENDER_CREATED, crn, messageId = messageId)
     whenever(offenderEventsProcessor.processEvent(any())).thenThrow(IllegalArgumentException("Something went wrong"))
     // when
 

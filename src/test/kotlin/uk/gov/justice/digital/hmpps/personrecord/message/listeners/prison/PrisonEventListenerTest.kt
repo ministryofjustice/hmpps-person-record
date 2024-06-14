@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.prisonDomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.prisonEvent
 import java.util.UUID
 import kotlin.test.assertFailsWith
 
@@ -44,7 +44,7 @@ class PrisonEventListenerTest {
     // given
     val prisonNumber = UUID.randomUUID().toString()
     val messageId = UUID.randomUUID().toString()
-    val rawMessage = prisonDomainEvent(PRISONER_CREATED, prisonNumber, messageId = messageId)
+    val rawMessage = prisonEvent(PRISONER_CREATED, prisonNumber, messageId = messageId)
     whenever(prisonEventProcessor.processEvent(any())).thenThrow(IllegalArgumentException("Something went wrong"))
     // when
 

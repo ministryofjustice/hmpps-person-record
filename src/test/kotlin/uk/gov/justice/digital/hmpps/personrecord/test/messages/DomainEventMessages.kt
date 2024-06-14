@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.messages
 
-fun prisonDomainEvent(eventType: String?, prisonNumber: String, messageId: String?) = """
+fun prisonEvent(eventType: String?, prisonNumber: String, messageId: String?) = """
   {
     "Type": "Notification",
     "MessageId": "$messageId",
@@ -16,7 +16,7 @@ fun prisonDomainEvent(eventType: String?, prisonNumber: String, messageId: Strin
   }   
 """.trimIndent()
 
-fun offenderDomainEvent(eventType: String?, crn: String, messageId: String?) = """
+fun probationEvent(eventType: String?, crn: String, messageId: String?) = """
   {
     "Type": "Notification",
     "MessageId": "$messageId",
