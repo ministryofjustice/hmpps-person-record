@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners.offender
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
@@ -24,10 +24,10 @@ import java.time.LocalDate
 import java.util.UUID
 import java.util.concurrent.TimeUnit.SECONDS
 
-class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
+class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
-  fun `should receive the message successfully when new offender event published`() {
+  fun `creates person when when new offender created event is published`() {
     val prisonNumber = UUID.randomUUID().toString()
     val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, "2020/0476873U", prisonNumber = prisonNumber)
 
@@ -106,11 +106,11 @@ class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
     publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
     await.atMost(Duration.ofSeconds(5)) untilCallTo {
-      offenderEventsQueue?.sqsClient?.countAllMessagesOnQueue(offenderEventsQueue!!.queueUrl)?.get()
+      probationEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
 
     await.atMost(Duration.ofSeconds(5)) untilCallTo {
-      offenderEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(offenderEventsQueue!!.dlqUrl!!)?.get()
+      probationEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(probationEventsQueue!!.dlqUrl!!)?.get()
     } matches { it == 0 }
     checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
   }

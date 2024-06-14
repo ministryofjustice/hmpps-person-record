@@ -28,7 +28,7 @@ import java.time.LocalDate
 import java.util.UUID
 import java.util.concurrent.TimeUnit.SECONDS
 
-class PrisonDomainEventListenerIntTest : MessagingMultiNodeTestBase() {
+class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should receive the message successfully when prisoner created event published`() {

@@ -25,9 +25,9 @@ class ListenersDisabledIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should not have OffenderDomainEventsListener bean when seeding profile is active`() {
+  fun `should not have ProbationEventListener bean when seeding profile is active`() {
     try {
-      applicationContext.getBean(OffenderDomainEventsListener::class.java)
+      applicationContext.getBean(ProbationEventListener::class.java)
       fail("Should have thrown an error")
     } catch (e: NoSuchBeanDefinitionException) {
       // expected
@@ -35,9 +35,9 @@ class ListenersDisabledIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should not have PrisonerDomainEventsListener bean when seeding profile is active`() {
+  fun `should not have PrisonEventListener bean when seeding profile is active`() {
     try {
-      applicationContext.getBean(PrisonDomainEventListener::class.java)
+      applicationContext.getBean(PrisonEventListener::class.java)
       fail("Should have thrown an error")
     } catch (e: NoSuchBeanDefinitionException) {
       // expected

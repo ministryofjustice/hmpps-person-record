@@ -12,18 +12,18 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.delius.OffenderEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 
-const val OFFENDER_EVENTS_QUEUE_CONFIG_KEY = "cprdeliusoffendereventsqueue"
+const val PROBATION_EVENT_QUEUE_CONFIG_KEY = "cprdeliusoffendereventsqueue"
 
 @Component
 @Profile("!seeding")
-class OffenderDomainEventsListener(
-  val eventProcessor: OffenderEventProcessor,
+class ProbationEventListener(
+  val eventProcessor: ProbationEventProcessor,
   val objectMapper: ObjectMapper,
   val telemetryService: TelemetryService,
 ) {
@@ -31,7 +31,7 @@ class OffenderDomainEventsListener(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  @SqsListener(OFFENDER_EVENTS_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
+  @SqsListener(PROBATION_EVENT_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
   @WithSpan(value = "hmpps-person-record-cpr_delius_offender_events_queue", kind = SERVER)
   fun onDomainEvent(
     rawMessage: String,

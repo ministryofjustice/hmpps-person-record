@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.processors.delius
+package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 const val MAX_RETRY_ATTEMPTS: Int = 3
 
 @Component
-class OffenderEventProcessor(
+class ProbationEventProcessor(
   val telemetryService: TelemetryService,
   val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
   val personService: PersonService,
