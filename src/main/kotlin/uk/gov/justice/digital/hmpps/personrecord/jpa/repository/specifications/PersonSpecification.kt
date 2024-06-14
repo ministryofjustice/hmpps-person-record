@@ -24,7 +24,7 @@ object PersonSpecification {
 
   fun exactMatch(input: String?, field: String): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      input?.let {
+      input?.takeIf { it.isNotBlank() }?.let {
         criteriaBuilder.equal(root.get<String>(field), it)
       }
     }
