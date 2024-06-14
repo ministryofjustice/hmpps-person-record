@@ -27,7 +27,7 @@ class ListenersDisabledIntTest : IntegrationTestBase() {
   @Test
   fun `should not have OffenderDomainEventsListener bean when seeding profile is active`() {
     try {
-      applicationContext.getBean(OffenderDomainEventsListener::class.java)
+      applicationContext.getBean(ProbationEventListener::class.java)
       fail("Should have thrown an error")
     } catch (e: NoSuchBeanDefinitionException) {
       // expected

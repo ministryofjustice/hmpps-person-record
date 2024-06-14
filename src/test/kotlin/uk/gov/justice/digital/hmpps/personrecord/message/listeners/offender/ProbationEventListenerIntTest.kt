@@ -24,7 +24,7 @@ import java.time.LocalDate
 import java.util.UUID
 import java.util.concurrent.TimeUnit.SECONDS
 
-class OffenderDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
+class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should receive the message successfully when new offender event published`() {

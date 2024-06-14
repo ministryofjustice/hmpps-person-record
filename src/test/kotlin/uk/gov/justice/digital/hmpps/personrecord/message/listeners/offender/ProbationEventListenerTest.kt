@@ -9,8 +9,8 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.OffenderDomainEventsListener
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.OffenderEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.ProbationEventListener
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
@@ -20,19 +20,19 @@ import java.util.UUID
 import kotlin.test.assertFailsWith
 
 @ExtendWith(MockitoExtension::class)
-class OffenderDomainEventsListenerTest {
+class ProbationEventListenerTest {
 
   @Mock
-  private lateinit var offenderEventsProcessor: OffenderEventProcessor
+  private lateinit var offenderEventsProcessor: ProbationEventProcessor
 
   @Mock
   private lateinit var telemetryService: TelemetryService
 
-  private lateinit var offenderDomainEventsListener: OffenderDomainEventsListener
+  private lateinit var probationEventListener: ProbationEventListener
 
   @BeforeEach
   fun setUp() {
-    offenderDomainEventsListener = OffenderDomainEventsListener(
+    probationEventListener = ProbationEventListener(
       objectMapper = ObjectMapper(),
       eventProcessor = offenderEventsProcessor,
       telemetryService = telemetryService,
@@ -49,7 +49,7 @@ class OffenderDomainEventsListenerTest {
     // when
 
     assertFailsWith<IllegalArgumentException>(
-      block = { offenderDomainEventsListener.onDomainEvent(rawMessage = rawMessage) },
+      block = { probationEventListener.onDomainEvent(rawMessage = rawMessage) },
     )
 
     // then

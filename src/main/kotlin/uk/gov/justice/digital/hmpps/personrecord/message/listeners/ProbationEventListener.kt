@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.OffenderEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
@@ -22,8 +22,8 @@ const val OFFENDER_EVENTS_QUEUE_CONFIG_KEY = "cprdeliusoffendereventsqueue"
 
 @Component
 @Profile("!seeding")
-class OffenderDomainEventsListener(
-  val eventProcessor: OffenderEventProcessor,
+class ProbationEventListener(
+  val eventProcessor: ProbationEventProcessor,
   val objectMapper: ObjectMapper,
   val telemetryService: TelemetryService,
 ) {
