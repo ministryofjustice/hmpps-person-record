@@ -14,9 +14,10 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.COURT_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithAdditionalFields
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithNewDefendantAndNoPnc
@@ -48,16 +49,28 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     checkTelemetry(
-      HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to "1981/0154257C", "MESSAGE_ID" to messageId),
+      COURT_MESSAGE_RECEIVED,
+      mapOf(
+        "PNC" to "1981/0154257C",
+        "MESSAGE_ID" to messageId,
+        "SOURCE_SYSTEM" to SourceSystemType.HMCTS.name,
+      ),
     )
     checkTelemetry(
-      HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to "2008/0056560Z", "MESSAGE_ID" to messageId),
+      COURT_MESSAGE_RECEIVED,
+      mapOf(
+        "PNC" to "2008/0056560Z",
+        "MESSAGE_ID" to messageId,
+        "SOURCE_SYSTEM" to SourceSystemType.HMCTS.name,
+      ),
     )
     checkTelemetry(
-      HMCTS_MESSAGE_RECEIVED,
-      mapOf("PNC" to "", "MESSAGE_ID" to messageId),
+      COURT_MESSAGE_RECEIVED,
+      mapOf(
+        "PNC" to "",
+        "MESSAGE_ID" to messageId,
+        "SOURCE_SYSTEM" to SourceSystemType.HMCTS.name,
+      ),
     )
   }
 
@@ -120,8 +133,8 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     checkTelemetry(
-      HMCTS_MESSAGE_RECEIVED,
-      mapOf("MESSAGE_ID" to messageId),
+      COURT_MESSAGE_RECEIVED,
+      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to SourceSystemType.HMCTS.name),
     )
 
     await.atMost(15, SECONDS) untilAsserted {

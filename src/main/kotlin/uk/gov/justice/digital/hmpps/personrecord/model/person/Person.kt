@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.HMCTS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDate
 import java.util.*
@@ -113,7 +114,7 @@ data class Person(
         lastName = libraHearingEvent.name?.lastName,
         dateOfBirth = libraHearingEvent.dateOfBirth,
         addresses = addresses,
-        sourceSystemType = HMCTS,
+        sourceSystemType = LIBRA,
       )
     }
 

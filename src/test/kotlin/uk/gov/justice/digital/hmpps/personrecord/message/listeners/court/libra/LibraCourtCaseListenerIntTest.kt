@@ -22,8 +22,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.COURT_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
@@ -43,10 +43,11 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     val messageId = publishHMCTSMessage(libraHearing(), LIBRA_COURT_CASE)
 
     checkTelemetry(
-      HMCTS_MESSAGE_RECEIVED,
+      COURT_MESSAGE_RECEIVED,
       mapOf(
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "MESSAGE_ID" to messageId,
+        "SOURCE_SYSTEM" to SourceSystemType.LIBRA.name,
       ),
     )
 
@@ -54,6 +55,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       personRepository.findAll()
     }
 
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
     assertThat(personEntities.size).isEqualTo(1)
 
     val person = personEntities[0]
@@ -64,6 +66,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo("NT4 6YH")
+    assertThat(person.sourceSystem).isEqualTo(SourceSystemType.LIBRA)
   }
 
   @Test
@@ -97,7 +100,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
-        "SOURCE_SYSTEM" to "HMCTS",
+        "SOURCE_SYSTEM" to "LIBRA",
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "1000000",
         "SEARCH_VERSION" to PersonSpecification.SEARCH_VERSION,
@@ -143,7 +146,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
-        "SOURCE_SYSTEM" to "HMCTS",
+        "SOURCE_SYSTEM" to "LIBRA",
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "1",
         "SEARCH_VERSION" to PersonSpecification.SEARCH_VERSION,
@@ -173,7 +176,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       CPR_RECORD_CREATED,
-      mapOf("SOURCE_SYSTEM" to "HMCTS"),
+      mapOf("SOURCE_SYSTEM" to "LIBRA"),
       times = 50,
     )
   }
