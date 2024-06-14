@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prisoner
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.BeforeEach
@@ -9,8 +9,8 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.PrisonerDomainEventsListener
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.nomis.PrisonerEventsProcessor
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.PrisonDomainEventListener
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
@@ -20,21 +20,21 @@ import java.util.UUID
 import kotlin.test.assertFailsWith
 
 @ExtendWith(MockitoExtension::class)
-class PrisonerDomainEventsListenerTest {
+class PrisonDomainEventListenerTest {
 
   @Mock
-  private lateinit var prisonerEventsProcessor: PrisonerEventsProcessor
+  private lateinit var prisonEventProcessor: PrisonEventProcessor
 
   @Mock
   private lateinit var telemetryService: TelemetryService
 
-  private lateinit var prisonerDomainEventListener: PrisonerDomainEventsListener
+  private lateinit var prisonerDomainEventListener: PrisonDomainEventListener
 
   @BeforeEach
   fun setUp() {
-    prisonerDomainEventListener = PrisonerDomainEventsListener(
+    prisonerDomainEventListener = PrisonDomainEventListener(
       objectMapper = ObjectMapper(),
-      prisonerEventsProcessor = prisonerEventsProcessor,
+      prisonEventProcessor = prisonEventProcessor,
       telemetryService = telemetryService,
     )
   }
@@ -45,7 +45,7 @@ class PrisonerDomainEventsListenerTest {
     val prisonNumber = UUID.randomUUID().toString()
     val messageId = UUID.randomUUID().toString()
     val rawMessage = prisonerDomainEvent(PRISONER_CREATED, prisonNumber, messageId = messageId)
-    whenever(prisonerEventsProcessor.processEvent(any())).thenThrow(IllegalArgumentException("Something went wrong"))
+    whenever(prisonEventProcessor.processEvent(any())).thenThrow(IllegalArgumentException("Something went wrong"))
     // when
 
     assertFailsWith<IllegalArgumentException>(

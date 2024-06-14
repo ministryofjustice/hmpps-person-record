@@ -37,7 +37,7 @@ class ListenersDisabledIntTest : IntegrationTestBase() {
   @Test
   fun `should not have PrisonerDomainEventsListener bean when seeding profile is active`() {
     try {
-      applicationContext.getBean(PrisonerDomainEventsListener::class.java)
+      applicationContext.getBean(PrisonDomainEventListener::class.java)
       fail("Should have thrown an error")
     } catch (e: NoSuchBeanDefinitionException) {
       // expected

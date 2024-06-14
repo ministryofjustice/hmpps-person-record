@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prisoner
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
@@ -28,7 +28,7 @@ import java.time.LocalDate
 import java.util.UUID
 import java.util.concurrent.TimeUnit.SECONDS
 
-class PrisonerDomainEventsListenerIntTest : MessagingMultiNodeTestBase() {
+class PrisonDomainEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should receive the message successfully when prisoner created event published`() {
