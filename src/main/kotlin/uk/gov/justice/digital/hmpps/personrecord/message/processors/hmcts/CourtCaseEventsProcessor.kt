@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.HMCTS_MESSAGE_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.COURT_MESSAGE_RECEIVED
 
 @Service
 class CourtCaseEventsProcessor(
@@ -63,12 +63,13 @@ class CourtCaseEventsProcessor(
     uniqueDefendants.forEach { defendant ->
       val person = Person.from(defendant)
       telemetryService.trackEvent(
-        HMCTS_MESSAGE_RECEIVED,
+        COURT_MESSAGE_RECEIVED,
         mapOf(
           EventKeys.PNC to person.otherIdentifiers?.pncIdentifier.toString(),
           EventKeys.CRO to person.otherIdentifiers?.croIdentifier.toString(),
           EventKeys.EVENT_TYPE to COMMON_PLATFORM_HEARING.name,
           EventKeys.MESSAGE_ID to sqsMessage.messageId,
+          EventKeys.SOURCE_SYSTEM to SourceSystemType.HMCTS.name,
         ),
       )
       personService.processMessage(person) {
@@ -84,12 +85,13 @@ class CourtCaseEventsProcessor(
     val person = Person.from(libraHearingEvent)
 
     telemetryService.trackEvent(
-      HMCTS_MESSAGE_RECEIVED,
+      COURT_MESSAGE_RECEIVED,
       mapOf(
         EventKeys.PNC to person.otherIdentifiers?.pncIdentifier.toString(),
         EventKeys.CRO to person.otherIdentifiers?.croIdentifier.toString(),
         EventKeys.EVENT_TYPE to LIBRA_COURT_CASE.name,
         EventKeys.MESSAGE_ID to sqsMessage.messageId,
+        EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
       ),
     )
 
@@ -97,7 +99,7 @@ class CourtCaseEventsProcessor(
     telemetryService.trackEvent(
       TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
-        EventKeys.SOURCE_SYSTEM to SourceSystemType.HMCTS.name,
+        EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
         EventKeys.RECORD_COUNT to pageablePersonEntities.totalElements.toString(),
         EventKeys.EVENT_TYPE to LIBRA_COURT_CASE.name,
         EventKeys.MESSAGE_ID to sqsMessage.messageId,
