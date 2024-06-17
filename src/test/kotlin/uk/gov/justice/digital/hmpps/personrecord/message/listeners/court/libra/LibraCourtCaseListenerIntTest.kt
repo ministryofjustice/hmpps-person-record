@@ -21,33 +21,34 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.COURT_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
+import java.util.UUID
 import java.util.concurrent.TimeUnit.SECONDS
 
 class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
   @BeforeEach
   override fun beforeEach() {
-    super.beforeEach()
-    personRepository.deleteAll()
     telemetryRepository.deleteAll()
   }
 
   @Test
   fun `should process libra messages`() {
-    val messageId = publishHMCTSMessage(libraHearing(), LIBRA_COURT_CASE)
+    val firstName = UUID.randomUUID().toString()
+    val messageId = publishHMCTSMessage(libraHearing(firstName = firstName), LIBRA_COURT_CASE)
 
     checkTelemetry(
       COURT_MESSAGE_RECEIVED,
       mapOf(
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to SourceSystemType.LIBRA.name,
+        "SOURCE_SYSTEM" to LIBRA.name,
       ),
     )
 
@@ -56,7 +57,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
-    assertThat(personEntities.size).isEqualTo(1)
+    assertThat(personEntities.filter { it.firstName.equals(firstName) }.size).isEqualTo(1)
 
     val person = personEntities[0]
     assertThat(person.title).isEqualTo("Mr")
@@ -66,7 +67,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo("NT4 6YH")
-    assertThat(person.sourceSystem).isEqualTo(SourceSystemType.LIBRA)
+    assertThat(person.sourceSystem).isEqualTo(LIBRA)
   }
 
   @Test
@@ -117,7 +118,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
           firstName = "Jane",
           lastName = "Smith",
           addresses = listOf(Address(postcode = "LS1 1AB")),
-          sourceSystemType = SourceSystemType.LIBRA,
+          sourceSystemType = LIBRA,
         ),
       ),
     )
@@ -127,7 +128,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
           firstName = "Steve",
           lastName = "Micheal",
           addresses = listOf(Address(postcode = "RF14 5DG")),
-          sourceSystemType = SourceSystemType.LIBRA,
+          sourceSystemType = LIBRA,
         ),
       ),
     )
