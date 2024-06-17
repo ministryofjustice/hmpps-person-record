@@ -4,24 +4,31 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import org.springframework.data.domain.Page
+import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.HMCTS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDate
 
-class PersonServiceIntTest : MessagingMultiNodeTestBase() {
+class PersonServiceIntTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var personService: PersonService
 
+  @Autowired
+  private lateinit var personRepository: PersonRepository
+
   @BeforeEach
   override fun beforeEach() {
-    super.beforeEach()
     personRepository.deleteAll()
   }
 
@@ -31,7 +38,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
       firstName = "Stephen",
       lastName = "Smith",
       dateOfBirth = LocalDate.of(1975, 1, 1),
-      sourceSystemType = SourceSystemType.LIBRA,
+      sourceSystemType = LIBRA,
     )
     createPerson(personToFind)
     createPerson(
@@ -39,7 +46,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
         firstName = "Stephen",
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       ),
     )
     createPerson(
@@ -47,7 +54,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
         firstName = "Stephen",
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = SourceSystemType.NOMIS,
+        sourceSystemType = NOMIS,
       ),
     )
     createPerson(
@@ -55,34 +62,34 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
         firstName = "Stephen",
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = SourceSystemType.DELIUS,
+        sourceSystemType = DELIUS,
       ),
     )
 
     val personEntities = personService.findCandidateRecords(personToFind)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(personEntities.get().findFirst().get().sourceSystem).isEqualTo(SourceSystemType.LIBRA)
+    assertThat(first(personEntities).sourceSystem).isEqualTo(LIBRA)
   }
 
   @Test
   fun `should find candidate records on exact matches on PNC`() {
     val personToFind = Person(
       otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("2003/0011985X")),
-      sourceSystemType = SourceSystemType.HMCTS,
+      sourceSystemType = HMCTS,
     )
     createPerson(personToFind)
     createPerson(
       Person(
         otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("1981/0154257C")),
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       ),
     )
 
     val personEntities = personService.findCandidateRecords(personToFind)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(personEntities.get().findFirst().get().pnc).isEqualTo(PNCIdentifier.from("2003/0011985X"))
+    assertThat(first(personEntities).pnc).isEqualTo(PNCIdentifier.from("2003/0011985X"))
   }
 
   @Test
@@ -92,7 +99,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
       lastName = "Klose",
       dateOfBirth = LocalDate.of(1975, 2, 1),
       otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("")),
-      sourceSystemType = SourceSystemType.HMCTS,
+      sourceSystemType = HMCTS,
     )
     createPerson(personToFind)
     createPerson(
@@ -101,74 +108,74 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
         lastName = "Hrubesch",
         dateOfBirth = LocalDate.of(1975, 2, 1),
         otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("")),
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       ),
     )
 
     val personEntities = personService.findCandidateRecords(personToFind)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(personEntities.get().findFirst().get().firstName).isEqualTo("Miroslav")
+    assertThat(first(personEntities).firstName).isEqualTo("Miroslav")
   }
 
   @Test
   fun `should find candidate records on exact matches on driver license number`() {
     val personToFind = Person(
       driverLicenseNumber = "01234567890",
-      sourceSystemType = SourceSystemType.HMCTS,
+      sourceSystemType = HMCTS,
     )
     createPerson(personToFind)
     createPerson(
       Person(
         driverLicenseNumber = "0987654321",
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       ),
     )
 
     val personEntities = personService.findCandidateRecords(personToFind)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(personEntities.get().findFirst().get().driverLicenseNumber).isEqualTo("01234567890")
+    assertThat(first(personEntities).driverLicenseNumber).isEqualTo("01234567890")
   }
 
   @Test
   fun `should find candidate records on exact matches on national insurance number`() {
     val personToFind = Person(
       nationalInsuranceNumber = "PG1234567C",
-      sourceSystemType = SourceSystemType.HMCTS,
+      sourceSystemType = HMCTS,
     )
     createPerson(personToFind)
     createPerson(
       Person(
         nationalInsuranceNumber = "RF9876543C",
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       ),
     )
 
     val personEntities = personService.findCandidateRecords(personToFind)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(personEntities.get().findFirst().get().nationalInsuranceNumber).isEqualTo("PG1234567C")
+    assertThat(first(personEntities).nationalInsuranceNumber).isEqualTo("PG1234567C")
   }
 
   @Test
   fun `should find candidate records on exact matches on CRO`() {
     val personToFind = Person(
       otherIdentifiers = OtherIdentifiers(croIdentifier = CROIdentifier.from("86621/65B")),
-      sourceSystemType = SourceSystemType.HMCTS,
+      sourceSystemType = HMCTS,
     )
     createPerson(personToFind)
     createPerson(
       Person(
         otherIdentifiers = OtherIdentifiers(croIdentifier = CROIdentifier.from("51072/62R")),
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       ),
     )
 
     val personEntities = personService.findCandidateRecords(personToFind)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(personEntities.get().findFirst().get().cro).isEqualTo(CROIdentifier.from("86621/65B"))
+    assertThat(first(personEntities).cro).isEqualTo(CROIdentifier.from("86621/65B"))
   }
 
   @Test
@@ -178,7 +185,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
         firstName = "Steven",
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 2, 1),
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       ),
     )
     createPerson(
@@ -186,7 +193,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
         firstName = "Micheal",
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 2, 1),
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       ),
     )
 
@@ -194,12 +201,12 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
       firstName = "Stephen",
       lastName = "Smith",
       dateOfBirth = LocalDate.of(1975, 2, 1),
-      sourceSystemType = SourceSystemType.HMCTS,
+      sourceSystemType = HMCTS,
     )
     val personEntities = personService.findCandidateRecords(searchingPerson)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(personEntities.get().findFirst().get().firstName).isEqualTo("Steven")
+    assertThat(first(personEntities).firstName).isEqualTo("Steven")
   }
 
   @Test
@@ -209,7 +216,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
         firstName = "Stephen",
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 2, 1),
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       ),
     )
     createPerson(
@@ -217,7 +224,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
         firstName = "Stephen",
         lastName = "Micheal",
         dateOfBirth = LocalDate.of(1975, 2, 1),
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       ),
     )
 
@@ -225,12 +232,12 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
       firstName = "Stephen",
       lastName = "Smythe",
       dateOfBirth = LocalDate.of(1975, 2, 1),
-      sourceSystemType = SourceSystemType.HMCTS,
+      sourceSystemType = HMCTS,
     )
     val personEntities = personService.findCandidateRecords(searchingPerson)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(personEntities.get().findFirst().get().lastName).isEqualTo("Smith")
+    assertThat(first(personEntities).lastName).isEqualTo("Smith")
   }
 
   @Test
@@ -240,7 +247,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
         firstName = "Stephen",
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       ),
     )
     createPerson(
@@ -248,7 +255,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
         firstName = "Stephen",
         lastName = "Micheal",
         dateOfBirth = LocalDate.of(1986, 4, 2),
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       ),
     )
 
@@ -256,12 +263,12 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
       firstName = "Stephen",
       lastName = "Smith",
       dateOfBirth = LocalDate.of(1975, 2, 1),
-      sourceSystemType = SourceSystemType.HMCTS,
+      sourceSystemType = HMCTS,
     )
     val personEntities = personService.findCandidateRecords(searchingPerson)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(personEntities.get().findFirst().get().dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
+    assertThat(first(personEntities).dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
   }
 
   @Test
@@ -271,7 +278,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
         firstName = "Stephen",
         lastName = "Smythe",
         addresses = listOf(Address(postcode = "LS1 1AB")),
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       ),
     )
     createPerson(
@@ -279,7 +286,7 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
         firstName = "Stephen",
         lastName = "Micheal",
         addresses = listOf(Address(postcode = "ZB5 78O")),
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       ),
     )
 
@@ -287,13 +294,16 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
       firstName = "Stephen",
       lastName = "Smith",
       addresses = listOf(Address(postcode = "LS2 1AC"), Address(postcode = "LD2 3BC")),
-      sourceSystemType = SourceSystemType.HMCTS,
+      sourceSystemType = HMCTS,
     )
     val personEntities = personService.findCandidateRecords(searchingPerson)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(personEntities.get().findFirst().get().addresses[0].postcode).isEqualTo("LS1 1AB")
+    assertThat(first(personEntities).addresses[0].postcode).isEqualTo("LS1 1AB")
   }
+
+  private fun first(personEntities: Page<PersonEntity>) =
+    personEntities.get().findFirst().get()
 
   @Test
   fun `should not find candidate records on matching postcode but not name`() {
@@ -301,14 +311,14 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
       Person(
         lastName = "Smith",
         addresses = listOf(Address(postcode = "LS1 1AB")),
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       ),
     )
     createPerson(
       Person(
         lastName = "Micheal",
         addresses = listOf(Address(postcode = "ZB5 78O")),
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       ),
     )
 
@@ -316,11 +326,11 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
       firstName = "Stephen",
       lastName = "Stevenson",
       addresses = listOf(Address(postcode = "LS1 1AB")),
-      sourceSystemType = SourceSystemType.HMCTS,
+      sourceSystemType = HMCTS,
     )
     val personEntities = personService.findCandidateRecords(searchingPerson)
 
-    assertThat(personEntities.totalElements).isEqualTo(0)
+    noCandidatesFound(personEntities)
   }
 
   @Test
@@ -329,14 +339,14 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
       Person(
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       ),
     )
     createPerson(
       Person(
         lastName = "Micheal",
         dateOfBirth = LocalDate.of(1988, 4, 5),
-        sourceSystemType = SourceSystemType.HMCTS,
+        sourceSystemType = HMCTS,
       ),
     )
 
@@ -344,10 +354,14 @@ class PersonServiceIntTest : MessagingMultiNodeTestBase() {
       firstName = "Stephen",
       lastName = "Stevenson",
       dateOfBirth = LocalDate.of(1975, 1, 1),
-      sourceSystemType = SourceSystemType.HMCTS,
+      sourceSystemType = HMCTS,
     )
     val personEntities = personService.findCandidateRecords(searchingPerson)
 
+    noCandidatesFound(personEntities)
+  }
+
+  private fun noCandidatesFound(personEntities: Page<PersonEntity>) {
     assertThat(personEntities.totalElements).isEqualTo(0)
   }
 

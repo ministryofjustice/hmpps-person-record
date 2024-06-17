@@ -8,7 +8,7 @@ import java.time.LocalDate
 
 object PersonSpecification {
 
-  const val SEARCH_VERSION = "1.2"
+  const val SEARCH_VERSION = "1.3"
 
   const val PNC = "pnc"
   const val CRO = "cro"
