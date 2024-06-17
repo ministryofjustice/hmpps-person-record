@@ -1,4 +1,4 @@
-# Importing cluster data
+# Importing term frequency data
 A csv file will be supplied by Data Science, possibly by encrypted file transfer. Robin Linacre is currently responsible for transferring the file to us.
 Future: term frequency tables will be managed by the splink cluster
 
