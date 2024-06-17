@@ -6,7 +6,7 @@
 ### A service for managing identity data about the people we look after in HMPPS
 
 ## Prerequisites
-- JDK 21 needs to be installed
+- JDK 21
 
 ## Running tests
 ```
@@ -58,6 +58,13 @@ curl -i -X POST http://localhost:8080/populatefromprobation
 ```
 4. remove the profile `seeding` to resume message consumption
 
+### importing cluster data manually
+#### Creating the tables
+Connect to the database [using the process defined](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/rds-external-access.html)
+
+Copy and paste the SQL from  [CPR-356.sql](./src/main/resources/db/scripts/CPR-356.sql)
+#### data import
+A csv file will be supplied by Data Science, possibly by encrypted file transfer. Compare the column names with the table splink_cluster as defined in [CPR-356.sql](./src/main/resources/db/scripts/CPR-356.sql) and amend the csv file to match the column names. For example, `rename offender_id_display` to `prisoner_number`
 ## process a Common Platform message
 
 ```shell
