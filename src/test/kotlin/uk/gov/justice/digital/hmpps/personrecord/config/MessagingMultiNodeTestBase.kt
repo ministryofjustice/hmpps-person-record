@@ -66,7 +66,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
           "messageType" to MessageAttributeValue.builder().dataType("String")
             .stringValue(messageType.name).build(),
           "messageId" to MessageAttributeValue.builder().dataType("String")
-            .stringValue("d3242a9f-c1cd-4d16-bd46-b7d33ccc9849").build(),
+            .stringValue(UUID.randomUUID().toString()).build(),
         ),
       )
       .build()

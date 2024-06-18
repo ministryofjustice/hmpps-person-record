@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 
 @Repository
 interface PersonRepository : JpaSpecificationExecutor<PersonEntity>, JpaRepository<PersonEntity, Long> {
@@ -13,5 +14,5 @@ interface PersonRepository : JpaSpecificationExecutor<PersonEntity>, JpaReposito
 
   fun findByCrn(crn: String): PersonEntity?
 
-  fun findByPrisonNumberAndSourceSystem(prisonNumber: String, sourceSystem: SourceSystemType? = SourceSystemType.NOMIS): PersonEntity?
+  fun findByPrisonNumberAndSourceSystem(prisonNumber: String, sourceSystem: SourceSystemType? = NOMIS): PersonEntity?
 }

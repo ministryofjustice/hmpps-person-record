@@ -15,39 +15,43 @@ import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.SEARCH_VERSION
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.COURT_MESSAGE_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
+import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
+import kotlin.text.Charsets.UTF_8
 
 class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
   @BeforeEach
   override fun beforeEach() {
-    super.beforeEach()
-    personRepository.deleteAll()
     telemetryRepository.deleteAll()
   }
 
   @Test
   fun `should process libra messages`() {
-    val messageId = publishHMCTSMessage(libraHearing(), LIBRA_COURT_CASE)
+    val firstName = randomFirstName()
+    val messageId = publishHMCTSMessage(libraHearing(firstName = firstName), LIBRA_COURT_CASE)
 
     checkTelemetry(
       COURT_MESSAGE_RECEIVED,
       mapOf(
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to SourceSystemType.LIBRA.name,
+        "SOURCE_SYSTEM" to LIBRA.name,
       ),
     )
 
@@ -56,9 +60,10 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
-    assertThat(personEntities.size).isEqualTo(1)
+    val matchingPerson = personEntities.filter { it.firstName.equals(firstName) }
+    assertThat(matchingPerson.size).isEqualTo(1)
 
-    val person = personEntities[0]
+    val person = matchingPerson[0]
     assertThat(person.title).isEqualTo("Mr")
     assertThat(person.lastName).isEqualTo("MORGAN")
     assertThat(person.pnc).isEqualTo(PNCIdentifier.from("2003/0011985X"))
@@ -66,7 +71,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo("NT4 6YH")
-    assertThat(person.sourceSystem).isEqualTo(SourceSystemType.LIBRA)
+    assertThat(person.sourceSystem).isEqualTo(LIBRA)
   }
 
   @Test
@@ -98,59 +103,62 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     await.atMost(300, SECONDS) untilAsserted { assertThat(telemetryRepository.findAll().size).isEqualTo(3) }
 
     checkTelemetry(
-      TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH,
+      CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         "SOURCE_SYSTEM" to "LIBRA",
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "1000000",
-        "SEARCH_VERSION" to PersonSpecification.SEARCH_VERSION,
+        "SEARCH_VERSION" to SEARCH_VERSION,
         "MESSAGE_ID" to messageId,
       ),
     )
   }
 
   @Test
-  fun `should process send correct telemetry for candidate search`() {
-    personRepository.saveAndFlush(
-      PersonEntity.from(
-        Person(
-          firstName = "Jane",
-          lastName = "Smith",
-          addresses = listOf(Address(postcode = "LS1 1AB")),
-          sourceSystemType = SourceSystemType.LIBRA,
-        ),
+  fun `should send correct telemetry for candidate search when one match found`() {
+    val allPNCs = Files.readAllLines(Paths.get("src/test/resources/valid_pncs.csv"), UTF_8)
+    val matchingPnc = allPNCs.get((0..allPNCs.size).random())
+    val allCROs = Files.readAllLines(Paths.get("src/test/resources/valid_cros.csv"), UTF_8)
+    val matchingCro = allCROs.get((0..allCROs.size).random())
+    val firstMessageId = publishHMCTSMessage(libraHearing(firstName = "Steve", lastName = "Micheal", postcode = "RF14 5DG"), LIBRA_COURT_CASE)
+    val secondMessageId = publishHMCTSMessage(libraHearing(firstName = "Geoff", lastName = "Smith", postcode = "LS1 1AB", pncNumber = matchingPnc, cro = matchingCro), LIBRA_COURT_CASE)
+    checkTelemetry(
+      CPR_CANDIDATE_RECORD_SEARCH,
+      mapOf(
+        "SOURCE_SYSTEM" to "LIBRA",
+        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
+        "SEARCH_VERSION" to SEARCH_VERSION,
+        "MESSAGE_ID" to firstMessageId,
       ),
     )
-    personRepository.saveAndFlush(
-      PersonEntity.from(
-        Person(
-          firstName = "Steve",
-          lastName = "Micheal",
-          addresses = listOf(Address(postcode = "RF14 5DG")),
-          sourceSystemType = SourceSystemType.LIBRA,
-        ),
+    checkTelemetry(
+      CPR_CANDIDATE_RECORD_SEARCH,
+      mapOf(
+        "SOURCE_SYSTEM" to "LIBRA",
+        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
+        "SEARCH_VERSION" to SEARCH_VERSION,
+        "MESSAGE_ID" to secondMessageId,
       ),
     )
-
-    await untilAsserted { assertThat(personRepository.findAll().size).isEqualTo(2) }
-
-    val messageId = publishHMCTSMessage(
+    val thirdMessageId = publishHMCTSMessage(
       libraHearing(
-        firstName = "Jane",
+        firstName = randomFirstName(),
         lastName = "Smythe",
         postcode = "LS1 1AB",
+        pncNumber = matchingPnc,
+        cro = matchingCro,
       ),
       LIBRA_COURT_CASE,
     )
 
     checkTelemetry(
-      TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH,
+      CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         "SOURCE_SYSTEM" to "LIBRA",
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "1",
-        "SEARCH_VERSION" to PersonSpecification.SEARCH_VERSION,
-        "MESSAGE_ID" to messageId,
+        "SEARCH_VERSION" to SEARCH_VERSION,
+        "MESSAGE_ID" to thirdMessageId,
       ),
     )
   }
