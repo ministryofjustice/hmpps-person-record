@@ -16,11 +16,13 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.HMCTS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
-import java.nio.file.Files
-import java.nio.file.Paths
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import java.time.LocalDate
-import java.util.UUID
-import kotlin.text.Charsets.UTF_8
 
 class PersonServiceIntTest : IntegrationTestBase() {
 
@@ -32,7 +34,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records only in searching source system`() {
-    val firstName = UUID.randomUUID().toString()
+    val firstName = randomFirstName()
     val personToFind = Person(
       firstName = firstName,
       lastName = "Smith",
@@ -73,9 +75,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records on exact matches on PNC`() {
-    val allPNCs = Files.readAllLines(Paths.get("src/test/resources/valid_pncs.csv"), UTF_8)
-
-    val pnc = allPNCs.get((0..allPNCs.size).random())
+    val pnc = randomPnc()
     val personToFind = Person(
       otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(pnc)),
       sourceSystemType = HMCTS,
@@ -96,7 +96,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should not find candidates which only match on empty PNC`() {
-    val firstName = UUID.randomUUID().toString()
+    val firstName = randomFirstName()
     val personToFind = Person(
       firstName = firstName,
       lastName = "Klose",
@@ -123,7 +123,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records on exact matches on driver license number`() {
-    val driverLicenseNumber = UUID.randomUUID().toString()
+    val driverLicenseNumber = randomDriverLicenseNumber()
     val personToFind = Person(
       driverLicenseNumber = driverLicenseNumber,
       sourceSystemType = HMCTS,
@@ -144,7 +144,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records on exact matches on national insurance number`() {
-    val nationalInsuranceNumber = UUID.randomUUID().toString()
+    val nationalInsuranceNumber = randomNationalInsuranceNumber()
     val personToFind = Person(
       nationalInsuranceNumber = nationalInsuranceNumber,
       sourceSystemType = HMCTS,
@@ -165,9 +165,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records on exact matches on CRO`() {
-    val allCROs = Files.readAllLines(Paths.get("src/test/resources/valid_cros.csv"), UTF_8)
-
-    val cro = allCROs.get((0..allCROs.size).random())
+    val cro = randomCro()
     val personToFind = Person(
       otherIdentifiers = OtherIdentifiers(croIdentifier = CROIdentifier.from(cro)),
       sourceSystemType = HMCTS,
@@ -188,7 +186,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records on soundex matches on first name`() {
-    val lastName = UUID.randomUUID().toString()
+    val lastName = randomLastName()
     createPerson(
       Person(
         firstName = "Steven",
@@ -220,7 +218,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records on soundex matches on last name`() {
-    val firstName = UUID.randomUUID().toString()
+    val firstName = randomFirstName()
     createPerson(
       Person(
         firstName = firstName,
@@ -252,7 +250,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records on Levenshtein matches on dob`() {
-    val firstName = UUID.randomUUID().toString()
+    val firstName = randomFirstName()
     createPerson(
       Person(
         firstName = firstName,
@@ -276,7 +274,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records on Levenshtein matches on postcode`() {
-    val firstName = UUID.randomUUID().toString()
+    val firstName = randomFirstName()
     createPerson(
       Person(
         firstName = firstName,
