@@ -35,9 +35,10 @@ class PersonServiceIntTest : IntegrationTestBase() {
   @Test
   fun `should find candidate records only in searching source system`() {
     val firstName = randomFirstName()
+    val lastName = randomLastName()
     val personToFind = Person(
       firstName = firstName,
-      lastName = "Smith",
+      lastName = lastName,
       dateOfBirth = LocalDate.of(1975, 1, 1),
       sourceSystemType = LIBRA,
     )
@@ -45,7 +46,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
     createPerson(
       Person(
         firstName = firstName,
-        lastName = "Smith",
+        lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
         sourceSystemType = HMCTS,
       ),
@@ -53,7 +54,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
     createPerson(
       Person(
         firstName = firstName,
-        lastName = "Smith",
+        lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
         sourceSystemType = NOMIS,
       ),
@@ -61,14 +62,13 @@ class PersonServiceIntTest : IntegrationTestBase() {
     createPerson(
       Person(
         firstName = firstName,
-        lastName = "Smith",
+        lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
         sourceSystemType = DELIUS,
       ),
     )
 
     val personEntities = personService.findCandidateRecords(personToFind)
-
     assertThat(personEntities.totalElements).isEqualTo(1)
     assertThat(first(personEntities).sourceSystem).isEqualTo(LIBRA)
   }
