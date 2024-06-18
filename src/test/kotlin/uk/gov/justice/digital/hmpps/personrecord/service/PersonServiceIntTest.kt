@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
@@ -17,7 +16,11 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.HMCTS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.time.LocalDate
+import java.util.UUID
+import kotlin.text.Charsets.UTF_8
 
 class PersonServiceIntTest : IntegrationTestBase() {
 
@@ -27,15 +30,11 @@ class PersonServiceIntTest : IntegrationTestBase() {
   @Autowired
   private lateinit var personRepository: PersonRepository
 
-  @BeforeEach
-  override fun beforeEach() {
-    personRepository.deleteAll()
-  }
-
   @Test
   fun `should find candidate records only in searching source system`() {
+    val firstName = UUID.randomUUID().toString()
     val personToFind = Person(
-      firstName = "Stephen",
+      firstName = firstName,
       lastName = "Smith",
       dateOfBirth = LocalDate.of(1975, 1, 1),
       sourceSystemType = LIBRA,
@@ -43,7 +42,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
     createPerson(personToFind)
     createPerson(
       Person(
-        firstName = "Stephen",
+        firstName = firstName,
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 1, 1),
         sourceSystemType = HMCTS,
@@ -51,7 +50,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
     )
     createPerson(
       Person(
-        firstName = "Stephen",
+        firstName = firstName,
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 1, 1),
         sourceSystemType = NOMIS,
@@ -59,7 +58,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
     )
     createPerson(
       Person(
-        firstName = "Stephen",
+        firstName = firstName,
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 1, 1),
         sourceSystemType = DELIUS,
@@ -74,8 +73,11 @@ class PersonServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records on exact matches on PNC`() {
+    val allPNCs = Files.readAllLines(Paths.get("src/test/resources/valid_pncs.csv"), UTF_8)
+
+    val pnc = allPNCs.get((0..allPNCs.size).random())
     val personToFind = Person(
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("2003/0011985X")),
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(pnc)),
       sourceSystemType = HMCTS,
     )
     createPerson(personToFind)
@@ -89,13 +91,14 @@ class PersonServiceIntTest : IntegrationTestBase() {
     val personEntities = personService.findCandidateRecords(personToFind)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(first(personEntities).pnc).isEqualTo(PNCIdentifier.from("2003/0011985X"))
+    assertThat(first(personEntities).pnc).isEqualTo(PNCIdentifier.from(pnc))
   }
 
   @Test
   fun `should not find candidates which only match on empty PNC`() {
+    val firstName = UUID.randomUUID().toString()
     val personToFind = Person(
-      firstName = "Miroslav",
+      firstName = firstName,
       lastName = "Klose",
       dateOfBirth = LocalDate.of(1975, 2, 1),
       otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("")),
@@ -115,13 +118,14 @@ class PersonServiceIntTest : IntegrationTestBase() {
     val personEntities = personService.findCandidateRecords(personToFind)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(first(personEntities).firstName).isEqualTo("Miroslav")
+    assertThat(first(personEntities).firstName).isEqualTo(firstName)
   }
 
   @Test
   fun `should find candidate records on exact matches on driver license number`() {
+    val driverLicenseNumber = UUID.randomUUID().toString()
     val personToFind = Person(
-      driverLicenseNumber = "01234567890",
+      driverLicenseNumber = driverLicenseNumber,
       sourceSystemType = HMCTS,
     )
     createPerson(personToFind)
@@ -135,13 +139,14 @@ class PersonServiceIntTest : IntegrationTestBase() {
     val personEntities = personService.findCandidateRecords(personToFind)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(first(personEntities).driverLicenseNumber).isEqualTo("01234567890")
+    assertThat(first(personEntities).driverLicenseNumber).isEqualTo(driverLicenseNumber)
   }
 
   @Test
   fun `should find candidate records on exact matches on national insurance number`() {
+    val nationalInsuranceNumber = UUID.randomUUID().toString()
     val personToFind = Person(
-      nationalInsuranceNumber = "PG1234567C",
+      nationalInsuranceNumber = nationalInsuranceNumber,
       sourceSystemType = HMCTS,
     )
     createPerson(personToFind)
@@ -155,13 +160,16 @@ class PersonServiceIntTest : IntegrationTestBase() {
     val personEntities = personService.findCandidateRecords(personToFind)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(first(personEntities).nationalInsuranceNumber).isEqualTo("PG1234567C")
+    assertThat(first(personEntities).nationalInsuranceNumber).isEqualTo(nationalInsuranceNumber)
   }
 
   @Test
   fun `should find candidate records on exact matches on CRO`() {
+    val allCROs = Files.readAllLines(Paths.get("src/test/resources/valid_cros.csv"), UTF_8)
+
+    val cro = allCROs.get((0..allCROs.size).random())
     val personToFind = Person(
-      otherIdentifiers = OtherIdentifiers(croIdentifier = CROIdentifier.from("86621/65B")),
+      otherIdentifiers = OtherIdentifiers(croIdentifier = CROIdentifier.from(cro)),
       sourceSystemType = HMCTS,
     )
     createPerson(personToFind)
@@ -175,15 +183,16 @@ class PersonServiceIntTest : IntegrationTestBase() {
     val personEntities = personService.findCandidateRecords(personToFind)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(first(personEntities).cro).isEqualTo(CROIdentifier.from("86621/65B"))
+    assertThat(first(personEntities).cro).isEqualTo(CROIdentifier.from(cro))
   }
 
   @Test
   fun `should find candidate records on soundex matches on first name`() {
+    val lastName = UUID.randomUUID().toString()
     createPerson(
       Person(
         firstName = "Steven",
-        lastName = "Smith",
+        lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 2, 1),
         sourceSystemType = HMCTS,
       ),
@@ -191,7 +200,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
     createPerson(
       Person(
         firstName = "Micheal",
-        lastName = "Smith",
+        lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 2, 1),
         sourceSystemType = HMCTS,
       ),
@@ -199,7 +208,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
 
     val searchingPerson = Person(
       firstName = "Stephen",
-      lastName = "Smith",
+      lastName = lastName,
       dateOfBirth = LocalDate.of(1975, 2, 1),
       sourceSystemType = HMCTS,
     )
@@ -211,9 +220,10 @@ class PersonServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records on soundex matches on last name`() {
+    val firstName = UUID.randomUUID().toString()
     createPerson(
       Person(
-        firstName = "Stephen",
+        firstName = firstName,
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 2, 1),
         sourceSystemType = HMCTS,
@@ -221,7 +231,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
     )
     createPerson(
       Person(
-        firstName = "Stephen",
+        firstName = firstName,
         lastName = "Micheal",
         dateOfBirth = LocalDate.of(1975, 2, 1),
         sourceSystemType = HMCTS,
@@ -229,7 +239,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
     )
 
     val searchingPerson = Person(
-      firstName = "Stephen",
+      firstName = firstName,
       lastName = "Smythe",
       dateOfBirth = LocalDate.of(1975, 2, 1),
       sourceSystemType = HMCTS,
@@ -242,25 +252,18 @@ class PersonServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records on Levenshtein matches on dob`() {
+    val firstName = UUID.randomUUID().toString()
     createPerson(
       Person(
-        firstName = "Stephen",
+        firstName = firstName,
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 1, 1),
         sourceSystemType = HMCTS,
       ),
     )
-    createPerson(
-      Person(
-        firstName = "Stephen",
-        lastName = "Micheal",
-        dateOfBirth = LocalDate.of(1986, 4, 2),
-        sourceSystemType = HMCTS,
-      ),
-    )
 
     val searchingPerson = Person(
-      firstName = "Stephen",
+      firstName = firstName,
       lastName = "Smith",
       dateOfBirth = LocalDate.of(1975, 2, 1),
       sourceSystemType = HMCTS,
@@ -273,9 +276,10 @@ class PersonServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records on Levenshtein matches on postcode`() {
+    val firstName = UUID.randomUUID().toString()
     createPerson(
       Person(
-        firstName = "Stephen",
+        firstName = firstName,
         lastName = "Smythe",
         addresses = listOf(Address(postcode = "LS1 1AB")),
         sourceSystemType = HMCTS,
@@ -283,15 +287,15 @@ class PersonServiceIntTest : IntegrationTestBase() {
     )
     createPerson(
       Person(
-        firstName = "Stephen",
-        lastName = "Micheal",
-        addresses = listOf(Address(postcode = "ZB5 78O")),
+        firstName = firstName,
+        lastName = "Smythe",
+        addresses = listOf(Address(postcode = "PR7 3DU")),
         sourceSystemType = HMCTS,
       ),
     )
 
     val searchingPerson = Person(
-      firstName = "Stephen",
+      firstName = firstName,
       lastName = "Smith",
       addresses = listOf(Address(postcode = "LS2 1AC"), Address(postcode = "LD2 3BC")),
       sourceSystemType = HMCTS,
@@ -302,22 +306,12 @@ class PersonServiceIntTest : IntegrationTestBase() {
     assertThat(first(personEntities).addresses[0].postcode).isEqualTo("LS1 1AB")
   }
 
-  private fun first(personEntities: Page<PersonEntity>) =
-    personEntities.get().findFirst().get()
-
   @Test
   fun `should not find candidate records on matching postcode but not name`() {
     createPerson(
       Person(
         lastName = "Smith",
         addresses = listOf(Address(postcode = "LS1 1AB")),
-        sourceSystemType = HMCTS,
-      ),
-    )
-    createPerson(
-      Person(
-        lastName = "Micheal",
-        addresses = listOf(Address(postcode = "ZB5 78O")),
         sourceSystemType = HMCTS,
       ),
     )
@@ -342,13 +336,6 @@ class PersonServiceIntTest : IntegrationTestBase() {
         sourceSystemType = HMCTS,
       ),
     )
-    createPerson(
-      Person(
-        lastName = "Micheal",
-        dateOfBirth = LocalDate.of(1988, 4, 5),
-        sourceSystemType = HMCTS,
-      ),
-    )
 
     val searchingPerson = Person(
       firstName = "Stephen",
@@ -365,7 +352,8 @@ class PersonServiceIntTest : IntegrationTestBase() {
     assertThat(personEntities.totalElements).isEqualTo(0)
   }
 
-  private fun createPerson(person: Person): PersonEntity {
-    return personRepository.saveAndFlush(PersonEntity.from(person))
-  }
+  private fun createPerson(person: Person): PersonEntity = personRepository.saveAndFlush(PersonEntity.from(person))
+
+  private fun first(personEntities: Page<PersonEntity>) =
+    personEntities.get().findFirst().get()
 }
