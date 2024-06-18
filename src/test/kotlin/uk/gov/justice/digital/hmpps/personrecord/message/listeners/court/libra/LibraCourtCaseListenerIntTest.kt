@@ -15,7 +15,7 @@ import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.SEARCH_VERSION
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
@@ -27,9 +27,12 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.time.LocalDate
 import java.util.UUID
 import java.util.concurrent.TimeUnit.SECONDS
+import kotlin.text.Charsets.UTF_8
 
 class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -57,9 +60,10 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
-    assertThat(personEntities.filter { it.firstName.equals(firstName) }.size).isEqualTo(1)
+    val matchingPerson = personEntities.filter { it.firstName.equals(firstName) }
+    assertThat(matchingPerson.size).isEqualTo(1)
 
-    val person = personEntities[0]
+    val person = matchingPerson[0]
     assertThat(person.title).isEqualTo("Mr")
     assertThat(person.lastName).isEqualTo("MORGAN")
     assertThat(person.pnc).isEqualTo(PNCIdentifier.from("2003/0011985X"))
@@ -104,7 +108,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to "LIBRA",
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "1000000",
-        "SEARCH_VERSION" to PersonSpecification.SEARCH_VERSION,
+        "SEARCH_VERSION" to SEARCH_VERSION,
         "MESSAGE_ID" to messageId,
       ),
     )
@@ -112,15 +116,16 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should send correct telemetry for candidate search when one match found`() {
-    val firstName = UUID.randomUUID().toString()
+    val allPNCs = Files.readAllLines(Paths.get("src/test/resources/valid_pncs.csv"), UTF_8)
+    val matchingPnc = allPNCs.get((0..allPNCs.size).random())
     val firstMessageId = publishHMCTSMessage(libraHearing(firstName = "Steve", lastName = "Micheal", postcode = "RF14 5DG"), LIBRA_COURT_CASE)
-    val secondMessageId = publishHMCTSMessage(libraHearing(firstName = firstName, lastName = "Smith", postcode = "LS1 1AB"), LIBRA_COURT_CASE)
+    val secondMessageId = publishHMCTSMessage(libraHearing(firstName = "Geoff", lastName = "Smith", postcode = "LS1 1AB", pncNumber = matchingPnc), LIBRA_COURT_CASE)
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         "SOURCE_SYSTEM" to "LIBRA",
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "SEARCH_VERSION" to PersonSpecification.SEARCH_VERSION,
+        "SEARCH_VERSION" to SEARCH_VERSION,
         "MESSAGE_ID" to firstMessageId,
       ),
     )
@@ -129,15 +134,16 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "SOURCE_SYSTEM" to "LIBRA",
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "SEARCH_VERSION" to PersonSpecification.SEARCH_VERSION,
+        "SEARCH_VERSION" to SEARCH_VERSION,
         "MESSAGE_ID" to secondMessageId,
       ),
     )
     val thirdMessageId = publishHMCTSMessage(
       libraHearing(
-        firstName = firstName,
+        firstName = "Geoff",
         lastName = "Smythe",
         postcode = "LS1 1AB",
+        pncNumber = matchingPnc,
       ),
       LIBRA_COURT_CASE,
     )
@@ -148,7 +154,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to "LIBRA",
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "1",
-        "SEARCH_VERSION" to PersonSpecification.SEARCH_VERSION,
+        "SEARCH_VERSION" to SEARCH_VERSION,
         "MESSAGE_ID" to thirdMessageId,
       ),
     )
