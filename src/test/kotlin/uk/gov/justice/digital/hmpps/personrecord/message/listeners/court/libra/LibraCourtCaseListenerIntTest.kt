@@ -26,11 +26,11 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
+import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.LocalDate
-import java.util.UUID
 import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.text.Charsets.UTF_8
 
@@ -43,7 +43,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process libra messages`() {
-    val firstName = UUID.randomUUID().toString()
+    val firstName = randomFirstName()
     val messageId = publishHMCTSMessage(libraHearing(firstName = firstName), LIBRA_COURT_CASE)
 
     checkTelemetry(
@@ -142,7 +142,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     )
     val thirdMessageId = publishHMCTSMessage(
       libraHearing(
-        firstName = UUID.randomUUID().toString(),
+        firstName = randomFirstName(),
         lastName = "Smythe",
         postcode = "LS1 1AB",
         pncNumber = matchingPnc,
