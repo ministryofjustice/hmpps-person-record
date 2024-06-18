@@ -118,8 +118,10 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should send correct telemetry for candidate search when one match found`() {
     val allPNCs = Files.readAllLines(Paths.get("src/test/resources/valid_pncs.csv"), UTF_8)
     val matchingPnc = allPNCs.get((0..allPNCs.size).random())
+    val allCROs = Files.readAllLines(Paths.get("src/test/resources/valid_cros.csv"), UTF_8)
+    val matchingCro = allCROs.get((0..allCROs.size).random())
     val firstMessageId = publishHMCTSMessage(libraHearing(firstName = "Steve", lastName = "Micheal", postcode = "RF14 5DG"), LIBRA_COURT_CASE)
-    val secondMessageId = publishHMCTSMessage(libraHearing(firstName = "Geoff", lastName = "Smith", postcode = "LS1 1AB", pncNumber = matchingPnc), LIBRA_COURT_CASE)
+    val secondMessageId = publishHMCTSMessage(libraHearing(firstName = "Geoff", lastName = "Smith", postcode = "LS1 1AB", pncNumber = matchingPnc, cro = matchingCro), LIBRA_COURT_CASE)
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
@@ -140,10 +142,11 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     )
     val thirdMessageId = publishHMCTSMessage(
       libraHearing(
-        firstName = "Geoff",
+        firstName = UUID.randomUUID().toString(),
         lastName = "Smythe",
         postcode = "LS1 1AB",
         pncNumber = matchingPnc,
+        cro = matchingCro,
       ),
       LIBRA_COURT_CASE,
     )

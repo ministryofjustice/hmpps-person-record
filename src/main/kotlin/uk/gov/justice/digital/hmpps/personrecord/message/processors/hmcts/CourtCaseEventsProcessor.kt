@@ -18,8 +18,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.COURT_MESSAGE_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 
 @Service
 class CourtCaseEventsProcessor(
@@ -97,7 +97,7 @@ class CourtCaseEventsProcessor(
 
     val pageablePersonEntities: Page<PersonEntity> = personService.findCandidateRecords(person)
     telemetryService.trackEvent(
-      TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH,
+      CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
         EventKeys.RECORD_COUNT to pageablePersonEntities.totalElements.toString(),
