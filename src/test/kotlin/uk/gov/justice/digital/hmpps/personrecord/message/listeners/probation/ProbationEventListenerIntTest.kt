@@ -73,7 +73,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should create two offenders with same prisonNumber but different CRNs`() {
-    val prisonNumber: String = UUID.randomUUID().toString()
+    val prisonNumber: String = randomPrisonNumber()
     val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, null, prisonNumber = prisonNumber)
     await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
