@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE_SUMMARY
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
 
 const val MAX_RETRY_ATTEMPTS: Int = 3
@@ -18,6 +19,24 @@ class MatchService(val matchScoreClient: MatchScoreClient, val telemetryService:
 
   @Value("\${retry.delay}")
   private val retryDelay: Long = 0
+
+  fun findHighConfidenceMatches(candidateRecords: List<PersonEntity>, newRecord: Person): List<MatchResult> {
+    val candidateScores: List<MatchResult> = candidateRecords.map { personEntity ->
+      score(personEntity, newRecord)
+    }
+    val highConfidenceMatches = candidateScores.filter { candidate ->
+      candidate.probability.toDouble() > THRESHOLD_SCORE
+    }
+    telemetryService.trackEvent(
+      CPR_MATCH_SCORE_SUMMARY,
+      mapOf(
+        EventKeys.SOURCE_SYSTEM to newRecord.sourceSystemType.name,
+        EventKeys.HIGH_CONFIDENCE_TOTAL to highConfidenceMatches.count().toString(),
+        EventKeys.LOW_CONFIDENCE_TOTAL to (candidateRecords.size - highConfidenceMatches.count()).toString()
+      )
+    )
+    return highConfidenceMatches.sortedByDescending { candidate -> candidate.probability }
+  }
 
   fun score(candidateRecord: PersonEntity, newRecord: Person): MatchResult {
     val candidateRecordIdentifier = candidateRecord.defendantId ?: "defendant1"
@@ -35,11 +54,7 @@ class MatchService(val matchScoreClient: MatchScoreClient, val telemetryService:
 
     return MatchResult(
       matchScore?.matchProbability?.value!!,
-      // candidateRecordUUID = candidateRecord.person?.personId.toString(),
-      candidateRecordIdentifierType = "defendantId",
-      candidateRecordIdentifier = candidateRecordIdentifier,
-      newRecordIdentifierType = "defendantId",
-      newRecordIdentifier = newRecordIdentifier,
+      candidateRecord
     )
   }
 
@@ -57,13 +72,13 @@ class MatchService(val matchScoreClient: MatchScoreClient, val telemetryService:
       throw exception
     }
   }
+
+  companion object {
+    const val THRESHOLD_SCORE = 0.999
+  }
 }
 
 class MatchResult(
   val probability: String,
-  // val candidateRecordUUID: String,
-  val candidateRecordIdentifierType: String,
-  val candidateRecordIdentifier: String,
-  val newRecordIdentifierType: String,
-  val newRecordIdentifier: String,
+  val candidateRecord: PersonEntity,
 )

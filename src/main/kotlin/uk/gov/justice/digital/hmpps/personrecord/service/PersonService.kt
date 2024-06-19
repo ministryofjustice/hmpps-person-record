@@ -38,6 +38,7 @@ class PersonService(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   private val readWriteLockService: ReadWriteLockService,
+  private val matchService: MatchService,
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
@@ -57,10 +58,10 @@ class PersonService(
   }
 
   private fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) {
-    val existingPersonEntities: PersonEntity? = callback()
+    val existingPersonEntity: PersonEntity? = callback()
     when {
-      (existingPersonEntities == null) -> handlePersonCreation(person, event)
-      else -> handlePersonUpdate(person, existingPersonEntities, event)
+      (existingPersonEntity == null) -> handlePersonCreation(person, event)
+      else -> handlePersonUpdate(person, existingPersonEntity, event)
     }
   }
 
@@ -131,6 +132,28 @@ class PersonService(
         ),
         Pageable.ofSize(PAGE_SIZE),
       )
+    }
+  }
+
+  fun processCandidateRecords(personEntities: List<PersonEntity>, person: Person): PersonEntity? {
+    val highConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(personEntities, person)
+    return when {
+      highConfidenceMatches.size == 1 -> highConfidenceMatches.first().candidateRecord
+      highConfidenceMatches.size > 1 -> {
+        highConfidenceMatches.forEach { candidate ->
+          telemetryService.trackEvent(
+            TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE,
+            mapOf(
+              EventKeys.SOURCE_SYSTEM to candidate.candidateRecord.sourceSystem.name,
+              EventKeys.DEFENDANT_ID to candidate.candidateRecord.defendantId,
+              EventKeys.CRN to (candidate.candidateRecord.crn ?: ""),
+              EventKeys.PRISON_NUMBER to candidate.candidateRecord.prisonNumber,
+            )
+          )
+        }
+        highConfidenceMatches.first().candidateRecord
+      }
+      else -> null
     }
   }
 
