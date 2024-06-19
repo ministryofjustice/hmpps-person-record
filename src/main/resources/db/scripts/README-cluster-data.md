@@ -36,15 +36,10 @@ Once you have imported the cluster data,
 Connect to the database using the process defined
 
 ### Assumption: there is no valuable data in person_identifier
-#### empty the person identifier table
-`delete from  personrecordservice.person_identifier`
+### Delete the existing links
+Copy and paste the SQL from  [CPR-356-deleting-existing-links.sql](./CPR-356-deleting-existing-links.sql) and execute it
 
-#### delete all foreign key references from person table 
-```
-update personrecordservice.person
-set fk_person_identifier_id = null;
-```
-
+### Populate the links
 Copy and paste the SQL from  [CPR-356-generate-person-ids.sql](./CPR-356-generate-person-ids.sql) and execute it
 
 
