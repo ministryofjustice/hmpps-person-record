@@ -1,26 +1,35 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.messages
 
-fun libraHearing(pncNumber: String? = "2003/0011985X", firstName: String? = "Arthur", lastName: String = "MORGAN", dateOfBirth: String = "01/01/1975", cro: String = "85227/65L", postcode: String = "NT4 6YH") = """
+class LibraMessage(
+  val pncNumber: String? = "2003/0011985X",
+  val firstName: String? = "Arthur",
+  val lastName: String = "MORGAN",
+  val dateOfBirth: String = "01/01/1975",
+  val cro: String = "85227/65L",
+  val postcode: String = "NT4 6YH"
+)
+
+fun libraHearing(libraMessage: LibraMessage = LibraMessage()) = """
 {
    "caseId":1217464,
    "caseNo":"1600032981",
    "name":{
       "title":"Mr",
-      ${firstName?.let { """ "forename1": "$firstName", """.trimIndent() } ?: ""}
-      "surname":"$lastName"
+      ${libraMessage.firstName?.let { """ "forename1": "${libraMessage.firstName}", """.trimIndent() } ?: ""}
+      "surname":"${libraMessage.lastName}"
    },
-   "defendantName":"Mr $firstName $lastName",
+   "defendantName":"Mr ${libraMessage.firstName} ${libraMessage.lastName}",
    "defendantType":"P",
    "defendantSex":"N",
-   "defendantDob":"$dateOfBirth",
+   "defendantDob":"${libraMessage.dateOfBirth}",
    "defendantAge":"20",
    "defendantAddress":{
       "line1": "39 The Street",
       "line2": "Newtown",
-      "pcode": "$postcode"
+      "pcode": "${libraMessage.postcode}"
    },
-   "cro":"$cro",
-   ${pncNumber?.let { """ "pnc": "$pncNumber", """.trimIndent() } ?: ""}
+   "cro":"${libraMessage.cro}",
+   ${libraMessage.pncNumber?.let { """ "pnc": "${libraMessage.pncNumber}", """.trimIndent() } ?: ""}
    "listNo":"1st",
    "nationality1":"Angolan",
    "nationality2":"Austrian",
