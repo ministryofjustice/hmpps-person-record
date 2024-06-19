@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.P
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
-import uk.gov.justice.digital.hmpps.personrecord.service.MatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.COURT_MESSAGE_RECEIVED
@@ -28,7 +27,6 @@ class CourtCaseEventsProcessor(
   private val personService: PersonService,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
-  private val matchService: MatchService,
 ) {
 
   companion object {

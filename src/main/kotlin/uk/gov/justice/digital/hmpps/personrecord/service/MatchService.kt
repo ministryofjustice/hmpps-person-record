@@ -32,13 +32,13 @@ class MatchService(val matchScoreClient: MatchScoreClient, val telemetryService:
       mapOf(
         EventKeys.SOURCE_SYSTEM to newRecord.sourceSystemType.name,
         EventKeys.HIGH_CONFIDENCE_TOTAL to highConfidenceMatches.count().toString(),
-        EventKeys.LOW_CONFIDENCE_TOTAL to (candidateRecords.size - highConfidenceMatches.count()).toString()
-      )
+        EventKeys.LOW_CONFIDENCE_TOTAL to (candidateRecords.size - highConfidenceMatches.count()).toString(),
+      ),
     )
     return highConfidenceMatches.sortedByDescending { candidate -> candidate.probability }
   }
 
-  fun score(candidateRecord: PersonEntity, newRecord: Person): MatchResult {
+  private fun score(candidateRecord: PersonEntity, newRecord: Person): MatchResult {
     val candidateRecordIdentifier = candidateRecord.defendantId ?: "defendant1"
     val newRecordIdentifier = newRecord.defendantId ?: "defendant2"
 
@@ -54,7 +54,7 @@ class MatchService(val matchScoreClient: MatchScoreClient, val telemetryService:
 
     return MatchResult(
       matchScore?.matchProbability?.value!!,
-      candidateRecord
+      candidateRecord,
     )
   }
 

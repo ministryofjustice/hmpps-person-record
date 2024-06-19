@@ -148,7 +148,7 @@ class PersonService(
               EventKeys.DEFENDANT_ID to candidate.candidateRecord.defendantId,
               EventKeys.CRN to (candidate.candidateRecord.crn ?: ""),
               EventKeys.PRISON_NUMBER to candidate.candidateRecord.prisonNumber,
-            )
+            ),
           )
         }
         highConfidenceMatches.first().candidateRecord
