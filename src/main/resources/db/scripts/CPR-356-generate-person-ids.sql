@@ -1,17 +1,3 @@
--- empty the person identifier table
-delete from  personrecordservice.person_identifier
--- TODO also delete all foreign key references from person table TODO TODO
-
--- run ./gradlew check to create some CRNs and Prison numbers
-CREATE SCHEMA IF NOT EXISTS personmatchscore;
-CREATE TABLE IF NOT EXISTS personmatchscore.splink_cluster (
-                                                               person_id       BIGINT        DEFAULT 0,
-                                                               source_dataset  TEXT        DEFAULT NULL,
-                                                               cluster_high    BIGINT        DEFAULT 0,
-                                                               cluster_medium  BIGINT        DEFAULT 0,
-                                                               crn             TEXT        DEFAULT NULL,
-                                                               prisoner_number TEXT        DEFAULT NULL
-);
 
 -- insert the CRNs with cluster_high. Don't bother populating the unused fields
 INSERT into personmatchscore.splink_cluster (source_dataset, cluster_high, crn)
@@ -20,20 +6,36 @@ from personrecordservice.person p
 where p.crn  != '';
 
 -- insert the prison numbers with cluster_high
-INSERT into personmatchscore.splink_cluster (source_dataset, cluster_high, prisoner_number)
+INSERT into personmatchscore.splink_cluster (source_dataset, cluster_high, prison_number)
 select 'prison_nomis' as source_dataset ,	row_number() over (order by prison_number) as cluster_high, prison_number
 from personrecordservice.person p where p.prison_number  != '';
-commit;
--- start here if you are working in preprod or prod
--- then create a view
-create view personmatchscore.prison_probation_cluster_high as
-select a.crn, b.prisoner_number,gen_random_uuid() as person_id from personmatchscore.splink_cluster a
-join personmatchscore.splink_cluster b on a.cluster_high=b.cluster_high
-where a.crn != '' and b.prisoner_number  !='';
 
-commit;
+-- start here if you are working in preprod or prod
+-- then create a MATERIALIZED view (so the UUIDs do not change)
+create materialized view personmatchscore.prison_probation_cluster_high as
+select a.crn, b.prison_number,gen_random_uuid() as person_id from personmatchscore.splink_cluster a
+join personmatchscore.splink_cluster b on a.cluster_high=b.cluster_high
+where a.crn != '' and b.prison_number  !='';
+
+
 
 -- populate the UUIDS
 insert into personrecordservice.person_identifier (person_id, version)
 select person_id,1 from personmatchscore.prison_probation_cluster_high;
-commit;
+
+-- make another view to make adding the foreign keys easier
+create view personmatchscore.prison_probation_cluster_high_person_id as
+select ch.crn, ch.prison_number, ch.person_id, pi.id as fk_person_id
+from personmatchscore.prison_probation_cluster_high ch
+join personrecordservice.person_identifier pi on ch.person_id=pi.person_id;
+
+-- finally do the updates
+update personrecordservice.person
+set fk_person_identifier_id = ch.fk_person_id
+    from personmatchscore.prison_probation_cluster_high_person_id ch
+where ch.crn = personrecordservice.person.crn
+
+update personrecordservice.person
+set fk_person_identifier_id = ch.fk_person_id
+    from personmatchscore.prison_probation_cluster_high_person_id ch
+where ch.prison_number = personrecordservice.person.prison_number

@@ -4,5 +4,5 @@ CREATE TABLE IF NOT EXISTS personmatchscore.splink_cluster (
     cluster_high    BIGINT        DEFAULT 0,
     cluster_medium  BIGINT        DEFAULT 0,
     crn             TEXT        DEFAULT NULL,
-    prisoner_number TEXT        DEFAULT NULL
+    prison_number TEXT        DEFAULT NULL
 );
