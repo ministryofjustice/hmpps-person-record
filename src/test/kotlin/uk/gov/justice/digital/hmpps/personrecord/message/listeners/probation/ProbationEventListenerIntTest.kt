@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREAT
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DOMAIN_EVENT_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
 import java.time.LocalDate
@@ -28,7 +29,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `creates person when when new offender created event is published`() {
-    val prisonNumber = UUID.randomUUID().toString()
+    val prisonNumber = randomPrisonNumber()
     val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, "2020/0476873U", prisonNumber = prisonNumber)
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }

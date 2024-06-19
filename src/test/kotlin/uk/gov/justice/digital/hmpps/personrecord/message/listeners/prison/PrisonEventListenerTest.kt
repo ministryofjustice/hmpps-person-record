@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.prisonEvent
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.util.UUID
 import kotlin.test.assertFailsWith
 
@@ -41,18 +42,15 @@ class PrisonEventListenerTest {
 
   @Test
   fun `should create correct telemetry event when exception thrown`() {
-    // given
-    val prisonNumber = UUID.randomUUID().toString()
+    val prisonNumber = randomPrisonNumber()
     val messageId = UUID.randomUUID().toString()
     val rawMessage = prisonEvent(PRISONER_CREATED, prisonNumber, messageId = messageId)
     whenever(prisonEventProcessor.processEvent(any())).thenThrow(IllegalArgumentException("Something went wrong"))
-    // when
 
     assertFailsWith<IllegalArgumentException>(
       block = { prisonerDomainEventListener.onDomainEvent(rawMessage = rawMessage) },
     )
 
-    // then
     verify(telemetryService).trackEvent(
       TelemetryEventType.MESSAGE_PROCESSING_FAILED,
       mapOf(

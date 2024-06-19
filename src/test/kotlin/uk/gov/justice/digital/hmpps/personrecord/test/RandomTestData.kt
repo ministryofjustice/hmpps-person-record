@@ -15,11 +15,17 @@ fun randomCro(): String {
   return allCROs.get((0..allCROs.size).random())
 }
 
-fun randomFirstName(): String = randomString()
-fun randomLastName(): String = randomString()
+fun randomFirstName(): String = randomLowerCaseString()
+fun randomLastName(): String = randomLowerCaseString()
 fun randomNationalInsuranceNumber(): String = UUID.randomUUID().toString()
 fun randomDriverLicenseNumber(): String = UUID.randomUUID().toString()
 
-private fun randomString(): String = (1..(6 + (Math.random() * 7).toInt())).map {
+fun randomPrisonNumber(): String = randomLowerCaseString(2).uppercase() + randomDigit(4) + randomLowerCaseString(1).uppercase()
+
+private fun randomLowerCaseString(length: Int = 7): String = (1..length).map {
   ('a' + (Math.random() * 26).toInt())
+}.joinToString("")
+
+private fun randomDigit(length: Int = 7): String = (1..length).map {
+  (0 + (Math.random() * 9).toInt())
 }.joinToString("")
