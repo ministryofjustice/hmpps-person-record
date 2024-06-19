@@ -14,11 +14,11 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.onePrisoner
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonNumbersResponse
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.twoPrisoners
 import java.time.LocalDate
-import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.SECONDS
 
 @ActiveProfiles("seeding")
@@ -30,13 +30,13 @@ class PopulateFromPrisonIntTest : WebTestBase() {
   @Test
   fun `populate from prison`() {
     val scenarioName = "populate"
-    val prisonNumberOne: String = randomUUID().toString()
-    val prisonNumberTwo: String = randomUUID().toString()
-    val prisonNumberThree: String = randomUUID().toString()
-    val prisonNumberFour: String = randomUUID().toString()
-    val prisonNumberFive: String = randomUUID().toString()
-    val prisonNumberSix: String = randomUUID().toString()
-    val prisonNumberSeven: String = randomUUID().toString()
+    val prisonNumberOne: String = randomPrisonNumber()
+    val prisonNumberTwo: String = randomPrisonNumber()
+    val prisonNumberThree: String = randomPrisonNumber()
+    val prisonNumberFour: String = randomPrisonNumber()
+    val prisonNumberFive: String = randomPrisonNumber()
+    val prisonNumberSix: String = randomPrisonNumber()
+    val prisonNumberSeven: String = randomPrisonNumber()
     stubNumberPage(prisonNumberOne, prisonNumberTwo, 0, scenarioName, STARTED)
 
     stubPrisonerDetails(
@@ -117,13 +117,13 @@ class PopulateFromPrisonIntTest : WebTestBase() {
 
   @Test
   fun `populate from prison retries get prisoners`() {
-    val prisonNumberOne: String = randomUUID().toString()
-    val prisonNumberTwo: String = randomUUID().toString()
-    val prisonNumberThree: String = randomUUID().toString()
-    val prisonNumberFour: String = randomUUID().toString()
-    val prisonNumberFive: String = randomUUID().toString()
-    val prisonNumberSix: String = randomUUID().toString()
-    val prisonNumberSeven: String = randomUUID().toString()
+    val prisonNumberOne: String = randomPrisonNumber()
+    val prisonNumberTwo: String = randomPrisonNumber()
+    val prisonNumberThree: String = randomPrisonNumber()
+    val prisonNumberFour: String = randomPrisonNumber()
+    val prisonNumberFive: String = randomPrisonNumber()
+    val prisonNumberSix: String = randomPrisonNumber()
+    val prisonNumberSeven: String = randomPrisonNumber()
 
     val scenarioName = "retry get prisoners"
 
@@ -230,9 +230,9 @@ class PopulateFromPrisonIntTest : WebTestBase() {
 
   @Test
   fun `populate from prison retries getPrisonNumbers`() {
-    val prisonNumberOne: String = randomUUID().toString()
-    val prisonNumberTwo: String = randomUUID().toString()
-    val prisonNumberThree: String = randomUUID().toString()
+    val prisonNumberOne: String = randomPrisonNumber()
+    val prisonNumberTwo: String = randomPrisonNumber()
+    val prisonNumberThree: String = randomPrisonNumber()
 
     wiremock.stubFor(
       WireMock.get("/api/prisoners/prisoner-numbers?size=2&page=0")

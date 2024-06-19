@@ -23,16 +23,16 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DOMAIN_EVENT_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
 import java.time.LocalDate
-import java.util.UUID
 import java.util.concurrent.TimeUnit.SECONDS
 
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should receive the message successfully when prisoner created event published`() {
-    val prisonNumber = UUID.randomUUID().toString()
+    val prisonNumber = randomPrisonNumber()
     stubPrisonResponse(prisonNumber)
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
@@ -113,7 +113,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should log correct telemetry on updated event but no record exists`() {
-    val prisonNumber = UUID.randomUUID().toString()
+    val prisonNumber = randomPrisonNumber()
     stubPrisonResponse(prisonNumber)
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
@@ -130,7 +130,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should allow a person to be created from a prison event when an offender record already exists with the prisonNumber`() {
-    val prisonNumber = UUID.randomUUID().toString()
+    val prisonNumber = randomPrisonNumber()
     probationDomainEventAndResponseSetup(eventType = OFFENDER_ALIAS_CHANGED, pnc = "", prisonNumber = prisonNumber)
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -143,7 +143,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   private fun createPrisoner(): String {
-    val prisonNumber = UUID.randomUUID().toString()
+    val prisonNumber = randomPrisonNumber()
     personRepository.saveAndFlush(
       PersonEntity.from(
         Person.from(
