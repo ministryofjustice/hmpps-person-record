@@ -18,11 +18,11 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREAT
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DOMAIN_EVENT_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
 import java.time.LocalDate
-import java.util.UUID
 import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -98,7 +98,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should not push 404 to dead letter queue`() {
-    val crn = UUID.randomUUID().toString()
+    val crn = randomCRN()
     stub404Response(crn)
 
     val crnType = PersonIdentifier("CRN", crn)

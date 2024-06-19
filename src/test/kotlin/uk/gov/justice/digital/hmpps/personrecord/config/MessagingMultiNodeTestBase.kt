@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.Do
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ProbationCaseResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import uk.gov.justice.hmpps.sqs.HmppsQueue
@@ -100,7 +101,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     expectNoMessagesOn(prisonEventsQueue)
   }
 
-  fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = UUID.randomUUID().toString(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = UUID.randomUUID().toString()): String {
+  fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = ""): String {
     val probationCaseResponseSetup = ProbationCaseResponseSetup(crn = crn, pnc = pnc, prefix = "POPOne", prisonNumber = prisonNumber)
     stubSingleProbationResponse(probationCaseResponseSetup)
 
