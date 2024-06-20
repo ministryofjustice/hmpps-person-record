@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.probationEvent
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import java.util.UUID
 import kotlin.test.assertFailsWith
 
@@ -41,18 +42,15 @@ class ProbationEventListenerTest {
 
   @Test
   fun `should create correct telemetry event when exception thrown`() {
-    // given
-    val crn = UUID.randomUUID().toString()
+    val crn = randomCRN()
     val messageId = UUID.randomUUID().toString()
     val rawMessage = probationEvent(NEW_OFFENDER_CREATED, crn, messageId = messageId)
     whenever(offenderEventsProcessor.processEvent(any())).thenThrow(IllegalArgumentException("Something went wrong"))
-    // when
 
     assertFailsWith<IllegalArgumentException>(
       block = { probationEventListener.onDomainEvent(rawMessage = rawMessage) },
     )
 
-    // then
     verify(telemetryService).trackEvent(
       TelemetryEventType.MESSAGE_PROCESSING_FAILED,
       mapOf(
