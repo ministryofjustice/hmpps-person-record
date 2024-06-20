@@ -2,15 +2,18 @@ package uk.gov.justice.digital.hmpps.personrecord.test
 
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier.Companion.VALID_LETTERS
-import java.nio.file.Files
-import java.nio.file.Paths
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import java.time.LocalDate
 import java.util.UUID
-import kotlin.text.Charsets.UTF_8
 
 fun randomPnc(): String {
-  val allPNCs = Files.readAllLines(Paths.get("src/test/resources/valid_pncs.csv"), UTF_8)
-  return allPNCs.get((0..allPNCs.size).random())
+  val year = (1950..LocalDate.now().year).random().toString()
+  val digits = randomDigit(7)
+  val check = VALID_LETTERS[(year.takeLast(2) + digits).toInt().mod(VALID_LETTERS.length)]
+  if (PNCIdentifier.from("$year/$digits$check").valid) {
+    return "$year/$digits$check"
+  }
+  throw Exception("$year/$digits$check")
 }
 
 fun randomCro(): String {
