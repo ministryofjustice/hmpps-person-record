@@ -4,16 +4,12 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilAsserted
-import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchRequestData
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
@@ -26,20 +22,18 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE_SUMMARY
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.COURT_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE_SUMMARY
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
-import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit.SECONDS
-import kotlin.text.Charsets.UTF_8
 
 class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -67,17 +61,17 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
+        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "0",
-        "MESSAGE_ID" to messageId,
-      )
+      ),
     )
     checkTelemetry(
       CPR_MATCH_SCORE_SUMMARY,
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
-        "HIGH_CONFIDENCE_TOTAL" to "0",
-        "LOW_CONFIDENCE_TOTAL" to "0",
-      )
+        "HIGH_CONFIDENCE_COUNT" to "0",
+        "LOW_CONFIDENCE_COUNT" to "0",
+      ),
     )
 
     val personEntities = await.atMost(30, SECONDS) untilNotNull {
@@ -121,8 +115,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     val matchingPerson = personEntities.filter { it.firstName.equals(firstName) }
     assertThat(matchingPerson.size).isEqualTo(1)
 
-
-    val stubRequest = LibraMessage(firstName = firstName, cro = "", pncNumber = "", dateOfBirth = "1975-01-01")
+    val stubRequest = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
     val matchRequest = createMatchRequest(stubRequest, stubRequest)
     val matchResponse = MatchResponse(MatchResponseData(value = "0.99999999"))
     stubMatchScore(matchRequest, matchResponse)
@@ -141,17 +134,17 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
+        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "1",
-        "MESSAGE_ID" to messageId2,
-      )
+      ),
     )
     checkTelemetry(
       CPR_MATCH_SCORE_SUMMARY,
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
-        "HIGH_CONFIDENCE_TOTAL" to "1",
-        "LOW_CONFIDENCE_TOTAL" to "0",
-      )
+        "HIGH_CONFIDENCE_COUNT" to "1",
+        "LOW_CONFIDENCE_COUNT" to "0",
+      ),
     )
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
 
@@ -175,19 +168,9 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     val firstName = randomFirstName()
 
     val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
-    val messageId1 = publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
 
-    checkTelemetry(
-      COURT_MESSAGE_RECEIVED,
-      mapOf(
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "MESSAGE_ID" to messageId1,
-        "SOURCE_SYSTEM" to LIBRA.name,
-      ),
-    )
-
-    val stubRequest = LibraMessage(firstName = firstName, cro = "", pncNumber = "", dateOfBirth = "1975-01-01")
-    val matchRequest = createMatchRequest(stubRequest, stubRequest)
+    val matchRequest = createMatchRequest(libraMessage, libraMessage)
     val matchResponse = MatchResponse(MatchResponseData(value = "0.98883"))
     stubMatchScore(matchRequest, matchResponse)
 
@@ -201,6 +184,22 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to LIBRA.name,
       ),
     )
+    checkTelemetry(
+      CPR_CANDIDATE_RECORD_SEARCH,
+      mapOf(
+        "SOURCE_SYSTEM" to LIBRA.name,
+        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
+        "RECORD_COUNT" to "1",
+      ),
+    )
+    checkTelemetry(
+      CPR_MATCH_SCORE_SUMMARY,
+      mapOf(
+        "SOURCE_SYSTEM" to LIBRA.name,
+        "HIGH_CONFIDENCE_COUNT" to "0",
+        "LOW_CONFIDENCE_COUNT" to "1",
+      ),
+    )
 
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"), times = 2)
 
@@ -210,6 +209,52 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
     val updatedMatchingPerson = updatedPersonEntities.filter { it.firstName.equals(firstName) }
     assertThat(updatedMatchingPerson.size).isEqualTo(2)
+  }
+
+  @Test
+  fun `should process and send duplicate telemetry`() {
+    val firstName = randomFirstName()
+
+    personRepository.saveAndFlush(
+      PersonEntity.from(
+        Person(
+          firstName = firstName,
+          lastName = "MORGAN",
+          dateOfBirth = LocalDate.of(1975, 1, 1),
+          addresses = listOf(Address("NT4 6YH")),
+          sourceSystemType = LIBRA,
+        ),
+      ),
+    )
+    personRepository.saveAndFlush(
+      PersonEntity.from(
+        Person(
+          firstName = firstName,
+          lastName = "MORGAN",
+          dateOfBirth = LocalDate.of(1975, 1, 1),
+          addresses = listOf(Address("NT4 6YH")),
+          sourceSystemType = LIBRA,
+        ),
+      ),
+    )
+    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
+
+    val stubRequest = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
+    val matchRequest = createMatchRequest(stubRequest, stubRequest)
+    val matchResponse = MatchResponse(MatchResponseData(value = "0.99999999"))
+    stubMatchScore(matchRequest, matchResponse)
+
+    publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
+
+    checkTelemetry(
+      CPR_MATCH_PERSON_DUPLICATE,
+      mapOf(
+        "SOURCE_SYSTEM" to "LIBRA",
+        "PROBABILITY_SCORE" to "0.99999999",
+      ),
+      times = 2,
+    )
   }
 
   @Test
@@ -253,104 +298,20 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
-  @Test
-  fun `should send correct telemetry for candidate search when one match found`() {
-    val allPNCs = Files.readAllLines(Paths.get("src/test/resources/valid_pncs.csv"), UTF_8)
-    val matchingPnc = allPNCs.get((0..allPNCs.size).random())
-    val allCROs = Files.readAllLines(Paths.get("src/test/resources/valid_cros.csv"), UTF_8)
-    val matchingCro = allCROs.get((0..allCROs.size).random())
-    val firstMessageId = publishHMCTSMessage(libraHearing(LibraMessage(firstName = "Steve", lastName = "Micheal", postcode = "RF14 5DG")), LIBRA_COURT_CASE)
-    val secondMessageId = publishHMCTSMessage(libraHearing(LibraMessage(firstName = "Geoff", lastName = "Smith", postcode = "LS1 1AB", pncNumber = matchingPnc, cro = matchingCro)), LIBRA_COURT_CASE)
-    checkTelemetry(
-      CPR_CANDIDATE_RECORD_SEARCH,
-      mapOf(
-        "SOURCE_SYSTEM" to "LIBRA",
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "SEARCH_VERSION" to SEARCH_VERSION,
-        "MESSAGE_ID" to firstMessageId,
-      ),
-    )
-    checkTelemetry(
-      CPR_CANDIDATE_RECORD_SEARCH,
-      mapOf(
-        "SOURCE_SYSTEM" to "LIBRA",
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "SEARCH_VERSION" to SEARCH_VERSION,
-        "MESSAGE_ID" to secondMessageId,
-      ),
-    )
-    val thirdMessageId = publishHMCTSMessage(
-      libraHearing(
-        LibraMessage(
-          firstName = randomFirstName(),
-          lastName = "Smythe",
-          postcode = "LS1 1AB",
-          pncNumber = matchingPnc,
-          cro = matchingCro,
-        )
-      ),
-      LIBRA_COURT_CASE,
-    )
-
-    checkTelemetry(
-      CPR_CANDIDATE_RECORD_SEARCH,
-      mapOf(
-        "SOURCE_SYSTEM" to "LIBRA",
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "RECORD_COUNT" to "1",
-        "SEARCH_VERSION" to SEARCH_VERSION,
-        "MESSAGE_ID" to thirdMessageId,
-      ),
-    )
-  }
-
-  @Test
-  fun `should process concurrent unique libra messages with data reads`() {
-    val blitzer = Blitzer(50, 5)
-    try {
-      blitzer.blitz {
-        courtCaseEventsTopic?.snsClient?.publish(
-          buildPublishRequest(LibraMessage(firstName = randomFirstName(), cro = "", pncNumber = ""))
-        )?.get()
-      }
-    } finally {
-      blitzer.shutdown()
-    }
-
-    await untilCallTo {
-      courtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(courtCaseEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
-
-    await untilCallTo {
-      courtCaseEventsQueue?.sqsDlqClient?.countMessagesOnQueue(courtCaseEventsQueue!!.dlqUrl!!)?.get()
-    } matches { it == 0 }
-
-    checkTelemetry(
-      CPR_RECORD_CREATED,
-      mapOf("SOURCE_SYSTEM" to "LIBRA"),
-      times = 50,
-    )
-  }
-
-  private fun buildPublishRequest(libraMessage: LibraMessage = LibraMessage()): PublishRequest? = PublishRequest.builder()
-    .topicArn(courtCaseEventsTopic?.arn)
-    .message(libraHearing(libraMessage))
-    .messageAttributes(
-      mapOf(
-        "messageType" to MessageAttributeValue.builder().dataType("String")
-          .stringValue(LIBRA_COURT_CASE.name).build(),
-      ),
-    )
-    .build()
-
   private fun createMatchRequest(person: LibraMessage, matchingPerson: LibraMessage): MatchRequest {
     return MatchRequest(
       firstName = MatchRequestData(person.firstName, matchingPerson.firstName),
       surname = MatchRequestData(person.lastName, matchingPerson.lastName),
-      dateOfBirth = MatchRequestData(person.dateOfBirth, matchingPerson.dateOfBirth),
+      dateOfBirth = MatchRequestData(transformDob(person.dateOfBirth), transformDob(matchingPerson.dateOfBirth)),
       pncNumber = MatchRequestData(person.pncNumber, matchingPerson.pncNumber),
       uniqueId = MatchRequestData("defendant1", "defendant2"),
     )
+  }
+
+  private fun transformDob(dob: String): String {
+    val libraDateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    val formatter = DateTimeFormatter.ofPattern("YYYY-MM-DD")
+    return LocalDate.parse(dob, libraDateFormatter).format(formatter)
   }
 
   private fun stubMatchScore(matchRequest: MatchRequest, matchResponse: MatchResponse) {

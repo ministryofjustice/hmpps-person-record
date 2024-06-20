@@ -6,7 +6,7 @@ class LibraMessage(
   val lastName: String = "MORGAN",
   val dateOfBirth: String = "01/01/1975",
   val cro: String = "85227/65L",
-  val postcode: String = "NT4 6YH"
+  val postcode: String = "NT4 6YH",
 )
 
 fun libraHearing(libraMessage: LibraMessage = LibraMessage()) = """

@@ -31,8 +31,8 @@ class MatchService(val matchScoreClient: MatchScoreClient, val telemetryService:
       CPR_MATCH_SCORE_SUMMARY,
       mapOf(
         EventKeys.SOURCE_SYSTEM to newRecord.sourceSystemType.name,
-        EventKeys.HIGH_CONFIDENCE_TOTAL to highConfidenceMatches.count().toString(),
-        EventKeys.LOW_CONFIDENCE_TOTAL to (candidateRecords.size - highConfidenceMatches.count()).toString(),
+        EventKeys.HIGH_CONFIDENCE_COUNT to highConfidenceMatches.count().toString(),
+        EventKeys.LOW_CONFIDENCE_COUNT to (candidateRecords.size - highConfidenceMatches.count()).toString(),
       ),
     )
     return highConfidenceMatches.sortedByDescending { candidate -> candidate.probability }

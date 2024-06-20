@@ -12,6 +12,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
 import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification
@@ -22,6 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.P
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.exactMatch
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CHANGED
@@ -30,6 +32,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DETAILS_C
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_NEW_RECORD_EXISTS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
 
@@ -109,6 +112,20 @@ class PersonService(
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
 
   fun findCandidateRecords(person: Person): Page<PersonEntity> {
+    val candidates = executeCandidateSearch(person)
+    telemetryService.trackEvent(
+      CPR_CANDIDATE_RECORD_SEARCH,
+      mapOf(
+        EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
+        EventKeys.RECORD_COUNT to candidates.totalElements.toString(),
+        EventKeys.EVENT_TYPE to LIBRA_COURT_CASE.name,
+        EventKeys.SEARCH_VERSION to PersonSpecification.SEARCH_VERSION,
+      ),
+    )
+    return candidates
+  }
+
+  private fun executeCandidateSearch(person: Person): Page<PersonEntity> {
     val postcodeSpecifications = person.addresses.map { PersonSpecification.levenshteinPostcode(it.postcode) }
 
     val soundexFirstLastName = Specification.where(
@@ -138,23 +155,27 @@ class PersonService(
   fun processCandidateRecords(personEntities: List<PersonEntity>, person: Person): PersonEntity? {
     val highConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(personEntities, person)
     return when {
-      highConfidenceMatches.size == 1 -> highConfidenceMatches.first().candidateRecord
-      highConfidenceMatches.size > 1 -> {
-        highConfidenceMatches.forEach { candidate ->
-          telemetryService.trackEvent(
-            TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE,
-            mapOf(
-              EventKeys.SOURCE_SYSTEM to candidate.candidateRecord.sourceSystem.name,
-              EventKeys.DEFENDANT_ID to candidate.candidateRecord.defendantId,
-              EventKeys.CRN to (candidate.candidateRecord.crn ?: ""),
-              EventKeys.PRISON_NUMBER to candidate.candidateRecord.prisonNumber,
-            ),
-          )
-        }
-        highConfidenceMatches.first().candidateRecord
-      }
+      highConfidenceMatches.isNotEmpty() -> handleMultipleHighConfidenceMatches(highConfidenceMatches)
       else -> null
     }
+  }
+
+  private fun handleMultipleHighConfidenceMatches(matches: List<MatchResult>): PersonEntity {
+    if (matches.size > 1) {
+      matches.forEach { candidate ->
+        telemetryService.trackEvent(
+          TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE,
+          mapOf(
+            EventKeys.SOURCE_SYSTEM to candidate.candidateRecord.sourceSystem.name,
+            EventKeys.DEFENDANT_ID to candidate.candidateRecord.defendantId,
+            EventKeys.CRN to (candidate.candidateRecord.crn ?: ""),
+            EventKeys.PRISON_NUMBER to candidate.candidateRecord.prisonNumber,
+            EventKeys.PROBABILITY_SCORE to candidate.probability,
+          ),
+        )
+      }
+    }
+    return matches.first().candidateRecord
   }
 
   private fun trackEvent(
