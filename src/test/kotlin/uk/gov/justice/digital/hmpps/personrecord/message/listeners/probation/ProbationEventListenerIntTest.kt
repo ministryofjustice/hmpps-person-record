@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DOMAIN_EVENT_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
@@ -30,14 +31,15 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `creates person when when new offender created event is published`() {
     val prisonNumber = randomPrisonNumber()
-    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, "2020/0476873U", prisonNumber = prisonNumber)
+    val pnc = randomPnc()
+    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, prisonNumber = prisonNumber)
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(personEntity.firstName).isEqualTo("POPOneFirstName")
     assertThat(personEntity.middleNames).isEqualTo("PreferredMiddleName")
     assertThat(personEntity.lastName).isEqualTo("POPOneLastName")
     assertThat(personEntity.title).isEqualTo("Mr")
-    assertThat(personEntity.pnc).isEqualTo(PNCIdentifier("2020/0476873U"))
+    assertThat(personEntity.pnc).isEqualTo(PNCIdentifier(pnc))
     assertThat(personEntity.crn).isEqualTo(crn)
     assertThat(personEntity.cro).isEqualTo(CROIdentifier.from("075715/64Q"))
     assertThat(personEntity.nationalInsuranceNumber).isEqualTo("1234567890")
@@ -118,15 +120,17 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process OFFENDER_DETAILS_CHANGED event successfully`() {
-    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, "2020/0476873U")
+    val pnc = randomPnc()
+    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc)
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
-    assertThat(personEntity.pnc).isEqualTo(PNCIdentifier("2020/0476873U"))
+    assertThat(personEntity.pnc).isEqualTo(PNCIdentifier(pnc))
     checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
-    probationDomainEventAndResponseSetup("OFFENDER_DETAILS_CHANGED", "2003/0062845E", crn)
+    val changedPnc = randomPnc()
+    probationDomainEventAndResponseSetup("OFFENDER_DETAILS_CHANGED", changedPnc, crn)
 
     val updatedPersonEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
-    assertThat(updatedPersonEntity.pnc).isEqualTo(PNCIdentifier("2003/0062845E"))
+    assertThat(updatedPersonEntity.pnc).isEqualTo(PNCIdentifier(changedPnc))
 
     checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to "OFFENDER_DETAILS_CHANGED", "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
