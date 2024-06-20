@@ -6,21 +6,13 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.CannotAcquireLockException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.domain.Specification
 import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
 import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.CRO
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.DRIVER_LICENSE_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.NI
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.PNC
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.SOURCE_SYSTEM
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.exactMatch
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
@@ -38,6 +30,7 @@ class PersonService(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   private val readWriteLockService: ReadWriteLockService,
+  private val searchService: SearchService,
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
@@ -57,10 +50,10 @@ class PersonService(
   }
 
   private fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) {
-    val existingPersonEntities: PersonEntity? = callback()
+    val existingPersonEntity: PersonEntity? = callback()
     when {
-      (existingPersonEntities == null) -> handlePersonCreation(person, event)
-      else -> handlePersonUpdate(person, existingPersonEntities, event)
+      (existingPersonEntity == null) -> handlePersonCreation(person, event)
+      else -> handlePersonUpdate(person, existingPersonEntity, event)
     }
   }
 
@@ -107,31 +100,10 @@ class PersonService(
 
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
 
-  fun findCandidateRecords(person: Person): Page<PersonEntity> {
-    val postcodeSpecifications = person.addresses.map { PersonSpecification.levenshteinPostcode(it.postcode) }
-
-    val soundexFirstLastName = Specification.where(
-      PersonSpecification.soundex(person.firstName, PersonSpecification.FIRST_NAME)
-        .and(PersonSpecification.soundex(person.lastName, PersonSpecification.LAST_NAME)),
-    )
-
-    val levenshteinDob = Specification.where(PersonSpecification.levenshteinDate(person.dateOfBirth, PersonSpecification.DOB))
-    val levenshteinPostcode = Specification.where(PersonSpecification.combineSpecificationsWithOr(postcodeSpecifications))
-
-    return readWriteLockService.withReadLock {
-      personRepository.findAll(
-        Specification.where(
-          exactMatch(person.sourceSystemType.name, SOURCE_SYSTEM).and(
-            exactMatch(person.otherIdentifiers?.pncIdentifier?.toString(), PNC)
-              .or(exactMatch(person.driverLicenseNumber, DRIVER_LICENSE_NUMBER))
-              .or(exactMatch(person.nationalInsuranceNumber, NI))
-              .or(exactMatch(person.otherIdentifiers?.croIdentifier?.toString(), CRO))
-              .or(soundexFirstLastName.and(levenshteinDob.or(levenshteinPostcode))),
-          ),
-        ),
-        Pageable.ofSize(PAGE_SIZE),
-      )
-    }
+  fun searchForRecord(person: Person): PersonEntity? {
+    val pageablePersonEntities: Page<PersonEntity> = searchService.findCandidateRecords(person)
+    val personEntity: PersonEntity? = searchService.processCandidateRecords(pageablePersonEntities.content, person)
+    return personEntity
   }
 
   private fun trackEvent(
@@ -150,6 +122,5 @@ class PersonService(
 
   companion object {
     const val MAX_ATTEMPTS: Int = 5
-    const val PAGE_SIZE: Int = 50
   }
 }
