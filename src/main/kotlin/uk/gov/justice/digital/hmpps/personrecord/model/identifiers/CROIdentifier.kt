@@ -51,7 +51,7 @@ data class CROIdentifier(val croId: String, val fingerprint: Boolean, val inputC
 
     private fun format(checkChar: Char, serialNum: String, yearDigits: String) = "${padSerialNumber(serialNum)}/$yearDigits$checkChar"
 
-    private const val VALID_LETTERS = "ZABCDEFGHJKLMNPQRTUVWXY"
+    const val VALID_LETTERS = "ZABCDEFGHJKLMNPQRTUVWXY"
 
     private fun isStandardFormat(inputCroId: String): Boolean = inputCroId.matches(CRO_REGEX)
 
