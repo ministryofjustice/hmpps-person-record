@@ -13,25 +13,24 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.libra.Name
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import java.time.LocalDate
 
 internal class PersonTest {
 
   @Test
   fun `should map libra hearing to person`() {
-    // Given
     val dateOfBirth = LocalDate.now()
+    val inputPncId = randomPnc()
     val libraHearingEvent = LibraHearingEvent(
-      pnc = PNCIdentifier.from("1979/0026538X"),
+      pnc = PNCIdentifier.from(inputPncId),
       name = Name(title = "Mr", firstName = "Stephen", lastName = "King"),
       dateOfBirth = dateOfBirth,
     )
 
-    // When
     val person = Person.from(libraHearingEvent)
 
-    // Then
-    assertThat(person.otherIdentifiers?.pncIdentifier).isEqualTo(PNCIdentifier.from("1979/0026538X"))
+    assertThat(person.otherIdentifiers?.pncIdentifier).isEqualTo(PNCIdentifier.from(inputPncId))
     assertThat(person.firstName).isEqualTo("Stephen")
     assertThat(person.title).isEqualTo("Mr")
     assertThat(person.lastName).isEqualTo("King")
@@ -39,37 +38,11 @@ internal class PersonTest {
   }
 
   @Test
-  fun `should map common platform defendant to person`() {
-    // Given
-    val dateOfBirth = LocalDate.now()
-    val defendant = Defendant(
-      pncId = PNCIdentifier.from("1979/0026538X"),
-      personDefendant = PersonDefendant(
-        personDetails = PersonDetails(
-          firstName = "Stephen",
-          lastName = "King",
-          dateOfBirth = dateOfBirth,
-          gender = "M",
-        ),
-      ),
-    )
-
-    // When
-    val person = Person.from(defendant)
-
-    // Then
-    assertThat(person.otherIdentifiers?.pncIdentifier).isEqualTo(PNCIdentifier.from("1979/0026538X"))
-    assertThat(person.firstName).isEqualTo("Stephen")
-    assertThat(person.lastName).isEqualTo("King")
-    assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
-  }
-
-  @Test
   fun `should map common platform defendant to person with additional fields`() {
-    // Given
     val dateOfBirth = LocalDate.now()
+    val inputPncId = randomPnc()
     val defendant = Defendant(
-      pncId = PNCIdentifier.from("1979/0026538X"),
+      pncId = PNCIdentifier.from(inputPncId),
       personDefendant = PersonDefendant(
         personDetails = PersonDetails(
           firstName = "Stephen",
