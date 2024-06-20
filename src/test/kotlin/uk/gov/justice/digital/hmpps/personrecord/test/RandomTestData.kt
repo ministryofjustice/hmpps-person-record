@@ -1,7 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.test
 
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier.Companion.VALID_LETTERS
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.text.Charsets.UTF_8
 
@@ -11,8 +14,14 @@ fun randomPnc(): String {
 }
 
 fun randomCro(): String {
-  val allCROs = Files.readAllLines(Paths.get("src/test/resources/valid_cros.csv"), UTF_8)
-  return allCROs.get((0..allCROs.size).random())
+  val year = (1950..LocalDate.now().year).random().toString().takeLast(2)
+  val digits = randomDigit(6)
+
+  val check = VALID_LETTERS[(year + digits).toInt().mod(VALID_LETTERS.length)]
+  if (CROIdentifier.from("$digits/$year$check").valid) {
+    return "$digits/$year$check"
+  }
+  throw Exception(CROIdentifier.from("$digits/$year$check").inputCro)
 }
 
 fun randomFirstName(): String = randomLowerCaseString()

@@ -2,9 +2,8 @@
 create materialized view personmatchscore.prison_probation_cluster_high as
 select a.crn, b.prison_number,gen_random_uuid() as person_id from personmatchscore.splink_cluster a
 join personmatchscore.splink_cluster b on a.cluster_high=b.cluster_high
-where a.crn != '' and b.prison_number  !='';
-
-
+where a.crn != '' and b.prison_number  !=''
+group by a.crn, b.prison_number having count(*) = 1;
 
 -- populate the UUIDS
 insert into personrecordservice.person_identifier (person_id, version)
