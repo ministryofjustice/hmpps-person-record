@@ -24,10 +24,10 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNum
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import java.time.LocalDate
 
-class PersonServiceIntTest : IntegrationTestBase() {
+class SearchServiceIntTest : IntegrationTestBase() {
 
   @Autowired
-  private lateinit var personService: PersonService
+  private lateinit var searchService: SearchService
 
   @Autowired
   private lateinit var personRepository: PersonRepository
@@ -68,7 +68,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val personEntities = personService.findCandidateRecords(personToFind)
+    val personEntities = searchService.findCandidateRecords(personToFind)
     assertThat(personEntities.totalElements).isEqualTo(1)
     assertThat(first(personEntities).sourceSystem).isEqualTo(LIBRA)
   }
@@ -88,7 +88,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val personEntities = personService.findCandidateRecords(personToFind)
+    val personEntities = searchService.findCandidateRecords(personToFind)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
     assertThat(first(personEntities).pnc).isEqualTo(PNCIdentifier.from(pnc))
@@ -115,7 +115,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val personEntities = personService.findCandidateRecords(personToFind)
+    val personEntities = searchService.findCandidateRecords(personToFind)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
     assertThat(first(personEntities).firstName).isEqualTo(firstName)
@@ -136,7 +136,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val personEntities = personService.findCandidateRecords(personToFind)
+    val personEntities = searchService.findCandidateRecords(personToFind)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
     assertThat(first(personEntities).driverLicenseNumber).isEqualTo(driverLicenseNumber)
@@ -157,7 +157,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val personEntities = personService.findCandidateRecords(personToFind)
+    val personEntities = searchService.findCandidateRecords(personToFind)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
     assertThat(first(personEntities).nationalInsuranceNumber).isEqualTo(nationalInsuranceNumber)
@@ -178,7 +178,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val personEntities = personService.findCandidateRecords(personToFind)
+    val personEntities = searchService.findCandidateRecords(personToFind)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
     assertThat(first(personEntities).cro).isEqualTo(CROIdentifier.from(cro))
@@ -210,7 +210,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
       dateOfBirth = LocalDate.of(1975, 2, 1),
       sourceSystemType = HMCTS,
     )
-    val personEntities = personService.findCandidateRecords(searchingPerson)
+    val personEntities = searchService.findCandidateRecords(searchingPerson)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
     assertThat(first(personEntities).firstName).isEqualTo("Steven")
@@ -242,7 +242,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
       dateOfBirth = LocalDate.of(1975, 2, 1),
       sourceSystemType = HMCTS,
     )
-    val personEntities = personService.findCandidateRecords(searchingPerson)
+    val personEntities = searchService.findCandidateRecords(searchingPerson)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
     assertThat(first(personEntities).lastName).isEqualTo("Smith")
@@ -266,7 +266,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
       dateOfBirth = LocalDate.of(1975, 2, 1),
       sourceSystemType = HMCTS,
     )
-    val personEntities = personService.findCandidateRecords(searchingPerson)
+    val personEntities = searchService.findCandidateRecords(searchingPerson)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
     assertThat(first(personEntities).dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
@@ -298,7 +298,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
       addresses = listOf(Address(postcode = "LS2 1AC"), Address(postcode = "LD2 3BC")),
       sourceSystemType = HMCTS,
     )
-    val personEntities = personService.findCandidateRecords(searchingPerson)
+    val personEntities = searchService.findCandidateRecords(searchingPerson)
 
     assertThat(personEntities.totalElements).isEqualTo(1)
     assertThat(first(personEntities).addresses[0].postcode).isEqualTo("LS1 1AB")
@@ -320,7 +320,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
       addresses = listOf(Address(postcode = "LS1 1AB")),
       sourceSystemType = HMCTS,
     )
-    val personEntities = personService.findCandidateRecords(searchingPerson)
+    val personEntities = searchService.findCandidateRecords(searchingPerson)
 
     noCandidatesFound(personEntities)
   }
@@ -341,7 +341,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
       dateOfBirth = LocalDate.of(1975, 1, 1),
       sourceSystemType = HMCTS,
     )
-    val personEntities = personService.findCandidateRecords(searchingPerson)
+    val personEntities = searchService.findCandidateRecords(searchingPerson)
 
     noCandidatesFound(personEntities)
   }

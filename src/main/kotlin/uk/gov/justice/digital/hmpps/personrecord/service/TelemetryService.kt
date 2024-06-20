@@ -18,6 +18,11 @@ enum class EventKeys {
   PNC,
   CRO,
   DEFENDANT_ID,
+
+  // Matching
+  PROBABILITY_SCORE,
+  HIGH_CONFIDENCE_COUNT,
+  LOW_CONFIDENCE_COUNT,
 }
 
 @Service
