@@ -8,11 +8,11 @@ If the `personmatchscore` schema, does not exist:
 Copy and paste the SQL from  [CPR-356-create-personmatchscore-schema](./CPR-356-create-personmatchscore-schema.sql) and execute it
 
 If the `personmatchscore.splink_cluster` table does not exist:
-Copy and paste the SQL from  [CPR-356.sql](./CPR-356.sql) and execute it
+Copy and paste the SQL from  [CPR-356-create-splink-cluster.sql](./CPR-356-create-splink-cluster.sql) and execute it
 
 #### Data import
 
-Compare the column names with the table splink_cluster as defined in [CPR-356.sql](./CPR-356.sql) and amend the csv file to match the column names. For example, `rename offender_id_display` to `prisoner_number`
+Compare the column names with the table splink_cluster as defined in [CPR-356-create-splink-cluster.sql](./CPR-356-create-splink-cluster.sql) and amend the csv file to match the column names. For example, `rename offender_id_display` to `prison_number`
 
 Connect to the database [using the process defined](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/rds-external-access.html)
 
@@ -25,3 +25,22 @@ Go through the wizard. Make sure you
 - Enable `truncate target table` on the Data Load Settings page
 
 The import will take several minutes
+
+## Linking cluster data
+#### NOTE If you are running locally
+
+run `./gradlew check` to create some CRNs and Prison numbers
+
+#### Otherwise
+Once you have imported the cluster data, 
+Connect to the database using the process defined
+
+### Assumption: there is no valuable data in person_identifier
+### Delete the existing links
+Copy and paste the SQL from  [CPR-356-deleting-existing-links.sql](./CPR-356-deleting-existing-links.sql) and execute it
+
+### Populate the links
+Copy and paste the SQL from  [CPR-356-generate-person-ids.sql](./CPR-356-generate-person-ids.sql) and execute it
+
+
+
