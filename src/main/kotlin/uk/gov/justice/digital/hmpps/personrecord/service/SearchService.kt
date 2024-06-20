@@ -78,15 +78,15 @@ class SearchService(
 
   private fun handleHighConfidenceMatches(matches: List<MatchResult>): PersonEntity {
     if (matches.size > 1) {
-      matches.forEach { candidate ->
+      matches.forEach { record ->
         telemetryService.trackEvent(
           TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE,
           mapOf(
-            EventKeys.SOURCE_SYSTEM to candidate.candidateRecord.sourceSystem.name,
-            EventKeys.DEFENDANT_ID to candidate.candidateRecord.defendantId,
-            EventKeys.CRN to (candidate.candidateRecord.crn ?: ""),
-            EventKeys.PRISON_NUMBER to candidate.candidateRecord.prisonNumber,
-            EventKeys.PROBABILITY_SCORE to candidate.probability,
+            EventKeys.SOURCE_SYSTEM to record.candidateRecord.sourceSystem.name,
+            EventKeys.DEFENDANT_ID to record.candidateRecord.defendantId,
+            EventKeys.CRN to (record.candidateRecord.crn ?: ""),
+            EventKeys.PRISON_NUMBER to record.candidateRecord.prisonNumber,
+            EventKeys.PROBABILITY_SCORE to record.probability.toString(),
           ),
         )
       }

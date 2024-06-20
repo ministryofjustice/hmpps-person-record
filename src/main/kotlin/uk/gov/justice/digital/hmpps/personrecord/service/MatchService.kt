@@ -3,8 +3,8 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.personrecord.client.MatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchRequest
-import uk.gov.justice.digital.hmpps.personrecord.client.MatchRequestData
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -15,17 +15,18 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 const val MAX_RETRY_ATTEMPTS: Int = 3
 
 @Service
-class MatchService(val matchScoreClient: MatchScoreClient, val telemetryService: TelemetryService) {
+class MatchService(
+  val matchScoreClient: MatchScoreClient,
+  val telemetryService: TelemetryService
+) {
 
   @Value("\${retry.delay}")
   private val retryDelay: Long = 0
 
   fun findHighConfidenceMatches(candidateRecords: List<PersonEntity>, newRecord: Person): List<MatchResult> {
-    val candidateScores: List<MatchResult> = candidateRecords.map { personEntity ->
-      score(personEntity, newRecord)
-    }
+    val candidateScores: List<MatchResult> = scores(candidateRecords, newRecord)
     val highConfidenceMatches = candidateScores.filter { candidate ->
-      candidate.probability.toDouble() > THRESHOLD_SCORE
+      candidate.probability > THRESHOLD_SCORE
     }
     telemetryService.trackEvent(
       CPR_MATCH_SCORE_SUMMARY,
@@ -38,32 +39,45 @@ class MatchService(val matchScoreClient: MatchScoreClient, val telemetryService:
     return highConfidenceMatches.sortedByDescending { candidate -> candidate.probability }
   }
 
-  private fun score(candidateRecord: PersonEntity, newRecord: Person): MatchResult {
-    val candidateRecordIdentifier = candidateRecord.defendantId ?: "defendant1"
-    val newRecordIdentifier = newRecord.defendantId ?: "defendant2"
-
+  private fun scores(candidateRecords: List<PersonEntity>, newRecord: Person): List<MatchResult> {
+    val fromMatchRecord = MatchRecord(
+      firstName = newRecord.firstName,
+      lastname = newRecord.lastName,
+      dateOfBirth = newRecord.dateOfBirth.toString(),
+      pnc = newRecord.otherIdentifiers?.let { it.pncIdentifier.toString() }
+    )
+    val toMatchRecords: List<MatchingRecord> = candidateRecords.map { personEntity ->
+      MatchingRecord(
+        matchRecord = MatchRecord(
+          firstName = personEntity.firstName,
+          lastname = personEntity.firstName,
+          dateOfBirth = personEntity.dateOfBirth.toString(),
+          pnc = personEntity.pnc.toString(),
+        ),
+        personEntity = personEntity
+      )
+    }
     val matchRequest = MatchRequest(
-      uniqueId = MatchRequestData(candidateRecordIdentifier, newRecordIdentifier),
-      firstName = MatchRequestData(candidateRecord.firstName, newRecord.firstName),
-      surname = MatchRequestData(candidateRecord.lastName, newRecord.lastName),
-      dateOfBirth = MatchRequestData(candidateRecord.dateOfBirth.toString(), newRecord.dateOfBirth.toString()),
-      pncNumber = MatchRequestData(candidateRecord.pnc?.pncId, newRecord.otherIdentifiers?.pncIdentifier?.pncId),
+      matchingFrom = fromMatchRecord,
+      matchingTo = toMatchRecords.map { it.matchRecord }
     )
 
-    val matchScore = getScore(matchRequest)
-
-    return MatchResult(
-      matchScore?.matchProbability?.value!!,
-      candidateRecord,
-    )
+    val matchScores = getScores(matchRequest)
+    val matchResult: List<MatchResult> = toMatchRecords.map { record ->
+      MatchResult(
+        probability = matchScores!!.getProbabilityScore(record.matchRecord.uniqueId),
+        candidateRecord = record.personEntity
+      )
+    }
+    return matchResult
   }
 
-  private fun getScore(matchRequest: MatchRequest): MatchResponse? = runBlocking {
+  private fun getScores(matchRequest: MatchRequest): MatchResponse? = runBlocking {
     try {
       return@runBlocking RetryExecutor.runWithRetry(
         MAX_RETRY_ATTEMPTS,
         retryDelay,
-      ) { matchScoreClient.getMatchScore(matchRequest) }
+      ) { matchScoreClient.getMatchScores(matchRequest) }
     } catch (exception: Exception) {
       telemetryService.trackEvent(
         MATCH_CALL_FAILED,
@@ -75,10 +89,16 @@ class MatchService(val matchScoreClient: MatchScoreClient, val telemetryService:
 
   companion object {
     const val THRESHOLD_SCORE = 0.999
+    const val MAX_RECORDS = 50
   }
 }
 
+class MatchingRecord(
+  val matchRecord: MatchRecord,
+  val personEntity: PersonEntity,
+)
+
 class MatchResult(
-  val probability: String,
+  val probability: Double,
   val candidateRecord: PersonEntity,
 )
