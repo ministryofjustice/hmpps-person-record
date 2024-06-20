@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DOMAIN_EVENT_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
 import java.time.LocalDate
@@ -33,7 +34,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should receive the message successfully when prisoner created event published`() {
     val prisonNumber = randomPrisonNumber()
-    stubPrisonResponse(prisonNumber)
+    val pnc = randomPnc()
+    stubPrisonResponse(prisonNumber, pnc)
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -47,7 +49,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.firstName).isEqualTo("Robert")
       assertThat(personEntity.middleNames).isEqualTo("John James")
       assertThat(personEntity.lastName).isEqualTo("Larsen")
-      assertThat(personEntity.pnc).isEqualTo(PNCIdentifier.from("2003/0062845E"))
+      assertThat(personEntity.pnc).isEqualTo(PNCIdentifier.from(pnc))
       assertThat(personEntity.cro).isEqualTo(CROIdentifier.from("029906/12J"))
       assertThat(personEntity.aliases.size).isEqualTo(1)
       assertThat(personEntity.aliases[0].firstName).isEqualTo("Robert")
@@ -163,14 +165,14 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     return prisonNumber
   }
 
-  private fun stubPrisonResponse(prisonNumber: String) {
+  private fun stubPrisonResponse(prisonNumber: String, pnc: String? = null) {
     wiremock.stubFor(
       WireMock.get("/prisoner/$prisonNumber")
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withBody(prisonerSearchResponse(prisonNumber)),
+            .withBody(prisonerSearchResponse(prisonNumber, pnc)),
         ),
     )
   }
