@@ -42,5 +42,11 @@ Copy and paste the SQL from  [CPR-356-deleting-existing-links.sql](./CPR-356-del
 ### Populate the links
 Copy and paste the SQL from  [CPR-356-generate-person-ids.sql](./CPR-356-generate-person-ids.sql) and execute it
 
+## Reporting on cluster data
 
+Connect to the database using the process defined
+
+### Assumption: there is no valuable data in person_identifier
+### Delete the existing links
+Copy and paste the SQL from  [CPR-357-reporting.sql](./CPR-357-reporting.sql) and execute it
 
