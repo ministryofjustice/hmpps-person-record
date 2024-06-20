@@ -46,7 +46,5 @@ Copy and paste the SQL from  [CPR-356-generate-person-ids.sql](./CPR-356-generat
 
 Connect to the database using the process defined
 
-### Assumption: there is no valuable data in person_identifier
-### Delete the existing links
 Copy and paste the SQL from  [CPR-357-reporting.sql](./CPR-357-reporting.sql) and execute it
 
