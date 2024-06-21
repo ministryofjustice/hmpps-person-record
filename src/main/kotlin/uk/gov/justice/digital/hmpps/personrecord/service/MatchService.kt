@@ -56,16 +56,16 @@ class MatchService(
     val fromMatchRecord = MatchRecord(
       firstName = newRecord.firstName,
       lastname = newRecord.lastName,
-      dateOfBirth = newRecord.dateOfBirth.toString(),
-      pnc = newRecord.otherIdentifiers?.let { it.pncIdentifier.toString() },
+      dateOfBirth = newRecord.dateOfBirth?.toString(),
+      pnc = newRecord.otherIdentifiers?.let { it.pncIdentifier?.pncId },
     )
     val toMatchRecords: List<MatchingRecord> = candidateRecords.map { personEntity ->
       MatchingRecord(
         matchRecord = MatchRecord(
           firstName = personEntity.firstName,
           lastname = personEntity.firstName,
-          dateOfBirth = personEntity.dateOfBirth.toString(),
-          pnc = personEntity.pnc.toString(),
+          dateOfBirth = personEntity.dateOfBirth?.toString(),
+          pnc = personEntity.pnc?.pncId,
         ),
         personEntity = personEntity,
       )
