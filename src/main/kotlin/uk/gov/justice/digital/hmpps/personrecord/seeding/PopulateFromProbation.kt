@@ -39,7 +39,7 @@ class PopulateFromProbation(
           0,
           pageSize,
         ),
-      )?.totalPages ?: 1
+      )?.page?.totalPages?.toInt() ?: 1
 
       log.info("Starting DELIUS seeding, total pages: $totalPages")
       for (page in 0..<totalPages) {
