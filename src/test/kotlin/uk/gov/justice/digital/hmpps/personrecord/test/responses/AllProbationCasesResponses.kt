@@ -19,32 +19,15 @@ fun allProbationCasesSingleResponse(firstCrn: String, firstPrefix: String) = """
             },
             "aliases": [],
             "addresses": []
-        }],
-    "pageable": {
-        "pageNumber": 6004,
-        "pageSize": 100,
-        "sort": {
-            "unsorted": false,
-            "sorted": true,
-            "empty": false
-        },
-        "offset": 600400,
-        "paged": true,
-        "unpaged": false
-    },
-    "totalElements": 7,
-    "totalPages": 4,
-    "last": false,
-    "numberOfElements": 2,
-    "first": true,
-    "size": 2,
-    "number": 1,
-    "sort": {
-        "unsorted": false,
-        "sorted": true,
-        "empty": false
- },
-    "empty": false}
+        }
+    ],
+    "page": {
+        "size": 1,
+        "number": 1,
+        "totalElements": 1,
+        "totalPages": 1
+    }
+ }
 """.trimIndent()
 
 fun allProbationCasesResponse(firstCrn: String, firstPrefix: String, secondCrn: String, secondPrefix: String, totalPages: Int = 4) = """
@@ -93,30 +76,13 @@ fun allProbationCasesResponse(firstCrn: String, firstPrefix: String, secondCrn: 
             },
             "aliases": [],
             "addresses": []
-        }],
-    "pageable": {
-        "pageNumber": 6004,
-        "pageSize": 100,
-        "sort": {
-            "unsorted": false,
-            "sorted": true,
-            "empty": false
-        },
-        "offset": 600400,
-        "paged": true,
-        "unpaged": false
-    },
-    "totalElements": 7,
-    "totalPages": $totalPages,
-    "last": false,
-    "numberOfElements": 2,
-    "first": true,
-    "size": 2,
-    "number": 1,
-    "sort": {
-        "unsorted": false,
-        "sorted": true,
-        "empty": false
- },
-    "empty": false}
+        }
+    ],
+    "page": {
+        "size": 2,
+        "number": 10,
+        "totalElements": 102,
+        "totalPages": $totalPages
+    }
+ }
 """.trimIndent()
