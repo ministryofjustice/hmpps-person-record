@@ -24,10 +24,7 @@ class MatchService(
   private val retryDelay: Long = 0
 
   fun findHighConfidenceMatches(candidateRecords: List<PersonEntity>, newRecord: Person): List<MatchResult> {
-    val candidateScores: List<MatchResult> = scores(candidateRecords, newRecord)
-    val highConfidenceMatches = candidateScores.filter { candidate ->
-      candidate.probability > THRESHOLD_SCORE
-    }
+    val highConfidenceMatches = chunkAndCollectScores(candidateRecords, newRecord)
     telemetryService.trackEvent(
       CPR_MATCH_SCORE_SUMMARY,
       mapOf(
@@ -37,6 +34,22 @@ class MatchService(
       ),
     )
     return highConfidenceMatches.sortedByDescending { candidate -> candidate.probability }
+  }
+
+  private fun chunkAndCollectScores(candidateRecords: List<PersonEntity>, newRecord: Person): MutableList<MatchResult> {
+    val chunked = candidateRecords.chunked(MAX_RECORDS)
+    val highConfidenceMatches = mutableListOf<MatchResult>()
+    chunked.forEach { chunk ->
+      highConfidenceMatches.addAll(collectHighConfidenceCandidates(chunk, newRecord))
+    }
+    return highConfidenceMatches
+  }
+
+  private fun collectHighConfidenceCandidates(candidateRecords: List<PersonEntity>, newRecord: Person): List<MatchResult> {
+    val candidateScores: List<MatchResult> = scores(candidateRecords, newRecord)
+    return candidateScores.filter { candidate ->
+      candidate.probability > THRESHOLD_SCORE
+    }.toMutableList()
   }
 
   private fun scores(candidateRecords: List<PersonEntity>, newRecord: Person): List<MatchResult> {

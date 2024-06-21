@@ -2,6 +2,11 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.findAll
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.client.WireMock.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -101,6 +106,29 @@ class MatchServiceIntTest : IntegrationTestBase() {
     assertThat(highConfidenceMatches[0].candidateRecord.firstName).isEqualTo(newRecord2.firstName)
     assertThat(highConfidenceMatches[1].probability).isEqualTo(0.999999)
     assertThat(highConfidenceMatches[1].candidateRecord.firstName).isEqualTo(newRecord1.firstName)
+  }
+
+  @Test
+  fun `should chunk candidates and only send 50 records at a time`() {
+    val newRecord = Person(
+      firstName = randomFirstName(),
+      lastName = randomLastName(),
+      dateOfBirth = LocalDate.of(1975, 1, 1),
+      sourceSystemType = LIBRA,
+    )
+
+    val probabilities = mutableMapOf<String, Double>()
+    repeat(50) { index ->
+      probabilities[index.toString()] = 0.999999
+    }
+    val matchResponse = MatchResponse(matchProbabilities = probabilities)
+    stubMatchScore(matchResponse)
+
+    val candidateRecords: List<PersonEntity> = generateSequence { PersonEntity.from(newRecord) }.take(100).toList()
+    val highConfidenceMatches = matchService.findHighConfidenceMatches(candidateRecords, newRecord)
+
+    assertThat(wiremock.findAll(postRequestedFor(urlEqualTo("/person/match"))).size).isEqualTo(2)
+    assertThat(highConfidenceMatches.size).isEqualTo(100)
   }
 
   private fun stubMatchScore(matchResponse: MatchResponse) {
