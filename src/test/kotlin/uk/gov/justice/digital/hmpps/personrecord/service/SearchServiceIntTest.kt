@@ -395,7 +395,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val matchResponse = MatchResponse(
       matchProbabilities = mutableMapOf(
         "0" to 0.9999999,
-        "1" to 0.999999911
+        "1" to 0.999999911,
       ),
     )
     stubMatchScore(matchResponse)

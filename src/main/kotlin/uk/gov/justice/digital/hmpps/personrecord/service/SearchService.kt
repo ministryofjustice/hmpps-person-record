@@ -31,29 +31,35 @@ class SearchService(
   }
 
   private fun processPagedCandidates(person: Person): List<MatchResult> {
-    var pageNum = 0
-    var page: Page<PersonEntity>
     val highConfidenceMatches = mutableListOf<MatchResult>()
-    do {
-      page = executeCandidateSearch(person, pageNum)
-      if (page.hasContent()) {
-        val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(page.content, person)
-        highConfidenceMatches.addAll(batchOfHighConfidenceMatches)
-      }
-      pageNum++
-    } while (page.hasNext())
-
+    val totalElements = forPage(person) { page ->
+      val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(page.content, person)
+      highConfidenceMatches.addAll(batchOfHighConfidenceMatches)
+    }
     telemetryService.trackEvent(
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         EventKeys.SOURCE_SYSTEM to person.sourceSystemType.name,
-        EventKeys.RECORD_COUNT to page.totalElements.toString(),
+        EventKeys.RECORD_COUNT to totalElements.toString(),
         EventKeys.SEARCH_VERSION to PersonSpecification.SEARCH_VERSION,
         EventKeys.HIGH_CONFIDENCE_COUNT to highConfidenceMatches.count().toString(),
-        EventKeys.LOW_CONFIDENCE_COUNT to (page.totalElements - highConfidenceMatches.count()).toString(),
+        EventKeys.LOW_CONFIDENCE_COUNT to (totalElements - highConfidenceMatches.count()).toString(),
       ),
     )
     return highConfidenceMatches.toList()
+  }
+
+  private inline fun forPage(person: Person, page: (Page<PersonEntity>) -> Unit): Long {
+    var pageNum = 0
+    var currentPage: Page<PersonEntity>
+    do {
+      currentPage = executeCandidateSearch(person, pageNum)
+      if (currentPage.hasContent()) {
+        page(currentPage)
+      }
+      pageNum++
+    } while (currentPage.hasNext())
+    return currentPage.totalElements
   }
 
   fun executeCandidateSearch(person: Person, pageNum: Int): Page<PersonEntity> {
