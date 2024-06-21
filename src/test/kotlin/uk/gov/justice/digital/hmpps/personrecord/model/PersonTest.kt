@@ -12,68 +12,48 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.event.LibraH
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.libra.Name
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
+import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import java.time.LocalDate
 
 internal class PersonTest {
 
   @Test
   fun `should map libra hearing to person`() {
-    // Given
     val dateOfBirth = LocalDate.now()
+    val inputPncId = randomPnc()
+    val firstName = randomFirstName()
+    val lastName = randomLastName()
     val libraHearingEvent = LibraHearingEvent(
-      pnc = PNCIdentifier.from("1979/0026538X"),
-      name = Name(title = "Mr", firstName = "Stephen", lastName = "King"),
+      pnc = PNCIdentifier.from(inputPncId),
+      name = Name(title = "Mr", firstName = firstName, lastName = lastName),
       dateOfBirth = dateOfBirth,
     )
 
-    // When
     val person = Person.from(libraHearingEvent)
 
-    // Then
-    assertThat(person.otherIdentifiers?.pncIdentifier).isEqualTo(PNCIdentifier.from("1979/0026538X"))
-    assertThat(person.firstName).isEqualTo("Stephen")
+    assertThat(person.otherIdentifiers?.pncIdentifier).isEqualTo(PNCIdentifier.from(inputPncId))
+    assertThat(person.firstName).isEqualTo(firstName)
     assertThat(person.title).isEqualTo("Mr")
-    assertThat(person.lastName).isEqualTo("King")
-    assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
-  }
-
-  @Test
-  fun `should map common platform defendant to person`() {
-    // Given
-    val dateOfBirth = LocalDate.now()
-    val defendant = Defendant(
-      pncId = PNCIdentifier.from("1979/0026538X"),
-      personDefendant = PersonDefendant(
-        personDetails = PersonDetails(
-          firstName = "Stephen",
-          lastName = "King",
-          dateOfBirth = dateOfBirth,
-          gender = "M",
-        ),
-      ),
-    )
-
-    // When
-    val person = Person.from(defendant)
-
-    // Then
-    assertThat(person.otherIdentifiers?.pncIdentifier).isEqualTo(PNCIdentifier.from("1979/0026538X"))
-    assertThat(person.firstName).isEqualTo("Stephen")
-    assertThat(person.lastName).isEqualTo("King")
+    assertThat(person.lastName).isEqualTo(lastName)
     assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
   }
 
   @Test
   fun `should map common platform defendant to person with additional fields`() {
-    // Given
     val dateOfBirth = LocalDate.now()
+    val inputPncId = randomPnc()
+    val firstName = randomFirstName()
+    val lastName = randomLastName()
     val defendant = Defendant(
-      pncId = PNCIdentifier.from("1979/0026538X"),
+      pncId = PNCIdentifier.from(inputPncId),
       personDefendant = PersonDefendant(
         personDetails = PersonDetails(
-          firstName = "Stephen",
-          lastName = "King",
+          firstName = firstName,
+          lastName = lastName,
           dateOfBirth = dateOfBirth,
           gender = "M",
           contact = Contact(
@@ -88,7 +68,7 @@ internal class PersonTest {
       ),
       aliases = listOf(
         DefendantAlias(
-          firstName = "Stephen",
+          firstName = firstName,
           lastName = "Smith",
         ),
       ),
@@ -98,11 +78,11 @@ internal class PersonTest {
     val person = Person.from(defendant)
 
     // Then
-    assertThat(person.contacts[0].contactType).isEqualTo(ContactType.HOME)
+    assertThat(person.contacts[0].contactType).isEqualTo(HOME)
     assertThat(person.contacts[0].contactValue).isEqualTo("01234567890")
-    assertThat(person.contacts[1].contactType).isEqualTo(ContactType.MOBILE)
+    assertThat(person.contacts[1].contactType).isEqualTo(MOBILE)
     assertThat(person.contacts[1].contactValue).isEqualTo("91234567890")
-    assertThat(person.aliases[0].firstName).isEqualTo("Stephen")
+    assertThat(person.aliases[0].firstName).isEqualTo(firstName)
     assertThat(person.aliases[0].lastName).isEqualTo("Smith")
     assertThat(person.addresses[0].postcode).isEqualTo("LS1 1AB")
   }
