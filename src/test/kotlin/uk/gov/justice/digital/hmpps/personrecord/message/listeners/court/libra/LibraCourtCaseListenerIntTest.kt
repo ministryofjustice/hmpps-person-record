@@ -21,7 +21,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LI
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.COURT_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE_SUMMARY
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
@@ -56,8 +55,9 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "0",
+        "HIGH_CONFIDENCE_COUNT" to "0",
+        "LOW_CONFIDENCE_COUNT" to "0",
       ),
     )
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
@@ -116,14 +116,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "1",
-      ),
-    )
-    checkTelemetry(
-      CPR_MATCH_SCORE_SUMMARY,
-      mapOf(
-        "SOURCE_SYSTEM" to LIBRA.name,
         "HIGH_CONFIDENCE_COUNT" to "1",
         "LOW_CONFIDENCE_COUNT" to "0",
       ),
@@ -168,14 +161,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "1",
-      ),
-    )
-    checkTelemetry(
-      CPR_MATCH_SCORE_SUMMARY,
-      mapOf(
-        "SOURCE_SYSTEM" to LIBRA.name,
         "HIGH_CONFIDENCE_COUNT" to "0",
         "LOW_CONFIDENCE_COUNT" to "1",
       ),
@@ -241,6 +227,44 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
+  fun `should process multiple pages of candidates`() {
+    val firstName = randomFirstName()
+    repeat(100) {
+      personRepository.saveAndFlush(
+        PersonEntity.from(
+          Person(
+            firstName = firstName,
+            lastName = "MORGAN",
+            dateOfBirth = LocalDate.of(1975, 1, 1),
+            addresses = listOf(Address("NT4 6YH")),
+            sourceSystemType = LIBRA,
+          ),
+        ),
+      )
+    }
+
+    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
+    val probabilities = mutableMapOf<String, Double>()
+    repeat(50) { index ->
+      probabilities[index.toString()] = 0.999999
+    }
+    val matchResponse = MatchResponse(matchProbabilities = probabilities)
+    stubMatchScore(matchResponse)
+
+    publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
+    checkTelemetry(
+      CPR_CANDIDATE_RECORD_SEARCH,
+      mapOf(
+        "SOURCE_SYSTEM" to LIBRA.name,
+        "RECORD_COUNT" to "100",
+        "HIGH_CONFIDENCE_COUNT" to "100",
+        "LOW_CONFIDENCE_COUNT" to "0",
+      ),
+    )
+  }
+
+  @Test
   @Disabled("Disabling as it takes too long to run in a CI context - out of memory errors")
   fun `should process libra with large amount of candidates - CPR-354`() {
     await untilAsserted { assertThat(personRepository.findAll().size).isEqualTo(0) }
@@ -265,7 +289,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     await.atMost(300, SECONDS) untilAsserted { assertThat(personRepository.findAll().size).isEqualTo(1000000) }
 
     val libraMessage = LibraMessage(firstName = "Jayne", lastName = "Smith", postcode = "LS2 1AB")
-    val messageId = publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
 
     await.atMost(300, SECONDS) untilAsserted { assertThat(telemetryRepository.findAll().size).isEqualTo(3) }
 
@@ -273,10 +297,8 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         "SOURCE_SYSTEM" to "LIBRA",
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "1000000",
         "SEARCH_VERSION" to SEARCH_VERSION,
-        "MESSAGE_ID" to messageId,
       ),
     )
   }

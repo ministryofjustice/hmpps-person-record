@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE_SUMMARY
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
 
 const val MAX_RETRY_ATTEMPTS: Int = 3
@@ -24,19 +23,6 @@ class MatchService(
   private val retryDelay: Long = 0
 
   fun findHighConfidenceMatches(candidateRecords: List<PersonEntity>, newRecord: Person): List<MatchResult> {
-    val highConfidenceMatches = chunkAndCollectScores(candidateRecords, newRecord)
-    telemetryService.trackEvent(
-      CPR_MATCH_SCORE_SUMMARY,
-      mapOf(
-        EventKeys.SOURCE_SYSTEM to newRecord.sourceSystemType.name,
-        EventKeys.HIGH_CONFIDENCE_COUNT to highConfidenceMatches.count().toString(),
-        EventKeys.LOW_CONFIDENCE_COUNT to (candidateRecords.size - highConfidenceMatches.count()).toString(),
-      ),
-    )
-    return highConfidenceMatches.sortedByDescending { candidate -> candidate.probability }
-  }
-
-  private fun chunkAndCollectScores(candidateRecords: List<PersonEntity>, newRecord: Person): MutableList<MatchResult> {
     val chunked = candidateRecords.chunked(MAX_RECORDS)
     val highConfidenceMatches = mutableListOf<MatchResult>()
     chunked.forEach { chunk ->

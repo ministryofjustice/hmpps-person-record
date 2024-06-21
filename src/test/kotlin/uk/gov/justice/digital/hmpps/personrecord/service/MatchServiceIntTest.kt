@@ -3,10 +3,8 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.findAll
-import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
-import com.github.tomakehurst.wiremock.client.WireMock.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -73,7 +71,7 @@ class MatchServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should find multiple high confidence match and sorted descending`() {
+  fun `should find multiple high confidence match`() {
     val newRecord1 = Person(
       firstName = randomFirstName(),
       lastName = randomLastName(),
@@ -102,10 +100,10 @@ class MatchServiceIntTest : IntegrationTestBase() {
 
     val highConfidenceMatches = matchService.findHighConfidenceMatches(candidateRecords, newRecord1)
     assertThat(highConfidenceMatches.size).isEqualTo(2)
-    assertThat(highConfidenceMatches[0].probability).isEqualTo(0.9999991)
-    assertThat(highConfidenceMatches[0].candidateRecord.firstName).isEqualTo(newRecord2.firstName)
-    assertThat(highConfidenceMatches[1].probability).isEqualTo(0.999999)
-    assertThat(highConfidenceMatches[1].candidateRecord.firstName).isEqualTo(newRecord1.firstName)
+    assertThat(highConfidenceMatches[0].probability).isEqualTo(0.999999)
+    assertThat(highConfidenceMatches[0].candidateRecord.firstName).isEqualTo(newRecord1.firstName)
+    assertThat(highConfidenceMatches[1].probability).isEqualTo(0.9999991)
+    assertThat(highConfidenceMatches[1].candidateRecord.firstName).isEqualTo(newRecord2.firstName)
   }
 
   @Test

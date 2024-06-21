@@ -1,9 +1,12 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Page
+import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -25,6 +28,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import java.time.LocalDate
 
 class SearchServiceIntTest : IntegrationTestBase() {
+
+  @Autowired
+  private lateinit var objectMapper: ObjectMapper
 
   @Autowired
   private lateinit var searchService: SearchService
@@ -68,9 +74,12 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val personEntities = searchService.findCandidateRecords(personToFind)
-    assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(first(personEntities).sourceSystem).isEqualTo(LIBRA)
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    stubMatchScore(matchResponse)
+    val candidateRecords = searchService.findCandidateRecords(personToFind)
+
+    assertThat(candidateRecords.size).isEqualTo(1)
+    assertThat(candidateRecords[0].candidateRecord.sourceSystem).isEqualTo(LIBRA)
   }
 
   @Test
@@ -88,10 +97,12 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val personEntities = searchService.findCandidateRecords(personToFind)
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    stubMatchScore(matchResponse)
+    val candidateRecords = searchService.findCandidateRecords(personToFind)
 
-    assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(first(personEntities).pnc).isEqualTo(PNCIdentifier.from(pnc))
+    assertThat(candidateRecords.size).isEqualTo(1)
+    assertThat(candidateRecords[0].candidateRecord.pnc).isEqualTo(PNCIdentifier.from(pnc))
   }
 
   @Test
@@ -115,10 +126,12 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val personEntities = searchService.findCandidateRecords(personToFind)
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    stubMatchScore(matchResponse)
+    val candidateRecords = searchService.findCandidateRecords(personToFind)
 
-    assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(first(personEntities).firstName).isEqualTo(firstName)
+    assertThat(candidateRecords.size).isEqualTo(1)
+    assertThat(candidateRecords[0].candidateRecord.firstName).isEqualTo(firstName)
   }
 
   @Test
@@ -136,10 +149,12 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val personEntities = searchService.findCandidateRecords(personToFind)
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    stubMatchScore(matchResponse)
+    val candidateRecords = searchService.findCandidateRecords(personToFind)
 
-    assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(first(personEntities).driverLicenseNumber).isEqualTo(driverLicenseNumber)
+    assertThat(candidateRecords.size).isEqualTo(1)
+    assertThat(candidateRecords[0].candidateRecord.driverLicenseNumber).isEqualTo(driverLicenseNumber)
   }
 
   @Test
@@ -157,10 +172,12 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val personEntities = searchService.findCandidateRecords(personToFind)
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    stubMatchScore(matchResponse)
+    val candidateRecords = searchService.findCandidateRecords(personToFind)
 
-    assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(first(personEntities).nationalInsuranceNumber).isEqualTo(nationalInsuranceNumber)
+    assertThat(candidateRecords.size).isEqualTo(1)
+    assertThat(candidateRecords[0].candidateRecord.nationalInsuranceNumber).isEqualTo(nationalInsuranceNumber)
   }
 
   @Test
@@ -178,10 +195,12 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val personEntities = searchService.findCandidateRecords(personToFind)
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    stubMatchScore(matchResponse)
+    val candidateRecords = searchService.findCandidateRecords(personToFind)
 
-    assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(first(personEntities).cro).isEqualTo(CROIdentifier.from(cro))
+    assertThat(candidateRecords.size).isEqualTo(1)
+    assertThat(candidateRecords[0].candidateRecord.cro).isEqualTo(CROIdentifier.from(cro))
   }
 
   @Test
@@ -210,10 +229,12 @@ class SearchServiceIntTest : IntegrationTestBase() {
       dateOfBirth = LocalDate.of(1975, 2, 1),
       sourceSystemType = HMCTS,
     )
-    val personEntities = searchService.findCandidateRecords(searchingPerson)
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    stubMatchScore(matchResponse)
+    val candidateRecords = searchService.findCandidateRecords(searchingPerson)
 
-    assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(first(personEntities).firstName).isEqualTo("Steven")
+    assertThat(candidateRecords.size).isEqualTo(1)
+    assertThat(candidateRecords[0].candidateRecord.firstName).isEqualTo("Steven")
   }
 
   @Test
@@ -242,10 +263,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
       dateOfBirth = LocalDate.of(1975, 2, 1),
       sourceSystemType = HMCTS,
     )
-    val personEntities = searchService.findCandidateRecords(searchingPerson)
 
-    assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(first(personEntities).lastName).isEqualTo("Smith")
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    stubMatchScore(matchResponse)
+    val candidateRecords = searchService.findCandidateRecords(searchingPerson)
+
+    assertThat(candidateRecords.size).isEqualTo(1)
+    assertThat(candidateRecords[0].candidateRecord.lastName).isEqualTo("Smith")
   }
 
   @Test
@@ -266,10 +290,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
       dateOfBirth = LocalDate.of(1975, 2, 1),
       sourceSystemType = HMCTS,
     )
-    val personEntities = searchService.findCandidateRecords(searchingPerson)
 
-    assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(first(personEntities).dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    stubMatchScore(matchResponse)
+    val candidateRecords = searchService.findCandidateRecords(searchingPerson)
+
+    assertThat(candidateRecords.size).isEqualTo(1)
+    assertThat(candidateRecords[0].candidateRecord.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
   }
 
   @Test
@@ -298,10 +325,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
       addresses = listOf(Address(postcode = "LS2 1AC"), Address(postcode = "LD2 3BC")),
       sourceSystemType = HMCTS,
     )
-    val personEntities = searchService.findCandidateRecords(searchingPerson)
 
-    assertThat(personEntities.totalElements).isEqualTo(1)
-    assertThat(first(personEntities).addresses[0].postcode).isEqualTo("LS1 1AB")
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    stubMatchScore(matchResponse)
+    val candidateRecords = searchService.findCandidateRecords(searchingPerson)
+
+    assertThat(candidateRecords.size).isEqualTo(1)
+    assertThat(candidateRecords[0].candidateRecord.addresses[0].postcode).isEqualTo("LS1 1AB")
   }
 
   @Test
@@ -320,7 +350,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       addresses = listOf(Address(postcode = "LS1 1AB")),
       sourceSystemType = HMCTS,
     )
-    val personEntities = searchService.findCandidateRecords(searchingPerson)
+    val personEntities = searchService.executeCandidateSearch(searchingPerson, 0)
 
     noCandidatesFound(personEntities)
   }
@@ -341,9 +371,41 @@ class SearchServiceIntTest : IntegrationTestBase() {
       dateOfBirth = LocalDate.of(1975, 1, 1),
       sourceSystemType = HMCTS,
     )
-    val personEntities = searchService.findCandidateRecords(searchingPerson)
+    val personEntities = searchService.executeCandidateSearch(searchingPerson, 0)
 
     noCandidatesFound(personEntities)
+  }
+
+  @Test
+  fun `should order multiple matches descending`() {
+    val pnc = randomPnc()
+    val personToFind = Person(
+      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(pnc)),
+      sourceSystemType = HMCTS,
+    )
+    createPerson(personToFind)
+    createPerson(personToFind)
+    createPerson(
+      Person(
+        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("1981/0154257C")),
+        sourceSystemType = HMCTS,
+      ),
+    )
+
+    val matchResponse = MatchResponse(
+      matchProbabilities = mutableMapOf(
+        "0" to 0.9999999,
+        "1" to 0.999999911
+      ),
+    )
+    stubMatchScore(matchResponse)
+    val candidateRecords = searchService.findCandidateRecords(personToFind)
+
+    assertThat(candidateRecords.size).isEqualTo(2)
+    assertThat(candidateRecords[0].candidateRecord.pnc).isEqualTo(PNCIdentifier.from(pnc))
+    assertThat(candidateRecords[0].probability).isEqualTo(0.999999911)
+    assertThat(candidateRecords[1].candidateRecord.pnc).isEqualTo(PNCIdentifier.from(pnc))
+    assertThat(candidateRecords[1].probability).isEqualTo(0.9999999)
   }
 
   private fun noCandidatesFound(personEntities: Page<PersonEntity>) {
@@ -352,6 +414,15 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   private fun createPerson(person: Person): PersonEntity = personRepository.saveAndFlush(PersonEntity.from(person))
 
-  private fun first(personEntities: Page<PersonEntity>) =
-    personEntities.get().findFirst().get()
+  private fun stubMatchScore(matchResponse: MatchResponse) {
+    wiremock.stubFor(
+      WireMock.post("/person/match")
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(200)
+            .withBody(objectMapper.writeValueAsString(matchResponse)),
+        ),
+    )
+  }
 }
