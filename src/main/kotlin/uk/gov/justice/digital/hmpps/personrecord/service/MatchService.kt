@@ -17,7 +17,7 @@ const val MAX_RETRY_ATTEMPTS: Int = 3
 @Service
 class MatchService(
   val matchScoreClient: MatchScoreClient,
-  val telemetryService: TelemetryService
+  val telemetryService: TelemetryService,
 ) {
 
   @Value("\${retry.delay}")
@@ -44,7 +44,7 @@ class MatchService(
       firstName = newRecord.firstName,
       lastname = newRecord.lastName,
       dateOfBirth = newRecord.dateOfBirth.toString(),
-      pnc = newRecord.otherIdentifiers?.let { it.pncIdentifier.toString() }
+      pnc = newRecord.otherIdentifiers?.let { it.pncIdentifier.toString() },
     )
     val toMatchRecords: List<MatchingRecord> = candidateRecords.map { personEntity ->
       MatchingRecord(
@@ -54,19 +54,19 @@ class MatchService(
           dateOfBirth = personEntity.dateOfBirth.toString(),
           pnc = personEntity.pnc.toString(),
         ),
-        personEntity = personEntity
+        personEntity = personEntity,
       )
     }
     val matchRequest = MatchRequest(
       matchingFrom = fromMatchRecord,
-      matchingTo = toMatchRecords.map { it.matchRecord }
+      matchingTo = toMatchRecords.map { it.matchRecord },
     )
 
     val matchScores = getScores(matchRequest)
-    val matchResult: List<MatchResult> = toMatchRecords.map { record ->
+    val matchResult: List<MatchResult> = toMatchRecords.mapIndexed { index, matchingRecord ->
       MatchResult(
-        probability = matchScores!!.getProbabilityScore(record.matchRecord.uniqueId),
-        candidateRecord = record.personEntity
+        probability = matchScores?.matchProbabilities?.get(index.toString())!!,
+        candidateRecord = matchingRecord.personEntity,
       )
     }
     return matchResult

@@ -69,11 +69,13 @@ class SearchService(
   }
 
   fun processCandidateRecords(personEntities: List<PersonEntity>, person: Person): PersonEntity? {
-    val highConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(personEntities, person)
-    return when {
-      highConfidenceMatches.isNotEmpty() -> handleHighConfidenceMatches(highConfidenceMatches)
-      else -> null
+    if (personEntities.isNotEmpty()) {
+      val highConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(personEntities, person)
+      if (highConfidenceMatches.isNotEmpty()) {
+        return handleHighConfidenceMatches(highConfidenceMatches)
+      }
     }
+    return null
   }
 
   private fun handleHighConfidenceMatches(matches: List<MatchResult>): PersonEntity {
