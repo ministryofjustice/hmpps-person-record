@@ -1,11 +1,13 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
-fun prisonerSearchResponse(prisonNumber: String) = """
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
+
+fun prisonerSearchResponse(prisonNumber: String, pnc: String? = randomPnc()) = """
   {
     "prisonerNumber": "$prisonNumber",
-    "pncNumber": "2003/0062845E",
-    "pncNumberCanonicalShort": "03/0062845E",
-    "pncNumberCanonicalLong": "2003/0062845E",
+    "pncNumber": "$pnc",
+    "pncNumberCanonicalShort": "${pnc?.takeLast(11)}",
+    "pncNumberCanonicalLong": "$pnc",
     "croNumber": "29906/12J",
     "bookingId": "0001200924",
     "bookNumber": "38412A",

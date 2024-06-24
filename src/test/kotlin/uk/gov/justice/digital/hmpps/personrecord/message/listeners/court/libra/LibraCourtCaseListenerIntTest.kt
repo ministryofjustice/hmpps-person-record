@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.libra
 
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
@@ -10,10 +9,7 @@ import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.client.MatchRequest
-import uk.gov.justice.digital.hmpps.personrecord.client.MatchRequestData
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
-import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponseData
 import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -25,14 +21,12 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LI
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.COURT_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE_SUMMARY
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit.SECONDS
 
 class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
@@ -61,24 +55,16 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "0",
-      ),
-    )
-    checkTelemetry(
-      CPR_MATCH_SCORE_SUMMARY,
-      mapOf(
-        "SOURCE_SYSTEM" to LIBRA.name,
         "HIGH_CONFIDENCE_COUNT" to "0",
         "LOW_CONFIDENCE_COUNT" to "0",
       ),
     )
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
 
     val personEntities = await.atMost(30, SECONDS) untilNotNull {
       personRepository.findAll()
     }
-
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
     val matchingPerson = personEntities.filter { it.firstName.equals(firstName) }
     assertThat(matchingPerson.size).isEqualTo(1)
 
@@ -106,22 +92,18 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to LIBRA.name,
       ),
     )
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
 
     val personEntities = await.atMost(30, SECONDS) untilNotNull {
       personRepository.findAll()
     }
-
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
     val matchingPerson = personEntities.filter { it.firstName.equals(firstName) }
     assertThat(matchingPerson.size).isEqualTo(1)
 
-    val stubRequest = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
-    val matchRequest = createMatchRequest(stubRequest, stubRequest)
-    val matchResponse = MatchResponse(MatchResponseData(value = "0.99999999"))
-    stubMatchScore(matchRequest, matchResponse)
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.99999999))
+    stubMatchScore(matchResponse)
 
     val messageId2 = publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
-
     checkTelemetry(
       COURT_MESSAGE_RECEIVED,
       mapOf(
@@ -134,14 +116,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "1",
-      ),
-    )
-    checkTelemetry(
-      CPR_MATCH_SCORE_SUMMARY,
-      mapOf(
-        "SOURCE_SYSTEM" to LIBRA.name,
         "HIGH_CONFIDENCE_COUNT" to "1",
         "LOW_CONFIDENCE_COUNT" to "0",
       ),
@@ -170,12 +145,10 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
     publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
 
-    val matchRequest = createMatchRequest(libraMessage, libraMessage)
-    val matchResponse = MatchResponse(MatchResponseData(value = "0.98883"))
-    stubMatchScore(matchRequest, matchResponse)
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.98883))
+    stubMatchScore(matchResponse)
 
     val messageId2 = publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
-
     checkTelemetry(
       COURT_MESSAGE_RECEIVED,
       mapOf(
@@ -188,14 +161,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "1",
-      ),
-    )
-    checkTelemetry(
-      CPR_MATCH_SCORE_SUMMARY,
-      mapOf(
-        "SOURCE_SYSTEM" to LIBRA.name,
         "HIGH_CONFIDENCE_COUNT" to "0",
         "LOW_CONFIDENCE_COUNT" to "1",
       ),
@@ -239,10 +205,13 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     )
     val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
 
-    val stubRequest = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
-    val matchRequest = createMatchRequest(stubRequest, stubRequest)
-    val matchResponse = MatchResponse(MatchResponseData(value = "0.99999999"))
-    stubMatchScore(matchRequest, matchResponse)
+    val matchResponse = MatchResponse(
+      matchProbabilities = mutableMapOf(
+        "0" to 0.99999999,
+        "1" to 0.99999999,
+      ),
+    )
+    stubMatchScore(matchResponse)
 
     publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
@@ -254,6 +223,44 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "PROBABILITY_SCORE" to "0.99999999",
       ),
       times = 2,
+    )
+  }
+
+  @Test
+  fun `should process multiple pages of candidates`() {
+    val firstName = randomFirstName()
+    repeat(100) {
+      personRepository.saveAndFlush(
+        PersonEntity.from(
+          Person(
+            firstName = firstName,
+            lastName = "MORGAN",
+            dateOfBirth = LocalDate.of(1975, 1, 1),
+            addresses = listOf(Address("NT4 6YH")),
+            sourceSystemType = LIBRA,
+          ),
+        ),
+      )
+    }
+
+    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
+    val probabilities = mutableMapOf<String, Double>()
+    repeat(50) { index ->
+      probabilities[index.toString()] = 0.999999
+    }
+    val matchResponse = MatchResponse(matchProbabilities = probabilities)
+    stubMatchScore(matchResponse)
+
+    publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
+    checkTelemetry(
+      CPR_CANDIDATE_RECORD_SEARCH,
+      mapOf(
+        "SOURCE_SYSTEM" to LIBRA.name,
+        "RECORD_COUNT" to "100",
+        "HIGH_CONFIDENCE_COUNT" to "100",
+        "LOW_CONFIDENCE_COUNT" to "0",
+      ),
     )
   }
 
@@ -282,7 +289,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     await.atMost(300, SECONDS) untilAsserted { assertThat(personRepository.findAll().size).isEqualTo(1000000) }
 
     val libraMessage = LibraMessage(firstName = "Jayne", lastName = "Smith", postcode = "LS2 1AB")
-    val messageId = publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
 
     await.atMost(300, SECONDS) untilAsserted { assertThat(telemetryRepository.findAll().size).isEqualTo(3) }
 
@@ -290,34 +297,15 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         "SOURCE_SYSTEM" to "LIBRA",
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "RECORD_COUNT" to "1000000",
         "SEARCH_VERSION" to SEARCH_VERSION,
-        "MESSAGE_ID" to messageId,
       ),
     )
   }
 
-  private fun createMatchRequest(person: LibraMessage, matchingPerson: LibraMessage): MatchRequest {
-    return MatchRequest(
-      firstName = MatchRequestData(person.firstName, matchingPerson.firstName),
-      surname = MatchRequestData(person.lastName, matchingPerson.lastName),
-      dateOfBirth = MatchRequestData(transformDob(person.dateOfBirth), transformDob(matchingPerson.dateOfBirth)),
-      pncNumber = MatchRequestData(person.pncNumber, matchingPerson.pncNumber),
-      uniqueId = MatchRequestData("defendant1", "defendant2"),
-    )
-  }
-
-  private fun transformDob(dob: String): String {
-    val libraDateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-    val formatter = DateTimeFormatter.ofPattern("YYYY-MM-DD")
-    return LocalDate.parse(dob, libraDateFormatter).format(formatter)
-  }
-
-  private fun stubMatchScore(matchRequest: MatchRequest, matchResponse: MatchResponse) {
+  private fun stubMatchScore(matchResponse: MatchResponse) {
     wiremock.stubFor(
-      WireMock.post("/match")
-        .withRequestBody(equalToJson(objectMapper.writeValueAsString(matchRequest)))
+      WireMock.post("/person/match")
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
