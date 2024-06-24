@@ -23,10 +23,8 @@ class MatchService(
   private val retryDelay: Long = 0
 
   fun findHighConfidenceMatches(candidateRecords: List<PersonEntity>, newRecord: Person): List<MatchResult> {
-    val chunked = candidateRecords.chunked(MAX_RECORDS)
-    val highConfidenceMatches = mutableListOf<MatchResult>()
-    chunked.forEach { chunk ->
-      highConfidenceMatches.addAll(collectHighConfidenceCandidates(chunk, newRecord))
+    val highConfidenceMatches = candidateRecords.chunked(MAX_RECORDS).flatMap {
+      collectHighConfidenceCandidates(it, newRecord)
     }
     return highConfidenceMatches
   }
@@ -35,7 +33,7 @@ class MatchService(
     val candidateScores: List<MatchResult> = scores(candidateRecords, newRecord)
     return candidateScores.filter { candidate ->
       candidate.probability > THRESHOLD_SCORE
-    }.toMutableList()
+    }
   }
 
   private fun scores(candidateRecords: List<PersonEntity>, newRecord: Person): List<MatchResult> {
