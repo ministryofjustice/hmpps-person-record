@@ -44,10 +44,10 @@ dependencies {
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
-  testImplementation("org.wiremock:wiremock-standalone:3.6.0")
-  testImplementation("io.jsonwebtoken:jjwt-api:0.12.5")
-  testImplementation("io.jsonwebtoken:jjwt-impl:0.12.5")
-  testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.5")
+  testImplementation("org.wiremock:wiremock-standalone:3.7.0")
+  testImplementation("io.jsonwebtoken:jjwt-api:0.12.6")
+  testImplementation("io.jsonwebtoken:jjwt-impl:0.12.6")
+  testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.0.0")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.1")
   testImplementation("org.jmock:jmock:2.13.1")
