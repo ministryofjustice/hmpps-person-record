@@ -5,7 +5,6 @@ import org.hibernate.exception.ConstraintViolationException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.CannotAcquireLockException
 import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.data.domain.Page
 import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
 import org.springframework.orm.jpa.JpaSystemException
@@ -101,8 +100,8 @@ class PersonService(
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
 
   fun searchForRecord(person: Person): PersonEntity? {
-    val pageablePersonEntities: Page<PersonEntity> = searchService.findCandidateRecords(person)
-    val personEntity: PersonEntity? = searchService.processCandidateRecords(pageablePersonEntities.content, person)
+    val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecords(person)
+    val personEntity: PersonEntity? = searchService.processCandidateRecords(highConfidenceMatches)
     return personEntity
   }
 
