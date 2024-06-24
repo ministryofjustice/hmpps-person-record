@@ -123,7 +123,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         "1" to 0.9999999,
         "2" to 0.9999999,
         "3" to 0.9999999,
-      )
+      ),
     )
     stubMatchScore(matchResponse)
     val candidateRecords = searchService.findCandidateRecords(personToFind, searchBySourceSystem = false)

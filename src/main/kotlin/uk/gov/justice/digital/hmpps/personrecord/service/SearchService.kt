@@ -7,12 +7,8 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.CRO
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.DRIVER_LICENSE_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.NI
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.PNC
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.SOURCE_SYSTEM
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.exactMatch
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.findCandidates
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.findCandidatesBySourceSystem
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
@@ -31,8 +27,9 @@ class SearchService(
   }
 
   private fun processPagedCandidates(person: Person, searchBySourceSystem: Boolean): List<MatchResult> {
+    val query: Specification<PersonEntity> = if (searchBySourceSystem) findCandidatesBySourceSystem(person) else findCandidates(person)
     val highConfidenceMatches = mutableListOf<MatchResult>()
-    val totalElements = forPage(person, searchBySourceSystem) { page ->
+    val totalElements = forPage(query) { page ->
       val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(page.content, person)
       highConfidenceMatches.addAll(batchOfHighConfidenceMatches)
     }
@@ -49,11 +46,11 @@ class SearchService(
     return highConfidenceMatches.toList()
   }
 
-  private inline fun forPage(person: Person, searchBySourceSystem: Boolean, page: (Page<PersonEntity>) -> Unit): Long {
+  private inline fun forPage(query: Specification<PersonEntity>, page: (Page<PersonEntity>) -> Unit): Long {
     var pageNum = 0
     var currentPage: Page<PersonEntity>
     do {
-      currentPage = executeCandidateSearch(person, pageNum, searchBySourceSystem)
+      currentPage = executePagedQuery(query, pageNum)
       if (currentPage.hasContent()) {
         page(currentPage)
       }
@@ -62,31 +59,9 @@ class SearchService(
     return currentPage.totalElements
   }
 
-  private fun executeCandidateSearch(person: Person, pageNum: Int, searchBySourceSystem: Boolean): Page<PersonEntity> {
-    val postcodeSpecifications = person.addresses.map { PersonSpecification.levenshteinPostcode(it.postcode) }
-
-    val soundexFirstLastName = Specification.where(
-      PersonSpecification.soundex(person.firstName, PersonSpecification.FIRST_NAME)
-        .and(PersonSpecification.soundex(person.lastName, PersonSpecification.LAST_NAME)),
-    )
-
-    val exactMatchSourceSystem = exactMatch(person.sourceSystemType.name, SOURCE_SYSTEM, searchBySourceSystem)
-    val levenshteinDob = Specification.where(PersonSpecification.levenshteinDate(person.dateOfBirth, PersonSpecification.DOB))
-    val levenshteinPostcode = Specification.where(PersonSpecification.combineSpecificationsWithOr(postcodeSpecifications))
-
+  private fun executePagedQuery(query: Specification<PersonEntity>, pageNum: Int): Page<PersonEntity> {
     return readWriteLockService.withReadLock {
-      personRepository.findAll(
-        Specification.where(
-          exactMatchSourceSystem.and(
-            exactMatch(person.otherIdentifiers?.pncIdentifier?.toString(), PNC)
-              .or(exactMatch(person.driverLicenseNumber, DRIVER_LICENSE_NUMBER))
-              .or(exactMatch(person.nationalInsuranceNumber, NI))
-              .or(exactMatch(person.otherIdentifiers?.croIdentifier?.toString(), CRO))
-              .or(soundexFirstLastName.and(levenshteinDob.or(levenshteinPostcode))),
-          ),
-        ),
-        PageRequest.of(pageNum, PAGE_SIZE),
-      )
+      personRepository.findAll(query, PageRequest.of(pageNum, PAGE_SIZE))
     }
   }
 
