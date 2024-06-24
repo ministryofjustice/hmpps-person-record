@@ -82,6 +82,56 @@ class SearchServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
+  fun `should find candidate records only in searching in different source systems`() {
+    val firstName = randomFirstName()
+    val lastName = randomLastName()
+    val personToFind = Person(
+      firstName = firstName,
+      lastName = lastName,
+      dateOfBirth = LocalDate.of(1975, 1, 1),
+      sourceSystemType = LIBRA,
+    )
+    createPerson(personToFind)
+    createPerson(
+      Person(
+        firstName = firstName,
+        lastName = lastName,
+        dateOfBirth = LocalDate.of(1975, 1, 1),
+        sourceSystemType = HMCTS,
+      ),
+    )
+    createPerson(
+      Person(
+        firstName = firstName,
+        lastName = lastName,
+        dateOfBirth = LocalDate.of(1975, 1, 1),
+        sourceSystemType = NOMIS,
+      ),
+    )
+    createPerson(
+      Person(
+        firstName = firstName,
+        lastName = lastName,
+        dateOfBirth = LocalDate.of(1975, 1, 1),
+        sourceSystemType = DELIUS,
+      ),
+    )
+
+    val matchResponse = MatchResponse(
+      matchProbabilities = mutableMapOf(
+        "0" to 0.9999999,
+        "1" to 0.9999999,
+        "2" to 0.9999999,
+        "3" to 0.9999999,
+      )
+    )
+    stubMatchScore(matchResponse)
+    val candidateRecords = searchService.findCandidateRecords(personToFind, searchBySourceSystem = false)
+
+    assertThat(candidateRecords.size).isEqualTo(4)
+  }
+
+  @Test
   fun `should find candidate records on exact matches on PNC`() {
     val pnc = randomPnc()
     val personToFind = Person(

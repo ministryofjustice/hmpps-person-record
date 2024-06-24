@@ -22,10 +22,15 @@ object PersonSpecification {
   private const val POSTCODE = "postcode"
   private const val DATE_FORMAT = "YYYY-MM-DD"
 
-  fun exactMatch(input: String?, field: String): Specification<PersonEntity> {
+  fun exactMatch(input: String?, field: String, conditional: Boolean = true): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      input?.takeIf { it.isNotBlank() }?.let {
-        criteriaBuilder.equal(root.get<String>(field), it)
+      when {
+        conditional -> {
+          input?.takeIf { it.isNotBlank() }?.let {
+            criteriaBuilder.equal(root.get<String>(field), it)
+          }
+        }
+        else -> criteriaBuilder.conjunction()
       }
     }
   }

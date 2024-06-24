@@ -25,14 +25,14 @@ class SearchService(
   private val personRepository: PersonRepository,
 ) {
 
-  fun findCandidateRecords(person: Person): List<MatchResult> {
-    val highConfidenceMatches = processPagedCandidates(person)
+  fun findCandidateRecords(person: Person, searchBySourceSystem: Boolean = true): List<MatchResult> {
+    val highConfidenceMatches = processPagedCandidates(person, searchBySourceSystem)
     return highConfidenceMatches.sortedByDescending { it.probability }
   }
 
-  private fun processPagedCandidates(person: Person): List<MatchResult> {
+  private fun processPagedCandidates(person: Person, searchBySourceSystem: Boolean): List<MatchResult> {
     val highConfidenceMatches = mutableListOf<MatchResult>()
-    val totalElements = forPage(person) { page ->
+    val totalElements = forPage(person, searchBySourceSystem) { page ->
       val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(page.content, person)
       highConfidenceMatches.addAll(batchOfHighConfidenceMatches)
     }
@@ -49,11 +49,11 @@ class SearchService(
     return highConfidenceMatches.toList()
   }
 
-  private inline fun forPage(person: Person, page: (Page<PersonEntity>) -> Unit): Long {
+  private inline fun forPage(person: Person, searchBySourceSystem: Boolean, page: (Page<PersonEntity>) -> Unit): Long {
     var pageNum = 0
     var currentPage: Page<PersonEntity>
     do {
-      currentPage = executeCandidateSearch(person, pageNum)
+      currentPage = executeCandidateSearch(person, pageNum, searchBySourceSystem)
       if (currentPage.hasContent()) {
         page(currentPage)
       }
@@ -62,7 +62,7 @@ class SearchService(
     return currentPage.totalElements
   }
 
-  private fun executeCandidateSearch(person: Person, pageNum: Int): Page<PersonEntity> {
+  private fun executeCandidateSearch(person: Person, pageNum: Int, searchBySourceSystem: Boolean): Page<PersonEntity> {
     val postcodeSpecifications = person.addresses.map { PersonSpecification.levenshteinPostcode(it.postcode) }
 
     val soundexFirstLastName = Specification.where(
@@ -70,13 +70,14 @@ class SearchService(
         .and(PersonSpecification.soundex(person.lastName, PersonSpecification.LAST_NAME)),
     )
 
+    val exactMatchSourceSystem = exactMatch(person.sourceSystemType.name, SOURCE_SYSTEM, searchBySourceSystem)
     val levenshteinDob = Specification.where(PersonSpecification.levenshteinDate(person.dateOfBirth, PersonSpecification.DOB))
     val levenshteinPostcode = Specification.where(PersonSpecification.combineSpecificationsWithOr(postcodeSpecifications))
 
     return readWriteLockService.withReadLock {
       personRepository.findAll(
         Specification.where(
-          exactMatch(person.sourceSystemType.name, SOURCE_SYSTEM).and(
+          exactMatchSourceSystem.and(
             exactMatch(person.otherIdentifiers?.pncIdentifier?.toString(), PNC)
               .or(exactMatch(person.driverLicenseNumber, DRIVER_LICENSE_NUMBER))
               .or(exactMatch(person.nationalInsuranceNumber, NI))
