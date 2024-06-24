@@ -62,7 +62,7 @@ class SearchService(
     return currentPage.totalElements
   }
 
-  fun executeCandidateSearch(person: Person, pageNum: Int): Page<PersonEntity> {
+  private fun executeCandidateSearch(person: Person, pageNum: Int): Page<PersonEntity> {
     val postcodeSpecifications = person.addresses.map { PersonSpecification.levenshteinPostcode(it.postcode) }
 
     val soundexFirstLastName = Specification.where(

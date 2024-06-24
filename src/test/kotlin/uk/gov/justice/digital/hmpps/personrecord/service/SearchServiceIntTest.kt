@@ -350,9 +350,9 @@ class SearchServiceIntTest : IntegrationTestBase() {
       addresses = listOf(Address(postcode = "LS1 1AB")),
       sourceSystemType = HMCTS,
     )
-    val personEntities = searchService.executeCandidateSearch(searchingPerson, 0)
+    val candidateRecords = searchService.findCandidateRecords(searchingPerson)
 
-    noCandidatesFound(personEntities)
+    noCandidatesFound(candidateRecords)
   }
 
   @Test
@@ -371,9 +371,9 @@ class SearchServiceIntTest : IntegrationTestBase() {
       dateOfBirth = LocalDate.of(1975, 1, 1),
       sourceSystemType = HMCTS,
     )
-    val personEntities = searchService.executeCandidateSearch(searchingPerson, 0)
+    val candidateRecords = searchService.findCandidateRecords(searchingPerson)
 
-    noCandidatesFound(personEntities)
+    noCandidatesFound(candidateRecords)
   }
 
   @Test
@@ -408,8 +408,8 @@ class SearchServiceIntTest : IntegrationTestBase() {
     assertThat(candidateRecords[1].probability).isEqualTo(0.9999999)
   }
 
-  private fun noCandidatesFound(personEntities: Page<PersonEntity>) {
-    assertThat(personEntities.totalElements).isEqualTo(0)
+  private fun noCandidatesFound(records: List<MatchResult>) {
+    assertThat(records.size).isEqualTo(0)
   }
 
   private fun createPerson(person: Person): PersonEntity = personRepository.saveAndFlush(PersonEntity.from(person))
