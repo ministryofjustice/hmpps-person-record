@@ -161,7 +161,7 @@ fun commonPlatformHearing(pncNumber: String = "1981/0154257C", defendantIds: Lis
     }
 """.trimIndent()
 
-fun commonPlatformHearingWithOneDefendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) = """
+fun commonPlatformHearingWithOneDefendant(commonPlatformHearingSetup: List<CommonPlatformHearingSetup>) = """
     {
       "hearing": {
         "type": {
@@ -189,8 +189,19 @@ fun commonPlatformHearingWithOneDefendant(commonPlatformHearingSetup: CommonPlat
         "jurisdictionType": "CROWN",
         "prosecutionCases": [
           {
-            "defendants": [
-              { 
+            "defendants": [${commonPlatformHearingSetup.map { defendant(it) }.joinToString(",")}],
+            "id": "D2B61C8A-0684-4764-B401-F0A788BC7CCF",
+            "prosecutionCaseIdentifier": {
+              "caseURN": "25GD34377719"
+            }
+          }
+        ]
+      }
+    }
+""".trimIndent()
+
+private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) =
+  """{ 
                 "id": "${commonPlatformHearingSetup.defendantId}",
                 "masterDefendantId": "${commonPlatformHearingSetup.defendantId}",
                 "pncId": "${commonPlatformHearingSetup.pnc}",
@@ -242,16 +253,7 @@ fun commonPlatformHearingWithOneDefendant(commonPlatformHearingSetup: CommonPlat
                 ],
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               }
-            ],
-            "id": "D2B61C8A-0684-4764-B401-F0A788BC7CCF",
-            "prosecutionCaseIdentifier": {
-              "caseURN": "25GD34377719"
-            }
-          }
-        ]
-      }
-    }
-""".trimIndent()
+  """.trimIndent()
 
 fun commonPlatformHearingWithAdditionalFields(defendantIds: List<String>) = """
     {

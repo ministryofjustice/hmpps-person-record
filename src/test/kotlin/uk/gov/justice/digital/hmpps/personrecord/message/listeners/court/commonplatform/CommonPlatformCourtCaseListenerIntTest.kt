@@ -115,7 +115,8 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should update an existing person record from common platform message`() {
     val defendantId = randomUUID().toString()
     val pnc = randomPnc()
-    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(CommonPlatformHearingSetup(defendantId = defendantId)), COMMON_PLATFORM_HEARING)
+    val message = commonPlatformHearingWithOneDefendant(listOf(CommonPlatformHearingSetup(defendantId = defendantId)))
+    publishHMCTSMessage(message, COMMON_PLATFORM_HEARING)
 
     val personEntity = await.atMost(15, SECONDS) untilNotNull {
       personRepository.findByDefendantId(defendantId)
@@ -130,7 +131,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     val messageId = publishHMCTSMessage(
-      commonPlatformHearingWithOneDefendant(CommonPlatformHearingSetup(defendantId = defendantId, lastName = "Smith", pnc = pnc)),
+      commonPlatformHearingWithOneDefendant(listOf(CommonPlatformHearingSetup(defendantId = defendantId, lastName = "Smith", pnc = pnc))),
       COMMON_PLATFORM_HEARING,
     )
 
