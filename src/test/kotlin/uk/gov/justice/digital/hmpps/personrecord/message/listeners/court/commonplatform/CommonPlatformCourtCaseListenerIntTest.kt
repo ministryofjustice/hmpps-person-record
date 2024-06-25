@@ -76,11 +76,11 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should not push messages from Common Platform onto dead letter queue when processing fails`() {
+  fun `should not push messages from Common Platform onto dead letter queue when processing fails - fires the same request so many times that some message writes will fail and be retried`() {
     val pncNumber = PNCIdentifier.from(randomPnc())
     val defendantId = randomUUID().toString()
     buildPublishRequest(defendantId, pncNumber)
-    val blitzer = Blitzer(25, 3)
+    val blitzer = Blitzer(15, 4)
     try {
       blitzer.blitz {
         courtCaseEventsTopic?.snsClient?.publish(buildPublishRequest(defendantId, pncNumber))?.get()
@@ -107,7 +107,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to "HMCTS",
         "DEFENDANT_ID" to defendantId,
       ),
-      49,
+      29,
     )
   }
 
