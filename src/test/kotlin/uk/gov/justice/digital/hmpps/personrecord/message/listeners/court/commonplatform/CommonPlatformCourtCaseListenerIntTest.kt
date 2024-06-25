@@ -250,24 +250,24 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personWithNullPnc?.pnc?.pncId).isEqualTo("")
   }
 
-    private fun buildPublishRequest(
-      defendantId: String,
-      pnc: PNCIdentifier,
-    ): PublishRequest? = PublishRequest.builder()
-      .topicArn(courtCaseEventsTopic?.arn)
-      .message(
-        commonPlatformHearing(
-          listOf(
-            CommonPlatformHearingSetup(defendantId = defendantId, pnc = pnc.pncId),
-            CommonPlatformHearingSetup(defendantId = defendantId, pnc = pnc.pncId),
-          ),
+  private fun buildPublishRequest(
+    defendantId: String,
+    pnc: PNCIdentifier,
+  ): PublishRequest? = PublishRequest.builder()
+    .topicArn(courtCaseEventsTopic?.arn)
+    .message(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(defendantId = defendantId, pnc = pnc.pncId),
+          CommonPlatformHearingSetup(defendantId = defendantId, pnc = pnc.pncId),
         ),
-      )
-      .messageAttributes(
-        mapOf(
-          "messageType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(COMMON_PLATFORM_HEARING.name).build(),
-        ),
-      )
-      .build()
+      ),
+    )
+    .messageAttributes(
+      mapOf(
+        "messageType" to MessageAttributeValue.builder().dataType("String")
+          .stringValue(COMMON_PLATFORM_HEARING.name).build(),
+      ),
+    )
+    .build()
 }

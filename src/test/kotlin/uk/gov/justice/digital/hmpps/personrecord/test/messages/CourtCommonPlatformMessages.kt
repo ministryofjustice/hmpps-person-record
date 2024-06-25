@@ -14,12 +14,12 @@ data class CommonPlatformHearingSetup(
   val cro: String = randomCro(),
   val defendantId: String,
   val nationalInsuranceNumber: String = randomNationalInsuranceNumber(),
-  val aliases: List<CommonPlatformMessageAlias> = emptyList()
+  val aliases: List<CommonPlatformMessageAlias> = emptyList(),
 )
 
 data class CommonPlatformMessageAlias(
   val firstName: String?,
-  val lastName: String
+  val lastName: String,
 )
 
 fun commonPlatformHearing(commonPlatformHearingSetup: List<CommonPlatformHearingSetup>) = """
@@ -109,14 +109,14 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) =
                    "selfDefinedEthnicityDescription": "selfDefinedEthnicityDescription"
                 },
                 "aliases": [${
-                  if (commonPlatformHearingSetup.aliases.isNotEmpty()) {
-                    commonPlatformHearingSetup.aliases.map {
-                      """ { "firstName": "${it.firstName}", "lastName": "${it.lastName}" } """.trimIndent()
-                    }.joinToString(",")
-                  } else {
-                    ""
-                  }
-                }],
+    if (commonPlatformHearingSetup.aliases.isNotEmpty()) {
+      commonPlatformHearingSetup.aliases.map {
+        """ { "firstName": "${it.firstName}", "lastName": "${it.lastName}" } """.trimIndent()
+      }.joinToString(",")
+    } else {
+      ""
+    }
+  }],
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               }
   """.trimIndent()
