@@ -16,9 +16,9 @@
 
     <springProfile name="!log-json">
         <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
-            <layout class="ch.qos.logback.classic.PatternLayout">
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
                 <Pattern>${LOG_PATTERN}</Pattern>
-            </layout>
+            </encoder>
         </appender>
     </springProfile>
 
