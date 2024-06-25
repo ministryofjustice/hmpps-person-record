@@ -149,9 +149,10 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     )
     stubMatchScore(matchResponse)
 
-    val croIdentifier = randomCro()
+    val changedLastName = randomLastName()
+    val cro = randomCro()
     val messageId = publishHMCTSMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, firstName = firstName, pnc = pnc, cro = croIdentifier))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, lastName = changedLastName, pnc = pnc, cro = cro))),
       COMMON_PLATFORM_HEARING,
     )
 
@@ -162,9 +163,9 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
     await.atMost(15, SECONDS) untilAsserted {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
-      assertThat(updatedPersonEntity.firstName).isEqualTo(firstName)
+      assertThat(updatedPersonEntity.lastName).isEqualTo(changedLastName)
       assertThat(updatedPersonEntity.pnc).isEqualTo(PNCIdentifier.from(pnc))
-      assertThat(updatedPersonEntity.cro).isEqualTo(CROIdentifier.from(croIdentifier))
+      assertThat(updatedPersonEntity.cro).isEqualTo(CROIdentifier.from(cro))
       assertThat(updatedPersonEntity.fingerprint).isEqualTo(true)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
     }
@@ -221,14 +222,14 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process messages with pnc as empty string and null`() {
-    val id1 = randomUUID().toString()
-    val id2 = randomUUID().toString()
+    val firstDefendantId = randomUUID().toString()
+    val secondDefendantId = randomUUID().toString()
 
     val messageId = publishHMCTSMessage(
       commonPlatformHearing(
         listOf(
-          CommonPlatformHearingSetup(defendantId = id1, pnc = null),
-          CommonPlatformHearingSetup(defendantId = id2, pnc = ""),
+          CommonPlatformHearingSetup(defendantId = firstDefendantId, pnc = ""),
+          CommonPlatformHearingSetup(defendantId = secondDefendantId, pnc = null),
         ),
       ),
       COMMON_PLATFORM_HEARING,
@@ -236,36 +237,36 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       COURT_MESSAGE_RECEIVED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to HMCTS.name),
+      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to HMCTS.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
     )
 
-    val personEntity = await.atMost(15, SECONDS) untilNotNull {
-      personRepository.findByDefendantId(id1)
+    val personWithEmptyPnc = await.atMost(15, SECONDS) untilNotNull {
+      personRepository.findByDefendantId(firstDefendantId)
     }
-    assertThat(personEntity.pnc?.pncId).isEqualTo("")
+    assertThat(personWithEmptyPnc.pnc?.pncId).isEqualTo("")
 
-    val secondPersonEntity = personRepository.findByDefendantId(id2)
-    assertThat(secondPersonEntity?.pnc?.pncId).isEqualTo("")
+    val personWithNullPnc = personRepository.findByDefendantId(secondDefendantId)
+    assertThat(personWithNullPnc?.pnc?.pncId).isEqualTo("")
   }
 
-  private fun buildPublishRequest(
-    defendantId: String,
-    pncNumber: PNCIdentifier,
-  ): PublishRequest? = PublishRequest.builder()
-    .topicArn(courtCaseEventsTopic?.arn)
-    .message(
-      commonPlatformHearing(
-        listOf(
-          CommonPlatformHearingSetup(defendantId = defendantId, pnc = pncNumber.pncId),
-          CommonPlatformHearingSetup(defendantId = defendantId, pnc = pncNumber.pncId),
+    private fun buildPublishRequest(
+      defendantId: String,
+      pnc: PNCIdentifier,
+    ): PublishRequest? = PublishRequest.builder()
+      .topicArn(courtCaseEventsTopic?.arn)
+      .message(
+        commonPlatformHearing(
+          listOf(
+            CommonPlatformHearingSetup(defendantId = defendantId, pnc = pnc.pncId),
+            CommonPlatformHearingSetup(defendantId = defendantId, pnc = pnc.pncId),
+          ),
         ),
-      ),
-    )
-    .messageAttributes(
-      mapOf(
-        "messageType" to MessageAttributeValue.builder().dataType("String")
-          .stringValue(COMMON_PLATFORM_HEARING.name).build(),
-      ),
-    )
-    .build()
+      )
+      .messageAttributes(
+        mapOf(
+          "messageType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(COMMON_PLATFORM_HEARING.name).build(),
+        ),
+      )
+      .build()
 }
