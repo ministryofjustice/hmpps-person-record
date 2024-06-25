@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithAdditionalFields
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithNewDefendantAndNoPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.UUID.randomUUID
@@ -207,19 +207,20 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should process messages with pnc as empty string and null`() {
-    val id1 = randomUUID().toString()
-    val id2 = randomUUID().toString()
-    publishHMCTSMessage(commonPlatformHearingWithNewDefendantAndNoPnc(defendantIds = listOf(id1, id2)), COMMON_PLATFORM_HEARING)
+  fun `should process messages with pnc as empty string or null`() {
+    val firstDefendantId = randomUUID().toString()
+    val secondDefendantId = randomUUID().toString()
+    val cro = randomCro()
+    publishHMCTSMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = firstDefendantId, pnc = "", cro = ""), CommonPlatformHearingSetup(defendantId = secondDefendantId, cro = cro))), COMMON_PLATFORM_HEARING)
 
-    val personEntity = await.atMost(15, SECONDS) untilNotNull {
-      personRepository.findByDefendantId(id1)
+    val personWithEmptyPnc = await.atMost(15, SECONDS) untilNotNull {
+      personRepository.findByDefendantId(firstDefendantId)
     }
-    assertThat(personEntity.pnc?.pncId).isEqualTo("")
+    assertThat(personWithEmptyPnc.pnc?.pncId).isEqualTo("")
 
-    val secondPersonEntity = personRepository.findByDefendantId(id2)
-    assertThat(secondPersonEntity?.pnc?.pncId).isEqualTo("")
-    assertThat(secondPersonEntity?.cro?.croId).isEqualTo("075715/64Q")
+    val personWithNullPnc = personRepository.findByDefendantId(secondDefendantId)
+    assertThat(personWithNullPnc?.pnc?.pncId).isEqualTo("")
+    assertThat(personWithNullPnc?.cro?.croId).isEqualTo(cro)
   }
 
   private fun buildPublishRequest(
