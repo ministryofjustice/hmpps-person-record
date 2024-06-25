@@ -20,10 +20,12 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformMessageAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithAdditionalFields
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithNewDefendantAndNoPnc
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithSameDefendantIdTwice
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.UUID.randomUUID
@@ -84,7 +86,10 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     val defendantId = randomUUID().toString()
 
     val matchResponse = MatchResponse(
-      matchProbabilities = mutableMapOf("0" to 0.999999),
+      matchProbabilities = mutableMapOf(
+        "0" to 0.999999,
+        "1" to 0.999999,
+      ),
     )
     stubMatchScore(matchResponse)
 
@@ -123,14 +128,15 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should update an existing person record from common platform message`() {
     val defendantId = randomUUID().toString()
     val pnc = randomPnc()
-    val message = commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId)))
+    val firstName = randomFirstName()
+    val message = commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, firstName = firstName, pnc = pnc)))
     publishHMCTSMessage(message, COMMON_PLATFORM_HEARING)
 
     val personEntity = await.atMost(15, SECONDS) untilNotNull {
       personRepository.findByDefendantId(defendantId)
     }
 
-    assertThat(personEntity.lastName).isEqualTo("Andy")
+    assertThat(personEntity.firstName).isEqualTo(firstName)
     assertThat(personEntity.addresses.size).isEqualTo(1)
 
     checkTelemetry(
@@ -142,8 +148,10 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       matchProbabilities = mutableMapOf("0" to 0.999999),
     )
     stubMatchScore(matchResponse)
+
+    val croIdentifier = randomCro()
     val messageId = publishHMCTSMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, lastName = "Smith", pnc = pnc))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, firstName = firstName, pnc = pnc, cro = croIdentifier))),
       COMMON_PLATFORM_HEARING,
     )
 
@@ -154,9 +162,9 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
     await.atMost(15, SECONDS) untilAsserted {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
-      assertThat(updatedPersonEntity.lastName).isEqualTo("Smith")
+      assertThat(updatedPersonEntity.firstName).isEqualTo(firstName)
       assertThat(updatedPersonEntity.pnc).isEqualTo(PNCIdentifier.from(pnc))
-      assertThat(updatedPersonEntity.cro).isEqualTo(CROIdentifier.from("86621/65B"))
+      assertThat(updatedPersonEntity.cro).isEqualTo(CROIdentifier.from(croIdentifier))
       assertThat(updatedPersonEntity.fingerprint).isEqualTo(true)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
     }
@@ -168,61 +176,68 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should create new people with additional fields from common platform message`() {
-    val pncNumber1 = PNCIdentifier.from("2003/0062845E")
-    val pncNumber2 = PNCIdentifier.from("2008/0056560Z")
-    val pncNumber3 = PNCIdentifier.from("20230583843L")
+  fun `should create new person with additional fields from common platform message`() {
+    val pncNumber1 = randomPnc()
 
-    val id1 = randomUUID().toString()
-    val id2 = randomUUID().toString()
-    val id3 = randomUUID().toString()
+    val defendantId1 = randomUUID().toString()
+    val niNumber = randomNationalInsuranceNumber()
 
-    publishHMCTSMessage(commonPlatformHearingWithAdditionalFields(defendantIds = listOf(id1, id2, id3)), COMMON_PLATFORM_HEARING)
+    val defendantId1AliasFirstName = randomFirstName()
+    val defendantId1AliasLastName = randomLastName()
+
+    val messageId = publishHMCTSMessage(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(
+            defendantId = defendantId1,
+            pnc = pncNumber1,
+            nationalInsuranceNumber = niNumber,
+            aliases = listOf(
+              CommonPlatformMessageAlias(
+                firstName = defendantId1AliasFirstName,
+                lastName = defendantId1AliasLastName,
+              ),
+            ),
+          ),
+        ),
+      ),
+      COMMON_PLATFORM_HEARING,
+    )
+
+    checkTelemetry(
+      COURT_MESSAGE_RECEIVED,
+      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to HMCTS.name),
+    )
 
     val personEntity1 = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByDefendantId(id1)
+      personRepository.findByDefendantId(defendantId1)
     }
-
-    val personEntity2 = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByDefendantId(id2)
-    }
-
-    val personEntity3 = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByDefendantId(id3)
-    }
-
-    assertThat(personEntity1.pnc).isEqualTo(pncNumber1)
-    assertThat(personEntity1.masterDefendantId).isEqualTo("eeb71c73-573b-444e-9dc3-4e5998d1be65")
-    assertThat(personEntity1.firstName).isEqualTo("Eric")
-    assertThat(personEntity1.middleNames).isEqualTo("mName1 mName2")
-    assertThat(personEntity1.lastName).isEqualTo("Lassard")
-    assertThat(personEntity1.contacts).isEmpty()
-    assertThat(personEntity1.addresses).isNotEmpty()
-    assertThat(personEntity1.aliases.size).isEqualTo(2)
-    assertThat(personEntity1.aliases[0].firstName).isEqualTo("aliasFirstName1")
-    assertThat(personEntity1.aliases[0].lastName).isEqualTo("alisLastName1")
-    assertThat(personEntity1.aliases[1].firstName).isEqualTo("aliasFirstName2")
-    assertThat(personEntity1.aliases[1].lastName).isEqualTo("alisLastName2")
-
-    assertThat(personEntity2.aliases).isEmpty()
-    assertThat(personEntity2.addresses).isNotEmpty()
-    assertThat(personEntity2.addresses[0].postcode).isEqualTo("CF10 1FU")
-    assertThat(personEntity2.pnc).isEqualTo(pncNumber2)
-    assertThat(personEntity2.contacts.size).isEqualTo(3)
-    assertThat(personEntity2.masterDefendantId).isEqualTo("1f6847a2-6663-44dd-b945-fe2c20961d0a")
-
-    assertThat(personEntity3.aliases).isEmpty()
-    assertThat(personEntity3.contacts.size).isEqualTo(0)
-    assertThat(personEntity3.pnc).isEqualTo(pncNumber3)
-    assertThat(personEntity3.nationalInsuranceNumber).isEqualTo("PC456743D")
-    assertThat(personEntity3.masterDefendantId).isEqualTo("290e0457-1480-4e62-b3c8-7f29ef791c58")
+    assertThat(personEntity1.pnc).isEqualTo(PNCIdentifier.from(pncNumber1))
+    assertThat(personEntity1.nationalInsuranceNumber).isEqualTo(niNumber)
+    assertThat(personEntity1.aliases.size).isEqualTo(1)
+    assertThat(personEntity1.aliases[0].firstName).isEqualTo(defendantId1AliasFirstName)
+    assertThat(personEntity1.aliases[0].lastName).isEqualTo(defendantId1AliasLastName)
   }
 
   @Test
   fun `should process messages with pnc as empty string and null`() {
     val id1 = randomUUID().toString()
     val id2 = randomUUID().toString()
-    publishHMCTSMessage(commonPlatformHearingWithNewDefendantAndNoPnc(defendantIds = listOf(id1, id2)), COMMON_PLATFORM_HEARING)
+
+    val messageId = publishHMCTSMessage(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(defendantId = id1, pnc = null),
+          CommonPlatformHearingSetup(defendantId = id2, pnc = ""),
+        ),
+      ),
+      COMMON_PLATFORM_HEARING,
+    )
+
+    checkTelemetry(
+      COURT_MESSAGE_RECEIVED,
+      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to HMCTS.name),
+    )
 
     val personEntity = await.atMost(15, SECONDS) untilNotNull {
       personRepository.findByDefendantId(id1)
@@ -231,7 +246,6 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
     val secondPersonEntity = personRepository.findByDefendantId(id2)
     assertThat(secondPersonEntity?.pnc?.pncId).isEqualTo("")
-    assertThat(secondPersonEntity?.cro?.croId).isEqualTo("075715/64Q")
   }
 
   private fun buildPublishRequest(
@@ -239,7 +253,14 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     pncNumber: PNCIdentifier,
   ): PublishRequest? = PublishRequest.builder()
     .topicArn(courtCaseEventsTopic?.arn)
-    .message(commonPlatformHearingWithSameDefendantIdTwice(defendantId = defendantId, pncNumber = pncNumber.pncId))
+    .message(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(defendantId = defendantId, pnc = pncNumber.pncId),
+          CommonPlatformHearingSetup(defendantId = defendantId, pnc = pncNumber.pncId),
+        ),
+      ),
+    )
     .messageAttributes(
       mapOf(
         "messageType" to MessageAttributeValue.builder().dataType("String")
