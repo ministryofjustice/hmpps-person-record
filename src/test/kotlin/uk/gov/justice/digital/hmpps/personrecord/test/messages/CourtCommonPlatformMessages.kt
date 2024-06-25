@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.messages
 
+data class CommonPlatformHearingSetup(val pnc: String = "1981/0154257C", val firstName: String? = "Horace", val lastName: String = "Andy", val dateOfBirth: String = "1975-01-01", val cro: String = "86621/65B", val defendantId: String)
+
 fun commonPlatformHearing(pncNumber: String = "1981/0154257C", defendantIds: List<String>) = """
     {
       "hearing": {
@@ -159,7 +161,7 @@ fun commonPlatformHearing(pncNumber: String = "1981/0154257C", defendantIds: Lis
     }
 """.trimIndent()
 
-fun commonPlatformHearingWithOneDefendant(pnc: String = "1981/0154257C", firstName: String? = "Horace", lastName: String = "Andy", dateOfBirth: String = "1975-01-01", cro: String = "86621/65B", defendantId: String) = """
+fun commonPlatformHearingWithOneDefendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) = """
     {
       "hearing": {
         "type": {
@@ -189,9 +191,9 @@ fun commonPlatformHearingWithOneDefendant(pnc: String = "1981/0154257C", firstNa
           {
             "defendants": [
               { 
-                "id": "$defendantId",
-                "pncId": "$pnc",
-                "croNumber": "$cro",
+                "id": "${commonPlatformHearingSetup.defendantId}",
+                "pncId": "${commonPlatformHearingSetup.pnc}",
+                "croNumber": "${commonPlatformHearingSetup.cro}",
                 "offences": [
                   {
                     "id": "a63d9020-aa6b-4997-92fd-72a692b036de",
@@ -220,10 +222,10 @@ fun commonPlatformHearingWithOneDefendant(pnc: String = "1981/0154257C", firstNa
                       "address5": "Earth",
                       "postcode": "SA1 1FU"
                     },
-                    "dateOfBirth": "$dateOfBirth",
-                    ${firstName?.let { """ "firstName": "$firstName", """.trimIndent() } ?: ""}
+                    "dateOfBirth": "${commonPlatformHearingSetup.dateOfBirth}",
+                    ${commonPlatformHearingSetup.firstName?.let { """ "firstName": "${commonPlatformHearingSetup.firstName}", """.trimIndent() } ?: ""}
                     "gender": "MALE",
-                    "lastName": "$lastName",
+                    "lastName": "${commonPlatformHearingSetup.lastName}",
                     "title": "Mr"
                   }
                 },

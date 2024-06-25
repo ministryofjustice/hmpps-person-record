@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.HM
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.COURT_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithAdditionalFields
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithNewDefendantAndNoPnc
@@ -79,7 +80,6 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should not push messages from Common Platform onto dead letter queue when processing fails - fires the same request so many times that some message writes will fail and be retried`() {
     val pncNumber = PNCIdentifier.from(randomPnc())
     val defendantId = randomUUID().toString()
-    buildPublishRequest(defendantId, pncNumber)
     val blitzer = Blitzer(15, 4)
     try {
       blitzer.blitz {
@@ -115,7 +115,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should update an existing person record from common platform message`() {
     val defendantId = randomUUID().toString()
     val pnc = randomPnc()
-    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(defendantId = defendantId), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(commonPlatformHearingWithOneDefendant(CommonPlatformHearingSetup(defendantId = defendantId)), COMMON_PLATFORM_HEARING)
 
     val personEntity = await.atMost(15, SECONDS) untilNotNull {
       personRepository.findByDefendantId(defendantId)
@@ -130,7 +130,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     val messageId = publishHMCTSMessage(
-      commonPlatformHearingWithOneDefendant(defendantId = defendantId, lastName = "Smith", pnc = pnc),
+      commonPlatformHearingWithOneDefendant(CommonPlatformHearingSetup(defendantId = defendantId, lastName = "Smith", pnc = pnc)),
       COMMON_PLATFORM_HEARING,
     )
 
