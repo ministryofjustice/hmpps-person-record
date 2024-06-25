@@ -22,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithAdditionalFields
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithNewDefendantAndNoPnc
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithSameDefendantIdTwice
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.UUID.randomUUID
@@ -225,10 +224,10 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
   private fun buildPublishRequest(
     defendantId: String,
-    pncNumber: PNCIdentifier,
+    pnc: PNCIdentifier,
   ): PublishRequest? = PublishRequest.builder()
     .topicArn(courtCaseEventsTopic?.arn)
-    .message(commonPlatformHearingWithSameDefendantIdTwice(defendantId = defendantId, pncNumber = pncNumber.pncId))
+    .message(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, pnc = pnc.pncId), CommonPlatformHearingSetup(defendantId = defendantId, pnc = pnc.pncId))))
     .messageAttributes(
       mapOf(
         "messageType" to MessageAttributeValue.builder().dataType("String")
