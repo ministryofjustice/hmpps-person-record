@@ -1,9 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.messages
 
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
 import java.util.UUID
 
-data class CommonPlatformHearingSetup(val pnc: String? = null, val firstName: String? = randomFirstName(), val lastName: String = "Andy", val dateOfBirth: String = "1975-01-01", val cro: String = "86621/65B", val defendantId: String = UUID.randomUUID().toString())
+data class CommonPlatformHearingSetup(val pnc: String? = null, val firstName: String? = randomFirstName(), val lastName: String = randomLastName(), val dateOfBirth: String = "1975-01-01", val cro: String = randomCro(), val defendantId: String = UUID.randomUUID().toString())
 
 fun commonPlatformHearing(commonPlatformHearingSetup: List<CommonPlatformHearingSetup>) = """
     {

@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithAdditionalFields
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.UUID.randomUUID
@@ -115,23 +116,26 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should update an existing person record from common platform message`() {
     val defendantId = randomUUID().toString()
     val pnc = randomPnc()
-    val message = commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId)))
+    val lastName = randomLastName()
+    val cro = randomCro()
+
+    val message = commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, lastName = lastName)))
     publishHMCTSMessage(message, COMMON_PLATFORM_HEARING)
 
     val personEntity = await.atMost(15, SECONDS) untilNotNull {
       personRepository.findByDefendantId(defendantId)
     }
 
-    assertThat(personEntity.lastName).isEqualTo("Andy")
+    assertThat(personEntity.lastName).isEqualTo(lastName)
     assertThat(personEntity.addresses.size).isEqualTo(1)
 
     checkTelemetry(
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "HMCTS", "DEFENDANT_ID" to defendantId),
     )
-
+    val changedLastName = randomLastName()
     val messageId = publishHMCTSMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, lastName = "Smith", pnc = pnc))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, lastName = changedLastName, pnc = pnc, cro = cro))),
       COMMON_PLATFORM_HEARING,
     )
 
@@ -142,9 +146,9 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
     await.atMost(15, SECONDS) untilAsserted {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
-      assertThat(updatedPersonEntity.lastName).isEqualTo("Smith")
+      assertThat(updatedPersonEntity.lastName).isEqualTo(changedLastName)
       assertThat(updatedPersonEntity.pnc).isEqualTo(PNCIdentifier.from(pnc))
-      assertThat(updatedPersonEntity.cro).isEqualTo(CROIdentifier.from("86621/65B"))
+      assertThat(updatedPersonEntity.cro).isEqualTo(CROIdentifier.from(cro))
       assertThat(updatedPersonEntity.fingerprint).isEqualTo(true)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
     }
