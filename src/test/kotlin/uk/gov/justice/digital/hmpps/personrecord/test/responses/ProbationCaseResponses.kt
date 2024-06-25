@@ -6,9 +6,9 @@ fun probationCaseResponse(probationCase: ProbationCaseResponseSetup) = """
           "deliusId": 2500000501,
           ${probationCase.pnc?.let { """ "pnc": "${probationCase.pnc}", """.trimIndent() } ?: ""}
           "crn": "${probationCase.crn}",
-          "cro": "075715/64Q",
+          "cro": "${probationCase.cro}",
           "prisonerNumber": "${probationCase.prisonNumber}",
-          "ni": "1234567890"
+          "ni": "${probationCase.nationalInsuranceNumber}"
       },
       "name": {
           "forename": "${probationCase.prefix}FirstName",
@@ -49,4 +49,11 @@ fun probationCaseResponse(probationCase: ProbationCaseResponseSetup) = """
     }
 """.trimIndent()
 
-data class ProbationCaseResponseSetup(val crn: String, val pnc: String? = null, val prefix: String, val prisonNumber: String)
+data class ProbationCaseResponseSetup(
+  val crn: String,
+  val cro: String?,
+  val pnc: String? = null,
+  val prefix: String,
+  val prisonNumber: String,
+  val nationalInsuranceNumber: String
+)

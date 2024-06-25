@@ -302,16 +302,4 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
   }
-
-  private fun stubMatchScore(matchResponse: MatchResponse) {
-    wiremock.stubFor(
-      WireMock.post("/person/match")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(objectMapper.writeValueAsString(matchResponse)),
-        ),
-    )
-  }
 }
