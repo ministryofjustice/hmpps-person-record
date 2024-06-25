@@ -102,7 +102,7 @@ class PersonService(
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
 
   fun searchForRecord(person: Person, searchBySourceSystem: Boolean = true): PersonEntity? {
-    val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecords(person)
+    val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecords(person, searchBySourceSystem = searchBySourceSystem)
     val personEntity: PersonEntity? = searchService.processCandidateRecords(highConfidenceMatches)
     return personEntity
   }

@@ -55,5 +55,5 @@ data class ProbationCaseResponseSetup(
   val pnc: String? = null,
   val prefix: String,
   val prisonNumber: String,
-  val nationalInsuranceNumber: String
+  val nationalInsuranceNumber: String,
 )

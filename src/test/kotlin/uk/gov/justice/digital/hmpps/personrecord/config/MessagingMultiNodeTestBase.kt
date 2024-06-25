@@ -111,7 +111,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       cro = cro,
       prefix = prefix,
       prisonNumber = prisonNumber,
-      nationalInsuranceNumber = randomNINumber()
+      nationalInsuranceNumber = randomNINumber(),
     )
     stubSingleProbationResponse(probationCaseResponseSetup)
 

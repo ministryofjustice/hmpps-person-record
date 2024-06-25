@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.libra
 
-import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
@@ -59,6 +58,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "HIGH_CONFIDENCE_COUNT" to "0",
         "LOW_CONFIDENCE_COUNT" to "0",
       ),
+      times = 2
     )
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
 
@@ -165,6 +165,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "HIGH_CONFIDENCE_COUNT" to "0",
         "LOW_CONFIDENCE_COUNT" to "1",
       ),
+      times = 2
     )
 
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"), times = 2)

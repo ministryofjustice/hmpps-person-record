@@ -1,10 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
-
 fun prisonerSearchResponse(
   prisonNumber: String,
   pnc: String?,
-  cro: String? ,
+  cro: String?,
   firstName: String?,
   lastName: String?,
 ) = """
