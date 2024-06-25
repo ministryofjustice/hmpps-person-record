@@ -238,6 +238,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       COURT_MESSAGE_RECEIVED,
       mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to HMCTS.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
+      times = 2,
     )
 
     val personWithEmptyPnc = await.atMost(15, SECONDS) untilNotNull {
