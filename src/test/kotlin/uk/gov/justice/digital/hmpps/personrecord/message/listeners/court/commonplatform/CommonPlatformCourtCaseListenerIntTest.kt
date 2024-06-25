@@ -114,6 +114,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should update an existing person record from common platform message`() {
     val defendantId = randomUUID().toString()
+    val pnc = randomPnc()
     publishHMCTSMessage(commonPlatformHearingWithOneDefendant(defendantId = defendantId), COMMON_PLATFORM_HEARING)
 
     val personEntity = await.atMost(15, SECONDS) untilNotNull {
@@ -129,7 +130,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     val messageId = publishHMCTSMessage(
-      commonPlatformHearingWithOneDefendant(defendantId = defendantId, lastName = "Smith"),
+      commonPlatformHearingWithOneDefendant(defendantId = defendantId, lastName = "Smith", pnc = pnc),
       COMMON_PLATFORM_HEARING,
     )
 
@@ -141,7 +142,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     await.atMost(15, SECONDS) untilAsserted {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
       assertThat(updatedPersonEntity.lastName).isEqualTo("Smith")
-      assertThat(updatedPersonEntity.pnc).isEqualTo(PNCIdentifier.from("1981/0154257C"))
+      assertThat(updatedPersonEntity.pnc).isEqualTo(PNCIdentifier.from(pnc))
       assertThat(updatedPersonEntity.cro).isEqualTo(CROIdentifier.from("86621/65B"))
       assertThat(updatedPersonEntity.fingerprint).isEqualTo(true)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
