@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.P
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.COURT_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
@@ -25,6 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -136,6 +138,48 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo("NT4 6YH")
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
+  }
+
+  @Test
+  fun `should process and create libra message and link to different source system record`() {
+    val firstName = randomFirstName()
+
+    personRepository.saveAndFlush(
+      PersonEntity.from(
+        Person(
+          firstName = firstName,
+          lastName = "MORGAN",
+          dateOfBirth = LocalDate.of(1975, 1, 1),
+          addresses = listOf(Address("NT4 6YH")),
+          sourceSystemType = DELIUS,
+        ),
+      ),
+    )
+
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    stubMatchScore(matchResponse)
+
+    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
+    val messageId1 = publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    checkTelemetry(
+      COURT_MESSAGE_RECEIVED,
+      mapOf(
+        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
+        "MESSAGE_ID" to messageId1,
+        "SOURCE_SYSTEM" to LIBRA.name,
+      ),
+    )
+
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
+    checkTelemetry(
+      CPR_CANDIDATE_RECORD_SEARCH,
+      mapOf(
+        "SOURCE_SYSTEM" to LIBRA.name,
+        "RECORD_COUNT" to "1",
+        "HIGH_CONFIDENCE_COUNT" to "1",
+        "LOW_CONFIDENCE_COUNT" to "0",
+      ),
+    )
   }
 
   @Test
