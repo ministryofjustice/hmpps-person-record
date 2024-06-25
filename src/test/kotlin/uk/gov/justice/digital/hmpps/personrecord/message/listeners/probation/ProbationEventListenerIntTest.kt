@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
@@ -99,7 +100,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should not push 404 to dead letter queue`() {
+  fun `should not push 404 to dead letter queue but discard message instead`() {
     val crn = randomCRN()
     stub404Response(crn)
 
@@ -108,14 +109,31 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
     publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
-    await.atMost(Duration.ofSeconds(5)) untilCallTo {
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
       probationEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
 
-    await.atMost(Duration.ofSeconds(5)) untilCallTo {
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
       probationEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(probationEventsQueue!!.dlqUrl!!)?.get()
     } matches { it == 0 }
-    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"), 1)
+  }
+
+  @Test
+  fun `should retry on 500 error`() {
+    val crn = randomCRN()
+    stub500Response(crn)
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc = "", crn = crn, scenario = "retry", currentScenarioState = "next request will succeed")
+
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      probationEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationEventsQueue!!.queueUrl)?.get()
+    } matches { it == 0 }
+
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      probationEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(probationEventsQueue!!.dlqUrl!!)?.get()
+    } matches { it == 0 }
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"), 1)
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
   }
 
   @Test
@@ -143,6 +161,20 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(404),
+        ),
+    )
+  }
+
+  private fun stub500Response(crn: String) {
+    wiremock.stubFor(
+      WireMock.get("/probation-cases/$crn")
+        .inScenario("retry")
+        .whenScenarioStateIs(STARTED)
+        .willSetStateTo("next request will succeed")
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(500),
         ),
     )
   }

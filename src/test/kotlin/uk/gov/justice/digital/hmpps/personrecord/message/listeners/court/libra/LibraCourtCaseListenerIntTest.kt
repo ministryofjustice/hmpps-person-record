@@ -58,7 +58,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "HIGH_CONFIDENCE_COUNT" to "0",
         "LOW_CONFIDENCE_COUNT" to "0",
       ),
-      times = 2
+      times = 2,
     )
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
 
@@ -165,7 +165,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "HIGH_CONFIDENCE_COUNT" to "0",
         "LOW_CONFIDENCE_COUNT" to "1",
       ),
-      times = 2
+      times = 2,
     )
 
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"), times = 2)

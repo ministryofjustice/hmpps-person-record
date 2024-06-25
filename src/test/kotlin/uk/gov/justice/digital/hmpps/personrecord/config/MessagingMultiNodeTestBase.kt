@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
@@ -104,7 +105,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     expectNoMessagesOn(prisonEventsQueue)
   }
 
-  fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = "POPOne"): String {
+  fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = "POPOne", scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {
     val probationCaseResponseSetup = ProbationCaseResponseSetup(
       crn = crn,
       pnc = pnc,
@@ -113,7 +114,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       prisonNumber = prisonNumber,
       nationalInsuranceNumber = randomNINumber(),
     )
-    stubSingleProbationResponse(probationCaseResponseSetup)
+    stubSingleProbationResponse(probationCaseResponseSetup, scenario, currentScenarioState, nextScenarioState)
 
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
@@ -127,9 +128,12 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     publishDomainEvent(eventType, domainEvent)
     return crn
   }
-  private fun stubSingleProbationResponse(probationCase: ProbationCaseResponseSetup) {
+  private fun stubSingleProbationResponse(probationCase: ProbationCaseResponseSetup, scenario: String, currentScenarioState: String, nextScenarioState: String) {
     wiremock.stubFor(
       WireMock.get("/probation-cases/${probationCase.crn}")
+        .inScenario(scenario)
+        .whenScenarioStateIs(currentScenarioState)
+        .willSetStateTo(nextScenarioState)
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
