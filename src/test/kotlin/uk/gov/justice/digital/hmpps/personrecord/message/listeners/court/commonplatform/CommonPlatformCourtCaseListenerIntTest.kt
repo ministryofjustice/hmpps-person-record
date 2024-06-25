@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.HMCTS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.COURT_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithNewDefendantAndNoPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithOneDefendant
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithSameDefendantIdTwice
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.SECONDS
@@ -31,21 +32,21 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should successfully process common platform message with 3 defendants and create correct telemetry events`() {
-    val id1 = randomUUID().toString()
-    val id2 = randomUUID().toString()
-    val id3 = randomUUID().toString()
-    val messageId = publishHMCTSMessage(commonPlatformHearing(defendantIds = listOf(id1, id2, id3), pncNumber = "19810154257C"), COMMON_PLATFORM_HEARING)
+    val defendantId1 = randomUUID().toString()
+    val defendantId2 = randomUUID().toString()
+    val defendantId3 = randomUUID().toString()
+    val messageId = publishHMCTSMessage(commonPlatformHearing(defendantIds = listOf(defendantId1, defendantId2, defendantId3), pncNumber = "19810154257C"), COMMON_PLATFORM_HEARING)
 
     await.atMost(10, SECONDS) untilNotNull {
-      assertThat(personRepository.findByDefendantId(id1))
+      assertThat(personRepository.findByDefendantId(defendantId1))
     }
 
     await.atMost(10, SECONDS) untilNotNull {
-      assertThat(personRepository.findByDefendantId(id2))
+      assertThat(personRepository.findByDefendantId(defendantId2))
     }
 
     await.atMost(10, SECONDS) untilNotNull {
-      assertThat(personRepository.findByDefendantId(id3))
+      assertThat(personRepository.findByDefendantId(defendantId3))
     }
 
     checkTelemetry(
@@ -53,7 +54,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "PNC" to "1981/0154257C",
         "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to SourceSystemType.HMCTS.name,
+        "SOURCE_SYSTEM" to HMCTS.name,
       ),
     )
     checkTelemetry(
@@ -61,7 +62,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "PNC" to "2008/0056560Z",
         "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to SourceSystemType.HMCTS.name,
+        "SOURCE_SYSTEM" to HMCTS.name,
       ),
     )
     checkTelemetry(
@@ -69,14 +70,14 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "PNC" to "",
         "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to SourceSystemType.HMCTS.name,
+        "SOURCE_SYSTEM" to HMCTS.name,
       ),
     )
   }
 
   @Test
   fun `should not push messages from Common Platform onto dead letter queue when processing fails`() {
-    val pncNumber = PNCIdentifier.from("2003/0062845E")
+    val pncNumber = PNCIdentifier.from(randomPnc())
     val defendantId = randomUUID().toString()
     buildPublishRequest(defendantId, pncNumber)
     val blitzer = Blitzer(25, 3)
@@ -134,7 +135,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       COURT_MESSAGE_RECEIVED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to SourceSystemType.HMCTS.name),
+      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to HMCTS.name),
     )
 
     await.atMost(15, SECONDS) untilAsserted {
