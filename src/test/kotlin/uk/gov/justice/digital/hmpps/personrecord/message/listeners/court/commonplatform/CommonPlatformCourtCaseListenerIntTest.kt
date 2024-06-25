@@ -84,7 +84,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     val defendantId = randomUUID().toString()
 
     val matchResponse = MatchResponse(
-      matchProbabilities = mutableMapOf("0" to 0.999999)
+      matchProbabilities = mutableMapOf("0" to 0.999999),
     )
     stubMatchScore(matchResponse)
 
@@ -139,7 +139,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     val matchResponse = MatchResponse(
-      matchProbabilities = mutableMapOf("0" to 0.999999)
+      matchProbabilities = mutableMapOf("0" to 0.999999),
     )
     stubMatchScore(matchResponse)
     val messageId = publishHMCTSMessage(

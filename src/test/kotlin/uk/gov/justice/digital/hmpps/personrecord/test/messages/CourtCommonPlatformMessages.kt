@@ -10,7 +10,7 @@ data class CommonPlatformHearingSetup(
   val lastName: String = randomLastName(),
   val dateOfBirth: String = "1975-01-01",
   val cro: String = randomCro(),
-  val defendantId: String
+  val defendantId: String,
 )
 
 fun commonPlatformHearing(commonPlatformHearingSetup: List<CommonPlatformHearingSetup>) = """
