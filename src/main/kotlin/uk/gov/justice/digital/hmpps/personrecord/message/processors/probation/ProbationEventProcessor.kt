@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
@@ -24,10 +24,10 @@ class ProbationEventProcessor(
   val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
   val personService: PersonService,
   val personRepository: PersonRepository,
+  @Value("\${retry.delay}")
+  private val retryDelay: Long = 0,
 ) {
   companion object {
-    @Value("\${retry.delay}")
-    private val retryDelay: Long = 0
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
@@ -35,7 +35,7 @@ class ProbationEventProcessor(
     val crn = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }!!.value
     telemetryService.trackEvent(
       DOMAIN_EVENT_RECEIVED,
-      mapOf(EventKeys.CRN to crn, EventKeys.EVENT_TYPE to domainEvent.eventType, EventKeys.SOURCE_SYSTEM to SourceSystemType.DELIUS.name),
+      mapOf(EventKeys.CRN to crn, EventKeys.EVENT_TYPE to domainEvent.eventType, EventKeys.SOURCE_SYSTEM to DELIUS.name),
     )
     getProbationCase(crn).fold(
       onSuccess = {

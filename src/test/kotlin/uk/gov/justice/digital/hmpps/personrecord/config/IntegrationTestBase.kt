@@ -55,6 +55,7 @@ class IntegrationTestBase {
 
   @BeforeEach
   fun beforeEach() {
+    // wiremock.resetAll() TODO put this back in
     wiremock.stubFor(
       WireMock.post("/auth/oauth/token")
         .willReturn(
