@@ -19,8 +19,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHA
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DETAILS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_NEW_RECORD_EXISTS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
 
@@ -65,8 +65,10 @@ class PersonService(
     if (personEntity != null) {
       // Add UUID to log
       trackEvent(
-        CPR_CANDIDATE_RECORD_FOUND_UUID, person,
-        mapOf(EventKeys.UUID to ""))
+        CPR_CANDIDATE_RECORD_FOUND_UUID,
+        person,
+        mapOf(EventKeys.UUID to ""),
+      )
     }
     createPersonEntity(person)
     trackEvent(TelemetryEventType.CPR_RECORD_CREATED, person)

@@ -184,8 +184,9 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_CANDIDATE_RECORD_FOUND_UUID,
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
-        "UUID" to ""
-      ))
+        "UUID" to "",
+      ),
+    )
   }
 
   @Test
