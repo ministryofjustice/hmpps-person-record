@@ -75,7 +75,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecords(personToFind)
+    val candidateRecords = searchService.findCandidatesRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.sourceSystem).isEqualTo(LIBRA)
@@ -126,7 +126,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecords(personToFind, searchBySourceSystem = false)
+    val candidateRecords = searchService.findCandidatesRecords(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(4)
   }
@@ -148,7 +148,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecords(personToFind)
+    val candidateRecords = searchService.findCandidatesRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.pnc).isEqualTo(PNCIdentifier.from(pnc))
@@ -177,7 +177,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecords(personToFind)
+    val candidateRecords = searchService.findCandidatesRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.firstName).isEqualTo(firstName)
@@ -200,7 +200,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecords(personToFind)
+    val candidateRecords = searchService.findCandidatesRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.driverLicenseNumber).isEqualTo(driverLicenseNumber)
@@ -223,7 +223,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecords(personToFind)
+    val candidateRecords = searchService.findCandidatesRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.nationalInsuranceNumber).isEqualTo(nationalInsuranceNumber)
@@ -246,7 +246,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecords(personToFind)
+    val candidateRecords = searchService.findCandidatesRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.cro).isEqualTo(CROIdentifier.from(cro))
@@ -280,7 +280,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecords(searchingPerson)
+    val candidateRecords = searchService.findCandidatesRecordsBySourceSystem(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.firstName).isEqualTo("Steven")
@@ -315,7 +315,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecords(searchingPerson)
+    val candidateRecords = searchService.findCandidatesRecordsBySourceSystem(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.lastName).isEqualTo("Smith")
@@ -342,7 +342,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecords(searchingPerson)
+    val candidateRecords = searchService.findCandidatesRecordsBySourceSystem(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
@@ -377,7 +377,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecords(searchingPerson)
+    val candidateRecords = searchService.findCandidatesRecordsBySourceSystem(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.addresses[0].postcode).isEqualTo("LS1 1AB")
@@ -399,7 +399,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       addresses = listOf(Address(postcode = "LS1 1AB")),
       sourceSystemType = HMCTS,
     )
-    val candidateRecords = searchService.findCandidateRecords(searchingPerson)
+    val candidateRecords = searchService.findCandidatesRecordsBySourceSystem(searchingPerson)
 
     noCandidatesFound(candidateRecords)
   }
@@ -420,7 +420,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       dateOfBirth = LocalDate.of(1975, 1, 1),
       sourceSystemType = HMCTS,
     )
-    val candidateRecords = searchService.findCandidateRecords(searchingPerson)
+    val candidateRecords = searchService.findCandidatesRecordsBySourceSystem(searchingPerson)
 
     noCandidatesFound(candidateRecords)
   }
@@ -448,7 +448,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecords(personToFind)
+    val candidateRecords = searchService.findCandidatesRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(2)
     assertThat(candidateRecords[0].candidateRecord.pnc).isEqualTo(PNCIdentifier.from(pnc))
