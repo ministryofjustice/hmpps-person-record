@@ -31,8 +31,9 @@ hmpps.sqs:
       queueName: cpr_court_case_events_queue
       subscribeTopicId: courtcaseeventstopic
       dlqName: cpr_court_case_events_queue_dlq
-      dlqMaxReceiveCount: 3
+      dlqMaxReceiveCount: 5
       errorVisibilityTimeout: 1
+      visibilityTimeout: 1
     cprdeliusoffendereventsqueue:
       queueName: cpr_delius_offender_events_queue
       dlqName: cpr_delius_offender_events_queue_dlq

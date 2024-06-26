@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
+import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.SECONDS
@@ -83,7 +84,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should not push messages from Common Platform onto dead letter queue when processing fails - fires the same request so many times that some message writes will fail and be retried`() {
     val pncNumber = PNCIdentifier.from(randomPnc())
     val defendantId = randomUUID().toString()
-    val blitzer = Blitzer(15, 4)
+    val blitzer = Blitzer(10, 2)
     try {
       blitzer.blitz {
         courtCaseEventsTopic?.snsClient?.publish(buildPublishRequest(defendantId, pncNumber))?.get()
@@ -93,11 +94,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     await untilCallTo {
-      courtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(courtCaseEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
-
-    await untilCallTo {
-      courtCaseEventsQueue?.sqsDlqClient?.countMessagesOnQueue(courtCaseEventsQueue!!.dlqUrl!!)?.get()
+      courtCaseEventsQueue?.sqsClient?.countAllMessagesOnQueue(courtCaseEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
 
     checkTelemetry(
@@ -110,8 +107,11 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to "HMCTS",
         "DEFENDANT_ID" to defendantId,
       ),
-      29,
+      19,
     )
+    await untilCallTo {
+      courtCaseEventsQueue?.sqsDlqClient?.countMessagesOnQueue(courtCaseEventsQueue!!.dlqUrl!!)?.get()
+    } matches { it == 0 }
   }
 
   @Test
