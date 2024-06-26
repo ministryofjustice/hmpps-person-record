@@ -19,9 +19,11 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAlias
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupContact
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearingWithAdditionalFields
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
@@ -161,53 +163,74 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should create new people with additional fields from common platform message`() {
-    val pncNumber1 = PNCIdentifier.from("2003/0062845E")
-    val pncNumber2 = PNCIdentifier.from("2008/0056560Z")
-    val pncNumber3 = PNCIdentifier.from("20230583843L")
+    val firstPnc = randomPnc()
+    val firstName = randomFirstName()
+    val lastName = randomLastName()
+    val secondPnc = randomPnc()
+    val thirdPnc = randomPnc()
 
-    val id1 = randomUUID().toString()
-    val id2 = randomUUID().toString()
-    val id3 = randomUUID().toString()
+    val firstDefendantId = randomUUID().toString()
+    val secondDefendantId = randomUUID().toString()
+    val thirdDefendantId = randomUUID().toString()
 
-    publishHMCTSMessage(commonPlatformHearingWithAdditionalFields(defendantIds = listOf(id1, id2, id3)), COMMON_PLATFORM_HEARING)
+    publishHMCTSMessage(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(
+            defendantId = firstDefendantId,
+            pnc = firstPnc,
+            firstName = firstName,
+            middleName = "mName1 mName2",
+            lastName = lastName,
+            aliases = listOf(
+              CommonPlatformHearingSetupAlias(firstName = "aliasFirstName1", lastName = "alisLastName1"),
+              CommonPlatformHearingSetupAlias(firstName = "aliasFirstName2", lastName = "alisLastName2"),
+            ),
+          ),
+          CommonPlatformHearingSetup(defendantId = secondDefendantId, pnc = secondPnc, contact = CommonPlatformHearingSetupContact()),
+          CommonPlatformHearingSetup(defendantId = thirdDefendantId, pnc = thirdPnc),
+        ),
+      ),
+      COMMON_PLATFORM_HEARING,
+    )
 
-    val personEntity1 = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByDefendantId(id1)
+    val firstPerson = await.atMost(30, SECONDS) untilNotNull {
+      personRepository.findByDefendantId(firstDefendantId)
     }
 
-    val personEntity2 = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByDefendantId(id2)
+    val secondPerson = await.atMost(30, SECONDS) untilNotNull {
+      personRepository.findByDefendantId(secondDefendantId)
     }
 
-    val personEntity3 = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByDefendantId(id3)
+    val thirdPerson = await.atMost(30, SECONDS) untilNotNull {
+      personRepository.findByDefendantId(thirdDefendantId)
     }
 
-    assertThat(personEntity1.pnc).isEqualTo(pncNumber1)
-    assertThat(personEntity1.masterDefendantId).isEqualTo("eeb71c73-573b-444e-9dc3-4e5998d1be65")
-    assertThat(personEntity1.firstName).isEqualTo("Eric")
-    assertThat(personEntity1.middleNames).isEqualTo("mName1 mName2")
-    assertThat(personEntity1.lastName).isEqualTo("Lassard")
-    assertThat(personEntity1.contacts).isEmpty()
-    assertThat(personEntity1.addresses).isNotEmpty()
-    assertThat(personEntity1.aliases.size).isEqualTo(2)
-    assertThat(personEntity1.aliases[0].firstName).isEqualTo("aliasFirstName1")
-    assertThat(personEntity1.aliases[0].lastName).isEqualTo("alisLastName1")
-    assertThat(personEntity1.aliases[1].firstName).isEqualTo("aliasFirstName2")
-    assertThat(personEntity1.aliases[1].lastName).isEqualTo("alisLastName2")
+    assertThat(firstPerson.pnc).isEqualTo(PNCIdentifier.from(firstPnc))
+    assertThat(firstPerson.masterDefendantId).isEqualTo(firstDefendantId)
+    assertThat(firstPerson.firstName).isEqualTo(firstName)
+    assertThat(firstPerson.middleNames).isEqualTo("mName1 mName2")
+    assertThat(firstPerson.lastName).isEqualTo(lastName)
+    assertThat(firstPerson.contacts).isEmpty()
+    assertThat(firstPerson.addresses).isNotEmpty()
+    assertThat(firstPerson.aliases.size).isEqualTo(2)
+    assertThat(firstPerson.aliases[0].firstName).isEqualTo("aliasFirstName1")
+    assertThat(firstPerson.aliases[0].lastName).isEqualTo("alisLastName1")
+    assertThat(firstPerson.aliases[1].firstName).isEqualTo("aliasFirstName2")
+    assertThat(firstPerson.aliases[1].lastName).isEqualTo("alisLastName2")
 
-    assertThat(personEntity2.aliases).isEmpty()
-    assertThat(personEntity2.addresses).isNotEmpty()
-    assertThat(personEntity2.addresses[0].postcode).isEqualTo("CF10 1FU")
-    assertThat(personEntity2.pnc).isEqualTo(pncNumber2)
-    assertThat(personEntity2.contacts.size).isEqualTo(3)
-    assertThat(personEntity2.masterDefendantId).isEqualTo("1f6847a2-6663-44dd-b945-fe2c20961d0a")
+    assertThat(secondPerson.aliases).isEmpty()
+    assertThat(secondPerson.addresses).isNotEmpty()
+    assertThat(secondPerson.addresses[0].postcode).isEqualTo("CF10 1FU")
+    assertThat(secondPerson.pnc).isEqualTo(PNCIdentifier.from(secondPnc))
+    assertThat(secondPerson.contacts.size).isEqualTo(3)
+    assertThat(secondPerson.masterDefendantId).isEqualTo(secondDefendantId)
 
-    assertThat(personEntity3.aliases).isEmpty()
-    assertThat(personEntity3.contacts.size).isEqualTo(0)
-    assertThat(personEntity3.pnc).isEqualTo(pncNumber3)
-    assertThat(personEntity3.nationalInsuranceNumber).isEqualTo("PC456743D")
-    assertThat(personEntity3.masterDefendantId).isEqualTo("290e0457-1480-4e62-b3c8-7f29ef791c58")
+    assertThat(thirdPerson.aliases).isEmpty()
+    assertThat(thirdPerson.contacts.size).isEqualTo(0)
+    assertThat(thirdPerson.pnc).isEqualTo(PNCIdentifier.from(thirdPnc))
+    assertThat(thirdPerson.nationalInsuranceNumber).isEqualTo("PC456743D")
+    assertThat(thirdPerson.masterDefendantId).isEqualTo(thirdDefendantId)
   }
 
   @Test
