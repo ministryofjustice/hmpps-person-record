@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.COURT_MESSAGE_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -179,6 +180,12 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "LOW_CONFIDENCE_COUNT" to "0",
       ),
     )
+    checkTelemetry(
+      CPR_CANDIDATE_RECORD_FOUND_UUID,
+      mapOf(
+        "SOURCE_SYSTEM" to LIBRA.name,
+        "UUID" to ""
+      ))
   }
 
   @Test
