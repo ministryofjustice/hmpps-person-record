@@ -4,24 +4,27 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
+import java.util.UUID
 
 data class CommonPlatformHearingSetup(
-  val pnc: String? = randomPnc(),
+  val pnc: String? = null,
   val firstName: String? = randomFirstName(),
+  val middleName: String? = null,
   val lastName: String = randomLastName(),
   val dateOfBirth: String = "1975-01-01",
   val cro: String = randomCro(),
-  val defendantId: String,
+  val defendantId: String = UUID.randomUUID().toString(),
+  val aliases: List<CommonPlatformHearingSetupAlias>? = null,
+  val contact: CommonPlatformHearingSetupContact? = null,
   val nationalInsuranceNumber: String = randomNationalInsuranceNumber(),
-  val aliases: List<CommonPlatformMessageAlias> = emptyList(),
 )
-
-data class CommonPlatformMessageAlias(
-  val firstName: String?,
-  val lastName: String,
+data class CommonPlatformHearingSetupAlias(val firstName: String, val lastName: String)
+data class CommonPlatformHearingSetupContact(
+  val home: String = "0207345678",
+  val work: String = "0203788776",
+  val mobile: String = "078590345677",
+  val primaryEmail: String = "email@email.com",
 )
-
 fun commonPlatformHearing(commonPlatformHearingSetup: List<CommonPlatformHearingSetup>) = """
     {
       "hearing": {
@@ -89,15 +92,26 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) =
                   "personDetails": {
                     "address": {
                       "address1": "13 Wind Street",
-                      "address2": "Swansea",
+                      "address2": "Cardiff",
                       "address3": "Wales",
                       "address4": "UK",
                       "address5": "Earth",
-                      "postcode": "SA1 1FU"
+                      "postcode": "CF10 1FU"
                     },
+                    ${commonPlatformHearingSetup.contact?.let {
+    """
+                      "contact": {
+                       "home": "${commonPlatformHearingSetup.contact.home}",
+                        "work": "${commonPlatformHearingSetup.contact.work}",
+                        "mobile": "${commonPlatformHearingSetup.contact.mobile}",
+                        "primaryEmail": "${commonPlatformHearingSetup.contact.primaryEmail}"
+                       }, 
+    """.trimIndent()
+  } ?: ""}   
                     "dateOfBirth": "${commonPlatformHearingSetup.dateOfBirth}",
                     ${commonPlatformHearingSetup.firstName?.let { """ "firstName": "${commonPlatformHearingSetup.firstName}", """.trimIndent() } ?: ""}
                     "gender": "MALE",
+                    ${commonPlatformHearingSetup.middleName?.let { """ "middleName": "${commonPlatformHearingSetup.middleName}", """.trimIndent() } ?: ""}
                     "lastName": "${commonPlatformHearingSetup.lastName}",
                     "title": "Mr",
                     "nationalityCode": "GB",
@@ -108,7 +122,18 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) =
                    "observedEthnicityDescription": "observedEthnicityDescription",
                    "selfDefinedEthnicityDescription": "selfDefinedEthnicityDescription"
                 },
-                "aliases": [${ if (commonPlatformHearingSetup.aliases.isNotEmpty()) commonPlatformHearingSetup.aliases.joinToString(",") { """ { "firstName": "${it.firstName}", "lastName": "${it.lastName}" } """.trimIndent() } else "" }],
+                ${commonPlatformHearingSetup.aliases?.let {
+    """ "aliases": [${commonPlatformHearingSetup.aliases.joinToString(",") { alias(it) }
+    }], """.trimIndent()
+  } ?: ""}
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               }
+  """.trimIndent()
+
+private fun alias(alias: CommonPlatformHearingSetupAlias) =
+  """
+  {
+    "firstName": "${alias.firstName}",
+    "lastName": "${alias.lastName}"
+  }
   """.trimIndent()
