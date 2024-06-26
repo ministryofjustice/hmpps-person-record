@@ -65,7 +65,7 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) =
   """{ 
                 "id": "${commonPlatformHearingSetup.defendantId}",
                 "masterDefendantId": "${commonPlatformHearingSetup.defendantId}",
-                ${commonPlatformHearingSetup.pnc?.let { """ "pncId": "${commonPlatformHearingSetup.pnc}", """.trimIndent() } ?: ""}
+                "pncId": ${commonPlatformHearingSetup.pnc?.let { """ "${commonPlatformHearingSetup.pnc}" """.trimIndent() } ?: "null" },
                 "croNumber": "${commonPlatformHearingSetup.cro}",
                 "offences": [
                   {
