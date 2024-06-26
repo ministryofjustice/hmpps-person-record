@@ -108,15 +108,7 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) =
                    "observedEthnicityDescription": "observedEthnicityDescription",
                    "selfDefinedEthnicityDescription": "selfDefinedEthnicityDescription"
                 },
-                "aliases": [${
-    if (commonPlatformHearingSetup.aliases.isNotEmpty()) {
-      commonPlatformHearingSetup.aliases.map {
-        """ { "firstName": "${it.firstName}", "lastName": "${it.lastName}" } """.trimIndent()
-      }.joinToString(",")
-    } else {
-      ""
-    }
-  }],
+                "aliases": [${ if (commonPlatformHearingSetup.aliases.isNotEmpty()) commonPlatformHearingSetup.aliases.joinToString(",") { """ { "firstName": "${it.firstName}", "lastName": "${it.lastName}" } """.trimIndent() } else "" }],
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               }
   """.trimIndent()
