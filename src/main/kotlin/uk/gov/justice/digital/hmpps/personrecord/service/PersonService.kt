@@ -60,6 +60,8 @@ class PersonService(
     if (isUpdateEvent(event)) {
       trackEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
     }
+    // Use result of search to determine assign of UUID CPR-271
+    searchAllSourceSystems(person)
     createPersonEntity(person)
     trackEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
   }
@@ -99,10 +101,14 @@ class PersonService(
 
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
 
-  fun searchForRecord(person: Person): PersonEntity? {
-    val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecords(person)
-    val personEntity: PersonEntity? = searchService.processCandidateRecords(highConfidenceMatches)
-    return personEntity
+  fun searchAllSourceSystems(person: Person): PersonEntity? {
+    val highConfidenceMatches: List<MatchResult> = searchService.findCandidatesRecords(person)
+    return searchService.processCandidateRecords(highConfidenceMatches)
+  }
+
+  fun searchBySourceSystems(person: Person): PersonEntity? {
+    val highConfidenceMatches: List<MatchResult> = searchService.findCandidatesRecordsBySourceSystem(person)
+    return searchService.processCandidateRecords(highConfidenceMatches)
   }
 
   private fun trackEvent(
