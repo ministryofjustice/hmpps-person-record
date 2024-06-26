@@ -20,8 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DOMAIN_EVENT_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
-import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
@@ -34,23 +32,22 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `creates person when when new offender created event is published`() {
     val prisonNumber = randomPrisonNumber()
-    val prefix = randomFirstName()
     val pnc = randomPnc()
-    val cro = randomCro()
-    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, prisonNumber = prisonNumber, prefix = prefix, cro = cro)
+    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, prisonNumber = prisonNumber)
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
-    assertThat(personEntity.firstName).isEqualTo("${prefix}FirstName")
+    assertThat(personEntity.firstName).isEqualTo("POPOneFirstName")
     assertThat(personEntity.middleNames).isEqualTo("PreferredMiddleName")
-    assertThat(personEntity.lastName).isEqualTo("${prefix}LastName")
+    assertThat(personEntity.lastName).isEqualTo("POPOneLastName")
     assertThat(personEntity.title).isEqualTo("Mr")
     assertThat(personEntity.pnc).isEqualTo(PNCIdentifier(pnc))
     assertThat(personEntity.crn).isEqualTo(crn)
-    assertThat(personEntity.cro).isEqualTo(CROIdentifier.from(cro))
+    assertThat(personEntity.cro).isEqualTo(CROIdentifier.from("075715/64Q"))
+    assertThat(personEntity.nationalInsuranceNumber).isEqualTo("1234567890")
     assertThat(personEntity.aliases.size).isEqualTo(1)
-    assertThat(personEntity.aliases[0].firstName).isEqualTo("${prefix}FirstName")
+    assertThat(personEntity.aliases[0].firstName).isEqualTo("POPOneFirstName")
     assertThat(personEntity.aliases[0].middleNames).isEqualTo("MiddleName")
-    assertThat(personEntity.aliases[0].lastName).isEqualTo("${prefix}LastName")
+    assertThat(personEntity.aliases[0].lastName).isEqualTo("POPOneLastName")
     assertThat(personEntity.aliases[0].dateOfBirth).isEqualTo(LocalDate.of(2024, 5, 30))
     assertThat(personEntity.addresses.size).isEqualTo(1)
     assertThat(personEntity.addresses[0].postcode).isEqualTo("LS1 1AB")

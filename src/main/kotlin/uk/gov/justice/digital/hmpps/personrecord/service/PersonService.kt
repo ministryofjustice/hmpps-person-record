@@ -11,6 +11,7 @@ import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
@@ -20,7 +21,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DETAILS_C
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_NEW_RECORD_EXISTS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
 
@@ -59,16 +59,6 @@ class PersonService(
   private fun handlePersonCreation(person: Person, event: String?) {
     if (isUpdateEvent(event)) {
       trackEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
-    }
-    // Use result of search to determine assign of UUID CPR-271
-    val personEntity = searchAllSourceSystems(person)
-    if (personEntity != null) {
-      // Add UUID to log
-      trackEvent(
-        CPR_CANDIDATE_RECORD_FOUND_UUID,
-        person,
-        mapOf(EventKeys.UUID to ""),
-      )
     }
     createPersonEntity(person)
     trackEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
@@ -109,14 +99,10 @@ class PersonService(
 
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
 
-  fun searchAllSourceSystems(person: Person): PersonEntity? {
-    val highConfidenceMatches: List<MatchResult> = searchService.findCandidatesRecords(person)
-    return searchService.processCandidateRecords(highConfidenceMatches)
-  }
-
-  fun searchBySourceSystems(person: Person): PersonEntity? {
-    val highConfidenceMatches: List<MatchResult> = searchService.findCandidatesRecordsBySourceSystem(person)
-    return searchService.processCandidateRecords(highConfidenceMatches)
+  fun searchForRecord(person: Person): PersonEntity? {
+    val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecords(person)
+    val personEntity: PersonEntity? = searchService.processCandidateRecords(highConfidenceMatches)
+    return personEntity
   }
 
   private fun trackEvent(
