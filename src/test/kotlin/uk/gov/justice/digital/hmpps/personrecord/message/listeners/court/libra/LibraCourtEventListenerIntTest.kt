@@ -29,7 +29,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
 
-class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
+class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @BeforeEach
   override fun beforeEach() {

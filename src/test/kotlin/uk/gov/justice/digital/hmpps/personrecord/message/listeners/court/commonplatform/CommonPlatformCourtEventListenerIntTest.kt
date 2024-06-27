@@ -30,7 +30,7 @@ import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.SECONDS
 
-class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
+class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should successfully process common platform message with 3 defendants and create correct telemetry events`() {

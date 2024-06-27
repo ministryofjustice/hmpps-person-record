@@ -18,7 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.COURT_MESSAGE_RECEIVED
 
 @Service
-class CourtCaseEventsProcessor(
+class CourtEventProcessor(
   private val objectMapper: ObjectMapper,
   private val personService: PersonService,
   private val telemetryService: TelemetryService,
