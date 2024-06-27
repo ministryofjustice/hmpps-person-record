@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
-import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.commonplatform.Defendant
-import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.event.LibraHearingEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity

@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.commonplatform
+package uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
