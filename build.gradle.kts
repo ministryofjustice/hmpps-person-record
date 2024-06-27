@@ -10,7 +10,7 @@ plugins {
   kotlin("jvm") version "2.0.0"
   kotlin("plugin.jpa") version "2.0.0"
   id("io.gitlab.arturbosch.detekt") version "1.23.6"
-  id("org.jetbrains.kotlinx.kover") version "0.8.1"
+  id("org.jetbrains.kotlinx.kover") version "0.8.2"
 }
 
 configurations {
@@ -35,7 +35,7 @@ dependencies {
   }
   implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.2")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:4.0.1")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.4.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.5.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 
   runtimeOnly("org.postgresql:postgresql:42.7.3")
