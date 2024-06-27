@@ -74,6 +74,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo("NT4 6YH")
+    assertThat(person.personIdentifier).isNull()
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
   }
 
