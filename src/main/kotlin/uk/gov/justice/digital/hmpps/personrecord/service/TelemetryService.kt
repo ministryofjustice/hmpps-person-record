@@ -11,7 +11,6 @@ enum class EventKeys {
   EVENT_TYPE,
   RECORD_COUNT,
   SEARCH_VERSION,
-  UUID,
 
   // Identifiers
   CRN,

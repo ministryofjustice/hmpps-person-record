@@ -21,22 +21,13 @@ class SearchService(
   private val personRepository: PersonRepository,
 ) {
 
-  fun findCandidatesRecordsBySourceSystem(person: Person): List<MatchResult> {
-    val query = findCandidatesBySourceSystem(person)
-    return searchForRecords(person, query)
-  }
-
-  fun findCandidatesRecords(person: Person): List<MatchResult> {
-    val query = findCandidates(person)
-    return searchForRecords(person, query)
-  }
-
-  private fun searchForRecords(person: Person, query: Specification<PersonEntity>): List<MatchResult> {
-    val highConfidenceMatches = processPagedCandidates(person, query)
+  fun findCandidateRecords(person: Person, searchBySourceSystem: Boolean = true): List<MatchResult> {
+    val highConfidenceMatches = processPagedCandidates(person, searchBySourceSystem)
     return highConfidenceMatches.sortedByDescending { it.probability }
   }
 
-  private fun processPagedCandidates(person: Person, query: Specification<PersonEntity>): List<MatchResult> {
+  private fun processPagedCandidates(person: Person, searchBySourceSystem: Boolean): List<MatchResult> {
+    val query: Specification<PersonEntity> = if (searchBySourceSystem) findCandidatesBySourceSystem(person) else findCandidates(person)
     val highConfidenceMatches = mutableListOf<MatchResult>()
     val totalElements = forPage(query) { page ->
       val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(page.content, person)

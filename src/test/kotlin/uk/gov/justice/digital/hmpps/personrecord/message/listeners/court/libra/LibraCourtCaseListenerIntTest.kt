@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.libra
 
+import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
@@ -16,10 +17,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.P
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.COURT_MESSAGE_RECEIVED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -60,7 +59,6 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "HIGH_CONFIDENCE_COUNT" to "0",
         "LOW_CONFIDENCE_COUNT" to "0",
       ),
-      times = 2,
     )
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
 
@@ -141,55 +139,6 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should process and create libra message and link to different source system record`() {
-    val firstName = randomFirstName()
-
-    personRepository.saveAndFlush(
-      PersonEntity.from(
-        Person(
-          firstName = firstName,
-          lastName = "MORGAN",
-          dateOfBirth = LocalDate.of(1975, 1, 1),
-          addresses = listOf(Address("NT4 6YH")),
-          sourceSystemType = DELIUS,
-        ),
-      ),
-    )
-
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(matchResponse)
-
-    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
-    val messageId1 = publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
-    checkTelemetry(
-      COURT_MESSAGE_RECEIVED,
-      mapOf(
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "MESSAGE_ID" to messageId1,
-        "SOURCE_SYSTEM" to LIBRA.name,
-      ),
-    )
-
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
-    checkTelemetry(
-      CPR_CANDIDATE_RECORD_SEARCH,
-      mapOf(
-        "SOURCE_SYSTEM" to LIBRA.name,
-        "RECORD_COUNT" to "1",
-        "HIGH_CONFIDENCE_COUNT" to "1",
-        "LOW_CONFIDENCE_COUNT" to "0",
-      ),
-    )
-    checkTelemetry(
-      CPR_CANDIDATE_RECORD_FOUND_UUID,
-      mapOf(
-        "SOURCE_SYSTEM" to LIBRA.name,
-        "UUID" to "",
-      ),
-    )
-  }
-
-  @Test
   fun `should process and create new person with low score`() {
     val firstName = randomFirstName()
 
@@ -216,7 +165,6 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "HIGH_CONFIDENCE_COUNT" to "0",
         "LOW_CONFIDENCE_COUNT" to "1",
       ),
-      times = 2,
     )
 
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"), times = 2)
@@ -352,6 +300,18 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
         "RECORD_COUNT" to "1000000",
         "SEARCH_VERSION" to SEARCH_VERSION,
       ),
+    )
+  }
+
+  private fun stubMatchScore(matchResponse: MatchResponse) {
+    wiremock.stubFor(
+      WireMock.post("/person/match")
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(200)
+            .withBody(objectMapper.writeValueAsString(matchResponse)),
+        ),
     )
   }
 }
