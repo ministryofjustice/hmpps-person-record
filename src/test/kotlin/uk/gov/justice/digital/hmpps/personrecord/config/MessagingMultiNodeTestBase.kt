@@ -59,7 +59,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId("cprnomiseventsqueue")
   }
 
-  internal fun publishHMCTSMessage(message: String, messageType: MessageType): String {
+  internal fun publishCourtMessage(message: String, messageType: MessageType): String {
     val publishRequest = PublishRequest.builder()
       .topicArn(courtCaseEventsTopic?.arn)
       .message(message)

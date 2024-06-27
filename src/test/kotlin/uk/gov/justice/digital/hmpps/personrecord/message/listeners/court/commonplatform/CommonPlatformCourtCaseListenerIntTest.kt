@@ -39,7 +39,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     val thirdDefendantId = randomUUID().toString()
     val firstPnc = randomPnc()
     val secondPnc = randomPnc()
-    val messageId = publishHMCTSMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = firstDefendantId, pnc = firstPnc), CommonPlatformHearingSetup(defendantId = secondDefendantId, pnc = secondPnc), CommonPlatformHearingSetup(defendantId = thirdDefendantId, pnc = ""))), COMMON_PLATFORM_HEARING)
+    val messageId = publishCourtMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = firstDefendantId, pnc = firstPnc), CommonPlatformHearingSetup(defendantId = secondDefendantId, pnc = secondPnc), CommonPlatformHearingSetup(defendantId = thirdDefendantId, pnc = ""))), COMMON_PLATFORM_HEARING)
 
     await.atMost(10, SECONDS) untilNotNull {
       assertThat(personRepository.findByDefendantId(firstDefendantId))
@@ -122,7 +122,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     val cro = randomCro()
 
     val message = commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, lastName = lastName)))
-    publishHMCTSMessage(message, COMMON_PLATFORM_HEARING)
+    publishCourtMessage(message, COMMON_PLATFORM_HEARING)
 
     val personEntity = await.atMost(15, SECONDS) untilNotNull {
       personRepository.findByDefendantId(defendantId)
@@ -136,7 +136,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("SOURCE_SYSTEM" to "HMCTS", "DEFENDANT_ID" to defendantId),
     )
     val changedLastName = randomLastName()
-    val messageId = publishHMCTSMessage(
+    val messageId = publishCourtMessage(
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, lastName = changedLastName, pnc = pnc, cro = cro))),
       COMMON_PLATFORM_HEARING,
     )
@@ -173,7 +173,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     val secondDefendantId = randomUUID().toString()
     val thirdDefendantId = randomUUID().toString()
 
-    publishHMCTSMessage(
+    publishCourtMessage(
       commonPlatformHearing(
         listOf(
           CommonPlatformHearingSetup(
@@ -238,7 +238,7 @@ class CommonPlatformCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     val firstDefendantId = randomUUID().toString()
     val secondDefendantId = randomUUID().toString()
     val cro = randomCro()
-    publishHMCTSMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = firstDefendantId, pnc = "", cro = ""), CommonPlatformHearingSetup(defendantId = secondDefendantId, cro = cro))), COMMON_PLATFORM_HEARING)
+    publishCourtMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = firstDefendantId, pnc = "", cro = ""), CommonPlatformHearingSetup(defendantId = secondDefendantId, cro = cro))), COMMON_PLATFORM_HEARING)
 
     val personWithEmptyPnc = await.atMost(15, SECONDS) untilNotNull {
       personRepository.findByDefendantId(firstDefendantId)
