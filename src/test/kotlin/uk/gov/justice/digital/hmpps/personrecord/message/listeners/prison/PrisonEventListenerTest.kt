@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.Priso
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.prisonEvent
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.util.UUID
@@ -52,7 +52,7 @@ class PrisonEventListenerTest {
     )
 
     verify(telemetryService).trackEvent(
-      MESSAGE_PROCESSING_FAILED,
+      TelemetryEventType.MESSAGE_PROCESSING_FAILED,
       mapOf(
         EventKeys.MESSAGE_ID to messageId,
         EventKeys.SOURCE_SYSTEM to "NOMIS",
