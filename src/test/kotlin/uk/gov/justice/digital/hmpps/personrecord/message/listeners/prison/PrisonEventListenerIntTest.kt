@@ -186,9 +186,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   private fun stubPrisonResponse(
     prisonNumber: String,
     pnc: String? = randomPnc(),
-    cro: String? = randomCro(),
-    firstName: String? = randomFirstName(),
-    lastName: String? = randomLastName(),
     scenarioName: String? = "scenario",
     currentScenarioState: String? = STARTED,
   ) {
