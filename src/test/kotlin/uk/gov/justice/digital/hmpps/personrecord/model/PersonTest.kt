@@ -2,14 +2,14 @@ package uk.gov.justice.digital.hmpps.personrecord.model
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.commonplatform.Address
-import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.commonplatform.Contact
-import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.commonplatform.Defendant
-import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.commonplatform.DefendantAlias
-import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.commonplatform.PersonDefendant
-import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.commonplatform.PersonDetails
-import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.event.LibraHearingEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.libra.Name
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Address
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Contact
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.DefendantAlias
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME

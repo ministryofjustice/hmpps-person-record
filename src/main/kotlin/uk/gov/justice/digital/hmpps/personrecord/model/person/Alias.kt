@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
-import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.commonplatform.DefendantAlias
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.DefendantAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAlias
 import java.time.LocalDate
