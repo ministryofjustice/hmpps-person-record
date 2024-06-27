@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.event
+package uk.gov.justice.digital.hmpps.personrecord.client.model.court.event
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
@@ -7,8 +7,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.OptBoolean
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
-import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.libra.Address
-import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.libra.Name
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Address
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifierDeserializer
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier

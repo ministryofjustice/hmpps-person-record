@@ -10,7 +10,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
-import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.LIBRA_COURT_CASE
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.SEARCH_VERSION
@@ -41,7 +41,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     val firstName = randomFirstName()
 
     val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
-    val messageId = publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    val messageId = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
 
     checkTelemetry(
       COURT_MESSAGE_RECEIVED,
@@ -82,7 +82,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     val firstName = randomFirstName()
 
     val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
-    val messageId1 = publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    val messageId1 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
 
     checkTelemetry(
       COURT_MESSAGE_RECEIVED,
@@ -103,7 +103,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.99999999))
     stubMatchScore(matchResponse)
 
-    val messageId2 = publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    val messageId2 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
     checkTelemetry(
       COURT_MESSAGE_RECEIVED,
       mapOf(
@@ -143,12 +143,12 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     val firstName = randomFirstName()
 
     val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
-    publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.98883))
     stubMatchScore(matchResponse)
 
-    val messageId2 = publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    val messageId2 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
     checkTelemetry(
       COURT_MESSAGE_RECEIVED,
       mapOf(
@@ -213,7 +213,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     )
     stubMatchScore(matchResponse)
 
-    publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
 
     checkTelemetry(
@@ -251,7 +251,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     val matchResponse = MatchResponse(matchProbabilities = probabilities)
     stubMatchScore(matchResponse)
 
-    publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
@@ -289,7 +289,7 @@ class LibraCourtCaseListenerIntTest : MessagingMultiNodeTestBase() {
     await.atMost(300, SECONDS) untilAsserted { assertThat(personRepository.findAll().size).isEqualTo(1000000) }
 
     val libraMessage = LibraMessage(firstName = "Jayne", lastName = "Smith", postcode = "LS2 1AB")
-    publishHMCTSMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
 
     await.atMost(300, SECONDS) untilAsserted { assertThat(telemetryRepository.findAll().size).isEqualTo(3) }
 
