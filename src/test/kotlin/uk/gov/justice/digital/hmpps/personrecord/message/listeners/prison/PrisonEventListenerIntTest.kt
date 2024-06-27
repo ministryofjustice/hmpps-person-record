@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
@@ -120,6 +121,23 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
+  fun `should retry on retryable error`() {
+    val prisonNumber = randomPrisonNumber()
+    stub500Response(prisonNumber)
+    stubPrisonResponse(prisonNumber, scenarioName = "retry", currentScenarioState = "next request will succeed")
+    val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
+    val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
+    publishDomainEvent(PRISONER_CREATED, domainEvent)
+
+    checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
+
+    checkTelemetry(
+      CPR_RECORD_CREATED,
+      mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
+    )
+  }
+
+  @Test
   fun `should log correct telemetry on updated event but no record exists`() {
     val prisonNumber = randomPrisonNumber()
     val pnc = randomPnc()
@@ -185,14 +203,33 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     cro: String? = randomCro(),
     firstName: String? = randomFirstName(),
     lastName: String? = randomLastName(),
+    scenarioName: String? = "scenario",
+    currentScenarioState: String? = STARTED,
   ) {
     wiremock.stubFor(
       WireMock.get("/prisoner/$prisonNumber")
+        .inScenario(scenarioName)
+        .whenScenarioStateIs(currentScenarioState)
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
             .withBody(prisonerSearchResponse(prisonNumber, pnc, cro, firstName, lastName)),
+        ),
+    )
+  }
+  private fun stub500Response(
+    prisonNumber: String,
+  ) {
+    wiremock.stubFor(
+      WireMock.get("/prisoner/$prisonNumber")
+        .inScenario("retry")
+        .whenScenarioStateIs(STARTED)
+        .willSetStateTo("next request will succeed")
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(500),
         ),
     )
   }
