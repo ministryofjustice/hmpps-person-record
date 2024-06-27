@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.court.CourtCaseEventsProcessor
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.court.CourtEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
@@ -22,9 +22,9 @@ const val CPR_COURT_CASE_EVENTS_QUEUE_CONFIG_KEY = "cprcourtcaseeventsqueue"
 
 @Component
 @Profile("!seeding")
-class CourtCaseEventsListener(
+class CourtEventListener(
   val objectMapper: ObjectMapper,
-  val courtCaseEventsProcessor: CourtCaseEventsProcessor,
+  val courtEventProcessor: CourtEventProcessor,
   val telemetryService: TelemetryService,
 ) {
   private companion object {
@@ -47,7 +47,7 @@ class CourtCaseEventsListener(
 
   fun handleEvent(sqsMessage: SQSMessage) {
     try {
-      courtCaseEventsProcessor.processEvent(sqsMessage)
+      courtEventProcessor.processEvent(sqsMessage)
     } catch (e: Exception) {
       telemetryService.trackEvent(
         MESSAGE_PROCESSING_FAILED,
