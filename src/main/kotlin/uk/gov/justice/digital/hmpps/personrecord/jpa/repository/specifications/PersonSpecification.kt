@@ -45,12 +45,9 @@ object PersonSpecification {
   fun levenshteinPostcode(input: String?, limit: Int = 2): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
       val addressJoin = root.join<PersonEntity, AddressEntity>("addresses", JoinType.INNER)
-      criteriaBuilder.and(
-        criteriaBuilder.isNotNull(criteriaBuilder.literal(input)),
-        criteriaBuilder.le(
-          criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(input), addressJoin.get<String>(POSTCODE)),
-          limit,
-        ),
+      criteriaBuilder.le(
+        criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(input), addressJoin.get<String>(POSTCODE)),
+        limit,
       )
     }
   }

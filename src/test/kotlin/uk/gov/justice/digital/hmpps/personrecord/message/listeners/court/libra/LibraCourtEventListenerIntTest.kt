@@ -41,7 +41,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should process libra messages`() {
     val firstName = randomFirstName()
 
-    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
+    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "", postcode = null)
     val messageId = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
 
     checkTelemetry(
@@ -74,8 +74,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.title).isEqualTo("Mr")
     assertThat(person.lastName).isEqualTo("MORGAN")
     assertThat(person.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
-    assertThat(person.addresses.size).isEqualTo(1)
-    assertThat(person.addresses[0].postcode).isEqualTo("NT4 6YH")
+    assertThat(person.addresses.size).isEqualTo(0)
     assertThat(person.personIdentifier).isNull()
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
   }
