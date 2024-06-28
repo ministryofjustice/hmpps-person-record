@@ -10,6 +10,8 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
@@ -40,6 +42,10 @@ class PersonEntity(
 
   @Column(name = "middle_names")
   var middleNames: String? = null,
+
+  @ManyToOne
+  @JoinColumn(name = "fk_person_identifier_id", referencedColumnName = "id", nullable = true)
+  var personIdentifier: PersonIdentifierEntity? = null,
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)

@@ -10,9 +10,9 @@ import org.mockito.kotlin.any
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.personrecord.client.model.hmcts.MessageType.COMMON_PLATFORM_HEARING
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.CourtCaseEventsListener
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.hmcts.CourtCaseEventsProcessor
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.CourtEventListener
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.court.CourtEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -20,20 +20,20 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.testMessage
 import kotlin.test.assertFailsWith
 
 @ExtendWith(MockitoExtension::class)
-class CourtCaseEventsListenerTest {
+class CourtEventListenerTest {
   @Mock
-  private lateinit var courtCaseEventsProcessor: CourtCaseEventsProcessor
+  private lateinit var courtEventProcessor: CourtEventProcessor
 
   @Mock
   private lateinit var telemetryService: TelemetryService
 
-  private lateinit var courtCaseEventsListener: CourtCaseEventsListener
+  private lateinit var courtEventListener: CourtEventListener
 
   @BeforeEach
   fun setUp() {
-    courtCaseEventsListener = CourtCaseEventsListener(
+    courtEventListener = CourtEventListener(
       objectMapper = ObjectMapper(),
-      courtCaseEventsProcessor = courtCaseEventsProcessor,
+      courtEventProcessor = courtEventProcessor,
       telemetryService = telemetryService,
     )
   }
@@ -42,18 +42,18 @@ class CourtCaseEventsListenerTest {
   fun `should not call the processor when type is unknown`() {
     val rawMessage = testMessage(COMMON_PLATFORM_HEARING.name, "Unknown")
 
-    courtCaseEventsListener.onMessage(rawMessage = rawMessage)
+    courtEventListener.onMessage(rawMessage = rawMessage)
 
-    verifyNoInteractions(courtCaseEventsProcessor)
+    verifyNoInteractions(courtEventProcessor)
   }
 
   @Test
   fun `should create correct telemetry event when exception thrown`() {
     val rawMessage = testMessage(COMMON_PLATFORM_HEARING.name)
-    whenever(courtCaseEventsProcessor.processEvent(any())).thenThrow(IllegalArgumentException("Something went wrong"))
+    whenever(courtEventProcessor.processEvent(any())).thenThrow(IllegalArgumentException("Something went wrong"))
 
     assertFailsWith<IllegalArgumentException>(
-      block = { courtCaseEventsListener.onMessage(rawMessage = rawMessage) },
+      block = { courtEventListener.onMessage(rawMessage = rawMessage) },
     )
 
     verify(telemetryService).trackEvent(

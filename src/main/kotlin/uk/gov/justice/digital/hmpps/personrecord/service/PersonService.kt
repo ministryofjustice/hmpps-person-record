@@ -61,15 +61,15 @@ class PersonService(
       trackEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
     }
     // Use result of search to determine assign of UUID CPR-271
-    val personEntity = searchAllSourceSystems(person)
-    if (personEntity != null) {
-      // Add UUID to log
-      trackEvent(
-        CPR_CANDIDATE_RECORD_FOUND_UUID,
-        person,
-        mapOf(EventKeys.UUID to ""),
-      )
-    }
+//    val personEntity = searchAllSourceSystems(person)
+//    if (personEntity != null) {
+//      // Add UUID to log
+//      trackEvent(
+//        CPR_CANDIDATE_RECORD_FOUND_UUID,
+//        person,
+//        mapOf(EventKeys.UUID to ""),
+//      )
+//    }
     createPersonEntity(person)
     trackEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
   }
@@ -109,14 +109,10 @@ class PersonService(
 
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
 
-  fun searchAllSourceSystems(person: Person): PersonEntity? {
-    val highConfidenceMatches: List<MatchResult> = searchService.findCandidatesRecords(person)
-    return searchService.processCandidateRecords(highConfidenceMatches)
-  }
-
-  fun searchBySourceSystems(person: Person): PersonEntity? {
-    val highConfidenceMatches: List<MatchResult> = searchService.findCandidatesRecordsBySourceSystem(person)
-    return searchService.processCandidateRecords(highConfidenceMatches)
+  fun searchForRecord(person: Person): PersonEntity? {
+    val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecords(person)
+    val personEntity: PersonEntity? = searchService.processCandidateRecords(highConfidenceMatches)
+    return personEntity
   }
 
   private fun trackEvent(

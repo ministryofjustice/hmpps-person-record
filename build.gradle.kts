@@ -10,7 +10,7 @@ plugins {
   kotlin("jvm") version "2.0.0"
   kotlin("plugin.jpa") version "2.0.0"
   id("io.gitlab.arturbosch.detekt") version "1.23.6"
-  id("org.jetbrains.kotlinx.kover") version "0.8.1"
+  id("org.jetbrains.kotlinx.kover") version "0.8.2"
 }
 
 configurations {
@@ -35,12 +35,12 @@ dependencies {
   }
   implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.2")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:4.0.1")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.5.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.4.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 
   runtimeOnly("org.postgresql:postgresql:42.7.3")
-  runtimeOnly("org.flywaydb:flyway-core:10.15.0")
-  runtimeOnly("org.flywaydb:flyway-database-postgresql:10.15.0")
+  runtimeOnly("org.flywaydb:flyway-core")
+  runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
@@ -51,7 +51,7 @@ dependencies {
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.0.0")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.1")
   testImplementation("org.jmock:jmock:2.13.1")
-  testImplementation("io.hypersistence:hypersistence-utils-hibernate-63:3.7.7")
+  testImplementation("io.hypersistence:hypersistence-utils-hibernate-63:3.8.0")
 }
 
 java {
