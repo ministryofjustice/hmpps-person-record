@@ -15,7 +15,7 @@ class ListenersDisabledIntTest : IntegrationTestBase() {
   lateinit var applicationContext: ApplicationContext
 
   @Test
-  fun `should not have CourtCaseEventsListener bean when seeding profile is active`() {
+  fun `should not have CourtEventListener bean when seeding profile is active`() {
     assertFailsWith<NoSuchBeanDefinitionException>(
       block = { applicationContext.getBean(CourtEventListener::class.java) },
     )
