@@ -86,18 +86,18 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val blitzer = Blitzer(15, 4)
     try {
       blitzer.blitz {
-        courtCaseEventsTopic?.snsClient?.publish(buildPublishRequest(defendantId, pncNumber))?.get()
+        courtEventsTopic?.snsClient?.publish(buildPublishRequest(defendantId, pncNumber))?.get()
       }
     } finally {
       blitzer.shutdown()
     }
 
     await untilCallTo {
-      courtCaseEventsQueue?.sqsClient?.countMessagesOnQueue(courtCaseEventsQueue!!.queueUrl)?.get()
+      courtEventsQueue?.sqsClient?.countMessagesOnQueue(courtEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
 
     await untilCallTo {
-      courtCaseEventsQueue?.sqsDlqClient?.countMessagesOnQueue(courtCaseEventsQueue!!.dlqUrl!!)?.get()
+      courtEventsQueue?.sqsDlqClient?.countMessagesOnQueue(courtEventsQueue!!.dlqUrl!!)?.get()
     } matches { it == 0 }
 
     checkTelemetry(
@@ -255,7 +255,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     defendantId: String,
     pnc: PNCIdentifier,
   ): PublishRequest? = PublishRequest.builder()
-    .topicArn(courtCaseEventsTopic?.arn)
+    .topicArn(courtEventsTopic?.arn)
     .message(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, pnc = pnc.pncId), CommonPlatformHearingSetup(defendantId = defendantId, pnc = pnc.pncId))))
     .messageAttributes(
       mapOf(
