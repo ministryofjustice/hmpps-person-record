@@ -45,9 +45,12 @@ object PersonSpecification {
   fun levenshteinPostcode(input: String?, limit: Int = 2): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
       val addressJoin = root.join<PersonEntity, AddressEntity>("addresses", JoinType.INNER)
-      criteriaBuilder.le(
-        criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(input), addressJoin.get<String>(POSTCODE)),
-        limit,
+      criteriaBuilder.and(
+        criteriaBuilder.isNotNull(criteriaBuilder.literal(input)),
+        criteriaBuilder.le(
+          criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(input), addressJoin.get<String>(POSTCODE)),
+          limit,
+        ),
       )
     }
   }
@@ -73,7 +76,7 @@ object PersonSpecification {
   fun <T> combineSpecificationsWithOr(specifications: List<Specification<T>>): Specification<T>? {
     if (specifications.isEmpty()) return null
     var combinedSpec: Specification<T> = specifications[0]
-    specifications.takeLast(specifications.size - 1).forEach { specification ->
+    specifications.forEach { specification ->
       combinedSpec = combinedSpec.or(specification)
     }
     return combinedSpec
