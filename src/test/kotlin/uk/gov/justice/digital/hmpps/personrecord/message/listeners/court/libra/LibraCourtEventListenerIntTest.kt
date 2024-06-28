@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.libra
 
-import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
@@ -61,6 +60,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         "HIGH_CONFIDENCE_COUNT" to "0",
         "LOW_CONFIDENCE_COUNT" to "0",
       ),
+      times = 2,
     )
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
 
@@ -152,7 +152,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
           lastName = "MORGAN",
           dateOfBirth = LocalDate.of(1975, 1, 1),
           addresses = listOf(Address("NT4 6YH")),
-          sourceSystemType = SourceSystemType.DELIUS,
+          sourceSystemType = DELIUS,
         ),
       ),
     )
@@ -217,6 +217,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         "HIGH_CONFIDENCE_COUNT" to "0",
         "LOW_CONFIDENCE_COUNT" to "1",
       ),
+      times = 2,
     )
 
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"), times = 2)
@@ -352,18 +353,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         "RECORD_COUNT" to "1000000",
         "SEARCH_VERSION" to SEARCH_VERSION,
       ),
-    )
-  }
-
-  private fun stubMatchScore(matchResponse: MatchResponse) {
-    wiremock.stubFor(
-      WireMock.post("/person/match")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(objectMapper.writeValueAsString(matchResponse)),
-        ),
     )
   }
 }

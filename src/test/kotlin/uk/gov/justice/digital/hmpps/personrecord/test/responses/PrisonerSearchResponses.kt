@@ -1,20 +1,24 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
-
-fun prisonerSearchResponse(prisonNumber: String, pnc: String? = randomPnc()) = """
+fun prisonerSearchResponse(
+  prisonNumber: String,
+  pnc: String?,
+  cro: String?,
+  firstName: String?,
+  lastName: String?,
+) = """
   {
     "prisonerNumber": "$prisonNumber",
     "pncNumber": "$pnc",
     "pncNumberCanonicalShort": "${pnc?.takeLast(11)}",
     "pncNumberCanonicalLong": "$pnc",
-    "croNumber": "29906/12J",
+    "croNumber": "$cro",
     "bookingId": "0001200924",
     "bookNumber": "38412A",
     "title": "Ms",
-    "firstName": "Robert",
+    "firstName": "$firstName",
     "middleNames": "John James",
-    "lastName": "Larsen",
+    "lastName": "$lastName",
     "dateOfBirth": "1975-04-02",
     "gender": "Female",
     "ethnicity": "White: Eng./Welsh/Scot./N.Irish/British",
