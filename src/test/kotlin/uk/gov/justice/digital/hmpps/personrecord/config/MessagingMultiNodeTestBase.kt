@@ -47,11 +47,11 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByTopicId("domainevents")
   }
 
-  internal val courtCaseEventsTopic by lazy {
+  internal val courtEventsTopic by lazy {
     hmppsQueueService.findByTopicId("courtcaseeventstopic")
   }
 
-  val courtCaseEventsQueue by lazy {
+  val courtEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprcourtcaseeventsqueue")
   }
 
@@ -65,7 +65,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   internal fun publishCourtMessage(message: String, messageType: MessageType): String {
     val publishRequest = PublishRequest.builder()
-      .topicArn(courtCaseEventsTopic?.arn)
+      .topicArn(courtEventsTopic?.arn)
       .message(message)
       .messageAttributes(
         mapOf(
@@ -77,9 +77,9 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       )
       .build()
 
-    val response: PublishResponse? = courtCaseEventsTopic?.snsClient?.publish(publishRequest)?.get()
+    val response: PublishResponse? = courtEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
-    expectNoMessagesOn(courtCaseEventsQueue)
+    expectNoMessagesOn(courtEventsQueue)
     return response!!.messageId()
   }
 
@@ -164,11 +164,11 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   @BeforeEach
   fun beforeEachMessagingTest() {
-    courtCaseEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(courtCaseEventsQueue!!.dlqUrl).build(),
+    courtEventsQueue!!.sqsDlqClient!!.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(courtEventsQueue!!.dlqUrl).build(),
     ).get()
-    courtCaseEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(courtCaseEventsQueue!!.queueUrl).build(),
+    courtEventsQueue!!.sqsClient.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(courtEventsQueue!!.queueUrl).build(),
     ).get()
     probationEventsQueue!!.sqsClient.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(probationEventsQueue!!.queueUrl).build(),
