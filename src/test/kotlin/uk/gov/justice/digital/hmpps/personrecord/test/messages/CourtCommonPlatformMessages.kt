@@ -3,21 +3,9 @@ package uk.gov.justice.digital.hmpps.personrecord.test.messages
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import java.util.UUID
 
-data class CommonPlatformHearingSetup(
-  val pnc: String? = null,
-  val firstName: String? = randomFirstName(),
-  val middleName: String? = null,
-  val lastName: String = randomLastName(),
-  val dateOfBirth: String = "1975-01-01",
-  val cro: String = randomCro(),
-  val defendantId: String = UUID.randomUUID().toString(),
-  val aliases: List<CommonPlatformHearingSetupAlias>? = null,
-  val contact: CommonPlatformHearingSetupContact? = null,
-  val nationalInsuranceNumber: String = randomNationalInsuranceNumber(),
-)
+data class CommonPlatformHearingSetup(val pnc: String? = null, val firstName: String? = randomFirstName(), val middleName: String? = null, val lastName: String = randomLastName(), val dateOfBirth: String = "1975-01-01", val cro: String = randomCro(), val defendantId: String = UUID.randomUUID().toString(), val aliases: List<CommonPlatformHearingSetupAlias>? = null, val contact: CommonPlatformHearingSetupContact? = null)
 data class CommonPlatformHearingSetupAlias(val firstName: String, val lastName: String)
 data class CommonPlatformHearingSetupContact(
   val home: String = "0207345678",
@@ -115,25 +103,22 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) =
                     "lastName": "${commonPlatformHearingSetup.lastName}",
                     "title": "Mr",
                     "nationalityCode": "GB",
-                    "nationalInsuranceNumber": "${commonPlatformHearingSetup.nationalInsuranceNumber}"
+                    "nationalInsuranceNumber": "PC456743D"
                   }
                 },
                 "ethnicity": {
                    "observedEthnicityDescription": "observedEthnicityDescription",
                    "selfDefinedEthnicityDescription": "selfDefinedEthnicityDescription"
                 },
-                ${commonPlatformHearingSetup.aliases?.let {
-    """ "aliases": [${commonPlatformHearingSetup.aliases.joinToString(",") { alias(it) }
-    }], """.trimIndent()
-  } ?: ""}
+                ${commonPlatformHearingSetup.aliases?.let { """ "aliases": [${commonPlatformHearingSetup.aliases.map { alias(it) }.joinToString(",")}], """.trimIndent() } ?: ""}
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               }
   """.trimIndent()
 
 private fun alias(alias: CommonPlatformHearingSetupAlias) =
   """
-  {
-    "firstName": "${alias.firstName}",
-    "lastName": "${alias.lastName}"
-  }
+                  {
+                    "firstName": "${alias.firstName}",
+                    "lastName": "${alias.lastName}"
+                  }
   """.trimIndent()
