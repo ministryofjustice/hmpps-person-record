@@ -73,7 +73,7 @@ object PersonSpecification {
   fun <T> combineSpecificationsWithOr(specifications: List<Specification<T>>): Specification<T>? {
     if (specifications.isEmpty()) return null
     var combinedSpec: Specification<T> = specifications[0]
-    specifications.forEach { specification ->
+    specifications.takeLast(specifications.size - 1).forEach { specification ->
       combinedSpec = combinedSpec.or(specification)
     }
     return combinedSpec
