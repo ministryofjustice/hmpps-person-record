@@ -46,14 +46,14 @@ object PersonSpecification {
 
   fun levenshteinPostcodes(postcodes: List<String>, limit: Int = 2): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      val addressJoin: Join<PersonEntity, AddressEntity> = root.join("addresses")
-      val postcodeSpecifications: List<Predicate> = postcodes.map {
+      val addressJoin: Join<PersonEntity, AddressEntity> = root.join("addresses", JoinType.INNER)
+      val postcodePredicates: List<Predicate> = postcodes.map {
         criteriaBuilder.le(
           criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(it), addressJoin.get<String>(POSTCODE)),
           limit,
         )
       }
-      criteriaBuilder.or(*postcodeSpecifications.toTypedArray())
+      criteriaBuilder.or(*postcodePredicates.toTypedArray())
     }
   }
 

@@ -412,7 +412,8 @@ class SearchServiceIntTest : IntegrationTestBase() {
       lastName = "Smith",
       addresses = listOf(
         Address(postcode = "LS5 1AC"),
-        Address(postcode = "LD2 3BC")),
+        Address(postcode = "LD2 3BC"),
+      ),
       sourceSystemType = HMCTS,
     )
 

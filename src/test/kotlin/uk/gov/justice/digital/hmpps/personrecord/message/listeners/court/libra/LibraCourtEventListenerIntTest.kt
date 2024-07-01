@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -40,7 +41,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should process libra messages`() {
     val firstName = randomFirstName()
 
-    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
+    val postcode = randomPostcode()
+    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "", postcode = postcode)
     val messageId = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
 
     checkTelemetry(
@@ -73,7 +75,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.lastName).isEqualTo("MORGAN")
     assertThat(person.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
     assertThat(person.addresses.size).isEqualTo(1)
-    assertThat(person.addresses[0].postcode).isEqualTo("NT4 6YH")
+    assertThat(person.addresses[0].postcode).isEqualTo(postcode)
     assertThat(person.personIdentifier).isNull()
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
   }
@@ -81,8 +83,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process and update libra messages`() {
     val firstName = randomFirstName()
-
-    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
+    val postcode = randomPostcode()
+    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "", postcode = postcode)
     val messageId1 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
 
     checkTelemetry(
@@ -135,7 +137,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.lastName).isEqualTo("MORGAN")
     assertThat(person.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
     assertThat(person.addresses.size).isEqualTo(1)
-    assertThat(person.addresses[0].postcode).isEqualTo("NT4 6YH")
+    assertThat(person.addresses[0].postcode).isEqualTo(postcode)
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
   }
 

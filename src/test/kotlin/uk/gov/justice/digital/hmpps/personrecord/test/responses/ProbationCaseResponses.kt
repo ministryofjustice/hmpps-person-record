@@ -36,11 +36,7 @@ fun probationCaseResponse(probationCase: ProbationCaseResponseSetup) = """
           "dateOfBirth": "2024-05-30"
         }
       ],
-      "addresses": [
-        {
-          "postcode": "LS1 1AB"
-        }
-      ],
+      "addresses": [${probationCase.addresses.joinToString { address(it) }}],
       "contactDetails": {
         "telephone": "01234567890",
         "mobile": "01234567890",
@@ -49,4 +45,13 @@ fun probationCaseResponse(probationCase: ProbationCaseResponseSetup) = """
     }
 """.trimIndent()
 
-data class ProbationCaseResponseSetup(val crn: String, val pnc: String? = null, val prefix: String, val prisonNumber: String)
+private fun address(address: ProbationCaseResponseSetupAddress) =
+  """
+                  {
+                    "postcode": "${address.postcode}"
+                  }
+  """.trimIndent()
+
+data class ProbationCaseResponseSetupAddress(val postcode: String)
+
+data class ProbationCaseResponseSetup(val crn: String, val pnc: String? = null, val prefix: String, val prisonNumber: String, val addresses: List<ProbationCaseResponseSetupAddress>)
