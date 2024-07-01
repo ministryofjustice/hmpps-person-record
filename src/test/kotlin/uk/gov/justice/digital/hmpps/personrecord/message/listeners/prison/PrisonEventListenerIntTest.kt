@@ -7,11 +7,15 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.EmailAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonIdentifierRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -24,6 +28,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DOMAIN_EVENT_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
@@ -31,6 +36,9 @@ import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
 
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
+
+  @Autowired
+  private lateinit var personIdentifierRepository: PersonIdentifierRepository
 
   @Test
   fun `should receive the message successfully when prisoner created event published`() {
@@ -135,7 +143,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should log correct telemetry on updated event but no record exists`() {
     val prisonNumber = randomPrisonNumber()
-    stubPrisonResponse(prisonNumber)
+    stubPrisonResponse(prisonNumber, email = null)
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -165,21 +173,29 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   private fun createPrisoner(): String {
     val prisonNumber = randomPrisonNumber()
-    personRepository.saveAndFlush(
-      PersonEntity.from(
-        Person.from(
-          Prisoner(
-            prisonNumber = prisonNumber,
-            title = "Ms",
-            firstName = "Robert",
-            middleNames = "John James",
-            lastName = "Larsen",
-            cro = CROIdentifier.from("029906/12J"),
-            pnc = PNCIdentifier.from("2003/0062845E"),
-            dateOfBirth = LocalDate.of(1975, 4, 2),
-          ),
+
+    val person = PersonEntity.from(
+      Person.from(
+        Prisoner(
+          prisonNumber = prisonNumber,
+          title = "Ms",
+          firstName = "Robert",
+          middleNames = "John James",
+          lastName = "Larsen",
+          cro = CROIdentifier.from(randomCro()),
+          pnc = PNCIdentifier.from(randomPnc()),
+          dateOfBirth = LocalDate.of(1975, 4, 2),
+          emailAddresses = listOf(EmailAddress("email@email.com")),
+
         ),
       ),
+    )
+    val personIdentifier = PersonIdentifierEntity.new()
+
+    personIdentifierRepository.saveAndFlush(personIdentifier)
+    person.personIdentifier = personIdentifier
+    personRepository.saveAndFlush(
+      person,
     )
     return prisonNumber
   }
@@ -189,6 +205,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     pnc: String? = randomPnc(),
     scenarioName: String? = "scenario",
     currentScenarioState: String? = STARTED,
+    email: String? = "someemail@email.com",
   ) {
     wiremock.stubFor(
       WireMock.get("/prisoner/$prisonNumber")
@@ -198,7 +215,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withBody(prisonerSearchResponse(prisonNumber, pnc)),
+            .withBody(prisonerSearchResponse(prisonNumber, pnc, email)),
         ),
     )
   }
