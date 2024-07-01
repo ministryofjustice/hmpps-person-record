@@ -143,7 +143,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should log correct telemetry on updated event but no record exists`() {
     val prisonNumber = randomPrisonNumber()
-    stubPrisonResponse(prisonNumber, email = null)
+    stubPrisonResponse(prisonNumber)
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -205,7 +205,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     pnc: String? = randomPnc(),
     scenarioName: String? = "scenario",
     currentScenarioState: String? = STARTED,
-    email: String? = "someemail@email.com",
+    email: String? = "john.smith@gmail.com",
   ) {
     wiremock.stubFor(
       WireMock.get("/prisoner/$prisonNumber")
