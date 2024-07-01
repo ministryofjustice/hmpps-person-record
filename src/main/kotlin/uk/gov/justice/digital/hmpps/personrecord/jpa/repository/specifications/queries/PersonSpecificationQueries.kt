@@ -12,14 +12,14 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.P
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 
 fun findCandidates(person: Person): Specification<PersonEntity> {
-  val postcodeSpecifications = person.addresses.map { PersonSpecification.levenshteinPostcode(it.postcode) }
+  val postcodes = person.addresses.mapNotNull { it.postcode }
 
   val soundexFirstLastName = Specification.where(
     PersonSpecification.soundex(person.firstName, PersonSpecification.FIRST_NAME)
       .and(PersonSpecification.soundex(person.lastName, PersonSpecification.LAST_NAME)),
   )
   val levenshteinDob = Specification.where(PersonSpecification.levenshteinDate(person.dateOfBirth, PersonSpecification.DOB))
-  val levenshteinPostcode = Specification.where(PersonSpecification.combineSpecificationsWithOr(postcodeSpecifications))
+  val levenshteinPostcode = Specification.where(PersonSpecification.levenshteinPostcodes(postcodes))
   return Specification.where(
     exactMatch(person.otherIdentifiers?.pncIdentifier?.toString(), PNC)
       .or(exactMatch(person.driverLicenseNumber, DRIVER_LICENSE_NUMBER))

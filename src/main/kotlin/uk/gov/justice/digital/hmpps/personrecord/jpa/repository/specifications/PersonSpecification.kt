@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications
 
+import jakarta.persistence.criteria.Join
 import jakarta.persistence.criteria.JoinType
+import jakarta.persistence.criteria.Predicate
 import org.springframework.data.jpa.domain.Specification
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -42,16 +44,16 @@ object PersonSpecification {
     }
   }
 
-  fun levenshteinPostcode(input: String?, limit: Int = 2): Specification<PersonEntity> {
+  fun levenshteinPostcodes(postcodes: List<String>, limit: Int = 2): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      val addressJoin = root.join<PersonEntity, AddressEntity>("addresses", JoinType.INNER)
-      criteriaBuilder.and(
-        criteriaBuilder.isNotNull(criteriaBuilder.literal(input)),
+      val addressJoin: Join<PersonEntity, AddressEntity> = root.join("addresses")
+      val postcodeSpecifications: List<Predicate> = postcodes.map {
         criteriaBuilder.le(
-          criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(input), addressJoin.get<String>(POSTCODE)),
+          criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(it), addressJoin.get<String>(POSTCODE)),
           limit,
-        ),
-      )
+        )
+      }
+      criteriaBuilder.or(*postcodeSpecifications.toTypedArray())
     }
   }
 
@@ -71,14 +73,5 @@ object PersonSpecification {
         ),
       )
     }
-  }
-
-  fun <T> combineSpecificationsWithOr(specifications: List<Specification<T>>): Specification<T>? {
-    if (specifications.isEmpty()) return null
-    var combinedSpec: Specification<T> = specifications[0]
-    specifications.forEach { specification ->
-      combinedSpec = combinedSpec.or(specification)
-    }
-    return combinedSpec
   }
 }
