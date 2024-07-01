@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.PrisonerSearchResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
@@ -215,7 +216,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withBody(prisonerSearchResponse(prisonNumber, pnc, email)),
+            .withBody(prisonerSearchResponse(PrisonerSearchResponseSetup(prisonNumber, pnc, email))),
         ),
     )
   }

@@ -2,12 +2,12 @@ package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 
-fun prisonerSearchResponse(prisonNumber: String, pnc: String? = randomPnc(), email: String? = "john.smith@gmail.com") = """
+fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSetup) = """
   {
-    "prisonerNumber": "$prisonNumber",
-    "pncNumber": "$pnc",
-    "pncNumberCanonicalShort": "${pnc?.takeLast(11)}",
-    "pncNumberCanonicalLong": "$pnc",
+    "prisonerNumber": "${prisonerSearchResponseSetup.prisonNumber}",
+    "pncNumber": "${prisonerSearchResponseSetup.pnc}",
+    "pncNumberCanonicalShort": "${prisonerSearchResponseSetup.pnc?.takeLast(11)}",
+    "pncNumberCanonicalLong": "${prisonerSearchResponseSetup.pnc}",
     "croNumber": "29906/12J",
     "bookingId": "0001200924",
     "bookNumber": "38412A",
@@ -135,7 +135,7 @@ fun prisonerSearchResponse(prisonNumber: String, pnc: String? = randomPnc(), ema
       }
     ],
     "emailAddresses": [
-        ${email?.let { """ {"email": "$email" }""".trimIndent() } }
+        ${prisonerSearchResponseSetup.email?.let { """ {"email": "${prisonerSearchResponseSetup.email}" }""".trimIndent() } }
     ],
     "phoneNumbers": [
       {
@@ -163,3 +163,5 @@ fun prisonerSearchResponse(prisonNumber: String, pnc: String? = randomPnc(), ema
     ]
   }
 """.trimIndent()
+
+data class PrisonerSearchResponseSetup(val prisonNumber: String, val pnc: String? = randomPnc(), val email: String? = "john.smith@gmail.com")
