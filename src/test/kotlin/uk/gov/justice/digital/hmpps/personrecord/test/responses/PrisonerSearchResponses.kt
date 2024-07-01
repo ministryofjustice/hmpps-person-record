@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 
-fun prisonerSearchResponse(prisonNumber: String, pnc: String? = randomPnc()) = """
+fun prisonerSearchResponse(prisonNumber: String, pnc: String? = randomPnc(), email: String? = "john.smith@gmail.com") = """
   {
     "prisonerNumber": "$prisonNumber",
     "pncNumber": "$pnc",
@@ -135,9 +135,7 @@ fun prisonerSearchResponse(prisonNumber: String, pnc: String? = randomPnc()) = "
       }
     ],
     "emailAddresses": [
-      {
-        "email": "john.smith@gmail.com"
-      }
+        ${email?.let { """ {"email": "$email" }""".trimIndent() } }
     ],
     "phoneNumbers": [
       {
