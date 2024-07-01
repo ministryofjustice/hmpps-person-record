@@ -45,7 +45,7 @@ object PersonSpecification {
     }
   }
 
-  fun levenshteinPostcodes(postcodes: List<String>, limit: Int = 2): Specification<PersonEntity> {
+  fun levenshteinPostcodes(postcodes: Set<String>, limit: Int = 2): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
       postcodes.takeIf { it.isNotEmpty() }?.let {
         val addressJoin: Join<PersonEntity, AddressEntity> = root.join("addresses", INNER)

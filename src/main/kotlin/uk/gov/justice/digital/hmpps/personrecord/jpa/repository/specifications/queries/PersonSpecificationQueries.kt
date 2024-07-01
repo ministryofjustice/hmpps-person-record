@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.P
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 
 fun findCandidates(person: Person): Specification<PersonEntity> {
-  val postcodes = person.addresses.mapNotNull { it.postcode }
+  val postcodes = person.addresses.mapNotNull { it.postcode }.toSet()
 
   val soundexFirstLastName = Specification.where(
     PersonSpecification.soundex(person.firstName, PersonSpecification.FIRST_NAME)
