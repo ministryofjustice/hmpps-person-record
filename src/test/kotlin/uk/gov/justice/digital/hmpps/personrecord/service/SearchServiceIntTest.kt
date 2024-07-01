@@ -371,7 +371,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val searchingPerson = Person(
       firstName = firstName,
       lastName = "Smith",
-      addresses = listOf(Address(postcode = "LS2 1AC"), Address(postcode = "LD2 3BC")),
+      addresses = listOf(Address(postcode = "LS2 1AB"), Address(postcode = "LD2 3BC")),
       sourceSystemType = HMCTS,
     )
 
@@ -411,7 +411,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       firstName = firstName,
       lastName = "Smith",
       addresses = listOf(
-        Address(postcode = "LS5 1AC"),
+        Address(postcode = "LS5 1AB"),
         Address(postcode = "LD2 3BC"),
       ),
       sourceSystemType = HMCTS,

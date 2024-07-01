@@ -8,10 +8,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import java.time.LocalDate
 
-@Suppress("SpreadOperator")
 object PersonSpecification {
 
-  const val SEARCH_VERSION = "1.3"
+  const val SEARCH_VERSION = "1.4"
 
   const val PNC = "pnc"
   const val CRO = "cro"
@@ -45,7 +44,7 @@ object PersonSpecification {
     }
   }
 
-  fun levenshteinPostcodes(postcodes: Set<String>, limit: Int = 2): Specification<PersonEntity> {
+  fun levenshteinPostcodes(postcodes: Set<String>, limit: Int = 1): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
       postcodes.takeIf { it.isNotEmpty() }?.let {
         val addressJoin: Join<PersonEntity, AddressEntity> = root.join("addresses", INNER)
