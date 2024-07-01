@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications
 
 import jakarta.persistence.criteria.Join
-import jakarta.persistence.criteria.JoinType
+import jakarta.persistence.criteria.JoinType.INNER
 import jakarta.persistence.criteria.Predicate
 import org.springframework.data.jpa.domain.Specification
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
@@ -48,7 +48,7 @@ object PersonSpecification {
   fun levenshteinPostcodes(postcodes: List<String>, limit: Int = 2): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
       postcodes.takeIf { it.isNotEmpty() }?.let {
-        val addressJoin: Join<PersonEntity, AddressEntity> = root.join("addresses", JoinType.INNER)
+        val addressJoin: Join<PersonEntity, AddressEntity> = root.join("addresses", INNER)
         val postcodePredicates: Array<Predicate> = postcodes.map {
           criteriaBuilder.le(
             criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(it), addressJoin.get<String>(POSTCODE)),
