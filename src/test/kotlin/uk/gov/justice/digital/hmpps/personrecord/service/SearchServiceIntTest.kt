@@ -384,6 +384,50 @@ class SearchServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
+  fun `should find candidate records on Levenshtein matches on multiple postcodes`() {
+    val firstName = randomFirstName()
+    createPerson(
+      Person(
+        firstName = firstName,
+        lastName = "Smythe",
+        addresses = listOf(
+          Address(postcode = "LS2 1AB"),
+          Address(postcode = "LS3 1AB"),
+          Address(postcode = "LS4 1AB"),
+        ),
+        sourceSystemType = HMCTS,
+      ),
+    )
+    createPerson(
+      Person(
+        firstName = firstName,
+        lastName = "Smythe",
+        addresses = listOf(Address(postcode = "PR7 3DU")),
+        sourceSystemType = HMCTS,
+      ),
+    )
+
+    val searchingPerson = Person(
+      firstName = firstName,
+      lastName = "Smith",
+      addresses = listOf(
+        Address(postcode = "LS5 1AC"),
+        Address(postcode = "LD2 3BC"),
+      ),
+      sourceSystemType = HMCTS,
+    )
+
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    stubMatchScore(matchResponse)
+    val candidateRecords = searchService.findCandidateRecords(searchingPerson)
+
+    assertThat(candidateRecords.size).isEqualTo(1)
+    assertThat(candidateRecords[0].candidateRecord.addresses[0].postcode).isEqualTo("LS2 1AB")
+    assertThat(candidateRecords[0].candidateRecord.addresses[1].postcode).isEqualTo("LS3 1AB")
+    assertThat(candidateRecords[0].candidateRecord.addresses[2].postcode).isEqualTo("LS4 1AB")
+  }
+
+  @Test
   fun `should not find candidate records on matching postcode but not name`() {
     createPerson(
       Person(

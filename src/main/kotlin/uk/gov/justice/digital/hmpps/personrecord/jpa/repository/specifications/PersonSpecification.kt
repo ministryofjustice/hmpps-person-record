@@ -1,11 +1,14 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications
 
+import jakarta.persistence.criteria.Join
 import jakarta.persistence.criteria.JoinType.INNER
+import jakarta.persistence.criteria.Predicate
 import org.springframework.data.jpa.domain.Specification
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import java.time.LocalDate
 
+@Suppress("SpreadOperator")
 object PersonSpecification {
 
   const val SEARCH_VERSION = "1.3"
@@ -42,13 +45,18 @@ object PersonSpecification {
     }
   }
 
-  fun levenshteinPostcode(input: String?, limit: Int = 2): Specification<PersonEntity> {
+  fun levenshteinPostcodes(postcodes: Set<String>, limit: Int = 2): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      val addressJoin = root.join<PersonEntity, AddressEntity>("addresses", INNER)
-      criteriaBuilder.le(
-        criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(input), addressJoin.get<String>(POSTCODE)),
-        limit,
-      )
+      postcodes.takeIf { it.isNotEmpty() }?.let {
+        val addressJoin: Join<PersonEntity, AddressEntity> = root.join("addresses", INNER)
+        val postcodePredicates: Array<Predicate> = postcodes.map {
+          criteriaBuilder.le(
+            criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(it), addressJoin.get<String>(POSTCODE)),
+            limit,
+          )
+        }.toTypedArray()
+        criteriaBuilder.or(*postcodePredicates)
+      }
     }
   }
 
@@ -68,14 +76,5 @@ object PersonSpecification {
         ),
       )
     }
-  }
-
-  fun <T> combineSpecificationsWithOr(specifications: List<Specification<T>>): Specification<T>? {
-    if (specifications.isEmpty()) return null
-    var combinedSpec: Specification<T> = specifications[0]
-    specifications.takeLast(specifications.size - 1).forEach { specification ->
-      combinedSpec = combinedSpec.or(specification)
-    }
-    return combinedSpec
   }
 }
