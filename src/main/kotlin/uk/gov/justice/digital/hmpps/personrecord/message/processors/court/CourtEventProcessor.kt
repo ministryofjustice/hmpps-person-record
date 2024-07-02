@@ -92,7 +92,7 @@ class CourtEventProcessor(
     )
 
     personService.processMessage(person) {
-      personService.searchBySourceSystems(person)
+      personService.searchBySourceSystem(person)
     }
   }
 }

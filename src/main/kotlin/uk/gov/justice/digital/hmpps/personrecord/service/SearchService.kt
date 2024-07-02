@@ -21,12 +21,12 @@ class SearchService(
   private val personRepository: PersonRepository,
 ) {
 
-  fun findCandidatesRecordsBySourceSystem(person: Person): List<MatchResult> {
+  fun findCandidateRecordsBySourceSystem(person: Person): List<MatchResult> {
     val query = findCandidatesBySourceSystem(person)
     return searchForRecords(person, query)
   }
 
-  fun findCandidatesRecords(person: Person): List<MatchResult> {
+  fun findCandidateRecords(person: Person): List<MatchResult> {
     val query = findCandidates(person)
     return searchForRecords(person, query)
   }
