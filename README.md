@@ -60,7 +60,7 @@ curl -i -X POST http://localhost:8080/populatefromprobation
 
 ### importing cluster data manually
 
-[How to import cluster data](./src/main/resources/db/scripts/README-cluster-data.md)
+[How to import cluster data](./scripts/db/README-cluster-data.md)
 ## process a Common Platform message
 
 ```shell

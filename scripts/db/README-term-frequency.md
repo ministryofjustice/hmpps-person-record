@@ -6,14 +6,14 @@ Future: term frequency tables will be managed by the splink cluster
 Connect to the database [using the process defined](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/rds-external-access.html)
 
 If the `personmatchscore` schema, does not exist:
-Copy and paste the SQL from  [CPR-356-create-personmatchscore-schema](./CPR-356-create-personmatchscore-schema.sql) and execute it
+Copy and paste the SQL from  [CPR-356-create-personmatchscore-schema](CPR-356-create-personmatchscore-schema.sql) and execute it
 
 If the `personmatchscore.last_name_frequency`, `personmatchscore.first_name_frequency` and `personmatchscore.date_of_birth_frequency` table does not exist:
-Copy and paste the SQL from  [CPR-238.sql](./CPR-238.sql) and execute it
+Copy and paste the SQL from  [CPR-238.sql](CPR-238.sql) and execute it
 
 #### Data import
 
-Compare the column names within term frequency tables as defined in [CPR-238.sql](./CPR-238.sql) and amend the csv file to match the column names. For example, `rename forename` to `first_name`
+Compare the column names within term frequency tables as defined in [CPR-238.sql](CPR-238.sql) and amend the csv file to match the column names. For example, `rename forename` to `first_name`
 
 Connect to the database [using the process defined](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/rds-external-access.html)
 
