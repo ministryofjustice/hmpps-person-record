@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
-fun probationCaseResponse(probationCase: ProbationCaseResponseSetup) = """
+fun probationCaseResponse(probationCase: ApiResponseSetup) = """
     {
       "identifiers": {
           "deliusId": 2500000501,
@@ -45,13 +45,9 @@ fun probationCaseResponse(probationCase: ProbationCaseResponseSetup) = """
     }
 """.trimIndent()
 
-private fun address(address: ProbationCaseResponseSetupAddress) =
+private fun address(address: ApiResponseSetupAddress) =
   """
                   {
                     "postcode": "${address.postcode}"
                   }
   """.trimIndent()
-
-data class ProbationCaseResponseSetupAddress(val postcode: String)
-
-data class ProbationCaseResponseSetup(val crn: String, val pnc: String? = null, val prefix: String, val prisonNumber: String, val addresses: List<ProbationCaseResponseSetupAddress>)
