@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
+import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 
 fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSetup) = """
@@ -8,7 +9,7 @@ fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSe
     "pncNumber": "${prisonerSearchResponseSetup.pnc}",
     "pncNumberCanonicalShort": "${prisonerSearchResponseSetup.pnc?.takeLast(11)}",
     "pncNumberCanonicalLong": "${prisonerSearchResponseSetup.pnc}",
-    "croNumber": "29906/12J",
+    "croNumber": "${prisonerSearchResponseSetup.cro}",
     "bookingId": "0001200924",
     "bookNumber": "38412A",
     "title": "Ms",
@@ -164,4 +165,4 @@ fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSe
   }
 """.trimIndent()
 
-data class PrisonerSearchResponseSetup(val prisonNumber: String, val pnc: String? = randomPnc(), val email: String? = "john.smith@gmail.com")
+data class PrisonerSearchResponseSetup(val prisonNumber: String, val pnc: String? = randomPnc(), val email: String? = randomEmail(), val cro: String)

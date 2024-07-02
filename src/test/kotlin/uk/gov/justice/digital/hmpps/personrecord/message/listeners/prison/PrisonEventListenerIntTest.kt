@@ -49,7 +49,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val prisonNumber = randomPrisonNumber()
     val pnc = randomPnc()
     val email = randomEmail()
-    stubPrisonResponse(prisonNumber, pnc, email)
+    val cro = randomCro()
+    stubPrisonResponse(prisonNumber, pnc, email, cro)
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -65,7 +66,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.middleNames).isEqualTo("John James")
       assertThat(personEntity.lastName).isEqualTo("Larsen")
       assertThat(personEntity.pnc).isEqualTo(PNCIdentifier.from(pnc))
-      assertThat(personEntity.cro).isEqualTo(CROIdentifier.from("029906/12J"))
+      assertThat(personEntity.cro).isEqualTo(CROIdentifier.from(cro))
       assertThat(personEntity.aliases.size).isEqualTo(1)
       assertThat(personEntity.aliases[0].firstName).isEqualTo("Robert")
       assertThat(personEntity.aliases[0].middleNames).isEqualTo("Trevor")
@@ -92,7 +93,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should log correct telemetry on created event but record already exists`() {
     val prisonNumber = createPrisoner()
 
-    stubPrisonResponse(prisonNumber)
+    stubPrisonResponse(prisonNumber, cro = randomCro())
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -114,7 +115,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)
     }
 
-    stubPrisonResponse(prisonNumber)
+    stubPrisonResponse(prisonNumber, cro = randomCro())
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
     val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -132,7 +133,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should retry on retryable error`() {
     val prisonNumber = randomPrisonNumber()
     stub500Response(prisonNumber)
-    stubPrisonResponse(prisonNumber, scenarioName = "retry", currentScenarioState = "next request will succeed")
+    stubPrisonResponse(prisonNumber, cro = randomCro(), scenarioName = "retry", currentScenarioState = "next request will succeed")
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
     publishDomainEvent(PRISONER_CREATED, domainEvent)
@@ -148,7 +149,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should log correct telemetry on updated event but no record exists`() {
     val prisonNumber = randomPrisonNumber()
-    stubPrisonResponse(prisonNumber)
+    stubPrisonResponse(prisonNumber, cro = randomCro())
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -168,7 +169,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     probationDomainEventAndResponseSetup(eventType = OFFENDER_ALIAS_CHANGED, pnc = "", prisonNumber = prisonNumber)
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
-    stubPrisonResponse(prisonNumber)
+    stubPrisonResponse(prisonNumber, cro = randomCro())
     publishDomainEvent(PRISONER_UPDATED, domainEvent)
     checkTelemetry(
       CPR_RECORD_CREATED,
@@ -209,6 +210,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     prisonNumber: String,
     pnc: String? = randomPnc(),
     email: String? = randomEmail(),
+    cro: String,
     scenarioName: String? = "scenario",
     currentScenarioState: String? = STARTED,
   ) {
@@ -220,7 +222,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withBody(prisonerSearchResponse(PrisonerSearchResponseSetup(prisonNumber, pnc, email))),
+            .withBody(prisonerSearchResponse(PrisonerSearchResponseSetup(prisonNumber, pnc, email, cro))),
         ),
     )
   }
