@@ -10,6 +10,7 @@
 
 ## Running tests
 ```
+$ make start-containers
 $ make test
 ```
 
@@ -39,18 +40,15 @@ Start the service ensuring the local spring boot profile is set:
 
 1. Pause message consumption by adding the profile `seeding` to the spring configuration in helm
 2. Delete all data with source system of NOMIS or DELIUS as appropriate
-    At the moment we have no delete cascade on the child tables, so we have to do this to avoid orphaned records
+    
 ```
-    delete from personrecordservice.address a where a.fk_person_id in (select id from personrecordservice.person p where p.source_system = 'DELIUS')
-    delete from personrecordservice.alias a where a.fk_person_id in (select id from personrecordservice.person p where p.source_system = 'DELIUS')
-    delete from personrecordservice.contact a where a.fk_person_id in (select id from personrecordservice.person p where p.source_system = 'DELIUS')
     delete from personrecordservice.person p where p.source_system = 'DELIUS'
 ```    
 3. Get a shell on the hmpps-person-record pod (this is for preproduction):
 ```
 kubectl exec -it deployment/hmpps-person-record -n hmpps-person-record-preprod -- bash
 
-# takes 90 minutes -3 hours
+# takes 90 minutes to 3 hours
 curl -i -X POST http://localhost:8080/populatefromprison 
 
 # takes 7-8 hours
@@ -75,5 +73,5 @@ AWS_REGION=eu-west-2 AWS_ACCESS_KEY_ID=key AWS_SECRET_ACCESS_KEY=secret aws --en
 Builds and deployments are set up in `Circle CI` and configured in the [config file](./.circleci/config.yml).  
 Helm is used to deploy the service to a Kubernetes Cluster using templates in the [`helm_deploy` folder](./helm_deploy).
 
----
+
 
