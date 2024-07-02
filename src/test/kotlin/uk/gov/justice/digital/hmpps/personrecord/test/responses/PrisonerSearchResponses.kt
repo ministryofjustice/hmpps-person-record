@@ -14,7 +14,7 @@ fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSe
     "title": "Ms",
     "firstName": "${prisonerSearchResponseSetup.firstName}",
     "middleNames": "John James",
-    "lastName": "Larsen",
+    "lastName": "${prisonerSearchResponseSetup.lastName}",
     "dateOfBirth": "1975-04-02",
     "gender": "Female",
     "ethnicity": "White: Eng./Welsh/Scot./N.Irish/British",
@@ -164,4 +164,4 @@ fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSe
   }
 """.trimIndent()
 
-data class PrisonerSearchResponseSetup(val prisonNumber: String, val pnc: String?, val email: String? = randomEmail(), val cro: String?, val postcode: String?, val firstName: String?)
+data class PrisonerSearchResponseSetup(val prisonNumber: String, val pnc: String?, val email: String? = randomEmail(), val cro: String?, val postcode: String?, val firstName: String?, val lastName: String?)

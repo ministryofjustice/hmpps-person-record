@@ -55,7 +55,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val cro = randomCro()
     val postcode = randomPostcode()
     val firstName = randomFirstName()
-    stubPrisonResponse(prisonNumber, pnc, email, cro, postcode, firstName)
+    val lastName = randomLastName()
+    stubPrisonResponse(prisonNumber, pnc, email, cro, postcode, firstName, lastName)
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -63,13 +64,13 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
 
-    await.atMost(15, SECONDS) untilAsserted {
+    await.atMost(5, SECONDS) untilAsserted {
       val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
       assertThat(personEntity.personIdentifier).isNull()
       assertThat(personEntity.title).isEqualTo("Ms")
       assertThat(personEntity.firstName).isEqualTo(firstName)
       assertThat(personEntity.middleNames).isEqualTo("John James")
-      assertThat(personEntity.lastName).isEqualTo("Larsen")
+      assertThat(personEntity.lastName).isEqualTo(lastName)
       assertThat(personEntity.pnc).isEqualTo(PNCIdentifier.from(pnc))
       assertThat(personEntity.cro).isEqualTo(CROIdentifier.from(cro))
       assertThat(personEntity.aliases.size).isEqualTo(1)
@@ -121,7 +122,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)
     }
 
-    stubPrisonResponse(prisonNumber, cro = randomCro())
+    stubPrisonResponse(prisonNumber)
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
     val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -139,7 +140,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should retry on retryable error`() {
     val prisonNumber = randomPrisonNumber()
     stub500Response(prisonNumber)
-    stubPrisonResponse(prisonNumber, cro = randomCro(), scenarioName = "retry", currentScenarioState = "next request will succeed")
+    stubPrisonResponse(prisonNumber, scenarioName = "retry", currentScenarioState = "next request will succeed")
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
     publishDomainEvent(PRISONER_CREATED, domainEvent)
@@ -219,6 +220,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     cro: String? = randomCro(),
     postcode: String? = randomPostcode(),
     firstName: String? = randomFirstName(),
+    lastName: String? = randomLastName(),
     scenarioName: String? = "scenario",
     currentScenarioState: String? = STARTED,
   ) {
@@ -230,7 +232,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withBody(prisonerSearchResponse(PrisonerSearchResponseSetup(prisonNumber, pnc, email, cro, postcode, firstName))),
+            .withBody(prisonerSearchResponse(PrisonerSearchResponseSetup(prisonNumber, pnc, email, cro, postcode, firstName, lastName))),
         ),
     )
   }
