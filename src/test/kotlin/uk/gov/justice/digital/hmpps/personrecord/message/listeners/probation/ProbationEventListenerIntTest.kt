@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ProbationCaseResponseSetupAddress
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
 import java.time.LocalDate
@@ -37,7 +38,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val prefix = randomFirstName()
     val pnc = randomPnc()
     val cro = randomCro()
-    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, prisonNumber = prisonNumber, prefix = prefix, cro = cro)
+    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, prisonNumber = prisonNumber, addresses = listOf(ProbationCaseResponseSetupAddress("LS1 1AB"), ProbationCaseResponseSetupAddress("M21 9LX")), prefix = prefix, cro = cro)
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(personEntity.personIdentifier).isNull()
@@ -53,8 +54,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.aliases[0].middleNames).isEqualTo("MiddleName")
     assertThat(personEntity.aliases[0].lastName).isEqualTo("${prefix}LastName")
     assertThat(personEntity.aliases[0].dateOfBirth).isEqualTo(LocalDate.of(2024, 5, 30))
-    assertThat(personEntity.addresses.size).isEqualTo(1)
+    assertThat(personEntity.addresses.size).isEqualTo(2)
     assertThat(personEntity.addresses[0].postcode).isEqualTo("LS1 1AB")
+    assertThat(personEntity.addresses[1].postcode).isEqualTo("M21 9LX")
     assertThat(personEntity.contacts.size).isEqualTo(3)
     assertThat(personEntity.contacts[0].contactType).isEqualTo(ContactType.HOME)
     assertThat(personEntity.contacts[0].contactValue).isEqualTo("01234567890")

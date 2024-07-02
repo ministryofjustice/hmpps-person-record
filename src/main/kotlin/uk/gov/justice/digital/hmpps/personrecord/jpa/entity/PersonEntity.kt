@@ -43,7 +43,7 @@ class PersonEntity(
   @Column(name = "middle_names")
   var middleNames: String? = null,
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "fk_person_identifier_id", referencedColumnName = "id", nullable = true)
   var personIdentifier: PersonIdentifierEntity? = null,
 

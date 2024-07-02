@@ -1,12 +1,14 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.messages
 
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+
 class LibraMessage(
   val pncNumber: String? = "2003/0011985X",
   val firstName: String? = "Arthur",
   val lastName: String = "MORGAN",
   val dateOfBirth: String = "01/01/1975",
   val cro: String = "85227/65L",
-  val postcode: String? = "NT4 6YH",
+  val postcode: String = randomPostcode(),
 )
 
 fun libraHearing(libraMessage: LibraMessage = LibraMessage()) = """

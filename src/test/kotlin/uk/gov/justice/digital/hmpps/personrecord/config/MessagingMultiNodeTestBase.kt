@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNINumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ProbationCaseResponseSetup
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ProbationCaseResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -106,13 +107,14 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     expectNoMessagesOn(prisonEventsQueue)
   }
 
-  fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = randomFirstName(), scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {
+  fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = randomFirstName(), addresses: List<ProbationCaseResponseSetupAddress> = listOf(ProbationCaseResponseSetupAddress("LS1 1AB")), scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {
     val probationCaseResponseSetup = ProbationCaseResponseSetup(
       crn = crn,
       pnc = pnc,
       cro = cro,
       prefix = prefix,
       prisonNumber = prisonNumber,
+      addresses = addresses,
       nationalInsuranceNumber = randomNINumber(),
     )
     stubSingleProbationResponse(probationCaseResponseSetup, scenario, currentScenarioState, nextScenarioState)

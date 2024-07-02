@@ -53,7 +53,7 @@ fun commonPlatformHearing(commonPlatformHearingSetup: List<CommonPlatformHearing
         "jurisdictionType": "CROWN",
         "prosecutionCases": [
           {
-            "defendants": [${commonPlatformHearingSetup.map { defendant(it) }.joinToString(",")}],
+            "defendants": [${commonPlatformHearingSetup.joinToString(",") { defendant(it) }}],
             "id": "D2B61C8A-0684-4764-B401-F0A788BC7CCF",
             "prosecutionCaseIdentifier": {
               "caseURN": "25GD34377719"

@@ -7,11 +7,15 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.EmailAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonIdentifierRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -34,6 +38,9 @@ import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
 
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
+
+  @Autowired
+  private lateinit var personIdentifierRepository: PersonIdentifierRepository
 
   @Test
   fun `should receive the message successfully when prisoner created event published`() {
@@ -179,21 +186,29 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   private fun createPrisoner(): String {
     val prisonNumber = randomPrisonNumber()
-    personRepository.saveAndFlush(
-      PersonEntity.from(
-        Person.from(
-          Prisoner(
-            prisonNumber = prisonNumber,
-            title = "Ms",
-            firstName = "Robert",
-            middleNames = "John James",
-            lastName = "Larsen",
-            cro = CROIdentifier.from("029906/12J"),
-            pnc = PNCIdentifier.from("2003/0062845E"),
-            dateOfBirth = LocalDate.of(1975, 4, 2),
-          ),
+
+    val person = PersonEntity.from(
+      Person.from(
+        Prisoner(
+          prisonNumber = prisonNumber,
+          title = "Ms",
+          firstName = "Robert",
+          middleNames = "John James",
+          lastName = "Larsen",
+          cro = CROIdentifier.from(randomCro()),
+          pnc = PNCIdentifier.from(randomPnc()),
+          dateOfBirth = LocalDate.of(1975, 4, 2),
+          emailAddresses = listOf(EmailAddress("email@email.com")),
+
         ),
       ),
+    )
+    val personIdentifier = PersonIdentifierEntity.new()
+
+    personIdentifierRepository.saveAndFlush(personIdentifier)
+    person.personIdentifier = personIdentifier
+    personRepository.saveAndFlush(
+      person,
     )
     return prisonNumber
   }
@@ -206,6 +221,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     lastName: String? = randomLastName(),
     scenarioName: String? = "scenario",
     currentScenarioState: String? = STARTED,
+    email: String? = "john.smith@gmail.com",
   ) {
     wiremock.stubFor(
       WireMock.get("/prisoner/$prisonNumber")
@@ -215,7 +231,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withBody(prisonerSearchResponse(prisonNumber, pnc, cro, firstName, lastName)),
+            .withBody(prisonerSearchResponse(prisonNumber, pnc, cro, firstName, lastName, email)),
         ),
     )
   }

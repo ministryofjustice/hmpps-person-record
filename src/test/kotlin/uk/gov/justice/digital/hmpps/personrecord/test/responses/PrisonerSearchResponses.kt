@@ -6,6 +6,7 @@ fun prisonerSearchResponse(
   cro: String?,
   firstName: String?,
   lastName: String?,
+  email: String?,
 ) = """
   {
     "prisonerNumber": "$prisonNumber",
@@ -139,9 +140,7 @@ fun prisonerSearchResponse(
       }
     ],
     "emailAddresses": [
-      {
-        "email": "john.smith@gmail.com"
-      }
+        ${email?.let { """ {"email": "$email" }""".trimIndent() } }
     ],
     "phoneNumbers": [
       {
