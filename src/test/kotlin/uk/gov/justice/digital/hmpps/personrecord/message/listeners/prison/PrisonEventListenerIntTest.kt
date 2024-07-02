@@ -19,7 +19,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
@@ -29,8 +31,13 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DOMAIN_EVENT_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
+import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.PrisonerSearchResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
@@ -44,7 +51,12 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should receive the message successfully when prisoner created event published`() {
     val prisonNumber = randomPrisonNumber()
     val pnc = randomPnc()
-    stubPrisonResponse(prisonNumber, pnc)
+    val email = randomEmail()
+    val cro = randomCro()
+    val postcode = randomPostcode()
+    val firstName = randomFirstName()
+    val lastName = randomLastName()
+    stubPrisonResponse(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, postcode = postcode, firstName = firstName, lastName = lastName)
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -52,28 +64,29 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(DOMAIN_EVENT_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
 
-    await.atMost(15, SECONDS) untilAsserted {
+    await.atMost(5, SECONDS) untilAsserted {
       val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
       assertThat(personEntity.personIdentifier).isNull()
       assertThat(personEntity.title).isEqualTo("Ms")
-      assertThat(personEntity.firstName).isEqualTo("Robert")
+      assertThat(personEntity.firstName).isEqualTo(firstName)
       assertThat(personEntity.middleNames).isEqualTo("John James")
-      assertThat(personEntity.lastName).isEqualTo("Larsen")
+      assertThat(personEntity.lastName).isEqualTo(lastName)
       assertThat(personEntity.pnc).isEqualTo(PNCIdentifier.from(pnc))
-      assertThat(personEntity.cro).isEqualTo(CROIdentifier.from("029906/12J"))
+      assertThat(personEntity.cro).isEqualTo(CROIdentifier.from(cro))
       assertThat(personEntity.aliases.size).isEqualTo(1)
       assertThat(personEntity.aliases[0].firstName).isEqualTo("Robert")
       assertThat(personEntity.aliases[0].middleNames).isEqualTo("Trevor")
       assertThat(personEntity.aliases[0].lastName).isEqualTo("Lorsen")
+
       assertThat(personEntity.aliases[0].dateOfBirth).isEqualTo(LocalDate.of(1975, 4, 2))
       assertThat(personEntity.addresses.size).isEqualTo(1)
-      assertThat(personEntity.addresses[0].postcode).isEqualTo("S10 1BP")
+      assertThat(personEntity.addresses[0].postcode).isEqualTo(postcode)
       assertThat(personEntity.contacts.size).isEqualTo(3)
-      assertThat(personEntity.contacts[0].contactType).isEqualTo(ContactType.EMAIL)
-      assertThat(personEntity.contacts[0].contactValue).isEqualTo("john.smith@gmail.com")
-      assertThat(personEntity.contacts[1].contactType).isEqualTo(ContactType.HOME)
+      assertThat(personEntity.contacts[0].contactType).isEqualTo(EMAIL)
+      assertThat(personEntity.contacts[0].contactValue).isEqualTo(email)
+      assertThat(personEntity.contacts[1].contactType).isEqualTo(HOME)
       assertThat(personEntity.contacts[1].contactValue).isEqualTo("01141234567")
-      assertThat(personEntity.contacts[2].contactType).isEqualTo(ContactType.MOBILE)
+      assertThat(personEntity.contacts[2].contactType).isEqualTo(MOBILE)
       assertThat(personEntity.contacts[2].contactValue).isEqualTo("01141234567")
     }
 
@@ -143,7 +156,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should log correct telemetry on updated event but no record exists`() {
     val prisonNumber = randomPrisonNumber()
-    stubPrisonResponse(prisonNumber)
+    stubPrisonResponse(prisonNumber, cro = randomCro())
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -160,10 +173,15 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should allow a person to be created from a prison event when an offender record already exists with the prisonNumber`() {
     val prisonNumber = randomPrisonNumber()
-    probationDomainEventAndResponseSetup(eventType = OFFENDER_ALIAS_CHANGED, pnc = "", prisonNumber = prisonNumber)
+    val pnc = randomPnc()
+    val cro = randomCro()
+    val firstName = randomFirstName()
+    val lastName = randomLastName()
+    probationDomainEventAndResponseSetup(eventType = OFFENDER_ALIAS_CHANGED, pnc = "", prisonNumber = prisonNumber, prefix = firstName)
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
-    stubPrisonResponse(prisonNumber)
+
+    stubPrisonResponse(prisonNumber, cro = randomCro())
     publishDomainEvent(PRISONER_UPDATED, domainEvent)
     checkTelemetry(
       CPR_RECORD_CREATED,
@@ -179,13 +197,13 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         Prisoner(
           prisonNumber = prisonNumber,
           title = "Ms",
-          firstName = "Robert",
+          firstName = randomFirstName(),
           middleNames = "John James",
-          lastName = "Larsen",
+          lastName = randomLastName(),
           cro = CROIdentifier.from(randomCro()),
           pnc = PNCIdentifier.from(randomPnc()),
           dateOfBirth = LocalDate.of(1975, 4, 2),
-          emailAddresses = listOf(EmailAddress("email@email.com")),
+          emailAddresses = listOf(EmailAddress(randomEmail())),
 
         ),
       ),
@@ -203,9 +221,13 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   private fun stubPrisonResponse(
     prisonNumber: String,
     pnc: String? = randomPnc(),
+    email: String? = randomEmail(),
+    cro: String? = randomCro(),
+    postcode: String? = randomPostcode(),
+    firstName: String? = randomFirstName(),
+    lastName: String? = randomLastName(),
     scenarioName: String? = "scenario",
     currentScenarioState: String? = STARTED,
-    email: String? = "john.smith@gmail.com",
   ) {
     wiremock.stubFor(
       WireMock.get("/prisoner/$prisonNumber")
@@ -215,10 +237,11 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withBody(prisonerSearchResponse(prisonNumber, pnc, email)),
+            .withBody(prisonerSearchResponse(PrisonerSearchResponseSetup(prisonNumber, pnc, email, cro, postcode, firstName, lastName))),
         ),
     )
   }
+
   private fun stub500Response(
     prisonNumber: String,
   ) {
