@@ -110,8 +110,8 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = randomFirstName(), addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress("LS1 1AB")), scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {
     val probationCaseResponseSetup = ApiResponseSetup(
       crn = crn,
-      pnc = pnc,
       cro = cro,
+      pnc = pnc,
       prefix = prefix,
       prisonNumber = prisonNumber,
       addresses = addresses,

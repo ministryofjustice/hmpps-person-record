@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
-import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 
-fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSetup) = """
+fun prisonerSearchResponse(prisonerSearchResponseSetup: ApiResponseSetup) = """
   {
     "prisonerNumber": "${prisonerSearchResponseSetup.prisonNumber}",
     "pncNumber": "${prisonerSearchResponseSetup.pnc}",
@@ -11,9 +10,9 @@ fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSe
     "bookingId": "0001200924",
     "bookNumber": "38412A",
     "title": "Ms",
-    "firstName": "${prisonerSearchResponseSetup.firstName}",
+    "firstName": "${prisonerSearchResponseSetup.prefix}FirstName",
     "middleNames": "John James",
-    "lastName": "${prisonerSearchResponseSetup.lastName}",
+    "lastName": "${prisonerSearchResponseSetup.prefix}LastName",
     "dateOfBirth": "1975-04-02",
     "gender": "Female",
     "ethnicity": "White: Eng./Welsh/Scot./N.Irish/British",
@@ -122,7 +121,7 @@ fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSe
     "addresses": [
       {
         "fullAddress": "1 Main Street, Crookes, Sheffield, South Yorkshire, S10 1BP, England",
-        "postalCode": "${prisonerSearchResponseSetup.postcode}",
+        "postalCode": "${prisonerSearchResponseSetup.addresses[0].postcode}",
         "startDate": "2020-07-17",
         "primaryAddress": true,
         "phoneNumbers": [
@@ -162,5 +161,3 @@ fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSe
     ]
   }
 """.trimIndent()
-
-data class PrisonerSearchResponseSetup(val prisonNumber: String, val pnc: String?, val email: String? = randomEmail(), val cro: String?, val postcode: String?, val firstName: String?, val lastName: String?)
