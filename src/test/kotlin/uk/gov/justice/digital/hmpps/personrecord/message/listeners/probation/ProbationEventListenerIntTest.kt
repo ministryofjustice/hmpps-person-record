@@ -22,7 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.ProbationCaseResponseSetupAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
 import java.time.LocalDate
@@ -34,7 +34,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `creates person when when new offender created event is published`() {
     val prisonNumber = randomPrisonNumber()
     val pnc = randomPnc()
-    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, prisonNumber = prisonNumber, addresses = listOf(ProbationCaseResponseSetupAddress("LS1 1AB"), ProbationCaseResponseSetupAddress("M21 9LX")))
+    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, prisonNumber = prisonNumber, addresses = listOf(ApiResponseSetupAddress("LS1 1AB"), ApiResponseSetupAddress("M21 9LX")))
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(personEntity.personIdentifier).isNull()
