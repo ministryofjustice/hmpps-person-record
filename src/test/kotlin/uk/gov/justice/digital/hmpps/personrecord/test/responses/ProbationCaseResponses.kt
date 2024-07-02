@@ -6,9 +6,9 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
           "deliusId": 2500000501,
           ${probationCase.pnc?.let { """ "pnc": "${probationCase.pnc}", """.trimIndent() } ?: ""}
           "crn": "${probationCase.crn}",
-          "cro": "075715/64Q",
+          "cro": "${probationCase.cro}",
           "prisonerNumber": "${probationCase.prisonNumber}",
-          "ni": "1234567890"
+          "ni": "${probationCase.nationalInsuranceNumber}"
       },
       "name": {
           "forename": "${probationCase.prefix}FirstName",

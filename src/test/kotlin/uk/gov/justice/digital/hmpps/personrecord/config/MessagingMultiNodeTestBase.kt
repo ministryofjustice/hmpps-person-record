@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
+import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
@@ -20,6 +21,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.Pe
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNINumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
@@ -103,9 +107,17 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     expectNoMessagesOn(prisonEventsQueue)
   }
 
-  fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress("LS1 1AB")), scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {
-    val apiResponseSetup = ApiResponseSetup(crn = crn, pnc = pnc, prefix = "POPOne", prisonNumber = prisonNumber, addresses = addresses)
-    stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
+  fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = randomFirstName(), addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress("LS1 1AB")), scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {
+    val probationCaseResponseSetup = ApiResponseSetup(
+      crn = crn,
+      pnc = pnc,
+      cro = cro,
+      prefix = prefix,
+      prisonNumber = prisonNumber,
+      addresses = addresses,
+      nationalInsuranceNumber = randomNINumber(),
+    )
+    stubSingleProbationResponse(probationCaseResponseSetup, scenario, currentScenarioState, nextScenarioState)
 
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
@@ -130,6 +142,18 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
             .withHeader("Content-Type", "application/json")
             .withBody(probationCaseResponse(probationCase))
             .withStatus(200),
+        ),
+    )
+  }
+
+  fun stubMatchScore(matchResponse: MatchResponse) {
+    wiremock.stubFor(
+      WireMock.post("/person/match")
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(200)
+            .withBody(objectMapper.writeValueAsString(matchResponse)),
         ),
     )
   }

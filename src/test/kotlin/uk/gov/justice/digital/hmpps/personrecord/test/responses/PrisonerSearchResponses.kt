@@ -1,5 +1,4 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
-
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 
 fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSetup) = """

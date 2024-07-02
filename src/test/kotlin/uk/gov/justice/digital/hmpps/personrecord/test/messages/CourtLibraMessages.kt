@@ -27,8 +27,8 @@ fun libraHearing(libraMessage: LibraMessage = LibraMessage()) = """
    "defendantAge":"20",
    "defendantAddress":{
       "line1": "39 The Street",
-      "line2": "Newtown",
-      "pcode": "${libraMessage.postcode}"
+      "line2": "Newtown"
+      ${libraMessage.postcode?.let { """ ,"pcode": "${libraMessage.postcode}" """.trimIndent() } ?: ""}
    },
    "cro":"${libraMessage.cro}",
    ${libraMessage.pncNumber?.let { """ "pnc": "${libraMessage.pncNumber}", """.trimIndent() } ?: ""}

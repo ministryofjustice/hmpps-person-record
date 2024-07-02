@@ -56,7 +56,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val postcode = randomPostcode()
     val firstName = randomFirstName()
     val lastName = randomLastName()
-    stubPrisonResponse(prisonNumber, pnc, email, cro, postcode, firstName, lastName)
+    stubPrisonResponse(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, postcode = postcode, firstName = firstName, lastName = lastName)
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -173,9 +173,14 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should allow a person to be created from a prison event when an offender record already exists with the prisonNumber`() {
     val prisonNumber = randomPrisonNumber()
-    probationDomainEventAndResponseSetup(eventType = OFFENDER_ALIAS_CHANGED, pnc = "", prisonNumber = prisonNumber)
+    val pnc = randomPnc()
+    val cro = randomCro()
+    val firstName = randomFirstName()
+    val lastName = randomLastName()
+    probationDomainEventAndResponseSetup(eventType = OFFENDER_ALIAS_CHANGED, pnc = "", prisonNumber = prisonNumber, prefix = firstName)
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
+
     stubPrisonResponse(prisonNumber, cro = randomCro())
     publishDomainEvent(PRISONER_UPDATED, domainEvent)
     checkTelemetry(
@@ -236,6 +241,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
     )
   }
+
   private fun stub500Response(
     prisonNumber: String,
   ) {

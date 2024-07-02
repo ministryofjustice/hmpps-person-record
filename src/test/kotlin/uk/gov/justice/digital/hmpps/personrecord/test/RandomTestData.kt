@@ -38,6 +38,7 @@ fun randomDriverLicenseNumber(): String = UUID.randomUUID().toString()
 fun randomPrisonNumber(): String = randomLowerCaseString(2).uppercase() + randomDigit(4) + randomLowerCaseString(1).uppercase()
 
 fun randomCRN(): String = randomLowerCaseString(1).uppercase() + randomDigit(6)
+fun randomNINumber(): String = randomLowerCaseString(2).uppercase() + randomDigit(6) + randomLowerCaseString(1).uppercase()
 
 fun randomPostcode(): String = randomLowerCaseString(2).uppercase() + randomDigit(1) + " " + randomDigit(1) + randomLowerCaseString(2).uppercase()
 private fun randomLowerCaseString(length: Int = 7): String = (1..length).map {
