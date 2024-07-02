@@ -35,6 +35,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.PrisonerSearchResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
@@ -52,7 +53,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val pnc = randomPnc()
     val email = randomEmail()
     val cro = randomCro()
-    stubPrisonResponse(prisonNumber, pnc, email, cro)
+    val postcode = randomPostcode()
+    stubPrisonResponse(prisonNumber, pnc, email, cro, postcode)
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -73,9 +75,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.aliases[0].firstName).isEqualTo("Robert")
       assertThat(personEntity.aliases[0].middleNames).isEqualTo("Trevor")
       assertThat(personEntity.aliases[0].lastName).isEqualTo("Lorsen")
+
       assertThat(personEntity.aliases[0].dateOfBirth).isEqualTo(LocalDate.of(1975, 4, 2))
       assertThat(personEntity.addresses.size).isEqualTo(1)
-      assertThat(personEntity.addresses[0].postcode).isEqualTo("S10 1BP")
+      assertThat(personEntity.addresses[0].postcode).isEqualTo(postcode)
       assertThat(personEntity.contacts.size).isEqualTo(3)
       assertThat(personEntity.contacts[0].contactType).isEqualTo(EMAIL)
       assertThat(personEntity.contacts[0].contactValue).isEqualTo(email)
@@ -213,6 +216,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     pnc: String? = randomPnc(),
     email: String? = randomEmail(),
     cro: String,
+    postcode: String? = randomPostcode(),
     scenarioName: String? = "scenario",
     currentScenarioState: String? = STARTED,
   ) {
@@ -224,7 +228,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withBody(prisonerSearchResponse(PrisonerSearchResponseSetup(prisonNumber, pnc, email, cro))),
+            .withBody(prisonerSearchResponse(PrisonerSearchResponseSetup(prisonNumber, pnc, email, cro, postcode))),
         ),
     )
   }

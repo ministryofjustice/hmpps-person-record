@@ -124,7 +124,7 @@ fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSe
     "addresses": [
       {
         "fullAddress": "1 Main Street, Crookes, Sheffield, South Yorkshire, S10 1BP, England",
-        "postalCode": "S10 1BP",
+        "postalCode": "${prisonerSearchResponseSetup.postcode}",
         "startDate": "2020-07-17",
         "primaryAddress": true,
         "phoneNumbers": [
@@ -165,4 +165,4 @@ fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSe
   }
 """.trimIndent()
 
-data class PrisonerSearchResponseSetup(val prisonNumber: String, val pnc: String? = randomPnc(), val email: String? = randomEmail(), val cro: String)
+data class PrisonerSearchResponseSetup(val prisonNumber: String, val pnc: String? = randomPnc(), val email: String? = randomEmail(), val cro: String, val postcode: String?)
