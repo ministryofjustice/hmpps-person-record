@@ -19,7 +19,11 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.Ad
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonIdentifierRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
@@ -34,6 +38,9 @@ import java.util.UUID
 
 @ExtendWith(MultiApplicationContextExtension::class)
 abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
+
+  @Autowired
+  lateinit var personIdentifierRepository: PersonIdentifierRepository
 
   @Autowired
   lateinit var personRepository: PersonRepository
@@ -131,6 +138,17 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     publishDomainEvent(eventType, domainEvent)
     return crn
   }
+
+  fun createAndSavePersonWithUuid(person: Person): String {
+    val uuid = UUID.randomUUID()
+    val personEntity = PersonEntity.from(person = person)
+    val personIdentifier = PersonIdentifierEntity(personId = uuid)
+    personIdentifierRepository.saveAndFlush(personIdentifier)
+    personEntity.personIdentifier = personIdentifier
+    personRepository.saveAndFlush(personEntity)
+    return uuid.toString()
+  }
+
   private fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenario: String, currentScenarioState: String, nextScenarioState: String) {
     wiremock.stubFor(
       WireMock.get("/probation-cases/${probationCase.crn}")
