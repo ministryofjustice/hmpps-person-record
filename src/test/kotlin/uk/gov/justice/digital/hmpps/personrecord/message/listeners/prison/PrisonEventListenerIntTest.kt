@@ -32,6 +32,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DOMAIN_EVENT_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
+import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.PrisonerSearchResponseSetup
@@ -185,13 +187,13 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         Prisoner(
           prisonNumber = prisonNumber,
           title = "Ms",
-          firstName = "Robert",
+          firstName = randomFirstName(),
           middleNames = "John James",
-          lastName = "Larsen",
+          lastName = randomLastName(),
           cro = CROIdentifier.from(randomCro()),
           pnc = PNCIdentifier.from(randomPnc()),
           dateOfBirth = LocalDate.of(1975, 4, 2),
-          emailAddresses = listOf(EmailAddress("email@email.com")),
+          emailAddresses = listOf(EmailAddress(randomEmail())),
 
         ),
       ),
