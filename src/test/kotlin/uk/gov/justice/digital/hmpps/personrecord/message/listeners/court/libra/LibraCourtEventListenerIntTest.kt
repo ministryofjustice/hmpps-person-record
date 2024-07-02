@@ -145,18 +145,14 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process and create libra message and link to different source system record`() {
     val firstName = randomFirstName()
-
-    personRepository.saveAndFlush(
-      PersonEntity.from(
-        Person(
-          firstName = firstName,
-          lastName = "MORGAN",
-          dateOfBirth = LocalDate.of(1975, 1, 1),
-          addresses = listOf(Address("NT4 6YH")),
-          sourceSystemType = DELIUS,
-        ),
-      ),
+    val person = Person(
+      firstName = firstName,
+      lastName = "MORGAN",
+      dateOfBirth = LocalDate.of(1975, 1, 1),
+      addresses = listOf(Address("NT4 6YH")),
+      sourceSystemType = DELIUS,
     )
+    val uuid: String = createAndSavePersonWithUuid(person)
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
@@ -186,7 +182,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_CANDIDATE_RECORD_FOUND_UUID,
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
-        "UUID" to "",
+        "UUID" to uuid,
       ),
     )
   }
