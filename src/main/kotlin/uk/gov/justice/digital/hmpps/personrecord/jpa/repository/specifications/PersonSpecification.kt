@@ -46,15 +46,18 @@ object PersonSpecification {
 
   fun levenshteinPostcodes(postcodes: Set<String>, limit: Int = 1): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      postcodes.takeIf { it.isNotEmpty() }?.let {
-        val addressJoin: Join<PersonEntity, AddressEntity> = root.join("addresses", INNER)
-        val postcodePredicates: Array<Predicate> = postcodes.map {
-          criteriaBuilder.le(
-            criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(it), addressJoin.get<String>(POSTCODE)),
-            limit,
-          )
-        }.toTypedArray()
-        criteriaBuilder.or(*postcodePredicates)
+      when {
+        postcodes.isNotEmpty() -> {
+          val addressJoin: Join<PersonEntity, AddressEntity> = root.join("addresses", INNER)
+          val postcodePredicates: Array<Predicate> = postcodes.map {
+            criteriaBuilder.le(
+              criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(it), addressJoin.get<String>(POSTCODE)),
+              limit,
+            )
+          }.toTypedArray()
+          criteriaBuilder.or(*postcodePredicates)
+        }
+        else -> criteriaBuilder.disjunction()
       }
     }
   }
@@ -67,13 +70,13 @@ object PersonSpecification {
         root.get<LocalDate>(field),
         criteriaBuilder.literal(DATE_FORMAT),
       )
-      criteriaBuilder.and(
-        criteriaBuilder.isNotNull(criteriaBuilder.literal(input)),
-        criteriaBuilder.le(
+      when {
+        input != null -> criteriaBuilder.le(
           criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(input.toString()), dbDateAsString),
           limit,
-        ),
-      )
+        )
+        else -> criteriaBuilder.disjunction()
+      }
     }
   }
 }

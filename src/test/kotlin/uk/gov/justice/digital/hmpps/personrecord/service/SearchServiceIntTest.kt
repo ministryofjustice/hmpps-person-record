@@ -470,6 +470,49 @@ class SearchServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
+  fun `should not find candidate records on matching just firstname and lastname`() {
+    val firstName = randomFirstName()
+    val lastName = randomLastName()
+    createPerson(
+      Person(
+        firstName = firstName,
+        lastName = lastName,
+        sourceSystemType = HMCTS,
+      ),
+    )
+
+    val searchingPerson = Person(
+      firstName = firstName,
+      lastName = lastName,
+      sourceSystemType = HMCTS,
+    )
+    val candidateRecords = searchService.findCandidateRecords(searchingPerson)
+
+    noCandidatesFound(candidateRecords)
+  }
+
+  @Test
+  fun `should not find candidate records on matching just firstname and postcode`() {
+    val firstName = randomFirstName()
+    createPerson(
+      Person(
+        firstName = firstName,
+        addresses = listOf(Address(postcode = "LS1 1AB")),
+        sourceSystemType = HMCTS,
+      ),
+    )
+
+    val searchingPerson = Person(
+      firstName = firstName,
+      addresses = listOf(Address(postcode = "LS1 1AB")),
+      sourceSystemType = HMCTS,
+    )
+    val candidateRecords = searchService.findCandidateRecords(searchingPerson)
+
+    noCandidatesFound(candidateRecords)
+  }
+
+  @Test
   fun `should order multiple matches descending`() {
     val pnc = randomPnc()
     val personToFind = Person(
