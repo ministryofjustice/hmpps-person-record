@@ -55,25 +55,24 @@ object PersonSpecification {
           )
         }.toTypedArray()
         criteriaBuilder.or(*postcodePredicates)
-      }
+      } ?: criteriaBuilder.disjunction()
     }
   }
 
   fun levenshteinDate(input: LocalDate?, field: String, limit: Int = 2): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      val dbDateAsString = criteriaBuilder.function(
-        "TO_CHAR",
-        String::class.java,
-        root.get<LocalDate>(field),
-        criteriaBuilder.literal(DATE_FORMAT),
-      )
-      criteriaBuilder.and(
-        criteriaBuilder.isNotNull(criteriaBuilder.literal(input)),
+      input?.let {
+        val dbDateAsString = criteriaBuilder.function(
+          "TO_CHAR",
+          String::class.java,
+          root.get<LocalDate>(field),
+          criteriaBuilder.literal(DATE_FORMAT),
+        )
         criteriaBuilder.le(
           criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(input.toString()), dbDateAsString),
           limit,
-        ),
-      )
+        )
+      } ?: criteriaBuilder.disjunction()
     }
   }
 }
