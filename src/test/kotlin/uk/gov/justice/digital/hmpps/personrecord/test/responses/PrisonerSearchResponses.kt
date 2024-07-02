@@ -1,25 +1,19 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
+import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 
-fun prisonerSearchResponse(
-  prisonNumber: String,
-  pnc: String?,
-  cro: String?,
-  firstName: String?,
-  lastName: String?,
-  email: String?,
-) = """
+fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSetup) = """
   {
-    "prisonerNumber": "$prisonNumber",
-    "pncNumber": "$pnc",
-    "pncNumberCanonicalShort": "${pnc?.takeLast(11)}",
-    "pncNumberCanonicalLong": "$pnc",
-    "croNumber": "$cro",
+    "prisonerNumber": "${prisonerSearchResponseSetup.prisonNumber}",
+    "pncNumber": "${prisonerSearchResponseSetup.pnc}",
+    "pncNumberCanonicalShort": "${prisonerSearchResponseSetup.pnc?.takeLast(11)}",
+    "pncNumberCanonicalLong": "${prisonerSearchResponseSetup.pnc}",
+    "croNumber": "${prisonerSearchResponseSetup.cro}",
     "bookingId": "0001200924",
     "bookNumber": "38412A",
     "title": "Ms",
-    "firstName": "$firstName",
+    "firstName": "${prisonerSearchResponseSetup.firstName}",
     "middleNames": "John James",
-    "lastName": "$lastName",
+    "lastName": "${prisonerSearchResponseSetup.lastName}",
     "dateOfBirth": "1975-04-02",
     "gender": "Female",
     "ethnicity": "White: Eng./Welsh/Scot./N.Irish/British",
@@ -128,7 +122,7 @@ fun prisonerSearchResponse(
     "addresses": [
       {
         "fullAddress": "1 Main Street, Crookes, Sheffield, South Yorkshire, S10 1BP, England",
-        "postalCode": "S10 1BP",
+        "postalCode": "${prisonerSearchResponseSetup.postcode}",
         "startDate": "2020-07-17",
         "primaryAddress": true,
         "phoneNumbers": [
@@ -140,7 +134,7 @@ fun prisonerSearchResponse(
       }
     ],
     "emailAddresses": [
-        ${email?.let { """ {"email": "$email" }""".trimIndent() } }
+        ${prisonerSearchResponseSetup.email?.let { """ {"email": "${prisonerSearchResponseSetup.email}" }""".trimIndent() } }
     ],
     "phoneNumbers": [
       {
@@ -168,3 +162,5 @@ fun prisonerSearchResponse(
     ]
   }
 """.trimIndent()
+
+data class PrisonerSearchResponseSetup(val prisonNumber: String, val pnc: String?, val email: String? = randomEmail(), val cro: String?, val postcode: String?, val firstName: String?, val lastName: String?)

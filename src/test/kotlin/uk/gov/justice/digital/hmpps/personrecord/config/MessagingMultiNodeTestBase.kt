@@ -24,8 +24,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNINumber
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.ProbationCaseResponseSetup
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.ProbationCaseResponseSetupAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -107,8 +107,8 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     expectNoMessagesOn(prisonEventsQueue)
   }
 
-  fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = randomFirstName(), addresses: List<ProbationCaseResponseSetupAddress> = listOf(ProbationCaseResponseSetupAddress("LS1 1AB")), scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {
-    val probationCaseResponseSetup = ProbationCaseResponseSetup(
+  fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = randomFirstName(), addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress("LS1 1AB")), scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {
+    val probationCaseResponseSetup = ApiResponseSetup(
       crn = crn,
       pnc = pnc,
       cro = cro,
@@ -131,7 +131,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     publishDomainEvent(eventType, domainEvent)
     return crn
   }
-  private fun stubSingleProbationResponse(probationCase: ProbationCaseResponseSetup, scenario: String, currentScenarioState: String, nextScenarioState: String) {
+  private fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenario: String, currentScenarioState: String, nextScenarioState: String) {
     wiremock.stubFor(
       WireMock.get("/probation-cases/${probationCase.crn}")
         .inScenario(scenario)

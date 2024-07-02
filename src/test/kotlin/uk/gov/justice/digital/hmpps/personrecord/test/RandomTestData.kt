@@ -16,6 +16,9 @@ fun randomPnc(): String {
   throw Exception("$year/$digits$check")
 }
 
+fun randomEmail(): String =
+  randomLowerCaseString(8) + "." + randomDigit(4) + "@" + randomLowerCaseString(8) + ".co.uk"
+
 fun randomCro(): String {
   val year = (1950..LocalDate.now().year).random().toString().takeLast(2)
   val digits = randomDigit(6)
