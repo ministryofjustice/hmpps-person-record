@@ -46,37 +46,33 @@ object PersonSpecification {
 
   fun levenshteinPostcodes(postcodes: Set<String>, limit: Int = 1): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      when {
-        postcodes.isNotEmpty() -> {
-          val addressJoin: Join<PersonEntity, AddressEntity> = root.join("addresses", INNER)
-          val postcodePredicates: Array<Predicate> = postcodes.map {
-            criteriaBuilder.le(
-              criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(it), addressJoin.get<String>(POSTCODE)),
-              limit,
-            )
-          }.toTypedArray()
-          criteriaBuilder.or(*postcodePredicates)
-        }
-        else -> criteriaBuilder.disjunction()
-      }
+      postcodes.takeIf { it.isNotEmpty() }?.let {
+        val addressJoin: Join<PersonEntity, AddressEntity> = root.join("addresses", INNER)
+        val postcodePredicates: Array<Predicate> = postcodes.map {
+          criteriaBuilder.le(
+            criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(it), addressJoin.get<String>(POSTCODE)),
+            limit,
+          )
+        }.toTypedArray()
+        criteriaBuilder.or(*postcodePredicates)
+      } ?: criteriaBuilder.disjunction()
     }
   }
 
   fun levenshteinDate(input: LocalDate?, field: String, limit: Int = 2): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      val dbDateAsString = criteriaBuilder.function(
-        "TO_CHAR",
-        String::class.java,
-        root.get<LocalDate>(field),
-        criteriaBuilder.literal(DATE_FORMAT),
-      )
-      when {
-        input != null -> criteriaBuilder.le(
+      input?.let {
+        val dbDateAsString = criteriaBuilder.function(
+          "TO_CHAR",
+          String::class.java,
+          root.get<LocalDate>(field),
+          criteriaBuilder.literal(DATE_FORMAT),
+        )
+        criteriaBuilder.le(
           criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(input.toString()), dbDateAsString),
           limit,
         )
-        else -> criteriaBuilder.disjunction()
-      }
+      } ?: criteriaBuilder.disjunction()
     }
   }
 }
