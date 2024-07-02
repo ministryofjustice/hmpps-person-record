@@ -1,18 +1,18 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
-fun prisonerSearchResponse(prisonerSearchResponseSetup: ApiResponseSetup) = """
+fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
   {
-    "prisonerNumber": "${prisonerSearchResponseSetup.prisonNumber}",
-    "pncNumber": "${prisonerSearchResponseSetup.pnc}",
-    "pncNumberCanonicalShort": "${prisonerSearchResponseSetup.pnc?.takeLast(11)}",
-    "pncNumberCanonicalLong": "${prisonerSearchResponseSetup.pnc}",
-    "croNumber": "${prisonerSearchResponseSetup.cro}",
+    "prisonerNumber": "${responseSetup.prisonNumber}",
+    "pncNumber": "${responseSetup.pnc}",
+    "pncNumberCanonicalShort": "${responseSetup.pnc?.takeLast(11)}",
+    "pncNumberCanonicalLong": "${responseSetup.pnc}",
+    "croNumber": "${responseSetup.cro}",
     "bookingId": "0001200924",
     "bookNumber": "38412A",
     "title": "Ms",
-    "firstName": "${prisonerSearchResponseSetup.prefix}FirstName",
-    "middleNames": "John James",
-    "lastName": "${prisonerSearchResponseSetup.prefix}LastName",
+    "firstName": "${responseSetup.prefix}FirstName",
+    "middleNames": "${responseSetup.prefix}MiddleName1 ${responseSetup.prefix}MiddleName2",
+    "lastName": "${responseSetup.prefix}LastName",
     "dateOfBirth": "1975-04-02",
     "gender": "Female",
     "ethnicity": "White: Eng./Welsh/Scot./N.Irish/British",
@@ -31,9 +31,9 @@ fun prisonerSearchResponse(prisonerSearchResponseSetup: ApiResponseSetup) = """
     "aliases": [
       {
         "title": "Ms",
-        "firstName": "Robert",
-        "middleNames": "Trevor",
-        "lastName": "Lorsen",
+        "firstName": "${responseSetup.prefix}AliasFirstName",
+        "middleNames": "${responseSetup.prefix}AliasMiddleName",
+        "lastName": "${responseSetup.prefix}AliasLastName",
         "dateOfBirth": "1975-04-02",
         "gender": "Male",
         "ethnicity": "White : Irish"
@@ -121,7 +121,7 @@ fun prisonerSearchResponse(prisonerSearchResponseSetup: ApiResponseSetup) = """
     "addresses": [
       {
         "fullAddress": "1 Main Street, Crookes, Sheffield, South Yorkshire, S10 1BP, England",
-        "postalCode": "${prisonerSearchResponseSetup.addresses[0].postcode}",
+        "postalCode": "${responseSetup.addresses[0].postcode}",
         "startDate": "2020-07-17",
         "primaryAddress": true,
         "phoneNumbers": [
@@ -133,7 +133,7 @@ fun prisonerSearchResponse(prisonerSearchResponseSetup: ApiResponseSetup) = """
       }
     ],
     "emailAddresses": [
-        ${prisonerSearchResponseSetup.email?.let { """ {"email": "${prisonerSearchResponseSetup.email}" }""".trimIndent() } }
+        ${responseSetup.email?.let { """ {"email": "${responseSetup.email}" }""".trimIndent() } }
     ],
     "phoneNumbers": [
       {
