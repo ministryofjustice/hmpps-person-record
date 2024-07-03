@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 
 @Service
 class CourtEventProcessor(
@@ -59,7 +59,7 @@ class CourtEventProcessor(
     uniqueDefendants.forEach { defendant ->
       val person = Person.from(defendant)
       telemetryService.trackEvent(
-        TelemetryEventType.MESSAGE_RECEIVED,
+        MESSAGE_RECEIVED,
         mapOf(
           EventKeys.PNC to person.otherIdentifiers?.pncIdentifier.toString(),
           EventKeys.CRO to person.otherIdentifiers?.croIdentifier.toString(),
@@ -81,7 +81,7 @@ class CourtEventProcessor(
     val person = Person.from(libraHearingEvent)
 
     telemetryService.trackEvent(
-      TelemetryEventType.MESSAGE_RECEIVED,
+      MESSAGE_RECEIVED,
       mapOf(
         EventKeys.PNC to person.otherIdentifiers?.pncIdentifier.toString(),
         EventKeys.CRO to person.otherIdentifiers?.croIdentifier.toString(),
