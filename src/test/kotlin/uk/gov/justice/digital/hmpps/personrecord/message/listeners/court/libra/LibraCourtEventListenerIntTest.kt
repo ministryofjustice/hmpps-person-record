@@ -18,12 +18,12 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.COURT_MESSAGE_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
@@ -46,7 +46,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val messageId = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
 
     checkTelemetry(
-      COURT_MESSAGE_RECEIVED,
+      MESSAGE_RECEIVED,
       mapOf(
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "MESSAGE_ID" to messageId,
@@ -89,7 +89,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val messageId1 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
 
     checkTelemetry(
-      COURT_MESSAGE_RECEIVED,
+      MESSAGE_RECEIVED,
       mapOf(
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "MESSAGE_ID" to messageId1,
@@ -109,7 +109,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val messageId2 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
     checkTelemetry(
-      COURT_MESSAGE_RECEIVED,
+      MESSAGE_RECEIVED,
       mapOf(
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "MESSAGE_ID" to messageId2,
@@ -160,7 +160,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
     val messageId1 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
     checkTelemetry(
-      COURT_MESSAGE_RECEIVED,
+      MESSAGE_RECEIVED,
       mapOf(
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "MESSAGE_ID" to messageId1,
@@ -199,7 +199,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val messageId2 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
     checkTelemetry(
-      COURT_MESSAGE_RECEIVED,
+      MESSAGE_RECEIVED,
       mapOf(
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "MESSAGE_ID" to messageId2,
@@ -267,7 +267,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
 
     checkTelemetry(
-      CPR_MATCH_PERSON_DUPLICATE,
+      TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE,
       mapOf(
         "SOURCE_SYSTEM" to "LIBRA",
         "PROBABILITY_SCORE" to "0.99999999",
