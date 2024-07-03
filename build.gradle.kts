@@ -35,7 +35,7 @@ dependencies {
   }
   implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.2")
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:4.0.1")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.4.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.5.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 
   runtimeOnly("org.postgresql:postgresql:42.7.3")
@@ -51,7 +51,7 @@ dependencies {
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.0.0")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.1")
   testImplementation("org.jmock:jmock:2.13.1")
-  testImplementation("io.hypersistence:hypersistence-utils-hibernate-63:3.8.0")
+  testImplementation("io.hypersistence:hypersistence-utils-hibernate-63:3.8.1")
 }
 
 java {
