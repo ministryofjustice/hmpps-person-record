@@ -13,7 +13,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     "firstName": "${responseSetup.prefix}FirstName",
     "middleNames": "${responseSetup.prefix}MiddleName1 ${responseSetup.prefix}MiddleName2",
     "lastName": "${responseSetup.prefix}LastName",
-    "dateOfBirth": "1975-04-02",
+    "dateOfBirth": "${responseSetup.dateOfBirth}",
     "gender": "Female",
     "ethnicity": "White: Eng./Welsh/Scot./N.Irish/British",
     "youthOffender": true,
@@ -34,7 +34,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
         "firstName": "${responseSetup.prefix}AliasFirstName",
         "middleNames": "${responseSetup.prefix}AliasMiddleName",
         "lastName": "${responseSetup.prefix}AliasLastName",
-        "dateOfBirth": "1975-04-02",
+        "dateOfBirth": "${responseSetup.dateOfBirth}",
         "gender": "Male",
         "ethnicity": "White : Irish"
       }

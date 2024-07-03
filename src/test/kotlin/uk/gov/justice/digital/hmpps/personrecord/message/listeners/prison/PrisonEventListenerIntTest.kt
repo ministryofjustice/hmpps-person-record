@@ -29,6 +29,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DOMAIN_EVENT_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDateOfBirth
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
@@ -51,8 +52,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val cro = randomCro()
     val postcode = randomPostcode()
     val prefix = randomFirstName()
+    val personDateOfBirth = randomDateOfBirth()
 
-    stubPrisonResponse(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, postcode = postcode, prefix = prefix)
+    stubPrisonResponse(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, postcode = postcode, prefix = prefix, dateOfBirth = personDateOfBirth)
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -69,12 +71,13 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.lastName).isEqualTo(prefix + "LastName")
       assertThat(personEntity.pnc).isEqualTo(PNCIdentifier.from(pnc))
       assertThat(personEntity.cro).isEqualTo(CROIdentifier.from(cro))
+      assertThat(personEntity.dateOfBirth).isEqualTo(personDateOfBirth)
       assertThat(personEntity.aliases.size).isEqualTo(1)
       assertThat(personEntity.aliases[0].firstName).isEqualTo(prefix + "AliasFirstName")
       assertThat(personEntity.aliases[0].middleNames).isEqualTo(prefix + "AliasMiddleName")
       assertThat(personEntity.aliases[0].lastName).isEqualTo(prefix + "AliasLastName")
 
-      assertThat(personEntity.aliases[0].dateOfBirth).isEqualTo(LocalDate.of(1975, 4, 2))
+      assertThat(personEntity.aliases[0].dateOfBirth).isEqualTo(personDateOfBirth)
       assertThat(personEntity.addresses.size).isEqualTo(1)
       assertThat(personEntity.addresses[0].postcode).isEqualTo(postcode)
       assertThat(personEntity.contacts.size).isEqualTo(3)
@@ -152,7 +155,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should log correct telemetry on updated event but no record exists`() {
     val prisonNumber = randomPrisonNumber()
-    stubPrisonResponse(prisonNumber, cro = randomCro())
+    stubPrisonResponse(prisonNumber)
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, detailUrl = createNomsDetailUrl(prisonNumber), personReference = null, additionalInformation = additionalInformation)
@@ -194,7 +197,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
           lastName = randomLastName(),
           cro = CROIdentifier.from(randomCro()),
           pnc = PNCIdentifier.from(randomPnc()),
-          dateOfBirth = LocalDate.of(1975, 4, 2),
+          dateOfBirth = randomDateOfBirth(),
           emailAddresses = listOf(EmailAddress(randomEmail())),
 
         ),
@@ -217,6 +220,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     cro: String? = randomCro(),
     postcode: String = randomPostcode(),
     prefix: String? = randomFirstName(),
+    dateOfBirth: LocalDate? = randomDateOfBirth(),
     scenarioName: String? = "scenario",
     currentScenarioState: String? = STARTED,
   ) {
@@ -228,7 +232,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withBody(prisonerSearchResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode)), prefix = prefix))),
+            .withBody(prisonerSearchResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode)), prefix = prefix, dateOfBirth = dateOfBirth))),
         ),
     )
   }
