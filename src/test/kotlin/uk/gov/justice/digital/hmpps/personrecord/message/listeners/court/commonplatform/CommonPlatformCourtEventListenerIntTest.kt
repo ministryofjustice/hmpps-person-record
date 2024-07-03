@@ -16,9 +16,9 @@ import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBa
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.HMCTS
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.COURT_MESSAGE_RECEIVED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupContact
@@ -56,7 +56,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     checkTelemetry(
-      COURT_MESSAGE_RECEIVED,
+      MESSAGE_RECEIVED,
       mapOf(
         "PNC" to firstPnc,
         "MESSAGE_ID" to messageId,
@@ -64,7 +64,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     checkTelemetry(
-      COURT_MESSAGE_RECEIVED,
+      MESSAGE_RECEIVED,
       mapOf(
         "PNC" to secondPnc,
         "MESSAGE_ID" to messageId,
@@ -72,7 +72,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     checkTelemetry(
-      COURT_MESSAGE_RECEIVED,
+      MESSAGE_RECEIVED,
       mapOf(
         "PNC" to "",
         "MESSAGE_ID" to messageId,
@@ -112,7 +112,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     } matches { it == 0 }
 
     checkTelemetry(
-      CPR_RECORD_CREATED,
+      TelemetryEventType.CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "HMCTS", "DEFENDANT_ID" to defendantId),
     )
     checkTelemetry(
@@ -143,7 +143,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.addresses.size).isEqualTo(1)
 
     checkTelemetry(
-      CPR_RECORD_CREATED,
+      TelemetryEventType.CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "HMCTS", "DEFENDANT_ID" to defendantId),
     )
 
@@ -159,7 +159,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     checkTelemetry(
-      COURT_MESSAGE_RECEIVED,
+      MESSAGE_RECEIVED,
       mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to HMCTS.name),
     )
 
@@ -269,7 +269,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     checkTelemetry(
-      COURT_MESSAGE_RECEIVED,
+      MESSAGE_RECEIVED,
       mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to HMCTS.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
       times = 2,
     )
