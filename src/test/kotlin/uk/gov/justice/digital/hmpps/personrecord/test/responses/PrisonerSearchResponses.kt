@@ -1,20 +1,19 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
-import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 
-fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSetup) = """
+fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
   {
-    "prisonerNumber": "${prisonerSearchResponseSetup.prisonNumber}",
-    "pncNumber": "${prisonerSearchResponseSetup.pnc}",
-    "pncNumberCanonicalShort": "${prisonerSearchResponseSetup.pnc?.takeLast(11)}",
-    "pncNumberCanonicalLong": "${prisonerSearchResponseSetup.pnc}",
-    "croNumber": "${prisonerSearchResponseSetup.cro}",
+    "prisonerNumber": "${responseSetup.prisonNumber}",
+    "pncNumber": "${responseSetup.pnc}",
+    "pncNumberCanonicalShort": "${responseSetup.pnc?.takeLast(11)}",
+    "pncNumberCanonicalLong": "${responseSetup.pnc}",
+    "croNumber": "${responseSetup.cro}",
     "bookingId": "0001200924",
     "bookNumber": "38412A",
     "title": "Ms",
-    "firstName": "${prisonerSearchResponseSetup.firstName}",
-    "middleNames": "John James",
-    "lastName": "${prisonerSearchResponseSetup.lastName}",
-    "dateOfBirth": "1975-04-02",
+    "firstName": "${responseSetup.prefix}FirstName",
+    "middleNames": "${responseSetup.prefix}MiddleName1 ${responseSetup.prefix}MiddleName2",
+    "lastName": "${responseSetup.prefix}LastName",
+    "dateOfBirth": "${responseSetup.dateOfBirth}",
     "gender": "Female",
     "ethnicity": "White: Eng./Welsh/Scot./N.Irish/British",
     "youthOffender": true,
@@ -32,10 +31,10 @@ fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSe
     "aliases": [
       {
         "title": "Ms",
-        "firstName": "Robert",
-        "middleNames": "Trevor",
-        "lastName": "Lorsen",
-        "dateOfBirth": "1975-04-02",
+        "firstName": "${responseSetup.prefix}AliasFirstName",
+        "middleNames": "${responseSetup.prefix}AliasMiddleName",
+        "lastName": "${responseSetup.prefix}AliasLastName",
+        "dateOfBirth": "${responseSetup.dateOfBirth}",
         "gender": "Male",
         "ethnicity": "White : Irish"
       }
@@ -122,7 +121,7 @@ fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSe
     "addresses": [
       {
         "fullAddress": "1 Main Street, Crookes, Sheffield, South Yorkshire, S10 1BP, England",
-        "postalCode": "${prisonerSearchResponseSetup.postcode}",
+        "postalCode": "${responseSetup.addresses[0].postcode}",
         "startDate": "2020-07-17",
         "primaryAddress": true,
         "phoneNumbers": [
@@ -134,7 +133,7 @@ fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSe
       }
     ],
     "emailAddresses": [
-        ${prisonerSearchResponseSetup.email?.let { """ {"email": "${prisonerSearchResponseSetup.email}" }""".trimIndent() } }
+        ${responseSetup.email?.let { """ {"email": "${responseSetup.email}" }""".trimIndent() } }
     ],
     "phoneNumbers": [
       {
@@ -162,5 +161,3 @@ fun prisonerSearchResponse(prisonerSearchResponseSetup: PrisonerSearchResponseSe
     ]
   }
 """.trimIndent()
-
-data class PrisonerSearchResponseSetup(val prisonNumber: String, val pnc: String?, val email: String? = randomEmail(), val cro: String?, val postcode: String?, val firstName: String?, val lastName: String?)
