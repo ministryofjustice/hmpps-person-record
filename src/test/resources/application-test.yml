@@ -58,6 +58,9 @@ spring:
   flyway:
     out-of-order: true
 
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres?currentSchema=personrecordservice&user=root&password=dev&stringtype=unspecified
+
 populate-from-nomis:
     page-size: 2
     retry:
