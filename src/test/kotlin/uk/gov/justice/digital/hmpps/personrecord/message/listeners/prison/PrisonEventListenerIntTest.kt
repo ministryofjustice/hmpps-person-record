@@ -7,7 +7,6 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.EmailAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.AdditionalInformation
@@ -15,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.Do
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonIdentifierRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -44,9 +42,6 @@ import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
 
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
-
-  @Autowired
-  private lateinit var personIdentifierRepository: PersonIdentifierRepository
 
   @Test
   fun `should receive the message successfully when prisoner created event published`() {

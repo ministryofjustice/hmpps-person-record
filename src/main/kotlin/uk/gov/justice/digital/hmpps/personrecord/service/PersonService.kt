@@ -67,7 +67,7 @@ class PersonService(
       trackEvent(
         CPR_CANDIDATE_RECORD_FOUND_UUID,
         person,
-        mapOf(EventKeys.UUID to ""),
+        mapOf(EventKeys.UUID to personEntity.personIdentifier?.personId?.toString()),
       )
     }
     createPersonEntity(person)
