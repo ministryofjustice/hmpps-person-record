@@ -97,7 +97,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     } matches { it == 0 }
   }
 
-  fun publishDomainEvent(eventType: String, domainEvent: DomainEvent) {
+  fun publishDomainEvent(eventType: String, domainEvent: DomainEvent): String {
     val domainEventAsString = objectMapper.writeValueAsString(domainEvent)
     val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
       .message(domainEventAsString)
@@ -108,10 +108,11 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         ),
       ).build()
 
-    domainEventsTopic?.snsClient?.publish(publishRequest)?.get()
+    val response = domainEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
     expectNoMessagesOn(probationEventsQueue)
     expectNoMessagesOn(prisonEventsQueue)
+    return response!!.messageId()
   }
 
   fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = randomName(), addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress("LS1 1AB")), scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {
