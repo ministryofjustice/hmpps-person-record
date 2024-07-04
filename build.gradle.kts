@@ -51,7 +51,6 @@ dependencies {
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.0.0")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.1")
   testImplementation("org.jmock:jmock:2.13.1")
-  testImplementation("io.hypersistence:hypersistence-utils-hibernate-63:3.8.0")
 }
 
 java {
