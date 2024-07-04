@@ -15,6 +15,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.HMCTS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -243,6 +245,10 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPerson.addresses[0].postcode).isEqualTo("CF10 1FU")
     assertThat(secondPerson.pnc).isEqualTo(PNCIdentifier.from(secondPnc))
     assertThat(secondPerson.contacts.size).isEqualTo(3)
+    assertThat(secondPerson.contacts[0].contactType).isEqualTo(HOME)
+    assertThat(secondPerson.contacts[0].contactValue).isEqualTo("0207345678")
+    assertThat(secondPerson.contacts[1].contactType).isEqualTo(MOBILE)
+    assertThat(secondPerson.contacts[1].contactValue).isEqualTo("078590345677")
     assertThat(secondPerson.masterDefendantId).isEqualTo(secondDefendantId)
 
     assertThat(thirdPerson.aliases).isEmpty()
