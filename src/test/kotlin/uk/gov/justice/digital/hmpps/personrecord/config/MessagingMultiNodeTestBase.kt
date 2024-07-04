@@ -33,7 +33,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
+import java.time.Duration
 import java.util.UUID
 
 @ExtendWith(MultiApplicationContextExtension::class)
@@ -203,5 +205,12 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     prisonEventsQueue!!.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.dlqUrl).build(),
     )
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      probationEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationEventsQueue!!.queueUrl)?.get()
+    } matches { it == 0 }
+
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      probationEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(probationEventsQueue!!.dlqUrl!!)?.get()
+    } matches { it == 0 }
   }
 }

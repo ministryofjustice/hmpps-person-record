@@ -168,13 +168,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     probationEventsQueue!!.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(probationEventsQueue!!.dlqUrl).build(),
     ).get()
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
 
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(probationEventsQueue!!.dlqUrl!!)?.get()
-    } matches { it == 0 }
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"), 1)
     checkTelemetry(
       MESSAGE_PROCESSING_FAILED,
