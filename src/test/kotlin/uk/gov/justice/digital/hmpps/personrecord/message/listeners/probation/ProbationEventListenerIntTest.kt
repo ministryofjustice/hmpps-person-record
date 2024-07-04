@@ -8,6 +8,7 @@ import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
+import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonReference
@@ -15,9 +16,11 @@ import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBa
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
@@ -128,7 +131,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should retry on 500 error`() {
     val crn = randomCRN()
-    stub500Response(crn)
+    stub500Response(crn, "next request will succeed", "retry")
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc = "", crn = crn, scenario = "retry", currentScenarioState = "next request will succeed")
 
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
@@ -140,6 +143,41 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     } matches { it == 0 }
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"), 1)
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+  }
+
+  @Test
+  fun `should log when message processing fails`() {
+    val crn = randomCRN()
+    stub500Response(crn, STARTED, "failure")
+    stub500Response(crn, STARTED, "failure")
+    stub500Response(crn, STARTED, "failure")
+    val crnType = PersonIdentifier("CRN", crn)
+    val personReference = PersonReference(listOf(crnType))
+
+    val domainEvent = DomainEvent(
+      eventType = NEW_OFFENDER_CREATED,
+      detailUrl = createDeliusDetailUrl(crn),
+      personReference = personReference,
+      additionalInformation = null,
+    )
+    val messageId = publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
+
+    probationEventsQueue!!.sqsClient.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(probationEventsQueue!!.queueUrl).build(),
+    ).get()
+    probationEventsQueue!!.sqsDlqClient!!.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(probationEventsQueue!!.dlqUrl).build(),
+    ).get()
+
+    checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"), 1)
+    checkTelemetry(
+      MESSAGE_PROCESSING_FAILED,
+      mapOf(
+        "SOURCE_SYSTEM" to "DELIUS",
+        EventKeys.EVENT_TYPE.toString() to NEW_OFFENDER_CREATED,
+        EventKeys.MESSAGE_ID.toString() to messageId,
+      ),
+    )
   }
 
   @Test
@@ -171,12 +209,12 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
-  private fun stub500Response(crn: String) {
+  private fun stub500Response(crn: String, nextScenarioState: String = "Next request will succeed", scenarioName: String) {
     wiremock.stubFor(
       WireMock.get("/probation-cases/$crn")
-        .inScenario("retry")
+        .inScenario(scenarioName)
         .whenScenarioStateIs(STARTED)
-        .willSetStateTo("next request will succeed")
+        .willSetStateTo(nextScenarioState)
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
