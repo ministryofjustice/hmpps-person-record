@@ -31,8 +31,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateOfBirth
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
-import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -50,7 +49,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val email = randomEmail()
     val cro = randomCro()
     val postcode = randomPostcode()
-    val prefix = randomFirstName()
+    val prefix = randomName()
     val personDateOfBirth = randomDateOfBirth()
 
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode)), prefix = prefix, dateOfBirth = personDateOfBirth))
@@ -191,9 +190,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         Prisoner(
           prisonNumber = prisonNumber,
           title = "Ms",
-          firstName = randomFirstName(),
-          middleNames = "John James",
-          lastName = randomLastName(),
+          firstName = randomName(),
+          middleNames = "${randomName()} ${randomName()}",
+          lastName = randomName(),
           cro = CROIdentifier.from(randomCro()),
           pnc = PNCIdentifier.from(randomPnc()),
           dateOfBirth = randomDateOfBirth(),

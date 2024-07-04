@@ -26,8 +26,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
-import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNINumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
@@ -114,7 +114,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     expectNoMessagesOn(prisonEventsQueue)
   }
 
-  fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = randomFirstName(), addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress("LS1 1AB")), scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {
+  fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = randomName(), addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress("LS1 1AB")), scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {
     val probationCaseResponseSetup = ApiResponseSetup(
       crn = crn,
       cro = cro,

@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock.findAll
 import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
@@ -13,8 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
-import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import java.time.LocalDate
 
 class MatchServiceIntTest : IntegrationTestBase() {
@@ -27,8 +25,8 @@ class MatchServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find high confidence match`() {
-    val firstName = randomFirstName()
-    val lastName = randomLastName()
+    val firstName = randomName()
+    val lastName = randomName()
     val newRecord = Person(
       firstName = firstName,
       lastName = lastName,
@@ -51,8 +49,8 @@ class MatchServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should not find high confidence match when score is below threshold`() {
-    val firstName = randomFirstName()
-    val lastName = randomLastName()
+    val firstName = randomName()
+    val lastName = randomName()
     val newRecord = Person(
       firstName = firstName,
       lastName = lastName,
@@ -73,14 +71,14 @@ class MatchServiceIntTest : IntegrationTestBase() {
   @Test
   fun `should find multiple high confidence match`() {
     val newRecord1 = Person(
-      firstName = randomFirstName(),
-      lastName = randomLastName(),
+      firstName = randomName(),
+      lastName = randomName(),
       dateOfBirth = LocalDate.of(1975, 1, 1),
       sourceSystemType = LIBRA,
     )
     val newRecord2 = Person(
-      firstName = randomFirstName(),
-      lastName = randomLastName(),
+      firstName = randomName(),
+      lastName = randomName(),
       dateOfBirth = LocalDate.of(1975, 1, 1),
       sourceSystemType = LIBRA,
     )
@@ -109,8 +107,8 @@ class MatchServiceIntTest : IntegrationTestBase() {
   @Test
   fun `should chunk candidates and only send 50 records at a time`() {
     val newRecord = Person(
-      firstName = randomFirstName(),
-      lastName = randomLastName(),
+      firstName = randomName(),
+      lastName = randomName(),
       dateOfBirth = LocalDate.of(1975, 1, 1),
       sourceSystemType = LIBRA,
     )

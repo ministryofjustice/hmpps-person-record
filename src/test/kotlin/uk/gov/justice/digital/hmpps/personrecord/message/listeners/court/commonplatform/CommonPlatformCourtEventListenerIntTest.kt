@@ -24,8 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupContact
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
-import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
@@ -130,8 +129,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val defendantId = randomUUID().toString()
     val pnc = randomPnc()
     val cro = randomCro()
-    val firstName = randomFirstName()
-    val lastName = randomLastName()
+    val firstName = randomName()
+    val lastName = randomName()
     val message = commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, firstName = firstName, lastName = lastName, pnc = pnc, cro = cro)))
     publishCourtMessage(message, COMMON_PLATFORM_HEARING)
 
@@ -152,7 +151,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     stubMatchScore(matchResponse)
 
-    val changedLastName = randomLastName()
+    val changedLastName = randomName()
     val messageId = publishCourtMessage(
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, lastName = changedLastName, pnc = pnc, cro = cro))),
       COMMON_PLATFORM_HEARING,
@@ -181,8 +180,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should create new people with additional fields from common platform message`() {
     val firstPnc = randomPnc()
-    val firstName = randomFirstName()
-    val lastName = randomLastName()
+    val firstName = randomName()
+    val lastName = randomName()
     val secondPnc = randomPnc()
     val thirdPnc = randomPnc()
 

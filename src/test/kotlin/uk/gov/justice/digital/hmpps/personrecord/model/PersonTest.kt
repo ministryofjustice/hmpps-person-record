@@ -8,46 +8,23 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.DefendantAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
-import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import java.time.LocalDate
 
 internal class PersonTest {
 
-  @Test
-  fun `should map libra hearing to person`() {
-    val dateOfBirth = LocalDate.now()
-    val inputPncId = randomPnc()
-    val firstName = randomFirstName()
-    val lastName = randomLastName()
-    val libraHearingEvent = LibraHearingEvent(
-      pnc = PNCIdentifier.from(inputPncId),
-      name = Name(title = "Mr", firstName = firstName, lastName = lastName),
-      dateOfBirth = dateOfBirth,
-    )
-
-    val person = Person.from(libraHearingEvent)
-
-    assertThat(person.otherIdentifiers?.pncIdentifier).isEqualTo(PNCIdentifier.from(inputPncId))
-    assertThat(person.firstName).isEqualTo(firstName)
-    assertThat(person.title).isEqualTo("Mr")
-    assertThat(person.lastName).isEqualTo(lastName)
-    assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
-  }
-
+  // TODO move these fields into one of the int tests and delete this
   @Test
   fun `should map common platform defendant to person with additional fields`() {
     val dateOfBirth = LocalDate.now()
     val inputPncId = randomPnc()
-    val firstName = randomFirstName()
-    val lastName = randomLastName()
+    val firstName = randomName()
+    val lastName = randomName()
     val defendant = Defendant(
       pncId = PNCIdentifier.from(inputPncId),
       personDefendant = PersonDefendant(

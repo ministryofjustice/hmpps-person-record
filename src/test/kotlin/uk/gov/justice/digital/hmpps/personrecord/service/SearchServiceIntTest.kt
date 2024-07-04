@@ -20,8 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import java.time.LocalDate
@@ -39,8 +38,8 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records only in searching source system`() {
-    val firstName = randomFirstName()
-    val lastName = randomLastName()
+    val firstName = randomName()
+    val lastName = randomName()
     val personToFind = Person(
       firstName = firstName,
       lastName = lastName,
@@ -83,8 +82,8 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records only in searching in different source systems`() {
-    val firstName = randomFirstName()
-    val lastName = randomLastName()
+    val firstName = randomName()
+    val lastName = randomName()
     val personToFind = Person(
       firstName = firstName,
       lastName = lastName,
@@ -156,7 +155,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should not find candidates which only match on empty PNC`() {
-    val firstName = randomFirstName()
+    val firstName = randomName()
     val personToFind = Person(
       firstName = firstName,
       lastName = "Klose",
@@ -254,7 +253,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records on soundex matches on first name`() {
-    val lastName = randomLastName()
+    val lastName = randomName()
     createPerson(
       Person(
         firstName = "Steven",
@@ -288,7 +287,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records on soundex matches on last name`() {
-    val firstName = randomFirstName()
+    val firstName = randomName()
     createPerson(
       Person(
         firstName = firstName,
@@ -323,7 +322,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records on Levenshtein matches on dob`() {
-    val firstName = randomFirstName()
+    val firstName = randomName()
     createPerson(
       Person(
         firstName = firstName,
@@ -350,7 +349,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records on Levenshtein matches on postcode`() {
-    val firstName = randomFirstName()
+    val firstName = randomName()
     createPerson(
       Person(
         firstName = firstName,
@@ -385,7 +384,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records on Levenshtein matches on multiple postcodes`() {
-    val firstName = randomFirstName()
+    val firstName = randomName()
     createPerson(
       Person(
         firstName = firstName,
@@ -471,8 +470,8 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should not find candidate records on matching just firstname and lastname`() {
-    val firstName = randomFirstName()
-    val lastName = randomLastName()
+    val firstName = randomName()
+    val lastName = randomName()
     createPerson(
       Person(
         firstName = firstName,
@@ -493,7 +492,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should not find candidate records on matching just firstname and postcode`() {
-    val firstName = randomFirstName()
+    val firstName = randomName()
     createPerson(
       Person(
         firstName = firstName,

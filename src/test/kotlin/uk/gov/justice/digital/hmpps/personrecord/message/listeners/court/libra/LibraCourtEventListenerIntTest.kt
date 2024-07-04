@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.SEARCH_VERSION
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -26,9 +27,12 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
-import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDateOfBirth
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit.SECONDS
 
 class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -40,9 +44,12 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process libra messages`() {
-    val firstName = randomFirstName()
+    val firstName = randomName()
+    val lastName = randomName()
     val postcode = randomPostcode()
-    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "", postcode = postcode)
+    val pnc = randomPnc()
+    val dateOfBirth = randomDateOfBirth()
+    val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode)
     val messageId = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
 
     checkTelemetry(
@@ -73,8 +80,9 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val person = matchingPerson[0]
     assertThat(person.title).isEqualTo("Mr")
-    assertThat(person.lastName).isEqualTo("MORGAN")
-    assertThat(person.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
+    assertThat(person.lastName).isEqualTo(lastName)
+    assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
+    assertThat(person.pnc).isEqualTo(PNCIdentifier.from(pnc))
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
     assertThat(person.personIdentifier).isNull()
@@ -83,7 +91,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process and update libra messages`() {
-    val firstName = randomFirstName()
+    val firstName = randomName()
     val postcode = randomPostcode()
     val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "", postcode = postcode)
     val messageId1 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
@@ -144,7 +152,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process and create libra message and link to different source system record`() {
-    val firstName = randomFirstName()
+    val firstName = randomName()
     val person = Person(
       firstName = firstName,
       lastName = "MORGAN",
@@ -189,7 +197,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process and create new person with low score`() {
-    val firstName = randomFirstName()
+    val firstName = randomName()
 
     val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
     publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
@@ -229,7 +237,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process and send duplicate telemetry`() {
-    val firstName = randomFirstName()
+    val firstName = randomName()
 
     personRepository.saveAndFlush(
       PersonEntity.from(
@@ -278,7 +286,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process multiple pages of candidates`() {
-    val firstName = randomFirstName()
+    val firstName = randomName()
     repeat(100) {
       personRepository.saveAndFlush(
         PersonEntity.from(
