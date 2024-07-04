@@ -31,8 +31,7 @@ fun randomCro(): String {
   throw Exception(CROIdentifier.from("$digits/$year$check").inputCro)
 }
 
-fun randomFirstName(): String = randomLowerCaseString()
-fun randomLastName(): String = randomLowerCaseString()
+fun randomName(): String = randomLowerCaseString()
 fun randomNationalInsuranceNumber(): String = UUID.randomUUID().toString()
 fun randomDriverLicenseNumber(): String = UUID.randomUUID().toString()
 

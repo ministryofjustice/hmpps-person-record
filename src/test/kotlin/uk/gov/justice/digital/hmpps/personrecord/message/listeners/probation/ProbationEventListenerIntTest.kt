@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
-import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
@@ -35,7 +35,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `creates person when when new offender created event is published`() {
     val prisonNumber = randomPrisonNumber()
-    val prefix = randomFirstName()
+    val prefix = randomName()
     val pnc = randomPnc()
     val cro = randomCro()
     val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, prefix = prefix, prisonNumber = prisonNumber, cro = cro, addresses = listOf(ApiResponseSetupAddress("LS1 1AB"), ApiResponseSetupAddress("M21 9LX")))

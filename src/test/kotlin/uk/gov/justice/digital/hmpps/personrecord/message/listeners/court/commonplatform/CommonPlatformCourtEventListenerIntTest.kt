@@ -15,6 +15,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.HMCTS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -24,8 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupContact
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
-import uk.gov.justice.digital.hmpps.personrecord.test.randomFirstName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomLastName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
@@ -130,8 +131,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val defendantId = randomUUID().toString()
     val pnc = randomPnc()
     val cro = randomCro()
-    val firstName = randomFirstName()
-    val lastName = randomLastName()
+    val firstName = randomName()
+    val lastName = randomName()
     val message = commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, firstName = firstName, lastName = lastName, pnc = pnc, cro = cro)))
     publishCourtMessage(message, COMMON_PLATFORM_HEARING)
 
@@ -152,7 +153,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     stubMatchScore(matchResponse)
 
-    val changedLastName = randomLastName()
+    val changedLastName = randomName()
     val messageId = publishCourtMessage(
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, lastName = changedLastName, pnc = pnc, cro = cro))),
       COMMON_PLATFORM_HEARING,
@@ -181,8 +182,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should create new people with additional fields from common platform message`() {
     val firstPnc = randomPnc()
-    val firstName = randomFirstName()
-    val lastName = randomLastName()
+    val firstName = randomName()
+    val lastName = randomName()
     val secondPnc = randomPnc()
     val thirdPnc = randomPnc()
 
@@ -244,6 +245,10 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPerson.addresses[0].postcode).isEqualTo("CF10 1FU")
     assertThat(secondPerson.pnc).isEqualTo(PNCIdentifier.from(secondPnc))
     assertThat(secondPerson.contacts.size).isEqualTo(3)
+    assertThat(secondPerson.contacts[0].contactType).isEqualTo(HOME)
+    assertThat(secondPerson.contacts[0].contactValue).isEqualTo("0207345678")
+    assertThat(secondPerson.contacts[1].contactType).isEqualTo(MOBILE)
+    assertThat(secondPerson.contacts[1].contactValue).isEqualTo("078590345677")
     assertThat(secondPerson.masterDefendantId).isEqualTo(secondDefendantId)
 
     assertThat(thirdPerson.aliases).isEmpty()
