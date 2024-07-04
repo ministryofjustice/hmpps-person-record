@@ -26,9 +26,10 @@ class SearchService(
     return searchForRecords(person, query)
   }
 
-  fun findCandidateRecords(person: Person): List<MatchResult> {
+  fun findCandidateRecordsByUuid(person: Person): List<MatchResult> {
     val query = findCandidates(person)
-    return searchForRecords(person, query)
+    val results = searchForRecords(person, query)
+    return results.filter { it.candidateRecord.personIdentifier != null }
   }
 
   private fun searchForRecords(person: Person, query: Specification<PersonEntity>): List<MatchResult> {
