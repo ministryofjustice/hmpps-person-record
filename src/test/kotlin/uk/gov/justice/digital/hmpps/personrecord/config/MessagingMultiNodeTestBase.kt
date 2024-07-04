@@ -33,7 +33,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
+import java.time.Duration
 import java.util.UUID
 
 @ExtendWith(MultiApplicationContextExtension::class)
@@ -97,7 +99,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     } matches { it == 0 }
   }
 
-  fun publishDomainEvent(eventType: String, domainEvent: DomainEvent) {
+  fun publishDomainEvent(eventType: String, domainEvent: DomainEvent): String {
     val domainEventAsString = objectMapper.writeValueAsString(domainEvent)
     val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
       .message(domainEventAsString)
@@ -108,10 +110,11 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         ),
       ).build()
 
-    domainEventsTopic?.snsClient?.publish(publishRequest)?.get()
+    val response = domainEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
     expectNoMessagesOn(probationEventsQueue)
     expectNoMessagesOn(prisonEventsQueue)
+    return response!!.messageId()
   }
 
   fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = randomName(), addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress("LS1 1AB")), scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {
@@ -202,5 +205,12 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     prisonEventsQueue!!.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.dlqUrl).build(),
     )
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      probationEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationEventsQueue!!.queueUrl)?.get()
+    } matches { it == 0 }
+
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      probationEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(probationEventsQueue!!.dlqUrl!!)?.get()
+    } matches { it == 0 }
   }
 }
