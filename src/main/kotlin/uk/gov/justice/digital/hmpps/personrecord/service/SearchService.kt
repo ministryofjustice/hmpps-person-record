@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.findCandidates
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.findCandidatesBySourceSystem
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.findCandidatesByUuid
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
@@ -27,9 +27,8 @@ class SearchService(
   }
 
   fun findCandidateRecordsByUuid(person: Person): List<MatchResult> {
-    val query = findCandidates(person)
-    val results = searchForRecords(person, query)
-    return results.filter { it.candidateRecord.personIdentifier != null }
+    val query = findCandidatesByUuid(person)
+    return searchForRecords(person, query)
   }
 
   private fun searchForRecords(person: Person, query: Specification<PersonEntity>): List<MatchResult> {

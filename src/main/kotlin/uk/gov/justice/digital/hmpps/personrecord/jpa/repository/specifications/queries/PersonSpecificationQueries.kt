@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.P
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.exactMatch
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 
-fun findCandidates(person: Person): Specification<PersonEntity> {
+private fun findCandidates(person: Person): Specification<PersonEntity> {
   val postcodes = person.addresses.mapNotNull { it.postcode }.toSet()
 
   val soundexFirstLastName = Specification.where(
@@ -27,6 +27,10 @@ fun findCandidates(person: Person): Specification<PersonEntity> {
       .or(exactMatch(person.otherIdentifiers?.croIdentifier?.toString(), CRO))
       .or(soundexFirstLastName.and(levenshteinDob.or(levenshteinPostcode))),
   )
+}
+
+fun findCandidatesByUuid(person: Person): Specification<PersonEntity> {
+  return findCandidates(person).and(PersonSpecification.hasPersonIdentifier())
 }
 
 fun findCandidatesBySourceSystem(person: Person): Specification<PersonEntity> {

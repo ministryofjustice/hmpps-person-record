@@ -238,6 +238,28 @@ class SearchServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
+  fun `should not find candidate records with no uuid`() {
+    val firstName = randomName()
+    val driverLicenseNumber = randomDriverLicenseNumber()
+    val personToFind = Person(
+      firstName = firstName,
+      driverLicenseNumber = driverLicenseNumber,
+      sourceSystemType = HMCTS,
+    )
+    createPerson(personToFind)
+    createPerson(
+      Person(
+        firstName = randomName(),
+        driverLicenseNumber = randomDriverLicenseNumber(),
+        sourceSystemType = HMCTS,
+      ),
+    )
+    val candidateRecords = searchService.findCandidateRecordsByUuid(personToFind)
+
+    assertThat(candidateRecords.size).isEqualTo(0)
+  }
+
+  @Test
   fun `should find candidate records on exact matches on national insurance number`() {
     val nationalInsuranceNumber = randomNationalInsuranceNumber()
     val personToFind = Person(

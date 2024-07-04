@@ -2,10 +2,12 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications
 
 import jakarta.persistence.criteria.Join
 import jakarta.persistence.criteria.JoinType.INNER
+import jakarta.persistence.criteria.JoinType.LEFT
 import jakarta.persistence.criteria.Predicate
 import org.springframework.data.jpa.domain.Specification
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
 import java.time.LocalDate
 
 object PersonSpecification {
@@ -73,6 +75,13 @@ object PersonSpecification {
           limit,
         )
       } ?: criteriaBuilder.disjunction()
+    }
+  }
+
+  fun hasPersonIdentifier(): Specification<PersonEntity> {
+    return Specification { root, _, criteriaBuilder ->
+      val personIdentifierJoin: Join<PersonEntity, PersonIdentifierEntity> = root.join("personIdentifier", LEFT)
+      criteriaBuilder.isNotNull(personIdentifierJoin)
     }
   }
 }
