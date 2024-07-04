@@ -92,8 +92,10 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process and update libra messages`() {
     val firstName = randomName()
+    val lastName = randomName()
     val postcode = randomPostcode()
-    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "", postcode = postcode)
+    val dateOfBirth = randomDateOfBirth()
+    val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
     val messageId1 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
 
     checkTelemetry(
@@ -115,7 +117,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.99999999))
     stubMatchScore(matchResponse)
 
-    val messageId2 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    val messageId2 = publishCourtMessage(libraHearing(LibraMessage(firstName = firstName, lastName = lastName, cro = "", pncNumber = randomPnc(), postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))), LIBRA_COURT_CASE)
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
@@ -143,8 +145,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(updatedMatchingPerson.size).isEqualTo(1)
     val person = updatedMatchingPerson[0]
     assertThat(person.title).isEqualTo("Mr")
-    assertThat(person.lastName).isEqualTo("MORGAN")
-    assertThat(person.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
+    assertThat(person.lastName).isEqualTo(lastName)
+    assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
@@ -153,10 +155,12 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process and create libra message and link to different source system record`() {
     val firstName = randomName()
+    val lastName = randomName()
+    val dateOfBirth = randomDateOfBirth()
     val person = Person(
       firstName = firstName,
-      lastName = "MORGAN",
-      dateOfBirth = LocalDate.of(1975, 1, 1),
+      lastName = lastName,
+      dateOfBirth = dateOfBirth,
       addresses = listOf(Address("NT4 6YH")),
       sourceSystemType = DELIUS,
     )
@@ -165,7 +169,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
 
-    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
+    val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = "")
     val messageId1 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
     checkTelemetry(
       MESSAGE_RECEIVED,
