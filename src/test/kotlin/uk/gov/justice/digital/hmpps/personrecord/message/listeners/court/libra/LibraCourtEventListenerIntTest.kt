@@ -103,8 +103,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         lastName = lastName,
         addresses = listOf(Address(postcode)),
         dateOfBirth = dateOfBirth,
-        sourceSystemType = LIBRA
-      )
+        sourceSystemType = LIBRA,
+      ),
     )
     val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
 
