@@ -97,25 +97,16 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val lastName = randomName()
     val postcode = randomPostcode()
     val dateOfBirth = randomDateOfBirth()
-    val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
-    val messageId1 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
-
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf(
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "MESSAGE_ID" to messageId1,
-        "SOURCE_SYSTEM" to LIBRA.name,
-      ),
+    createAndSavePersonWithUuid(
+      Person(
+        firstName = firstName,
+        lastName = lastName,
+        addresses = listOf(Address(postcode)),
+        dateOfBirth = dateOfBirth,
+        sourceSystemType = LIBRA
+      )
     )
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
-    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
-
-    val personEntities = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findAll()
-    }
-    val matchingPerson = personEntities.filter { it.firstName.equals(firstName) }
-    assertThat(matchingPerson.size).isEqualTo(1)
+    val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.99999999))
     stubMatchScore(matchResponse)
