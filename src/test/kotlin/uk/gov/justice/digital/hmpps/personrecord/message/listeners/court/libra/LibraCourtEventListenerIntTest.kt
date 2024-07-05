@@ -13,8 +13,10 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.SEARCH_VERSION
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.model.person.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -27,6 +29,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateOfBirth
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
@@ -202,13 +205,20 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process and create new person with low score`() {
     val firstName = randomName()
-
-    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
-    publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
-
+    val lastName = randomName()
+    val postcode = randomPostcode()
+    createAndSavePersonWithUuid(
+      Person(
+        firstName = firstName,
+        lastName = lastName,
+        addresses = listOf(Address(postcode)),
+        sourceSystemType = LIBRA
+      )
+    )
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.98883))
     stubMatchScore(matchResponse)
 
+    val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, postcode = postcode, cro = "", pncNumber = "")
     val messageId2 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
     checkTelemetry(
       MESSAGE_RECEIVED,
@@ -229,14 +239,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       times = 2,
     )
 
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"), times = 2)
-
-    val updatedPersonEntities = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findAll()
-    }
-
-    val updatedMatchingPerson = updatedPersonEntities.filter { it.firstName.equals(firstName) }
-    assertThat(updatedMatchingPerson.size).isEqualTo(2)
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
   }
 
   @Test
