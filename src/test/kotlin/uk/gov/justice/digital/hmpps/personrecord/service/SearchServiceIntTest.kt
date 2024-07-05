@@ -145,7 +145,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     createPerson(personToFind)
     createPerson(
       Person(
-        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("1981/0154257C")),
+        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(randomPnc())),
         sourceSystemType = HMCTS,
       ),
     )
@@ -197,7 +197,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     createPerson(personToFind)
     createPerson(
       Person(
-        driverLicenseNumber = "0987654321",
+        driverLicenseNumber = randomDriverLicenseNumber(),
         sourceSystemType = HMCTS,
       ),
     )
@@ -212,18 +212,15 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should find candidate records with a uuid`() {
-    val firstName = randomName()
     val driverLicenseNumber = randomDriverLicenseNumber()
     val personToFind = Person(
-      firstName = firstName,
       driverLicenseNumber = driverLicenseNumber,
       sourceSystemType = HMCTS,
     )
     createPersonWithUuid(personToFind)
     createPerson(
       Person(
-        firstName = randomName(),
-        driverLicenseNumber = randomDriverLicenseNumber(),
+        driverLicenseNumber = driverLicenseNumber,
         sourceSystemType = HMCTS,
       ),
     )
@@ -234,7 +231,6 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.driverLicenseNumber).isEqualTo(driverLicenseNumber)
-    assertThat(candidateRecords[0].candidateRecord.firstName).isEqualTo(firstName)
   }
 
   @Test
@@ -289,7 +285,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     createPerson(personToFind)
     createPerson(
       Person(
-        otherIdentifiers = OtherIdentifiers(croIdentifier = CROIdentifier.from("51072/62R")),
+        otherIdentifiers = OtherIdentifiers(croIdentifier = CROIdentifier.from(randomCro())),
         sourceSystemType = HMCTS,
       ),
     )
