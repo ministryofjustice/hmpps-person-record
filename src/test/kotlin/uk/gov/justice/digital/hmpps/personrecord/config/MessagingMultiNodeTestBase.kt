@@ -142,14 +142,14 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     return crn
   }
 
-  fun createAndSavePersonWithUuid(person: Person): String {
+  fun createAndSavePersonWithUuid(person: Person): UUID {
     val uuid = UUID.randomUUID()
     val personEntity = PersonEntity.from(person = person)
     val personIdentifier = PersonIdentifierEntity(personId = uuid)
     personIdentifierRepository.saveAndFlush(personIdentifier)
     personEntity.personIdentifier = personIdentifier
     personRepository.saveAndFlush(personEntity)
-    return uuid.toString()
+    return uuid
   }
 
   private fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenario: String, currentScenarioState: String, nextScenarioState: String) {
