@@ -10,6 +10,8 @@ import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
 import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonIdentifierRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
@@ -23,11 +25,13 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_NEW_RECORD_EXISTS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 
 @Service
 class PersonService(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
+  private val personIdentifierRepository: PersonIdentifierRepository,
   private val readWriteLockService: ReadWriteLockService,
   private val searchService: SearchService,
   @Value("\${retry.delay}") private val retryDelay: Long,
@@ -60,17 +64,12 @@ class PersonService(
     if (isUpdateEvent(event)) {
       trackEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
     }
-    // Use result of search to determine assign of UUID CPR-271
     val personEntity = searchByAllSourceSystemsAndHasUuid(person)
-    if (personEntity != null) {
-      // Add UUID to log
-      trackEvent(
-        CPR_CANDIDATE_RECORD_FOUND_UUID,
-        person,
-        mapOf(EventKeys.UUID to personEntity.personIdentifier?.personId?.toString()),
-      )
+    val personIdentifier = when {
+      personEntity == null -> createPersonIdentifier(person)
+      else -> retrievePersonIdentifier(person, personEntity)
     }
-    createPersonEntity(person)
+    createPersonEntity(person, personIdentifier)
     trackEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
   }
 
@@ -83,8 +82,8 @@ class PersonService(
   }
 
   private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity) {
-    removeAllChildEntities(personEntity)
-    val updatedPersonEntity = personEntity.update(person)
+    val clearedPersonEntity = removeAllChildEntities(personEntity)
+    val updatedPersonEntity = clearedPersonEntity.update(person)
     personRepository.saveAndFlush(updatedPersonEntity)
   }
 
@@ -95,8 +94,9 @@ class PersonService(
     return personRepository.saveAndFlush(personEntity)
   }
 
-  private fun createPersonEntity(person: Person) {
+  private fun createPersonEntity(person: Person, personIdentifierEntity: PersonIdentifierEntity) {
     val personEntity = PersonEntity.from(person)
+    personEntity.personIdentifier = personIdentifierEntity
     personRepository.saveAndFlush(personEntity)
   }
 
@@ -108,6 +108,25 @@ class PersonService(
   ).contains(event)
 
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
+
+  private fun createPersonIdentifier(person: Person): PersonIdentifierEntity {
+    val personIdentifier = PersonIdentifierEntity.new()
+    trackEvent(
+      CPR_UUID_CREATED,
+      person,
+      mapOf(EventKeys.UUID to personIdentifier.personId.toString()),
+    )
+    return personIdentifierRepository.saveAndFlush(personIdentifier)
+  }
+
+  private fun retrievePersonIdentifier(person: Person, personEntity: PersonEntity): PersonIdentifierEntity {
+    trackEvent(
+      CPR_CANDIDATE_RECORD_FOUND_UUID,
+      person,
+      mapOf(EventKeys.UUID to personEntity.personIdentifier?.personId?.toString()),
+    )
+    return personEntity.personIdentifier!!
+  }
 
   fun searchByAllSourceSystemsAndHasUuid(person: Person): PersonEntity? {
     val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecordsWithUuid(person)

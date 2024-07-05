@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
@@ -71,6 +72,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       times = 2,
     )
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
+    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
 
     val personEntities = await.atMost(30, SECONDS) untilNotNull {
       personRepository.findAll()
@@ -85,7 +87,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.pnc).isEqualTo(PNCIdentifier.from(pnc))
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
-    assertThat(person.personIdentifier).isNull()
+    assertThat(person.personIdentifier).isNotNull()
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
   }
 
@@ -95,29 +97,21 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val lastName = randomName()
     val postcode = randomPostcode()
     val dateOfBirth = randomDateOfBirth()
-    val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
-    val messageId1 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
-
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf(
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "MESSAGE_ID" to messageId1,
-        "SOURCE_SYSTEM" to LIBRA.name,
+    createAndSavePersonWithUuid(
+      Person(
+        firstName = firstName,
+        lastName = lastName,
+        addresses = listOf(Address(postcode)),
+        dateOfBirth = dateOfBirth,
+        sourceSystemType = LIBRA,
       ),
     )
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
-
-    val personEntities = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findAll()
-    }
-    val matchingPerson = personEntities.filter { it.firstName.equals(firstName) }
-    assertThat(matchingPerson.size).isEqualTo(1)
+    val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.99999999))
     stubMatchScore(matchResponse)
 
-    val messageId2 = publishCourtMessage(libraHearing(LibraMessage(firstName = firstName, lastName = lastName, cro = "", pncNumber = randomPnc(), postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))), LIBRA_COURT_CASE)
+    val messageId2 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
@@ -164,7 +158,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       addresses = listOf(Address("NT4 6YH")),
       sourceSystemType = DELIUS,
     )
-    val uuid: String = createAndSavePersonWithUuid(person)
+    val uuid = createAndSavePersonWithUuid(person)
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
@@ -194,9 +188,12 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_CANDIDATE_RECORD_FOUND_UUID,
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
-        "UUID" to uuid,
+        "UUID" to uuid.toString(),
       ),
     )
+
+    val personIdentifier = personIdentifierRepository.findByPersonId(uuid)
+    assertThat(personIdentifier.personEntities.size).isEqualTo(2)
   }
 
   @Test
@@ -237,6 +234,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
+    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
   }
 
   @Test
