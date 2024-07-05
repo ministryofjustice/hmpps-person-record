@@ -202,13 +202,20 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process and create new person with low score`() {
     val firstName = randomName()
-
-    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
-    publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
-
+    val lastName = randomName()
+    val postcode = randomPostcode()
+    createAndSavePersonWithUuid(
+      Person(
+        firstName = firstName,
+        lastName = lastName,
+        addresses = listOf(Address(postcode)),
+        sourceSystemType = LIBRA,
+      ),
+    )
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.98883))
     stubMatchScore(matchResponse)
 
+    val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, postcode = postcode, cro = "", pncNumber = "")
     val messageId2 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
     checkTelemetry(
       MESSAGE_RECEIVED,
@@ -229,14 +236,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       times = 2,
     )
 
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"), times = 2)
-
-    val updatedPersonEntities = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findAll()
-    }
-
-    val updatedMatchingPerson = updatedPersonEntities.filter { it.firstName.equals(firstName) }
-    assertThat(updatedMatchingPerson.size).isEqualTo(2)
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
   }
 
   @Test
