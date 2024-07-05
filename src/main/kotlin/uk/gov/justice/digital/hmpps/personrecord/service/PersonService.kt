@@ -22,10 +22,10 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DETAILS_C
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_NEW_RECORD_EXISTS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 
 @Service
 class PersonService(
@@ -88,9 +88,7 @@ class PersonService(
   }
 
   private fun removeAllChildEntities(personEntity: PersonEntity): PersonEntity {
-    personEntity.aliases.clear()
-    personEntity.addresses.clear()
-    personEntity.contacts.clear()
+    personEntity.removeAllChildEntities()
     return personRepository.saveAndFlush(personEntity)
   }
 

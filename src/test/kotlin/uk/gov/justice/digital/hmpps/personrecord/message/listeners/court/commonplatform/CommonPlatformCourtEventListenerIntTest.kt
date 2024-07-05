@@ -227,7 +227,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     assertThat(firstPerson.pnc).isEqualTo(PNCIdentifier.from(firstPnc))
-    assertThat(firstPerson.personIdentifier).isNull()
+    assertThat(firstPerson.personIdentifier).isNotNull()
     assertThat(firstPerson.masterDefendantId).isEqualTo(firstDefendantId)
     assertThat(firstPerson.firstName).isEqualTo(firstName)
     assertThat(firstPerson.middleNames).isEqualTo("mName1 mName2")

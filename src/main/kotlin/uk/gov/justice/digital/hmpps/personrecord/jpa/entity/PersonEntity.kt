@@ -125,6 +125,12 @@ class PersonEntity(
     return this
   }
 
+  fun removeAllChildEntities() {
+    this.aliases.clear()
+    this.addresses.clear()
+    this.contacts.clear()
+  }
+
   private fun updateChildEntities(person: Person) {
     updatePersonAddresses(person)
     updatePersonContacts(person)
