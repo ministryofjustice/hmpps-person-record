@@ -64,7 +64,7 @@ class PersonService(
     if (isUpdateEvent(event)) {
       trackEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
     }
-    val personEntity = searchByAllSourceSystems(person)
+    val personEntity = searchByAllSourceSystemsAndHasUuid(person)
     val personIdentifier = when {
       personEntity == null -> createPersonIdentifier(person)
       else -> retrievePersonIdentifier(person, personEntity)
@@ -128,8 +128,8 @@ class PersonService(
     return personEntity.personIdentifier!!
   }
 
-  fun searchByAllSourceSystems(person: Person): PersonEntity? {
-    val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecords(person)
+  fun searchByAllSourceSystemsAndHasUuid(person: Person): PersonEntity? {
+    val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecordsWithUuid(person)
     return searchService.processCandidateRecords(highConfidenceMatches)
   }
 
