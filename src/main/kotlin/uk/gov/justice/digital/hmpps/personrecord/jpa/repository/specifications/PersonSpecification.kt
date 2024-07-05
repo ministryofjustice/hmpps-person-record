@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications
 
 import jakarta.persistence.criteria.Join
 import jakarta.persistence.criteria.JoinType.INNER
-import jakarta.persistence.criteria.JoinType.LEFT
 import jakarta.persistence.criteria.Predicate
 import org.springframework.data.jpa.domain.Specification
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
@@ -23,6 +22,7 @@ object PersonSpecification {
   const val DOB = "dateOfBirth"
   const val SOURCE_SYSTEM = "sourceSystem"
 
+  private const val PERSON_IDENTIFIER = "personIdentifier"
   private const val POSTCODE = "postcode"
   private const val DATE_FORMAT = "YYYY-MM-DD"
 
@@ -80,7 +80,7 @@ object PersonSpecification {
 
   fun hasPersonIdentifier(): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      val personIdentifierJoin: Join<PersonEntity, PersonIdentifierEntity> = root.join("personIdentifier", LEFT)
+      val personIdentifierJoin: Join<PersonEntity, PersonIdentifierEntity> = root.join(PERSON_IDENTIFIER, INNER)
       criteriaBuilder.isNotNull(personIdentifierJoin)
     }
   }

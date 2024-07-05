@@ -239,23 +239,20 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should not find candidate records with no uuid`() {
-    val firstName = randomName()
     val driverLicenseNumber = randomDriverLicenseNumber()
     val personToFind = Person(
-      firstName = firstName,
       driverLicenseNumber = driverLicenseNumber,
       sourceSystemType = HMCTS,
     )
     createPerson(personToFind)
     createPerson(
       Person(
-        firstName = randomName(),
-        driverLicenseNumber = randomDriverLicenseNumber(),
+        driverLicenseNumber = driverLicenseNumber,
         sourceSystemType = HMCTS,
       ),
     )
-    val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind)
 
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind)
     assertThat(candidateRecords.size).isEqualTo(0)
   }
 
