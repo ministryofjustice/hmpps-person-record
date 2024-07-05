@@ -130,7 +130,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecordsByUuid(personToFind)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(4)
   }
@@ -230,7 +230,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999, "1" to 0.9999999))
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecordsByUuid(personToFind)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.driverLicenseNumber).isEqualTo(driverLicenseNumber)
@@ -254,7 +254,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         sourceSystemType = HMCTS,
       ),
     )
-    val candidateRecords = searchService.findCandidateRecordsByUuid(personToFind)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(0)
   }
@@ -472,7 +472,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecordsByUuid(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.addresses[0].postcode).isEqualTo("LS2 1AB")
@@ -539,7 +539,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       lastName = lastName,
       sourceSystemType = HMCTS,
     )
-    val candidateRecords = searchService.findCandidateRecordsByUuid(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     noCandidatesFound(candidateRecords)
   }
@@ -560,7 +560,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       addresses = listOf(Address(postcode = "LS1 1AB")),
       sourceSystemType = HMCTS,
     )
-    val candidateRecords = searchService.findCandidateRecordsByUuid(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     noCandidatesFound(candidateRecords)
   }

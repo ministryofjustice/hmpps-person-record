@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.findCandidatesBySourceSystem
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.findCandidatesByUuid
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.findCandidatesWithUuid
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
@@ -26,8 +26,8 @@ class SearchService(
     return searchForRecords(person, query)
   }
 
-  fun findCandidateRecordsByUuid(person: Person): List<MatchResult> {
-    val query = findCandidatesByUuid(person)
+  fun findCandidateRecordsWithUuid(person: Person): List<MatchResult> {
+    val query = findCandidatesWithUuid(person)
     return searchForRecords(person, query)
   }
 
