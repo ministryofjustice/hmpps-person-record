@@ -18,7 +18,7 @@ class MatchService(
   val matchScoreClient: MatchScoreClient,
   val telemetryService: TelemetryService,
   @Value("\${retry.delay}")
-  private val retryDelay: Long = 0
+  private val retryDelay: Long = 0,
 ) {
 
   fun findHighConfidenceMatches(candidateRecords: List<PersonEntity>, newRecord: Person): List<MatchResult> {

@@ -62,7 +62,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     await.atMost(5, SECONDS) untilAsserted {
       val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
-      assertThat(personEntity.personIdentifier).isNull()
+      assertThat(personEntity.personIdentifier).isNotNull()
       assertThat(personEntity.title).isEqualTo("Ms")
       assertThat(personEntity.firstName).isEqualTo(prefix + "FirstName")
       assertThat(personEntity.middleNames).isEqualTo(prefix + "MiddleName1 " + prefix + "MiddleName2")
