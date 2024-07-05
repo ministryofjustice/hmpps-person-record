@@ -127,9 +127,9 @@ class PersonService(
     val identifierMap = mapOf(
       EventKeys.SOURCE_SYSTEM to person.sourceSystemType.name,
       EventKeys.DEFENDANT_ID to person.defendantId,
-      EventKeys.CRN to (person.otherIdentifiers?.crn ?: ""),
+      EventKeys.CRN to (person.otherIdentifiers?.crn),
       EventKeys.PRISON_NUMBER to person.otherIdentifiers?.prisonNumber,
-    )
+    ).filterNot { it.value == null }
     telemetryService.trackEvent(eventType, identifierMap + elementMap)
   }
 
