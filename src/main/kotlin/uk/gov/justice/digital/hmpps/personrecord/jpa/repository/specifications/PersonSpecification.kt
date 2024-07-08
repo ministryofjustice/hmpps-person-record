@@ -72,7 +72,8 @@ object PersonSpecification {
         )
         criteriaBuilder.le(
           criteriaBuilder.function(
-            "levenshtein_less_equal", Integer::class.java, criteriaBuilder.literal(input.toString()), dbDateAsString, criteriaBuilder.literal(limit)),
+            "levenshtein_less_equal", Integer::class.java, criteriaBuilder.literal(input.toString()), dbDateAsString, criteriaBuilder.literal(limit),
+          ),
           limit,
         )
       } ?: criteriaBuilder.disjunction()
