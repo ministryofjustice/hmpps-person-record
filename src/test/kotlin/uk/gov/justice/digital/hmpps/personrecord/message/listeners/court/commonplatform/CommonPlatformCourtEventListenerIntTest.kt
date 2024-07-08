@@ -18,8 +18,10 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.HMCTS
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAlias
@@ -147,6 +149,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "HMCTS", "DEFENDANT_ID" to defendantId),
     )
+    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "HMCTS", "DEFENDANT_ID" to defendantId))
 
     val matchResponse = MatchResponse(
       matchProbabilities = mutableMapOf("0" to 0.999999),
@@ -227,7 +230,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     assertThat(firstPerson.pnc).isEqualTo(PNCIdentifier.from(firstPnc))
-    assertThat(firstPerson.personIdentifier).isNull()
+    assertThat(firstPerson.personIdentifier).isNotNull()
     assertThat(firstPerson.masterDefendantId).isEqualTo(firstDefendantId)
     assertThat(firstPerson.firstName).isEqualTo(firstName)
     assertThat(firstPerson.middleNames).isEqualTo("mName1 mName2")
@@ -256,6 +259,19 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(thirdPerson.pnc).isEqualTo(PNCIdentifier.from(thirdPnc))
     assertThat(thirdPerson.nationalInsuranceNumber).isEqualTo(thirdDefendantNINumber)
     assertThat(thirdPerson.masterDefendantId).isEqualTo(thirdDefendantId)
+  }
+
+  @Test
+  fun `should log Message Processing Failed telemetry event when an exception is thrown`() {
+    val messageId = publishCourtMessage(
+      "notAValidMessage",
+      COMMON_PLATFORM_HEARING,
+    )
+
+    checkTelemetry(
+      TelemetryEventType.MESSAGE_PROCESSING_FAILED,
+      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to HMCTS.name),
+    )
   }
 
   @Test

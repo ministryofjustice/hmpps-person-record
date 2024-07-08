@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonIdentifierRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
@@ -35,6 +37,9 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var personRepository: PersonRepository
+
+  @Autowired
+  private lateinit var personIdentifierRepository: PersonIdentifierRepository
 
   @Test
   fun `should find candidate records only in searching source system`() {
@@ -90,8 +95,8 @@ class SearchServiceIntTest : IntegrationTestBase() {
       dateOfBirth = LocalDate.of(1975, 1, 1),
       sourceSystemType = LIBRA,
     )
-    createPerson(personToFind)
-    createPerson(
+    createPersonWithUuid(personToFind)
+    createPersonWithUuid(
       Person(
         firstName = firstName,
         lastName = lastName,
@@ -99,7 +104,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         sourceSystemType = HMCTS,
       ),
     )
-    createPerson(
+    createPersonWithUuid(
       Person(
         firstName = firstName,
         lastName = lastName,
@@ -107,7 +112,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         sourceSystemType = NOMIS,
       ),
     )
-    createPerson(
+    createPersonWithUuid(
       Person(
         firstName = firstName,
         lastName = lastName,
@@ -125,7 +130,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecords(personToFind)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(4)
   }
@@ -140,7 +145,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     createPerson(personToFind)
     createPerson(
       Person(
-        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("1981/0154257C")),
+        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(randomPnc())),
         sourceSystemType = HMCTS,
       ),
     )
@@ -158,7 +163,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val firstName = randomName()
     val personToFind = Person(
       firstName = firstName,
-      lastName = "Klose",
+      lastName = randomName(),
       dateOfBirth = LocalDate.of(1975, 2, 1),
       otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("")),
       sourceSystemType = HMCTS,
@@ -166,8 +171,8 @@ class SearchServiceIntTest : IntegrationTestBase() {
     createPerson(personToFind)
     createPerson(
       Person(
-        firstName = "Horst",
-        lastName = "Hrubesch",
+        firstName = randomName(),
+        lastName = randomName(),
         dateOfBirth = LocalDate.of(1975, 2, 1),
         otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("")),
         sourceSystemType = HMCTS,
@@ -192,7 +197,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     createPerson(personToFind)
     createPerson(
       Person(
-        driverLicenseNumber = "0987654321",
+        driverLicenseNumber = randomDriverLicenseNumber(),
         sourceSystemType = HMCTS,
       ),
     )
@@ -203,6 +208,48 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.driverLicenseNumber).isEqualTo(driverLicenseNumber)
+  }
+
+  @Test
+  fun `should find candidate records with a uuid`() {
+    val driverLicenseNumber = randomDriverLicenseNumber()
+    val personToFind = Person(
+      driverLicenseNumber = driverLicenseNumber,
+      sourceSystemType = HMCTS,
+    )
+    createPersonWithUuid(personToFind)
+    createPerson(
+      Person(
+        driverLicenseNumber = driverLicenseNumber,
+        sourceSystemType = HMCTS,
+      ),
+    )
+
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999, "1" to 0.9999999))
+    stubMatchScore(matchResponse)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind)
+
+    assertThat(candidateRecords.size).isEqualTo(1)
+    assertThat(candidateRecords[0].candidateRecord.driverLicenseNumber).isEqualTo(driverLicenseNumber)
+  }
+
+  @Test
+  fun `should not find candidate records with no uuid`() {
+    val driverLicenseNumber = randomDriverLicenseNumber()
+    val personToFind = Person(
+      driverLicenseNumber = driverLicenseNumber,
+      sourceSystemType = HMCTS,
+    )
+    createPerson(personToFind)
+    createPerson(
+      Person(
+        driverLicenseNumber = driverLicenseNumber,
+        sourceSystemType = HMCTS,
+      ),
+    )
+
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind)
+    assertThat(candidateRecords.size).isEqualTo(0)
   }
 
   @Test
@@ -238,7 +285,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     createPerson(personToFind)
     createPerson(
       Person(
-        otherIdentifiers = OtherIdentifiers(croIdentifier = CROIdentifier.from("51072/62R")),
+        otherIdentifiers = OtherIdentifiers(croIdentifier = CROIdentifier.from(randomCro())),
         sourceSystemType = HMCTS,
       ),
     )
@@ -385,7 +432,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
   @Test
   fun `should find candidate records on Levenshtein matches on multiple postcodes`() {
     val firstName = randomName()
-    createPerson(
+    createPersonWithUuid(
       Person(
         firstName = firstName,
         lastName = "Smythe",
@@ -397,7 +444,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         sourceSystemType = HMCTS,
       ),
     )
-    createPerson(
+    createPersonWithUuid(
       Person(
         firstName = firstName,
         lastName = "Smythe",
@@ -418,7 +465,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecords(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.addresses[0].postcode).isEqualTo("LS2 1AB")
@@ -485,7 +532,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       lastName = lastName,
       sourceSystemType = HMCTS,
     )
-    val candidateRecords = searchService.findCandidateRecords(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     noCandidatesFound(candidateRecords)
   }
@@ -506,7 +553,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       addresses = listOf(Address(postcode = "LS1 1AB")),
       sourceSystemType = HMCTS,
     )
-    val candidateRecords = searchService.findCandidateRecords(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     noCandidatesFound(candidateRecords)
   }
@@ -548,6 +595,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
   }
 
   private fun createPerson(person: Person): PersonEntity = personRepository.saveAndFlush(PersonEntity.from(person))
+
+  private fun createPersonWithUuid(person: Person): PersonEntity {
+    val personIdentifierEntity = personIdentifierRepository.saveAndFlush(PersonIdentifierEntity.new())
+    val personEntity = createPerson(person)
+    personEntity.personIdentifier = personIdentifierEntity
+    return personRepository.saveAndFlush(personEntity)
+  }
 
   private fun stubMatchScore(matchResponse: MatchResponse) {
     wiremock.stubFor(

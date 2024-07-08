@@ -174,7 +174,7 @@ complexity:
     thresholdInObjects: 13
     thresholdInEnums: 13
     ignoreDeprecated: false
-    ignorePrivate: false
+    ignorePrivate: true
     ignoreOverridden: false
     ignoreAnnotatedFunctions: []
 

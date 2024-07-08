@@ -69,7 +69,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId("cprdeliusoffendereventsqueue")
   }
 
-  private val prisonEventsQueue by lazy {
+  val prisonEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprnomiseventsqueue")
   }
 
@@ -142,14 +142,14 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     return crn
   }
 
-  fun createAndSavePersonWithUuid(person: Person): String {
+  fun createAndSavePersonWithUuid(person: Person): UUID {
     val uuid = UUID.randomUUID()
     val personEntity = PersonEntity.from(person = person)
     val personIdentifier = PersonIdentifierEntity(personId = uuid)
     personIdentifierRepository.saveAndFlush(personIdentifier)
     personEntity.personIdentifier = personIdentifier
     personRepository.saveAndFlush(personEntity)
-    return uuid.toString()
+    return uuid
   }
 
   private fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenario: String, currentScenarioState: String, nextScenarioState: String) {
@@ -206,11 +206,18 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.dlqUrl).build(),
     )
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationEventsQueue!!.queueUrl)?.get()
+      probationEventsQueue!!.sqsClient.countAllMessagesOnQueue(probationEventsQueue!!.queueUrl).get()
     } matches { it == 0 }
 
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(probationEventsQueue!!.dlqUrl!!)?.get()
+      probationEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(probationEventsQueue!!.dlqUrl!!).get()
+    } matches { it == 0 }
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      prisonEventsQueue!!.sqsClient.countAllMessagesOnQueue(prisonEventsQueue!!.queueUrl).get()
+    } matches { it == 0 }
+
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      prisonEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(prisonEventsQueue!!.dlqUrl!!).get()
     } matches { it == 0 }
   }
 }
