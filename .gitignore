@@ -8,8 +8,6 @@
 .kotlin/
 build/
 
-# CMake
-cmake-build-debug/
 
 ## File-based project format:
 *.iws
@@ -26,23 +24,8 @@ out/
 # JIRA plugin
 atlassian-ide-plugin.xml
 
-# Crashlytics plugin (for Android Studio and IntelliJ)
-com_crashlytics_export_strings.xml
-crashlytics.properties
-crashlytics-build.properties
-fabric.properties
-### Java template
-# Compiled class file
-*.class
-
 # Log file
 *.log
-
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
 
 # Package Files #
 *.war
@@ -57,24 +40,20 @@ hs_err_pid*
 Dockerrun.aws.json
 dist
 
-# Elastic Beanstalk Files
-.elasticbeanstalk/*
-!.elasticbeanstalk/config.yml
-!.elasticbeanstalk/*.cfg.yml
-!.elasticbeanstalk/*.global.yml
 
-# AWS DOcker build
+# AWS Docker build
 ecr.repo
 dps-gradle-spring-boot-suppressions.xml
 .editorconfig
 sonar-project.properties
 
-#Helm
+# Helm
 **/Chart.lock
 /.jpb/jpb-settings.xml
 /gradle.properties
 /volume/
 
+.trivy
 .trivyignore
 .vscode
 bin
