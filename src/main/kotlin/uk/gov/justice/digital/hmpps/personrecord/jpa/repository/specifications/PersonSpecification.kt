@@ -52,7 +52,7 @@ object PersonSpecification {
         val addressJoin: Join<PersonEntity, AddressEntity> = root.join("addresses", INNER)
         val postcodePredicates: Array<Predicate> = postcodes.map {
           criteriaBuilder.le(
-            criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(it), addressJoin.get<String>(POSTCODE)),
+            criteriaBuilder.function("levenshtein_less_equal", Integer::class.java, criteriaBuilder.literal(it), addressJoin.get<String>(POSTCODE), criteriaBuilder.literal(limit)),
             limit,
           )
         }.toTypedArray()
@@ -71,7 +71,8 @@ object PersonSpecification {
           criteriaBuilder.literal(DATE_FORMAT),
         )
         criteriaBuilder.le(
-          criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(input.toString()), dbDateAsString),
+          criteriaBuilder.function(
+            "levenshtein_less_equal", Integer::class.java, criteriaBuilder.literal(input.toString()), dbDateAsString, criteriaBuilder.literal(limit)),
           limit,
         )
       } ?: criteriaBuilder.disjunction()
