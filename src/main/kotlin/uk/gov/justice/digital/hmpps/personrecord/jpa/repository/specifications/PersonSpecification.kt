@@ -39,7 +39,7 @@ object PersonSpecification {
       input?.let {
         criteriaBuilder.equal(
           criteriaBuilder.function("SOUNDEX", String::class.java, root.get<String>(field)),
-          criteriaBuilder.function("SOUNDEX", String::class.java, criteriaBuilder.literal(input)),
+          criteriaBuilder.function("SOUNDEX", String::class.java, criteriaBuilder.literal(it)),
         )
       } ?: criteriaBuilder.disjunction()
     }
