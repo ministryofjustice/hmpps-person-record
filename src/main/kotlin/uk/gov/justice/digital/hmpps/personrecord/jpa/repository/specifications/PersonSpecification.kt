@@ -36,13 +36,12 @@ object PersonSpecification {
 
   fun soundex(input: String?, field: String): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      criteriaBuilder.and(
-        criteriaBuilder.isNotNull(criteriaBuilder.literal(input)),
+      input?.let {
         criteriaBuilder.equal(
           criteriaBuilder.function("SOUNDEX", String::class.java, root.get<String>(field)),
           criteriaBuilder.function("SOUNDEX", String::class.java, criteriaBuilder.literal(input)),
-        ),
-      )
+        )
+      } ?: criteriaBuilder.disjunction()
     }
   }
 
