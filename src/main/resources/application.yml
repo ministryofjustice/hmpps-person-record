@@ -7,7 +7,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${nomis-oauth.issuer-base-url:${nomis-oauth.base-url}}/auth/issuer
+          jwk-set-uri: ${nomis-oauth.base-url}/auth/.well-known/jwks.json
       client:
         registration:
           prisoner-search:
