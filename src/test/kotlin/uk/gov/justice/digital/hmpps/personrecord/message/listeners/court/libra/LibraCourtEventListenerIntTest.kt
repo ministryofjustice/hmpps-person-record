@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit.SECONDS
 class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @BeforeEach
-  override fun beforeEach() {
+  fun beforeEach() {
     telemetryRepository.deleteAll()
   }
 

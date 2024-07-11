@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.config
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpHeaders
 import org.springframework.test.web.reactive.server.WebTestClient
-import uk.gov.justice.digital.hmpps.personrecord.security.JwtAuthHelper
-import java.time.Duration
+import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
 abstract class WebTestBase : IntegrationTestBase() {
 
@@ -11,14 +11,10 @@ abstract class WebTestBase : IntegrationTestBase() {
   lateinit var webTestClient: WebTestClient
 
   @Autowired
-  internal lateinit var jwtHelper: JwtAuthHelper
+  internal lateinit var jwtAuthHelper: JwtAuthorisationHelper
 
-  internal fun WebTestClient.RequestHeadersSpec<*>.authorised(roles: List<String> = listOf("ROLE_QUEUE_ADMIN")): WebTestClient.RequestBodySpec {
-    val bearerToken = jwtHelper.createJwt(
-      subject = "hmpps-person-record",
-      expiryTime = Duration.ofMinutes(1L),
-      roles = roles,
-    )
-    return header("authorization", "Bearer $bearerToken") as WebTestClient.RequestBodySpec
-  }
+  protected fun setAuthorisation(
+    roles: List<String> = listOf(),
+    scopes: List<String> = listOf("read"),
+  ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisationHeader(scope = scopes, roles = roles)
 }

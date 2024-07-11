@@ -10,7 +10,6 @@ class QueueAdminIntTest() : WebTestBase() {
     webTestClient
       .put()
       .uri("/queue-admin/retry-all-dlqs")
-      .authorised()
       .exchange()
       .expectStatus()
       .isOk
@@ -21,7 +20,7 @@ class QueueAdminIntTest() : WebTestBase() {
     webTestClient
       .put()
       .uri("/queue-admin/purge-queue/cpr_court_case_events_queue_dlq")
-      .authorised(listOf("WRONG_ROLE"))
+      .headers(setAuthorisation(roles = listOf("WRONG_ROLE")))
       .exchange()
       .expectStatus()
       .isForbidden
@@ -42,7 +41,7 @@ class QueueAdminIntTest() : WebTestBase() {
     webTestClient
       .put()
       .uri("/queue-admin/purge-queue/cpr_court_case_events_queue_dlq")
-      .authorised()
+      .headers(setAuthorisation(roles = listOf("ROLE_QUEUE_ADMIN")))
       .exchange()
       .expectStatus()
       .isOk

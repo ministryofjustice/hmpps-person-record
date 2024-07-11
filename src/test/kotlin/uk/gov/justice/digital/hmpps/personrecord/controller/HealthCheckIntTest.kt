@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.function.Consumer
+
 class HealthCheckIntTest : WebTestBase() {
 
   @Test
@@ -22,7 +23,7 @@ class HealthCheckIntTest : WebTestBase() {
   @Test
   fun `Health info reports version`() {
     webTestClient.get().uri("/health")
-      .authorised()
+      .headers(setAuthorisation())
       .exchange()
       .expectStatus().isOk
       .expectBody().jsonPath("components.healthInfo.details.version").value(
