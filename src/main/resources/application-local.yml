@@ -37,3 +37,7 @@ hmpps.sqs:
       arn: arn:aws:sns:eu-west-2:000000000000:courtcaseeventstopic
     domainevents:
       arn: arn:aws:sns:eu-west-2:000000000000:domainevents
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres?currentSchema=personrecordservice&user=root&password=dev&stringtype=unspecified
