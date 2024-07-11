@@ -11,7 +11,7 @@ import java.time.LocalDate
 
 object PersonSpecification {
 
-  const val SEARCH_VERSION = "1.4"
+  const val SEARCH_VERSION = "1.5"
 
   const val PNC = "pnc"
   const val CRO = "cro"
@@ -36,13 +36,12 @@ object PersonSpecification {
 
   fun soundex(input: String?, field: String): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      criteriaBuilder.and(
-        criteriaBuilder.isNotNull(criteriaBuilder.literal(input)),
+      input?.let {
         criteriaBuilder.equal(
           criteriaBuilder.function("SOUNDEX", String::class.java, root.get<String>(field)),
-          criteriaBuilder.function("SOUNDEX", String::class.java, criteriaBuilder.literal(input)),
-        ),
-      )
+          criteriaBuilder.function("SOUNDEX", String::class.java, criteriaBuilder.literal(it)),
+        )
+      } ?: criteriaBuilder.disjunction()
     }
   }
 
@@ -52,7 +51,7 @@ object PersonSpecification {
         val addressJoin: Join<PersonEntity, AddressEntity> = root.join("addresses", INNER)
         val postcodePredicates: Array<Predicate> = postcodes.map {
           criteriaBuilder.le(
-            criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(it), addressJoin.get<String>(POSTCODE)),
+            criteriaBuilder.function("levenshtein_less_equal", Integer::class.java, criteriaBuilder.literal(it), addressJoin.get<String>(POSTCODE), criteriaBuilder.literal(limit)),
             limit,
           )
         }.toTypedArray()
@@ -71,7 +70,9 @@ object PersonSpecification {
           criteriaBuilder.literal(DATE_FORMAT),
         )
         criteriaBuilder.le(
-          criteriaBuilder.function("levenshtein", Integer::class.java, criteriaBuilder.literal(input.toString()), dbDateAsString),
+          criteriaBuilder.function(
+            "levenshtein_less_equal", Integer::class.java, criteriaBuilder.literal(input.toString()), dbDateAsString, criteriaBuilder.literal(limit),
+          ),
           limit,
         )
       } ?: criteriaBuilder.disjunction()
