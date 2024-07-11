@@ -26,13 +26,13 @@ dependencies {
   implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
   implementation("io.swagger.core.v3:swagger-annotations:2.2.22")
-  implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.2")
+  implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.3")
   constraints {
     implementation("org.bouncycastle:bcprov-jdk18on:1.78.1") {
       because("1.77 has CVEs")
     }
   }
-  implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.2")
+  implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.3")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.4.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 
