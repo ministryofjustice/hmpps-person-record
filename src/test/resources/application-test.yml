@@ -58,12 +58,6 @@ spring:
   flyway:
     out-of-order: true
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          jwk-set-uri: ${nomis-oauth.base-url}/.well-known/jwks.json
-
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres?currentSchema=personrecordservice&user=root&password=dev&stringtype=unspecified
 
