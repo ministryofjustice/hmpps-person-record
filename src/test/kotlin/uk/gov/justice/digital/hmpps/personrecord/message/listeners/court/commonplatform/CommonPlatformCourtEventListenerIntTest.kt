@@ -61,7 +61,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
-        "PNC" to firstPnc,
+        "DEFENDANT_ID" to firstDefendantId,
         "MESSAGE_ID" to messageId,
         "SOURCE_SYSTEM" to HMCTS.name,
       ),
@@ -69,7 +69,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
-        "PNC" to secondPnc,
+        "DEFENDANT_ID" to secondDefendantId,
         "MESSAGE_ID" to messageId,
         "SOURCE_SYSTEM" to HMCTS.name,
       ),
@@ -77,7 +77,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
-        "PNC" to "",
+        "DEFENDANT_ID" to thirdDefendantId,
         "MESSAGE_ID" to messageId,
         "SOURCE_SYSTEM" to HMCTS.name,
       ),
@@ -164,7 +164,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       MESSAGE_RECEIVED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to HMCTS.name),
+      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to HMCTS.name, "DEFENDANT_ID" to defendantId),
     )
 
     await.atMost(15, SECONDS) untilAsserted {

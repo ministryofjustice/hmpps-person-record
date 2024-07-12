@@ -53,16 +53,15 @@ class CourtEventProcessor(
           it.pncId +
           it.cro
       }
-    val pncValues = uniqueDefendants.joinToString(" ") { it.pncId.toString() }
-    log.debug("Processing CP Event with ${uniqueDefendants.size} distinct defendants with pnc $pncValues")
+    val defendantIDs = uniqueDefendants.joinToString(" ") { it.id.toString() }
+    log.debug("Processing Common Platform Event with ${uniqueDefendants.size} distinct defendants with defendantId $defendantIDs")
 
     uniqueDefendants.forEach { defendant ->
       val person = Person.from(defendant)
       telemetryService.trackEvent(
         MESSAGE_RECEIVED,
         mapOf(
-          EventKeys.PNC to person.otherIdentifiers?.pncIdentifier.toString(),
-          EventKeys.CRO to person.otherIdentifiers?.croIdentifier.toString(),
+          EventKeys.DEFENDANT_ID to person.defendantId,
           EventKeys.EVENT_TYPE to COMMON_PLATFORM_HEARING.name,
           EventKeys.MESSAGE_ID to sqsMessage.messageId,
           EventKeys.SOURCE_SYSTEM to SourceSystemType.HMCTS.name,
