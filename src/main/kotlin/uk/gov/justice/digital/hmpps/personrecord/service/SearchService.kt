@@ -10,8 +10,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.P
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.findCandidatesBySourceSystem
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.findCandidatesWithUuid
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
 
 @Service
 class SearchService(
@@ -68,34 +68,29 @@ class SearchService(
     return currentPage.totalElements
   }
 
-  private fun executePagedQuery(query: Specification<PersonEntity>, pageNum: Int): Page<PersonEntity> {
-    return readWriteLockService.withReadLock {
-      personRepository.findAll(query, PageRequest.of(pageNum, PAGE_SIZE))
-    }
+  private fun executePagedQuery(query: Specification<PersonEntity>, pageNum: Int): Page<PersonEntity> = readWriteLockService.withReadLock {
+    personRepository.findAll(query, PageRequest.of(pageNum, PAGE_SIZE))
   }
 
-  fun processCandidateRecords(matches: List<MatchResult>): PersonEntity? {
-    return when {
-      matches.isNotEmpty() -> handleHighConfidenceMatches(matches)
-      else -> null
-    }
+  fun processCandidateRecords(matches: List<MatchResult>): PersonEntity? = when {
+    matches.isNotEmpty() -> handleHighConfidenceMatches(matches)
+    else -> null
   }
 
   private fun handleHighConfidenceMatches(matches: List<MatchResult>): PersonEntity {
-    if (matches.size > 1) {
-      matches.forEach { record ->
-        telemetryService.trackEvent(
-          TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE,
-          mapOf(
-            EventKeys.SOURCE_SYSTEM to record.candidateRecord.sourceSystem.name,
-            EventKeys.DEFENDANT_ID to record.candidateRecord.defendantId,
-            EventKeys.CRN to (record.candidateRecord.crn ?: ""),
-            EventKeys.PRISON_NUMBER to record.candidateRecord.prisonNumber,
-            EventKeys.PROBABILITY_SCORE to record.probability.toString(),
-          ),
-        )
-      }
+    matches.takeIf { matches.size > 1 }?.forEach { record ->
+      telemetryService.trackEvent(
+        CPR_MATCH_PERSON_DUPLICATE,
+        mapOf(
+          EventKeys.SOURCE_SYSTEM to record.candidateRecord.sourceSystem.name,
+          EventKeys.DEFENDANT_ID to record.candidateRecord.defendantId,
+          EventKeys.CRN to (record.candidateRecord.crn ?: ""),
+          EventKeys.PRISON_NUMBER to record.candidateRecord.prisonNumber,
+          EventKeys.PROBABILITY_SCORE to record.probability.toString(),
+        ),
+      )
     }
+
     return matches.first().candidateRecord
   }
 
