@@ -11,18 +11,23 @@ data class CommonPlatformHearingSetup(
   val middleName: String? = null,
   val lastName: String = randomName(),
   val dateOfBirth: String = "1975-01-01",
-  val cro: String = randomCro(),
+  val cro: String? = randomCro(),
   val defendantId: String = UUID.randomUUID().toString(),
   val aliases: List<CommonPlatformHearingSetupAlias>? = null,
   val contact: CommonPlatformHearingSetupContact? = null,
-  val nationalInsuranceNumber: String = randomNationalInsuranceNumber(),
+  val nationalInsuranceNumber: String? = randomNationalInsuranceNumber(),
+  val address: CommonPlatformHearingSetupAddress = CommonPlatformHearingSetupAddress(),
 )
 data class CommonPlatformHearingSetupAlias(val firstName: String, val lastName: String)
 data class CommonPlatformHearingSetupContact(
   val home: String = "0207345678",
-  val work: String = "0203788776",
+  val work: String? = "0203788776",
   val mobile: String = "078590345677",
-  val primaryEmail: String = "email@email.com",
+  val primaryEmail: String? = "email@email.com",
+)
+
+data class CommonPlatformHearingSetupAddress(
+  val postcode: String? = "CF10 1FU",
 )
 fun commonPlatformHearing(commonPlatformHearingSetup: List<CommonPlatformHearingSetup>) = """
     {
@@ -66,9 +71,6 @@ fun commonPlatformHearing(commonPlatformHearingSetup: List<CommonPlatformHearing
 private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) =
   """{ 
                 "id": "${commonPlatformHearingSetup.defendantId}",
-                "masterDefendantId": "${commonPlatformHearingSetup.defendantId}",
-                "pncId": ${commonPlatformHearingSetup.pnc?.let { """ "${commonPlatformHearingSetup.pnc}" """.trimIndent() } ?: "null" },
-                "croNumber": "${commonPlatformHearingSetup.cro}",
                 "offences": [
                   {
                     "id": "a63d9020-aa6b-4997-92fd-72a692b036de",
@@ -87,45 +89,47 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) =
                     "offenceCode": "ABC002"
                   }
                 ],
+                "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF",
                 "personDefendant": {
                   "personDetails": {
+                    "gender": "MALE",
+                    "lastName": "${commonPlatformHearingSetup.lastName}",
+                    "middleName": ${commonPlatformHearingSetup.middleName?.let { """ "${commonPlatformHearingSetup.middleName}" """.trimIndent() } ?: "null"}, 
+                    ${commonPlatformHearingSetup.firstName?.let { """ "firstName": "${commonPlatformHearingSetup.firstName}", """.trimIndent() } ?: ""}
+                    "dateOfBirth": "${commonPlatformHearingSetup.dateOfBirth}",
                     "address": {
                       "address1": "13 Wind Street",
                       "address2": "Cardiff",
                       "address3": "Wales",
                       "address4": "UK",
                       "address5": "Earth",
-                      "postcode": "CF10 1FU"
+                      "postcode": ${commonPlatformHearingSetup.address.postcode?.let { """ "${commonPlatformHearingSetup.address.postcode}" """.trimIndent() } ?: "null" }
                     },
                     ${commonPlatformHearingSetup.contact?.let {
+    """ "contact": {
+                      "home": "${commonPlatformHearingSetup.contact.home}",
+                      "work": ${commonPlatformHearingSetup.contact.work?.let { """ "${commonPlatformHearingSetup.contact.work}" """.trimIndent() } ?: "null" }, 
+                      "mobile": "${commonPlatformHearingSetup.contact.mobile}"
+                      ${commonPlatformHearingSetup.contact.primaryEmail?.let { """, "primaryEmail": "${commonPlatformHearingSetup.contact.primaryEmail}" """.trimIndent() } ?: ""}
+                     }, 
     """
-                      "contact": {
-                       "home": "${commonPlatformHearingSetup.contact.home}",
-                        "work": "${commonPlatformHearingSetup.contact.work}",
-                        "mobile": "${commonPlatformHearingSetup.contact.mobile}",
-                        "primaryEmail": "${commonPlatformHearingSetup.contact.primaryEmail}"
-                       }, 
-    """.trimIndent()
   } ?: ""}   
-                    "dateOfBirth": "${commonPlatformHearingSetup.dateOfBirth}",
-                    ${commonPlatformHearingSetup.firstName?.let { """ "firstName": "${commonPlatformHearingSetup.firstName}", """.trimIndent() } ?: ""}
-                    "gender": "MALE",
-                    ${commonPlatformHearingSetup.middleName?.let { """ "middleName": "${commonPlatformHearingSetup.middleName}", """.trimIndent() } ?: ""}
-                    "lastName": "${commonPlatformHearingSetup.lastName}",
                     "title": "Mr",
                     "nationalityCode": "GB",
-                    "nationalInsuranceNumber": "${commonPlatformHearingSetup.nationalInsuranceNumber}"
+                    ${commonPlatformHearingSetup.nationalInsuranceNumber?.let { """ "nationalInsuranceNumber": "${commonPlatformHearingSetup.nationalInsuranceNumber}", """.trimIndent() } ?: ""}
+                    "ethnicity": {
+                      "observedEthnicityDescription": "observedEthnicityDescription",
+                      "selfDefinedEthnicityDescription": "selfDefinedEthnicityDescription"
+                    }
                   }
                 },
-                "ethnicity": {
-                   "observedEthnicityDescription": "observedEthnicityDescription",
-                   "selfDefinedEthnicityDescription": "selfDefinedEthnicityDescription"
-                },
+                "masterDefendantId": "${commonPlatformHearingSetup.defendantId}",
+                "pncId": ${commonPlatformHearingSetup.pnc?.let { """ "${commonPlatformHearingSetup.pnc}" """.trimIndent() } ?: "null" },
+                "croNumber": ${commonPlatformHearingSetup.cro?.let { """ "${commonPlatformHearingSetup.cro}" """.trimIndent() } ?: "null" }
                 ${commonPlatformHearingSetup.aliases?.let {
-    """ "aliases": [${commonPlatformHearingSetup.aliases.joinToString(",") { alias(it) }
-    }], """.trimIndent()
+    """, "aliases": [${commonPlatformHearingSetup.aliases.joinToString(",") { alias(it) }
+    }]"""
   } ?: ""}
-                "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               }
   """.trimIndent()
 
