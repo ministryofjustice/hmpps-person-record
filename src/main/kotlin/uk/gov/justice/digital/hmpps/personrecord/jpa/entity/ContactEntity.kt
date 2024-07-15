@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
-import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -23,7 +22,7 @@ class ContactEntity(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
 
-  @ManyToOne(optional = false, cascade = [CascadeType.ALL])
+  @ManyToOne(optional = false)
   @JoinColumn(
     name = "fk_person_id",
     referencedColumnName = "id",
