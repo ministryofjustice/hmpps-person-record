@@ -4,7 +4,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -34,8 +34,8 @@ data class Person(
 ) {
   companion object {
 
-    fun from(person: Person): PersonIdentifierEntity {
-      return PersonIdentifierEntity(
+    fun from(person: Person): PersonKeyEntity {
+      return PersonKeyEntity(
         personId = person.personId,
       )
     }

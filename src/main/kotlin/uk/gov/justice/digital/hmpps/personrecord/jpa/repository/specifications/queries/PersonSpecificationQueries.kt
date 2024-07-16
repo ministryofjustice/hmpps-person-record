@@ -30,7 +30,7 @@ private fun findCandidates(person: Person): Specification<PersonEntity> {
 }
 
 fun findCandidatesWithUuid(person: Person): Specification<PersonEntity> {
-  return findCandidates(person).and(PersonSpecification.hasPersonIdentifier())
+  return findCandidates(person).and(PersonSpecification.haspersonKey())
 }
 
 fun findCandidatesBySourceSystem(person: Person): Specification<PersonEntity> {

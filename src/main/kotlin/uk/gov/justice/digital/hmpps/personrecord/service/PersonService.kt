@@ -10,8 +10,8 @@ import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
 import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonIdentifierRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
@@ -31,7 +31,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class PersonService(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
-  private val personIdentifierRepository: PersonIdentifierRepository,
+  private val personKeyRepository: PersonKeyRepository,
   private val readWriteLockService: ReadWriteLockService,
   private val searchService: SearchService,
   @Value("\${retry.delay}") private val retryDelay: Long,
@@ -65,11 +65,11 @@ class PersonService(
       trackEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
     }
     val personEntity = searchByAllSourceSystemsAndHasUuid(person)
-    val personIdentifier = when {
-      personEntity == null -> createPersonIdentifier(person)
-      else -> retrievePersonIdentifier(person, personEntity)
+    val personKey = when {
+      personEntity == null -> createpersonKey(person)
+      else -> retrievepersonKey(person, personEntity)
     }
-    createPersonEntity(person, personIdentifier)
+    createPersonEntity(person, personKey)
     trackEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
   }
 
@@ -94,9 +94,9 @@ class PersonService(
     return personRepository.saveAndFlush(personEntity)
   }
 
-  private fun createPersonEntity(person: Person, personIdentifierEntity: PersonIdentifierEntity) {
+  private fun createPersonEntity(person: Person, personKeyEntity: PersonKeyEntity) {
     val personEntity = PersonEntity.from(person)
-    personEntity.personIdentifier = personIdentifierEntity
+    personEntity.personKey = personKeyEntity
     personRepository.saveAndFlush(personEntity)
   }
 
@@ -109,23 +109,23 @@ class PersonService(
 
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
 
-  private fun createPersonIdentifier(person: Person): PersonIdentifierEntity {
-    val personIdentifier = PersonIdentifierEntity.new()
+  private fun createpersonKey(person: Person): PersonKeyEntity {
+    val personKey = PersonKeyEntity.new()
     trackEvent(
       CPR_UUID_CREATED,
       person,
-      mapOf(EventKeys.UUID to personIdentifier.personId.toString()),
+      mapOf(EventKeys.UUID to personKey.personId.toString()),
     )
-    return personIdentifierRepository.saveAndFlush(personIdentifier)
+    return personKeyRepository.saveAndFlush(personKey)
   }
 
-  private fun retrievePersonIdentifier(person: Person, personEntity: PersonEntity): PersonIdentifierEntity {
+  private fun retrievepersonKey(person: Person, personEntity: PersonEntity): PersonKeyEntity {
     trackEvent(
       CPR_CANDIDATE_RECORD_FOUND_UUID,
       person,
-      mapOf(EventKeys.UUID to personEntity.personIdentifier?.personId?.toString()),
+      mapOf(EventKeys.UUID to personEntity.personKey?.personId?.toString()),
     )
-    return personEntity.personIdentifier!!
+    return personEntity.personKey!!
   }
 
   fun searchByAllSourceSystemsAndHasUuid(person: Person): PersonEntity? {

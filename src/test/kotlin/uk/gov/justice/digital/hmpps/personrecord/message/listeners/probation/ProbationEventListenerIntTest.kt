@@ -10,7 +10,7 @@ import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonKey
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
@@ -45,7 +45,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, prefix = prefix, prisonNumber = prisonNumber, cro = cro, addresses = listOf(ApiResponseSetupAddress("LS1 1AB"), ApiResponseSetupAddress("M21 9LX")))
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
-    assertThat(personEntity.personIdentifier).isNotNull()
+    assertThat(personEntity.personKey).isNotNull()
     assertThat(personEntity.firstName).isEqualTo("${prefix}FirstName")
     assertThat(personEntity.middleNames).isEqualTo("PreferredMiddleName")
     assertThat(personEntity.lastName).isEqualTo("${prefix}LastName")
@@ -117,7 +117,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val crn = randomCRN()
     stub404Response(crn)
 
-    val crnType = PersonIdentifier("CRN", crn)
+    val crnType = PersonKey("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
     publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
@@ -155,7 +155,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     stub500Response(crn, STARTED, "failure")
     stub500Response(crn, STARTED, "failure")
     stub500Response(crn, STARTED, "failure")
-    val crnType = PersonIdentifier("CRN", crn)
+    val crnType = PersonKey("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
 
     val domainEvent = DomainEvent(

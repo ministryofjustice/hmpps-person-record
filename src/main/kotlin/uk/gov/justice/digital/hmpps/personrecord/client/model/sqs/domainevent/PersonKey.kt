@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class PersonIdentifier(
+data class PersonKey(
   @JsonProperty("type") val type: String,
   @JsonProperty("value") val value: String,
 )
