@@ -79,7 +79,7 @@ object PersonSpecification {
     }
   }
 
-  fun haspersonKey(): Specification<PersonEntity> {
+  fun hasPersonKey(): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
       val personKeyJoin: Join<PersonEntity, PersonKeyEntity> = root.join(PERSON_IDENTIFIER, INNER)
       criteriaBuilder.isNotNull(personKeyJoin)
