@@ -10,7 +10,7 @@ import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonKey
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
@@ -117,7 +117,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val crn = randomCRN()
     stub404Response(crn)
 
-    val crnType = PersonKey("CRN", crn)
+    val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
     publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
@@ -155,7 +155,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     stub500Response(crn, STARTED, "failure")
     stub500Response(crn, STARTED, "failure")
     stub500Response(crn, STARTED, "failure")
-    val crnType = PersonKey("CRN", crn)
+    val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
 
     val domainEvent = DomainEvent(

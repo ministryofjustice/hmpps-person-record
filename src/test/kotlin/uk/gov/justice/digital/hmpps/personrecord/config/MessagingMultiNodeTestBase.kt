@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonKey
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -129,7 +129,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
     stubSingleProbationResponse(probationCaseResponseSetup, scenario, currentScenarioState, nextScenarioState)
 
-    val crnType = PersonKey("CRN", crn)
+    val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
 
     val domainEvent = DomainEvent(
