@@ -15,6 +15,7 @@ import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.ProbationEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonIdentifier
@@ -117,6 +118,23 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     return response!!.messageId()
   }
 
+  fun publishProbationEvent(eventType: String, probationEvent: ProbationEvent): String {
+    val probationEventAsString = objectMapper.writeValueAsString(probationEvent)
+    val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
+      .message(probationEventAsString)
+      .messageAttributes(
+        mapOf(
+          "eventType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(eventType).build(),
+        ),
+      ).build()
+
+    val response = domainEventsTopic?.snsClient?.publish(publishRequest)?.get()
+
+    expectNoMessagesOn(probationEventsQueue)
+    return response!!.messageId()
+  }
+
   fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = randomName(), addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress("LS1 1AB")), scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {
     val probationCaseResponseSetup = ApiResponseSetup(
       crn = crn,
@@ -139,6 +157,23 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       additionalInformation = additionalInformation,
     )
     publishDomainEvent(eventType, domainEvent)
+    return crn
+  }
+
+  fun probationEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = randomName(), addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress("LS1 1AB")), scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {
+    val probationCaseResponseSetup = ApiResponseSetup(
+      crn = crn,
+      cro = cro,
+      pnc = pnc,
+      prefix = prefix,
+      prisonNumber = prisonNumber,
+      addresses = addresses,
+      nationalInsuranceNumber = randomNINumber(),
+    )
+    stubSingleProbationResponse(probationCaseResponseSetup, scenario, currentScenarioState, nextScenarioState)
+
+    val probationEvent = ProbationEvent(crn)
+    publishProbationEvent(eventType, probationEvent)
     return crn
   }
 
