@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.Ad
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -65,7 +65,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     await.atMost(5, SECONDS) untilAsserted {
       val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
-      assertThat(personEntity.personIdentifier).isNotNull()
+      assertThat(personEntity.personKey).isNotNull()
       assertThat(personEntity.title).isEqualTo("Ms")
       assertThat(personEntity.firstName).isEqualTo(prefix + "FirstName")
       assertThat(personEntity.middleNames).isEqualTo(prefix + "MiddleName1 " + prefix + "MiddleName2")
@@ -241,10 +241,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
       ),
     )
-    val personIdentifier = PersonIdentifierEntity.new()
+    val personKey = PersonKeyEntity.new()
 
-    personIdentifierRepository.saveAndFlush(personIdentifier)
-    person.personIdentifier = personIdentifier
+    personKeyRepository.saveAndFlush(personKey)
+    person.personKey = personKey
     personRepository.saveAndFlush(
       person,
     )

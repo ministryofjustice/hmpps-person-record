@@ -87,7 +87,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.pnc).isEqualTo(PNCIdentifier.from(pnc))
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
-    assertThat(person.personIdentifier).isNotNull()
+    assertThat(person.personKey).isNotNull()
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
   }
 
@@ -200,8 +200,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       times = 0,
     )
 
-    val personIdentifier = personIdentifierRepository.findByPersonId(uuid)
-    assertThat(personIdentifier.personEntities.size).isEqualTo(2)
+    val personKey = personKeyRepository.findByPersonId(uuid)
+    assertThat(personKey.personEntities.size).isEqualTo(2)
   }
 
   @Test
