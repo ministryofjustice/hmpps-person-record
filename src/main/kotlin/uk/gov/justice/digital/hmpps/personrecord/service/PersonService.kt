@@ -66,8 +66,8 @@ class PersonService(
     }
     val personEntity = searchByAllSourceSystemsAndHasUuid(person)
     val personKey = when {
-      personEntity == null -> createpersonKey(person)
-      else -> retrievepersonKey(person, personEntity)
+      personEntity == null -> createPersonKey(person)
+      else -> retrievePersonKey(person, personEntity)
     }
     createPersonEntity(person, personKey)
     trackEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
@@ -109,7 +109,7 @@ class PersonService(
 
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
 
-  private fun createpersonKey(person: Person): PersonKeyEntity {
+  private fun createPersonKey(person: Person): PersonKeyEntity {
     val personKey = PersonKeyEntity.new()
     trackEvent(
       CPR_UUID_CREATED,
@@ -119,7 +119,7 @@ class PersonService(
     return personKeyRepository.saveAndFlush(personKey)
   }
 
-  private fun retrievepersonKey(person: Person, personEntity: PersonEntity): PersonKeyEntity {
+  private fun retrievePersonKey(person: Person, personEntity: PersonEntity): PersonKeyEntity {
     trackEvent(
       CPR_CANDIDATE_RECORD_FOUND_UUID,
       person,
