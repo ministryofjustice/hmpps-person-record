@@ -21,15 +21,25 @@ class SearchService(
   private val personRepository: PersonRepository,
 ) {
 
-  fun findCandidateRecordsBySourceSystem(person: Person): List<MatchResult> {
-    val query = findCandidatesBySourceSystem(person)
-    return searchForRecords(person, query)
+  fun processCandidateRecords(matches: List<MatchResult>): PersonEntity? {
+    matches.takeIf { matches.size > 1 }?.forEach { record ->
+      telemetryService.trackEvent(
+        CPR_MATCH_PERSON_DUPLICATE,
+        mapOf(
+          EventKeys.SOURCE_SYSTEM to record.candidateRecord.sourceSystem.name,
+          EventKeys.DEFENDANT_ID to record.candidateRecord.defendantId,
+          EventKeys.CRN to (record.candidateRecord.crn ?: ""),
+          EventKeys.PRISON_NUMBER to record.candidateRecord.prisonNumber,
+          EventKeys.PROBABILITY_SCORE to record.probability.toString(),
+        ),
+      )
+    }
+    return matches.firstOrNull()?.candidateRecord
   }
 
-  fun findCandidateRecordsWithUuid(person: Person): List<MatchResult> {
-    val query = findCandidatesWithUuid(person)
-    return searchForRecords(person, query)
-  }
+  fun findCandidateRecordsBySourceSystem(person: Person): List<MatchResult> = searchForRecords(person, findCandidatesBySourceSystem(person))
+
+  fun findCandidateRecordsWithUuid(person: Person): List<MatchResult> = searchForRecords(person, findCandidatesWithUuid(person))
 
   private fun searchForRecords(person: Person, query: Specification<PersonEntity>): List<MatchResult> {
     val highConfidenceMatches = processPagedCandidates(person, query)
@@ -70,22 +80,6 @@ class SearchService(
 
   private fun executePagedQuery(query: Specification<PersonEntity>, pageNum: Int): Page<PersonEntity> = readWriteLockService.withReadLock {
     personRepository.findAll(query, PageRequest.of(pageNum, PAGE_SIZE))
-  }
-
-  fun processCandidateRecords(matches: List<MatchResult>): PersonEntity? {
-    matches.takeIf { matches.size > 1 }?.forEach { record ->
-      telemetryService.trackEvent(
-        CPR_MATCH_PERSON_DUPLICATE,
-        mapOf(
-          EventKeys.SOURCE_SYSTEM to record.candidateRecord.sourceSystem.name,
-          EventKeys.DEFENDANT_ID to record.candidateRecord.defendantId,
-          EventKeys.CRN to (record.candidateRecord.crn ?: ""),
-          EventKeys.PRISON_NUMBER to record.candidateRecord.prisonNumber,
-          EventKeys.PROBABILITY_SCORE to record.probability.toString(),
-        ),
-      )
-    }
-    return matches.firstOrNull()?.candidateRecord
   }
 
   companion object {
