@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -31,16 +30,15 @@ class ProbationEventProcessor(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun processEvent(domainEvent: DomainEvent) {
-    val crn = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }!!.value
+  fun processEvent(crn: String, eventType: String) {
     telemetryService.trackEvent(
       MESSAGE_RECEIVED,
-      mapOf(EventKeys.CRN to crn, EventKeys.EVENT_TYPE to domainEvent.eventType, EventKeys.SOURCE_SYSTEM to DELIUS.name),
+      mapOf(EventKeys.CRN to crn, EventKeys.EVENT_TYPE to eventType, EventKeys.SOURCE_SYSTEM to DELIUS.name),
     )
     getProbationCase(crn).fold(
       onSuccess = {
         it?.let {
-          personService.processMessage(Person.from(it), domainEvent.eventType) {
+          personService.processMessage(Person.from(it), eventType) {
             personRepository.findByCrn(crn)
           }
         }
