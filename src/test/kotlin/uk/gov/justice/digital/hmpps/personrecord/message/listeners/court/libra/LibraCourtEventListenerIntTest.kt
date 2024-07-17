@@ -19,9 +19,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
@@ -191,6 +191,14 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         "UUID" to uuid.toString(),
       ),
     )
+    checkTelemetry(
+      CPR_MATCH_PERSON_DUPLICATE,
+      mapOf(
+        "SOURCE_SYSTEM" to "DELIUS",
+        "PROBABILITY_SCORE" to "0.9999999",
+      ),
+      times = 0,
+    )
 
     val personKey = personKeyRepository.findByPersonId(uuid)
     assertThat(personKey.personEntities.size).isEqualTo(2)
@@ -277,7 +285,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
 
     checkTelemetry(
-      TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE,
+      CPR_MATCH_PERSON_DUPLICATE,
       mapOf(
         "SOURCE_SYSTEM" to "LIBRA",
         "PROBABILITY_SCORE" to "0.99999999",
