@@ -1,6 +1,8 @@
 
 ## Accessing AWS Resources via the AWS CLI
 
+Move to use this pod instead and contribute this back to PiC as well if anything remains in this codebase beyond a README
+https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/cloud-platform-service-pod.html
 
 ### Setting the kubernetes namespace for the environment
 
