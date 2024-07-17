@@ -1,7 +1,6 @@
 # hmpps-person-record
 [![repo standards badge](https://img.shields.io/badge/dynamic/json?color=blue&style=flat&logo=github&label=MoJ%20Compliant&query=%24.message&url=https%3A%2F%2Foperations-engineering-reports.cloud-platform.service.justice.gov.uk%2Fapi%2Fv1%2Fcompliant_public_repositories%2Fhmpps-person-record)](https://operations-engineering-reports.cloud-platform.service.justice.gov.uk/public-report/hmpps-person-record "Link to report")
 [![CircleCI](https://circleci.com/gh/ministryofjustice/hmpps-person-record/tree/main.svg?style=svg)](https://circleci.com/gh/ministryofjustice/hmpps-person-record)
-[![Docker Repository on Quay](https://quay.io/repository/hmpps/hmpps-person-record/status "Docker Repository on Quay")](https://quay.io/repository/hmpps/hmpps-person-record)
 
 ### A service for managing identity data about the people we look after in HMPPS
 
@@ -10,31 +9,19 @@
 
 ## Running tests
 ```
-$ make start-containers
 $ make test
 ```
+
+## Deployment
+
+Builds and deployments are set up in `Circle CI` and configured in the [config file](./.circleci/config.yml).  
+Helm is used to deploy the service to a Kubernetes Cluster using templates in the [`helm_deploy` folder](./helm_deploy).
 
 ## Running Service Locally
 
 Mostly runs against dev services, uses localstack for the queues
 
-Ensure all docker containers are up and running:
-
-`$ make start-containers`
-
-Which should start the following containers: (verify with `$ docker ps` if necessary)
-- postgres
-- localstack-hmpps-person-record
-
-To stop the containers:
-
-```
-$ make stop-containers
-```
-
-Start the service ensuring the local spring boot profile is set:
-
-`$ ./gradlew bootRun --args='--spring.profiles.active=local'`
+`$ make run-local`
 
 ## Seeding data
 
@@ -59,7 +46,8 @@ curl -i -X POST http://localhost:8080/populatefromprobation
 ### importing cluster data manually
 
 [How to import cluster data](./scripts/db/README-cluster-data.md)
-## process a Common Platform message
+
+## process a Common Platform message when running locally
 
 ```shell
 AWS_REGION=eu-west-2 AWS_ACCESS_KEY_ID=key AWS_SECRET_ACCESS_KEY=secret aws --endpoint-url=http://localhost:4566 sns publish \
@@ -68,10 +56,18 @@ AWS_REGION=eu-west-2 AWS_ACCESS_KEY_ID=key AWS_SECRET_ACCESS_KEY=secret aws --en
     --message file://$(pwd)/src/test/resources/examples/commonPlatformMessage.json
 ```
 
-## Deployment
+## Working with AWS resources
 
-Builds and deployments are set up in `Circle CI` and configured in the [config file](./.circleci/config.yml).  
-Helm is used to deploy the service to a Kubernetes Cluster using templates in the [`helm_deploy` folder](./helm_deploy).
+You can retrieve the queue URLs from the secrets like this (preprod court case events queue URL):
+`cloud-platform decode-secret -n hmpps-person-record-preprod -s sqs-cpr-court-case-events-secret | jq -r '.data.sqs_queue_url'`
+
+We can access queues, topics and all other AWS dependencies using the [service pod provided by cloud-platform](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/cloud-platform-service-pod.html). 
+There is currently an instance running in preprod and prod - see the link above for instructions on how to get a shell on it.
+
+Then you can run AWS CLI commands on the pod like this:
+
+`aws sqs get-queue-attributes --queue-url <COURT_CASE_EVENTS_QUEUE_URL> --attribute-names ApproximateNumberOfMessages`
+
 
 
 

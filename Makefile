@@ -11,3 +11,6 @@ stop-containers:
 	docker compose down
 
 restart-containers: stop-containers start-containers
+
+run-local: start-containers
+	./gradlew bootRun --args='--spring.profiles.active=local'
