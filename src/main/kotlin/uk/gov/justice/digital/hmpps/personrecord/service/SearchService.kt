@@ -72,12 +72,7 @@ class SearchService(
     personRepository.findAll(query, PageRequest.of(pageNum, PAGE_SIZE))
   }
 
-  fun processCandidateRecords(matches: List<MatchResult>): PersonEntity? = when {
-    matches.isNotEmpty() -> handleHighConfidenceMatches(matches)
-    else -> null
-  }
-
-  private fun handleHighConfidenceMatches(matches: List<MatchResult>): PersonEntity {
+  fun processCandidateRecords(matches: List<MatchResult>): PersonEntity? {
     matches.takeIf { matches.size > 1 }?.forEach { record ->
       telemetryService.trackEvent(
         CPR_MATCH_PERSON_DUPLICATE,
@@ -90,8 +85,7 @@ class SearchService(
         ),
       )
     }
-
-    return matches.first().candidateRecord
+    return matches.firstOrNull()?.candidateRecord
   }
 
   companion object {
