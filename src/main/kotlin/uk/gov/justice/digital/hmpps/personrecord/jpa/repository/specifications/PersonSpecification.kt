@@ -22,7 +22,7 @@ object PersonSpecification {
   const val DOB = "dateOfBirth"
   const val SOURCE_SYSTEM = "sourceSystem"
 
-  private const val PERSON_IDENTIFIER = "personKey"
+  private const val PERSON_KEY = "personKey"
   private const val POSTCODE = "postcode"
   private const val DATE_FORMAT = "YYYY-MM-DD"
 
@@ -81,7 +81,7 @@ object PersonSpecification {
 
   fun hasPersonKey(): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      val personKeyJoin: Join<PersonEntity, PersonKeyEntity> = root.join(PERSON_IDENTIFIER, INNER)
+      val personKeyJoin: Join<PersonEntity, PersonKeyEntity> = root.join(PERSON_KEY, INNER)
       criteriaBuilder.isNotNull(personKeyJoin)
     }
   }
