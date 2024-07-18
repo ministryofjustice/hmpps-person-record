@@ -34,6 +34,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.HmppsTopic
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.Duration
@@ -74,45 +75,37 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId("cprnomiseventsqueue")
   }
 
-  internal fun publishCourtMessage(message: String, messageType: MessageType): String {
-    val publishRequest = PublishRequest.builder()
-      .topicArn(courtEventsTopic?.arn)
-      .message(message)
-      .messageAttributes(
-        mapOf(
-          "messageType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(messageType.name).build(),
-          "messageId" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(UUID.randomUUID().toString()).build(),
-        ),
-      )
-      .build()
-
-    val response: PublishResponse? = courtEventsTopic?.snsClient?.publish(publishRequest)?.get()
-
-    expectNoMessagesOn(courtEventsQueue)
-    return response!!.messageId()
-  }
-
   private fun expectNoMessagesOn(queue: HmppsQueue?) {
     await untilCallTo {
       queue?.sqsClient?.countMessagesOnQueue(queue.queueUrl)?.get()
     } matches { it == 0 }
   }
 
+  internal fun publishCourtMessage(message: String, messageType: MessageType): String {
+    val response = publishEvent(
+      message,
+      courtEventsTopic,
+      mapOf(
+        "messageType" to MessageAttributeValue.builder().dataType("String")
+          .stringValue(messageType.name).build(),
+        "messageId" to MessageAttributeValue.builder().dataType("String")
+          .stringValue(UUID.randomUUID().toString()).build(),
+      ),
+    )
+    expectNoMessagesOn(courtEventsQueue)
+    return response!!.messageId()
+  }
+
   fun publishDomainEvent(eventType: String, domainEvent: DomainEvent): String {
     val domainEventAsString = objectMapper.writeValueAsString(domainEvent)
-    val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
-      .message(domainEventAsString)
-      .messageAttributes(
-        mapOf(
-          "eventType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(eventType).build(),
-        ),
-      ).build()
-
-    val response = domainEventsTopic?.snsClient?.publish(publishRequest)?.get()
-
+    val response = publishEvent(
+      domainEventAsString,
+      domainEventsTopic,
+      mapOf(
+        "eventType" to MessageAttributeValue.builder().dataType("String")
+          .stringValue(eventType).build(),
+      ),
+    )
     expectNoMessagesOn(probationEventsQueue)
     expectNoMessagesOn(prisonEventsQueue)
     return response!!.messageId()
@@ -120,19 +113,23 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   fun publishProbationEvent(eventType: String, probationEvent: ProbationEvent): String {
     val probationEventAsString = objectMapper.writeValueAsString(probationEvent)
-    val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
-      .message(probationEventAsString)
-      .messageAttributes(
-        mapOf(
-          "eventType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(eventType).build(),
-        ),
-      ).build()
-
-    val response = domainEventsTopic?.snsClient?.publish(publishRequest)?.get()
-
+    val response = publishEvent(
+      probationEventAsString,
+      domainEventsTopic,
+      mapOf(
+        "eventType" to MessageAttributeValue.builder().dataType("String")
+          .stringValue(eventType).build(),
+      ),
+    )
     expectNoMessagesOn(probationEventsQueue)
     return response!!.messageId()
+  }
+
+  private fun publishEvent(message: String, topic: HmppsTopic?, messageAttributes: Map<String, MessageAttributeValue>): PublishResponse? {
+    val publishRequest = PublishRequest.builder().topicArn(topic?.arn)
+      .message(message)
+      .messageAttributes(messageAttributes).build()
+    return topic?.snsClient?.publish(publishRequest)?.get()
   }
 
   fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = randomName(), addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress("LS1 1AB")), scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {

@@ -25,19 +25,13 @@ data class SQSMessage(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class MessageAttributes(
   @JsonProperty(value = "messageType")
-  val messageType: MessageType?,
+  val messageType: MessageAttribute?,
   @JsonProperty(value = "eventType")
-  val eventType: EventType?,
+  val eventType: MessageAttribute?,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class MessageType(
-  @JsonProperty("Value")
-  val value: String?,
-)
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class EventType(
+data class MessageAttribute(
   @JsonProperty("Value")
   val value: String?,
 )
