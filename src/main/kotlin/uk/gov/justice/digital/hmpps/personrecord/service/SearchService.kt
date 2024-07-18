@@ -42,11 +42,6 @@ class SearchService(
   fun findCandidateRecordsWithUuid(person: Person): List<MatchResult> = searchForRecords(person, findCandidatesWithUuid(person))
 
   private fun searchForRecords(person: Person, query: Specification<PersonEntity>): List<MatchResult> {
-    val highConfidenceMatches = processPagedCandidates(person, query)
-    return highConfidenceMatches.sortedByDescending { it.probability }
-  }
-
-  private fun processPagedCandidates(person: Person, query: Specification<PersonEntity>): List<MatchResult> {
     val highConfidenceMatches = mutableListOf<MatchResult>()
     val totalElements = forPage(query) { page ->
       val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(page.content, person)
@@ -62,7 +57,7 @@ class SearchService(
         EventKeys.LOW_CONFIDENCE_COUNT to (totalElements - highConfidenceMatches.count()).toString(),
       ),
     )
-    return highConfidenceMatches.toList()
+    return highConfidenceMatches.toList().sortedByDescending { it.probability }
   }
 
   private inline fun forPage(query: Specification<PersonEntity>, page: (Page<PersonEntity>) -> Unit): Long {
