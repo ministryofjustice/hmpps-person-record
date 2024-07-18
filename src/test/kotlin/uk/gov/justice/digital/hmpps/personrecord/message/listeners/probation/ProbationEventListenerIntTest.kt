@@ -124,7 +124,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
-    val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
+    val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, personReference = personReference, additionalInformation = null)
     publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
@@ -165,7 +165,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val domainEvent = DomainEvent(
       eventType = NEW_OFFENDER_CREATED,
-      detailUrl = createDeliusDetailUrl(crn),
       personReference = personReference,
       additionalInformation = null,
     )
