@@ -149,7 +149,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
     val domainEvent = DomainEvent(
       eventType = eventType,
-      detailUrl = createDeliusDetailUrl(crn),
       personReference = personReference,
       additionalInformation = additionalInformation,
     )
@@ -210,12 +209,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         ),
     )
   }
-
-  fun createDeliusDetailUrl(crn: String): String =
-    "https://domain-events-and-delius-dev.hmpps.service.justice.gov.uk/probation-case.engagement.created/$crn"
-
-  fun createNomsDetailUrl(prisonNumber: String): String =
-    "https://prisoner-search-dev.prison.service.justice.gov.uk/prisoner/$prisonNumber"
 
   @BeforeEach
   fun beforeEachMessagingTest() {
