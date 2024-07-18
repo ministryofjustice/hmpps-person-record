@@ -29,6 +29,6 @@ private fun findCandidates(person: Person): Specification<PersonEntity> {
   )
 }
 
-fun findCandidatesWithUuid(person: Person): Specification<PersonEntity> = findCandidates(person).and(PersonSpecification.hasPersonIdentifier())
+fun findCandidatesWithUuid(person: Person): Specification<PersonEntity> = findCandidates(person).and(PersonSpecification.hasPersonKey())
 
 fun findCandidatesBySourceSystem(person: Person): Specification<PersonEntity> = findCandidates(person).and(exactMatch(person.sourceSystemType.name, SOURCE_SYSTEM))

@@ -44,8 +44,8 @@ class PersonEntity(
   var middleNames: String? = null,
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "fk_person_identifier_id", referencedColumnName = "id", nullable = true)
-  var personIdentifier: PersonIdentifierEntity? = null,
+  @JoinColumn(name = "fk_person_key_id", referencedColumnName = "id", nullable = true)
+  var personKey: PersonKeyEntity? = null,
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)

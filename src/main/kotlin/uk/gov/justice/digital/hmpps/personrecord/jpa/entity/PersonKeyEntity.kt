@@ -13,8 +13,8 @@ import jakarta.persistence.Version
 import java.util.*
 
 @Entity
-@Table(name = "person_identifier")
-class PersonIdentifierEntity(
+@Table(name = "personkey")
+class PersonKeyEntity(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
@@ -23,7 +23,7 @@ class PersonIdentifierEntity(
   val personId: UUID? = null,
 
   @Column
-  @OneToMany(mappedBy = "personIdentifier", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "personKey", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
   var personEntities: MutableList<PersonEntity> = mutableListOf(),
 
   @Version
@@ -31,6 +31,6 @@ class PersonIdentifierEntity(
 
 ) {
   companion object {
-    fun new(): PersonIdentifierEntity = PersonIdentifierEntity(personId = UUID.randomUUID())
+    fun new(): PersonKeyEntity = PersonKeyEntity(personId = UUID.randomUUID())
   }
 }

@@ -21,8 +21,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.Do
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonIdentifierRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
@@ -43,7 +43,7 @@ import java.util.UUID
 abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   @Autowired
-  lateinit var personIdentifierRepository: PersonIdentifierRepository
+  lateinit var personKeyRepository: PersonKeyRepository
 
   @Autowired
   lateinit var personRepository: PersonRepository
@@ -180,9 +180,9 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   fun createAndSavePersonWithUuid(person: Person): UUID {
     val uuid = UUID.randomUUID()
     val personEntity = PersonEntity.from(person = person)
-    val personIdentifier = PersonIdentifierEntity(personId = uuid)
-    personIdentifierRepository.saveAndFlush(personIdentifier)
-    personEntity.personIdentifier = personIdentifier
+    val personKey = PersonKeyEntity(personId = uuid)
+    personKeyRepository.saveAndFlush(personKey)
+    personEntity.personKey = personKey
     personRepository.saveAndFlush(personEntity)
     return uuid
   }

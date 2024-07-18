@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonIdentifierEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonIdentifierRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
@@ -39,7 +39,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
   private lateinit var personRepository: PersonRepository
 
   @Autowired
-  private lateinit var personIdentifierRepository: PersonIdentifierRepository
+  private lateinit var personKeyRepository: PersonKeyRepository
 
   @Test
   fun `should find candidate records only in searching source system`() {
@@ -597,9 +597,9 @@ class SearchServiceIntTest : IntegrationTestBase() {
   private fun createPerson(person: Person): PersonEntity = personRepository.saveAndFlush(PersonEntity.from(person))
 
   private fun createPersonWithUuid(person: Person): PersonEntity {
-    val personIdentifierEntity = personIdentifierRepository.saveAndFlush(PersonIdentifierEntity.new())
+    val personKeyEntity = personKeyRepository.saveAndFlush(PersonKeyEntity.new())
     val personEntity = createPerson(person)
-    personEntity.personIdentifier = personIdentifierEntity
+    personEntity.personKey = personKeyEntity
     return personRepository.saveAndFlush(personEntity)
   }
 
