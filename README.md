@@ -69,5 +69,16 @@ Then you can run AWS CLI commands on the pod like this:
 `aws sqs get-queue-attributes --queue-url <COURT_CASE_EVENTS_QUEUE_URL> --attribute-names ApproximateNumberOfMessages`
 
 
+### Localstack command to create FIFO topic
+TODO rename courtcaseeventstopic to courtcasetopic
+`AWS_REGION=eu-west-2 AWS_ACCESS_KEY_ID=key AWS_SECRET_ACCESS_KEY=secret aws --endpoint-url=http://localhost:4566 sns create-topic --name courtcaseeventstopic.fifo --attributes '{"FifoTopic": "true", "ContentBasedDeduplication": "true"}'`
+
+`AWS_REGION=eu-west-2 AWS_ACCESS_KEY_ID=key AWS_SECRET_ACCESS_KEY=secret aws --endpoint-url=http://localhost:4566 sqs create-queue --queue-name courteventsqueue.fifo --attributes '{"FifoQueue": "true", "ContentBasedDeduplication": "true"}'`
+
+`AWS_REGION=eu-west-2 AWS_ACCESS_KEY_ID=key AWS_SECRET_ACCESS_KEY=secret aws --endpoint-url=http://localhost:4566 sns subscribe --topic-arn arn:aws:sns:eu-west-2:000000000000:courtcaseeventstopic.fifo --protocol sqs --notification-endpoint arn:aws:sqs:eu-west-2:000000000000:courteventsqueue.fifo`
+
+
+
+would have to change Cloud platform SNS module
 
 
