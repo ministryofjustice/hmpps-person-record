@@ -97,7 +97,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     stubMatchScore(matchResponse)
 
-    val blitzer = Blitzer(15, 4)
+    val blitzer = Blitzer(50, 4)
     try {
       blitzer.blitz {
         courtEventsTopic?.snsClient?.publish(buildPublishRequest(defendantId, pncNumber))?.get()
@@ -124,7 +124,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to "HMCTS",
         "DEFENDANT_ID" to defendantId,
       ),
-      29,
+      99,
     )
   }
 
