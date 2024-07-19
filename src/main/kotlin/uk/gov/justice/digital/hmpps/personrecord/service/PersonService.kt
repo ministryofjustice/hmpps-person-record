@@ -82,15 +82,8 @@ class PersonService(
   }
 
   private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity) {
-    removeAllChildEntities(personEntity)
     personEntity.update(person)
     personRepository.save(personEntity)
-  }
-
-  private fun removeAllChildEntities(personEntity: PersonEntity) {
-    personEntity.aliases.clear()
-    personEntity.addresses.clear()
-    personEntity.contacts.clear()
   }
 
   private fun createPersonEntity(person: Person, personKeyEntity: PersonKeyEntity) {
