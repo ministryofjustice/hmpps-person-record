@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
 
 const val MAX_RETRY_ATTEMPTS: Int = 3
@@ -30,6 +31,15 @@ class MatchService(
 
   private fun collectHighConfidenceCandidates(candidateRecords: List<PersonEntity>, newRecord: Person): List<MatchResult> {
     val candidateScores: List<MatchResult> = scores(candidateRecords, newRecord)
+    candidateScores.forEach { candidate ->
+      telemetryService.trackEvent(
+        CPR_MATCH_SCORE,
+        mapOf(
+          EventKeys.PROBABILITY_SCORE to candidate.probability.toString(),
+          EventKeys.SOURCE_SYSTEM to candidate.candidateRecord.sourceSystem.name,
+        ),
+      )
+    }
     return candidateScores.filter { candidate ->
       candidate.probability > THRESHOLD_SCORE
     }
