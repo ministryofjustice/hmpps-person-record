@@ -34,7 +34,7 @@ hmpps.sqs:
       dlqMaxReceiveCount: 1
     cprcourteventsqueue:
       queueName: cpr_court_events_queue.fifo
-      subscribeTopicId: courtcaseeventstopic.fifo
+      subscribeTopicId: courteventstopic
     cprdeliusoffendereventsqueue:
       queueName: cpr_delius_offender_events_queue
       dlqName: cpr_delius_offender_events_queue_dlq
@@ -48,6 +48,8 @@ hmpps.sqs:
   topics:
     courtcaseeventstopic:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
+    courteventstopic:
+      arn: arn:aws:sns:eu-west-2:000000000000:courteventstopic.fifo
     domainevents:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
 
