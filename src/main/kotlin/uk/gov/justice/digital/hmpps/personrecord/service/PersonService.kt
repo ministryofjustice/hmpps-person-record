@@ -9,6 +9,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
 import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -29,12 +30,10 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Service
 class PersonService(
-  private val telemetryService: TelemetryService,
-  private val personRepository: PersonRepository,
-  private val personKeyRepository: PersonKeyRepository,
   private val readWriteLockService: ReadWriteLockService,
-  private val searchService: SearchService,
   @Value("\${retry.delay}") private val retryDelay: Long,
+  private val transactionalPersonService: TransactionalPersonService,
+
 ) {
 
   private val retryExceptions = listOf(
@@ -48,11 +47,24 @@ class PersonService(
 
   fun processMessage(person: Person, event: String? = null, callback: () -> PersonEntity?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, retryExceptions) {
-      readWriteLockService.withWriteLock { processPerson(person, event, callback) }
+      readWriteLockService.withWriteLock { transactionalPersonService.processPerson(person, event, callback) }
     }
   }
 
-  private fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) {
+  companion object {
+    const val MAX_ATTEMPTS: Int = 5
+  }
+}
+
+@Service
+class TransactionalPersonService(
+  private val telemetryService: TelemetryService,
+  private val personRepository: PersonRepository,
+  private val personKeyRepository: PersonKeyRepository,
+  private val searchService: SearchService,
+) {
+  @Transactional
+  fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) {
     val existingPersonEntity: PersonEntity? = callback()
     when {
       (existingPersonEntity == null) -> handlePersonCreation(person, event)
@@ -80,12 +92,6 @@ class PersonService(
     updateExistingPersonEntity(person, existingPersonEntity)
     trackEvent(TelemetryEventType.CPR_RECORD_UPDATED, person)
   }
-
-  private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity) {
-    personEntity.update(person)
-    personRepository.save(personEntity)
-  }
-
   private fun createPersonEntity(person: Person, personKeyEntity: PersonKeyEntity) {
     val personEntity = PersonEntity.from(person)
     personEntity.personKey = personKeyEntity
@@ -125,11 +131,6 @@ class PersonService(
     return searchService.processCandidateRecords(highConfidenceMatches)
   }
 
-  fun searchBySourceSystem(person: Person): PersonEntity? {
-    val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecordsBySourceSystem(person)
-    return searchService.processCandidateRecords(highConfidenceMatches)
-  }
-
   private fun trackEvent(
     eventType: TelemetryEventType,
     person: Person,
@@ -144,7 +145,13 @@ class PersonService(
     telemetryService.trackEvent(eventType, identifierMap + elementMap)
   }
 
-  companion object {
-    const val MAX_ATTEMPTS: Int = 5
+  private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity) {
+    personEntity.update(person)
+    personRepository.save(personEntity)
+  }
+
+  fun searchBySourceSystem(person: Person): PersonEntity? {
+    val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecordsBySourceSystem(person)
+    return searchService.processCandidateRecords(highConfidenceMatches)
   }
 }

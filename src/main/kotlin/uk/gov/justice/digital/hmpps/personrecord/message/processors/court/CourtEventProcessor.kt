@@ -15,12 +15,14 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.TransactionalPersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 
 @Service
 class CourtEventProcessor(
   private val objectMapper: ObjectMapper,
   private val personService: PersonService,
+  private val transactionalPersonService: TransactionalPersonService,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
 ) {
@@ -91,7 +93,7 @@ class CourtEventProcessor(
     )
 
     personService.processMessage(person) {
-      personService.searchBySourceSystem(person)
+      transactionalPersonService.searchBySourceSystem(person)
     }
   }
 }
