@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LI
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
@@ -117,6 +118,13 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "MESSAGE_ID" to messageId2,
+        "SOURCE_SYSTEM" to LIBRA.name,
+      ),
+    )
+    checkTelemetry(
+      CPR_MATCH_SCORE,
+      mapOf(
+        "PROBABILITY_SCORE" to "0.99999999",
         "SOURCE_SYSTEM" to LIBRA.name,
       ),
     )

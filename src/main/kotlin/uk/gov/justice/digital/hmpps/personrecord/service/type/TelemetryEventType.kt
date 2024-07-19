@@ -9,6 +9,7 @@ enum class TelemetryEventType(val eventName: String) {
   CPR_UPDATE_RECORD_DOES_NOT_EXIST("CprUpdateRecordDoesNotExist"),
   CPR_NEW_RECORD_EXISTS("CprNewRecordExists"),
   CPR_CANDIDATE_RECORD_SEARCH("CprCandidateRecordSearch"),
+  CPR_MATCH_SCORE("CprMatchScore"),
   CPR_MATCH_PERSON_DUPLICATE("CprMatchPersonRecordDuplicate"),
   CPR_CANDIDATE_RECORD_FOUND_UUID("CprSplinkCandidateRecordsFoundGetUUID"),
   CPR_UUID_CREATED("CprUuidCreated"),
