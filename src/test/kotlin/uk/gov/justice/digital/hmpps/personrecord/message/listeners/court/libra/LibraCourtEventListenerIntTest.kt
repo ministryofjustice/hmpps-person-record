@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.P
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
@@ -353,7 +353,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
               firstName = "Jane",
               lastName = "Smith",
               addresses = listOf(Address(postcode = "LS1 1AB")),
-              sourceSystemType = SourceSystemType.HMCTS,
+              sourceSystemType = COMMON_PLATFORM,
             ),
           ),
         )

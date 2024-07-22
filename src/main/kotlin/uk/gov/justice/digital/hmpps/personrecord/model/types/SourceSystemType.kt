@@ -6,4 +6,5 @@ enum class SourceSystemType {
   DELIUS,
   HMCTS,
   LIBRA,
+  COMMON_PLATFORM,
 }
