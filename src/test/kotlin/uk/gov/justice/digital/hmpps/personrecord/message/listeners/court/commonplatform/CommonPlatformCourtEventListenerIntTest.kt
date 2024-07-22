@@ -194,20 +194,23 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val cro = randomCro()
     val firstName = randomName()
     val lastName = randomName()
-    createAndSavePersonWithUuid(Person.from(Defendant(
-      id = defendantId,
-      pncId = PNCIdentifier.from(pnc),
-      cro = CROIdentifier.from(cro),
-      personDefendant = PersonDefendant(
-        personDetails = PersonDetails(
-          firstName = firstName,
-          lastName = lastName,
-          gender = "MALE"
-        )
+    createAndSavePersonWithUuid(
+      Person.from(
+        Defendant(
+          id = defendantId,
+          pncId = PNCIdentifier.from(pnc),
+          cro = CROIdentifier.from(cro),
+          personDefendant = PersonDefendant(
+            personDetails = PersonDetails(
+              firstName = firstName,
+              lastName = lastName,
+              gender = "MALE",
+            ),
+          ),
+        ),
+        sourceSystemType = HMCTS,
       ),
-    ),
-      sourceSystemType = HMCTS
-    ))
+    )
 
     val matchResponse = MatchResponse(
       matchProbabilities = mutableMapOf("0" to 0.999999),
