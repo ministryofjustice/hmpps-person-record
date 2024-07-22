@@ -27,8 +27,14 @@ class AddressEntity(
   )
   var person: PersonEntity? = null,
 
+  @Column(name = "address_full")
+  val fullAddress: String? = null,
+
   @Column
   val postcode: String? = null,
+
+  @Column(name = "address_type")
+  val type: String? = null,
 
   @Version
   var version: Int = 0,
