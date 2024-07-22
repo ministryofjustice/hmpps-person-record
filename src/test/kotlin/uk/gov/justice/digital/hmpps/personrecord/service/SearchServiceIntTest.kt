@@ -16,8 +16,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.HMCTS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
@@ -57,7 +57,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
     createPerson(
@@ -101,7 +101,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
     createPersonWithUuid(
@@ -140,13 +140,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val pnc = randomPnc()
     val personToFind = Person(
       otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(pnc)),
-      sourceSystemType = HMCTS,
+      sourceSystemType = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(
       Person(
         otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(randomPnc())),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
 
@@ -166,7 +166,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       lastName = randomName(),
       dateOfBirth = LocalDate.of(1975, 2, 1),
       otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("")),
-      sourceSystemType = HMCTS,
+      sourceSystemType = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(
@@ -175,7 +175,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         lastName = randomName(),
         dateOfBirth = LocalDate.of(1975, 2, 1),
         otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("")),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
 
@@ -192,13 +192,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val driverLicenseNumber = randomDriverLicenseNumber()
     val personToFind = Person(
       driverLicenseNumber = driverLicenseNumber,
-      sourceSystemType = HMCTS,
+      sourceSystemType = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(
       Person(
         driverLicenseNumber = randomDriverLicenseNumber(),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
 
@@ -215,13 +215,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val driverLicenseNumber = randomDriverLicenseNumber()
     val personToFind = Person(
       driverLicenseNumber = driverLicenseNumber,
-      sourceSystemType = HMCTS,
+      sourceSystemType = COMMON_PLATFORM,
     )
     createPersonWithUuid(personToFind)
     createPerson(
       Person(
         driverLicenseNumber = driverLicenseNumber,
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
 
@@ -238,13 +238,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val driverLicenseNumber = randomDriverLicenseNumber()
     val personToFind = Person(
       driverLicenseNumber = driverLicenseNumber,
-      sourceSystemType = HMCTS,
+      sourceSystemType = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(
       Person(
         driverLicenseNumber = driverLicenseNumber,
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
 
@@ -257,13 +257,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val nationalInsuranceNumber = randomNationalInsuranceNumber()
     val personToFind = Person(
       nationalInsuranceNumber = nationalInsuranceNumber,
-      sourceSystemType = HMCTS,
+      sourceSystemType = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(
       Person(
         nationalInsuranceNumber = "RF9876543C",
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
 
@@ -280,13 +280,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val cro = randomCro()
     val personToFind = Person(
       otherIdentifiers = OtherIdentifiers(croIdentifier = CROIdentifier.from(cro)),
-      sourceSystemType = HMCTS,
+      sourceSystemType = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(
       Person(
         otherIdentifiers = OtherIdentifiers(croIdentifier = CROIdentifier.from(randomCro())),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
 
@@ -306,7 +306,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = "Steven",
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 2, 1),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
     createPerson(
@@ -314,7 +314,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = "Micheal",
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 2, 1),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
 
@@ -322,7 +322,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       firstName = "Stephen",
       lastName = lastName,
       dateOfBirth = LocalDate.of(1975, 2, 1),
-      sourceSystemType = HMCTS,
+      sourceSystemType = COMMON_PLATFORM,
     )
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
@@ -340,7 +340,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 2, 1),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
     createPerson(
@@ -348,7 +348,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = "Micheal",
         dateOfBirth = LocalDate.of(1975, 2, 1),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
 
@@ -356,7 +356,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       firstName = firstName,
       lastName = "Smythe",
       dateOfBirth = LocalDate.of(1975, 2, 1),
-      sourceSystemType = HMCTS,
+      sourceSystemType = COMMON_PLATFORM,
     )
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
@@ -375,7 +375,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
 
@@ -383,7 +383,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       firstName = firstName,
       lastName = "Smith",
       dateOfBirth = LocalDate.of(1975, 2, 1),
-      sourceSystemType = HMCTS,
+      sourceSystemType = COMMON_PLATFORM,
     )
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
@@ -402,7 +402,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = "Smythe",
         addresses = listOf(Address(postcode = "LS1 1AB")),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
     createPerson(
@@ -410,7 +410,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = "Smythe",
         addresses = listOf(Address(postcode = "PR7 3DU")),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
 
@@ -418,7 +418,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       firstName = firstName,
       lastName = "Smith",
       addresses = listOf(Address(postcode = "LS2 1AB"), Address(postcode = "LD2 3BC")),
-      sourceSystemType = HMCTS,
+      sourceSystemType = COMMON_PLATFORM,
     )
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
@@ -441,7 +441,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
           Address(postcode = "LS3 1AB"),
           Address(postcode = "LS4 1AB"),
         ),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
     createPersonWithUuid(
@@ -449,7 +449,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = "Smythe",
         addresses = listOf(Address(postcode = "PR7 3DU")),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
 
@@ -460,7 +460,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         Address(postcode = "LS5 1AB"),
         Address(postcode = "LD2 3BC"),
       ),
-      sourceSystemType = HMCTS,
+      sourceSystemType = COMMON_PLATFORM,
     )
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
@@ -479,7 +479,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       Person(
         lastName = "Smith",
         addresses = listOf(Address(postcode = "LS1 1AB")),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
 
@@ -487,7 +487,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       firstName = "Stephen",
       lastName = "Stevenson",
       addresses = listOf(Address(postcode = "LS1 1AB")),
-      sourceSystemType = HMCTS,
+      sourceSystemType = COMMON_PLATFORM,
     )
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
@@ -500,7 +500,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       Person(
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
 
@@ -508,7 +508,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       firstName = "Stephen",
       lastName = "Stevenson",
       dateOfBirth = LocalDate.of(1975, 1, 1),
-      sourceSystemType = HMCTS,
+      sourceSystemType = COMMON_PLATFORM,
     )
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
@@ -523,14 +523,14 @@ class SearchServiceIntTest : IntegrationTestBase() {
       Person(
         firstName = firstName,
         lastName = lastName,
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
 
     val searchingPerson = Person(
       firstName = firstName,
       lastName = lastName,
-      sourceSystemType = HMCTS,
+      sourceSystemType = COMMON_PLATFORM,
     )
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
@@ -544,14 +544,14 @@ class SearchServiceIntTest : IntegrationTestBase() {
       Person(
         firstName = firstName,
         addresses = listOf(Address(postcode = "LS1 1AB")),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
 
     val searchingPerson = Person(
       firstName = firstName,
       addresses = listOf(Address(postcode = "LS1 1AB")),
-      sourceSystemType = HMCTS,
+      sourceSystemType = COMMON_PLATFORM,
     )
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
@@ -563,14 +563,14 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val pnc = randomPnc()
     val personToFind = Person(
       otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(pnc)),
-      sourceSystemType = HMCTS,
+      sourceSystemType = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(personToFind)
     createPerson(
       Person(
         otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("1981/0154257C")),
-        sourceSystemType = HMCTS,
+        sourceSystemType = COMMON_PLATFORM,
       ),
     )
 

@@ -52,7 +52,7 @@ class CourtEventListener(
       telemetryService.trackEvent(
         MESSAGE_PROCESSING_FAILED,
         mapOf(
-          SOURCE_SYSTEM to SourceSystemType.HMCTS.name,
+          SOURCE_SYSTEM to SourceSystemType.COMMON_PLATFORM.name,
           EVENT_TYPE to sqsMessage.getMessageType(),
           MESSAGE_ID to sqsMessage.messageId,
         ),

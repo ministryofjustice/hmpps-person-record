@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.HMCTS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -63,7 +63,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "DEFENDANT_ID" to firstDefendantId,
         "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to HMCTS.name,
+        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
       ),
     )
     checkTelemetry(
@@ -71,7 +71,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "DEFENDANT_ID" to secondDefendantId,
         "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to HMCTS.name,
+        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
       ),
     )
     checkTelemetry(
@@ -79,7 +79,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "DEFENDANT_ID" to thirdDefendantId,
         "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to HMCTS.name,
+        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
       ),
     )
   }
@@ -116,12 +116,12 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       CPR_RECORD_CREATED,
-      mapOf("SOURCE_SYSTEM" to "HMCTS", "DEFENDANT_ID" to defendantId),
+      mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
     checkTelemetry(
       CPR_RECORD_UPDATED,
       mapOf(
-        "SOURCE_SYSTEM" to "HMCTS",
+        "SOURCE_SYSTEM" to "COMMON_PLATFORM",
         "DEFENDANT_ID" to defendantId,
       ),
       29,
@@ -147,9 +147,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       CPR_RECORD_CREATED,
-      mapOf("SOURCE_SYSTEM" to "HMCTS", "DEFENDANT_ID" to defendantId),
+      mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
-    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "HMCTS", "DEFENDANT_ID" to defendantId))
+    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId))
 
     val matchResponse = MatchResponse(
       matchProbabilities = mutableMapOf("0" to 0.999999),
@@ -164,7 +164,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       MESSAGE_RECEIVED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to HMCTS.name, "DEFENDANT_ID" to defendantId),
+      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "DEFENDANT_ID" to defendantId),
     )
 
     await.atMost(15, SECONDS) untilAsserted {
@@ -178,7 +178,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       CPR_RECORD_UPDATED,
-      mapOf("SOURCE_SYSTEM" to "HMCTS", "DEFENDANT_ID" to defendantId),
+      mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
   }
 
@@ -270,7 +270,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       TelemetryEventType.MESSAGE_PROCESSING_FAILED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to HMCTS.name),
+      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name),
     )
   }
 
@@ -291,7 +291,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       MESSAGE_RECEIVED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to HMCTS.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
+      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
       times = 2,
     )
     val personWithEmptyPnc = await.atMost(15, SECONDS) untilNotNull {
