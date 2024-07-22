@@ -65,7 +65,7 @@ data class Person(
       )
     }
 
-    fun from(defendant: Defendant): Person {
+    fun from(defendant: Defendant, sourceSystemType: SourceSystemType = COMMON_PLATFORM): Person {
       val contacts: List<Contact> = listOf(
         Contact.from(ContactType.HOME, defendant.personDefendant?.personDetails?.contact?.home),
         Contact.from(ContactType.MOBILE, defendant.personDefendant?.personDetails?.contact?.mobile),
@@ -98,7 +98,7 @@ data class Person(
         contacts = contacts,
         addresses = addresses,
         aliases = defendant.aliases?.map { Alias.from(it) } ?: emptyList(),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystemType = sourceSystemType,
       )
     }
 
