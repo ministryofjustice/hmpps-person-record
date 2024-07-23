@@ -13,8 +13,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import java.time.LocalDate
 
 @Entity
-@Table(name = "alias")
-class AliasEntity(
+@Table(name = "pseudonym")
+class PseudonymEntity(
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,10 +44,10 @@ class AliasEntity(
   var version: Int = 0,
 ) {
   companion object {
-    private fun from(alias: Alias): AliasEntity? =
+    private fun from(alias: Alias): PseudonymEntity? =
       when {
         isAliasPresent(alias.firstName, alias.middleNames, alias.lastName) ->
-          AliasEntity(
+          PseudonymEntity(
             firstName = alias.firstName,
             middleNames = alias.middleNames,
             lastName = alias.lastName,
@@ -56,7 +56,7 @@ class AliasEntity(
         else -> null
       }
 
-    fun fromList(aliases: List<Alias>): List<AliasEntity> = aliases.mapNotNull { from(it) }
+    fun fromList(aliases: List<Alias>): List<PseudonymEntity> = aliases.mapNotNull { from(it) }
 
     private fun isAliasPresent(firstName: String?, middleNames: String?, surname: String?): Boolean =
       sequenceOf(firstName, middleNames, surname)

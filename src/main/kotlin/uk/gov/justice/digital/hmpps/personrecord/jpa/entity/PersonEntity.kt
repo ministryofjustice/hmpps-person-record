@@ -49,7 +49,7 @@ class PersonEntity(
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
-  var aliases: MutableList<AliasEntity> = mutableListOf(),
+  var aliases: MutableList<PseudonymEntity> = mutableListOf(),
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
@@ -150,7 +150,7 @@ class PersonEntity(
   }
 
   private fun updatePersonAliases(person: Person) {
-    val personAliases = AliasEntity.fromList(person.aliases)
+    val personAliases = PseudonymEntity.fromList(person.aliases)
     personAliases.forEach { personAliasEntity -> personAliasEntity.person = this }
     this.aliases.addAll(personAliases)
   }
