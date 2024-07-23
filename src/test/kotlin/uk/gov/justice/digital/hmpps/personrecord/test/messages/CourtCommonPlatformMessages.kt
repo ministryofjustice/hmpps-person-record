@@ -122,7 +122,7 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) =
                    "selfDefinedEthnicityDescription": "selfDefinedEthnicityDescription"
                 },
                 ${commonPlatformHearingSetup.aliases?.let {
-    """ "pseudonyms": [${commonPlatformHearingSetup.aliases.joinToString(",") { alias(it) }
+    """ "aliases": [${commonPlatformHearingSetup.aliases.joinToString(",") { alias(it) }
     }], """.trimIndent()
   } ?: ""}
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"

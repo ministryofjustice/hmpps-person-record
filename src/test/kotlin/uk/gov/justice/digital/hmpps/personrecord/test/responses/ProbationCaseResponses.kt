@@ -24,7 +24,7 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
           "code": "M",
           "description": "Male"
       },
-      "pseudonyms": [
+      "aliases": [
         {
           "name": {
             "forename": "${probationCase.prefix}FirstName",
