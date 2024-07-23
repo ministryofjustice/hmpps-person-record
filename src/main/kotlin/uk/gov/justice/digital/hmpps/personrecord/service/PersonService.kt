@@ -88,7 +88,7 @@ class PersonService(
   }
 
   private fun removeAllChildEntities(personEntity: PersonEntity): PersonEntity {
-    personEntity.aliases.clear()
+    personEntity.pseudonyms.clear()
     personEntity.addresses.clear()
     personEntity.contacts.clear()
     return personRepository.saveAndFlush(personEntity)
