@@ -34,6 +34,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.HmppsTopic
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.Duration
@@ -108,17 +109,14 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   fun publishDomainEvent(eventType: String, domainEvent: DomainEvent): String {
     val domainEventAsString = objectMapper.writeValueAsString(domainEvent)
-    val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
-      .message(domainEventAsString)
-      .messageAttributes(
-        mapOf(
-          "eventType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(eventType).build(),
-        ),
-      ).build()
-
-    val response = domainEventsTopic?.snsClient?.publish(publishRequest)?.get()
-
+    val response = publishEvent(
+      domainEventAsString,
+      domainEventsTopic,
+      mapOf(
+        "eventType" to MessageAttributeValue.builder().dataType("String")
+          .stringValue(eventType).build(),
+      ),
+    )
     expectNoMessagesOn(probationEventsQueue)
     expectNoMessagesOn(prisonEventsQueue)
     return response!!.messageId()
@@ -126,19 +124,23 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   fun publishProbationEvent(eventType: String, probationEvent: ProbationEvent): String {
     val probationEventAsString = objectMapper.writeValueAsString(probationEvent)
-    val publishRequest = PublishRequest.builder().topicArn(domainEventsTopic?.arn)
-      .message(probationEventAsString)
-      .messageAttributes(
-        mapOf(
-          "eventType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(eventType).build(),
-        ),
-      ).build()
-
-    val response = domainEventsTopic?.snsClient?.publish(publishRequest)?.get()
-
+    val response = publishEvent(
+      probationEventAsString,
+      domainEventsTopic,
+      mapOf(
+        "eventType" to MessageAttributeValue.builder().dataType("String")
+          .stringValue(eventType).build(),
+      ),
+    )
     expectNoMessagesOn(probationEventsQueue)
     return response!!.messageId()
+  }
+
+  private fun publishEvent(message: String, topic: HmppsTopic?, messageAttributes: Map<String, MessageAttributeValue>): PublishResponse? {
+    val publishRequest = PublishRequest.builder().topicArn(topic?.arn)
+      .message(message)
+      .messageAttributes(messageAttributes).build()
+    return topic?.snsClient?.publish(publishRequest)?.get()
   }
 
   fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = randomName(), addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress("LS1 1AB")), scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {
@@ -158,7 +160,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
     val domainEvent = DomainEvent(
       eventType = eventType,
-      detailUrl = createDeliusDetailUrl(crn),
       personReference = personReference,
       additionalInformation = additionalInformation,
     )
@@ -219,12 +220,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         ),
     )
   }
-
-  fun createDeliusDetailUrl(crn: String): String =
-    "https://domain-events-and-delius-dev.hmpps.service.justice.gov.uk/probation-case.engagement.created/$crn"
-
-  fun createNomsDetailUrl(prisonNumber: String): String =
-    "https://prisoner-search-dev.prison.service.justice.gov.uk/prisoner/$prisonNumber"
 
   @BeforeEach
   fun beforeEachMessagingTest() {

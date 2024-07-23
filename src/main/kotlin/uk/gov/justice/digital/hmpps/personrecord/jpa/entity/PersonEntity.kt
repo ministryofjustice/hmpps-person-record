@@ -69,8 +69,20 @@ class PersonEntity(
   @Column(name = "prison_number")
   var prisonNumber: String? = null,
 
-  @Column(name = "offender_id")
-  val offenderId: String? = null,
+  @Column(name = "birth_place")
+  val birthplace: String? = null,
+
+  @Column(name = "birth_country")
+  val birthCountry: String? = null,
+
+  @Column
+  val nationality: String? = null,
+
+  @Column
+  val religion: String? = null,
+
+  @Column(name = "sexual_orientation")
+  val sexualOrientation: String? = null,
 
   @Column(name = "defendant_id")
   var defendantId: String? = null,

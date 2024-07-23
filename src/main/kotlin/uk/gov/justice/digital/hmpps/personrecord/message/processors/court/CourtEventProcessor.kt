@@ -64,7 +64,7 @@ class CourtEventProcessor(
           EventKeys.DEFENDANT_ID to person.defendantId,
           EventKeys.EVENT_TYPE to COMMON_PLATFORM_HEARING.name,
           EventKeys.MESSAGE_ID to sqsMessage.messageId,
-          EventKeys.SOURCE_SYSTEM to SourceSystemType.HMCTS.name,
+          EventKeys.SOURCE_SYSTEM to SourceSystemType.COMMON_PLATFORM.name,
         ),
       )
       personService.processMessage(person) {

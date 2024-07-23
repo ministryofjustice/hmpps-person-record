@@ -65,7 +65,11 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.aliases[0].dateOfBirth).isEqualTo(LocalDate.of(2024, 5, 30))
     assertThat(personEntity.addresses.size).isEqualTo(2)
     assertThat(personEntity.addresses[0].postcode).isEqualTo("LS1 1AB")
+    assertThat(personEntity.addresses[0].fullAddress).isEqualTo(null)
+    assertThat(personEntity.addresses[0].type).isEqualTo(null)
     assertThat(personEntity.addresses[1].postcode).isEqualTo("M21 9LX")
+    assertThat(personEntity.addresses[1].fullAddress).isEqualTo(null)
+    assertThat(personEntity.addresses[1].type).isEqualTo(null)
     assertThat(personEntity.contacts.size).isEqualTo(3)
     assertThat(personEntity.contacts[0].contactType).isEqualTo(ContactType.HOME)
     assertThat(personEntity.contacts[0].contactValue).isEqualTo("01234567890")
@@ -124,7 +128,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
-    val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, detailUrl = createDeliusDetailUrl(crn), personReference = personReference, additionalInformation = null)
+    val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, personReference = personReference, additionalInformation = null)
     publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
@@ -165,7 +169,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val domainEvent = DomainEvent(
       eventType = NEW_OFFENDER_CREATED,
-      detailUrl = createDeliusDetailUrl(crn),
       personReference = personReference,
       additionalInformation = null,
     )
