@@ -32,7 +32,7 @@ data class CROIdentifier(val croId: String, val inputCro: String = EMPTY_CRO) {
       val checkChar = inputCroId.takeLast(1).single()
       val (serialNum, yearDigits) = inputCroId.dropLast(1).split(SLASH) // splits into [NNNNNN, YY and drops D]
       return when {
-        correctModulus(checkChar, padSerialNumber(serialNum), yearDigits) -> CROIdentifier(format(checkChar, serialNum, yearDigits))
+        correctModulus(checkChar, padSerialNumber(serialNum), yearDigits) -> CROIdentifier(formatStandard(checkChar, serialNum, yearDigits))
         else -> invalidCro(inputCroId)
       }
     }
@@ -41,7 +41,7 @@ data class CROIdentifier(val croId: String, val inputCro: String = EMPTY_CRO) {
       val checkChar = inputCroId.takeLast(1).single()
       val (yearDigits, serialNum) = inputCroId.drop(2).dropLast(1).split(SLASH) // splits into [YY, NNNNNN and drops D]
       return when {
-        correctModulus(checkChar, serialNum, yearDigits) -> CROIdentifier(format(checkChar, serialNum, yearDigits))
+        correctModulus(checkChar, serialNum, yearDigits) -> CROIdentifier(formatSF(checkChar, serialNum, yearDigits))
         else -> invalidCro(inputCroId)
       }
     }
@@ -49,7 +49,9 @@ data class CROIdentifier(val croId: String, val inputCro: String = EMPTY_CRO) {
     private fun correctModulus(checkChar: Char, serialNum: String, yearDigits: String): Boolean =
       checkChar == VALID_LETTERS[(yearDigits + serialNum).toInt().mod(VALID_LETTERS.length)]
 
-    private fun format(checkChar: Char, serialNum: String, yearDigits: String) = "${padSerialNumber(serialNum)}/$yearDigits$checkChar"
+    private fun formatStandard(checkChar: Char, serialNum: String, yearDigits: String) = "${padSerialNumber(serialNum)}/$yearDigits$checkChar"
+
+    private fun formatSF(checkChar: Char, serialNum: String, yearDigits: String) = "SF$yearDigits/$serialNum$checkChar"
 
     const val VALID_LETTERS = "ZABCDEFGHJKLMNPQRTUVWXY"
 

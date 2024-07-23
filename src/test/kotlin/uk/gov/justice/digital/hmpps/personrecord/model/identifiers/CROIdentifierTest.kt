@@ -30,13 +30,13 @@ class CROIdentifierTest {
   @Test
   fun `should process a SF format CRO`() {
     val identifier = CROIdentifier.from("SF05/482703J")
-    assertEquals("482703/05J", identifier.croId)
+    assertEquals("SF05/482703J", identifier.croId)
   }
 
   @Test
-  fun `should process a SF format CRO with limit serial section`() {
+  fun `should process a SF format CRO with limit serial section should not pad serial num`() {
     val identifier = CROIdentifier.from("SF83/50058Z")
-    assertEquals("050058/83Z", identifier.croId)
+    assertEquals("SF83/50058Z", identifier.croId)
   }
 
   @Test
