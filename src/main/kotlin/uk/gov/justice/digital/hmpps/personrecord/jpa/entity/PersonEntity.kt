@@ -94,9 +94,6 @@ class PersonEntity(
   @Convert(converter = CROIdentifierConverter::class)
   var cro: CROIdentifier? = null,
 
-  @Column
-  var fingerprint: Boolean = false,
-
   @Column(name = "national_insurance_number")
   var nationalInsuranceNumber: String? = null,
 
@@ -133,7 +130,6 @@ class PersonEntity(
     this.pnc = person.otherIdentifiers?.pncIdentifier
     this.crn = person.otherIdentifiers?.crn
     this.cro = person.otherIdentifiers?.croIdentifier
-    this.fingerprint = person.otherIdentifiers?.croIdentifier?.fingerprint ?: false
     this.prisonNumber = person.otherIdentifiers?.prisonNumber
     this.driverLicenseNumber = person.driverLicenseNumber
     this.arrestSummonsNumber = person.arrestSummonsNumber
@@ -179,7 +175,6 @@ class PersonEntity(
         pnc = person.otherIdentifiers?.pncIdentifier,
         crn = person.otherIdentifiers?.crn,
         cro = person.otherIdentifiers?.croIdentifier,
-        fingerprint = person.otherIdentifiers?.croIdentifier?.fingerprint ?: false,
         prisonNumber = person.otherIdentifiers?.prisonNumber,
         driverLicenseNumber = person.driverLicenseNumber,
         arrestSummonsNumber = person.arrestSummonsNumber,

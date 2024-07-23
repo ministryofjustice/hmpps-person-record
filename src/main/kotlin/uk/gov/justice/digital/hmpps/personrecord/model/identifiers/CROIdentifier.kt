@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
-data class CROIdentifier(val croId: String, val fingerprint: Boolean, val inputCro: String = EMPTY_CRO) {
+data class CROIdentifier(val croId: String, val inputCro: String = EMPTY_CRO) {
 
   val valid: Boolean
     get() = croId.isNotEmpty()
@@ -18,7 +18,7 @@ data class CROIdentifier(val croId: String, val fingerprint: Boolean, val inputC
     private val CRO_REGEX = Regex("^\\d{1,$SERIAL_NUM_LENGTH}/\\d{2}[A-Z]\$")
 
     private fun invalidCro(inputCroId: String = EMPTY_CRO): CROIdentifier =
-      CROIdentifier(EMPTY_CRO, false, inputCroId)
+      CROIdentifier(EMPTY_CRO, inputCroId)
 
     fun from(inputCroId: String? = EMPTY_CRO): CROIdentifier =
       when {
@@ -32,7 +32,7 @@ data class CROIdentifier(val croId: String, val fingerprint: Boolean, val inputC
       val checkChar = inputCroId.takeLast(1).single()
       val (serialNum, yearDigits) = inputCroId.dropLast(1).split(SLASH) // splits into [NNNNNN, YY and drops D]
       return when {
-        correctModulus(checkChar, padSerialNumber(serialNum), yearDigits) -> CROIdentifier(format(checkChar, serialNum, yearDigits), true)
+        correctModulus(checkChar, padSerialNumber(serialNum), yearDigits) -> CROIdentifier(format(checkChar, serialNum, yearDigits))
         else -> invalidCro(inputCroId)
       }
     }
@@ -41,7 +41,7 @@ data class CROIdentifier(val croId: String, val fingerprint: Boolean, val inputC
       val checkChar = inputCroId.takeLast(1).single()
       val (yearDigits, serialNum) = inputCroId.drop(2).dropLast(1).split(SLASH) // splits into [YY, NNNNNN and drops D]
       return when {
-        correctModulus(checkChar, serialNum, yearDigits) -> CROIdentifier(format(checkChar, serialNum, yearDigits), false)
+        correctModulus(checkChar, serialNum, yearDigits) -> CROIdentifier(format(checkChar, serialNum, yearDigits))
         else -> invalidCro(inputCroId)
       }
     }
