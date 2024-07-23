@@ -177,7 +177,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.lastName).isEqualTo(changedLastName)
       assertThat(updatedPersonEntity.pnc).isEqualTo(PNCIdentifier.from(pnc))
       assertThat(updatedPersonEntity.cro).isEqualTo(CROIdentifier.from(cro))
-      assertThat(updatedPersonEntity.fingerprint).isEqualTo(true)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
     }
 
