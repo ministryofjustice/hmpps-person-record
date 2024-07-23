@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
-data class CROIdentifier(val croId: String, val inputCro: String = EMPTY_CRO) {
+data class CROIdentifier(val croId: String) {
 
   val valid: Boolean
     get() = croId.isNotEmpty()
@@ -17,15 +17,14 @@ data class CROIdentifier(val croId: String, val inputCro: String = EMPTY_CRO) {
     private val SF_CRO_REGEX = Regex("^SF\\d{2}/\\d{1,$SERIAL_NUM_LENGTH}[A-Z]\$")
     private val CRO_REGEX = Regex("^\\d{1,$SERIAL_NUM_LENGTH}/\\d{2}[A-Z]\$")
 
-    private fun invalidCro(inputCroId: String = EMPTY_CRO): CROIdentifier =
-      CROIdentifier(EMPTY_CRO, inputCroId)
+    private fun invalidCro(): CROIdentifier = CROIdentifier(EMPTY_CRO)
 
     fun from(inputCroId: String? = EMPTY_CRO): CROIdentifier =
       when {
         inputCroId.isNullOrEmpty() -> invalidCro()
         isSfFormat(inputCroId) -> canonicalSfFormat(inputCroId)
         isStandardFormat(inputCroId) -> canonicalStandardFormat(inputCroId)
-        else -> invalidCro(inputCroId)
+        else -> invalidCro()
       }
 
     private fun canonicalStandardFormat(inputCroId: String): CROIdentifier {
@@ -33,7 +32,7 @@ data class CROIdentifier(val croId: String, val inputCro: String = EMPTY_CRO) {
       val (serialNum, yearDigits) = inputCroId.dropLast(1).split(SLASH) // splits into [NNNNNN, YY and drops D]
       return when {
         correctModulus(checkChar, padSerialNumber(serialNum), yearDigits) -> CROIdentifier(formatStandard(checkChar, serialNum, yearDigits))
-        else -> invalidCro(inputCroId)
+        else -> invalidCro()
       }
     }
 
@@ -42,7 +41,7 @@ data class CROIdentifier(val croId: String, val inputCro: String = EMPTY_CRO) {
       val (yearDigits, serialNum) = inputCroId.drop(2).dropLast(1).split(SLASH) // splits into [YY, NNNNNN and drops D]
       return when {
         correctModulus(checkChar, serialNum, yearDigits) -> CROIdentifier(formatSF(checkChar, serialNum, yearDigits))
-        else -> invalidCro(inputCroId)
+        else -> invalidCro()
       }
     }
 

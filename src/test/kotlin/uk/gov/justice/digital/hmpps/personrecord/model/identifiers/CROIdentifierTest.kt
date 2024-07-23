@@ -20,11 +20,10 @@ class CROIdentifierTest {
   }
 
   @Test
-  fun `should process invalid id and stores it`() {
+  fun `should process invalid id and not store it`() {
     val identifier = CROIdentifier.from("85227/65G")
     assertThat(identifier.croId.isEmpty())
     assertThat(identifier.valid).isFalse()
-    assertThat(identifier.inputCro).isEqualTo("85227/65G")
   }
 
   @Test

@@ -28,7 +28,7 @@ fun randomCro(): String {
   if (CROIdentifier.from("$digits/$year$check").valid) {
     return "$digits/$year$check"
   }
-  throw Exception(CROIdentifier.from("$digits/$year$check").inputCro)
+  throw Exception(CROIdentifier.from("$digits/$year$check").croId)
 }
 
 fun randomName(): String = randomLowerCaseString()
