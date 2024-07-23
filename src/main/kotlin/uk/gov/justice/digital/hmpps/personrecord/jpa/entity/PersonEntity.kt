@@ -110,6 +110,12 @@ class PersonEntity(
   var dateOfBirth: LocalDate? = null,
 
   @Column
+  val sex: String? = null,
+
+  @Column
+  val ethnicity: String? = null,
+
+  @Column
   @Enumerated(STRING)
   val sourceSystem: SourceSystemType,
 

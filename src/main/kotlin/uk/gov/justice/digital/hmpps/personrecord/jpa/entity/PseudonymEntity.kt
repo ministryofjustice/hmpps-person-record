@@ -28,6 +28,9 @@ class PseudonymEntity(
   )
   var person: PersonEntity? = null,
 
+  @Column
+  val title: String? = null,
+
   @Column(name = "first_name")
   val firstName: String? = null,
 
@@ -39,6 +42,15 @@ class PseudonymEntity(
 
   @Column(name = "date_of_birth")
   val dateOfBirth: LocalDate? = null,
+
+  @Column
+  val sex: String? = null,
+
+  @Column
+  val ethnicity: String? = null,
+
+  @Column(name = "name_type")
+  val type: String? = null,
 
   @Version
   var version: Int = 0,
