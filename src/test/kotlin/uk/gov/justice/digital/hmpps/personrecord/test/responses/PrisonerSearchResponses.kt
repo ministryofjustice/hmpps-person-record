@@ -28,7 +28,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     "lastPrisonId": "MDI",
     "prisonName": "HMP Leeds",
     "cellLocation": "A-1-002",
-    "aliases": [
+    "pseudonyms": [
       {
         "title": "Ms",
         "firstName": "${responseSetup.prefix}AliasFirstName",

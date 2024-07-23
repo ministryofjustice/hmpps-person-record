@@ -27,7 +27,7 @@ fun onePrisoner(prisonNumber: String, prefix: String) = """
     "lastPrisonId": "MDI",
     "prisonName": "HMP Leeds",
     "cellLocation": "A-1-002",
-    "aliases": [
+    "pseudonyms": [
       {
         "firstName": "${prefix}AliasOneFirstName",
         "middleNames": "${prefix}AliasOneMiddleNameOne ${prefix}AliasOneMiddleNameTwo",
@@ -156,7 +156,7 @@ fun twoPrisoners(prisonNumberOne: String, prefixOne: String, prisonNumberTwo: St
     "lastPrisonId": "MDI",
     "prisonName": "HMP Leeds",
     "cellLocation": "A-1-002",
-    "aliases": [
+    "pseudonyms": [
       {
         "firstName": "${prefixOne}AliasOneFirstName",
         "middleNames": "${prefixOne}AliasOneMiddleNameOne ${prefixOne}AliasOneMiddleNameTwo",
@@ -279,7 +279,7 @@ fun twoPrisoners(prisonNumberOne: String, prefixOne: String, prisonNumberTwo: St
     "lastPrisonId": "MDI",
     "prisonName": "HMP Leeds",
     "cellLocation": "A-1-002",
-    "aliases": [],
+    "pseudonyms": [],
     "alerts": [
       {
         "alertType": "H",

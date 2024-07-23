@@ -17,7 +17,7 @@ fun allProbationCasesSingleResponse(firstCrn: String, firstPrefix: String) = """
                 "code": "M",
                 "description": "Male"
             },
-            "aliases": [],
+            "pseudonyms": [],
             "addresses": []
         }
     ],
@@ -47,7 +47,7 @@ fun allProbationCasesResponse(firstCrn: String, firstPrefix: String, secondCrn: 
                 "code": "M",
                 "description": "Male"
             },
-            "aliases": [{"name": {
+            "pseudonyms": [{"name": {
                         "forename": "${firstPrefix}AliasOneFirstName",
                      "middleName":    "${firstPrefix}AliasOneMiddleNameOne ${firstPrefix}AliasOneMiddleNameTwo",
                         "surname": "${firstPrefix}AliasOneLastName"
@@ -74,7 +74,7 @@ fun allProbationCasesResponse(firstCrn: String, firstPrefix: String, secondCrn: 
                 "code": "M",
                 "description": "Male"
             },
-            "aliases": [],
+            "pseudonyms": [],
             "addresses": []
         }
     ],

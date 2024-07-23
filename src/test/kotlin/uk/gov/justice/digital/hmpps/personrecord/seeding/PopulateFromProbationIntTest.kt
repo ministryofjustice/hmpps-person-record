@@ -54,12 +54,12 @@ class PopulateFromProbationIntTest : WebTestBase() {
     assertThat(popOne.lastName).isEqualTo("POPOneLastName")
     assertThat(popOne.crn).isEqualTo(crnOne)
     assertThat(popOne.dateOfBirth).isEqualTo(LocalDate.of(1980, 8, 29))
-    assertThat(popOne.aliases[0].firstName).isEqualTo("POPOneAliasOneFirstName")
-    assertThat(popOne.aliases[0].middleNames).isEqualTo("POPOneAliasOneMiddleNameOne POPOneAliasOneMiddleNameTwo")
-    assertThat(popOne.aliases[0].lastName).isEqualTo("POPOneAliasOneLastName")
-    assertThat(popOne.aliases[1].firstName).isEqualTo("POPOneAliasTwoFirstName")
-    assertThat(popOne.aliases[1].middleNames).isEqualTo("POPOneAliasTwoMiddleNameOne POPOneAliasTwoMiddleNameTwo")
-    assertThat(popOne.aliases[1].lastName).isEqualTo("POPOneAliasTwoLastName")
+    assertThat(popOne.pseudonyms[0].firstName).isEqualTo("POPOneAliasOneFirstName")
+    assertThat(popOne.pseudonyms[0].middleNames).isEqualTo("POPOneAliasOneMiddleNameOne POPOneAliasOneMiddleNameTwo")
+    assertThat(popOne.pseudonyms[0].lastName).isEqualTo("POPOneAliasOneLastName")
+    assertThat(popOne.pseudonyms[1].firstName).isEqualTo("POPOneAliasTwoFirstName")
+    assertThat(popOne.pseudonyms[1].middleNames).isEqualTo("POPOneAliasTwoMiddleNameOne POPOneAliasTwoMiddleNameTwo")
+    assertThat(popOne.pseudonyms[1].lastName).isEqualTo("POPOneAliasTwoLastName")
     assertThat(popOne.sourceSystem).isEqualTo(DELIUS)
     assertThat(personRepository.findByCrn(crnTwo)!!.firstName).isEqualTo("POPTwoFirstName")
     assertThat(personRepository.findByCrn(crnThree)!!.firstName).isEqualTo("POPThreeFirstName")
@@ -70,7 +70,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
     assertThat(popSeven.firstName).isEqualTo("POPSevenFirstName")
     assertThat(popSeven.middleNames).isEqualTo("")
     assertThat(popSeven.cro).isEqualTo(CROIdentifier.from(""))
-    assertThat(popSeven.aliases.size).isEqualTo(0)
+    assertThat(popSeven.pseudonyms.size).isEqualTo(0)
   }
 
   @Test
