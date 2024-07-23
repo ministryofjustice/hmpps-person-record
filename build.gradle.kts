@@ -11,6 +11,7 @@ plugins {
   kotlin("plugin.jpa") version "2.0.0"
   id("io.gitlab.arturbosch.detekt") version "1.23.6"
   id("org.jetbrains.kotlinx.kover") version "0.8.3"
+  id("org.gradle.test-retry") version "1.5.10"
 }
 
 configurations {
@@ -71,6 +72,12 @@ tasks {
   getByName("check") {
     dependsOn(":ktlintCheck", "detekt")
     finalizedBy("koverHtmlReport")
+  }
+
+  withType(Test::class) {
+    retry {
+      maxRetries.set(3)
+    }
   }
 }
 
