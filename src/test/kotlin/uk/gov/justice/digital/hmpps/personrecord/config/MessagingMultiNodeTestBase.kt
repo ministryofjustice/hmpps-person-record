@@ -62,6 +62,10 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByTopicId("courtcaseeventstopic")
   }
 
+  internal val courtEventsFIFOTopic by lazy {
+    hmppsQueueService.findByTopicId("courteventstopic")
+  }
+
   val courtEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprcourtcaseeventsqueue")
   }
@@ -74,9 +78,9 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId("cprnomiseventsqueue")
   }
 
-  internal fun publishCourtMessage(message: String, messageType: MessageType): String {
-    val publishRequest = PublishRequest.builder()
-      .topicArn(courtEventsTopic?.arn)
+  internal fun publishCourtMessage(message: String, messageType: MessageType, topic: String = courtEventsTopic?.arn!!): String {
+    var messageBuilder = PublishRequest.builder()
+      .topicArn(topic)
       .message(message)
       .messageAttributes(
         mapOf(
@@ -86,9 +90,11 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
             .stringValue(UUID.randomUUID().toString()).build(),
         ),
       )
-      .build()
+    if (topic.contains(".fifo")) {
+      messageBuilder = messageBuilder.messageGroupId(UUID.randomUUID().toString())
+    }
 
-    val response: PublishResponse? = courtEventsTopic?.snsClient?.publish(publishRequest)?.get()
+    val response: PublishResponse? = courtEventsTopic?.snsClient?.publish(messageBuilder.build())?.get()
 
     expectNoMessagesOn(courtEventsQueue)
     return response!!.messageId()

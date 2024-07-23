@@ -16,7 +16,7 @@ class CommonPlatformCourtEventFIFOListenerIntTest : MessagingMultiNodeTestBase()
   fun `should log telemetry for event consumed from FIFO queue`() {
     val firstDefendantId = randomUUID().toString()
     val firstPnc = randomPnc()
-    val messageId = publishCourtMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = firstDefendantId, pnc = firstPnc))), COMMON_PLATFORM_HEARING)
+    val messageId = publishCourtMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = firstDefendantId, pnc = firstPnc))), COMMON_PLATFORM_HEARING, topic = courtEventsFIFOTopic?.arn!!)
 
     checkTelemetry(
       MESSAGE_RECEIVED,
