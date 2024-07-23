@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType.STRING
+import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
@@ -10,6 +12,7 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import java.time.LocalDate
 
 @Entity
@@ -50,7 +53,8 @@ class PseudonymEntity(
   val ethnicity: String? = null,
 
   @Column(name = "name_type")
-  val type: String? = null,
+  @Enumerated(STRING)
+  val type: NameType,
 
   @Version
   var version: Int = 0,
@@ -64,6 +68,7 @@ class PseudonymEntity(
             middleNames = alias.middleNames,
             lastName = alias.lastName,
             dateOfBirth = alias.dateOfBirth,
+            type = NameType.ALIAS,
           )
         else -> null
       }
