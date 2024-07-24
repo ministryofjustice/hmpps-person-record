@@ -1,2 +1,5 @@
+spring:
+  application:
+    name: "hmpps-person-record-service-second-application-context"
 server:
   port: 8084

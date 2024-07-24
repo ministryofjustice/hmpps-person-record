@@ -6,6 +6,7 @@ import io.awspring.cloud.sqs.annotation.SqsListener
 import io.opentelemetry.api.trace.SpanKind.SERVER
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
@@ -26,6 +27,7 @@ class CourtEventListener(
   val objectMapper: ObjectMapper,
   val courtEventProcessor: CourtEventProcessor,
   val telemetryService: TelemetryService,
+  val applicationContext: ApplicationContext,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -36,6 +38,8 @@ class CourtEventListener(
   fun onMessage(
     rawMessage: String,
   ) {
+    log.warn("processed by ApplicationContext ${applicationContext.id}")
+
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     when (sqsMessage.type) {
       NOTIFICATION -> handleEvent(sqsMessage)
