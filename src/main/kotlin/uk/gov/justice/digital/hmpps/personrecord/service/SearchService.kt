@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.PersonQuery
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.findCandidatesBySourceSystem
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.findCandidatesWithUuid
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -41,9 +42,9 @@ class SearchService(
 
   fun findCandidateRecordsWithUuid(person: Person): List<MatchResult> = searchForRecords(person, findCandidatesWithUuid(person))
 
-  private fun searchForRecords(person: Person, query: Specification<PersonEntity>): List<MatchResult> {
+  private fun searchForRecords(person: Person, personQuery: PersonQuery): List<MatchResult> {
     val highConfidenceMatches = mutableListOf<MatchResult>()
-    val totalElements = forPage(query) { page ->
+    val totalElements = forPage(personQuery.query) { page ->
       val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(page.content, person)
       highConfidenceMatches.addAll(batchOfHighConfidenceMatches)
     }
@@ -55,6 +56,7 @@ class SearchService(
         EventKeys.SEARCH_VERSION to PersonSpecification.SEARCH_VERSION,
         EventKeys.HIGH_CONFIDENCE_COUNT to highConfidenceMatches.count().toString(),
         EventKeys.LOW_CONFIDENCE_COUNT to (totalElements - highConfidenceMatches.count()).toString(),
+        EventKeys.QUERY to personQuery.queryName.name,
       ),
     )
     return highConfidenceMatches.toList().sortedByDescending { it.probability }

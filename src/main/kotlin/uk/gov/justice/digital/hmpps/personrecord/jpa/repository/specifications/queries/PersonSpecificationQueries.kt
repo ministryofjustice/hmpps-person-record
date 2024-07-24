@@ -11,6 +11,11 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.P
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.exactMatch
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 
+data class PersonQuery(
+  val queryName: PersonQueryType,
+  val query: Specification<PersonEntity>
+)
+
 private fun findCandidates(person: Person): Specification<PersonEntity> {
   val postcodes = person.addresses.mapNotNull { it.postcode }.toSet()
 
@@ -29,6 +34,12 @@ private fun findCandidates(person: Person): Specification<PersonEntity> {
   )
 }
 
-fun findCandidatesWithUuid(person: Person): Specification<PersonEntity> = findCandidates(person).and(PersonSpecification.hasPersonKey())
+fun findCandidatesWithUuid(person: Person): PersonQuery = PersonQuery(
+  queryName = PersonQueryType.FIND_CANDIDATES_WITH_UUID,
+  query = findCandidates(person).and(PersonSpecification.hasPersonKey()),
+)
 
-fun findCandidatesBySourceSystem(person: Person): Specification<PersonEntity> = findCandidates(person).and(exactMatch(person.sourceSystemType.name, SOURCE_SYSTEM))
+fun findCandidatesBySourceSystem(person: Person): PersonQuery = PersonQuery(
+  queryName = PersonQueryType.FIND_CANDIDATES_BY_SOURCE_SYSTEM,
+  query = findCandidates(person).and(exactMatch(person.sourceSystemType.name, SOURCE_SYSTEM)),
+)
