@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConv
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import java.time.LocalDate
 
@@ -143,10 +144,15 @@ class PersonEntity(
     return this
   }
 
+  fun getReferencesOfType(type: IdentifierType): List<ReferenceEntity> {
+    return this.references.filter { it.identifierType == type }
+  }
+
   private fun updateChildEntities(person: Person) {
     updatePersonAddresses(person)
     updatePersonContacts(person)
     updatePersonAliases(person)
+    updatePersonReferences(person)
   }
 
   private fun updatePersonAddresses(person: Person) {
@@ -165,6 +171,12 @@ class PersonEntity(
     val personContacts = ContactEntity.fromList(person.contacts)
     personContacts.forEach { personContactEntity -> personContactEntity.person = this }
     this.contacts.addAll(personContacts)
+  }
+
+  private fun updatePersonReferences(person: Person) {
+    val personReferences = ReferenceEntity.fromList(person.references)
+    personReferences.forEach { personReferenceEntity -> personReferenceEntity.person = this }
+    this.references.addAll(personReferences)
   }
 
   companion object {

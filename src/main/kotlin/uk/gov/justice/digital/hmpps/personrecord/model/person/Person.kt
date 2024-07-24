@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -30,6 +31,7 @@ data class Person(
   val nationalInsuranceNumber: String? = null,
   val contacts: List<Contact> = emptyList(),
   val addresses: List<Address> = emptyList(),
+  val references: List<Reference> = emptyList(),
   val sourceSystemType: SourceSystemType,
 ) {
   companion object {
@@ -46,6 +48,11 @@ data class Person(
         Contact.from(ContactType.MOBILE, probationCase.contactDetails?.mobile),
         Contact.from(ContactType.EMAIL, probationCase.contactDetails?.email),
       )
+      val references: List<Reference> = listOf(
+        Reference.from(IdentifierType.CRO, probationCase.identifiers.cro?.croId),
+        Reference.from(IdentifierType.PNC, probationCase.identifiers.pnc?.pncId),
+        Reference.from(IdentifierType.NATIONAL_INSURANCE_NUMBER, probationCase.identifiers.nationalInsuranceNumber)
+      )
       return Person(
         title = probationCase.title?.value,
         firstName = probationCase.name.firstName,
@@ -53,14 +60,12 @@ data class Person(
         lastName = probationCase.name.lastName,
         dateOfBirth = probationCase.dateOfBirth,
         otherIdentifiers = OtherIdentifiers(
-          crn = probationCase.identifiers.crn,
-          pncIdentifier = probationCase.identifiers.pnc,
-          croIdentifier = probationCase.identifiers.cro,
+          crn = probationCase.identifiers.crn
         ),
-        nationalInsuranceNumber = probationCase.identifiers.nationalInsuranceNumber,
         aliases = probationCase.aliases?.map { Alias.from(it) } ?: emptyList(),
         addresses = probationCase.addresses.map { Address(it.postcode) },
         contacts = contacts,
+        references = references,
         sourceSystemType = DELIUS,
       )
     }
@@ -81,22 +86,24 @@ data class Person(
         )
       }
 
+      val references: List<Reference> = listOf(
+        Reference.from(IdentifierType.NATIONAL_INSURANCE_NUMBER, defendant.personDefendant?.personDetails?.nationalInsuranceNumber),
+        Reference.from(IdentifierType.DRIVER_LICENSE_NUMBER, defendant.personDefendant?.driverNumber),
+        Reference.from(IdentifierType.ARREST_SUMMONS_NUMBER, defendant.personDefendant?.arrestSummonsNumber),
+        Reference.from(IdentifierType.PNC, defendant.pncId?.pncId),
+        Reference.from(IdentifierType.CRO, defendant.cro?.croId),
+      )
+
       return Person(
-        otherIdentifiers = OtherIdentifiers(
-          pncIdentifier = defendant.pncId,
-          croIdentifier = defendant.cro,
-        ),
         firstName = defendant.personDefendant?.personDetails?.firstName,
         lastName = defendant.personDefendant?.personDetails?.lastName,
         middleNames = defendant.personDefendant?.personDetails?.middleName?.split(" "),
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
-        driverLicenseNumber = defendant.personDefendant?.driverNumber,
-        arrestSummonsNumber = defendant.personDefendant?.arrestSummonsNumber,
         defendantId = defendant.id,
         masterDefendantId = defendant.masterDefendantId,
-        nationalInsuranceNumber = defendant.personDefendant?.personDetails?.nationalInsuranceNumber,
         contacts = contacts,
         addresses = addresses,
+        references = references,
         aliases = defendant.aliases?.map { Alias.from(it) } ?: emptyList(),
         sourceSystemType = sourceSystemType,
       )
@@ -104,16 +111,17 @@ data class Person(
 
     fun from(libraHearingEvent: LibraHearingEvent): Person {
       val addresses = listOf(Address(libraHearingEvent.defendantAddress?.postcode))
+      val references = listOf(
+        Reference.from(IdentifierType.CRO, libraHearingEvent.cro?.croId),
+        Reference.from(IdentifierType.PNC, libraHearingEvent.pnc?.pncId)
+      )
       return Person(
         title = libraHearingEvent.name?.title,
-        otherIdentifiers = OtherIdentifiers(
-          pncIdentifier = libraHearingEvent.pnc,
-          croIdentifier = libraHearingEvent.cro,
-        ),
         firstName = libraHearingEvent.name?.firstName,
         lastName = libraHearingEvent.name?.lastName,
         dateOfBirth = libraHearingEvent.dateOfBirth,
         addresses = addresses,
+        references = references,
         sourceSystemType = LIBRA,
       )
     }
@@ -126,12 +134,14 @@ data class Person(
       )
       val contacts: List<Contact> = emails + phoneNumbers
       val addresses: List<Address> = prisoner.addresses.map { Address(it.postcode) }
+      val references = listOf(
+        Reference.from(IdentifierType.CRO, prisoner.cro?.croId),
+        Reference.from(IdentifierType.PNC, prisoner.pnc?.pncId),
+      )
 
       return Person(
         otherIdentifiers = OtherIdentifiers(
           prisonNumber = prisoner.prisonNumber,
-          pncIdentifier = prisoner.pnc,
-          croIdentifier = prisoner.cro,
         ),
         title = prisoner.title,
         firstName = prisoner.firstName,
@@ -141,6 +151,7 @@ data class Person(
         aliases = prisoner.aliases.map { Alias.from(it) } ?: emptyList(),
         contacts = contacts,
         addresses = addresses,
+        references = references,
         sourceSystemType = NOMIS,
       )
     }
