@@ -60,6 +60,10 @@ class PersonEntity(
   var contacts: MutableList<ContactEntity> = mutableListOf(),
 
   @Column
+  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  var references: MutableList<ReferenceEntity> = mutableListOf(),
+
+  @Column
   @Convert(converter = PNCIdentifierConverter::class)
   var pnc: PNCIdentifier? = null,
 
