@@ -11,11 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.P
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.exactMatch
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 
-data class PersonQuery(
-  val queryName: PersonQueryType,
-  val query: Specification<PersonEntity>
-)
-
 private fun findCandidates(person: Person): Specification<PersonEntity> {
   val postcodes = person.addresses.mapNotNull { it.postcode }.toSet()
 
