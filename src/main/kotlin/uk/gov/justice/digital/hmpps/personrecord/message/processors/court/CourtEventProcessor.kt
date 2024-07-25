@@ -83,8 +83,8 @@ class CourtEventProcessor(
     telemetryService.trackEvent(
       MESSAGE_RECEIVED,
       mapOf(
-        EventKeys.PNC to person.references.first { it.identifierType == IdentifierType.PNC }.identifierValue.toString(),
-        EventKeys.CRO to person.references.first { it.identifierType == IdentifierType.CRO }.identifierValue,
+        EventKeys.PNC to person.references.filter { it.identifierType == IdentifierType.PNC }.map { it.identifierValue }.joinToString(),
+        EventKeys.CRO to person.references.filter { it.identifierType == IdentifierType.CRO }.map { it.identifierValue }.joinToString(),
         EventKeys.EVENT_TYPE to LIBRA_COURT_CASE.name,
         EventKeys.MESSAGE_ID to sqsMessage.messageId,
         EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
