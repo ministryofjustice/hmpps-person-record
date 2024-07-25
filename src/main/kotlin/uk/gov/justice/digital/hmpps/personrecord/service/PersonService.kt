@@ -91,6 +91,7 @@ class PersonService(
     personEntity.pseudonyms.clear()
     personEntity.addresses.clear()
     personEntity.contacts.clear()
+    personEntity.references.clear()
     return personRepository.saveAndFlush(personEntity)
   }
 

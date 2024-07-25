@@ -304,7 +304,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       Person(
         references = listOf(
           Reference(IdentifierType.CRO, cro),
-          Reference(IdentifierType.CRO, randomCro())
+          Reference(IdentifierType.CRO, randomCro()),
         ),
         sourceSystemType = COMMON_PLATFORM,
       ),
