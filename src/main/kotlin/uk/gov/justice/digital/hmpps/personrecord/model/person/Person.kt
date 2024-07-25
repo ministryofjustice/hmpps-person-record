@@ -109,8 +109,8 @@ data class Person(
     fun from(libraHearingEvent: LibraHearingEvent): Person {
       val addresses = listOf(Address(libraHearingEvent.defendantAddress?.postcode))
       val references = listOf(
-        Reference.from(IdentifierType.CRO, libraHearingEvent.cro?.croId),
-        Reference.from(IdentifierType.PNC, libraHearingEvent.pnc?.pncId),
+        Reference.from(IdentifierType.CRO, libraHearingEvent.cro?.toString()),
+        Reference.from(IdentifierType.PNC, libraHearingEvent.pnc?.toString()),
       )
       return Person(
         title = libraHearingEvent.name?.title,
