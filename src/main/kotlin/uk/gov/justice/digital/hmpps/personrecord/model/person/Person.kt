@@ -132,8 +132,8 @@ data class Person(
       val contacts: List<Contact> = emails + phoneNumbers
       val addresses: List<Address> = prisoner.addresses.map { Address(it.postcode) }
       val references = listOf(
-        Reference.from(IdentifierType.CRO, prisoner.cro?.croId),
-        Reference.from(IdentifierType.PNC, prisoner.pnc?.pncId),
+        Reference.from(IdentifierType.CRO, prisoner.cro?.toString()),
+        Reference.from(IdentifierType.PNC, prisoner.pnc?.toString()),
       )
 
       return Person(

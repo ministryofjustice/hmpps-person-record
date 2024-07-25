@@ -70,7 +70,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
     val popSeven = personRepository.findByCrn(crnSeven)!!
     assertThat(popSeven.firstName).isEqualTo("POPSevenFirstName")
     assertThat(popSeven.middleNames).isEqualTo("")
-    assertThat(popSeven.getReferencesOfType(IdentifierType.CRO).first().identifierValue).isEqualTo(emptyList<ReferenceEntity>())
+    assertThat(popSeven.getReferencesOfType(IdentifierType.CRO)).isEqualTo(emptyList<ReferenceEntity>())
     assertThat(popSeven.pseudonyms.size).isEqualTo(0)
   }
 
