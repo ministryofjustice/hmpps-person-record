@@ -25,10 +25,7 @@ data class Person(
   val defendantId: String? = null,
   val title: String? = null,
   val aliases: List<Alias> = emptyList(),
-  val driverLicenseNumber: String? = null,
-  val arrestSummonsNumber: String? = null,
   val masterDefendantId: String? = null,
-  val nationalInsuranceNumber: String? = null,
   val contacts: List<Contact> = emptyList(),
   val addresses: List<Address> = emptyList(),
   val references: List<Reference> = emptyList(),
@@ -51,7 +48,7 @@ data class Person(
       val references: List<Reference> = listOf(
         Reference.from(IdentifierType.CRO, probationCase.identifiers.cro?.croId),
         Reference.from(IdentifierType.PNC, probationCase.identifiers.pnc?.pncId),
-        Reference.from(IdentifierType.NATIONAL_INSURANCE_NUMBER, probationCase.identifiers.nationalInsuranceNumber)
+        Reference.from(IdentifierType.NATIONAL_INSURANCE_NUMBER, probationCase.identifiers.nationalInsuranceNumber),
       )
       return Person(
         title = probationCase.title?.value,
@@ -60,7 +57,7 @@ data class Person(
         lastName = probationCase.name.lastName,
         dateOfBirth = probationCase.dateOfBirth,
         otherIdentifiers = OtherIdentifiers(
-          crn = probationCase.identifiers.crn
+          crn = probationCase.identifiers.crn,
         ),
         aliases = probationCase.aliases?.map { Alias.from(it) } ?: emptyList(),
         addresses = probationCase.addresses.map { Address(it.postcode) },
@@ -113,7 +110,7 @@ data class Person(
       val addresses = listOf(Address(libraHearingEvent.defendantAddress?.postcode))
       val references = listOf(
         Reference.from(IdentifierType.CRO, libraHearingEvent.cro?.croId),
-        Reference.from(IdentifierType.PNC, libraHearingEvent.pnc?.pncId)
+        Reference.from(IdentifierType.PNC, libraHearingEvent.pnc?.pncId),
       )
       return Person(
         title = libraHearingEvent.name?.title,

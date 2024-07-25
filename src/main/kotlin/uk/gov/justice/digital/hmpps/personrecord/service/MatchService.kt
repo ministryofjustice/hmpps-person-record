@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
 
@@ -50,7 +51,7 @@ class MatchService(
       firstName = newRecord.firstName,
       lastname = newRecord.lastName,
       dateOfBirth = newRecord.dateOfBirth?.toString(),
-      pnc = newRecord.otherIdentifiers?.let { it.pncIdentifier?.pncId },
+      pnc = newRecord.references.firstOrNull { it.identifierType == IdentifierType.PNC }?.identifierValue,
     )
     val toMatchRecords: List<MatchingRecord> = candidateRecords.map { personEntity ->
       MatchingRecord(
@@ -58,7 +59,7 @@ class MatchService(
           firstName = personEntity.firstName,
           lastname = personEntity.firstName,
           dateOfBirth = personEntity.dateOfBirth?.toString(),
-          pnc = personEntity.pnc?.pncId,
+          pnc = personEntity.references.firstOrNull { it.identifierType == IdentifierType.PNC }?.identifierValue,
         ),
         personEntity = personEntity,
       )

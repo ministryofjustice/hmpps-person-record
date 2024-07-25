@@ -10,9 +10,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.onePrisoner
@@ -83,8 +83,8 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     assertThat(prisoner1.firstName).isEqualTo("PrisonerOneFirstName")
     assertThat(prisoner1.middleNames).isEqualTo("PrisonerOneMiddleNameOne PrisonerOneMiddleNameTwo")
     assertThat(prisoner1.lastName).isEqualTo("PrisonerOneLastName")
-    assertThat(prisoner1.pnc).isEqualTo(PNCIdentifier.from("2012/394773H"))
-    assertThat(prisoner1.cro).isEqualTo(CROIdentifier.from("29906/12J"))
+    assertThat(prisoner1.getReferencesOfType(IdentifierType.PNC).first().identifierValue).isEqualTo("2012/394773H")
+    assertThat(prisoner1.getReferencesOfType(IdentifierType.CRO).first().identifierValue).isEqualTo("29906/12J")
     assertThat(prisoner1.dateOfBirth).isEqualTo(LocalDate.of(1975, 4, 2))
     assertThat(prisoner1.pseudonyms[0].firstName).isEqualTo("PrisonerOneAliasOneFirstName")
     assertThat(prisoner1.pseudonyms[0].middleNames).isEqualTo("PrisonerOneAliasOneMiddleNameOne PrisonerOneAliasOneMiddleNameTwo")
@@ -112,7 +112,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     val prisoner7 = personRepository.findByPrisonNumberAndSourceSystem(prisonNumberSeven)!!
     assertThat(prisoner7.firstName).isEqualTo("PrisonerSevenFirstName")
     assertThat(prisoner7.middleNames).isEqualTo("")
-    assertThat(prisoner7.cro).isEqualTo(CROIdentifier.from(""))
+    assertThat(prisoner7.getReferencesOfType(IdentifierType.CRO).first().identifierValue).isEqualTo(emptyList<ReferenceEntity>())
   }
 
   @Test

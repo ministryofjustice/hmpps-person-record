@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraH
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
@@ -82,8 +83,8 @@ class CourtEventProcessor(
     telemetryService.trackEvent(
       MESSAGE_RECEIVED,
       mapOf(
-        EventKeys.PNC to person.otherIdentifiers?.pncIdentifier.toString(),
-        EventKeys.CRO to person.otherIdentifiers?.croIdentifier.toString(),
+        EventKeys.PNC to person.references.first { it.identifierType == IdentifierType.PNC }.identifierValue.toString(),
+        EventKeys.CRO to person.references.first { it.identifierType == IdentifierType.CRO }.identifierValue,
         EventKeys.EVENT_TYPE to LIBRA_COURT_CASE.name,
         EventKeys.MESSAGE_ID to sqsMessage.messageId,
         EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,

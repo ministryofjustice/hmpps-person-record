@@ -15,9 +15,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.Do
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CHANGED
@@ -55,9 +55,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.middleNames).isEqualTo("PreferredMiddleName")
     assertThat(personEntity.lastName).isEqualTo("${prefix}LastName")
     assertThat(personEntity.title).isEqualTo("Mr")
-    assertThat(personEntity.pnc).isEqualTo(PNCIdentifier(pnc))
+    assertThat(personEntity.getReferencesOfType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
     assertThat(personEntity.crn).isEqualTo(crn)
-    assertThat(personEntity.cro).isEqualTo(CROIdentifier.from(cro))
+    assertThat(personEntity.getReferencesOfType(IdentifierType.CRO).first().identifierValue).isEqualTo(cro)
     assertThat(personEntity.pseudonyms.size).isEqualTo(1)
     assertThat(personEntity.pseudonyms[0].firstName).isEqualTo("${prefix}FirstName")
     assertThat(personEntity.pseudonyms[0].middleNames).isEqualTo("MiddleName")
@@ -88,7 +88,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, null)
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
-    assertThat(personEntity.pnc?.pncId).isEqualTo("")
+    assertThat(personEntity.getReferencesOfType(IdentifierType.PNC)).isEqualTo(emptyList<ReferenceEntity>())
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
@@ -115,7 +115,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
-    assertThat(personEntity.pnc?.pncId).isEqualTo("")
+    assertThat(personEntity.getReferencesOfType(IdentifierType.PNC)).isEqualTo(emptyList<ReferenceEntity>())
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
@@ -198,7 +198,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val pnc = randomPnc()
     val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc)
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
-    assertThat(personEntity.pnc).isEqualTo(PNCIdentifier(pnc))
+    assertThat(personEntity.getReferencesOfType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
@@ -208,7 +208,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
     val updatedPersonEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
-    assertThat(updatedPersonEntity.pnc).isEqualTo(PNCIdentifier(changedPnc))
+    assertThat(personEntity.getReferencesOfType(IdentifierType.PNC).first().identifierValue).isEqualTo(changedPnc)
   }
 
   private fun stub404Response(crn: String) {

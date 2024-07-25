@@ -11,11 +11,10 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
-import uk.gov.justice.digital.hmpps.personrecord.model.person.OtherIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
@@ -139,13 +138,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
   fun `should find candidate records on exact matches on PNC`() {
     val pnc = randomPnc()
     val personToFind = Person(
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(pnc)),
+      references = listOf(Reference(IdentifierType.PNC, pnc)),
       sourceSystemType = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(
       Person(
-        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(randomPnc())),
+        references = listOf(Reference(IdentifierType.PNC, randomPnc())),
         sourceSystemType = COMMON_PLATFORM,
       ),
     )
@@ -155,26 +154,19 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
-    assertThat(candidateRecords[0].candidateRecord.pnc).isEqualTo(PNCIdentifier.from(pnc))
+    assertThat(candidateRecords[0].candidateRecord.getReferencesOfType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
   }
 
   @Test
   fun `should not find candidates which only match on empty PNC`() {
-    val firstName = randomName()
     val personToFind = Person(
-      firstName = firstName,
-      lastName = randomName(),
-      dateOfBirth = LocalDate.of(1975, 2, 1),
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("")),
+      references = listOf(Reference(IdentifierType.PNC, "")),
       sourceSystemType = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(
       Person(
-        firstName = randomName(),
-        lastName = randomName(),
-        dateOfBirth = LocalDate.of(1975, 2, 1),
-        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("")),
+        references = listOf(Reference(IdentifierType.PNC, "")),
         sourceSystemType = COMMON_PLATFORM,
       ),
     )
@@ -183,21 +175,20 @@ class SearchServiceIntTest : IntegrationTestBase() {
     stubMatchScore(matchResponse)
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
 
-    assertThat(candidateRecords.size).isEqualTo(1)
-    assertThat(candidateRecords[0].candidateRecord.firstName).isEqualTo(firstName)
+    assertThat(candidateRecords.size).isEqualTo(0)
   }
 
   @Test
   fun `should find candidate records on exact matches on driver license number`() {
     val driverLicenseNumber = randomDriverLicenseNumber()
     val personToFind = Person(
-      driverLicenseNumber = driverLicenseNumber,
+      references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
       sourceSystemType = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(
       Person(
-        driverLicenseNumber = randomDriverLicenseNumber(),
+        references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, randomDriverLicenseNumber())),
         sourceSystemType = COMMON_PLATFORM,
       ),
     )
@@ -207,20 +198,20 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
-    assertThat(candidateRecords[0].candidateRecord.driverLicenseNumber).isEqualTo(driverLicenseNumber)
+    assertThat(candidateRecords[0].candidateRecord.getReferencesOfType(IdentifierType.DRIVER_LICENSE_NUMBER).first().identifierValue).isEqualTo(driverLicenseNumber)
   }
 
   @Test
   fun `should find candidate records with a uuid`() {
     val driverLicenseNumber = randomDriverLicenseNumber()
     val personToFind = Person(
-      driverLicenseNumber = driverLicenseNumber,
+      references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
       sourceSystemType = COMMON_PLATFORM,
     )
     createPersonWithUuid(personToFind)
     createPerson(
       Person(
-        driverLicenseNumber = driverLicenseNumber,
+        references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
         sourceSystemType = COMMON_PLATFORM,
       ),
     )
@@ -230,20 +221,20 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
-    assertThat(candidateRecords[0].candidateRecord.driverLicenseNumber).isEqualTo(driverLicenseNumber)
+    assertThat(candidateRecords[0].candidateRecord.getReferencesOfType(IdentifierType.DRIVER_LICENSE_NUMBER).first().identifierValue).isEqualTo(driverLicenseNumber)
   }
 
   @Test
   fun `should not find candidate records with no uuid`() {
     val driverLicenseNumber = randomDriverLicenseNumber()
     val personToFind = Person(
-      driverLicenseNumber = driverLicenseNumber,
+      references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
       sourceSystemType = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(
       Person(
-        driverLicenseNumber = driverLicenseNumber,
+        references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
         sourceSystemType = COMMON_PLATFORM,
       ),
     )
@@ -256,13 +247,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
   fun `should find candidate records on exact matches on national insurance number`() {
     val nationalInsuranceNumber = randomNationalInsuranceNumber()
     val personToFind = Person(
-      nationalInsuranceNumber = nationalInsuranceNumber,
+      references = listOf(Reference(IdentifierType.NATIONAL_INSURANCE_NUMBER, nationalInsuranceNumber)),
       sourceSystemType = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(
       Person(
-        nationalInsuranceNumber = "RF9876543C",
+        references = listOf(Reference(IdentifierType.NATIONAL_INSURANCE_NUMBER, "RF9876543C")),
         sourceSystemType = COMMON_PLATFORM,
       ),
     )
@@ -272,20 +263,20 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
-    assertThat(candidateRecords[0].candidateRecord.nationalInsuranceNumber).isEqualTo(nationalInsuranceNumber)
+    assertThat(candidateRecords[0].candidateRecord.getReferencesOfType(IdentifierType.NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(nationalInsuranceNumber)
   }
 
   @Test
   fun `should find candidate records on exact matches on CRO`() {
     val cro = randomCro()
     val personToFind = Person(
-      otherIdentifiers = OtherIdentifiers(croIdentifier = CROIdentifier.from(cro)),
+      references = listOf(Reference(IdentifierType.CRO, cro)),
       sourceSystemType = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(
       Person(
-        otherIdentifiers = OtherIdentifiers(croIdentifier = CROIdentifier.from(randomCro())),
+        references = listOf(Reference(IdentifierType.CRO, randomCro())),
         sourceSystemType = COMMON_PLATFORM,
       ),
     )
@@ -295,7 +286,36 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
-    assertThat(candidateRecords[0].candidateRecord.cro).isEqualTo(CROIdentifier.from(cro))
+    assertThat(candidateRecords[0].candidateRecord.getReferencesOfType(IdentifierType.CRO).first().identifierValue).isEqualTo(cro)
+  }
+
+  @Test
+  fun `should find candidate records when multiple reference exact matches on CRO`() {
+    val cro = randomCro()
+    val searchingPerson = Person(
+      references = listOf(
+        Reference(IdentifierType.CRO, randomCro()),
+        Reference(IdentifierType.CRO, randomCro()),
+        Reference(IdentifierType.CRO, cro),
+      ),
+      sourceSystemType = COMMON_PLATFORM,
+    )
+    createPerson(
+      Person(
+        references = listOf(
+          Reference(IdentifierType.CRO, cro),
+          Reference(IdentifierType.CRO, randomCro())
+        ),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
+    )
+
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    stubMatchScore(matchResponse)
+    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
+
+    assertThat(candidateRecords.size).isEqualTo(1)
+    assertThat(candidateRecords[0].candidateRecord.references.firstOrNull { it.identifierValue == cro }).isNotNull()
   }
 
   @Test
@@ -562,14 +582,14 @@ class SearchServiceIntTest : IntegrationTestBase() {
   fun `should order multiple matches descending`() {
     val pnc = randomPnc()
     val personToFind = Person(
-      otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from(pnc)),
+      references = listOf(Reference(IdentifierType.PNC, pnc)),
       sourceSystemType = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(personToFind)
     createPerson(
       Person(
-        otherIdentifiers = OtherIdentifiers(pncIdentifier = PNCIdentifier.from("1981/0154257C")),
+        references = listOf(Reference(IdentifierType.PNC, "1981/0154257C")),
         sourceSystemType = COMMON_PLATFORM,
       ),
     )
@@ -584,9 +604,9 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(2)
-    assertThat(candidateRecords[0].candidateRecord.pnc).isEqualTo(PNCIdentifier.from(pnc))
+    assertThat(candidateRecords[0].candidateRecord.getReferencesOfType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
     assertThat(candidateRecords[0].probability).isEqualTo(0.999999911)
-    assertThat(candidateRecords[1].candidateRecord.pnc).isEqualTo(PNCIdentifier.from(pnc))
+    assertThat(candidateRecords[1].candidateRecord.getReferencesOfType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
     assertThat(candidateRecords[1].probability).isEqualTo(0.9999999)
   }
 
