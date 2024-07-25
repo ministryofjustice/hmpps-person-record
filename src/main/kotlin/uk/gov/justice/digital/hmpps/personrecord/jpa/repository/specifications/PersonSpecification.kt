@@ -39,7 +39,7 @@ object PersonSpecification {
     return Specification { root, _, criteriaBuilder ->
       references.takeIf { it.isNotEmpty() }?.let {
         val referencesJoin: Join<PersonEntity, ReferenceEntity> = root.join("references", INNER)
-        val referencePredicates = references.mapNotNull { reference ->
+        val referencePredicates = references.map { reference ->
           criteriaBuilder.and(
             criteriaBuilder.equal(referencesJoin.get<IdentifierType>(IDENTIFIER_TYPE), reference.identifierType),
             criteriaBuilder.equal(referencesJoin.get<String>(IDENTIFIER_VALUE), reference.identifierValue),

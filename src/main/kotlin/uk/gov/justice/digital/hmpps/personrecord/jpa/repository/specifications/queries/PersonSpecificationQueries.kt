@@ -15,8 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 private fun findCandidates(person: Person): Specification<PersonEntity> {
   val postcodes = person.addresses.mapNotNull { it.postcode }.toSet()
   val references = person.references.filter {
-    listOf(PNC, CRO, NATIONAL_INSURANCE_NUMBER, DRIVER_LICENSE_NUMBER).contains(it.identifierType)
-      && !it.identifierValue.isNullOrEmpty()
+    listOf(PNC, CRO, NATIONAL_INSURANCE_NUMBER, DRIVER_LICENSE_NUMBER).contains(it.identifierType) && !it.identifierValue.isNullOrEmpty()
   }
 
   val soundexFirstLastName = Specification.where(
