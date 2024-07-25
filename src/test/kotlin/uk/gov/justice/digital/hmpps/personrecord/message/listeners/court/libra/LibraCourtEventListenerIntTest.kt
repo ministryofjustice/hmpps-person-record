@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.SEARCH_VERSION
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.PersonQueryType
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -135,6 +136,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         "RECORD_COUNT" to "1",
         "HIGH_CONFIDENCE_COUNT" to "1",
         "LOW_CONFIDENCE_COUNT" to "0",
+        "QUERY" to PersonQueryType.FIND_CANDIDATES_BY_SOURCE_SYSTEM.name
       ),
     )
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
