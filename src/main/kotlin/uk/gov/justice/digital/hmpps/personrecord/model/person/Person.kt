@@ -33,6 +33,13 @@ data class Person(
   val sourceSystemType: SourceSystemType,
 ) {
   companion object {
+    fun List<Reference>.getType(type: IdentifierType): List<Reference> {
+      return this.filter { it.identifierType == type }
+    }
+
+    fun List<Reference>.toString(): String {
+      return this.joinToString { it.identifierValue.toString() }
+    }
 
     fun from(person: Person): PersonKeyEntity {
       return PersonKeyEntity(

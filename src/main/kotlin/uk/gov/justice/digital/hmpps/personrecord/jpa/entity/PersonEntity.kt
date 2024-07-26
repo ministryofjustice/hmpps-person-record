@@ -117,10 +117,6 @@ class PersonEntity(
     return this
   }
 
-  fun getReferencesOfType(type: IdentifierType): List<ReferenceEntity> {
-    return this.references.filter { it.identifierType == type }
-  }
-
   private fun updateChildEntities(person: Person) {
     updatePersonAddresses(person)
     updatePersonContacts(person)
@@ -153,6 +149,10 @@ class PersonEntity(
   }
 
   companion object {
+    fun List<ReferenceEntity>.getType(type: IdentifierType): List<ReferenceEntity> {
+      return this.filter { it.identifierType == type }
+    }
+
     fun from(person: Person): PersonEntity {
       val personEntity = PersonEntity(
         title = person.title,
