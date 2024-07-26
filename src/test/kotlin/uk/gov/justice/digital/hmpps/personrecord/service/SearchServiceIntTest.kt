@@ -294,9 +294,9 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val cro = randomCro()
     val searchingPerson = Person(
       references = listOf(
-        Reference(IdentifierType.CRO, randomCro()),
-        Reference(IdentifierType.CRO, randomCro()),
         Reference(IdentifierType.CRO, cro),
+        Reference(IdentifierType.CRO, randomCro()),
+        Reference(IdentifierType.CRO, randomCro()),
       ),
       sourceSystemType = COMMON_PLATFORM,
     )
@@ -315,7 +315,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
-    assertThat(candidateRecords[0].candidateRecord.references.firstOrNull { it.identifierValue == cro }).isNotNull()
+    assertThat(candidateRecords[0].candidateRecord.references.firstOrNull { it.identifierValue == cro }?.identifierValue).isEqualTo(cro)
   }
 
   @Test
