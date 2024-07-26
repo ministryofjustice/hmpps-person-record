@@ -110,8 +110,8 @@ class PersonEntity(
     this.lastName = person.lastName
     this.dateOfBirth = person.dateOfBirth
     this.defendantId = person.defendantId
-    this.crn = person.otherIdentifiers?.crn
-    this.prisonNumber = person.otherIdentifiers?.prisonNumber
+    this.crn = person.crn
+    this.prisonNumber = person.prisonNumber
     this.masterDefendantId = person.masterDefendantId
     updateChildEntities(person)
     return this
@@ -161,8 +161,8 @@ class PersonEntity(
         lastName = person.lastName,
         dateOfBirth = person.dateOfBirth,
         defendantId = person.defendantId,
-        crn = person.otherIdentifiers?.crn,
-        prisonNumber = person.otherIdentifiers?.prisonNumber,
+        crn = person.crn,
+        prisonNumber = person.prisonNumber,
         masterDefendantId = person.masterDefendantId,
         sourceSystem = person.sourceSystemType,
       )

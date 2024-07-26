@@ -21,7 +21,8 @@ data class Person(
   val middleNames: List<String>? = emptyList(),
   val lastName: String? = null,
   val dateOfBirth: LocalDate? = null,
-  val otherIdentifiers: OtherIdentifiers? = null,
+  val crn: String? = null,
+  var prisonNumber: String? = null,
   val defendantId: String? = null,
   val title: String? = null,
   val aliases: List<Alias> = emptyList(),
@@ -56,9 +57,7 @@ data class Person(
         middleNames = probationCase.name.middleNames?.split(" ") ?: emptyList(),
         lastName = probationCase.name.lastName,
         dateOfBirth = probationCase.dateOfBirth,
-        otherIdentifiers = OtherIdentifiers(
-          crn = probationCase.identifiers.crn,
-        ),
+        crn = probationCase.identifiers.crn,
         aliases = probationCase.aliases?.map { Alias.from(it) } ?: emptyList(),
         addresses = probationCase.addresses.map { Address(it.postcode) },
         contacts = contacts,
@@ -137,9 +136,7 @@ data class Person(
       )
 
       return Person(
-        otherIdentifiers = OtherIdentifiers(
-          prisonNumber = prisoner.prisonNumber,
-        ),
+        prisonNumber = prisoner.prisonNumber,
         title = prisoner.title,
         firstName = prisoner.firstName,
         middleNames = prisoner.middleNames?.split(" ") ?: emptyList(),
