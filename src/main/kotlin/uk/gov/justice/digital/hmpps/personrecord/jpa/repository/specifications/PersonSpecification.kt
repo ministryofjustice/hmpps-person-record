@@ -10,11 +10,17 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import java.time.LocalDate
 
 object PersonSpecification {
 
   const val SEARCH_VERSION = "1.5"
+
+  val SEARCH_IDENTIFIERS = listOf(PNC, CRO, NATIONAL_INSURANCE_NUMBER, DRIVER_LICENSE_NUMBER)
 
   const val FIRST_NAME = "firstName"
   const val LAST_NAME = "lastName"

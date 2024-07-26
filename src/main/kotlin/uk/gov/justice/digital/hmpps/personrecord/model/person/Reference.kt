@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model.person
 
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 
-class Reference(
+data class Reference(
   val identifierType: IdentifierType,
   val identifierValue: String? = null,
 ) {

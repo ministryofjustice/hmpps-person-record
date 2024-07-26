@@ -7,16 +7,10 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.P
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.exactMatch
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.exactMatchReferences
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 
 private fun findCandidates(person: Person): Specification<PersonEntity> {
   val postcodes = person.addresses.mapNotNull { it.postcode }.toSet()
-  val references = person.references.filter {
-    listOf(PNC, CRO, NATIONAL_INSURANCE_NUMBER, DRIVER_LICENSE_NUMBER).contains(it.identifierType) && !it.identifierValue.isNullOrEmpty()
-  }
+  val references = person.references.filter { PersonSpecification.SEARCH_IDENTIFIERS.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }
 
   val soundexFirstLastName = Specification.where(
     PersonSpecification.soundex(person.firstName, PersonSpecification.FIRST_NAME)
