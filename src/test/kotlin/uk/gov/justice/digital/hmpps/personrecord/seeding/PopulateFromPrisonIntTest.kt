@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -83,7 +84,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     assertThat(prisoner1.firstName).isEqualTo("PrisonerOneFirstName")
     assertThat(prisoner1.middleNames).isEqualTo("PrisonerOneMiddleNameOne PrisonerOneMiddleNameTwo")
     assertThat(prisoner1.lastName).isEqualTo("PrisonerOneLastName")
-    assertThat(prisoner1.getReferencesOfType(IdentifierType.CRO).first().identifierValue).isEqualTo("029906/12J")
+    assertThat(prisoner1.references.getType(IdentifierType.CRO).first().identifierValue).isEqualTo("029906/12J")
     assertThat(prisoner1.dateOfBirth).isEqualTo(LocalDate.of(1975, 4, 2))
     assertThat(prisoner1.pseudonyms[0].firstName).isEqualTo("PrisonerOneAliasOneFirstName")
     assertThat(prisoner1.pseudonyms[0].middleNames).isEqualTo("PrisonerOneAliasOneMiddleNameOne PrisonerOneAliasOneMiddleNameTwo")
@@ -111,7 +112,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     val prisoner7 = personRepository.findByPrisonNumberAndSourceSystem(prisonNumberSeven)!!
     assertThat(prisoner7.firstName).isEqualTo("PrisonerSevenFirstName")
     assertThat(prisoner7.middleNames).isEqualTo("")
-    assertThat(prisoner7.getReferencesOfType(IdentifierType.CRO)).isEqualTo(emptyList<ReferenceEntity>())
+    assertThat(prisoner7.references.getType(IdentifierType.CRO)).isEqualTo(emptyList<ReferenceEntity>())
   }
 
   @Test
