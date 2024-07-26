@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
-data class CROIdentifier(val croId: String, val fingerprint: Boolean, val inputCro: String = EMPTY_CRO) {
+data class CROIdentifier(val croId: String) {
 
   val valid: Boolean
     get() = croId.isNotEmpty()
@@ -17,23 +17,22 @@ data class CROIdentifier(val croId: String, val fingerprint: Boolean, val inputC
     private val SF_CRO_REGEX = Regex("^SF\\d{2}/\\d{1,$SERIAL_NUM_LENGTH}[A-Z]\$")
     private val CRO_REGEX = Regex("^\\d{1,$SERIAL_NUM_LENGTH}/\\d{2}[A-Z]\$")
 
-    private fun invalidCro(inputCroId: String = EMPTY_CRO): CROIdentifier =
-      CROIdentifier(EMPTY_CRO, false, inputCroId)
+    private fun invalidCro(): CROIdentifier = CROIdentifier(EMPTY_CRO)
 
     fun from(inputCroId: String? = EMPTY_CRO): CROIdentifier =
       when {
         inputCroId.isNullOrEmpty() -> invalidCro()
         isSfFormat(inputCroId) -> canonicalSfFormat(inputCroId)
         isStandardFormat(inputCroId) -> canonicalStandardFormat(inputCroId)
-        else -> invalidCro(inputCroId)
+        else -> invalidCro()
       }
 
     private fun canonicalStandardFormat(inputCroId: String): CROIdentifier {
       val checkChar = inputCroId.takeLast(1).single()
       val (serialNum, yearDigits) = inputCroId.dropLast(1).split(SLASH) // splits into [NNNNNN, YY and drops D]
       return when {
-        correctModulus(checkChar, padSerialNumber(serialNum), yearDigits) -> CROIdentifier(format(checkChar, serialNum, yearDigits), true)
-        else -> invalidCro(inputCroId)
+        correctModulus(checkChar, padSerialNumber(serialNum), yearDigits) -> CROIdentifier(formatStandard(checkChar, serialNum, yearDigits))
+        else -> invalidCro()
       }
     }
 
@@ -41,15 +40,17 @@ data class CROIdentifier(val croId: String, val fingerprint: Boolean, val inputC
       val checkChar = inputCroId.takeLast(1).single()
       val (yearDigits, serialNum) = inputCroId.drop(2).dropLast(1).split(SLASH) // splits into [YY, NNNNNN and drops D]
       return when {
-        correctModulus(checkChar, serialNum, yearDigits) -> CROIdentifier(format(checkChar, serialNum, yearDigits), false)
-        else -> invalidCro(inputCroId)
+        correctModulus(checkChar, serialNum, yearDigits) -> CROIdentifier(formatSF(checkChar, serialNum, yearDigits))
+        else -> invalidCro()
       }
     }
 
     private fun correctModulus(checkChar: Char, serialNum: String, yearDigits: String): Boolean =
       checkChar == VALID_LETTERS[(yearDigits + serialNum).toInt().mod(VALID_LETTERS.length)]
 
-    private fun format(checkChar: Char, serialNum: String, yearDigits: String) = "${padSerialNumber(serialNum)}/$yearDigits$checkChar"
+    private fun formatStandard(checkChar: Char, serialNum: String, yearDigits: String) = "${padSerialNumber(serialNum)}/$yearDigits$checkChar"
+
+    private fun formatSF(checkChar: Char, serialNum: String, yearDigits: String) = "SF$yearDigits/$serialNum$checkChar"
 
     const val VALID_LETTERS = "ZABCDEFGHJKLMNPQRTUVWXY"
 

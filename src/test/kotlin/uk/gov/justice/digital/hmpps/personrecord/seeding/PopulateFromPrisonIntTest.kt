@@ -86,12 +86,12 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     assertThat(prisoner1.pnc).isEqualTo(PNCIdentifier.from("2012/394773H"))
     assertThat(prisoner1.cro).isEqualTo(CROIdentifier.from("29906/12J"))
     assertThat(prisoner1.dateOfBirth).isEqualTo(LocalDate.of(1975, 4, 2))
-    assertThat(prisoner1.aliases[0].firstName).isEqualTo("PrisonerOneAliasOneFirstName")
-    assertThat(prisoner1.aliases[0].middleNames).isEqualTo("PrisonerOneAliasOneMiddleNameOne PrisonerOneAliasOneMiddleNameTwo")
-    assertThat(prisoner1.aliases[0].lastName).isEqualTo("PrisonerOneAliasOneLastName")
-    assertThat(prisoner1.aliases[1].firstName).isEqualTo("PrisonerOneAliasTwoFirstName")
-    assertThat(prisoner1.aliases[1].middleNames).isEqualTo("PrisonerOneAliasTwoMiddleNameOne PrisonerOneAliasTwoMiddleNameTwo")
-    assertThat(prisoner1.aliases[1].lastName).isEqualTo("PrisonerOneAliasTwoLastName")
+    assertThat(prisoner1.pseudonyms[0].firstName).isEqualTo("PrisonerOneAliasOneFirstName")
+    assertThat(prisoner1.pseudonyms[0].middleNames).isEqualTo("PrisonerOneAliasOneMiddleNameOne PrisonerOneAliasOneMiddleNameTwo")
+    assertThat(prisoner1.pseudonyms[0].lastName).isEqualTo("PrisonerOneAliasOneLastName")
+    assertThat(prisoner1.pseudonyms[1].firstName).isEqualTo("PrisonerOneAliasTwoFirstName")
+    assertThat(prisoner1.pseudonyms[1].middleNames).isEqualTo("PrisonerOneAliasTwoMiddleNameOne PrisonerOneAliasTwoMiddleNameTwo")
+    assertThat(prisoner1.pseudonyms[1].lastName).isEqualTo("PrisonerOneAliasTwoLastName")
     assertThat(prisoner1.sourceSystem).isEqualTo(NOMIS)
 
     val prisoner2 = personRepository.findByPrisonNumberAndSourceSystem(prisonNumberTwo)!!
@@ -224,7 +224,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     assertThat(personRepository.findByPrisonNumberAndSourceSystem(prisonNumberFour)?.firstName).isEqualTo("PrisonerFourFirstName")
     assertThat(personRepository.findByPrisonNumberAndSourceSystem(prisonNumberFive)?.firstName).isEqualTo("PrisonerFiveFirstName")
     assertThat(personRepository.findByPrisonNumberAndSourceSystem(prisonNumberSix)?.firstName).isEqualTo("PrisonerSixFirstName")
-    assertThat(personRepository.findByPrisonNumberAndSourceSystem(prisonNumberSix)?.aliases?.size).isEqualTo(0)
+    assertThat(personRepository.findByPrisonNumberAndSourceSystem(prisonNumberSix)?.pseudonyms?.size).isEqualTo(0)
     assertThat(personRepository.findByPrisonNumberAndSourceSystem(prisonNumberSeven)?.firstName).isEqualTo("PrisonerSevenFirstName")
   }
 

@@ -49,7 +49,7 @@ class PersonEntity(
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
-  var aliases: MutableList<AliasEntity> = mutableListOf(),
+  var pseudonyms: MutableList<PseudonymEntity> = mutableListOf(),
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
@@ -58,6 +58,10 @@ class PersonEntity(
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
   var contacts: MutableList<ContactEntity> = mutableListOf(),
+
+  @Column
+  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  var references: MutableList<ReferenceEntity> = mutableListOf(),
 
   @Column
   @Convert(converter = PNCIdentifierConverter::class)
@@ -94,9 +98,6 @@ class PersonEntity(
   @Convert(converter = CROIdentifierConverter::class)
   var cro: CROIdentifier? = null,
 
-  @Column
-  var fingerprint: Boolean = false,
-
   @Column(name = "national_insurance_number")
   var nationalInsuranceNumber: String? = null,
 
@@ -108,6 +109,12 @@ class PersonEntity(
 
   @Column(name = "date_of_birth")
   var dateOfBirth: LocalDate? = null,
+
+  @Column
+  val sex: String? = null,
+
+  @Column
+  val ethnicity: String? = null,
 
   @Column
   @Enumerated(STRING)
@@ -127,7 +134,6 @@ class PersonEntity(
     this.pnc = person.otherIdentifiers?.pncIdentifier
     this.crn = person.otherIdentifiers?.crn
     this.cro = person.otherIdentifiers?.croIdentifier
-    this.fingerprint = person.otherIdentifiers?.croIdentifier?.fingerprint ?: false
     this.prisonNumber = person.otherIdentifiers?.prisonNumber
     this.driverLicenseNumber = person.driverLicenseNumber
     this.arrestSummonsNumber = person.arrestSummonsNumber
@@ -150,9 +156,9 @@ class PersonEntity(
   }
 
   private fun updatePersonAliases(person: Person) {
-    val personAliases = AliasEntity.fromList(person.aliases)
+    val personAliases = PseudonymEntity.fromList(person.aliases)
     personAliases.forEach { personAliasEntity -> personAliasEntity.person = this }
-    this.aliases.addAll(personAliases)
+    this.pseudonyms.addAll(personAliases)
   }
 
   private fun updatePersonContacts(person: Person) {
@@ -173,7 +179,6 @@ class PersonEntity(
         pnc = person.otherIdentifiers?.pncIdentifier,
         crn = person.otherIdentifiers?.crn,
         cro = person.otherIdentifiers?.croIdentifier,
-        fingerprint = person.otherIdentifiers?.croIdentifier?.fingerprint ?: false,
         prisonNumber = person.otherIdentifiers?.prisonNumber,
         driverLicenseNumber = person.driverLicenseNumber,
         arrestSummonsNumber = person.arrestSummonsNumber,
