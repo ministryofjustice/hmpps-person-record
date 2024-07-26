@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
@@ -70,8 +71,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.firstName).isEqualTo(prefix + "FirstName")
       assertThat(personEntity.middleNames).isEqualTo(prefix + "MiddleName1 " + prefix + "MiddleName2")
       assertThat(personEntity.lastName).isEqualTo(prefix + "LastName")
-      assertThat(personEntity.pnc).isEqualTo(PNCIdentifier.from(pnc))
-      assertThat(personEntity.cro).isEqualTo(CROIdentifier.from(cro))
+      assertThat(personEntity.getReferencesOfType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
+      assertThat(personEntity.getReferencesOfType(IdentifierType.CRO).first().identifierValue).isEqualTo(cro)
       assertThat(personEntity.dateOfBirth).isEqualTo(personDateOfBirth)
       assertThat(personEntity.pseudonyms.size).isEqualTo(1)
       assertThat(personEntity.pseudonyms[0].firstName).isEqualTo(prefix + "AliasFirstName")

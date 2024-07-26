@@ -9,8 +9,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.allProbationCasesResponse
@@ -69,7 +70,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
     val popSeven = personRepository.findByCrn(crnSeven)!!
     assertThat(popSeven.firstName).isEqualTo("POPSevenFirstName")
     assertThat(popSeven.middleNames).isEqualTo("")
-    assertThat(popSeven.cro).isEqualTo(CROIdentifier.from(""))
+    assertThat(popSeven.getReferencesOfType(IdentifierType.CRO)).isEqualTo(emptyList<ReferenceEntity>())
     assertThat(popSeven.pseudonyms.size).isEqualTo(0)
   }
 
