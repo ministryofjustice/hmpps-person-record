@@ -17,14 +17,6 @@ generic-service:
   scheduledDowntime:
     enabled: true
 
-  namespace_secrets:
-    sqs-cpr-court-case-events-temporary-secret:
-      HMPPS_SQS_QUEUES_CPRCOURTCASEEVENTSTEMPORARYQUEUE_QUEUE_NAME: "sqs_queue_name"
-    sqs-cpr-court-case-fifo-events-secret:
-      HMPPS_SQS_QUEUES_CPRCOURTEVENTSFIFOQUEUE_QUEUE_NAME: "sqs_queue_name"
-    court-case-events-fifo-topic:
-      HMPPS_SNS_TOPICS_COURTEVENTSFIFOTOPIC_TOPIC_ARN: "topic_arn"
-
 generic-prometheus-alerts:
   businessHoursOnly: true
   sqsOldestAlertQueueNames:
