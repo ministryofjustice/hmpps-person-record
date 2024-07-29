@@ -63,8 +63,20 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByTopicId("courtcaseeventstopic")
   }
 
+  internal val courtEventsFIFOTopic by lazy {
+    hmppsQueueService.findByTopicId("courteventsfifotopic")
+  }
+
   val courtEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprcourtcaseeventsqueue")
+  }
+
+  val courtEventsTemporaryQueue by lazy {
+    hmppsQueueService.findByQueueId("cprcourtcaseeventstemporaryqueue")
+  }
+
+  val courtEventsFIFOQueue by lazy {
+    hmppsQueueService.findByQueueId("cprcourteventsfifoqueue")
   }
 
   val probationEventsQueue by lazy {
@@ -75,25 +87,32 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId("cprnomiseventsqueue")
   }
 
+  internal fun publishCourtMessage(message: String, messageType: MessageType, topic: String = courtEventsTopic?.arn!!): String {
+    var messageBuilder = PublishRequest.builder()
+      .topicArn(topic)
+      .message(message)
+      .messageAttributes(
+        mapOf(
+          "messageType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(messageType.name).build(),
+          "messageId" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(UUID.randomUUID().toString()).build(),
+        ),
+      )
+    if (topic.contains(".fifo")) {
+      messageBuilder = messageBuilder.messageGroupId(UUID.randomUUID().toString())
+    }
+
+    val response: PublishResponse? = courtEventsTopic?.snsClient?.publish(messageBuilder.build())?.get()
+
+    expectNoMessagesOn(courtEventsQueue)
+    return response!!.messageId()
+  }
+
   private fun expectNoMessagesOn(queue: HmppsQueue?) {
     await untilCallTo {
       queue?.sqsClient?.countMessagesOnQueue(queue.queueUrl)?.get()
     } matches { it == 0 }
-  }
-
-  internal fun publishCourtMessage(message: String, messageType: MessageType): String {
-    val response = publishEvent(
-      message,
-      courtEventsTopic,
-      mapOf(
-        "messageType" to MessageAttributeValue.builder().dataType("String")
-          .stringValue(messageType.name).build(),
-        "messageId" to MessageAttributeValue.builder().dataType("String")
-          .stringValue(UUID.randomUUID().toString()).build(),
-      ),
-    )
-    expectNoMessagesOn(courtEventsQueue)
-    return response!!.messageId()
   }
 
   fun publishDomainEvent(eventType: String, domainEvent: DomainEvent): String {
@@ -217,6 +236,12 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     ).get()
     courtEventsQueue!!.sqsClient.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(courtEventsQueue!!.queueUrl).build(),
+    ).get()
+    courtEventsTemporaryQueue!!.sqsClient.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(courtEventsTemporaryQueue!!.queueUrl).build(),
+    ).get()
+    courtEventsFIFOQueue!!.sqsClient.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(courtEventsFIFOQueue!!.queueUrl).build(),
     ).get()
     probationEventsQueue!!.sqsClient.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(probationEventsQueue!!.queueUrl).build(),
