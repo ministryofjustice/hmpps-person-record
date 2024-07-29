@@ -10,9 +10,12 @@ import org.springframework.stereotype.Component
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.DEFENDANT_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.FIFO
@@ -22,7 +25,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DEFENDANT_RECEIVED
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
-import java.util.*
+import uk.gov.justice.hmpps.sqs.MissingTopicException
+import java.util.UUID
 
 const val CPR_COURT_EVENTS_TEMP_QUEUE_CONFIG_KEY = "cprcourtcaseeventstemporaryqueue"
 
@@ -34,6 +38,9 @@ class CourtEventTempListener(
   var hmppsQueueService: HmppsQueueService,
 
 ) {
+  private val topic = hmppsQueueService.findByTopicId("courteventsfifotopic")
+    ?: throw MissingTopicException("Could not find topic courteventsfifotopic")
+
   @SqsListener(CPR_COURT_EVENTS_TEMP_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
   @WithSpan(value = "hmpps-person-record-cpr_court_events_temporary_queue", kind = SERVER)
   fun onMessage(
@@ -43,8 +50,8 @@ class CourtEventTempListener(
 
     try {
       when (sqsMessage.getMessageType()) {
-        MessageType.COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
-        MessageType.LIBRA_COURT_CASE.name -> processLibraEvent(sqsMessage)
+        COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
+        else -> processLibraEvent(sqsMessage)
       }
     } catch (e: Exception) {
       telemetryService.trackEvent(
@@ -72,7 +79,7 @@ class CourtEventTempListener(
       telemetryService.trackEvent(
         DEFENDANT_RECEIVED,
         mapOf(
-          SOURCE_SYSTEM to SourceSystemType.COMMON_PLATFORM.name,
+          SOURCE_SYSTEM to COMMON_PLATFORM.name,
           DEFENDANT_ID to it.id,
           EVENT_TYPE to sqsMessage.getMessageType(),
           MESSAGE_ID to sqsMessage.messageId,
@@ -81,7 +88,7 @@ class CourtEventTempListener(
       )
     }
 
-    publishCourtMessage(sqsMessage.message, MessageType.COMMON_PLATFORM_HEARING) // republishing
+    republishCourtMessage(sqsMessage.message, COMMON_PLATFORM_HEARING)
   }
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
@@ -89,18 +96,18 @@ class CourtEventTempListener(
       DEFENDANT_RECEIVED,
       mapOf(
 
-        EVENT_TYPE to MessageType.LIBRA_COURT_CASE.name,
+        EVENT_TYPE to LIBRA_COURT_CASE.name,
         MESSAGE_ID to sqsMessage.messageId,
         SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
         FIFO to "false",
       ),
     )
-    publishCourtMessage(sqsMessage.message, MessageType.LIBRA_COURT_CASE)
+    republishCourtMessage(sqsMessage.message, LIBRA_COURT_CASE)
   }
 
-  private fun publishCourtMessage(message: String, messageType: MessageType, topic: String = hmppsQueueService.findByTopicId("courteventsfifotopic")?.arn!!) {
-    var messageBuilder = PublishRequest.builder()
-      .topicArn(topic)
+  private fun republishCourtMessage(message: String, messageType: MessageType) {
+    val messageBuilder = PublishRequest.builder()
+      .topicArn(topic.arn)
       .message(message)
       .messageAttributes(
         mapOf(
@@ -109,11 +116,8 @@ class CourtEventTempListener(
           "messageId" to MessageAttributeValue.builder().dataType("String")
             .stringValue(UUID.randomUUID().toString()).build(),
         ),
-      )
-    if (topic.contains(".fifo")) {
-      messageBuilder = messageBuilder.messageGroupId(UUID.randomUUID().toString())
-    }
+      ).messageGroupId(UUID.randomUUID().toString())
 
-    hmppsQueueService.findByTopicId("courteventsfifotopic")?.snsClient?.publish(messageBuilder.build())?.get()
+    topic.snsClient.publish(messageBuilder.build())?.get()
   }
 }
