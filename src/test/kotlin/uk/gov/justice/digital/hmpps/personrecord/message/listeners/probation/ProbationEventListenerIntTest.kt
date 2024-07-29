@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
-import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonReference
@@ -197,7 +196,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @ParameterizedTest
   @ValueSource(strings = [OFFENDER_DETAILS_CHANGED, OFFENDER_ALIAS_CHANGED, OFFENDER_ADDRESS_CHANGED])
   fun `should process probation events successfully`(event: String) {
-    stubMatchScore(MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999)))
     val pnc = randomPnc()
     val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc)
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
