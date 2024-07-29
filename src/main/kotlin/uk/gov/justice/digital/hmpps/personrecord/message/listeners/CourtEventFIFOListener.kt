@@ -16,9 +16,9 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.FIFO
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
-const val CPR_COURT_EVENTS_QUEUE_CONFIG_KEY = "cprcourteventsqueue"
+const val CPR_COURT_EVENTS_QUEUE_CONFIG_KEY = "cprcourteventsqueuefifo"
 
 @Component
 @Profile(value = ["preprod", "test"])
@@ -31,6 +31,7 @@ class CourtEventFIFOListener(
   fun onMessage(
     rawMessage: String,
   ) {
+    // at the moment this will have both Common Platform and LIBRA messages, we should distinguish
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
 
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(
@@ -44,7 +45,7 @@ class CourtEventFIFOListener(
       }
     uniqueDefendants.forEach {
       telemetryService.trackEvent(
-        MESSAGE_RECEIVED,
+        TelemetryEventType.MESSAGE_RECEIVED_COURT,
         mapOf(
           SOURCE_SYSTEM to SourceSystemType.COMMON_PLATFORM.name,
           DEFENDANT_ID to it.id,

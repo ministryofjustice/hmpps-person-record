@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED_COURT
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNum
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import java.util.UUID.randomUUID
 
-class CommonPlatformCourtEventFIFOListenerIntTest : MessagingMultiNodeTestBase() {
+class CourtEventFIFOListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should log telemetry for event consumed from FIFO queue`() {
@@ -22,7 +22,7 @@ class CommonPlatformCourtEventFIFOListenerIntTest : MessagingMultiNodeTestBase()
     val messageId = publishCourtMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = firstDefendantId, pnc = firstPnc))), COMMON_PLATFORM_HEARING, topic = courtEventsFIFOTopic?.arn!!)
 
     checkTelemetry(
-      MESSAGE_RECEIVED,
+      MESSAGE_RECEIVED_COURT,
       mapOf(
         "DEFENDANT_ID" to firstDefendantId,
         "MESSAGE_ID" to messageId,
@@ -74,7 +74,7 @@ class CommonPlatformCourtEventFIFOListenerIntTest : MessagingMultiNodeTestBase()
     )
 
     checkTelemetry(
-      MESSAGE_RECEIVED,
+      MESSAGE_RECEIVED_COURT,
       mapOf(
         "DEFENDANT_ID" to defendantId,
         "MESSAGE_ID" to firstMessageId,
@@ -84,7 +84,7 @@ class CommonPlatformCourtEventFIFOListenerIntTest : MessagingMultiNodeTestBase()
     )
 
     checkTelemetry(
-      MESSAGE_RECEIVED,
+      MESSAGE_RECEIVED_COURT,
       mapOf(
         "DEFENDANT_ID" to defendantId,
         "MESSAGE_ID" to secondMessageId,
@@ -138,7 +138,7 @@ class CommonPlatformCourtEventFIFOListenerIntTest : MessagingMultiNodeTestBase()
     )
 
     checkTelemetry(
-      MESSAGE_RECEIVED,
+      MESSAGE_RECEIVED_COURT,
       mapOf(
         "DEFENDANT_ID" to firstDefendantId,
         "MESSAGE_ID" to firstMessageId,
@@ -148,7 +148,7 @@ class CommonPlatformCourtEventFIFOListenerIntTest : MessagingMultiNodeTestBase()
     )
 
     checkTelemetry(
-      MESSAGE_RECEIVED,
+      MESSAGE_RECEIVED_COURT,
       mapOf(
         "DEFENDANT_ID" to secondDefendantId,
         "MESSAGE_ID" to secondMessageId,
