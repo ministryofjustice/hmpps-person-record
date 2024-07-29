@@ -76,7 +76,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   }
 
   val courtEventsFIFOQueue by lazy {
-    hmppsQueueService.findByQueueId("cprcourteventsqueuefifo")
+    hmppsQueueService.findByQueueId("cprcourteventsfifoqueue")
   }
 
   val probationEventsQueue by lazy {

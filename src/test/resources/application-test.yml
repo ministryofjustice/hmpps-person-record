@@ -35,7 +35,7 @@ hmpps.sqs:
     cprcourtcaseeventstemporaryqueue:
       queueName: cpr_court_case_events_temporary_queue
       subscribeTopicId: courtcaseeventstopic
-    cprcourteventsqueuefifo:
+    cprcourteventsfifoqueue:
       queueName: cpr_court_events_queue.fifo
       subscribeTopicId: courteventstopicfifo
       dlqName: cpr_court_events_queue_dlq.fifo

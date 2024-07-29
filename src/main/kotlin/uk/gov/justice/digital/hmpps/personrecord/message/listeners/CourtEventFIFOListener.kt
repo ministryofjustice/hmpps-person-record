@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DEFENDANT_RECEIVED
 
-const val CPR_COURT_EVENTS_FIFO_QUEUE_CONFIG_KEY = "cprcourteventsqueuefifo"
+const val CPR_COURT_EVENTS_FIFO_QUEUE_CONFIG_KEY = "cprcourteventsfifoqueue"
 
 @Component
 @Profile(value = ["preprod", "test"])
