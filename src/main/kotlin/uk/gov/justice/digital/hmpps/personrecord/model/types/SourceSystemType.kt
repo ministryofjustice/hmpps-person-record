@@ -5,6 +5,6 @@ enum class SourceSystemType {
   NOMIS,
   DELIUS,
   HMCTS,
-  LIBRA,
   COMMON_PLATFORM,
+  LIBRA,
 }
