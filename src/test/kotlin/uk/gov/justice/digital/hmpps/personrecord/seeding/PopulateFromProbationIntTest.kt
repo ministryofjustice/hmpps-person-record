@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -70,7 +71,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
     val popSeven = personRepository.findByCrn(crnSeven)!!
     assertThat(popSeven.firstName).isEqualTo("POPSevenFirstName")
     assertThat(popSeven.middleNames).isEqualTo("")
-    assertThat(popSeven.getReferencesOfType(IdentifierType.CRO)).isEqualTo(emptyList<ReferenceEntity>())
+    assertThat(popSeven.references.getType(IdentifierType.CRO)).isEqualTo(emptyList<ReferenceEntity>())
     assertThat(popSeven.pseudonyms.size).isEqualTo(0)
   }
 

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -154,7 +155,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
-    assertThat(candidateRecords[0].candidateRecord.getReferencesOfType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
+    assertThat(candidateRecords[0].candidateRecord.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
   }
 
   @Test
@@ -198,7 +199,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
-    assertThat(candidateRecords[0].candidateRecord.getReferencesOfType(IdentifierType.DRIVER_LICENSE_NUMBER).first().identifierValue).isEqualTo(driverLicenseNumber)
+    assertThat(candidateRecords[0].candidateRecord.references.getType(IdentifierType.DRIVER_LICENSE_NUMBER).first().identifierValue).isEqualTo(driverLicenseNumber)
   }
 
   @Test
@@ -221,7 +222,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
-    assertThat(candidateRecords[0].candidateRecord.getReferencesOfType(IdentifierType.DRIVER_LICENSE_NUMBER).first().identifierValue).isEqualTo(driverLicenseNumber)
+    assertThat(candidateRecords[0].candidateRecord.references.getType(IdentifierType.DRIVER_LICENSE_NUMBER).first().identifierValue).isEqualTo(driverLicenseNumber)
   }
 
   @Test
@@ -263,7 +264,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
-    assertThat(candidateRecords[0].candidateRecord.getReferencesOfType(IdentifierType.NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(nationalInsuranceNumber)
+    assertThat(candidateRecords[0].candidateRecord.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(nationalInsuranceNumber)
   }
 
   @Test
@@ -286,7 +287,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
-    assertThat(candidateRecords[0].candidateRecord.getReferencesOfType(IdentifierType.CRO).first().identifierValue).isEqualTo(cro)
+    assertThat(candidateRecords[0].candidateRecord.references.getType(IdentifierType.CRO).first().identifierValue).isEqualTo(cro)
   }
 
   @Test
@@ -604,9 +605,9 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(2)
-    assertThat(candidateRecords[0].candidateRecord.getReferencesOfType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
+    assertThat(candidateRecords[0].candidateRecord.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
     assertThat(candidateRecords[0].probability).isEqualTo(0.999999911)
-    assertThat(candidateRecords[1].candidateRecord.getReferencesOfType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
+    assertThat(candidateRecords[1].candidateRecord.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
     assertThat(candidateRecords[1].probability).isEqualTo(0.9999999)
   }
 

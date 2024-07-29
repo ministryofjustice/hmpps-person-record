@@ -110,15 +110,11 @@ class PersonEntity(
     this.lastName = person.lastName
     this.dateOfBirth = person.dateOfBirth
     this.defendantId = person.defendantId
-    this.crn = person.otherIdentifiers?.crn
-    this.prisonNumber = person.otherIdentifiers?.prisonNumber
+    this.crn = person.crn
+    this.prisonNumber = person.prisonNumber
     this.masterDefendantId = person.masterDefendantId
     updateChildEntities(person)
     return this
-  }
-
-  fun getReferencesOfType(type: IdentifierType): List<ReferenceEntity> {
-    return this.references.filter { it.identifierType == type }
   }
 
   private fun updateChildEntities(person: Person) {
@@ -153,6 +149,10 @@ class PersonEntity(
   }
 
   companion object {
+    fun List<ReferenceEntity>.getType(type: IdentifierType): List<ReferenceEntity> {
+      return this.filter { it.identifierType == type }
+    }
+
     fun from(person: Person): PersonEntity {
       val personEntity = PersonEntity(
         title = person.title,
@@ -161,8 +161,8 @@ class PersonEntity(
         lastName = person.lastName,
         dateOfBirth = person.dateOfBirth,
         defendantId = person.defendantId,
-        crn = person.otherIdentifiers?.crn,
-        prisonNumber = person.otherIdentifiers?.prisonNumber,
+        crn = person.crn,
+        prisonNumber = person.prisonNumber,
         masterDefendantId = person.masterDefendantId,
         sourceSystem = person.sourceSystemType,
       )
