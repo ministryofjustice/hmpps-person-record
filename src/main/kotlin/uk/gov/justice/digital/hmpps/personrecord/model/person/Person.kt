@@ -30,6 +30,14 @@ data class Person(
   val addresses: List<Address> = emptyList(),
   val references: List<Reference> = emptyList(),
   val sourceSystemType: SourceSystemType,
+  val nationalInsuranceNumber: String? = null,
+  val birthplace: String? = null,
+  val birthCountry: String? = null,
+  val nationality: String? = null,
+  val religion: String? = null,
+  val sexualOrientation: String? = null,
+  val sex: String? = null,
+
 ) {
   companion object {
 
@@ -130,10 +138,12 @@ data class Person(
         Contact.from(ContactType.MOBILE, prisoner.getMobilePhone()),
       )
       val contacts: List<Contact> = emails + phoneNumbers
-      val addresses: List<Address> = prisoner.addresses.map { Address(it.postcode) }
+      val addresses: List<Address> = prisoner.addresses.map { Address(it.postcode, it.fullAddress) }
       val references = listOf(
         Reference.from(IdentifierType.CRO, prisoner.cro?.toString()),
         Reference.from(IdentifierType.PNC, prisoner.pnc?.toString()),
+        Reference.from(IdentifierType.NATIONAL_INSURANCE_NUMBER, prisoner.nationalInsuranceNumber?.toString()),
+        Reference.from(IdentifierType.DRIVER_LICENSE_NUMBER, prisoner.driverLicenseNumber?.toString()),
       )
 
       return Person(
@@ -150,6 +160,12 @@ data class Person(
         addresses = addresses,
         references = references,
         sourceSystemType = NOMIS,
+        birthplace = prisoner.birthplace,
+        birthCountry = prisoner.birthCountry,
+        nationality = prisoner.nationality,
+        religion = prisoner.religion,
+        sexualOrientation = prisoner.sexualOrientation,
+        sex = prisoner.sex,
       )
     }
   }

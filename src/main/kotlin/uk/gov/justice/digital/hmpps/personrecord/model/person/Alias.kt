@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerA
 import java.time.LocalDate
 
 data class Alias(
+  val title: String? = null,
   val firstName: String? = null,
   val lastName: String? = null,
   val middleNames: String? = null,
@@ -32,6 +33,7 @@ data class Alias(
 
     fun from(alias: PrisonerAlias) =
       Alias(
+        title = alias.title,
         firstName = alias.firstName,
         middleNames = alias.middleNames,
         lastName = alias.lastName,

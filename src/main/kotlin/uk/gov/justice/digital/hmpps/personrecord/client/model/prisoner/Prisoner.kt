@@ -20,6 +20,12 @@ data class Prisoner(
   val firstName: String,
   val middleNames: String?,
   val lastName: String,
+  val birthplace: String?,
+  val birthCountry: String?,
+  val nationality: String?,
+  val religion: String?,
+  val sexualOrientation: String?,
+  val sex: String?,
   @JsonProperty("pncNumberCanonicalLong")
   @JsonDeserialize(using = PNCIdentifierDeserializer::class)
   val pnc: PNCIdentifier?,
@@ -31,6 +37,8 @@ data class Prisoner(
   val emailAddresses: List<EmailAddress> = emptyList(),
   val phoneNumbers: List<PhoneNumber> = emptyList(),
   val addresses: List<Address> = emptyList(),
+  val nationalInsuranceNumber: String?,
+  val driverLicenseNumber: String?,
 ) {
   fun getHomePhone(): String? {
     return phoneNumbers.firstOrNull { it.type?.contains("HOME") == true }?.number

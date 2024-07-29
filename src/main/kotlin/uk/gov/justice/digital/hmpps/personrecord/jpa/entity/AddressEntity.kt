@@ -44,7 +44,7 @@ class AddressEntity(
       if (address.postcode.isNullOrEmpty()) {
         return null
       }
-      return AddressEntity(postcode = address.postcode)
+      return AddressEntity(postcode = address.postcode, fullAddress = address.fullAddress)
     }
 
     fun fromList(addresses: List<Address>): List<AddressEntity> {
