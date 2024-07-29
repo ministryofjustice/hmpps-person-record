@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.type
 
 enum class TelemetryEventType(val eventName: String) {
-  MESSAGE_RECEIVED_COURT("CprCourtEventReceived"),
+  DEFENDANT_RECEIVED("CprDefendantEventReceived"),
   MESSAGE_RECEIVED("CprDomainEventReceived"),
   MATCH_CALL_FAILED("CprMatchCallFailed"),
   MESSAGE_PROCESSING_FAILED("CprMessageProcessingFailed"),

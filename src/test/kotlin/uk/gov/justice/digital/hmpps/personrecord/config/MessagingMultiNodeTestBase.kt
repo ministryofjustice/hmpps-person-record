@@ -71,6 +71,14 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId("cprcourtcaseeventsqueue")
   }
 
+  val courtEventsTemporaryQueue by lazy {
+    hmppsQueueService.findByQueueId("cprcourtcaseeventstemporaryqueue")
+  }
+
+  val courtEventsFIFOQueue by lazy {
+    hmppsQueueService.findByQueueId("cprcourteventsqueuefifo")
+  }
+
   val probationEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprdeliusoffendereventsqueue")
   }
@@ -228,6 +236,12 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     ).get()
     courtEventsQueue!!.sqsClient.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(courtEventsQueue!!.queueUrl).build(),
+    ).get()
+    courtEventsTemporaryQueue!!.sqsClient.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(courtEventsTemporaryQueue!!.queueUrl).build(),
+    ).get()
+    courtEventsFIFOQueue!!.sqsClient.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(courtEventsFIFOQueue!!.queueUrl).build(),
     ).get()
     probationEventsQueue!!.sqsClient.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(probationEventsQueue!!.queueUrl).build(),

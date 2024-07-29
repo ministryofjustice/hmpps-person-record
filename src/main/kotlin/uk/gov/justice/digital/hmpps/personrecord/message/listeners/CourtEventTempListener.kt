@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DEFENDANT_RECEIVED
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import java.util.*
 
@@ -27,7 +28,7 @@ const val CPR_COURT_EVENTS_TEMP_QUEUE_CONFIG_KEY = "cprcourtcaseeventstemporaryq
 
 @Component
 @Profile(value = ["preprod", "test"])
-class CourtEventFIFOTempListener(
+class CourtEventTempListener(
   val objectMapper: ObjectMapper,
   val telemetryService: TelemetryService,
   var hmppsQueueService: HmppsQueueService,
@@ -38,9 +39,26 @@ class CourtEventFIFOTempListener(
   fun onMessage(
     rawMessage: String,
   ) {
-    // at the moment this will have both Common Platform and LIBRA messages, we should distinguish
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
 
+    try {
+      when (sqsMessage.getMessageType()) {
+        MessageType.COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
+        MessageType.LIBRA_COURT_CASE.name -> processLibraEvent(sqsMessage)
+      }
+    } catch (e: Exception) {
+      telemetryService.trackEvent(
+        TelemetryEventType.MESSAGE_PROCESSING_FAILED,
+        mapOf(
+          EVENT_TYPE to sqsMessage.getMessageType(),
+          MESSAGE_ID to sqsMessage.messageId,
+        ),
+      )
+      println(e.message)
+    }
+  }
+
+  private fun processCommonPlatformHearingEvent(sqsMessage: SQSMessage) {
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(
       sqsMessage.message,
     )
@@ -52,7 +70,7 @@ class CourtEventFIFOTempListener(
       }
     uniqueDefendants.forEach {
       telemetryService.trackEvent(
-        TelemetryEventType.MESSAGE_RECEIVED_COURT,
+        DEFENDANT_RECEIVED,
         mapOf(
           SOURCE_SYSTEM to SourceSystemType.COMMON_PLATFORM.name,
           DEFENDANT_ID to it.id,
@@ -66,7 +84,21 @@ class CourtEventFIFOTempListener(
     publishCourtMessage(sqsMessage.message, MessageType.COMMON_PLATFORM_HEARING) // republishing
   }
 
-  internal fun publishCourtMessage(message: String, messageType: MessageType, topic: String = hmppsQueueService.findByTopicId("courteventstopicfifo")?.arn!!) {
+  private fun processLibraEvent(sqsMessage: SQSMessage) {
+    telemetryService.trackEvent(
+      DEFENDANT_RECEIVED,
+      mapOf(
+
+        EVENT_TYPE to MessageType.LIBRA_COURT_CASE.name,
+        MESSAGE_ID to sqsMessage.messageId,
+        SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
+        FIFO to "false",
+      ),
+    )
+    publishCourtMessage(sqsMessage.message, MessageType.LIBRA_COURT_CASE)
+  }
+
+  private fun publishCourtMessage(message: String, messageType: MessageType, topic: String = hmppsQueueService.findByTopicId("courteventstopicfifo")?.arn!!) {
     var messageBuilder = PublishRequest.builder()
       .topicArn(topic)
       .message(message)
