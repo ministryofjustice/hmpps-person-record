@@ -98,7 +98,7 @@ class CourtEventTempListener(
     publishCourtMessage(sqsMessage.message, MessageType.LIBRA_COURT_CASE)
   }
 
-  private fun publishCourtMessage(message: String, messageType: MessageType, topic: String = hmppsQueueService.findByTopicId("courteventstopicfifo")?.arn!!) {
+  private fun publishCourtMessage(message: String, messageType: MessageType, topic: String = hmppsQueueService.findByTopicId("courteventsfifotopic")?.arn!!) {
     var messageBuilder = PublishRequest.builder()
       .topicArn(topic)
       .message(message)
@@ -114,6 +114,6 @@ class CourtEventTempListener(
       messageBuilder = messageBuilder.messageGroupId(UUID.randomUUID().toString())
     }
 
-    hmppsQueueService.findByTopicId("courteventstopicfifo")?.snsClient?.publish(messageBuilder.build())?.get()
+    hmppsQueueService.findByTopicId("courteventsfifotopic")?.snsClient?.publish(messageBuilder.build())?.get()
   }
 }
