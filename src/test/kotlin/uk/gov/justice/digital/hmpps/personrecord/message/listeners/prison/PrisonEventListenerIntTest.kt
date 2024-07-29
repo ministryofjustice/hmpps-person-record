@@ -32,13 +32,21 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBirthCountry
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBirthPlace
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateOfBirth
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNationality
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligon
+import uk.gov.justice.digital.hmpps.personrecord.test.randomSex
+import uk.gov.justice.digital.hmpps.personrecord.test.randomSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
@@ -238,14 +246,14 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
           pnc = PNCIdentifier.from(randomPnc()),
           dateOfBirth = randomDateOfBirth(),
           emailAddresses = listOf(EmailAddress(randomEmail())),
-          birthplace = "Birmingham",
-          birthCountry = "United Kingdom",
-          nationality = "British",
-          religion = "Christianity",
-          sexualOrientation = "Heterosexual",
-          sex = "Male",
-          nationalInsuranceNumber = "PA442926C",
-          driverLicenseNumber = "12244t9ugrfg",
+          birthplace = randomBirthPlace(),
+          birthCountry = randomBirthCountry(),
+          nationality = randomNationality(),
+          religion = randomReligon(),
+          sexualOrientation = randomSexualOrientation(),
+          sex = randomSex(),
+          nationalInsuranceNumber = randomNationalInsuranceNumber(),
+          driverLicenseNumber = randomDriverLicenseNumber(),
 
         ),
       ),
