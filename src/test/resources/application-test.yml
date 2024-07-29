@@ -32,6 +32,9 @@ hmpps.sqs:
       subscribeTopicId: courtcaseeventstopic
       dlqName: cpr_court_case_events_queue_dlq
       dlqMaxReceiveCount: 1
+    cprcourtcaseeventstemporaryqueue:
+      queueName: cpr_court_case_events_temporary_queue
+      subscribeTopicId: courtcaseeventstopic
     cprcourteventsqueuefifo:
       queueName: cpr_court_events_queue.fifo
       subscribeTopicId: courteventstopicfifo
