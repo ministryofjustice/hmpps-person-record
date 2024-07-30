@@ -95,6 +95,9 @@ class PersonEntity(
   @Column
   val ethnicity: String? = null,
 
+  @Column(name = "self_match_score")
+  val selfMatchScore: Double? = null,
+
   @Column
   @Enumerated(STRING)
   val sourceSystem: SourceSystemType,
@@ -164,6 +167,7 @@ class PersonEntity(
         crn = person.crn,
         prisonNumber = person.prisonNumber,
         masterDefendantId = person.masterDefendantId,
+        selfMatchScore = person.selfMatchScore,
         sourceSystem = person.sourceSystemType,
       )
       personEntity.updateChildEntities(person)
