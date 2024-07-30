@@ -34,12 +34,9 @@ data class Person(
   val sourceSystemType: SourceSystemType,
   var nationalInsuranceNumber: String? = null,
   var driverLicenseNumber: String? = null,
-  val birthplace: String? = null,
-  val birthCountry: String? = null,
   var nationality: String? = null,
   var religion: String? = null,
-  val sexualOrientation: String? = null,
-  val sex: String? = null,
+
 
 ) {
   companion object {
