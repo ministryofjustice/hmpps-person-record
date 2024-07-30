@@ -30,6 +30,7 @@ data class Person(
   val contacts: List<Contact> = emptyList(),
   val addresses: List<Address> = emptyList(),
   val references: List<Reference> = emptyList(),
+  var selfMatchScore: Double? = null,
   val sourceSystemType: SourceSystemType,
   var nationalInsuranceNumber: String? = null,
   var driverLicenseNumber: String? = null,
