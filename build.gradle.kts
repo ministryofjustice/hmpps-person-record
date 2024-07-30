@@ -76,7 +76,9 @@ tasks {
 
   withType(Test::class) {
     retry {
-      maxRetries.set(3)
+      if (environment.get("CI") == "true") {
+        maxRetries.set(3)
+      }
     }
   }
 }
