@@ -38,6 +38,8 @@ class SearchService(
     return matches.firstOrNull()?.candidateRecord
   }
 
+  fun retrieveRecordSelfMatchScore(person: Person): Double = matchService.getSelfMatchScore(person)
+
   fun findCandidateRecordsBySourceSystem(person: Person): List<MatchResult> = searchForRecords(person, findCandidatesBySourceSystem(person))
 
   fun findCandidateRecordsWithUuid(person: Person): List<MatchResult> = searchForRecords(person, findCandidatesWithUuid(person))

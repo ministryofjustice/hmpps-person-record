@@ -43,6 +43,8 @@ import java.util.UUID
 @ExtendWith(MultiApplicationContextExtension::class)
 abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
+  internal var shouldStubSelfMatchScore: Boolean = true
+
   @Autowired
   lateinit var personKeyRepository: PersonKeyRepository
 
@@ -217,9 +219,12 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
   }
 
-  fun stubMatchScore(matchResponse: MatchResponse) {
+  fun stubMatchScore(matchResponse: MatchResponse, scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) {
     wiremock.stubFor(
       WireMock.post("/person/match")
+        .inScenario(scenario)
+        .whenScenarioStateIs(currentScenarioState)
+        .willSetStateTo(nextScenarioState)
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
@@ -228,6 +233,13 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         ),
     )
   }
+
+  fun stubSelfMatchScore(score: Double = 0.9999) = stubMatchScore(
+    matchResponse = MatchResponse(
+      matchProbabilities = mutableMapOf("0" to score),
+    ),
+    scenario = "stubbingSelfMatchScore",
+  )
 
   @BeforeEach
   fun beforeEachMessagingTest() {
@@ -269,5 +281,9 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       prisonEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(prisonEventsQueue!!.dlqUrl!!).get()
     } matches { it == 0 }
+
+    if (shouldStubSelfMatchScore) {
+      stubSelfMatchScore()
+    }
   }
 }
