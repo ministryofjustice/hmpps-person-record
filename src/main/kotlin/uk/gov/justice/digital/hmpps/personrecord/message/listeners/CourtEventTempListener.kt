@@ -37,8 +37,6 @@ class CourtEventTempListener(
   val hmppsQueueService: HmppsQueueService,
 
 ) {
-  private val topic = hmppsQueueService.findByTopicId("courteventsfifotopic")
-    ?: throw MissingTopicException("Could not find topic courteventsfifotopic")
 
   @SqsListener(CPR_COURT_EVENTS_TEMP_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
   @WithSpan(value = "hmpps-person-record-cpr_court_events_temporary_queue", kind = SERVER)
@@ -94,6 +92,8 @@ class CourtEventTempListener(
   }
 
   private fun republishCourtMessage(message: String, messageType: MessageType) {
+    val topic = hmppsQueueService.findByTopicId("courteventsfifotopic")
+      ?: throw MissingTopicException("Could not find topic courteventsfifotopic")
     val messageBuilder = PublishRequest.builder()
       .topicArn(topic.arn)
       .message(message)
