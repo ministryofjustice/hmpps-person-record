@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_LOW_SELF_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -42,12 +43,15 @@ import java.util.concurrent.TimeUnit.SECONDS
 class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @BeforeEach
-  fun beforeEach() {
+  override fun beforeEachMessagingTest() {
+    shouldStubSelfMatchScore = false
     telemetryRepository.deleteAll()
+    super.beforeEachMessagingTest()
   }
 
   @Test
   fun `should process libra messages`() {
+    stubSelfMatchScore()
     val firstName = randomName()
     val lastName = randomName()
     val postcode = randomPostcode()
@@ -97,6 +101,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process and update libra messages`() {
+    stubSelfMatchScore()
     val firstName = randomName()
     val lastName = randomName()
     val postcode = randomPostcode()
@@ -160,6 +165,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process and create libra message and link to different source system record`() {
+    stubSelfMatchScore()
     val firstName = randomName()
     val lastName = randomName()
     val dateOfBirth = randomDateOfBirth()
@@ -218,6 +224,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process and create new person with low score`() {
+    stubSelfMatchScore(scenario = "selfMatchScore", nextScenarioState = "candidateSearch")
     val firstName = randomName()
     val lastName = randomName()
     val postcode = randomPostcode()
@@ -230,7 +237,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.98883))
-    stubMatchScore(matchResponse)
+    stubMatchScore(matchResponse, scenario =  "candidateSearch", nextScenarioState = "finished")
 
     val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, postcode = postcode, cro = "", pncNumber = "")
     val messageId2 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
@@ -259,6 +266,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process and send duplicate telemetry`() {
+    stubSelfMatchScore()
     val firstName = randomName()
 
     personRepository.saveAndFlush(
@@ -308,6 +316,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process multiple pages of candidates`() {
+    stubSelfMatchScore()
     val firstName = randomName()
     repeat(100) {
       personRepository.saveAndFlush(
@@ -347,6 +356,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   @Disabled("Disabling as it takes too long to run in a CI context - out of memory errors")
   fun `should process libra with large amount of candidates - CPR-354`() {
+    stubSelfMatchScore()
     await untilAsserted { assertThat(personRepository.findAll().size).isEqualTo(0) }
     val blitzer = Blitzer(1000000, 10)
     try {
@@ -381,5 +391,63 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         "SEARCH_VERSION" to SEARCH_VERSION,
       ),
     )
+  }
+
+  @Test
+  fun `should not conduct a candidate search when self match does not meet threshold and then create a record`() {
+    stubSelfMatchScore(0.5123)
+    val firstName = randomName()
+    val lastName = randomName()
+    val postcode = randomPostcode()
+    val pnc = randomPnc()
+    val dateOfBirth = randomDateOfBirth()
+    val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode)
+    val messageId = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+
+    checkTelemetry(
+      MESSAGE_RECEIVED,
+      mapOf(
+        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
+        "MESSAGE_ID" to messageId,
+        "SOURCE_SYSTEM" to LIBRA.name,
+      ),
+    )
+    checkTelemetry(
+      CPR_LOW_SELF_MATCH,
+      mapOf(
+        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
+        "PROBABILITY_SCORE" to "0.5123",
+        "SOURCE_SYSTEM" to LIBRA.name,
+      ),
+    )
+    checkTelemetry(
+      CPR_CANDIDATE_RECORD_SEARCH,
+      mapOf(
+        "SOURCE_SYSTEM" to LIBRA.name,
+        "RECORD_COUNT" to "0",
+        "HIGH_CONFIDENCE_COUNT" to "0",
+        "LOW_CONFIDENCE_COUNT" to "0",
+      ),
+      times = 1,
+    )
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
+    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
+
+    val personEntities = await.atMost(30, SECONDS) untilNotNull {
+      personRepository.findAll()
+    }
+    val matchingPerson = personEntities.filter { it.firstName.equals(firstName) }
+    assertThat(matchingPerson.size).isEqualTo(1)
+
+    val person = matchingPerson[0]
+    assertThat(person.title).isEqualTo("Mr")
+    assertThat(person.lastName).isEqualTo(lastName)
+    assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
+    assertThat(person.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
+    assertThat(person.addresses.size).isEqualTo(1)
+    assertThat(person.addresses[0].postcode).isEqualTo(postcode)
+    assertThat(person.personKey).isNotNull()
+    assertThat(person.selfMatchScore).isEqualTo(0.5123)
+    assertThat(person.sourceSystem).isEqualTo(LIBRA)
   }
 }

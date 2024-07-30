@@ -7,6 +7,7 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
@@ -43,7 +44,7 @@ import java.util.UUID
 @ExtendWith(MultiApplicationContextExtension::class)
 abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
-  internal var shouldStubSelfMatchScore: Boolean = true
+  protected var shouldStubSelfMatchScore: Boolean = true
 
   @Autowired
   lateinit var personKeyRepository: PersonKeyRepository
@@ -234,11 +235,13 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
   }
 
-  fun stubSelfMatchScore(score: Double = 0.9999) = stubMatchScore(
+  fun stubSelfMatchScore(score: Double = 0.9999, scenario: String = "stubbingSelfMatchScore", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) = stubMatchScore(
     matchResponse = MatchResponse(
       matchProbabilities = mutableMapOf("0" to score),
     ),
-    scenario = "stubbingSelfMatchScore",
+    scenario = scenario,
+    currentScenarioState = currentScenarioState,
+    nextScenarioState = nextScenarioState,
   )
 
   @BeforeEach

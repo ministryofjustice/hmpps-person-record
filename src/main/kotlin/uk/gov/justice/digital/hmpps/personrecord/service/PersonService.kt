@@ -46,15 +46,17 @@ class PersonService(
     ConstraintViolationException::class,
   )
 
-  fun processMessage(person: Person, event: String? = null, callback: () -> PersonEntity?) = runBlocking {
+  fun processMessage(person: Person, event: String? = null, callback: (Boolean) -> PersonEntity?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, retryExceptions) {
       readWriteLockService.withWriteLock { processPerson(person, event, callback) }
     }
   }
 
-  private fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) {
-    person.selfMatchScore = searchService.retrieveRecordSelfMatchScore(person)
-    val existingPersonEntity: PersonEntity? = callback()
+  private fun processPerson(person: Person, event: String?, callback: (Boolean) -> PersonEntity?) {
+    val (isAboveSelfMatchThreshold, selfMatchScore) = searchService.retrieveRecordSelfMatchScore(person)
+    person.selfMatchScore = selfMatchScore
+    person.isAboveMatchScoreThreshold = isAboveSelfMatchThreshold
+    val existingPersonEntity: PersonEntity? = callback(isAboveSelfMatchThreshold)
     when {
       (existingPersonEntity == null) -> handlePersonCreation(person, event)
       else -> handlePersonUpdate(person, existingPersonEntity, event)

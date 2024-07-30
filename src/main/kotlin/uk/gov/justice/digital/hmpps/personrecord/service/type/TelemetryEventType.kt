@@ -14,4 +14,5 @@ enum class TelemetryEventType(val eventName: String) {
   CPR_MATCH_PERSON_DUPLICATE("CprMatchPersonRecordDuplicate"),
   CPR_CANDIDATE_RECORD_FOUND_UUID("CprSplinkCandidateRecordsFoundGetUUID"),
   CPR_UUID_CREATED("CprUuidCreated"),
+  CPR_LOW_SELF_MATCH("CprSplinkSelfMatchLowMatch"),
 }

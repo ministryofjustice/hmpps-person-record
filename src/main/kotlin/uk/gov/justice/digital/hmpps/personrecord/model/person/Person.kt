@@ -31,6 +31,7 @@ data class Person(
   val addresses: List<Address> = emptyList(),
   val references: List<Reference> = emptyList(),
   var selfMatchScore: Double? = null,
+  var isAboveMatchScoreThreshold: Boolean? = null,
   val sourceSystemType: SourceSystemType,
 ) {
   companion object {
