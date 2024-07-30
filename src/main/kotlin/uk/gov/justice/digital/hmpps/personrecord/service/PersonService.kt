@@ -53,7 +53,7 @@ class PersonService(
   }
 
   private fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) {
-    searchService.retrieveRecordSelfMatchScore(person)
+    person.selfMatchScore = searchService.retrieveRecordSelfMatchScore(person)
     val existingPersonEntity: PersonEntity? = callback()
     when {
       (existingPersonEntity == null) -> handlePersonCreation(person, event)
