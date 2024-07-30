@@ -3,6 +3,10 @@ package uk.gov.justice.digital.hmpps.personrecord.test.messages
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
+import wiremock.com.ethlo.time.DateTime
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Date
 import java.util.UUID
 
 data class CommonPlatformHearingSetup(
@@ -59,7 +63,8 @@ fun commonPlatformHearing(commonPlatformHearingSetup: List<CommonPlatformHearing
             }
           }
         ]
-      }
+      },
+      "sharedTime": "${DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(LocalDateTime.now())}"
     }
 """.trimIndent()
 

@@ -45,6 +45,31 @@ class CourtEventFIFOTempListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
+  fun `should log telemetry for Common Platform event consumed from FIFO queue once after publishing the same message twice`() {
+    val firstDefendantId = randomUUID().toString()
+    val firstPnc = randomPnc()
+    val firstMessageId = publishCourtMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = firstDefendantId, pnc = firstPnc))), COMMON_PLATFORM_HEARING, topic = courtEventsTopic?.arn!!)
+    val secondMessageId = publishCourtMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = firstDefendantId, pnc = firstPnc))), COMMON_PLATFORM_HEARING, topic = courtEventsTopic?.arn!!)
+
+    checkTelemetry(
+      DEFENDANT_RECEIVED,
+      mapOf(
+        "DEFENDANT_ID" to firstDefendantId,
+        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
+        "FIFO" to "false",
+      ),2
+    )
+    checkTelemetry(
+      DEFENDANT_RECEIVED,
+      mapOf(
+        "DEFENDANT_ID" to firstDefendantId,
+        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
+        "FIFO" to "true",
+      ),1
+    )
+  }
+
+  @Test
   fun `should log telemetry for LIBRA event consumed from FIFO queue`() {
     telemetryRepository.deleteAll()
     val libraMessage = LibraMessage(firstName = randomName(), lastName = randomName(), dateOfBirth = randomDateOfBirth().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = "")
