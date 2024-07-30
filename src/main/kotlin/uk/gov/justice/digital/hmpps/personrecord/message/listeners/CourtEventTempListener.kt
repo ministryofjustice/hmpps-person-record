@@ -22,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.FIFO
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DEFENDANT_RECEIVED
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingTopicException
@@ -35,7 +34,7 @@ const val CPR_COURT_EVENTS_TEMP_QUEUE_CONFIG_KEY = "cprcourtcaseeventstemporaryq
 class CourtEventTempListener(
   val objectMapper: ObjectMapper,
   val telemetryService: TelemetryService,
-  var hmppsQueueService: HmppsQueueService,
+  val hmppsQueueService: HmppsQueueService,
 
 ) {
   private val topic = hmppsQueueService.findByTopicId("courteventsfifotopic")
@@ -48,20 +47,9 @@ class CourtEventTempListener(
   ) {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
 
-    try {
-      when (sqsMessage.getMessageType()) {
-        COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
-        else -> processLibraEvent(sqsMessage)
-      }
-    } catch (e: Exception) {
-      telemetryService.trackEvent(
-        TelemetryEventType.MESSAGE_PROCESSING_FAILED,
-        mapOf(
-          EVENT_TYPE to sqsMessage.getMessageType(),
-          MESSAGE_ID to sqsMessage.messageId,
-        ),
-      )
-      println(e.message)
+    when (sqsMessage.getMessageType()) {
+      COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
+      else -> processLibraEvent(sqsMessage)
     }
   }
 
