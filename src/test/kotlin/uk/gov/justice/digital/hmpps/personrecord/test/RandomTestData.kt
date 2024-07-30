@@ -34,12 +34,8 @@ fun randomCro(): String {
 fun randomName(): String = randomLowerCaseString()
 fun randomNationalInsuranceNumber(): String = UUID.randomUUID().toString()
 fun randomDriverLicenseNumber(): String = UUID.randomUUID().toString()
-fun randomBirthPlace(): String = randomLowerCaseString()
-fun randomBirthCountry(): String = randomLowerCaseString()
 fun randomNationality(): String = randomLowerCaseString()
-fun randomReligon(): String = randomLowerCaseString()
-fun randomSexualOrientation(): String = randomLowerCaseString()
-fun randomSex(): String = randomLowerCaseString()
+fun randomReligion(): String = randomLowerCaseString()
 
 fun randomPrisonNumber(): String = randomLowerCaseString(2).uppercase() + randomDigit(4) + randomLowerCaseString(1).uppercase()
 

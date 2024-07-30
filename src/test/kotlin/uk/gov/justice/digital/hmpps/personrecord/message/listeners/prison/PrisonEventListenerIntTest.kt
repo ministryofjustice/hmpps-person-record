@@ -33,8 +33,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBirthCountry
-import uk.gov.justice.digital.hmpps.personrecord.test.randomBirthPlace
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateOfBirth
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
@@ -45,9 +43,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationality
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomReligon
-import uk.gov.justice.digital.hmpps.personrecord.test.randomSex
-import uk.gov.justice.digital.hmpps.personrecord.test.randomSexualOrientation
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
@@ -64,8 +60,12 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val postcode = randomPostcode()
     val prefix = randomName()
     val personDateOfBirth = randomDateOfBirth()
+    val religion = randomReligion()
+    val nationality = randomNationality()
+    val nationalInsuranceNumber = randomNationality()
+    val driverLicenseNumber = randomDriverLicenseNumber()
 
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode)), prefix = prefix, dateOfBirth = personDateOfBirth))
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode)), prefix = prefix, dateOfBirth = personDateOfBirth, religion = religion, nationality = nationality, nationalInsuranceNumber = nationalInsuranceNumber, driverLicenseNumber = driverLicenseNumber))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
@@ -247,12 +247,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
           pnc = PNCIdentifier.from(randomPnc()),
           dateOfBirth = randomDateOfBirth(),
           emailAddresses = listOf(EmailAddress(randomEmail())),
-          birthplace = randomBirthPlace(),
-          birthCountry = randomBirthCountry(),
           nationality = randomNationality(),
-          religion = randomReligon(),
-          sexualOrientation = randomSexualOrientation(),
-          sex = randomSex(),
+          religion = randomReligion(),
           nationalInsuranceNumber = randomNationalInsuranceNumber(),
           driverLicenseNumber = randomDriverLicenseNumber(),
 

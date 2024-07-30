@@ -31,11 +31,12 @@ data class Person(
   val addresses: List<Address> = emptyList(),
   val references: List<Reference> = emptyList(),
   val sourceSystemType: SourceSystemType,
-  val nationalInsuranceNumber: String? = null,
+  var nationalInsuranceNumber: String? = null,
+  var driverLicenseNumber: String? = null,
   val birthplace: String? = null,
   val birthCountry: String? = null,
-  val nationality: String? = null,
-  val religion: String? = null,
+  var nationality: String? = null,
+  var religion: String? = null,
   val sexualOrientation: String? = null,
   val sex: String? = null,
 
@@ -164,12 +165,9 @@ data class Person(
         addresses = addresses,
         references = references,
         sourceSystemType = NOMIS,
-        birthplace = prisoner.birthplace,
-        birthCountry = prisoner.birthCountry,
         nationality = prisoner.nationality,
         religion = prisoner.religion,
-        sexualOrientation = prisoner.sexualOrientation,
-        sex = prisoner.sex,
+
       )
     }
   }
