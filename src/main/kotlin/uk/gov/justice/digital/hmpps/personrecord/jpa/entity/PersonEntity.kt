@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
-import jakarta.persistence.Convert
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType.STRING
 import jakarta.persistence.Enumerated
@@ -15,11 +14,8 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
-import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.CROIdentifierConverter
-import uk.gov.justice.digital.hmpps.personrecord.jpa.converter.PNCIdentifierConverter
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import java.time.LocalDate
 
@@ -64,11 +60,13 @@ class PersonEntity(
   var references: MutableList<ReferenceEntity> = mutableListOf(),
 
   @Column
-  @Convert(converter = PNCIdentifierConverter::class)
-  var pnc: PNCIdentifier? = null,
-
-  @Column
   var crn: String? = null,
+
+  @Column(name = "defendant_id")
+  var defendantId: String? = null,
+
+  @Column(name = "master_defendant_id")
+  var masterDefendantId: String? = null,
 
   @Column(name = "prison_number")
   var prisonNumber: String? = null,
@@ -88,25 +86,6 @@ class PersonEntity(
   @Column(name = "sexual_orientation")
   val sexualOrientation: String? = null,
 
-  @Column(name = "defendant_id")
-  var defendantId: String? = null,
-
-  @Column(name = "master_defendant_id")
-  var masterDefendantId: String? = null,
-
-  @Column
-  @Convert(converter = CROIdentifierConverter::class)
-  var cro: CROIdentifier? = null,
-
-  @Column(name = "national_insurance_number")
-  var nationalInsuranceNumber: String? = null,
-
-  @Column(name = "driver_license_number")
-  var driverLicenseNumber: String? = null,
-
-  @Column(name = "arrest_summons_number")
-  var arrestSummonsNumber: String? = null,
-
   @Column(name = "date_of_birth")
   var dateOfBirth: LocalDate? = null,
 
@@ -116,6 +95,9 @@ class PersonEntity(
   @Column
   val ethnicity: String? = null,
 
+  @Column(name = "self_match_score")
+  val selfMatchScore: Double? = null,
+
   @Column
   @Enumerated(STRING)
   val sourceSystem: SourceSystemType,
@@ -124,29 +106,28 @@ class PersonEntity(
   var version: Int = 0,
 
 ) {
-  fun update(person: Person): PersonEntity {
+  fun update(person: Person) {
     this.title = person.title
     this.firstName = person.firstName
     this.middleNames = person.middleNames?.joinToString(" ") { it }
     this.lastName = person.lastName
     this.dateOfBirth = person.dateOfBirth
     this.defendantId = person.defendantId
-    this.pnc = person.otherIdentifiers?.pncIdentifier
-    this.crn = person.otherIdentifiers?.crn
-    this.cro = person.otherIdentifiers?.croIdentifier
-    this.prisonNumber = person.otherIdentifiers?.prisonNumber
-    this.driverLicenseNumber = person.driverLicenseNumber
-    this.arrestSummonsNumber = person.arrestSummonsNumber
+    this.crn = person.crn
+    this.prisonNumber = person.prisonNumber
     this.masterDefendantId = person.masterDefendantId
-    this.nationalInsuranceNumber = person.nationalInsuranceNumber
     updateChildEntities(person)
-    return this
   }
 
   private fun updateChildEntities(person: Person) {
+    pseudonyms.clear()
+    addresses.clear()
+    contacts.clear()
+    references.clear()
     updatePersonAddresses(person)
     updatePersonContacts(person)
     updatePersonAliases(person)
+    updatePersonReferences(person)
   }
 
   private fun updatePersonAddresses(person: Person) {
@@ -167,7 +148,17 @@ class PersonEntity(
     this.contacts.addAll(personContacts)
   }
 
+  private fun updatePersonReferences(person: Person) {
+    val personReferences = ReferenceEntity.fromList(person.references)
+    personReferences.forEach { personReferenceEntity -> personReferenceEntity.person = this }
+    this.references.addAll(personReferences)
+  }
+
   companion object {
+    fun List<ReferenceEntity>.getType(type: IdentifierType): List<ReferenceEntity> {
+      return this.filter { it.identifierType == type }
+    }
+
     fun from(person: Person): PersonEntity {
       val personEntity = PersonEntity(
         title = person.title,
@@ -176,14 +167,10 @@ class PersonEntity(
         lastName = person.lastName,
         dateOfBirth = person.dateOfBirth,
         defendantId = person.defendantId,
-        pnc = person.otherIdentifiers?.pncIdentifier,
-        crn = person.otherIdentifiers?.crn,
-        cro = person.otherIdentifiers?.croIdentifier,
-        prisonNumber = person.otherIdentifiers?.prisonNumber,
-        driverLicenseNumber = person.driverLicenseNumber,
-        arrestSummonsNumber = person.arrestSummonsNumber,
+        crn = person.crn,
+        prisonNumber = person.prisonNumber,
         masterDefendantId = person.masterDefendantId,
-        nationalInsuranceNumber = person.nationalInsuranceNumber,
+        selfMatchScore = person.selfMatchScore,
         sourceSystem = person.sourceSystemType,
       )
       personEntity.updateChildEntities(person)

@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import java.util.UUID
 
 @FeignClient(
@@ -29,7 +32,7 @@ class MatchRequest(
   val matchingTo: List<MatchRecord>,
 )
 
-class MatchRecord(
+data class MatchRecord(
   @JsonProperty("unique_id")
   val uniqueId: String? = UUID.randomUUID().toString(),
   @JsonProperty("firstname1")
@@ -38,4 +41,24 @@ class MatchRecord(
   @JsonProperty("dob")
   val dateOfBirth: String? = "",
   val pnc: String? = "",
-)
+) {
+  companion object {
+    fun from(newRecord: Person): MatchRecord {
+      return MatchRecord(
+        firstName = newRecord.firstName,
+        lastname = newRecord.lastName,
+        dateOfBirth = newRecord.dateOfBirth?.toString(),
+        pnc = newRecord.references.firstOrNull { it.identifierType == IdentifierType.PNC }?.identifierValue,
+      )
+    }
+
+    fun from(personEntity: PersonEntity): MatchRecord {
+      return MatchRecord(
+        firstName = personEntity.firstName,
+        lastname = personEntity.firstName,
+        dateOfBirth = personEntity.dateOfBirth?.toString(),
+        pnc = personEntity.references.firstOrNull { it.identifierType == IdentifierType.PNC }?.identifierValue,
+      )
+    }
+  }
+}

@@ -7,21 +7,28 @@ import org.springframework.data.jpa.domain.Specification
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import java.time.LocalDate
 
 object PersonSpecification {
 
   const val SEARCH_VERSION = "1.5"
 
-  const val PNC = "pnc"
-  const val CRO = "cro"
-  const val NI = "nationalInsuranceNumber"
-  const val DRIVER_LICENSE_NUMBER = "driverLicenseNumber"
+  val SEARCH_IDENTIFIERS = listOf(PNC, CRO, NATIONAL_INSURANCE_NUMBER, DRIVER_LICENSE_NUMBER)
+
   const val FIRST_NAME = "firstName"
   const val LAST_NAME = "lastName"
   const val DOB = "dateOfBirth"
   const val SOURCE_SYSTEM = "sourceSystem"
 
+  private const val IDENTIFIER_TYPE = "identifierType"
+  private const val IDENTIFIER_VALUE = "identifierValue"
   private const val PERSON_KEY = "personKey"
   private const val POSTCODE = "postcode"
   private const val DATE_FORMAT = "YYYY-MM-DD"
@@ -30,6 +37,21 @@ object PersonSpecification {
     return Specification { root, _, criteriaBuilder ->
       input?.takeIf { it.isNotBlank() }?.let {
         criteriaBuilder.equal(root.get<String>(field), it)
+      }
+    }
+  }
+
+  fun exactMatchReferences(references: List<Reference>): Specification<PersonEntity> {
+    return Specification { root, _, criteriaBuilder ->
+      references.takeIf { it.isNotEmpty() }?.let {
+        val referencesJoin: Join<PersonEntity, ReferenceEntity> = root.join("references", INNER)
+        val referencePredicates = references.map { reference ->
+          criteriaBuilder.and(
+            criteriaBuilder.equal(referencesJoin.get<IdentifierType>(IDENTIFIER_TYPE), reference.identifierType),
+            criteriaBuilder.equal(referencesJoin.get<String>(IDENTIFIER_VALUE), reference.identifierValue),
+          )
+        }.toTypedArray()
+        criteriaBuilder.or(*referencePredicates)
       }
     }
   }

@@ -46,20 +46,10 @@ class MatchService(
   }
 
   private fun scores(candidateRecords: List<PersonEntity>, newRecord: Person): List<MatchResult> {
-    val fromMatchRecord = MatchRecord(
-      firstName = newRecord.firstName,
-      lastname = newRecord.lastName,
-      dateOfBirth = newRecord.dateOfBirth?.toString(),
-      pnc = newRecord.otherIdentifiers?.let { it.pncIdentifier?.pncId },
-    )
+    val fromMatchRecord = MatchRecord.from(newRecord)
     val toMatchRecords: List<MatchingRecord> = candidateRecords.map { personEntity ->
       MatchingRecord(
-        matchRecord = MatchRecord(
-          firstName = personEntity.firstName,
-          lastname = personEntity.firstName,
-          dateOfBirth = personEntity.dateOfBirth?.toString(),
-          pnc = personEntity.pnc?.pncId,
-        ),
+        matchRecord = MatchRecord.from(personEntity),
         personEntity = personEntity,
       )
     }
@@ -76,6 +66,16 @@ class MatchService(
       )
     }
     return matchResult
+  }
+
+  fun getSelfMatchScore(newRecord: Person): Double {
+    val matchRecord = MatchRecord.from(newRecord)
+    val matchRequest = MatchRequest(
+      matchingFrom = matchRecord,
+      matchingTo = listOf(matchRecord),
+    )
+    val matchScores = getScores(matchRequest)
+    return matchScores?.matchProbabilities?.get("0")!!
   }
 
   private fun getScores(matchRequest: MatchRequest): MatchResponse? = runBlocking {

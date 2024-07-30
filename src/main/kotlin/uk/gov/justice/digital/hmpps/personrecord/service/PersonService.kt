@@ -53,6 +53,7 @@ class PersonService(
   }
 
   private fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) {
+    person.selfMatchScore = searchService.retrieveRecordSelfMatchScore(person)
     val existingPersonEntity: PersonEntity? = callback()
     when {
       (existingPersonEntity == null) -> handlePersonCreation(person, event)
@@ -82,16 +83,8 @@ class PersonService(
   }
 
   private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity) {
-    val clearedPersonEntity = removeAllChildEntities(personEntity)
-    val updatedPersonEntity = clearedPersonEntity.update(person)
-    personRepository.saveAndFlush(updatedPersonEntity)
-  }
-
-  private fun removeAllChildEntities(personEntity: PersonEntity): PersonEntity {
-    personEntity.pseudonyms.clear()
-    personEntity.addresses.clear()
-    personEntity.contacts.clear()
-    return personRepository.saveAndFlush(personEntity)
+    personEntity.update(person)
+    personRepository.saveAndFlush(personEntity)
   }
 
   private fun createPersonEntity(person: Person, personKeyEntity: PersonKeyEntity) {
@@ -146,8 +139,8 @@ class PersonService(
     val identifierMap = mapOf(
       EventKeys.SOURCE_SYSTEM to person.sourceSystemType.name,
       EventKeys.DEFENDANT_ID to person.defendantId,
-      EventKeys.CRN to (person.otherIdentifiers?.crn),
-      EventKeys.PRISON_NUMBER to person.otherIdentifiers?.prisonNumber,
+      EventKeys.CRN to person.crn,
+      EventKeys.PRISON_NUMBER to person.prisonNumber,
     )
     telemetryService.trackEvent(eventType, identifierMap + elementMap)
   }

@@ -11,6 +11,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 
 @Entity
@@ -38,4 +39,14 @@ class ReferenceEntity(
 
   @Version
   var version: Int = 0,
-)
+) {
+  companion object {
+    private fun from(reference: Reference): ReferenceEntity {
+      return ReferenceEntity(identifierType = reference.identifierType, identifierValue = reference.identifierValue)
+    }
+
+    fun fromList(references: List<Reference>): List<ReferenceEntity> {
+      return references.filterNot { it.identifierValue.isNullOrEmpty() }.map { from(it) }
+    }
+  }
+}
