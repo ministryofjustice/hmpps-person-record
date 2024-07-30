@@ -71,7 +71,7 @@ class CourtEventTempListener(
       )
     }
 
-    republishCourtMessage(sqsMessage.message, COMMON_PLATFORM_HEARING)
+    republishCourtMessage(objectMapper.writeValueAsString(commonPlatformHearingEvent), COMMON_PLATFORM_HEARING)
   }
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
