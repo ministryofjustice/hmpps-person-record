@@ -78,10 +78,10 @@ class PersonEntity(
   val birthCountry: String? = null,
 
   @Column
-  val nationality: String? = null,
+  var nationality: String? = null,
 
   @Column
-  val religion: String? = null,
+  var religion: String? = null,
 
   @Column(name = "sexual_orientation")
   val sexualOrientation: String? = null,
@@ -113,6 +113,8 @@ class PersonEntity(
     this.crn = person.crn
     this.prisonNumber = person.prisonNumber
     this.masterDefendantId = person.masterDefendantId
+    this.religion = person.religion
+    this.nationality = person.nationality
     updateChildEntities(person)
     return this
   }
@@ -165,6 +167,8 @@ class PersonEntity(
         prisonNumber = person.prisonNumber,
         masterDefendantId = person.masterDefendantId,
         sourceSystem = person.sourceSystemType,
+        religion = person.religion,
+        nationality = person.nationality,
       )
       personEntity.updateChildEntities(person)
       return personEntity
