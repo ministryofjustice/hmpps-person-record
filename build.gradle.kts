@@ -26,7 +26,6 @@ dependencies {
   implementation("jakarta.validation:jakarta.validation-api:3.1.0")
   implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
-  implementation("io.swagger.core.v3:swagger-annotations:2.2.22")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.3")
   constraints {
     implementation("org.bouncycastle:bcprov-jdk18on:1.78.1") {
