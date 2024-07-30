@@ -106,7 +106,7 @@ class PersonEntity(
   var version: Int = 0,
 
 ) {
-  fun update(person: Person): PersonEntity {
+  fun update(person: Person) {
     this.title = person.title
     this.firstName = person.firstName
     this.middleNames = person.middleNames?.joinToString(" ") { it }
@@ -117,10 +117,13 @@ class PersonEntity(
     this.prisonNumber = person.prisonNumber
     this.masterDefendantId = person.masterDefendantId
     updateChildEntities(person)
-    return this
   }
 
   private fun updateChildEntities(person: Person) {
+    pseudonyms.clear()
+    addresses.clear()
+    contacts.clear()
+    references.clear()
     updatePersonAddresses(person)
     updatePersonContacts(person)
     updatePersonAliases(person)
