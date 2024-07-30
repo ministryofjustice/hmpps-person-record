@@ -7,14 +7,13 @@ import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBa
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DEFENDANT_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.test.*
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDateOfBirth
-import uk.gov.justice.digital.hmpps.personrecord.test.randomName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import java.time.format.DateTimeFormatter
+import java.util.*
 import java.util.UUID.randomUUID
 
 class CourtEventFIFOTempListenerIntTest : MessagingMultiNodeTestBase() {
@@ -46,15 +45,23 @@ class CourtEventFIFOTempListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should log telemetry for Common Platform event consumed from FIFO queue once after publishing the same message twice`() {
-    val firstDefendantId = randomUUID().toString()
     val firstPnc = randomPnc()
-    val firstMessageId = publishCourtMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = firstDefendantId, pnc = firstPnc))), COMMON_PLATFORM_HEARING, topic = courtEventsTopic?.arn!!)
-    val secondMessageId = publishCourtMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = firstDefendantId, pnc = firstPnc))), COMMON_PLATFORM_HEARING, topic = courtEventsTopic?.arn!!)
+    val firstName: String = randomName()
+    val lastName: String = randomName()
+    val cro: String = randomCro()
+    val defendantId: String = randomUUID().toString()
+    val nationalInsuranceNumber: String = randomNationalInsuranceNumber()
+
+    val commonPlatformHearingSetup = CommonPlatformHearingSetup(defendantId = defendantId, pnc = firstPnc, firstName = firstName, lastName = lastName, cro = cro, nationalInsuranceNumber = nationalInsuranceNumber)
+
+//    publishing message twice
+    publishCourtMessage(commonPlatformHearing(listOf(commonPlatformHearingSetup)), COMMON_PLATFORM_HEARING, topic = courtEventsTopic?.arn!!)
+    publishCourtMessage(commonPlatformHearing(listOf(commonPlatformHearingSetup)), COMMON_PLATFORM_HEARING, topic = courtEventsTopic?.arn!!)
 
     checkTelemetry(
       DEFENDANT_RECEIVED,
       mapOf(
-        "DEFENDANT_ID" to firstDefendantId,
+        "DEFENDANT_ID" to defendantId,
         "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
         "FIFO" to "false",
       ),2
@@ -62,7 +69,7 @@ class CourtEventFIFOTempListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       DEFENDANT_RECEIVED,
       mapOf(
-        "DEFENDANT_ID" to firstDefendantId,
+        "DEFENDANT_ID" to defendantId,
         "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
         "FIFO" to "true",
       ),1
