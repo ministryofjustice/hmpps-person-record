@@ -151,6 +151,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     assertThat(personEntity.firstName).isEqualTo(firstName)
+    assertThat(personEntity.selfMatchScore).isEqualTo(0.9999)
     assertThat(personEntity.addresses.size).isEqualTo(1)
 
     checkTelemetry(

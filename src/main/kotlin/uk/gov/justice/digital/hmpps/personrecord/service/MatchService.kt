@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
 
@@ -47,20 +46,10 @@ class MatchService(
   }
 
   private fun scores(candidateRecords: List<PersonEntity>, newRecord: Person): List<MatchResult> {
-    val fromMatchRecord = MatchRecord(
-      firstName = newRecord.firstName,
-      lastname = newRecord.lastName,
-      dateOfBirth = newRecord.dateOfBirth?.toString(),
-      pnc = newRecord.references.firstOrNull { it.identifierType == IdentifierType.PNC }?.identifierValue,
-    )
+    val fromMatchRecord = MatchRecord.from(newRecord)
     val toMatchRecords: List<MatchingRecord> = candidateRecords.map { personEntity ->
       MatchingRecord(
-        matchRecord = MatchRecord(
-          firstName = personEntity.firstName,
-          lastname = personEntity.firstName,
-          dateOfBirth = personEntity.dateOfBirth?.toString(),
-          pnc = personEntity.references.firstOrNull { it.identifierType == IdentifierType.PNC }?.identifierValue,
-        ),
+        matchRecord = MatchRecord.from(personEntity),
         personEntity = personEntity,
       )
     }
@@ -77,6 +66,16 @@ class MatchService(
       )
     }
     return matchResult
+  }
+
+  fun getSelfMatchScore(newRecord: Person): Double {
+    val matchRecord = MatchRecord.from(newRecord)
+    val matchRequest = MatchRequest(
+      matchingFrom = matchRecord,
+      matchingTo = listOf(matchRecord),
+    )
+    val matchScores = getScores(matchRequest)
+    return matchScores?.matchProbabilities?.get("0")!!
   }
 
   private fun getScores(matchRequest: MatchRequest): MatchResponse? = runBlocking {
