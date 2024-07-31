@@ -53,7 +53,7 @@ class PersonService(
   }
 
   private fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) {
-    searchService.retrieveRecordSelfMatchScore(person)
+    person.selfMatchScore = searchService.retrieveRecordSelfMatchScore(person)
     val existingPersonEntity: PersonEntity? = callback()
     when {
       (existingPersonEntity == null) -> handlePersonCreation(person, event)
@@ -83,17 +83,8 @@ class PersonService(
   }
 
   private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity) {
-    val clearedPersonEntity = removeAllChildEntities(personEntity)
-    val updatedPersonEntity = clearedPersonEntity.update(person)
-    personRepository.saveAndFlush(updatedPersonEntity)
-  }
-
-  private fun removeAllChildEntities(personEntity: PersonEntity): PersonEntity {
-    personEntity.pseudonyms.clear()
-    personEntity.addresses.clear()
-    personEntity.contacts.clear()
-    personEntity.references.clear()
-    return personRepository.saveAndFlush(personEntity)
+    personEntity.update(person)
+    personRepository.saveAndFlush(personEntity)
   }
 
   private fun createPersonEntity(person: Person, personKeyEntity: PersonKeyEntity) {
