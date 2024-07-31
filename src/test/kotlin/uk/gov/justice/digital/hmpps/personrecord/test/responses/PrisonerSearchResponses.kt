@@ -36,7 +36,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     "cellLocation": "A-1-002",
     "aliases": [
       {
-        "title": "Ms",
+        "title": "${responseSetup.prefix}AliasTitle",
         "firstName": "${responseSetup.prefix}AliasFirstName",
         "middleNames": "${responseSetup.prefix}AliasMiddleName",
         "lastName": "${responseSetup.prefix}AliasLastName",
