@@ -44,7 +44,7 @@ class CourtEventFIFOTempListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should log telemetry for Common Platform event consumed from FIFO queue once after publishing the same message twice`() {
+  fun `should log telemetry for Common Platform event consumed from FIFO queue once after publishing the same message twice to the FIFO topic`() {
     val firstPnc = randomPnc()
     val firstName: String = randomName()
     val lastName: String = randomName()

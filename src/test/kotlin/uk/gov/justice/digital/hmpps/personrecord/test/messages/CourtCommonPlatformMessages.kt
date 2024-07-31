@@ -63,8 +63,7 @@ fun commonPlatformHearing(commonPlatformHearingSetup: List<CommonPlatformHearing
             }
           }
         ]
-      },
-      "sharedTime": "${DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(LocalDateTime.now())}"
+      }
     }
 """.trimIndent()
 
