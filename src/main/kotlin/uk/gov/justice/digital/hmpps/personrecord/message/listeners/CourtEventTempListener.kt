@@ -12,6 +12,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.CourtMessageEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtMessageRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.DEFENDANT_ID
@@ -33,6 +35,7 @@ class CourtEventTempListener(
   val objectMapper: ObjectMapper,
   val telemetryService: TelemetryService,
   val hmppsQueueService: HmppsQueueService,
+  val courtMessageRepository: CourtMessageRepository,
 
 ) {
 
@@ -41,7 +44,7 @@ class CourtEventTempListener(
     rawMessage: String,
   ) {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-
+    courtMessageRepository.save(CourtMessageEntity(messageId = sqsMessage.messageId, message = sqsMessage.message))
     when (sqsMessage.getMessageType()) {
       COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
       else -> processLibraEvent(sqsMessage)
