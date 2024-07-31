@@ -1,22 +1,31 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.commonplatform
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtMessageRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DEFENDANT_RECEIVED
-import uk.gov.justice.digital.hmpps.personrecord.test.*
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDateOfBirth
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import java.time.format.DateTimeFormatter
-import java.util.*
 import java.util.UUID.randomUUID
 
 class CourtEventFIFOTempListenerIntTest : MessagingMultiNodeTestBase() {
+
+  @Autowired
+  lateinit var courtMessageRepository: CourtMessageRepository
 
   @Test
   fun `should log telemetry for Common Platform event consumed from FIFO queue`() {
@@ -44,6 +53,41 @@ class CourtEventFIFOTempListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
+  fun `should store received messages`() {
+    val firstPnc = randomPnc()
+    val firstName: String = randomName()
+    val lastName: String = randomName()
+    val cro: String = randomCro()
+    val defendantId: String = randomUUID().toString()
+    val nationalInsuranceNumber: String = randomNationalInsuranceNumber()
+
+    val commonPlatformHearingSetup = CommonPlatformHearingSetup(defendantId = defendantId, pnc = firstPnc, firstName = firstName, lastName = lastName, cro = cro, nationalInsuranceNumber = nationalInsuranceNumber)
+    val firstMessageId = publishCourtMessage(commonPlatformHearing(listOf(commonPlatformHearingSetup)), COMMON_PLATFORM_HEARING, topic = courtEventsTopic?.arn!!)
+    val secondMessageId = publishCourtMessage(commonPlatformHearing(listOf(commonPlatformHearingSetup)), COMMON_PLATFORM_HEARING, topic = courtEventsTopic?.arn!!)
+    checkTelemetry(
+      DEFENDANT_RECEIVED,
+      mapOf(
+        "DEFENDANT_ID" to defendantId,
+        "MESSAGE_ID" to firstMessageId,
+        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
+        "FIFO" to "false",
+      ),
+    )
+    checkTelemetry(
+      DEFENDANT_RECEIVED,
+      mapOf(
+        "DEFENDANT_ID" to defendantId,
+        "MESSAGE_ID" to secondMessageId,
+        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
+        "FIFO" to "false",
+      ),
+    )
+    val firstMessageEntity = courtMessageRepository.findByMessageId(firstMessageId)
+    val secondMessageEntity = courtMessageRepository.findByMessageId(secondMessageId)
+    assertThat(firstMessageEntity.message).isEqualTo(secondMessageEntity.message)
+  }
+
+  @Test
   fun `should log telemetry for Common Platform event consumed from FIFO queue once after publishing the same message twice`() {
     val firstPnc = randomPnc()
     val firstName: String = randomName()
@@ -64,7 +108,8 @@ class CourtEventFIFOTempListenerIntTest : MessagingMultiNodeTestBase() {
         "DEFENDANT_ID" to defendantId,
         "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
         "FIFO" to "false",
-      ),2
+      ),
+      2,
     )
     checkTelemetry(
       DEFENDANT_RECEIVED,
@@ -72,7 +117,8 @@ class CourtEventFIFOTempListenerIntTest : MessagingMultiNodeTestBase() {
         "DEFENDANT_ID" to defendantId,
         "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
         "FIFO" to "true",
-      ),1
+      ),
+      1,
     )
   }
 
