@@ -120,7 +120,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     ],
     "addresses": [
       {
-        "fullAddress": "1 Main Street, Crookes, Sheffield, South Yorkshire, S10 1BP, England",
+        "fullAddress": "${responseSetup.addresses[0].fullAddress}",
         "postalCode": "${responseSetup.addresses[0].postcode}",
         "startDate": "2020-07-17",
         "primaryAddress": true,

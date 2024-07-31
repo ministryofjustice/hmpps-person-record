@@ -36,6 +36,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateOfBirth
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
+import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -54,10 +55,11 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val email = randomEmail()
     val cro = randomCro()
     val postcode = randomPostcode()
+    val fullAddress = randomFullAddress()
     val prefix = randomName()
     val personDateOfBirth = randomDateOfBirth()
 
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode)), prefix = prefix, dateOfBirth = personDateOfBirth))
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode, fullAddress)), prefix = prefix, dateOfBirth = personDateOfBirth))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
@@ -83,6 +85,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.pseudonyms[0].dateOfBirth).isEqualTo(personDateOfBirth)
       assertThat(personEntity.addresses.size).isEqualTo(1)
       assertThat(personEntity.addresses[0].postcode).isEqualTo(postcode)
+      assertThat(personEntity.addresses[0].fullAddress).isEqualTo(fullAddress)
       assertThat(personEntity.contacts.size).isEqualTo(3)
       assertThat(personEntity.contacts[0].contactType).isEqualTo(EMAIL)
       assertThat(personEntity.contacts[0].contactValue).isEqualTo(email)
