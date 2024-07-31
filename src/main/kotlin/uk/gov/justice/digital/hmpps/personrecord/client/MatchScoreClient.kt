@@ -6,7 +6,9 @@ import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import java.util.UUID
 
@@ -48,7 +50,7 @@ data class MatchRecord(
         firstName = newRecord.firstName,
         lastname = newRecord.lastName,
         dateOfBirth = newRecord.dateOfBirth?.toString(),
-        pnc = newRecord.references.firstOrNull { it.identifierType == IdentifierType.PNC }?.identifierValue,
+        pnc = newRecord.references.getType(IdentifierType.PNC).firstOrNull()?.identifierValue ?: "",
       )
     }
 
@@ -57,7 +59,7 @@ data class MatchRecord(
         firstName = personEntity.firstName,
         lastname = personEntity.firstName,
         dateOfBirth = personEntity.dateOfBirth?.toString(),
-        pnc = personEntity.references.firstOrNull { it.identifierType == IdentifierType.PNC }?.identifierValue,
+        pnc = personEntity.references.getType(IdentifierType.PNC).firstOrNull()?.identifierValue ?: "",
       )
     }
   }
