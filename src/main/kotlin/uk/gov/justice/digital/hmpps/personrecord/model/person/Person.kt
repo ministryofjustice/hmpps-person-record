@@ -37,7 +37,6 @@ data class Person(
   var nationality: String? = null,
   var religion: String? = null,
 
-
 ) {
   companion object {
     fun List<Reference>.getType(type: IdentifierType): List<Reference> {
