@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import java.time.format.DateTimeFormatter
-import java.util.*
 import java.util.UUID.randomUUID
 
 class CourtEventFIFOTempListenerIntTest : MessagingMultiNodeTestBase() {
@@ -64,7 +63,8 @@ class CourtEventFIFOTempListenerIntTest : MessagingMultiNodeTestBase() {
         "DEFENDANT_ID" to defendantId,
         "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
         "FIFO" to "false",
-      ),2
+      ),
+      2,
     )
     checkTelemetry(
       DEFENDANT_RECEIVED,
@@ -72,7 +72,8 @@ class CourtEventFIFOTempListenerIntTest : MessagingMultiNodeTestBase() {
         "DEFENDANT_ID" to defendantId,
         "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
         "FIFO" to "true",
-      ),1
+      ),
+      1,
     )
   }
 
