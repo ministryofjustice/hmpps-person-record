@@ -35,7 +35,7 @@ fun randomName(): String = randomLowerCaseString()
 fun randomNationalInsuranceNumber(): String = UUID.randomUUID().toString()
 fun randomDriverLicenseNumber(): String = UUID.randomUUID().toString()
 
-fun randomFullAddress(): String = UUID.randomUUID().toString()
+fun randomFullAddress(): String = randomDigit(2) + " " + randomLowerCaseString(8) + ", " + randomLowerCaseString(10) + ", " + randomPostcode()
 
 fun randomPrisonNumber(): String = randomLowerCaseString(2).uppercase() + randomDigit(4) + randomLowerCaseString(1).uppercase()
 
