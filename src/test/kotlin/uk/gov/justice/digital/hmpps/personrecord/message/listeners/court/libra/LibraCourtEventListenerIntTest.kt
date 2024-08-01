@@ -445,10 +445,10 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         "HIGH_CONFIDENCE_COUNT" to "0",
         "LOW_CONFIDENCE_COUNT" to "0",
       ),
-      times = 1,
+      times = 0,
     )
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
-    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
+    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"), times = 0)
 
     val personEntities = await.atMost(30, SECONDS) untilNotNull {
       personRepository.findAll()
@@ -463,7 +463,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
-    assertThat(person.personKey).isNotNull()
+    assertThat(person.personKey).isNull()
     assertThat(person.selfMatchScore).isEqualTo(0.5123)
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
   }

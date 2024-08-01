@@ -67,13 +67,20 @@ class PersonService(
     if (isUpdateEvent(event)) {
       trackEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
     }
-    val personEntity = searchByAllSourceSystemsAndHasUuid(person)
-    val personKey = when {
-      personEntity == null -> createPersonKey(person)
-      else -> retrievePersonKey(person, personEntity)
+    val personKey: PersonKeyEntity? = when {
+      person.isAboveMatchScoreThreshold -> getPersonKey(person)
+      else -> null
     }
     createPersonEntity(person, personKey)
     trackEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
+  }
+
+  private fun getPersonKey(person: Person): PersonKeyEntity {
+    val personEntity = searchByAllSourceSystemsAndHasUuid(person)
+    return when {
+      personEntity == null -> createPersonKey(person)
+      else -> retrievePersonKey(person, personEntity)
+    }
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?) {
@@ -89,7 +96,7 @@ class PersonService(
     personRepository.saveAndFlush(personEntity)
   }
 
-  private fun createPersonEntity(person: Person, personKeyEntity: PersonKeyEntity) {
+  private fun createPersonEntity(person: Person, personKeyEntity: PersonKeyEntity?) {
     val personEntity = PersonEntity.from(person)
     personEntity.personKey = personKeyEntity
     personRepository.saveAndFlush(personEntity)
