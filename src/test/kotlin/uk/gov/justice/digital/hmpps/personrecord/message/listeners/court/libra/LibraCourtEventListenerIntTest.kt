@@ -44,15 +44,12 @@ import java.util.concurrent.TimeUnit.SECONDS
 class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @BeforeEach
-  override fun beforeEachMessagingTest() {
-    shouldStubSelfMatchScore = false
+  fun beforeEach() {
     telemetryRepository.deleteAll()
-    super.beforeEachMessagingTest()
   }
 
   @Test
   fun `should process libra messages`() {
-    stubSelfMatchScore()
     val firstName = randomName()
     val lastName = randomName()
     val postcode = randomPostcode()
@@ -102,7 +99,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process and update libra messages`() {
-    stubSelfMatchScore()
     val firstName = randomName()
     val lastName = randomName()
     val postcode = randomPostcode()
@@ -166,7 +162,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process and create libra message and link to different source system record`() {
-    stubSelfMatchScore()
     val firstName = randomName()
     val lastName = randomName()
     val dateOfBirth = randomDateOfBirth()
@@ -284,7 +279,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process and send duplicate telemetry`() {
-    stubSelfMatchScore()
     val firstName = randomName()
 
     personRepository.saveAndFlush(
@@ -334,7 +328,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process multiple pages of candidates`() {
-    stubSelfMatchScore()
     val firstName = randomName()
     repeat(100) {
       personRepository.saveAndFlush(
@@ -374,7 +367,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   @Disabled("Disabling as it takes too long to run in a CI context - out of memory errors")
   fun `should process libra with large amount of candidates - CPR-354`() {
-    stubSelfMatchScore()
     await untilAsserted { assertThat(personRepository.findAll().size).isEqualTo(0) }
     val blitzer = Blitzer(1000000, 10)
     try {
