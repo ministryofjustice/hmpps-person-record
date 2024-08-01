@@ -112,6 +112,6 @@ class CourtEventProcessor(
         EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
       ),
     )
-    return null
+    return PersonEntity.empty
   }
 }

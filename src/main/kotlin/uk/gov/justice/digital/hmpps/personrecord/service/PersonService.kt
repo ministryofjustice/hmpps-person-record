@@ -90,7 +90,7 @@ class PersonService(
       person,
       mapOf(EventKeys.PROBABILITY_SCORE to person.selfMatchScore.toString()),
     )
-    return PersonKeyEntity.none
+    return PersonKeyEntity.empty
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?) {
