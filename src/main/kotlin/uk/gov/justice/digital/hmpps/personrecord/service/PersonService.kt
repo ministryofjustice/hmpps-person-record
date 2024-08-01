@@ -69,7 +69,7 @@ class PersonService(
     }
     val personKey: PersonKeyEntity? = when {
       person.isAboveMatchScoreThreshold -> getPersonKey(person)
-      else -> null
+      else -> handleLowSelfMatchScore(person)
     }
     createPersonEntity(person, personKey)
     trackEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
@@ -81,6 +81,15 @@ class PersonService(
       personEntity == null -> createPersonKey(person)
       else -> retrievePersonKey(person, personEntity)
     }
+  }
+
+  private fun handleLowSelfMatchScore(person: Person): PersonKeyEntity? {
+    trackEvent(
+      TelemetryEventType.CPR_LOW_SELF_SCORE_NOT_CREATING_UUID,
+      person,
+      mapOf(EventKeys.PROBABILITY_SCORE to person.selfMatchScore.toString()),
+    )
+    return null
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?) {
