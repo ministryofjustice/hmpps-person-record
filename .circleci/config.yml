@@ -47,6 +47,7 @@ workflows:
           name: helm_lint
       - hmpps/database_schema_report:
           schema: "personrecordservice"
+          initialise_database: "./gradlew initialiseDatabase"
           filters:
             branches:
               only:
