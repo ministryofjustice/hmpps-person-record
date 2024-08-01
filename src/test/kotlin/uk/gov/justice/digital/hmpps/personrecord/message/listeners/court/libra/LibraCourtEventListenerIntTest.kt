@@ -223,8 +223,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should process and create new person with low score`() {
-    stubSelfMatchScore(scenario = "selfMatchScore", nextScenarioState = "candidateSearch")
+  fun `should process and create new person when has a match with low score`() {
+    stubSelfMatchScore(scenario = "checkLowScore", nextScenarioState = "checkRecordExistCandidateCheck")
     val firstName = randomName()
     val lastName = randomName()
     val postcode = randomPostcode()
@@ -237,7 +237,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.98883))
-    stubMatchScore(matchResponse, scenario =  "candidateSearch", nextScenarioState = "finished")
+    stubMatchScore(matchResponse, scenario = "checkLowScore", currentScenarioState = "checkRecordExistCandidateCheck", nextScenarioState = "candidateUuidCheck")
+    stubMatchScore(matchResponse, scenario = "checkLowScore", currentScenarioState = "candidateUuidCheck")
 
     val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, postcode = postcode, cro = "", pncNumber = "")
     val messageId2 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
@@ -250,12 +251,28 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     checkTelemetry(
+      CPR_LOW_SELF_MATCH,
+      mapOf(
+        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
+        "SOURCE_SYSTEM" to LIBRA.name,
+      ),
+      times = 0,
+    )
+    checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
         "RECORD_COUNT" to "1",
         "HIGH_CONFIDENCE_COUNT" to "0",
         "LOW_CONFIDENCE_COUNT" to "1",
+      ),
+      times = 2,
+    )
+    checkTelemetry(
+      CPR_MATCH_SCORE,
+      mapOf(
+        "SOURCE_SYSTEM" to LIBRA.name,
+        "PROBABILITY_SCORE" to "0.98883",
       ),
       times = 2,
     )
