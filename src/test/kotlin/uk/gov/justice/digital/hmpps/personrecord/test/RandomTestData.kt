@@ -32,6 +32,10 @@ fun randomCro(): String {
 }
 
 fun randomName(): String = randomLowerCaseString()
+
+fun randomNationality(): String = randomLowerCaseString()
+fun randomReligion(): String = randomLowerCaseString()
+
 fun randomNationalInsuranceNumber(): String = UUID.randomUUID().toString()
 fun randomDriverLicenseNumber(): String = UUID.randomUUID().toString()
 
