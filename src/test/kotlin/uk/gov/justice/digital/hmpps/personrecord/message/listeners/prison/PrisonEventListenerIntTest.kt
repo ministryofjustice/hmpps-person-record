@@ -77,6 +77,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.dateOfBirth).isEqualTo(personDateOfBirth)
       assertThat(personEntity.pseudonyms.size).isEqualTo(1)
       assertThat(personEntity.pseudonyms[0].firstName).isEqualTo(prefix + "AliasFirstName")
+      assertThat(personEntity.pseudonyms[0].title).isEqualTo(prefix + "AliasTitle")
       assertThat(personEntity.pseudonyms[0].middleNames).isEqualTo(prefix + "AliasMiddleName")
       assertThat(personEntity.pseudonyms[0].lastName).isEqualTo(prefix + "AliasLastName")
 

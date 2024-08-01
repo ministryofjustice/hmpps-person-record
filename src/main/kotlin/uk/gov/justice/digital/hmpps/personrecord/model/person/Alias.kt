@@ -9,6 +9,7 @@ data class Alias(
   val firstName: String? = null,
   val lastName: String? = null,
   val middleNames: String? = null,
+  val title: String? = null,
   val dateOfBirth: LocalDate? = null,
 ) {
   companion object {
@@ -36,6 +37,7 @@ data class Alias(
         middleNames = alias.middleNames,
         lastName = alias.lastName,
         dateOfBirth = alias.dateOfBirth,
+        title = alias.title,
       )
   }
 }
