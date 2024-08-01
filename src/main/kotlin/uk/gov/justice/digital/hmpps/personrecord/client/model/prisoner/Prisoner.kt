@@ -31,6 +31,8 @@ data class Prisoner(
   val emailAddresses: List<EmailAddress> = emptyList(),
   val phoneNumbers: List<PhoneNumber> = emptyList(),
   val addresses: List<Address> = emptyList(),
+  val identifiers: List<Identifier> = emptyList(),
+
 ) {
   fun getHomePhone(): String? {
     return phoneNumbers.firstOrNull { it.type?.contains("HOME") == true }?.number
