@@ -28,7 +28,7 @@ import java.util.UUID
 const val CPR_COURT_EVENTS_TEMP_QUEUE_CONFIG_KEY = "cprcourtcaseeventstemporaryqueue"
 
 @Component
-@Profile(value = ["preprod", "test"])
+@Profile("!dev")
 class CourtEventTempListener(
   val objectMapper: ObjectMapper,
   val telemetryService: TelemetryService,
