@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.awspring.cloud.sqs.annotation.SqsListener
-import io.opentelemetry.api.trace.SpanKind.SERVER
-import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
@@ -30,7 +28,7 @@ import java.util.UUID
 const val CPR_COURT_EVENTS_TEMP_QUEUE_CONFIG_KEY = "cprcourtcaseeventstemporaryqueue"
 
 @Component
-@Profile(value = ["preprod", "test"])
+@Profile("!dev")
 class CourtEventTempListener(
   val objectMapper: ObjectMapper,
   val telemetryService: TelemetryService,
@@ -39,7 +37,6 @@ class CourtEventTempListener(
 ) {
 
   @SqsListener(CPR_COURT_EVENTS_TEMP_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
-  @WithSpan(value = "hmpps-person-record-cpr_court_events_temporary_queue", kind = SERVER)
   fun onMessage(
     rawMessage: String,
   ) {
@@ -74,7 +71,7 @@ class CourtEventTempListener(
       )
     }
 
-    republishCourtMessage(sqsMessage.message, COMMON_PLATFORM_HEARING)
+    publishCourtMessageToFifoTopic(objectMapper.writeValueAsString(commonPlatformHearingEvent), COMMON_PLATFORM_HEARING)
   }
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
@@ -88,10 +85,10 @@ class CourtEventTempListener(
         FIFO to "false",
       ),
     )
-    republishCourtMessage(sqsMessage.message, LIBRA_COURT_CASE)
+    publishCourtMessageToFifoTopic(sqsMessage.message, LIBRA_COURT_CASE)
   }
 
-  private fun republishCourtMessage(message: String, messageType: MessageType) {
+  private fun publishCourtMessageToFifoTopic(message: String, messageType: MessageType) {
     val topic = hmppsQueueService.findByTopicId("courteventsfifotopic")
       ?: throw MissingTopicException("Could not find topic courteventsfifotopic")
     val messageBuilder = PublishRequest.builder()

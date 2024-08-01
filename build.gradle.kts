@@ -1,3 +1,5 @@
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.include
+
 kotlin {
   compilerOptions {
     jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
@@ -26,7 +28,6 @@ dependencies {
   implementation("jakarta.validation:jakarta.validation-api:3.1.0")
   implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
-  implementation("io.swagger.core.v3:swagger-annotations:2.2.22")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.3")
   constraints {
     implementation("org.bouncycastle:bcprov-jdk18on:1.78.1") {
@@ -34,7 +35,6 @@ dependencies {
     }
   }
   implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.3")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.4.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 
   runtimeOnly("org.postgresql:postgresql:42.7.3")
@@ -43,7 +43,7 @@ dependencies {
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
-  testImplementation("org.wiremock:wiremock-standalone:3.9.0")
+  testImplementation("org.wiremock:wiremock-standalone:3.9.1")
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
@@ -69,6 +69,10 @@ detekt {
 }
 
 tasks {
+  register("initialiseDatabase", Test::class) {
+    include("**/HealthCheckIntTest.class")
+  }
+
   getByName("check") {
     dependsOn(":ktlintCheck", "detekt")
     finalizedBy("koverHtmlReport")

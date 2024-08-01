@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.awspring.cloud.sqs.annotation.SqsListener
-import io.opentelemetry.api.trace.SpanKind.SERVER
-import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
@@ -22,13 +20,12 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 const val CPR_COURT_EVENTS_FIFO_QUEUE_CONFIG_KEY = "cprcourteventsfifoqueue"
 
 @Component
-@Profile(value = ["preprod", "test"])
+@Profile("!dev")
 class CourtEventFIFOListener(
   val objectMapper: ObjectMapper,
   val telemetryService: TelemetryService,
 ) {
   @SqsListener(CPR_COURT_EVENTS_FIFO_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
-  @WithSpan(value = "hmpps-person-record-cpr_court_events_queue", kind = SERVER)
   fun onMessage(
     rawMessage: String,
   ) {
