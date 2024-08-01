@@ -34,6 +34,7 @@ class PersonService(
   private val personKeyRepository: PersonKeyRepository,
   private val readWriteLockService: ReadWriteLockService,
   private val searchService: SearchService,
+  private val matchService: MatchService,
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
@@ -46,14 +47,14 @@ class PersonService(
     ConstraintViolationException::class,
   )
 
-  fun processMessage(person: Person, event: String? = null, callback: (Boolean) -> PersonEntity?) = runBlocking {
+  fun processMessage(person: Person, event: String? = null, callback: (isAboveSelfMatchThreshold: Boolean) -> PersonEntity?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, retryExceptions) {
       readWriteLockService.withWriteLock { processPerson(person, event, callback) }
     }
   }
 
-  private fun processPerson(person: Person, event: String?, callback: (Boolean) -> PersonEntity?) {
-    val (isAboveSelfMatchThreshold, selfMatchScore) = searchService.retrieveRecordSelfMatchScore(person)
+  private fun processPerson(person: Person, event: String?, callback: (isAboveSelfMatchThreshold: Boolean) -> PersonEntity?) {
+    val (isAboveSelfMatchThreshold, selfMatchScore) = matchService.getSelfMatchScore(person)
     person.selfMatchScore = selfMatchScore
     person.isAboveMatchScoreThreshold = isAboveSelfMatchThreshold
     val existingPersonEntity: PersonEntity? = callback(isAboveSelfMatchThreshold)
@@ -89,7 +90,7 @@ class PersonService(
       person,
       mapOf(EventKeys.PROBABILITY_SCORE to person.selfMatchScore.toString()),
     )
-    return null
+    return PersonKeyEntity.none
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?) {
