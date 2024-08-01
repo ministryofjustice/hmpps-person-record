@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 const val CPR_COURT_EVENTS_FIFO_QUEUE_CONFIG_KEY = "cprcourteventsfifoqueue"
 
 @Component
-@Profile(value = ["preprod", "test"])
+@Profile("!dev")
 class CourtEventFIFOListener(
   val objectMapper: ObjectMapper,
   val telemetryService: TelemetryService,
