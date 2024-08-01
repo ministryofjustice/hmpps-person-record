@@ -8,14 +8,19 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.CourtHearingEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.CourtMessageEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtHearingRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.DEFENDANT_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.FIFO
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.HEARING_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DEFENDANT_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.FIFO_DEFENDANT_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.FIFO_HEARING_CREATED
 
 const val CPR_COURT_EVENTS_FIFO_QUEUE_CONFIG_KEY = "cprcourteventsfifoqueue"
 
@@ -24,6 +29,7 @@ const val CPR_COURT_EVENTS_FIFO_QUEUE_CONFIG_KEY = "cprcourteventsfifoqueue"
 class CourtEventFIFOListener(
   val objectMapper: ObjectMapper,
   val telemetryService: TelemetryService,
+  val courtHearingRepository: CourtHearingRepository,
 ) {
   @SqsListener(CPR_COURT_EVENTS_FIFO_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
   fun onMessage(
@@ -42,6 +48,19 @@ class CourtEventFIFOListener(
       sqsMessage.message,
     )
 
+    val courtMessageEntity = CourtMessageEntity(messageId = sqsMessage.messageId, message = sqsMessage.message)
+    val hearingId = commonPlatformHearingEvent.hearing.id
+    val courtHearingEntity = CourtHearingEntity(hearingId = hearingId)
+    courtMessageEntity.courtHearing = courtHearingEntity
+    courtHearingEntity.messages = listOf(courtMessageEntity).toMutableList()
+    telemetryService.trackEvent(
+      FIFO_HEARING_CREATED,
+      mapOf(
+        HEARING_ID to hearingId,
+      ),
+    )
+    courtHearingRepository.save(courtHearingEntity)
+
     val uniqueDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
       .flatMap { it.defendants }
       .distinctBy {
@@ -49,7 +68,7 @@ class CourtEventFIFOListener(
       }
     uniqueDefendants.forEach {
       telemetryService.trackEvent(
-        DEFENDANT_RECEIVED,
+        FIFO_DEFENDANT_RECEIVED,
         mapOf(
           SOURCE_SYSTEM to SourceSystemType.COMMON_PLATFORM.name,
           DEFENDANT_ID to it.id,
@@ -63,7 +82,7 @@ class CourtEventFIFOListener(
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
     telemetryService.trackEvent(
-      DEFENDANT_RECEIVED,
+      FIFO_DEFENDANT_RECEIVED,
       mapOf(
 
         EVENT_TYPE to MessageType.LIBRA_COURT_CASE.name,

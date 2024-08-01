@@ -12,9 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.CourtHearingEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.CourtMessageEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtHearingRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.DEFENDANT_ID
@@ -23,7 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.FIFO
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DEFENDANT_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.FIFO_DEFENDANT_RECEIVED
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import java.util.UUID
@@ -36,7 +33,6 @@ class CourtEventTempListener(
   val objectMapper: ObjectMapper,
   val telemetryService: TelemetryService,
   val hmppsQueueService: HmppsQueueService,
-  val courtHearingRepository: CourtHearingRepository,
 
 ) {
 
@@ -56,13 +52,6 @@ class CourtEventTempListener(
       sqsMessage.message,
     )
 
-    val courtMessageEntity = CourtMessageEntity(messageId = sqsMessage.messageId, message = sqsMessage.message)
-    val courtHearingEntity = CourtHearingEntity(hearingId = commonPlatformHearingEvent.hearing.id)
-    courtMessageEntity.courtHearing = courtHearingEntity
-    courtHearingEntity.messages = listOf(courtMessageEntity).toMutableList()
-
-    courtHearingRepository.save(courtHearingEntity)
-
     val uniqueDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
       .flatMap { it.defendants }
       .distinctBy {
@@ -70,7 +59,7 @@ class CourtEventTempListener(
       }
     uniqueDefendants.forEach {
       telemetryService.trackEvent(
-        DEFENDANT_RECEIVED,
+        FIFO_DEFENDANT_RECEIVED,
         mapOf(
           SOURCE_SYSTEM to COMMON_PLATFORM.name,
           DEFENDANT_ID to it.id,
@@ -86,7 +75,7 @@ class CourtEventTempListener(
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
     telemetryService.trackEvent(
-      DEFENDANT_RECEIVED,
+      FIFO_DEFENDANT_RECEIVED,
       mapOf(
 
         EVENT_TYPE to LIBRA_COURT_CASE.name,
