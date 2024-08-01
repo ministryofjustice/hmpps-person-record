@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateOfBirth
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
@@ -17,4 +18,6 @@ data class ApiResponseSetup(
   val nationalInsuranceNumber: String? = null,
   val email: String? = randomEmail(),
   val dateOfBirth: LocalDate? = randomDateOfBirth(),
+  val driverLicenseNumber: String? = randomDriverLicenseNumber(),
+
 )
