@@ -12,8 +12,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.CourtHearingEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.CourtMessageEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtMessageRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtHearingRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.DEFENDANT_ID
@@ -35,7 +36,7 @@ class CourtEventTempListener(
   val objectMapper: ObjectMapper,
   val telemetryService: TelemetryService,
   val hmppsQueueService: HmppsQueueService,
-  val courtMessageRepository: CourtMessageRepository,
+  val courtHearingRepository: CourtHearingRepository,
 
 ) {
 
@@ -44,7 +45,6 @@ class CourtEventTempListener(
     rawMessage: String,
   ) {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-    courtMessageRepository.save(CourtMessageEntity(messageId = sqsMessage.messageId, message = sqsMessage.message))
     when (sqsMessage.getMessageType()) {
       COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
       else -> processLibraEvent(sqsMessage)
@@ -55,6 +55,13 @@ class CourtEventTempListener(
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(
       sqsMessage.message,
     )
+
+    val courtMessageEntity = CourtMessageEntity(messageId = sqsMessage.messageId, message = sqsMessage.message)
+    val courtHearingEntity = CourtHearingEntity(hearingId = commonPlatformHearingEvent.hearing.id)
+    courtMessageEntity.courtHearing = courtHearingEntity
+    courtHearingEntity.messages = listOf(courtMessageEntity).toMutableList()
+
+    courtHearingRepository.save(courtHearingEntity)
 
     val uniqueDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
       .flatMap { it.defendants }
