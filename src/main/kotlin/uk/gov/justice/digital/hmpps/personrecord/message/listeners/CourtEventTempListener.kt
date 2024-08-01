@@ -71,7 +71,7 @@ class CourtEventTempListener(
       )
     }
 
-    republishCourtMessage(sqsMessage.message, COMMON_PLATFORM_HEARING)
+    publishCourtMessageToFifoTopic(objectMapper.writeValueAsString(commonPlatformHearingEvent), COMMON_PLATFORM_HEARING)
   }
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
@@ -85,10 +85,10 @@ class CourtEventTempListener(
         FIFO to "false",
       ),
     )
-    republishCourtMessage(sqsMessage.message, LIBRA_COURT_CASE)
+    publishCourtMessageToFifoTopic(sqsMessage.message, LIBRA_COURT_CASE)
   }
 
-  private fun republishCourtMessage(message: String, messageType: MessageType) {
+  private fun publishCourtMessageToFifoTopic(message: String, messageType: MessageType) {
     val topic = hmppsQueueService.findByTopicId("courteventsfifotopic")
       ?: throw MissingTopicException("Could not find topic courteventsfifotopic")
     val messageBuilder = PublishRequest.builder()

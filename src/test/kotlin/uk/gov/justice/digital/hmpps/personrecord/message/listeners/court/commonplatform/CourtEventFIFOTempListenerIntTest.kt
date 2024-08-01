@@ -11,8 +11,10 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateOfBirth
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import java.time.format.DateTimeFormatter
 import java.util.UUID.randomUUID
@@ -41,6 +43,41 @@ class CourtEventFIFOTempListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
         "FIFO" to "true",
       ),
+    )
+  }
+
+  @Test
+  fun `should log telemetry for Common Platform event consumed from FIFO queue once after publishing the same message twice to the FIFO topic`() {
+    val firstPnc = randomPnc()
+    val firstName: String = randomName()
+    val lastName: String = randomName()
+    val cro: String = randomCro()
+    val defendantId: String = randomUUID().toString()
+    val nationalInsuranceNumber: String = randomNationalInsuranceNumber()
+
+    val commonPlatformHearingSetup = CommonPlatformHearingSetup(defendantId = defendantId, pnc = firstPnc, firstName = firstName, lastName = lastName, cro = cro, nationalInsuranceNumber = nationalInsuranceNumber)
+
+//    publishing message twice
+    publishCourtMessage(commonPlatformHearing(listOf(commonPlatformHearingSetup)), COMMON_PLATFORM_HEARING, topic = courtEventsTopic?.arn!!)
+    publishCourtMessage(commonPlatformHearing(listOf(commonPlatformHearingSetup)), COMMON_PLATFORM_HEARING, topic = courtEventsTopic?.arn!!)
+
+    checkTelemetry(
+      DEFENDANT_RECEIVED,
+      mapOf(
+        "DEFENDANT_ID" to defendantId,
+        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
+        "FIFO" to "false",
+      ),
+      2,
+    )
+    checkTelemetry(
+      DEFENDANT_RECEIVED,
+      mapOf(
+        "DEFENDANT_ID" to defendantId,
+        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
+        "FIFO" to "true",
+      ),
+      1,
     )
   }
 
