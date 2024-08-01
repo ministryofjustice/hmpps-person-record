@@ -1,4 +1,6 @@
+
 BEGIN;
+
 -------------------------------------------------------
 
 DROP TABLE IF EXISTS court_message;
