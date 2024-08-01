@@ -234,7 +234,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
   }
 
-  fun stubSelfMatchScore(score: Double = 0.9999, scenario: String = "stubbingSelfMatchScore", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) = stubMatchScore(
+  fun stubSelfMatchScore(score: Double = 0.9999, scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) = stubMatchScore(
     matchResponse = MatchResponse(
       matchProbabilities = mutableMapOf("0" to score),
     ),

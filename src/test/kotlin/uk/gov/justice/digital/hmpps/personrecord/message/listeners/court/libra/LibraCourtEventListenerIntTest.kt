@@ -225,7 +225,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process and create new person when has a match with low score`() {
-    stubSelfMatchScore(scenario = "checkLowScore", nextScenarioState = "checkRecordExistCandidateCheck")
+    stubSelfMatchScore(nextScenarioState = "checkRecordExistCandidateCheck")
     val firstName = randomName()
     val lastName = randomName()
     val postcode = randomPostcode()
@@ -238,8 +238,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.98883))
-    stubMatchScore(matchResponse, scenario = "checkLowScore", currentScenarioState = "checkRecordExistCandidateCheck", nextScenarioState = "candidateUuidCheck")
-    stubMatchScore(matchResponse, scenario = "checkLowScore", currentScenarioState = "candidateUuidCheck")
+    stubMatchScore(matchResponse, currentScenarioState = "checkRecordExistCandidateCheck", nextScenarioState = "candidateUuidCheck")
+    stubMatchScore(matchResponse, currentScenarioState = "candidateUuidCheck")
 
     val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, postcode = postcode, cro = "", pncNumber = "")
     val messageId2 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
