@@ -157,6 +157,9 @@ class PersonEntity(
   }
 
   companion object {
+
+    val empty: PersonEntity? = null
+
     fun List<ReferenceEntity>.getType(type: IdentifierType): List<ReferenceEntity> {
       return this.filter { it.identifierType == type }
     }

@@ -31,6 +31,8 @@ class PersonKeyEntity(
 
 ) {
   companion object {
+    val empty: PersonKeyEntity? = null
+
     fun new(): PersonKeyEntity = PersonKeyEntity(personId = UUID.randomUUID())
   }
 }
