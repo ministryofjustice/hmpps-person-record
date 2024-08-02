@@ -18,8 +18,8 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     "ethnicity": "White: Eng./Welsh/Scot./N.Irish/British",
     "youthOffender": true,
     "maritalStatus": "Widowed",
-    "religion": "${responseSetup.religion}",
-    "nationality": "${responseSetup.nationality}",
+    ${responseSetup.religion?.let { """ "religion": "${responseSetup.religion}", """.trimIndent() } ?: "" }
+    ${responseSetup.nationality?.let { """ "nationality": "${responseSetup.nationality}", """.trimIndent() } ?: "" }
     "status": "ACTIVE IN",
     "lastMovementTypeCode": "CRT",
     "lastMovementReasonCode": "CA",

@@ -108,6 +108,32 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
+  fun `should check natioanlity and religion null`() {
+    val prisonNumber = randomPrisonNumber()
+
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomPnc(), email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(randomPostcode())), prefix = randomName(), dateOfBirth = randomDateOfBirth(), nationality = null, religion = null))
+
+    val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
+    val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
+    publishDomainEvent(PRISONER_CREATED, domainEvent)
+
+    checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
+
+    await.atMost(5, SECONDS) untilAsserted {
+      val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
+
+      assertThat(personEntity.nationality).isEqualTo(null)
+      assertThat(personEntity.religion).isEqualTo(null)
+    }
+
+    checkTelemetry(
+      CPR_RECORD_CREATED,
+      mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
+    )
+    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
+  }
+
+  @Test
   fun `should log correct telemetry on created event but record already exists`() {
     val prisonNumber = createPrisoner()
 
