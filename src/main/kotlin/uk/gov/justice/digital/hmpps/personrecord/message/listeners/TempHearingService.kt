@@ -45,7 +45,7 @@ class TempHearingService(
           EventKeys.HEARING_ID to hearingId,
         ),
       )
-      courtHearingRepository.saveAndFlush(courtHearingEntity)
+      courtHearingRepository.save(courtHearingEntity)
     }
   }
 }
