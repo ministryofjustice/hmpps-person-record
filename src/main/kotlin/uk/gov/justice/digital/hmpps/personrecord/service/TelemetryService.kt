@@ -27,6 +27,7 @@ enum class EventKeys {
   LOW_CONFIDENCE_COUNT,
 
   FIFO,
+  HEARING_ID,
 }
 
 @Service

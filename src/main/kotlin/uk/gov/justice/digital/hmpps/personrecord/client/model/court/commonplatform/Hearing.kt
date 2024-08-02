@@ -5,6 +5,8 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.NotEmpty
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Hearing(
+  val id: String? = null,
+
   @NotEmpty
   @Valid
   val prosecutionCases: List<ProsecutionCase>,
