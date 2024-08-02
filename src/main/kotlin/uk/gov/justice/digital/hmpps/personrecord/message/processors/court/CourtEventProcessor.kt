@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_LOW_SELF_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 
 @Service
@@ -96,22 +95,8 @@ class CourtEventProcessor(
     personService.processMessage(person) { isAboveSelfMatchThreshold ->
       when {
         isAboveSelfMatchThreshold -> personService.searchBySourceSystem(person)
-        else -> handleLowQualityRecord(person)
+        else -> PersonEntity.empty
       }
     }
-  }
-
-  private fun handleLowQualityRecord(person: Person): PersonEntity? {
-    telemetryService.trackEvent(
-      CPR_LOW_SELF_MATCH,
-      mapOf(
-        EventKeys.PNC to person.references.getType(IdentifierType.PNC).toString(),
-        EventKeys.CRO to person.references.getType(IdentifierType.CRO).toString(),
-        EventKeys.EVENT_TYPE to LIBRA_COURT_CASE.name,
-        EventKeys.PROBABILITY_SCORE to person.selfMatchScore.toString(),
-        EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
-      ),
-    )
-    return PersonEntity.empty
   }
 }

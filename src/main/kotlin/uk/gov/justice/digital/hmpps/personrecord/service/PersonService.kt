@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_NEW_RECORD_EXISTS
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_SELF_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 
@@ -54,14 +55,26 @@ class PersonService(
   }
 
   private fun processPerson(person: Person, event: String?, callback: (isAboveSelfMatchThreshold: Boolean) -> PersonEntity?) {
-    val (isAboveSelfMatchThreshold, selfMatchScore) = matchService.getSelfMatchScore(person)
-    person.selfMatchScore = selfMatchScore
-    person.isAboveMatchScoreThreshold = isAboveSelfMatchThreshold
-    val existingPersonEntity: PersonEntity? = callback(isAboveSelfMatchThreshold)
+    processSelfMatchScore(person)
+    val existingPersonEntity: PersonEntity? = callback(person.isAboveMatchScoreThreshold)
     when {
       (existingPersonEntity == null) -> handlePersonCreation(person, event)
       else -> handlePersonUpdate(person, existingPersonEntity, event)
     }
+  }
+
+  private fun processSelfMatchScore(person: Person) {
+    val (isAboveSelfMatchThreshold, selfMatchScore) = matchService.getSelfMatchScore(person)
+    person.selfMatchScore = selfMatchScore
+    person.isAboveMatchScoreThreshold = isAboveSelfMatchThreshold
+    trackEvent(
+      CPR_SELF_MATCH,
+      person,
+      mapOf(
+        EventKeys.PROBABILITY_SCORE to selfMatchScore.toString(),
+        EventKeys.IS_ABOVE_SELF_MATCH_THRESHOLD to isAboveSelfMatchThreshold.toString(),
+      ),
+    )
   }
 
   private fun handlePersonCreation(person: Person, event: String?) {

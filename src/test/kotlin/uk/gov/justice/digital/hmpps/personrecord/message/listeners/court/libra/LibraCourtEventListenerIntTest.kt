@@ -23,12 +23,12 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_LOW_SELF_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_LOW_SELF_SCORE_NOT_CREATING_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_SELF_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
@@ -247,12 +247,12 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     checkTelemetry(
-      CPR_LOW_SELF_MATCH,
+      CPR_SELF_MATCH,
       mapOf(
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
+        "IS_ABOVE_SELF_MATCH_THRESHOLD" to "true",
+        "PROBABILITY_SCORE" to "0.9999",
         "SOURCE_SYSTEM" to LIBRA.name,
       ),
-      times = 0,
     )
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
@@ -423,9 +423,9 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     checkTelemetry(
-      CPR_LOW_SELF_MATCH,
+      CPR_SELF_MATCH,
       mapOf(
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
+        "IS_ABOVE_SELF_MATCH_THRESHOLD" to "false",
         "PROBABILITY_SCORE" to "0.5123",
         "SOURCE_SYSTEM" to LIBRA.name,
       ),
