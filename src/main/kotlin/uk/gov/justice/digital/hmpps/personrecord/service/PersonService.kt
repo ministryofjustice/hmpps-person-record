@@ -34,6 +34,7 @@ class PersonService(
   private val personKeyRepository: PersonKeyRepository,
   private val readWriteLockService: ReadWriteLockService,
   private val searchService: SearchService,
+  private val matchService: MatchService,
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
@@ -46,15 +47,17 @@ class PersonService(
     ConstraintViolationException::class,
   )
 
-  fun processMessage(person: Person, event: String? = null, callback: () -> PersonEntity?) = runBlocking {
+  fun processMessage(person: Person, event: String? = null, callback: (isAboveSelfMatchThreshold: Boolean) -> PersonEntity?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, retryExceptions) {
       readWriteLockService.withWriteLock { processPerson(person, event, callback) }
     }
   }
 
-  private fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) {
-    person.selfMatchScore = searchService.retrieveRecordSelfMatchScore(person)
-    val existingPersonEntity: PersonEntity? = callback()
+  private fun processPerson(person: Person, event: String?, callback: (isAboveSelfMatchThreshold: Boolean) -> PersonEntity?) {
+    val (isAboveSelfMatchThreshold, selfMatchScore) = matchService.getSelfMatchScore(person)
+    person.selfMatchScore = selfMatchScore
+    person.isAboveMatchScoreThreshold = isAboveSelfMatchThreshold
+    val existingPersonEntity: PersonEntity? = callback(isAboveSelfMatchThreshold)
     when {
       (existingPersonEntity == null) -> handlePersonCreation(person, event)
       else -> handlePersonUpdate(person, existingPersonEntity, event)
@@ -65,13 +68,29 @@ class PersonService(
     if (isUpdateEvent(event)) {
       trackEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
     }
-    val personEntity = searchByAllSourceSystemsAndHasUuid(person)
-    val personKey = when {
-      personEntity == null -> createPersonKey(person)
-      else -> retrievePersonKey(person, personEntity)
+    val personKey: PersonKeyEntity? = when {
+      person.isAboveMatchScoreThreshold -> getPersonKey(person)
+      else -> handleLowSelfMatchScore(person)
     }
     createPersonEntity(person, personKey)
     trackEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
+  }
+
+  private fun getPersonKey(person: Person): PersonKeyEntity {
+    val personEntity = searchByAllSourceSystemsAndHasUuid(person)
+    return when {
+      personEntity == null -> createPersonKey(person)
+      else -> retrievePersonKey(person, personEntity)
+    }
+  }
+
+  private fun handleLowSelfMatchScore(person: Person): PersonKeyEntity? {
+    trackEvent(
+      TelemetryEventType.CPR_LOW_SELF_SCORE_NOT_CREATING_UUID,
+      person,
+      mapOf(EventKeys.PROBABILITY_SCORE to person.selfMatchScore.toString()),
+    )
+    return PersonKeyEntity.empty
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?) {
@@ -87,7 +106,7 @@ class PersonService(
     personRepository.saveAndFlush(personEntity)
   }
 
-  private fun createPersonEntity(person: Person, personKeyEntity: PersonKeyEntity) {
+  private fun createPersonEntity(person: Person, personKeyEntity: PersonKeyEntity?) {
     val personEntity = PersonEntity.from(person)
     personEntity.personKey = personKeyEntity
     personRepository.saveAndFlush(personEntity)
