@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.CO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.FIFO_DEFENDANT_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.FIFO_HEARING_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.FIFO_HEARING_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
@@ -45,6 +46,32 @@ class CourtEventFIFOTempListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
         "FIFO" to "true",
       ),
+    )
+  }
+
+  @Test
+  fun `When a hearing is updated then FIFO_HEARING_UPDATED and  is logged`() {
+    val firstDefendantId = randomUUID().toString()
+    val firstPnc = randomPnc()
+    val secondPnc = randomPnc()
+    val hearingId = randomHearingId()
+    // create hearing
+    publishCourtMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = firstPnc, defendantId = firstDefendantId, hearingId = hearingId))), COMMON_PLATFORM_HEARING, topic = courtEventsTopic?.arn!!)
+    // update hearing
+    publishCourtMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = secondPnc, defendantId = firstDefendantId, hearingId = hearingId))), COMMON_PLATFORM_HEARING, topic = courtEventsTopic?.arn!!)
+    checkTelemetry(
+      FIFO_HEARING_CREATED,
+      mapOf(
+        "HEARING_ID" to hearingId,
+      ),
+      1,
+    )
+    checkTelemetry(
+      FIFO_HEARING_UPDATED,
+      mapOf(
+        "HEARING_ID" to hearingId,
+      ),
+      1,
     )
   }
 

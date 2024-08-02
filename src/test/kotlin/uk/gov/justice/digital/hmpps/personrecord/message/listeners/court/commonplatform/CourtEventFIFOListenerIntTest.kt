@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomHearingId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
@@ -35,42 +36,26 @@ class CourtEventFIFOListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `When two identical messages are published to FIFO topic, application only consumes one `() {
     val defendantId = randomUUID().toString()
-    val firstPnc = randomPnc()
-    val firstName = randomName()
-    val lastName = randomName()
-    val cro = randomCro()
-    val nationalInsuranceNumber = randomNationalInsuranceNumber()
-    val firstMessageId = publishCourtMessage(
-      commonPlatformHearing(
-        listOf(
-          CommonPlatformHearingSetup(
-            pnc = firstPnc,
-            firstName = firstName,
-            lastName = lastName,
-            cro = cro,
-            defendantId = defendantId,
-            nationalInsuranceNumber = nationalInsuranceNumber,
-
-          ),
+    val hearing = commonPlatformHearing(
+      listOf(
+        CommonPlatformHearingSetup(
+          pnc = randomPnc(),
+          firstName = randomName(),
+          lastName = randomName(),
+          cro = randomCro(),
+          defendantId = defendantId,
+          nationalInsuranceNumber = randomNationalInsuranceNumber(),
+          hearingId = randomHearingId(),
         ),
       ),
+    )
+    val firstMessageId = publishCourtMessage(
+      hearing,
       COMMON_PLATFORM_HEARING,
       topic = courtEventsFIFOTopic?.arn!!,
     )
     val secondMessageId = publishCourtMessage(
-      commonPlatformHearing(
-        listOf(
-          CommonPlatformHearingSetup(
-            pnc = firstPnc,
-            firstName = firstName,
-            lastName = lastName,
-            cro = cro,
-            defendantId = defendantId,
-            nationalInsuranceNumber = nationalInsuranceNumber,
-
-          ),
-        ),
-      ),
+      hearing,
       COMMON_PLATFORM_HEARING,
       topic = courtEventsFIFOTopic?.arn!!,
     )

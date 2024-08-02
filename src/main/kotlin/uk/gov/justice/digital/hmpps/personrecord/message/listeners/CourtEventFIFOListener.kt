@@ -3,25 +3,24 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.awspring.cloud.sqs.annotation.SqsListener
+import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.CourtHearingEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.CourtMessageEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtHearingRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.DEFENDANT_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.FIFO
-import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.HEARING_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
+import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.FIFO_DEFENDANT_RECEIVED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.FIFO_HEARING_CREATED
-
+const val MAX_RETRY_ATTEMPTS: Int = 3
 const val CPR_COURT_EVENTS_FIFO_QUEUE_CONFIG_KEY = "cprcourteventsfifoqueue"
 
 @Component
@@ -29,7 +28,9 @@ const val CPR_COURT_EVENTS_FIFO_QUEUE_CONFIG_KEY = "cprcourteventsfifoqueue"
 class CourtEventFIFOListener(
   val objectMapper: ObjectMapper,
   val telemetryService: TelemetryService,
-  val courtHearingRepository: CourtHearingRepository,
+  val tempHearingService: TempHearingService,
+  @Value("\${retry.delay}")
+  private val retryDelay: Long = 0,
 ) {
   @SqsListener(CPR_COURT_EVENTS_FIFO_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
   fun onMessage(
@@ -47,19 +48,15 @@ class CourtEventFIFOListener(
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(
       sqsMessage.message,
     )
-
-    val courtMessageEntity = CourtMessageEntity(messageId = sqsMessage.messageId, message = sqsMessage.message)
-    val hearingId = commonPlatformHearingEvent.hearing.id
-    val courtHearingEntity = CourtHearingEntity(hearingId = hearingId)
-    courtMessageEntity.courtHearing = courtHearingEntity
-    courtHearingEntity.messages = listOf(courtMessageEntity).toMutableList()
-    telemetryService.trackEvent(
-      FIFO_HEARING_CREATED,
-      mapOf(
-        HEARING_ID to hearingId,
-      ),
-    )
-    courtHearingRepository.save(courtHearingEntity)
+    try {
+      runBlocking {
+        RetryExecutor.runWithRetry(MAX_RETRY_ATTEMPTS, retryDelay) {
+          tempHearingService.saveHearing(sqsMessage, commonPlatformHearingEvent)
+        }
+      }
+    } catch (e: Exception) {
+      log.error(e.message)
+    }
 
     val uniqueDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
       .flatMap { it.defendants }
@@ -91,5 +88,8 @@ class CourtEventFIFOListener(
         FIFO to "true",
       ),
     )
+  }
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
   }
 }

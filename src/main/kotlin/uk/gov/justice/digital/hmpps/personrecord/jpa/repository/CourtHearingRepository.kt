@@ -6,5 +6,5 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.CourtHearingEntity
 
 @Repository
 interface CourtHearingRepository : JpaRepository<CourtHearingEntity, Long> {
-  fun findByHearingId(hearingId: String?): CourtHearingEntity
+  fun findByHearingId(hearingId: String?): CourtHearingEntity?
 }

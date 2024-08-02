@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS court_message
 CREATE INDEX idx_court_message_message_id ON court_message(message_id);
 
 ALTER TABLE IF EXISTS court_message add constraint fk_court_hearing_id foreign key (fk_hearing_id) references court_hearing;
-
+ALTER TABLE IF EXISTS court_message add constraint unique_message_id UNIQUE (message_id);
 -------------------------------------------------------
 
 COMMIT;

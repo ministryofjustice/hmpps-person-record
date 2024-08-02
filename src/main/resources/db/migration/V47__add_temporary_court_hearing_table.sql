@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS court_hearing
     version                                 int4        NOT NULL DEFAULT 0
 );
 CREATE INDEX idx_court_hearing_hearing_id ON court_hearing(hearing_id);
-
+ALTER TABLE IF EXISTS court_hearing
+    ADD CONSTRAINT unique_hearing_id UNIQUE (hearing_id);
 -------------------------------------------------------
 
 COMMIT;
