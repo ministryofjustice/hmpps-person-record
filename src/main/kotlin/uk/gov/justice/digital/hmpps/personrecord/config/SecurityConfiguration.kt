@@ -34,7 +34,12 @@ class SecurityConfiguration {
   @Bean
   fun resourceServerCustomizer() = ResourceServerConfigurationCustomizer {
     unauthorizedRequestPaths {
-      addPaths = setOf("/queue-admin/retry-all-dlqs", "/populatefromprison", "/populatefromprobation")
+      addPaths = setOf(
+        "/queue-admin/retry-all-dlqs",
+        "/populatefromprison",
+        "/populatefromprobation",
+        "/generate/termfrequencies"
+      )
     }
   }
 }
