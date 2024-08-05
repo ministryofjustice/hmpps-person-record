@@ -52,7 +52,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val thirdDefendantId = randomUUID().toString()
     val firstPnc = randomPnc()
     val secondPnc = randomPnc()
-    val messageId = publishCourtMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = firstDefendantId, pnc = firstPnc), CommonPlatformHearingSetup(defendantId = secondDefendantId, pnc = secondPnc), CommonPlatformHearingSetup(defendantId = thirdDefendantId, pnc = ""))), COMMON_PLATFORM_HEARING)
+    val messageId = publishCourtMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = firstPnc, defendantId = firstDefendantId), CommonPlatformHearingSetup(pnc = secondPnc, defendantId = secondDefendantId), CommonPlatformHearingSetup(pnc = "", defendantId = thirdDefendantId))), COMMON_PLATFORM_HEARING)
 
     await.atMost(10, SECONDS) untilNotNull {
       assertThat(personRepository.findByDefendantId(firstDefendantId))
@@ -143,7 +143,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val cro = randomCro()
     val firstName = randomName()
     val lastName = randomName()
-    val message = commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, firstName = firstName, lastName = lastName, pnc = pnc, cro = cro)))
+    val message = commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, firstName = firstName, lastName = lastName, cro = cro, defendantId = defendantId)))
     publishCourtMessage(message, COMMON_PLATFORM_HEARING)
 
     val personEntity = await.atMost(15, SECONDS) untilNotNull {
@@ -167,7 +167,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val changedLastName = randomName()
     val messageId = publishCourtMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, lastName = changedLastName, pnc = pnc, cro = cro))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId))),
       COMMON_PLATFORM_HEARING,
     )
 
@@ -222,7 +222,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val changedLastName = randomName()
     val messageId = publishCourtMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, lastName = changedLastName, pnc = pnc, cro = cro))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId))),
       COMMON_PLATFORM_HEARING,
     )
 
@@ -263,18 +263,18 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       commonPlatformHearing(
         listOf(
           CommonPlatformHearingSetup(
-            defendantId = firstDefendantId,
             pnc = firstPnc,
             firstName = firstName,
             middleName = "mName1 mName2",
             lastName = lastName,
+            defendantId = firstDefendantId,
             aliases = listOf(
               CommonPlatformHearingSetupAlias(firstName = "aliasFirstName1", lastName = "alisLastName1"),
               CommonPlatformHearingSetupAlias(firstName = "aliasFirstName2", lastName = "alisLastName2"),
             ),
           ),
-          CommonPlatformHearingSetup(defendantId = secondDefendantId, pnc = secondPnc, contact = CommonPlatformHearingSetupContact()),
-          CommonPlatformHearingSetup(defendantId = thirdDefendantId, pnc = thirdPnc, nationalInsuranceNumber = thirdDefendantNINumber),
+          CommonPlatformHearingSetup(pnc = secondPnc, defendantId = secondDefendantId, contact = CommonPlatformHearingSetupContact()),
+          CommonPlatformHearingSetup(pnc = thirdPnc, defendantId = thirdDefendantId, nationalInsuranceNumber = thirdDefendantNINumber),
         ),
       ),
       COMMON_PLATFORM_HEARING,
@@ -345,8 +345,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val messageId = publishCourtMessage(
       commonPlatformHearing(
         listOf(
-          CommonPlatformHearingSetup(defendantId = firstDefendantId, pnc = ""),
-          CommonPlatformHearingSetup(defendantId = secondDefendantId, pnc = null),
+          CommonPlatformHearingSetup(pnc = "", defendantId = firstDefendantId),
+          CommonPlatformHearingSetup(pnc = null, defendantId = secondDefendantId),
         ),
       ),
       COMMON_PLATFORM_HEARING,
@@ -374,8 +374,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     .message(
       commonPlatformHearing(
         listOf(
-          CommonPlatformHearingSetup(defendantId = defendantId, pnc = pnc.pncId),
-          CommonPlatformHearingSetup(defendantId = defendantId, pnc = pnc.pncId),
+          CommonPlatformHearingSetup(pnc = pnc.pncId, defendantId = defendantId),
+          CommonPlatformHearingSetup(pnc = pnc.pncId, defendantId = defendantId),
         ),
       ),
     )

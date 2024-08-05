@@ -10,29 +10,22 @@ import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
-import java.util.*
 
 @Entity
-@Table(name = "personkey")
-class PersonKeyEntity(
+@Table(name = "court_hearing")
+class CourtHearingEntity(
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
 
-  @Column(name = "person_id")
-  val personId: UUID? = null,
+  @Column(name = "hearing_id")
+  val hearingId: String? = null,
 
   @Column
-  @OneToMany(mappedBy = "personKey", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
-  var personEntities: MutableList<PersonEntity> = mutableListOf(),
+  @OneToMany(mappedBy = "courtHearing", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  var messages: MutableList<CourtMessageEntity> = mutableListOf(),
 
   @Version
   var version: Int = 0,
-
-) {
-  companion object {
-    val empty: PersonKeyEntity? = null
-
-    fun new(): PersonKeyEntity = PersonKeyEntity(personId = UUID.randomUUID())
-  }
-}
+)

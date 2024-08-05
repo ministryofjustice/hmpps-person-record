@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.FIFO
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DEFENDANT_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.FIFO_DEFENDANT_RECEIVED
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import java.util.UUID
@@ -41,7 +41,6 @@ class CourtEventTempListener(
     rawMessage: String,
   ) {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-
     when (sqsMessage.getMessageType()) {
       COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
       else -> processLibraEvent(sqsMessage)
@@ -60,7 +59,7 @@ class CourtEventTempListener(
       }
     uniqueDefendants.forEach {
       telemetryService.trackEvent(
-        DEFENDANT_RECEIVED,
+        FIFO_DEFENDANT_RECEIVED,
         mapOf(
           SOURCE_SYSTEM to COMMON_PLATFORM.name,
           DEFENDANT_ID to it.id,
@@ -76,7 +75,7 @@ class CourtEventTempListener(
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
     telemetryService.trackEvent(
-      DEFENDANT_RECEIVED,
+      FIFO_DEFENDANT_RECEIVED,
       mapOf(
 
         EVENT_TYPE to LIBRA_COURT_CASE.name,
