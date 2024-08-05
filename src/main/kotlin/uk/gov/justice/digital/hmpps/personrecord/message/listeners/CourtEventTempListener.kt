@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.FIFO
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.DEFENDANT_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.FIFO_DEFENDANT_RECEIVED
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import java.util.UUID
@@ -28,7 +28,7 @@ import java.util.UUID
 const val CPR_COURT_EVENTS_TEMP_QUEUE_CONFIG_KEY = "cprcourtcaseeventstemporaryqueue"
 
 @Component
-@Profile(value = ["preprod", "test"])
+@Profile("!dev")
 class CourtEventTempListener(
   val objectMapper: ObjectMapper,
   val telemetryService: TelemetryService,
@@ -41,7 +41,6 @@ class CourtEventTempListener(
     rawMessage: String,
   ) {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-
     when (sqsMessage.getMessageType()) {
       COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
       else -> processLibraEvent(sqsMessage)
@@ -60,7 +59,7 @@ class CourtEventTempListener(
       }
     uniqueDefendants.forEach {
       telemetryService.trackEvent(
-        DEFENDANT_RECEIVED,
+        FIFO_DEFENDANT_RECEIVED,
         mapOf(
           SOURCE_SYSTEM to COMMON_PLATFORM.name,
           DEFENDANT_ID to it.id,
@@ -71,12 +70,12 @@ class CourtEventTempListener(
       )
     }
 
-    republishCourtMessage(sqsMessage.message, COMMON_PLATFORM_HEARING)
+    publishCourtMessageToFifoTopic(objectMapper.writeValueAsString(commonPlatformHearingEvent), COMMON_PLATFORM_HEARING)
   }
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
     telemetryService.trackEvent(
-      DEFENDANT_RECEIVED,
+      FIFO_DEFENDANT_RECEIVED,
       mapOf(
 
         EVENT_TYPE to LIBRA_COURT_CASE.name,
@@ -85,10 +84,10 @@ class CourtEventTempListener(
         FIFO to "false",
       ),
     )
-    republishCourtMessage(sqsMessage.message, LIBRA_COURT_CASE)
+    publishCourtMessageToFifoTopic(sqsMessage.message, LIBRA_COURT_CASE)
   }
 
-  private fun republishCourtMessage(message: String, messageType: MessageType) {
+  private fun publishCourtMessageToFifoTopic(message: String, messageType: MessageType) {
     val topic = hmppsQueueService.findByTopicId("courteventsfifotopic")
       ?: throw MissingTopicException("Could not find topic courteventsfifotopic")
     val messageBuilder = PublishRequest.builder()

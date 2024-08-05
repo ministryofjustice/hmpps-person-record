@@ -38,9 +38,11 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDateOfBirth
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNationality
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
@@ -57,9 +59,11 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val postcode = randomPostcode()
     val fullAddress = randomFullAddress()
     val prefix = randomName()
+    val nationality = randomNationality()
+    val religion = randomReligion()
     val personDateOfBirth = randomDateOfBirth()
 
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode, fullAddress)), prefix = prefix, dateOfBirth = personDateOfBirth))
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode)), prefix = prefix, dateOfBirth = personDateOfBirth, nationality = nationality, religion = religion))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
@@ -74,6 +78,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.firstName).isEqualTo(prefix + "FirstName")
       assertThat(personEntity.middleNames).isEqualTo(prefix + "MiddleName1 " + prefix + "MiddleName2")
       assertThat(personEntity.lastName).isEqualTo(prefix + "LastName")
+      assertThat(personEntity.nationality).isEqualTo(nationality)
+      assertThat(personEntity.religion).isEqualTo(religion)
       assertThat(personEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
       assertThat(personEntity.references.getType(IdentifierType.CRO).first().identifierValue).isEqualTo(cro)
       assertThat(personEntity.dateOfBirth).isEqualTo(personDateOfBirth)
@@ -95,6 +101,32 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.contacts[2].contactType).isEqualTo(MOBILE)
       assertThat(personEntity.contacts[2].contactValue).isEqualTo("01141234567")
       assertThat(personEntity.selfMatchScore).isEqualTo(0.9999)
+    }
+
+    checkTelemetry(
+      CPR_RECORD_CREATED,
+      mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
+    )
+    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
+  }
+
+  @Test
+  fun `should check natioanlity and religion null`() {
+    val prisonNumber = randomPrisonNumber()
+
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomPnc(), email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(randomPostcode())), prefix = randomName(), dateOfBirth = randomDateOfBirth(), nationality = null, religion = null))
+
+    val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
+    val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
+    publishDomainEvent(PRISONER_CREATED, domainEvent)
+
+    checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
+
+    await.atMost(5, SECONDS) untilAsserted {
+      val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
+
+      assertThat(personEntity.nationality).isEqualTo(null)
+      assertThat(personEntity.religion).isEqualTo(null)
     }
 
     checkTelemetry(
@@ -244,6 +276,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
           pnc = PNCIdentifier.from(randomPnc()),
           dateOfBirth = randomDateOfBirth(),
           emailAddresses = listOf(EmailAddress(randomEmail())),
+          nationality = randomNationality(),
+          religion = randomReligion(),
 
         ),
       ),

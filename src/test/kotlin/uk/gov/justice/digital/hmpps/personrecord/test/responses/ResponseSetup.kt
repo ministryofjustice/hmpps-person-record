@@ -14,6 +14,8 @@ data class ApiResponseSetup(
   val cro: String? = null,
   val pnc: String? = null,
   val prefix: String? = null,
+  val nationality: String? = null,
+  val religion: String? = null,
   val prisonNumber: String,
   val addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress(randomPostcode(), randomFullAddress())),
   val nationalInsuranceNumber: String? = null,

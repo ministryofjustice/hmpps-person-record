@@ -40,9 +40,7 @@ class MatchService(
         ),
       )
     }
-    return candidateScores.filter { candidate ->
-      candidate.probability > THRESHOLD_SCORE
-    }
+    return candidateScores.filter { candidate -> isAboveThreshold(candidate.probability) }
   }
 
   private fun scores(candidateRecords: List<PersonEntity>, newRecord: Person): List<MatchResult> {
@@ -68,15 +66,18 @@ class MatchService(
     return matchResult
   }
 
-  fun getSelfMatchScore(newRecord: Person): Double {
+  fun getSelfMatchScore(newRecord: Person): Pair<Boolean, Double> {
     val matchRecord = MatchRecord.from(newRecord)
     val matchRequest = MatchRequest(
       matchingFrom = matchRecord,
       matchingTo = listOf(matchRecord),
     )
     val matchScores = getScores(matchRequest)
-    return matchScores?.matchProbabilities?.get("0")!!
+    val selfMatchScore = matchScores?.matchProbabilities?.get("0")!!
+    return Pair(isAboveThreshold(selfMatchScore), selfMatchScore)
   }
+
+  private fun isAboveThreshold(score: Double): Boolean = score > THRESHOLD_SCORE
 
   private fun getScores(matchRequest: MatchRequest): MatchResponse? = runBlocking {
     try {

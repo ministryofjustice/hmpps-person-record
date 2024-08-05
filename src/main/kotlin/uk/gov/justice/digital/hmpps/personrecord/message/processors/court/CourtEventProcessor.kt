@@ -9,10 +9,10 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person.Companion.getType
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person.Companion.toString
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
@@ -92,9 +92,11 @@ class CourtEventProcessor(
         EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
       ),
     )
-
-    personService.processMessage(person) {
-      personService.searchBySourceSystem(person)
+    personService.processMessage(person) { isAboveSelfMatchThreshold ->
+      when {
+        isAboveSelfMatchThreshold -> personService.searchBySourceSystem(person)
+        else -> PersonEntity.empty
+      }
     }
   }
 }

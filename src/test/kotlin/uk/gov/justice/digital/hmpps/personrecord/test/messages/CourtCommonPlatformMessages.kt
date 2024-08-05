@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.messages
 
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomHearingId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import java.util.UUID
@@ -16,7 +17,9 @@ data class CommonPlatformHearingSetup(
   val aliases: List<CommonPlatformHearingSetupAlias>? = null,
   val contact: CommonPlatformHearingSetupContact? = null,
   val nationalInsuranceNumber: String = randomNationalInsuranceNumber(),
+  val hearingId: String = randomHearingId(),
 )
+
 data class CommonPlatformHearingSetupAlias(val firstName: String, val lastName: String)
 data class CommonPlatformHearingSetupContact(
   val home: String = "0207345678",
@@ -48,7 +51,7 @@ fun commonPlatformHearing(commonPlatformHearingSetup: List<CommonPlatformHearing
             "sittingDay": "2021-09-09T10:30:00.000Z"
           }
         ],
-        "id": "E10E3EF3-8637-40E3-BDED-8ED104A380AC",
+        "id": "${commonPlatformHearingSetup[0].hearingId}",
         "jurisdictionType": "CROWN",
         "prosecutionCases": [
           {

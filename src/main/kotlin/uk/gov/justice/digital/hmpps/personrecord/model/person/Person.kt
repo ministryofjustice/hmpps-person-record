@@ -27,10 +27,13 @@ data class Person(
   val title: String? = null,
   val aliases: List<Alias> = emptyList(),
   val masterDefendantId: String? = null,
+  val nationality: String? = null,
+  val religion: String? = null,
   val contacts: List<Contact> = emptyList(),
   val addresses: List<Address> = emptyList(),
   val references: List<Reference> = emptyList(),
   var selfMatchScore: Double? = null,
+  var isAboveMatchScoreThreshold: Boolean = false,
   val sourceSystemType: SourceSystemType,
 ) {
   companion object {
@@ -155,6 +158,8 @@ data class Person(
         addresses = addresses,
         references = references,
         sourceSystemType = NOMIS,
+        nationality = prisoner.nationality,
+        religion = prisoner.religion,
       )
     }
   }
