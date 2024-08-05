@@ -1,3 +1,5 @@
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.include
+
 kotlin {
   compilerOptions {
     jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
@@ -67,6 +69,10 @@ detekt {
 }
 
 tasks {
+  register("initialiseDatabase", Test::class) {
+    include("**/HealthCheckIntTest.class")
+  }
+
   getByName("check") {
     dependsOn(":ktlintCheck", "detekt")
     finalizedBy("koverHtmlReport")

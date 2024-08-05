@@ -78,10 +78,10 @@ class PersonEntity(
   val birthCountry: String? = null,
 
   @Column
-  val nationality: String? = null,
+  var nationality: String? = null,
 
   @Column
-  val religion: String? = null,
+  var religion: String? = null,
 
   @Column(name = "sexual_orientation")
   val sexualOrientation: String? = null,
@@ -116,6 +116,8 @@ class PersonEntity(
     this.crn = person.crn
     this.prisonNumber = person.prisonNumber
     this.masterDefendantId = person.masterDefendantId
+    this.nationality = person.nationality
+    this.religion = person.religion
     updateChildEntities(person)
   }
 
@@ -155,6 +157,9 @@ class PersonEntity(
   }
 
   companion object {
+
+    val empty: PersonEntity? = null
+
     fun List<ReferenceEntity>.getType(type: IdentifierType): List<ReferenceEntity> {
       return this.filter { it.identifierType == type }
     }
@@ -172,6 +177,8 @@ class PersonEntity(
         masterDefendantId = person.masterDefendantId,
         selfMatchScore = person.selfMatchScore,
         sourceSystem = person.sourceSystemType,
+        nationality = person.nationality,
+        religion = person.religion,
       )
       personEntity.updateChildEntities(person)
       return personEntity
