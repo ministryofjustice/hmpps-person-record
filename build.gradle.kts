@@ -7,7 +7,7 @@ kotlin {
 }
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.2"
   kotlin("plugin.spring") version "2.0.0"
   kotlin("jvm") version "2.0.0"
   kotlin("plugin.jpa") version "2.0.0"
