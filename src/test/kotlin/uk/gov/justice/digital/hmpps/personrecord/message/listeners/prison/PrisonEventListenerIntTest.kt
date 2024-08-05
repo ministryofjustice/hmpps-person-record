@@ -63,7 +63,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val religion = randomReligion()
     val personDateOfBirth = randomDateOfBirth()
 
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode)), prefix = prefix, dateOfBirth = personDateOfBirth, nationality = nationality, religion = religion))
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode, fullAddress)), prefix = prefix, dateOfBirth = personDateOfBirth, nationality = nationality, religion = religion))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
@@ -114,7 +114,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should check natioanlity and religion null`() {
     val prisonNumber = randomPrisonNumber()
 
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomPnc(), email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(randomPostcode())), prefix = randomName(), dateOfBirth = randomDateOfBirth(), nationality = null, religion = null))
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomPnc(), email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(randomPostcode(), randomFullAddress())), prefix = randomName(), dateOfBirth = randomDateOfBirth(), nationality = null, religion = null))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
