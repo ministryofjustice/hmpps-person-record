@@ -6,15 +6,16 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.termfrequency.PncFrequencyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PncFrequencyRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReferenceRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.service.TermFrequencyService
 
 @RestController
 class GenerateTermFrequencies(
-  val referenceRepository: ReferenceRepository,
-  val pncFrequencyRepository: PncFrequencyRepository,
+  private val termFrequencyService: TermFrequencyService,
+  private val pncFrequencyRepository: PncFrequencyRepository,
 ) {
 
-  @RequestMapping(method = [RequestMethod.POST], value = ["/generate/termfrequencies"])
+  @RequestMapping(method = [RequestMethod.POST], value = ["/generatetermfrequencies"])
   fun generate(): String {
     generatePncTermFrequencies()
     return OK
@@ -22,7 +23,7 @@ class GenerateTermFrequencies(
 
   private fun generatePncTermFrequencies() {
     log.info("Starting PNC term frequency generation")
-    val pncTermFrequencies = referenceRepository.getTermFrequencyForPnc()
+    val pncTermFrequencies = termFrequencyService.findReferenceTermFrequencies(IdentifierType.PNC)
     val pncFrequencyEntities = pncTermFrequencies.map { PncFrequencyEntity.from(it) }
     pncFrequencyRepository.saveAllAndFlush(pncFrequencyEntities)
     log.info("Finished PNC term frequency generation")
