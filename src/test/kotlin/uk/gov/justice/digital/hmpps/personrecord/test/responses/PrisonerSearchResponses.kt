@@ -120,7 +120,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     ],
     "addresses": [
       {
-        "fullAddress": "1 Main Street, Crookes, Sheffield, South Yorkshire, S10 1BP, England",
+        "fullAddress": "${responseSetup.addresses[0].fullAddress}",
         "postalCode": "${responseSetup.addresses[0].postcode}",
         "startDate": "2020-07-17",
         "primaryAddress": true,
@@ -141,15 +141,8 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
         "number": "01141234567"
       }
     ],
-    "identifiers": [
-      {
-        "type": "PNC, CRO, DL, NINO",
-        "value": "12/394773H",
-        "issuedDate": "2020-07-17",
-        "issuedAuthorityText": "string",
-        "createdDateTime": "2021-07-05T10:35:17"
-      }
-    ],
+    "identifiers": [${responseSetup.identifiers.joinToString { identifier(it) }}],
+
     "allConvictedOffences": [
       {
         "statuteCode": "TH68",
@@ -161,3 +154,11 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     ]
   }
 """.trimIndent()
+
+private fun identifier(identifier: ApiResponseSetupIdentifier) =
+  """
+                  {
+                    "type": "${identifier.type}",
+                    "value": "${identifier.value}"
+                  }
+  """.trimIndent()
