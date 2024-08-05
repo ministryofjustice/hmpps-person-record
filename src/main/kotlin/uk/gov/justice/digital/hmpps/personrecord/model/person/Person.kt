@@ -144,6 +144,9 @@ data class Person(
       val references = listOf(
         Reference.from(IdentifierType.CRO, prisoner.cro?.toString()),
         Reference.from(IdentifierType.PNC, prisoner.pnc?.toString()),
+        Reference.from(IdentifierType.NATIONAL_INSURANCE_NUMBER, prisoner.identifiers.find { it.type == "NINO" }?.value),
+        Reference.from(IdentifierType.DRIVER_LICENSE_NUMBER, prisoner.identifiers.find { it.type == "DL" }?.value),
+
       )
 
       return Person(
