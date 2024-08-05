@@ -48,7 +48,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val prefix = randomName()
     val pnc = randomPnc()
     val cro = randomCro()
-    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, prefix = prefix, prisonNumber = prisonNumber, cro = cro, addresses = listOf(ApiResponseSetupAddress("LS1 1AB"), ApiResponseSetupAddress("M21 9LX")))
+    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, prefix = prefix, prisonNumber = prisonNumber, cro = cro, addresses = listOf(ApiResponseSetupAddress("LS1 1AB", "abc street"), ApiResponseSetupAddress("M21 9LX", "abc street")))
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(personEntity.personKey).isNotNull()
