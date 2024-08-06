@@ -34,8 +34,15 @@ interface ReferenceRepository : JpaSpecificationExecutor<ReferenceEntity>, JpaRe
     GROUP BY
         ref.identifier_value
     """,
-    nativeQuery = true
+    countQuery = """
+      SELECT 
+        COUNT(distinct ref.identifier_value) 
+      FROM 
+          personrecordservice.reference ref
+      WHERE 
+          ref.identifier_type = 'PNC' AND ref.identifier_value IS NOT null;
+    """,
+    nativeQuery = true,
   )
   fun getIdentifierTermFrequency(@Param("identifierType") identifierType: String, pageable: Pageable): Page<TermFrequency>
-
 }

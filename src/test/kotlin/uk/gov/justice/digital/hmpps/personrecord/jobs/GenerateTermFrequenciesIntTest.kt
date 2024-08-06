@@ -5,6 +5,7 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
@@ -18,7 +19,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import java.util.concurrent.TimeUnit.SECONDS
 
-class GenerateTermFrequenciesIntTest: WebTestBase() {
+@AutoConfigureWebTestClient(timeout = "3600000")
+class GenerateTermFrequenciesIntTest : WebTestBase() {
 
   @Autowired
   lateinit var pncFrequencyRepository: PncFrequencyRepository
@@ -29,18 +31,22 @@ class GenerateTermFrequenciesIntTest: WebTestBase() {
   @Test
   fun `should generate and populate pnc term frequency table`() {
     for (i in 0..100) {
-      personRepository.saveAndFlush(PersonEntity.from(
-        Person.from(Defendant(
-          pncId = PNCIdentifier.from(randomPnc()),
-          personDefendant = PersonDefendant(
-            personDetails = PersonDetails(
-              firstName = randomName(),
-              lastName = randomName(),
-              gender = "Male"
-            )
-          )
-        ))
-      ))
+      personRepository.saveAndFlush(
+        PersonEntity.from(
+          Person.from(
+            Defendant(
+              pncId = PNCIdentifier.from(randomPnc()),
+              personDefendant = PersonDefendant(
+                personDetails = PersonDetails(
+                  firstName = randomName(),
+                  lastName = randomName(),
+                  gender = "Male",
+                ),
+              ),
+            ),
+          ),
+        ),
+      )
     }
 
     webTestClient.post()
@@ -49,8 +55,8 @@ class GenerateTermFrequenciesIntTest: WebTestBase() {
       .expectStatus()
       .isOk
 
-    await.atMost(15, SECONDS) untilAsserted  {
-      assertThat(pncFrequencyRepository.findAll().size).isGreaterThan(0)
+    await.atMost(15, SECONDS) untilAsserted {
+      assertThat(pncFrequencyRepository.findAll().size).isGreaterThanOrEqualTo(100)
     }
   }
 }

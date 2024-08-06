@@ -27,11 +27,11 @@ class GenerateTermFrequencies(
   private fun generatePncTermFrequencies() {
     log.info("Starting PNC term frequency generation")
     pncFrequencyRepository.deleteAll()
-    forPage { page ->
+    val totalElements = forPage { page ->
       val pncFrequencyEntities = page.map { PncFrequencyEntity.from(it) }
       pncFrequencyRepository.saveAllAndFlush(pncFrequencyEntities)
     }
-    log.info("Finished PNC term frequency generation")
+    log.info("Finished PNC term frequency generation, Total PNC's: $totalElements")
   }
 
   private inline fun forPage(page: (Page<TermFrequency>) -> Unit): Long {
@@ -53,6 +53,6 @@ class GenerateTermFrequencies(
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
     private const val OK = "OK"
-    private const val PAGE_SIZE = 50
+    private const val PAGE_SIZE = 500
   }
 }
