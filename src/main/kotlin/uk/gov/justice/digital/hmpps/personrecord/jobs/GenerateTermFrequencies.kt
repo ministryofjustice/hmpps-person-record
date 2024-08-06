@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.jobs
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -19,19 +22,21 @@ class GenerateTermFrequencies(
 ) {
 
   @RequestMapping(method = [RequestMethod.POST], value = ["/generate/termfrequencies"])
-  fun generate(): String {
+  suspend fun generate(): String {
     generatePncTermFrequencies()
     return OK
   }
 
-  private fun generatePncTermFrequencies() {
-    log.info("Starting PNC term frequency generation")
-    pncFrequencyRepository.deleteAll()
-    val totalElements = forPage { page ->
-      val pncFrequencyEntities = page.map { PncFrequencyEntity.from(it) }
-      pncFrequencyRepository.saveAllAndFlush(pncFrequencyEntities)
+  private suspend fun generatePncTermFrequencies() {
+    CoroutineScope(Dispatchers.Default).launch {
+      log.info("Starting PNC term frequency generation")
+      pncFrequencyRepository.deleteAll()
+      val totalElements = forPage { page ->
+        val pncFrequencyEntities = page.map { PncFrequencyEntity.from(it) }
+        pncFrequencyRepository.saveAllAndFlush(pncFrequencyEntities)
+      }
+      log.info("Finished PNC term frequency generation, Total PNC's: $totalElements")
     }
-    log.info("Finished PNC term frequency generation, Total PNC's: $totalElements")
   }
 
   private inline fun forPage(page: (Page<TermFrequency>) -> Unit): Long {
