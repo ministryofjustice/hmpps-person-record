@@ -25,7 +25,7 @@ class PncFrequencyEntity(
 ) {
   companion object {
     fun from(termFrequency: TermFrequency): PncFrequencyEntity {
-      return PncFrequencyEntity(pnc = termFrequency.term, frequency = termFrequency.frequency)
+      return PncFrequencyEntity(pnc = termFrequency.getTerm(), frequency = termFrequency.getFrequency())
     }
   }
 }

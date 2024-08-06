@@ -38,7 +38,7 @@ class SecurityConfiguration {
         "/queue-admin/retry-all-dlqs",
         "/populatefromprison",
         "/populatefromprobation",
-        "/generatetermfrequencies",
+        "/generate/termfrequencies",
       )
     }
   }

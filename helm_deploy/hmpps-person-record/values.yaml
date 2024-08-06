@@ -29,7 +29,7 @@ generic-service:
           deny all;
           return 401;
         }
-        location /generatetermfrequencies {
+        location /generate/termfrequencies {
           deny all;
           return 401;
         }
