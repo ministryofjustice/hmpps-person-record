@@ -18,7 +18,7 @@ interface PncFrequencyRepository : JpaRepository<PncFrequencyEntity, Long> {
     """
     INSERT INTO personmatchscore.pnc_frequency (pnc, frequency)
     SELECT
-        ref.identifier_value as term, 
+        ref.identifier_value as pnc, 
         CAST(COUNT(*) AS FLOAT8) / (
             SELECT 
                 COUNT(ref_inner.identifier_value) AS total 
