@@ -61,8 +61,8 @@ class GenerateTermFrequenciesIntTest : WebTestBase() {
       .expectStatus()
       .isOk
 
-    val firstFrequency = await.atMost(15, SECONDS) untilNotNull  {  pncFrequencyRepository.findByPnc(firstPnc) }
-    val secondFrequency = await.atMost(15, SECONDS) untilNotNull  { pncFrequencyRepository.findByPnc(secondPnc) }
+    val firstFrequency = await.atMost(15, SECONDS) untilNotNull { pncFrequencyRepository.findByPnc(firstPnc) }
+    val secondFrequency = await.atMost(15, SECONDS) untilNotNull { pncFrequencyRepository.findByPnc(secondPnc) }
 
     assertThat(firstFrequency.frequency).isLessThan(secondFrequency.frequency)
   }
@@ -85,5 +85,4 @@ class GenerateTermFrequenciesIntTest : WebTestBase() {
       ),
     )
   }
-
 }
