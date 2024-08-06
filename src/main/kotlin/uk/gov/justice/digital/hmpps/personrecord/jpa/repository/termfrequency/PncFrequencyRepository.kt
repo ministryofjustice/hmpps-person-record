@@ -1,16 +1,14 @@
-package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
+package uk.gov.justice.digital.hmpps.personrecord.jpa.repository.termfrequency
 
 import jakarta.transaction.Transactional
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.CrudRepository
-import org.springframework.data.repository.ListCrudRepository
 import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.termfrequency.PncFrequencyEntity
 
 @Repository
-interface PncFrequencyRepository : CrudRepository<PncFrequencyEntity, Long>, ListCrudRepository<PncFrequencyEntity, Long> {
+interface PncFrequencyRepository : JpaRepository<PncFrequencyEntity, Long> {
 
   @Transactional
   @Modifying
@@ -34,7 +32,7 @@ interface PncFrequencyRepository : CrudRepository<PncFrequencyEntity, Long>, Lis
         ref.identifier_type = 'PNC'
         AND ref.identifier_value IS NOT null
     GROUP BY
-        ref.identifier_value
+        ref.identifier_value;
     """,
     nativeQuery = true,
   )
