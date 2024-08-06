@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.jobs
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
+import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -31,22 +32,7 @@ class GenerateTermFrequenciesIntTest : WebTestBase() {
   @Test
   fun `should generate and populate pnc term frequency table`() {
     for (i in 0..100) {
-      personRepository.saveAndFlush(
-        PersonEntity.from(
-          Person.from(
-            Defendant(
-              pncId = PNCIdentifier.from(randomPnc()),
-              personDefendant = PersonDefendant(
-                personDetails = PersonDetails(
-                  firstName = randomName(),
-                  lastName = randomName(),
-                  gender = "Male",
-                ),
-              ),
-            ),
-          ),
-        ),
-      )
+      createPerson()
     }
 
     webTestClient.post()
@@ -59,4 +45,45 @@ class GenerateTermFrequenciesIntTest : WebTestBase() {
       assertThat(pncFrequencyRepository.findAll().size).isGreaterThanOrEqualTo(100)
     }
   }
+
+  @Test
+  fun `should generate different pnc frequencies`() {
+    val firstPnc = randomPnc()
+    createPerson(firstPnc)
+
+    val secondPnc = randomPnc()
+    createPerson(secondPnc)
+    createPerson(secondPnc)
+
+    webTestClient.post()
+      .uri("/generate/termfrequencies")
+      .exchange()
+      .expectStatus()
+      .isOk
+
+    val firstFrequency = await.atMost(15, SECONDS) untilNotNull  {  pncFrequencyRepository.findByPnc(firstPnc) }
+    val secondFrequency = await.atMost(15, SECONDS) untilNotNull  { pncFrequencyRepository.findByPnc(secondPnc) }
+
+    assertThat(firstFrequency.frequency).isLessThan(secondFrequency.frequency)
+  }
+
+  private fun createPerson(pnc: String = randomPnc()) {
+    personRepository.saveAndFlush(
+      PersonEntity.from(
+        Person.from(
+          Defendant(
+            pncId = PNCIdentifier.from(pnc),
+            personDefendant = PersonDefendant(
+              personDetails = PersonDetails(
+                firstName = randomName(),
+                lastName = randomName(),
+                gender = "Male",
+              ),
+            ),
+          ),
+        ),
+      ),
+    )
+  }
+
 }

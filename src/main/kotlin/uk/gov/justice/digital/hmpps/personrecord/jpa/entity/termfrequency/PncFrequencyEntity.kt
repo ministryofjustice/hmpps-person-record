@@ -6,7 +6,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import uk.gov.justice.digital.hmpps.personrecord.client.model.termfrequency.TermFrequency
+import java.math.BigDecimal
 
 @Entity
 @Table(name = "pnc_frequency", schema = "personmatchscore")
@@ -20,12 +20,6 @@ class PncFrequencyEntity(
   val pnc: String? = null,
 
   @Column
-  val frequency: Double? = null,
+  val frequency: BigDecimal? = null,
 
-) {
-  companion object {
-    fun from(termFrequency: TermFrequency): PncFrequencyEntity {
-      return PncFrequencyEntity(pnc = termFrequency.getTerm(), frequency = termFrequency.getFrequency())
-    }
-  }
-}
+)

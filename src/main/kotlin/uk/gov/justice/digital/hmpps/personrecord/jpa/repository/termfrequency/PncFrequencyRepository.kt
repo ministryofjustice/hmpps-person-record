@@ -10,6 +10,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.termfrequency.PncFre
 @Repository
 interface PncFrequencyRepository : JpaRepository<PncFrequencyEntity, Long> {
 
+  fun findByPnc(pnc: String): PncFrequencyEntity?
+
   @Transactional
   @Modifying
   @Query(
