@@ -9,6 +9,7 @@ import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.EmailAddress
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Identifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
@@ -35,9 +36,11 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDateOfBirth
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationality
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -45,6 +48,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -62,8 +66,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val nationality = randomNationality()
     val religion = randomReligion()
     val personDateOfBirth = randomDateOfBirth()
-
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode, fullAddress)), prefix = prefix, dateOfBirth = personDateOfBirth, nationality = nationality, religion = religion))
+    val nationalInsuranceNumber = randomNationalInsuranceNumber()
+    val driverLicenseNumber = randomDriverLicenseNumber()
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode, fullAddress)), prefix = prefix, dateOfBirth = personDateOfBirth, nationality = nationality, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
@@ -82,6 +87,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.religion).isEqualTo(religion)
       assertThat(personEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
       assertThat(personEntity.references.getType(IdentifierType.CRO).first().identifierValue).isEqualTo(cro)
+      assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(nationalInsuranceNumber)
+      assertThat(personEntity.references.getType(IdentifierType.DRIVER_LICENSE_NUMBER).first().identifierValue).isEqualTo(driverLicenseNumber)
       assertThat(personEntity.dateOfBirth).isEqualTo(personDateOfBirth)
       assertThat(personEntity.pseudonyms.size).isEqualTo(1)
       assertThat(personEntity.pseudonyms[0].firstName).isEqualTo(prefix + "AliasFirstName")
@@ -111,7 +118,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should check natioanlity and religion null`() {
+  fun `should check nationality and religion null`() {
     val prisonNumber = randomPrisonNumber()
 
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomPnc(), email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(randomPostcode(), randomFullAddress())), prefix = randomName(), dateOfBirth = randomDateOfBirth(), nationality = null, religion = null))
@@ -278,6 +285,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
           emailAddresses = listOf(EmailAddress(randomEmail())),
           nationality = randomNationality(),
           religion = randomReligion(),
+          identifiers = listOf(Identifier(type = "NINO", randomNationalInsuranceNumber()), Identifier(type = "DL", randomDriverLicenseNumber())),
 
         ),
       ),

@@ -29,6 +29,10 @@ generic-service:
           deny all;
           return 401;
         }
+        location /generate/termfrequencies {
+          deny all;
+          return 401;
+        }
 
   # Environment variables to load into the deployment
   env:
@@ -82,3 +86,6 @@ generic-service:
 generic-prometheus-alerts:
   targetApplication: hmpps-person-record
   alertSeverity: hmpps-person-record-alerts-prod
+
+cron:
+  generateTermFrequencies: "0 0 * * *"
