@@ -1,17 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.controller
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.actuate.health.Health
-import org.springframework.boot.info.BuildProperties
-import org.springframework.boot.test.mock.mockito.MockBean
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.health.HealthInfo
-import uk.gov.justice.digital.hmpps.personrecord.health.PersonMatchHealthPing
-import uk.gov.justice.digital.hmpps.personrecord.health.PersonRecordHealthPing
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.function.Consumer
@@ -19,26 +12,7 @@ import java.util.function.Consumer
 class HealthCheckIntTest : WebTestBase() {
 
   @Autowired
-  private lateinit var buildProperties: BuildProperties
-
-  @MockBean
-  @Autowired
-  private lateinit var personMatchHealthPing: PersonMatchHealthPing
-
-  @MockBean
-  @Autowired
-  private lateinit var personRecordHealthPing: PersonRecordHealthPing
-
-  @Autowired
-  private lateinit var healthInfo: HealthInfo
-
-  @BeforeEach
-  fun setup() {
-    `when`(personMatchHealthPing.health()).thenReturn(Health.up().build())
-    `when`(personRecordHealthPing.health()).thenReturn(Health.up().build())
-
-    healthInfo = HealthInfo(buildProperties)
-  }
+  private lateinit var objectMapper: ObjectMapper
 
   @Test
   fun `Health page reports ok`() {

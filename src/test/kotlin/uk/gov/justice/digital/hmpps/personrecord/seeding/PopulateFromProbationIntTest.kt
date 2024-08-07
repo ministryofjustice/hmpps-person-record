@@ -7,11 +7,8 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.health.PersonMatchHealthPing
-import uk.gov.justice.digital.hmpps.personrecord.health.PersonRecordHealthPing
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -28,13 +25,6 @@ class PopulateFromProbationIntTest : WebTestBase() {
 
   @Autowired
   lateinit var personRepository: PersonRepository
-
-  @MockBean
-  private lateinit var personMatchHealthPing: PersonMatchHealthPing
-
-  @MockBean
-  @Autowired
-  private lateinit var personRecordHealthPing: PersonRecordHealthPing
 
   @Test
   fun `populate from probation`() {

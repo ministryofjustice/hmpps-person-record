@@ -1,20 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.controller
 
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.health.PersonMatchHealthPing
-import uk.gov.justice.digital.hmpps.personrecord.health.PersonRecordHealthPing
 
 class QueueAdminIntTest() : WebTestBase() {
-
-  @MockBean
-  private lateinit var personMatchHealthPing: PersonMatchHealthPing
-
-  @MockBean
-  @Autowired
-  private lateinit var personRecordHealthPing: PersonRecordHealthPing
 
   @Test
   fun `should retry dead letter queue`() {

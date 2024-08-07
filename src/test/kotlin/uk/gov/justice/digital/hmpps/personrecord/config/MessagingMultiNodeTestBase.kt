@@ -9,8 +9,6 @@ import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.info.BuildProperties
-import org.springframework.boot.test.mock.mockito.MockBean
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
@@ -22,9 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.Ad
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.health.HealthInfo
-import uk.gov.justice.digital.hmpps.personrecord.health.PersonMatchHealthPing
-import uk.gov.justice.digital.hmpps.personrecord.health.PersonRecordHealthPing
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -59,20 +54,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   @Autowired
   lateinit var hmppsQueueService: HmppsQueueService
-
-  @Autowired
-  private lateinit var buildProperties: BuildProperties
-
-  @MockBean
-  @Autowired
-  private lateinit var personMatchHealthPing: PersonMatchHealthPing
-
-  @MockBean
-  @Autowired
-  private lateinit var personRecordHealthPing: PersonRecordHealthPing
-
-  @Autowired
-  private lateinit var healthInfo: HealthInfo
 
   val domainEventsTopic by lazy {
     hmppsQueueService.findByTopicId("domainevents")

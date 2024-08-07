@@ -7,11 +7,8 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.personrecord.health.PersonMatchHealthPing
-import uk.gov.justice.digital.hmpps.personrecord.health.PersonRecordHealthPing
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
@@ -25,13 +22,6 @@ class MatchServiceIntTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var matchService: MatchService
-
-  @MockBean
-  private lateinit var personMatchHealthPing: PersonMatchHealthPing
-
-  @MockBean
-  @Autowired
-  private lateinit var personRecordHealthPing: PersonRecordHealthPing
 
   @Test
   fun `should find high confidence match`() {
