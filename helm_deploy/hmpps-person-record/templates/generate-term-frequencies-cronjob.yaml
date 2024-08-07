@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: generate-term-frequencies
+  name: {{ include "generic-service.fullname" . | trunc 26 }}-generate-term-frequencies
 spec:
   schedule:  "{{ .Values.cron.generateTermFrequencies }}"
   concurrencyPolicy: Replace
@@ -20,4 +20,4 @@ spec:
               args:
                 - /bin/sh
                 - -c
-                - curl --fail --retry 2 -X POST http://localhost:8080/generate/termfrequencies
+                - curl -X POST --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 http://{{ include "generic-service.fullname" . }}/generate/termfrequencies
