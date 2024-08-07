@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -140,10 +141,13 @@ data class Person(
         Contact.from(ContactType.MOBILE, prisoner.getMobilePhone()),
       )
       val contacts: List<Contact> = emails + phoneNumbers
-      val addresses: List<Address> = prisoner.addresses.map { Address(it.postcode, it.fullAddress) }
+      val addresses: List<Address> = Address.fromList(prisoner.addresses)
       val references = listOf(
         Reference.from(IdentifierType.CRO, prisoner.cro?.toString()),
         Reference.from(IdentifierType.PNC, prisoner.pnc?.toString()),
+        Reference.from(IdentifierType.NATIONAL_INSURANCE_NUMBER, prisoner.identifiers.getType("NINO")?.value),
+        Reference.from(IdentifierType.DRIVER_LICENSE_NUMBER, prisoner.identifiers.getType("DL")?.value),
+
       )
 
       return Person(
