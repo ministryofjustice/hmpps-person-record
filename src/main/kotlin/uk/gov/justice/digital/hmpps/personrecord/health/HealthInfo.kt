@@ -19,12 +19,12 @@ class HealthInfo(buildProperties: BuildProperties, val matchScoreClient: MatchSc
     return try {
       val healthStatus = matchScoreClient.getMatchHealth()
       return when (healthStatus?.status) {
-        Status.UP.toString() -> Health.up().withDetail("version", version).build()
+        Status.UP.toString() -> Health.up().withDetail("version", version).withDetail("PersonMatchScoreStatus", Status.UP).build()
         else ->
           Health.down().withDetail("version", version).withDetail("PersonMatchScoreStatus", Status.DOWN).build()
       }
     } catch (e: Exception) {
-      Health.down(e).withDetail("version", version).build()
+      Health.down(e).withDetail("version", version).withDetail("PersonMatchScoreStatus", Status.DOWN).build()
     }
   }
 }

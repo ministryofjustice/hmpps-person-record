@@ -105,13 +105,14 @@ class HealthCheckIntTest : WebTestBase() {
             .withBody("""{"status": "UP"}"""),
         ),
     )
+
     webTestClient.get()
       .uri("/health")
+      .authorised()
       .exchange()
       .expectStatus()
       .isOk
-      .expectBody()
-      .jsonPath("status").isEqualTo("UP")
+      .expectBody().jsonPath("components.healthInfo.details.PersonMatchScoreStatus.status").isEqualTo("UP")
   }
 
   @Test
@@ -120,17 +121,19 @@ class HealthCheckIntTest : WebTestBase() {
       WireMock.get("/health")
         .willReturn(
           WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
             .withStatus(500)
-            .withBody("Service Unavailable"),
+            .withBody("""{"status": "DOWN"}"""),
         ),
-    )
 
+    )
     webTestClient.get()
       .uri("/health")
+      .authorised()
       .exchange()
       .expectStatus()
       .is5xxServerError
       .expectBody()
-      .jsonPath("status").isEqualTo("DOWN")
+      .jsonPath("components.healthInfo.details.PersonMatchScoreStatus.status").isEqualTo("DOWN")
   }
 }
