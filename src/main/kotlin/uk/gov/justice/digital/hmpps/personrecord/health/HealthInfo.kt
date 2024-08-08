@@ -1,32 +1,30 @@
 package uk.gov.justice.digital.hmpps.personrecord.health
 
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.boot.actuate.health.Status
 import org.springframework.boot.info.BuildProperties
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
 
 /**
  * Adds version data to the /health endpoint. This is called by the UI to display API details
  */
 
 @Component
-class HealthInfo(buildProperties: BuildProperties) : HealthIndicator {
+class HealthInfo(buildProperties: BuildProperties, val matchScoreClient: MatchScoreClient) : HealthIndicator {
   private val version: String = buildProperties.version
 
-  @Autowired
-  private lateinit var personRecordHealthPing: PersonRecordHealthPing
-
   override fun health(): Health {
-    val personRecordHealth = personRecordHealthPing.health()
-    return if (personRecordHealth.status == Status.UP) {
-      Health.up().withDetail("version", version).build()
-    } else {
-      Health.down()
-        .withDetail("version", version)
-        .withDetail("PersonRecordApi", personRecordHealth.details)
-        .build()
+    return try {
+      val healthStatus = matchScoreClient.getMatchHealth()
+      return when (healthStatus?.status) {
+        Status.UP.toString() -> Health.up().withDetail("version", version).build()
+        else ->
+          Health.down().withDetail("version", version).withDetail("status", Status.DOWN).build()
+      }
+    } catch (e: Exception) {
+      Health.down(e).withDetail("version", version).build()
     }
   }
 }
