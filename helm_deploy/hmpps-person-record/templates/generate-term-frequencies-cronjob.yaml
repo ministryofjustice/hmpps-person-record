@@ -16,7 +16,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: generate-term-frequencies-job
-              image: ghcr.io/ministryofjustice/hmpps-devops-tools
+              image: ghcr.io/ministryofjustice/hmpps-devops-tools:main
               args:
                 - /bin/sh
                 - -c
