@@ -8,9 +8,12 @@ import org.awaitility.kotlin.untilAsserted
 import org.json.JSONObject
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.info.BuildProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.test.context.ActiveProfiles
+import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
+import uk.gov.justice.digital.hmpps.personrecord.health.HealthInfo
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import java.util.concurrent.TimeUnit.SECONDS
@@ -20,7 +23,16 @@ import java.util.concurrent.TimeUnit.SECONDS
 class IntegrationTestBase {
 
   @Autowired
+  lateinit var matchScoreClient: MatchScoreClient
+
+  @Autowired
   lateinit var telemetryRepository: TelemetryTestRepository
+
+  @Autowired
+  private lateinit var buildProperties: BuildProperties
+
+  @Autowired
+  private lateinit var healthInfo: HealthInfo
 
   internal fun checkTelemetry(
     event: TelemetryEventType,
