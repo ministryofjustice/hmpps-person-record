@@ -14,8 +14,6 @@ inner join (
 ) as orphaned
 on parented.source_system = orphaned.source_system;
 
--- Total N
-
 -- NOMIS -> DELIUS linked records
 select count(pk.id) AS linked
 from personrecordservice.personkey pk
@@ -35,4 +33,17 @@ where not exists(select * from personrecordservice.person probation
                  where pk.id = probation.fk_person_key_id
                    and probation.source_system = 'DELIUS');
 
--- Number of UUIDs with Delius records vs UUIDs that have >1 Delius record
+-- Number of UUIDs vs UUIDs that have >1 Delius record by Source System
+SELECT
+    subquery.source_system,
+    COUNT(DISTINCT subquery.fk_person_key_id) FILTER (WHERE uuid_count > 1) AS uuid_count_more_than_one,
+    COUNT(DISTINCT subquery.fk_person_key_id) AS total_uuid_count
+FROM (
+    SELECT
+        p.fk_person_key_id,
+        source_system,
+        COUNT(*) AS uuid_count
+    FROM personrecordservice.person p
+    GROUP BY source_system, p.fk_person_key_id
+) AS subquery
+GROUP BY source_system;
