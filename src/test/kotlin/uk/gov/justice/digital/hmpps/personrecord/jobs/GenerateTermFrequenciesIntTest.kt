@@ -36,7 +36,7 @@ class GenerateTermFrequenciesIntTest : WebTestBase() {
     }
 
     webTestClient.post()
-      .uri("/generate/termfrequencies")
+      .uri("/jobs/generatetermfrequencies")
       .exchange()
       .expectStatus()
       .isOk
@@ -56,7 +56,7 @@ class GenerateTermFrequenciesIntTest : WebTestBase() {
     createPerson(secondPnc)
 
     webTestClient.post()
-      .uri("/generate/termfrequencies")
+      .uri("/jobs/generatetermfrequencies")
       .exchange()
       .expectStatus()
       .isOk
