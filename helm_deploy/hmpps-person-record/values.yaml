@@ -88,4 +88,4 @@ generic-prometheus-alerts:
   alertSeverity: hmpps-person-record-alerts-prod
 
 cron:
-  generateTermFrequencies: "*/30 * * * *"
+  generateTermFrequencies: "0 12 * * *"
