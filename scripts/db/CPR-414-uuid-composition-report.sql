@@ -33,10 +33,10 @@ where not exists(select * from personrecordservice.person probation
                  where pk.id = probation.fk_person_key_id
                    and probation.source_system = 'DELIUS');
 
--- Number of UUIDs vs UUIDs that have >1 Delius record by Source System
+-- Number of UUIDs vs UUIDs that have >1 record by Source System
 SELECT
     subquery.source_system,
-    COUNT(DISTINCT subquery.fk_person_key_id) FILTER (WHERE uuid_count > 1) AS uuid_count_more_than_one,
+    COUNT(DISTINCT subquery.fk_person_key_id) FILTER (WHERE uuid_count > 1) AS uuid_count_with_more_than_one,
     COUNT(DISTINCT subquery.fk_person_key_id) AS total_uuid_count
 FROM (
     SELECT
