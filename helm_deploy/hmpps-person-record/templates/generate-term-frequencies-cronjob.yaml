@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "generic-service.fullname" . | trunc 26 }}-generate-term-frequencies
+spec:
+  schedule:  "{{ .Values.cron.generateTermFrequencies }}"
+  concurrencyPolicy: Replace
+  failedJobsHistoryLimit: 5
+  startingDeadlineSeconds: 600
+  successfulJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: generate-term-frequencies-job
+              image: ghcr.io/ministryofjustice/hmpps-devops-tools
+              args:
+                - /bin/sh
+                - -c
+                - curl -X POST --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 http://{{ include "generic-service.fullname" . }}/generate/termfrequencies

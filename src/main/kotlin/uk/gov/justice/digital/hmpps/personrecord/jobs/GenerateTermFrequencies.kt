@@ -28,6 +28,7 @@ class GenerateTermFrequencies(
       log.info("Finished PNC term frequency generation")
     }
   }
+
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
     private const val OK = "OK"
