@@ -29,8 +29,10 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNINumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomSentenceDate
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -151,7 +153,20 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     return topic?.snsClient?.publish(publishRequest)?.get()
   }
 
-  fun probationDomainEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = randomName(), addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress("LS1 1AB", "abc street")), scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {
+  fun probationDomainEventAndResponseSetup(
+    eventType: String,
+    pnc: String?,
+    crn: String = randomCRN(),
+    cro: String = randomCro(),
+    additionalInformation: AdditionalInformation? = null,
+    prisonNumber: String = "",
+    prefix: String = randomName(),
+    addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress("LS1 1AB", "abc street")),
+    sentences: List<ApiResponseSetupSentences> = listOf(ApiResponseSetupSentences(randomSentenceDate())),
+    scenario: String = "anyScenario",
+    currentScenarioState: String = STARTED,
+    nextScenarioState: String = STARTED,
+  ): String {
     val probationCaseResponseSetup = ApiResponseSetup(
       crn = crn,
       cro = cro,
@@ -160,6 +175,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       prisonNumber = prisonNumber,
       addresses = addresses,
       nationalInsuranceNumber = randomNINumber(),
+      sentences = sentences,
     )
     stubSingleProbationResponse(probationCaseResponseSetup, scenario, currentScenarioState, nextScenarioState)
 

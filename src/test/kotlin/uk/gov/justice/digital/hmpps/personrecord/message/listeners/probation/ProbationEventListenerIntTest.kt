@@ -43,7 +43,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomSentenceDate
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
 import java.time.LocalDate
@@ -62,9 +64,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val prefix = randomName()
     val pnc = randomPnc()
     val cro = randomCro()
-    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, prefix = prefix, prisonNumber = prisonNumber, cro = cro, addresses = listOf(ApiResponseSetupAddress("LS1 1AB", "abc street"), ApiResponseSetupAddress("M21 9LX", "abc street")))
+    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, prefix = prefix, prisonNumber = prisonNumber, cro = cro, addresses = listOf(ApiResponseSetupAddress("LS1 1AB", "abc street"), ApiResponseSetupAddress("M21 9LX", "abc street")), sentences = listOf(ApiResponseSetupSentences(randomSentenceDate())))
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+
     assertThat(personEntity.personKey).isNotNull()
     assertThat(personEntity.firstName).isEqualTo("${prefix}FirstName")
     assertThat(personEntity.middleNames).isEqualTo("PreferredMiddleName")
@@ -72,6 +75,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.title).isEqualTo("Mr")
     assertThat(personEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
     assertThat(personEntity.crn).isEqualTo(crn)
+    assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(LocalDate.of(2024, 8, 9))
     assertThat(personEntity.references.getType(IdentifierType.CRO).first().identifierValue).isEqualTo(cro)
     assertThat(personEntity.pseudonyms.size).isEqualTo(1)
     assertThat(personEntity.pseudonyms[0].firstName).isEqualTo("${prefix}FirstName")

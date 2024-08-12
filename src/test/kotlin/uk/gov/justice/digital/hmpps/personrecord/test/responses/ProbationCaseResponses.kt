@@ -41,7 +41,12 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
         "telephone": "01234567890",
         "mobile": "01234567890",
         "email": "test@gmail.com"
-      }
+      },
+      "sentences": [
+        {
+          "date": "2024-08-09"
+        }
+      ]
     }
 """.trimIndent()
 
