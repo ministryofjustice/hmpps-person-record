@@ -60,6 +60,10 @@ class PersonEntity(
   var references: MutableList<ReferenceEntity> = mutableListOf(),
 
   @Column
+  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  var sentenceInfo: MutableList<SentenceInfoEntity> = mutableListOf(),
+
+  @Column
   var crn: String? = null,
 
   @Column(name = "defendant_id")
@@ -126,10 +130,12 @@ class PersonEntity(
     addresses.clear()
     contacts.clear()
     references.clear()
+    sentenceInfo.clear()
     updatePersonAddresses(person)
     updatePersonContacts(person)
     updatePersonAliases(person)
     updatePersonReferences(person)
+    updatePersonSentences(person)
   }
 
   private fun updatePersonAddresses(person: Person) {
@@ -154,6 +160,12 @@ class PersonEntity(
     val personReferences = ReferenceEntity.fromList(person.references)
     personReferences.forEach { personReferenceEntity -> personReferenceEntity.person = this }
     this.references.addAll(personReferences)
+  }
+
+  private fun updatePersonSentences(person: Person) {
+    val personSentences = SentenceInfoEntity.fromList(person.sentences)
+    personSentences.forEach { personSentenceInfoEntity -> personSentenceInfoEntity.person = this }
+    this.sentenceInfo.addAll(personSentences)
   }
 
   companion object {

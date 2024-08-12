@@ -12,4 +12,5 @@ data class ProbationCase(
   val aliases: List<ProbationCaseAlias>? = emptyList(),
   val contactDetails: ContactDetails? = null,
   val addresses: List<Address> = emptyList(),
+  val sentences: List<Sentences>? = emptyList(),
 )

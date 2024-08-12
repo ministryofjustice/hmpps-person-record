@@ -36,6 +36,8 @@ data class Person(
   var selfMatchScore: Double? = null,
   var isAboveMatchScoreThreshold: Boolean = false,
   val sourceSystemType: SourceSystemType,
+  val sentences: List<SentenceInfo> = emptyList(),
+
 ) {
   companion object {
     fun List<Reference>.getType(type: IdentifierType): List<Reference> {
@@ -75,6 +77,8 @@ data class Person(
         contacts = contacts,
         references = references,
         sourceSystemType = DELIUS,
+        sentences = probationCase.sentences?.map { SentenceInfo.from(it) } ?: emptyList(),
+
       )
     }
 
