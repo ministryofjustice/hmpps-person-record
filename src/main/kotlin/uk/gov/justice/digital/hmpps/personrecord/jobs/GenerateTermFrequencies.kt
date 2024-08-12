@@ -14,7 +14,7 @@ class GenerateTermFrequencies(
   private val pncFrequencyRepository: PncFrequencyRepository,
 ) {
 
-  @RequestMapping(method = [RequestMethod.POST], value = ["/generate/termfrequencies"])
+  @RequestMapping(method = [RequestMethod.POST], value = ["/jobs/generatetermfrequencies"])
   suspend fun generate(): String {
     generatePncTermFrequencies()
     return OK
