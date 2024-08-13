@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
 
 class SearchServiceIntTest : IntegrationTestBase() {
@@ -412,6 +413,40 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
+    assertThat(candidateRecords[0].candidateRecord.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
+  }
+
+  @Test
+  fun `should find candidate records on names matches and dob when other record has fields with joins`() {
+    val firstName = randomName()
+    val lastName = randomName()
+    val cro = randomCro()
+    val pnc = randomPnc()
+    createPerson(
+      Person(
+        firstName = firstName,
+        lastName = lastName,
+        dateOfBirth = LocalDate.of(1975, 1, 1),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
+    )
+
+    val searchingPerson = Person(
+      firstName = firstName,
+      lastName = lastName,
+      references = listOf(Reference(IdentifierType.PNC, pnc), Reference(IdentifierType.CRO, cro)),
+      addresses = listOf(Address(postcode = randomPostcode())),
+      dateOfBirth = LocalDate.of(1975, 1, 1),
+      sourceSystemType = COMMON_PLATFORM,
+    )
+
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    stubMatchScore(matchResponse)
+    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
+
+    assertThat(candidateRecords.size).isEqualTo(1)
+    assertThat(candidateRecords[0].candidateRecord.references.getType(IdentifierType.PNC).size).isEqualTo(0)
+    assertThat(candidateRecords[0].candidateRecord.references.getType(IdentifierType.CRO).size).isEqualTo(0)
     assertThat(candidateRecords[0].candidateRecord.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
   }
 

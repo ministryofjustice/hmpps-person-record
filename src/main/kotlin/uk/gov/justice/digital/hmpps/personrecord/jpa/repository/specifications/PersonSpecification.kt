@@ -1,13 +1,17 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications
 
+import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.Join
 import jakarta.persistence.criteria.JoinType.INNER
+import jakarta.persistence.criteria.JoinType.LEFT
 import jakarta.persistence.criteria.Predicate
+import jakarta.persistence.criteria.Root
 import org.springframework.data.jpa.domain.Specification
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
@@ -44,8 +48,8 @@ object PersonSpecification {
   fun exactMatchReferences(references: List<Reference>): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
       references.takeIf { it.isNotEmpty() }?.let {
-        val referencesJoin: Join<PersonEntity, ReferenceEntity> = root.join("references", INNER)
-        val referencePredicates = references.map { reference ->
+        val referencesJoin: Join<PersonEntity, ReferenceEntity> = root.join("references", LEFT)
+        val referencePredicates: Array<Predicate> = references.map { reference ->
           criteriaBuilder.and(
             criteriaBuilder.equal(referencesJoin.get<IdentifierType>(IDENTIFIER_TYPE), reference.identifierType),
             criteriaBuilder.equal(referencesJoin.get<String>(IDENTIFIER_VALUE), reference.identifierValue),
@@ -70,7 +74,7 @@ object PersonSpecification {
   fun levenshteinPostcodes(postcodes: Set<String>, limit: Int = 1): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
       postcodes.takeIf { it.isNotEmpty() }?.let {
-        val addressJoin: Join<PersonEntity, AddressEntity> = root.join("addresses", INNER)
+        val addressJoin: Join<PersonEntity, AddressEntity> = root.join("addresses", LEFT)
         val postcodePredicates: Array<Predicate> = postcodes.map {
           criteriaBuilder.le(
             criteriaBuilder.function("levenshtein_less_equal", Integer::class.java, criteriaBuilder.literal(it), addressJoin.get<String>(POSTCODE), criteriaBuilder.literal(limit)),
