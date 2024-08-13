@@ -1,17 +1,14 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications
 
-import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.Join
 import jakarta.persistence.criteria.JoinType.INNER
 import jakarta.persistence.criteria.JoinType.LEFT
 import jakarta.persistence.criteria.Predicate
-import jakarta.persistence.criteria.Root
 import org.springframework.data.jpa.domain.Specification
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
