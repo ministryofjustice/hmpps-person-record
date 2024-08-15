@@ -53,10 +53,10 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
 private fun address(address: ApiResponseSetupAddress) =
   """
     {
-      "startDate": "${address.startDate ?: ""}",
-      "endDate": "${address.endDate ?: ""}",
-      "noFixedAbode": "${address.noFixedAbode ?: ""}",
-      "fullAddress": "${address.fullAddress ?: ""}",
-      "postcode": "${address.postcode ?: ""}"
+      ${address.startDate?.let { """ "startDate": "${address.startDate}", """.trimIndent() } ?: ""}
+      ${address.endDate?.let { """ "endDate": "${address.endDate}", """.trimIndent() } ?: ""}
+      ${address.noFixedAbode?.let { """ "noFixedAbode": "${address.noFixedAbode}", """.trimIndent() } ?: ""}
+      ${address.fullAddress?.let { """ "fullAddress": "${address.fullAddress}", """.trimIndent() } ?: ""}
+      ${address.postcode?.let { """ "postcode": "${address.postcode}" """.trimIndent() } ?: ""}
     }
   """.trimIndent()

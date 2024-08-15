@@ -11,7 +11,6 @@ import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import java.time.LocalDate
-import java.util.*
 
 @Entity
 @Table(name = "address")
