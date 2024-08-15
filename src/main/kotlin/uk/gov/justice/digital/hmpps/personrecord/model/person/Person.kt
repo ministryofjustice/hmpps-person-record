@@ -73,12 +73,11 @@ data class Person(
         dateOfBirth = probationCase.dateOfBirth,
         crn = probationCase.identifiers.crn,
         aliases = probationCase.aliases?.map { Alias.from(it) } ?: emptyList(),
-        addresses = probationCase.addresses.map { Address(it.postcode) },
+        addresses = Address.fromOffenderAddressList(probationCase.addresses),
         contacts = contacts,
         references = references,
         sourceSystemType = DELIUS,
         sentences = probationCase.sentences?.map { SentenceInfo.from(it) } ?: emptyList(),
-
       )
     }
 
@@ -122,7 +121,7 @@ data class Person(
     }
 
     fun from(libraHearingEvent: LibraHearingEvent): Person {
-      val addresses = listOf(Address(libraHearingEvent.defendantAddress?.postcode))
+      val addresses = listOf(Address(postcode = libraHearingEvent.defendantAddress?.postcode))
       val references = listOf(
         Reference.from(IdentifierType.CRO, libraHearingEvent.cro?.toString()),
         Reference.from(IdentifierType.PNC, libraHearingEvent.pnc?.toString()),
@@ -145,7 +144,7 @@ data class Person(
         Contact.from(ContactType.MOBILE, prisoner.getMobilePhone()),
       )
       val contacts: List<Contact> = emails + phoneNumbers
-      val addresses: List<Address> = Address.fromList(prisoner.addresses)
+      val addresses: List<Address> = Address.fromPrisonerAddressList(prisoner.addresses)
       val references = listOf(
         Reference.from(IdentifierType.CRO, prisoner.cro?.toString()),
         Reference.from(IdentifierType.PNC, prisoner.pnc?.toString()),

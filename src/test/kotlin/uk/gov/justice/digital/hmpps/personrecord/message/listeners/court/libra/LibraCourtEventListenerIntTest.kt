@@ -33,7 +33,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDateOfBirth
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -54,7 +54,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val lastName = randomName()
     val postcode = randomPostcode()
     val pnc = randomPnc()
-    val dateOfBirth = randomDateOfBirth()
+    val dateOfBirth = randomDate()
     val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode)
     val messageId = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
 
@@ -102,12 +102,12 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val firstName = randomName()
     val lastName = randomName()
     val postcode = randomPostcode()
-    val dateOfBirth = randomDateOfBirth()
+    val dateOfBirth = randomDate()
     createAndSavePersonWithUuid(
       Person(
         firstName = firstName,
         lastName = lastName,
-        addresses = listOf(Address(postcode)),
+        addresses = listOf(Address(postcode = postcode)),
         dateOfBirth = dateOfBirth,
         sourceSystemType = LIBRA,
       ),
@@ -164,12 +164,12 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should process and create libra message and link to different source system record`() {
     val firstName = randomName()
     val lastName = randomName()
-    val dateOfBirth = randomDateOfBirth()
+    val dateOfBirth = randomDate()
     val person = Person(
       firstName = firstName,
       lastName = lastName,
       dateOfBirth = dateOfBirth,
-      addresses = listOf(Address("NT4 6YH")),
+      addresses = listOf(Address(postcode = "NT4 6YH")),
       sourceSystemType = DELIUS,
     )
     val uuid = createAndSavePersonWithUuid(person)
@@ -228,7 +228,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       Person(
         firstName = firstName,
         lastName = lastName,
-        addresses = listOf(Address(postcode)),
+        addresses = listOf(Address(postcode = postcode)),
         sourceSystemType = LIBRA,
       ),
     )
@@ -287,7 +287,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
           firstName = firstName,
           lastName = "MORGAN",
           dateOfBirth = LocalDate.of(1975, 1, 1),
-          addresses = listOf(Address("NT4 6YH")),
+          addresses = listOf(Address(postcode = "NT4 6YH")),
           sourceSystemType = LIBRA,
         ),
       ),
@@ -298,7 +298,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
           firstName = firstName,
           lastName = "MORGAN",
           dateOfBirth = LocalDate.of(1975, 1, 1),
-          addresses = listOf(Address("NT4 6YH")),
+          addresses = listOf(Address(postcode = "NT4 6YH")),
           sourceSystemType = LIBRA,
         ),
       ),
@@ -336,7 +336,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
             firstName = firstName,
             lastName = "MORGAN",
             dateOfBirth = LocalDate.of(1975, 1, 1),
-            addresses = listOf(Address("NT4 6YH")),
+            addresses = listOf(Address(postcode = "NT4 6YH")),
             sourceSystemType = LIBRA,
           ),
         ),
@@ -410,7 +410,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val lastName = randomName()
     val postcode = randomPostcode()
     val pnc = randomPnc()
-    val dateOfBirth = randomDateOfBirth()
+    val dateOfBirth = randomDate()
     val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode)
     val messageId = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
 

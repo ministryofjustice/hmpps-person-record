@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDateOfBirth
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomHearingId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
@@ -121,7 +121,7 @@ class CourtEventFIFOTempListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should log telemetry for LIBRA event consumed from FIFO queue`() {
     telemetryRepository.deleteAll()
-    val libraMessage = LibraMessage(firstName = randomName(), lastName = randomName(), dateOfBirth = randomDateOfBirth().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = "")
+    val libraMessage = LibraMessage(firstName = randomName(), lastName = randomName(), dateOfBirth = randomDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = "")
     val messageId = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
 
     checkTelemetry(

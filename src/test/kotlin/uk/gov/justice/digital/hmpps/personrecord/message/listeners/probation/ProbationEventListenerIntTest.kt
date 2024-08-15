@@ -40,10 +40,10 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomSentenceDate
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
@@ -64,7 +64,20 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val prefix = randomName()
     val pnc = randomPnc()
     val cro = randomCro()
-    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, prefix = prefix, prisonNumber = prisonNumber, cro = cro, addresses = listOf(ApiResponseSetupAddress("LS1 1AB", "abc street"), ApiResponseSetupAddress("M21 9LX", "abc street")), sentences = listOf(ApiResponseSetupSentences(randomSentenceDate())))
+    val addressStartDate = randomDate()
+    val addressEndDate = randomDate()
+    val crn = probationDomainEventAndResponseSetup(
+      NEW_OFFENDER_CREATED,
+      pnc,
+      prefix = prefix,
+      prisonNumber = prisonNumber,
+      cro = cro,
+      addresses = listOf(
+        ApiResponseSetupAddress(noFixedAbode = true, addressStartDate, addressEndDate, postcode = "LS1 1AB", fullAddress = "abc street"),
+        ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street"),
+      ),
+      sentences = listOf(ApiResponseSetupSentences(randomDate())),
+    )
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
@@ -83,11 +96,15 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.pseudonyms[0].lastName).isEqualTo("${prefix}LastName")
     assertThat(personEntity.pseudonyms[0].dateOfBirth).isEqualTo(LocalDate.of(2024, 5, 30))
     assertThat(personEntity.addresses.size).isEqualTo(2)
+    assertThat(personEntity.addresses[0].noFixedAbode).isEqualTo(true)
+    assertThat(personEntity.addresses[0].startDate).isEqualTo(addressStartDate)
+    assertThat(personEntity.addresses[0].endDate).isEqualTo(addressEndDate)
     assertThat(personEntity.addresses[0].postcode).isEqualTo("LS1 1AB")
-    assertThat(personEntity.addresses[0].fullAddress).isEqualTo(null)
+    assertThat(personEntity.addresses[0].fullAddress).isEqualTo("abc street")
     assertThat(personEntity.addresses[0].type).isEqualTo(null)
+    assertThat(personEntity.addresses[1].noFixedAbode).isEqualTo(null)
     assertThat(personEntity.addresses[1].postcode).isEqualTo("M21 9LX")
-    assertThat(personEntity.addresses[1].fullAddress).isEqualTo(null)
+    assertThat(personEntity.addresses[1].fullAddress).isEqualTo("abc street")
     assertThat(personEntity.addresses[1].type).isEqualTo(null)
     assertThat(personEntity.selfMatchScore).isEqualTo(0.9999)
     assertThat(personEntity.contacts.size).isEqualTo(3)
@@ -112,7 +129,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val person = Person(
       prisonNumber = prisonNumber,
       references = listOf(Reference.from(IdentifierType.PNC, pnc), Reference.from(IdentifierType.CRO, cro)),
-      addresses = listOf(Address("LS1 1AB")),
+      addresses = listOf(Address(postcode = "LS1 1AB")),
       sourceSystemType = NOMIS,
     )
     val uuid = createAndSavePersonWithUuid(person)
@@ -120,7 +137,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
 
-    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, prefix = prefix, prisonNumber = prisonNumber, cro = cro, addresses = listOf(ApiResponseSetupAddress("LS1 1AB", "abc street"), ApiResponseSetupAddress("M21 9LX", "abc street")))
+    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, prefix = prefix, prisonNumber = prisonNumber, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = "LS1 1AB", fullAddress = "abc street"), ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street")))
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(

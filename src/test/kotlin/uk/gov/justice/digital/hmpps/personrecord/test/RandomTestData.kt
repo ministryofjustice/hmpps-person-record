@@ -19,9 +19,7 @@ fun randomPnc(): String {
 fun randomEmail(): String =
   randomLowerCaseString(8) + "." + randomDigit(4) + "@" + randomLowerCaseString(8) + ".co.uk"
 
-fun randomDateOfBirth(): LocalDate = LocalDate.of((1950..LocalDate.now().year).random(), (1..12).random(), (1..28).random())
-
-fun randomSentenceDate(): LocalDate = LocalDate.of((1950..LocalDate.now().year).random(), (1..12).random(), (1..28).random())
+fun randomDate(): LocalDate = LocalDate.of((1950..LocalDate.now().year).random(), (1..12).random(), (1..28).random())
 
 fun randomCro(): String {
   val year = (1950..LocalDate.now().year).random().toString().takeLast(2)
