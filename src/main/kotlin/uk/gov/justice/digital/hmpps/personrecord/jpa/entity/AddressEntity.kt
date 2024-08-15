@@ -10,6 +10,8 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import java.time.LocalDate
+import java.util.*
 
 @Entity
 @Table(name = "address")
@@ -26,6 +28,15 @@ class AddressEntity(
     nullable = false,
   )
   var person: PersonEntity? = null,
+
+  @Column(name = "start_date")
+  val startDate: LocalDate? = null,
+
+  @Column(name = "end_date")
+  val endDate: LocalDate? = null,
+
+  @Column(name = "no_fixes_abode")
+  val noFixedAbode: Boolean? = null,
 
   @Column(name = "address_full")
   val fullAddress: String? = null,
@@ -44,7 +55,13 @@ class AddressEntity(
       if (address.postcode.isNullOrEmpty()) {
         return null
       }
-      return AddressEntity(postcode = address.postcode, fullAddress = address.fullAddress)
+      return AddressEntity(
+        startDate = address.startDate,
+        endDate = address.endDate,
+        noFixedAbode = address.noFixedAbode,
+        postcode = address.postcode,
+        fullAddress = address.fullAddress,
+      )
     }
 
     fun fromList(addresses: List<Address>): List<AddressEntity> {

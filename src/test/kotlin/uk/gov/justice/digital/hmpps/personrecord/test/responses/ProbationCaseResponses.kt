@@ -52,7 +52,11 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
 
 private fun address(address: ApiResponseSetupAddress) =
   """
-                  {
-                    "postcode": "${address.postcode}"
-                  }
+    {
+      "startDate": "${address.startDate ?: ""}",
+      "endDate": "${address.endDate ?: ""}",
+      "noFixedAbode": "${address.noFixedAbode ?: ""}",
+      "fullAddress": "${address.fullAddress ?: ""}",
+      "postcode": "${address.postcode ?: ""}"
+    }
   """.trimIndent()

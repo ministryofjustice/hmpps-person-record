@@ -7,6 +7,5 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class Address(
   @JsonProperty("postalCode")
   val postcode: String? = null,
-  val addressType: String? = null,
   val fullAddress: String? = null,
 )
