@@ -34,7 +34,7 @@ class AddressEntity(
   @Column(name = "end_date")
   val endDate: LocalDate? = null,
 
-  @Column(name = "no_fixes_abode")
+  @Column(name = "no_fixed_abode")
   val noFixedAbode: Boolean? = null,
 
   @Column(name = "address_full")
