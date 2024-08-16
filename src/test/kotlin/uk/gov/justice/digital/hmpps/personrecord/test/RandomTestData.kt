@@ -34,6 +34,7 @@ fun randomCro(): String {
 
 fun randomName(): String = randomLowerCaseString()
 
+fun randomEthnicity(): String = randomLowerCaseString()
 fun randomNationality(): String = randomLowerCaseString()
 fun randomReligion(): String = randomLowerCaseString()
 
