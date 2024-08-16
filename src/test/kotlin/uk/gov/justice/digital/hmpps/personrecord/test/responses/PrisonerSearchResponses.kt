@@ -15,7 +15,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     "lastName": "${responseSetup.prefix}LastName",
     "dateOfBirth": "${responseSetup.dateOfBirth}",
     "gender": "Female",
-    "ethnicity": "White: Eng./Welsh/Scot./N.Irish/British",
+    ${responseSetup.ethnicity?.let { """ "ethnicity": "${responseSetup.ethnicity}", """.trimIndent() } ?: "" }
     "youthOffender": true,
     "maritalStatus": "Widowed",
     ${responseSetup.religion?.let { """ "religion": "${responseSetup.religion}", """.trimIndent() } ?: "" }
