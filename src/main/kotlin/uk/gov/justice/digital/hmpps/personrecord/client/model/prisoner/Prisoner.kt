@@ -22,6 +22,7 @@ data class Prisoner(
   val lastName: String,
   val nationality: String?,
   val religion: String?,
+  val ethnicity: String?,
   @JsonProperty("pncNumberCanonicalLong")
   @JsonDeserialize(using = PNCIdentifierDeserializer::class)
   val pnc: PNCIdentifier?,
