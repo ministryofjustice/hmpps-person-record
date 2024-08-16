@@ -16,7 +16,7 @@ class BaseProbationEventProcessor(
 ) {
   companion object {
     private const val MAX_RETRY_ATTEMPTS: Int = 3
-    val log = LoggerFactory.getLogger(this::class.java)
+    internal val log = LoggerFactory.getLogger(this::class.java)
   }
 
   fun getProbationCase(crn: String): Result<ProbationCase?> = runBlocking {
