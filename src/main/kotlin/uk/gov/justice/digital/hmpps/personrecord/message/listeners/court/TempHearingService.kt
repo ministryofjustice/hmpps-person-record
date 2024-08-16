@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

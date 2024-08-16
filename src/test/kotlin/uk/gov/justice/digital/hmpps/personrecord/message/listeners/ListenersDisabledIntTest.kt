@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.CourtEventListener
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison.PrisonEventListener
+import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationEventListener
 import kotlin.test.assertFailsWith
 
 @ActiveProfiles("seeding")

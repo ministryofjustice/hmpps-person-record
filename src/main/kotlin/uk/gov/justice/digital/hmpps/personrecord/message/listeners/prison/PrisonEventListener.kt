@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -43,7 +43,7 @@ class PrisonEventListener(
     }
   }
 
-  fun handleEvent(domainEvent: DomainEvent, messageId: String?) {
+  private fun handleEvent(domainEvent: DomainEvent, messageId: String?) {
     try {
       prisonEventProcessor.processEvent(domainEvent)
     } catch (e: FeignException.NotFound) {

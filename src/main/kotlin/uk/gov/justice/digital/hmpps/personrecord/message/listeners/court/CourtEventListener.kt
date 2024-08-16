@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -42,7 +42,7 @@ class CourtEventListener(
     }
   }
 
-  fun handleEvent(sqsMessage: SQSMessage) {
+  private fun handleEvent(sqsMessage: SQSMessage) {
     try {
       courtEventProcessor.processEvent(sqsMessage)
     } catch (e: Exception) {
