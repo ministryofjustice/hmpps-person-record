@@ -37,6 +37,9 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
         }
       ],
       "addresses": [${probationCase.addresses.joinToString { address(it) }}],
+      "ethnicity": {
+        ${probationCase.ethnicity?.let { """ "code": "${probationCase.ethnicity}" """.trimIndent() } ?: ""}
+      },
       "contactDetails": {
         "telephone": "01234567890",
         "mobile": "01234567890",

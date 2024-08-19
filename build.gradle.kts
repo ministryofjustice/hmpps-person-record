@@ -7,7 +7,7 @@ kotlin {
 }
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.2"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.3"
   kotlin("plugin.spring") version "2.0.10"
   kotlin("jvm") version "2.0.10"
   kotlin("plugin.jpa") version "2.0.10"
@@ -21,8 +21,8 @@ configurations {
 }
 
 dependencies {
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.0.3")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:4.3.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.0.4")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:4.3.1")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("jakarta.validation:jakarta.validation-api:3.1.0")
@@ -50,7 +50,7 @@ dependencies {
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.0.10")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.2")
   testImplementation("org.jmock:jmock:2.13.1")
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.0.3")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.0.4")
 }
 
 java {

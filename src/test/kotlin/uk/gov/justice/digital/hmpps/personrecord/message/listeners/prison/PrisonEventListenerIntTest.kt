@@ -38,6 +38,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
+import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
@@ -68,8 +69,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val personDateOfBirth = randomDate()
     val nationalInsuranceNumber = randomNationalInsuranceNumber()
     val driverLicenseNumber = randomDriverLicenseNumber()
+    val ethnicity = randomEthnicity()
 
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress)), prefix = prefix, dateOfBirth = personDateOfBirth, nationality = nationality, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress)), prefix = prefix, dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
@@ -86,6 +88,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.lastName).isEqualTo(prefix + "LastName")
       assertThat(personEntity.nationality).isEqualTo(nationality)
       assertThat(personEntity.religion).isEqualTo(religion)
+      assertThat(personEntity.ethnicity).isEqualTo(ethnicity)
       assertThat(personEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
       assertThat(personEntity.references.getType(IdentifierType.CRO).first().identifierValue).isEqualTo(cro)
       assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(nationalInsuranceNumber)
@@ -287,7 +290,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
           nationality = randomNationality(),
           religion = randomReligion(),
           identifiers = listOf(Identifier(type = "NINO", randomNationalInsuranceNumber()), Identifier(type = "DL", randomDriverLicenseNumber())),
-
+          ethnicity = randomEthnicity(),
         ),
       ),
     )

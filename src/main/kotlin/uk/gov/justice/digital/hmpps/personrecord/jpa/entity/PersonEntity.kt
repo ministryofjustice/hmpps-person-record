@@ -189,6 +189,7 @@ class PersonEntity(
         masterDefendantId = person.masterDefendantId,
         selfMatchScore = person.selfMatchScore,
         sourceSystem = person.sourceSystemType,
+        ethnicity = person.ethnicity,
         nationality = person.nationality,
         religion = person.religion,
       )
