@@ -42,7 +42,7 @@ class CourtEventProcessor(
     }
   }
 
-  fun processCommonPlatformHearingEvent(sqsMessage: SQSMessage) {
+  private fun processCommonPlatformHearingEvent(sqsMessage: SQSMessage) {
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(
       sqsMessage.message,
     )
@@ -78,7 +78,7 @@ class CourtEventProcessor(
     }
   }
 
-  fun processLibraEvent(sqsMessage: SQSMessage) {
+  private fun processLibraEvent(sqsMessage: SQSMessage) {
     val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(sqsMessage.message)
     val person = Person.from(libraHearingEvent)
 

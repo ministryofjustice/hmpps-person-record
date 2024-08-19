@@ -21,6 +21,10 @@ enum class EventKeys {
   CRO,
   DEFENDANT_ID,
 
+  // Merge
+  SOURCE_CRN,
+  TARGET_CRN,
+
   // Matching
   PROBABILITY_SCORE,
   HIGH_CONFIDENCE_COUNT,

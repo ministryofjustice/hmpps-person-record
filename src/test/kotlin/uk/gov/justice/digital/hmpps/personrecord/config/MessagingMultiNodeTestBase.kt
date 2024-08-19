@@ -86,6 +86,10 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId("cprdeliusoffendereventsqueue")
   }
 
+  val probationMergeEventsQueue by lazy {
+    hmppsQueueService.findByQueueId("cprdeliusmergeeventsqueue")
+  }
+
   val prisonEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprnomiseventsqueue")
   }
@@ -129,6 +133,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       ),
     )
     expectNoMessagesOn(probationEventsQueue)
+    expectNoMessagesOn(probationMergeEventsQueue)
     expectNoMessagesOn(prisonEventsQueue)
     return response!!.messageId()
   }
@@ -154,6 +159,28 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     return topic?.snsClient?.publish(publishRequest)?.get()
   }
 
+  fun probationMergeEventAndResponseSetup(
+    eventType: String,
+    source: ApiResponseSetup,
+    target: ApiResponseSetup,
+    scenario: String = BASE_SCENARIO,
+    currentScenarioState: String = STARTED,
+    nextScenarioState: String = STARTED,
+  ) {
+    stubSingleProbationResponse(target, scenario, currentScenarioState, nextScenarioState)
+
+    publishDomainEvent(
+      eventType,
+      DomainEvent(
+        eventType = eventType,
+        additionalInformation = AdditionalInformation(
+          sourceCrn = source.crn,
+          targetCrn = target.crn,
+        ),
+      ),
+    )
+  }
+
   fun probationDomainEventAndResponseSetup(
     eventType: String,
     pnc: String?,
@@ -165,7 +192,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress(postcode = "LS1 1AB", fullAddress = "abc street")),
     sentences: List<ApiResponseSetupSentences> = listOf(ApiResponseSetupSentences(randomDate())),
     ethnicity: String = randomEthnicity(),
-    scenario: String = "anyScenario",
+    scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
   ): String {
@@ -194,7 +221,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     return crn
   }
 
-  fun probationEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = randomName(), addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress(postcode = "LS1 1AB", fullAddress = "abc street")), ethnicity: String = randomEthnicity(), scenario: String = "anyScenario", currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {
+  fun probationEventAndResponseSetup(eventType: String, pnc: String?, crn: String = randomCRN(), cro: String = randomCro(), additionalInformation: AdditionalInformation? = null, prisonNumber: String = "", prefix: String = randomName(), addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress(postcode = "LS1 1AB", fullAddress = "abc street")), ethnicity: String = randomEthnicity(), scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED): String {
     val probationCaseResponseSetup = ApiResponseSetup(
       crn = crn,
       cro = cro,
@@ -261,6 +288,31 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     nextScenarioState = nextScenarioState,
   )
 
+  fun stub404Response(url: String) {
+    wiremock.stubFor(
+      WireMock.get(url)
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(404),
+        ),
+    )
+  }
+
+  fun stub500Response(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String) {
+    wiremock.stubFor(
+      WireMock.get(url)
+        .inScenario(scenarioName)
+        .whenScenarioStateIs(STARTED)
+        .willSetStateTo(nextScenarioState)
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(500),
+        ),
+    )
+  }
+
   @BeforeEach
   fun beforeEachMessagingTest() {
     courtEventsQueue!!.sqsDlqClient!!.purgeQueue(
@@ -281,23 +333,36 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     probationEventsQueue!!.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(probationEventsQueue!!.dlqUrl).build(),
     )
+    probationMergeEventsQueue!!.sqsClient.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.queueUrl).build(),
+    )
+    probationMergeEventsQueue!!.sqsDlqClient!!.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.dlqUrl).build(),
+    )
     prisonEventsQueue!!.sqsClient.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.queueUrl).build(),
     )
     prisonEventsQueue!!.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.dlqUrl).build(),
     )
+
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       probationEventsQueue!!.sqsClient.countAllMessagesOnQueue(probationEventsQueue!!.queueUrl).get()
     } matches { it == 0 }
-
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       probationEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(probationEventsQueue!!.dlqUrl!!).get()
     } matches { it == 0 }
+
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      probationMergeEventsQueue!!.sqsClient.countAllMessagesOnQueue(probationMergeEventsQueue!!.queueUrl).get()
+    } matches { it == 0 }
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      probationMergeEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(probationMergeEventsQueue!!.dlqUrl!!).get()
+    } matches { it == 0 }
+
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       prisonEventsQueue!!.sqsClient.countAllMessagesOnQueue(prisonEventsQueue!!.queueUrl).get()
     } matches { it == 0 }
-
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       prisonEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(prisonEventsQueue!!.dlqUrl!!).get()
     } matches { it == 0 }

@@ -10,4 +10,10 @@ data class AdditionalInformation(
 
   @JsonProperty("nomsNumber")
   val prisonNumber: String? = null,
+
+  @JsonProperty("sourceCRN")
+  val sourceCrn: String? = null,
+
+  @JsonProperty("targetCRN")
+  val targetCrn: String? = null,
 )
