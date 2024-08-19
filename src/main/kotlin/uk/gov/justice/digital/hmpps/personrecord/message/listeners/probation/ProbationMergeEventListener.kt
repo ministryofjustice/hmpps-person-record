@@ -57,7 +57,7 @@ class ProbationMergeEventListener(
         MESSAGE_PROCESSING_FAILED,
         mapOf(
           EVENT_TYPE to domainEvent.eventType,
-          SOURCE_SYSTEM to SourceSystemType.NOMIS.name,
+          SOURCE_SYSTEM to SourceSystemType.DELIUS.name,
           MESSAGE_ID to messageId,
         ),
       )

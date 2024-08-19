@@ -23,7 +23,7 @@ class ProbationMergeEventProcessor(
         EventKeys.SOURCE_CRN to domainEvent.additionalInformation?.sourceCrn,
         EventKeys.TARGET_CRN to domainEvent.additionalInformation?.targetCrn,
         EventKeys.EVENT_TYPE to domainEvent.eventType,
-        EventKeys.SOURCE_SYSTEM to DELIUS.name
+        EventKeys.SOURCE_SYSTEM to DELIUS.name,
       ),
     )
     getProbationCase(domainEvent.additionalInformation?.targetCrn!!).fold(

@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
-import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -57,6 +56,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun beforeEach() {
     telemetryRepository.deleteAll()
   }
+
+  fun probationUrl(crn: String) = "/probation-cases/$crn"
 
   @Test
   fun `creates person when when new offender created event is published`() {
@@ -203,7 +204,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should not push 404 to dead letter queue but discard message instead`() {
     val crn = randomCRN()
-    stub404Response(crn)
+    stub404Response(probationUrl(crn))
 
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
@@ -223,7 +224,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should retry on 500 error`() {
     val crn = randomCRN()
-    stub500Response(crn, "next request will succeed", "retry")
+    stub500Response(probationUrl(crn), "next request will succeed", "retry")
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc = "", crn = crn, scenario = "retry", currentScenarioState = "next request will succeed")
 
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
@@ -240,9 +241,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should log when message processing fails`() {
     val crn = randomCRN()
-    stub500Response(crn, STARTED, "failure")
-    stub500Response(crn, STARTED, "failure")
-    stub500Response(crn, STARTED, "failure")
+    stub500Response(probationUrl(crn), STARTED, "failure")
+    stub500Response(probationUrl(crn), STARTED, "failure")
+    stub500Response(probationUrl(crn), STARTED, "failure")
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
 
@@ -288,30 +289,5 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val updatedPersonEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(updatedPersonEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(changedPnc)
-  }
-
-  private fun stub404Response(crn: String) {
-    wiremock.stubFor(
-      WireMock.get("/probation-cases/$crn")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(404),
-        ),
-    )
-  }
-
-  private fun stub500Response(crn: String, nextScenarioState: String = "Next request will succeed", scenarioName: String) {
-    wiremock.stubFor(
-      WireMock.get("/probation-cases/$crn")
-        .inScenario(scenarioName)
-        .whenScenarioStateIs(STARTED)
-        .willSetStateTo(nextScenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(500),
-        ),
-    )
   }
 }

@@ -168,13 +168,16 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   ) {
     stubSingleProbationResponse(target, scenario, currentScenarioState, nextScenarioState)
 
-    publishDomainEvent(eventType, DomainEvent(
-      eventType = eventType,
-      additionalInformation = AdditionalInformation(
-        sourceCrn = source.crn,
-        targetCrn = target.crn
+    publishDomainEvent(
+      eventType,
+      DomainEvent(
+        eventType = eventType,
+        additionalInformation = AdditionalInformation(
+          sourceCrn = source.crn,
+          targetCrn = target.crn,
+        ),
       ),
-    ))
+    )
   }
 
   fun probationDomainEventAndResponseSetup(
@@ -280,6 +283,31 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     currentScenarioState = currentScenarioState,
     nextScenarioState = nextScenarioState,
   )
+
+  fun stub404Response(url: String) {
+    wiremock.stubFor(
+      WireMock.get(url)
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(404),
+        ),
+    )
+  }
+
+  fun stub500Response(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String) {
+    wiremock.stubFor(
+      WireMock.get(url)
+        .inScenario(scenarioName)
+        .whenScenarioStateIs(STARTED)
+        .willSetStateTo(nextScenarioState)
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(500),
+        ),
+    )
+  }
 
   @BeforeEach
   fun beforeEachMessagingTest() {
