@@ -94,7 +94,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
     )
 
-    //  Add check to make sure record updated once added CPR-338
+    // Add check to make sure record updated once added CPR-338
   }
 
   @Test
