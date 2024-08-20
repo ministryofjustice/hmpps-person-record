@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.prison
 
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -13,8 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class PrisonMergeEventProcessor(
   val telemetryService: TelemetryService,
   val personRepository: PersonRepository,
-  @Value("\${retry.delay}")
-  val retryDelay: Long = 0,
+
 ) : BasePrisonEventProcessor() {
 
   fun processEvent(domainEvent: DomainEvent) {
@@ -22,12 +20,12 @@ class PrisonMergeEventProcessor(
       MERGE_MESSAGE_RECEIVED,
       mapOf(
         EventKeys.SOURCE_PRISON_NUMBER to domainEvent.additionalInformation?.prisonNumber,
-        EventKeys.TARGET_PRISON_NUMBER to domainEvent.additionalInformation?.targetPrisonNumber,
+        EventKeys.TARGET_PRISON_NUMBER to domainEvent.additionalInformation?.sourcePrisonNumber,
         EventKeys.EVENT_TYPE to domainEvent.eventType,
         EventKeys.SOURCE_SYSTEM to SourceSystemType.NOMIS.name,
       ),
     )
-    getPrisonerDetails(domainEvent.additionalInformation?.targetPrisonNumber!!).fold(
+    getPrisonerDetails(domainEvent.additionalInformation?.sourcePrisonNumber!!).fold(
       onSuccess = {
         log.info("Successfully mapped merge record")
       },

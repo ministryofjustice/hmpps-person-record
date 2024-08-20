@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.prison
 
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -12,15 +11,12 @@ import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 
-const val MAX_RETRY_ATTEMPTS: Int = 3
-
 @Service
 class PrisonEventProcessor(
   val telemetryService: TelemetryService,
   val personService: PersonService,
   val personRepository: PersonRepository,
-  @Value("\${retry.delay}")
-  val retryDelay: Long = 0,
+
 ) : BasePrisonEventProcessor() {
 
   companion object {

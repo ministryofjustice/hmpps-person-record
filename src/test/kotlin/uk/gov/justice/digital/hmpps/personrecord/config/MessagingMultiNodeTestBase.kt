@@ -261,7 +261,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         eventType = eventType,
         additionalInformation = AdditionalInformation(
           prisonNumber = source.prisonNumber,
-          targetPrisonNumber = target.prisonNumber,
+          sourcePrisonNumber = target.prisonNumber,
         ),
       ),
     )
@@ -351,7 +351,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         ),
     )
   }
-  private fun stubPrisonResponse(
+  fun stubPrisonResponse(
     apiResponseSetup: ApiResponseSetup,
     scenarioName: String? = "scenario",
     currentScenarioState: String? = STARTED,

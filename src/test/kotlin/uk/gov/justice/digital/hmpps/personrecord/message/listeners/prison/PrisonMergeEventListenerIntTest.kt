@@ -29,31 +29,31 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `processes prisoner merge event is published`() {
+    val prisonNumber = randomPrisonNumber()
     val sourcePrisonNumber = randomPrisonNumber()
-    val targetPrisonNumber = randomPrisonNumber()
-    val source = ApiResponseSetup(prisonNumber = sourcePrisonNumber)
-    val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
+    val source = ApiResponseSetup(prisonNumber = prisonNumber)
+    val target = ApiResponseSetup(prisonNumber = sourcePrisonNumber)
     prisonMergeEventAndResponseSetup(PRISONER_MERGED, source, target)
 
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to "NOMIS"),
+      mapOf("SOURCE_PRISON_NUMBER" to prisonNumber, "TARGET_PRISON_NUMBER" to sourcePrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to "NOMIS"),
     )
   }
 
   @Test
   fun `should not push 404 to dead letter queue but discard message instead`() {
+    val prisonNumber = randomPrisonNumber()
     val sourcePrisonNumber = randomPrisonNumber()
-    val targetPrisonNumber = randomPrisonNumber()
-    stub404Response(prisonURL(targetPrisonNumber))
+    stub404Response(prisonURL(sourcePrisonNumber))
 
     publishDomainEvent(
       PRISONER_MERGED,
       DomainEvent(
         eventType = PRISONER_MERGED,
         additionalInformation = AdditionalInformation(
-          prisonNumber = sourcePrisonNumber,
-          targetPrisonNumber = targetPrisonNumber,
+          prisonNumber = prisonNumber,
+          sourcePrisonNumber = sourcePrisonNumber,
         ),
       ),
     )
@@ -67,7 +67,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     } matches { it == 0 }
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to "NOMIS"),
+      mapOf("SOURCE_PRISON_NUMBER" to prisonNumber, "TARGET_PRISON_NUMBER" to sourcePrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to "NOMIS"),
     )
   }
 
@@ -96,14 +96,14 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should log when message processing fails`() {
+    val prisonNumber = randomPrisonNumber()
     val sourcePrisonNumber = randomPrisonNumber()
-    val targetPrisonNumber = randomPrisonNumber()
-    stub500Response(prisonURL(targetPrisonNumber), STARTED, "failure")
-    stub500Response(prisonURL(targetPrisonNumber), STARTED, "failure")
-    stub500Response(prisonURL(targetPrisonNumber), STARTED, "failure")
+    stub500Response(prisonURL(sourcePrisonNumber), STARTED, "failure")
+    stub500Response(prisonURL(sourcePrisonNumber), STARTED, "failure")
+    stub500Response(prisonURL(sourcePrisonNumber), STARTED, "failure")
 
     val additionalInformation =
-      AdditionalInformation(prisonNumber = sourcePrisonNumber, targetPrisonNumber = targetPrisonNumber)
+      AdditionalInformation(prisonNumber = prisonNumber, sourcePrisonNumber = sourcePrisonNumber)
     val domainEvent =
       DomainEvent(eventType = PRISONER_MERGED, personReference = null, additionalInformation = additionalInformation)
     val messageId = publishDomainEvent(PRISONER_MERGED, domainEvent)
@@ -117,8 +117,8 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
       mapOf(
-        "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
-        "TARGET_PRISON_NUMBER" to targetPrisonNumber,
+        "SOURCE_PRISON_NUMBER" to prisonNumber,
+        "TARGET_PRISON_NUMBER" to sourcePrisonNumber,
         "EVENT_TYPE" to PRISONER_MERGED,
         "SOURCE_SYSTEM" to "NOMIS",
       ),

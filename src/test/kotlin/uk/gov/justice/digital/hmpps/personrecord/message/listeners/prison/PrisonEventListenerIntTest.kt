@@ -50,7 +50,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
 import java.util.concurrent.TimeUnit.SECONDS
 
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -302,24 +301,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       person,
     )
     return prisonNumber
-  }
-
-  private fun stubPrisonResponse(
-    apiResponseSetup: ApiResponseSetup,
-    scenarioName: String? = "scenario",
-    currentScenarioState: String? = STARTED,
-  ) {
-    wiremock.stubFor(
-      WireMock.get("/prisoner/${apiResponseSetup.prisonNumber}")
-        .inScenario(scenarioName)
-        .whenScenarioStateIs(currentScenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(prisonerSearchResponse(apiResponseSetup)),
-        ),
-    )
   }
 
   private fun stub500Response(
