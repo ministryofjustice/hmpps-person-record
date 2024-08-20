@@ -75,7 +75,7 @@ generic-service:
       HMPPS_SQS_QUEUES_CPRNOMISEVENTSQUEUE_DLQ_NAME: "sqs_queue_name"
     sqs-cpr-nomis-merge-events-secret:
       HMPPS_SQS_QUEUES_CPRNOMISMERGEEVENTSQUEUE_QUEUE_NAME: "sqs_queue_name"
-      sqs-cpr-nomis-merge-events-dlq-secret:
+    sqs-cpr-nomis-merge-events-dlq-secret:
         HMPPS_SQS_QUEUES_CPRNOMISMERGEEVENTSQUEUE_DLQ_NAME: "sqs_queue_name"
 
     hmpps-person-record-rds-instance-output:
