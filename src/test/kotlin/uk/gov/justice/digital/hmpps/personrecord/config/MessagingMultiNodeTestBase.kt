@@ -34,6 +34,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -94,6 +95,10 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId("cprnomiseventsqueue")
   }
 
+  val prisonMergeEventsQueue by lazy {
+    hmppsQueueService.findByQueueId("cprnomismergeeventsqueue")
+  }
+
   internal fun publishCourtMessage(message: String, messageType: MessageType, topic: String = courtEventsTopic?.arn!!): String {
     var messageBuilder = PublishRequest.builder()
       .topicArn(topic)
@@ -134,6 +139,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
     expectNoMessagesOn(probationEventsQueue)
     expectNoMessagesOn(probationMergeEventsQueue)
+    expectNoMessagesOn(prisonMergeEventsQueue)
     expectNoMessagesOn(prisonEventsQueue)
     return response!!.messageId()
   }
@@ -239,6 +245,28 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     return crn
   }
 
+  fun prisonMergeEventAndResponseSetup(
+    eventType: String,
+    source: ApiResponseSetup,
+    target: ApiResponseSetup,
+    scenario: String = BASE_SCENARIO,
+    currentScenarioState: String = STARTED,
+    nextScenarioState: String = STARTED,
+  ) {
+    stubPrisonResponse(target, scenario, currentScenarioState)
+
+    publishDomainEvent(
+      eventType,
+      DomainEvent(
+        eventType = eventType,
+        additionalInformation = AdditionalInformation(
+          sourcePrisonNumber = source.prisonNumber,
+          targetPrisonNumber = target.prisonNumber,
+        ),
+      ),
+    )
+  }
+
   fun createAndSavePersonWithUuid(person: Person): UUID {
     val uuid = UUID.randomUUID()
     val personEntity = PersonEntity.from(person = person)
@@ -323,6 +351,23 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         ),
     )
   }
+  private fun stubPrisonResponse(
+    apiResponseSetup: ApiResponseSetup,
+    scenarioName: String? = "scenario",
+    currentScenarioState: String? = STARTED,
+  ) {
+    wiremock.stubFor(
+      WireMock.get("/prisoner/${apiResponseSetup.prisonNumber}")
+        .inScenario(scenarioName)
+        .whenScenarioStateIs(currentScenarioState)
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(200)
+            .withBody(prisonerSearchResponse(apiResponseSetup)),
+        ),
+    )
+  }
 
   @BeforeEach
   fun beforeEachMessagingTest() {
@@ -357,6 +402,13 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.dlqUrl).build(),
     )
 
+    prisonMergeEventsQueue!!.sqsClient.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(prisonMergeEventsQueue!!.queueUrl).build(),
+    )
+    prisonMergeEventsQueue!!.sqsDlqClient!!.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(prisonMergeEventsQueue!!.dlqUrl).build(),
+    )
+
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       probationEventsQueue!!.sqsClient.countAllMessagesOnQueue(probationEventsQueue!!.queueUrl).get()
     } matches { it == 0 }
@@ -376,6 +428,13 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     } matches { it == 0 }
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       prisonEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(prisonEventsQueue!!.dlqUrl!!).get()
+    } matches { it == 0 }
+
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      prisonMergeEventsQueue!!.sqsClient.countAllMessagesOnQueue(prisonMergeEventsQueue!!.queueUrl).get()
+    } matches { it == 0 }
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      prisonMergeEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(prisonMergeEventsQueue!!.dlqUrl!!).get()
     } matches { it == 0 }
 
     stubSelfMatchScore()
