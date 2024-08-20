@@ -24,6 +24,10 @@ enum class EventKeys {
   // Merge
   SOURCE_CRN,
   TARGET_CRN,
+  TO_UUID,
+  FROM_UUID,
+  TO_SOURCE_SYSTEM,
+  FROM_SOURCE_SYSTEM,
 
   // Matching
   PROBABILITY_SCORE,

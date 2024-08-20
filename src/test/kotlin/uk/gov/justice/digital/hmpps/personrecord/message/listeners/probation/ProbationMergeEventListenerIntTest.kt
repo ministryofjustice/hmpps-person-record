@@ -7,14 +7,21 @@ import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MERGE_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
@@ -29,16 +36,34 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   private fun probationUrl(crn: String) = "/probation-cases/$crn"
 
   @Test
-  fun `processes offender merge event is published`() {
+  fun `processes offender merge event with records with same UUID is published`() {
     val sourceCrn = randomCRN()
     val targetCrn = randomCRN()
     val source = ApiResponseSetup(crn = sourceCrn)
     val target = ApiResponseSetup(crn = targetCrn)
+    val personKeyEntity = createPersonKey()
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
+      personKeyEntity = personKeyEntity,
+    )
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
+      personKeyEntity = personKeyEntity,
+    )
+
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
 
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
       mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      CPR_RECORD_MERGED,
+      mapOf(
+        "TO_UUID" to personKeyEntity.personId.toString(),
+        "FROM_UUID" to personKeyEntity.personId.toString(),
+        "TO_SOURCE_SYSTEM" to "DELIUS",
+        "FROM_SOURCE_SYSTEM" to "DELIUS"),
     )
   }
 

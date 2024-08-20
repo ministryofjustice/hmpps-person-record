@@ -197,7 +197,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val cro = randomCro()
     val firstName = randomName()
     val lastName = randomName()
-    createAndSavePersonWithUuid(
+    createPerson(
       Person.from(
         Defendant(
           id = defendantId,
@@ -213,6 +213,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
         sourceSystemType = HMCTS,
       ),
+      personKeyEntity = createPersonKey()
     )
 
     val matchResponse = MatchResponse(

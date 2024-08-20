@@ -4,8 +4,10 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
+import uk.gov.justice.digital.hmpps.personrecord.service.MergeService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MERGE_MESSAGE_RECEIVED
 
@@ -13,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class ProbationMergeEventProcessor(
   val telemetryService: TelemetryService,
   val personRepository: PersonRepository,
+  val mergeService: MergeService,
   corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
 ) : BaseProbationEventProcessor(corePersonRecordAndDeliusClient) {
 
@@ -28,7 +31,17 @@ class ProbationMergeEventProcessor(
     )
     getProbationCase(domainEvent.additionalInformation?.targetCrn!!).fold(
       onSuccess = {
-        log.info("Successfully mapped merge record")
+        it?.let {
+          mergeService.processMerge(
+            Person.from(it),
+            sourcePersonCallback = {
+              personRepository.findByCrn(domainEvent.additionalInformation.sourceCrn!!)
+            },
+            targetPersonCallback = {
+              personRepository.findByCrn(domainEvent.additionalInformation.targetCrn)
+            },
+          )
+        }
       },
       onFailure = {
         log.error("Error retrieving offender detail: ${it.message}")
