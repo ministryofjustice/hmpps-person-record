@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -15,8 +14,6 @@ class ProbationEventProcessor(
   val telemetryService: TelemetryService,
   val personService: PersonService,
   val personRepository: PersonRepository,
-  @Value("\${retry.delay}")
-  val retryDelay: Long = 0,
 ) : BaseProbationEventProcessor() {
 
   fun processEvent(crn: String, eventType: String) {
