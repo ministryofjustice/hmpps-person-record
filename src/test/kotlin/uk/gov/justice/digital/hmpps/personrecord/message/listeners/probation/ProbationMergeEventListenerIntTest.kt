@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
+import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
@@ -13,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
@@ -46,7 +46,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
       personKeyEntity = personKeyEntity,
     )
-    createPerson(
+    val targetPerson = createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
       personKeyEntity = personKeyEntity,
     )
@@ -63,8 +63,12 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "TO_UUID" to personKeyEntity.personId.toString(),
         "FROM_UUID" to personKeyEntity.personId.toString(),
         "TO_SOURCE_SYSTEM" to "DELIUS",
-        "FROM_SOURCE_SYSTEM" to "DELIUS"),
+        "FROM_SOURCE_SYSTEM" to "DELIUS",
+      ),
     )
+
+    val sourcePerson = personRepository.findByCrn(sourceCrn)
+    assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
   }
 
   @Test

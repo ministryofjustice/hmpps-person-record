@@ -213,7 +213,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
         sourceSystemType = HMCTS,
       ),
-      personKeyEntity = createPersonKey()
+      personKeyEntity = createPersonKey(),
     )
 
     val matchResponse = MatchResponse(
