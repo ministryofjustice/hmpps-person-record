@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -18,15 +17,14 @@ class ProbationEventProcessor(
   val personRepository: PersonRepository,
   @Value("\${retry.delay}")
   val retryDelay: Long = 0,
-  corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
-) : BaseProbationEventProcessor(corePersonRecordAndDeliusClient) {
+) : BaseProbationEventProcessor() {
 
   fun processEvent(crn: String, eventType: String) {
     telemetryService.trackEvent(
       MESSAGE_RECEIVED,
       mapOf(EventKeys.CRN to crn, EventKeys.EVENT_TYPE to eventType, EventKeys.SOURCE_SYSTEM to DELIUS.name),
     )
-    getProbationCase(crn, retryDelay).fold(
+    getProbationCase(crn).fold(
       onSuccess = {
         it?.let {
           personService.processMessage(Person.from(it), eventType) {
