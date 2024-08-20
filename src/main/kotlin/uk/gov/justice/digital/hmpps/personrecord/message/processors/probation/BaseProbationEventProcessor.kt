@@ -16,7 +16,7 @@ class BaseProbationEventProcessor {
   private lateinit var corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient
 
   @Value("\${retry.delay}")
-  private var retryDelay: Long = 0
+  private val retryDelay: Long = 0
 
   companion object {
     private const val MAX_RETRY_ATTEMPTS: Int = 3

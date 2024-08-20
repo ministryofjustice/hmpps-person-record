@@ -36,16 +36,19 @@ class MergeService(
 
   fun processMerge(mergedRecord: Person, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, retryExceptions) {
-      runBlocking {
-        processMergingOfRecords(mergedRecord, sourcePersonCallback, targetPersonCallback)
-      }
+      processMergingOfRecords(mergedRecord, sourcePersonCallback, targetPersonCallback)
     }
   }
 
   private suspend fun processMergingOfRecords(mergedRecord: Person, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) {
     val (sourcePersonEntity, targetPersonEntity) = collectPeople(sourcePersonCallback, targetPersonCallback)
     when {
-      isSameUuid(sourcePersonEntity, targetPersonEntity) -> mergeRecord(mergedRecord, sourcePersonEntity, targetPersonEntity)
+      sourcePersonEntity == null -> return // CPR-341
+      targetPersonEntity == null -> return // CPR-340
+      else -> when {
+        isSameUuid(sourcePersonEntity, targetPersonEntity) -> mergeRecord(mergedRecord, sourcePersonEntity, targetPersonEntity)
+        else -> return // CPR-342
+      }
     }
   }
 
