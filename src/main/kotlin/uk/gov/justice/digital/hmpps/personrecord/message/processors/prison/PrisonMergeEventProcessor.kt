@@ -21,7 +21,7 @@ class PrisonMergeEventProcessor(
     telemetryService.trackEvent(
       MERGE_MESSAGE_RECEIVED,
       mapOf(
-        EventKeys.SOURCE_PRISON_NUMBER to domainEvent.additionalInformation?.sourcePrisonNumber,
+        EventKeys.SOURCE_PRISON_NUMBER to domainEvent.additionalInformation?.prisonNumber,
         EventKeys.TARGET_PRISON_NUMBER to domainEvent.additionalInformation?.targetPrisonNumber,
         EventKeys.EVENT_TYPE to domainEvent.eventType,
         EventKeys.SOURCE_SYSTEM to SourceSystemType.NOMIS.name,

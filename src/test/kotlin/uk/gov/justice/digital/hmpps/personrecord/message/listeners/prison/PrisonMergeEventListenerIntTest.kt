@@ -52,7 +52,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       DomainEvent(
         eventType = PRISONER_MERGED,
         additionalInformation = AdditionalInformation(
-          sourcePrisonNumber = sourcePrisonNumber,
+          prisonNumber = sourcePrisonNumber,
           targetPrisonNumber = targetPrisonNumber,
         ),
       ),
@@ -103,7 +103,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     stub500Response(prisonURL(targetPrisonNumber), STARTED, "failure")
 
     val additionalInformation =
-      AdditionalInformation(sourcePrisonNumber = sourcePrisonNumber, targetPrisonNumber = targetPrisonNumber)
+      AdditionalInformation(prisonNumber = sourcePrisonNumber, targetPrisonNumber = targetPrisonNumber)
     val domainEvent =
       DomainEvent(eventType = PRISONER_MERGED, personReference = null, additionalInformation = additionalInformation)
     val messageId = publishDomainEvent(PRISONER_MERGED, domainEvent)

@@ -260,7 +260,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       DomainEvent(
         eventType = eventType,
         additionalInformation = AdditionalInformation(
-          sourcePrisonNumber = source.prisonNumber,
+          prisonNumber = source.prisonNumber,
           targetPrisonNumber = target.prisonNumber,
         ),
       ),
