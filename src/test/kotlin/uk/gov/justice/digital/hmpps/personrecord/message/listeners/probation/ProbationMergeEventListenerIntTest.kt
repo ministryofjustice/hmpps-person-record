@@ -91,10 +91,10 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       probationMergeEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationMergeEventsQueue!!.queueUrl)?.get()
     } matches { it == 0 }
-
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       probationMergeEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(probationMergeEventsQueue!!.dlqUrl!!)?.get()
     } matches { it == 0 }
+
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
       mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
@@ -109,6 +109,15 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val source = ApiResponseSetup(crn = sourceCrn)
     val target = ApiResponseSetup(crn = targetCrn)
+    val personKeyEntity = createPersonKey()
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
+      personKeyEntity = personKeyEntity,
+    )
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
+      personKeyEntity = personKeyEntity,
+    )
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target, scenario = "retry", currentScenarioState = "next request will succeed")
 
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
@@ -118,12 +127,20 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       probationMergeEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(probationMergeEventsQueue!!.dlqUrl!!)?.get()
     } matches { it == 0 }
+
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
       mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
     )
-
-    //  Add check to make sure record updated once added CPR-338
+    checkTelemetry(
+      CPR_RECORD_MERGED,
+      mapOf(
+        "TO_UUID" to personKeyEntity.personId.toString(),
+        "FROM_UUID" to personKeyEntity.personId.toString(),
+        "TO_SOURCE_SYSTEM" to "DELIUS",
+        "FROM_SOURCE_SYSTEM" to "DELIUS",
+      ),
+    )
   }
 
   @Test
@@ -145,13 +162,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    probationMergeEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.queueUrl).build(),
-    ).get()
-    probationMergeEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.dlqUrl).build(),
-    ).get()
-
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
       mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
@@ -164,5 +174,12 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         EventKeys.MESSAGE_ID.toString() to messageId,
       ),
     )
+
+    probationMergeEventsQueue!!.sqsClient.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.queueUrl).build(),
+    ).get()
+    probationMergeEventsQueue!!.sqsDlqClient!!.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.dlqUrl).build(),
+    ).get()
   }
 }

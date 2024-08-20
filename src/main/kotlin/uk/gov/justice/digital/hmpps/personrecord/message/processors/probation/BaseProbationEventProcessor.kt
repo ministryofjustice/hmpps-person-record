@@ -11,15 +11,13 @@ import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 @Component
 class BaseProbationEventProcessor(
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
-  @Value("\${retry.delay}")
-  private val retryDelay: Long = 0,
 ) {
   companion object {
     private const val MAX_RETRY_ATTEMPTS: Int = 3
     internal val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun getProbationCase(crn: String): Result<ProbationCase?> = runBlocking {
+  fun getProbationCase(crn: String, retryDelay: Long): Result<ProbationCase?> = runBlocking {
     try {
       return@runBlocking RetryExecutor.runWithRetry(MAX_RETRY_ATTEMPTS, retryDelay) {
         Result.success(corePersonRecordAndDeliusClient.getProbationCase(crn))
