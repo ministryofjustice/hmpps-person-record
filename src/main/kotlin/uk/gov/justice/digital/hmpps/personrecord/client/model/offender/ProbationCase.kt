@@ -7,7 +7,7 @@ import java.time.LocalDate
 data class ProbationCase(
   val title: Title? = null,
   val name: Name,
-  val ethnicity: Ethnicity?,
+  val ethnicity: Ethnicity? = null,
   val identifiers: Identifiers,
   val dateOfBirth: LocalDate? = null,
   val aliases: List<ProbationCaseAlias>? = emptyList(),

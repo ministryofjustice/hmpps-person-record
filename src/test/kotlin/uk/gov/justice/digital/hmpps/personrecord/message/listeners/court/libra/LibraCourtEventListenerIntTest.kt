@@ -103,7 +103,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val lastName = randomName()
     val postcode = randomPostcode()
     val dateOfBirth = randomDate()
-    createAndSavePersonWithUuid(
+    createPerson(
       Person(
         firstName = firstName,
         lastName = lastName,
@@ -111,6 +111,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         dateOfBirth = dateOfBirth,
         sourceSystemType = LIBRA,
       ),
+      personKeyEntity = createPersonKey(),
     )
     val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
 
@@ -172,7 +173,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       addresses = listOf(Address(postcode = "NT4 6YH")),
       sourceSystemType = DELIUS,
     )
-    val uuid = createAndSavePersonWithUuid(person)
+    val personKeyEntity = createPersonKey()
+    createPerson(person, personKeyEntity = personKeyEntity)
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
@@ -202,7 +204,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_CANDIDATE_RECORD_FOUND_UUID,
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
-        "UUID" to uuid.toString(),
+        "UUID" to personKeyEntity.personId.toString(),
       ),
     )
     checkTelemetry(
@@ -214,7 +216,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       times = 0,
     )
 
-    val personKey = personKeyRepository.findByPersonId(uuid)
+    val personKey = personKeyRepository.findByPersonId(personKeyEntity.personId)
     assertThat(personKey.personEntities.size).isEqualTo(2)
   }
 

@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -15,8 +14,7 @@ class ProbationEventProcessor(
   val telemetryService: TelemetryService,
   val personService: PersonService,
   val personRepository: PersonRepository,
-  corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
-) : BaseProbationEventProcessor(corePersonRecordAndDeliusClient) {
+) : BaseProbationEventProcessor() {
 
   fun processEvent(crn: String, eventType: String) {
     telemetryService.trackEvent(

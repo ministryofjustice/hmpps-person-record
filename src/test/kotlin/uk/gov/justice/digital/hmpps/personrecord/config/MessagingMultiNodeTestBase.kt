@@ -249,6 +249,17 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     return uuid
   }
 
+  fun createPersonKey(): PersonKeyEntity {
+    val personKeyEntity = PersonKeyEntity.new()
+    return personKeyRepository.saveAndFlush(personKeyEntity)
+  }
+
+  fun createPerson(person: Person, personKeyEntity: PersonKeyEntity? = null): PersonEntity {
+    val personEntity = PersonEntity.from(person = person)
+    personEntity.personKey = personKeyEntity
+    return personRepository.saveAndFlush(personEntity)
+  }
+
   private fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenario: String, currentScenarioState: String, nextScenarioState: String) {
     wiremock.stubFor(
       WireMock.get("/probation-cases/${probationCase.crn}")

@@ -102,6 +102,9 @@ class PersonEntity(
   @Column(name = "self_match_score")
   val selfMatchScore: Double? = null,
 
+  @Column(name = "merged_to")
+  var mergedTo: Long? = null,
+
   @Column
   @Enumerated(STRING)
   val sourceSystem: SourceSystemType,
