@@ -17,7 +17,9 @@ class PrisonMergeEventProcessor(
   prisonerSearchClient: PrisonerSearchClient,
   @Value("\${retry.delay}")
   val retryDelay: Long = 0,
-) : BasePrisonEventProcessor(prisonerSearchClient) {
+) : BasePrisonEventProcessor() {
+
+
 
   fun processEvent(domainEvent: DomainEvent) {
     telemetryService.trackEvent(

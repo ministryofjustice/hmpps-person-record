@@ -23,7 +23,7 @@ class PrisonEventProcessor(
   val personRepository: PersonRepository,
   @Value("\${retry.delay}")
   val retryDelay: Long = 0,
-) : BasePrisonEventProcessor(prisonerSearchClient) {
+) : BasePrisonEventProcessor() {
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -35,7 +35,7 @@ class PrisonEventProcessor(
       MESSAGE_RECEIVED,
       mapOf(EventKeys.EVENT_TYPE to domainEvent.eventType, EventKeys.PRISON_NUMBER to prisonNumber, EventKeys.SOURCE_SYSTEM to SourceSystemType.NOMIS.name),
     )
-    getPrisonerDetails(prisonNumber, retryDelay).fold(
+    getPrisonerDetails(prisonNumber).fold(
       onSuccess = {
         it?.let {
           personService.processMessage(Person.from(it), domainEvent.eventType) {

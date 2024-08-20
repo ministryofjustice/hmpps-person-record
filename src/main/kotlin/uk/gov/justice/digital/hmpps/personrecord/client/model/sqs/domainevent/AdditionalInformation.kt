@@ -17,9 +17,9 @@ data class AdditionalInformation(
   @JsonProperty("targetCRN")
   val targetCrn: String? = null,
 
-  @JsonProperty("sourcePrisonNumber")
+  @JsonProperty("nomsNumber")
   val sourcePrisonNumber: String? = null,
 
-  @JsonProperty("targetPrisonNumber")
+  @JsonProperty("removedNomsNumber")
   val targetPrisonNumber: String? = null,
 )
