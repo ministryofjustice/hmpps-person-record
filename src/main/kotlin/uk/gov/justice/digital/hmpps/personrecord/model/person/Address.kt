@@ -16,6 +16,8 @@ class Address(
       return Address(
         postcode = address.postcode,
         fullAddress = address.fullAddress,
+        startDate = address.startDate,
+        noFixedAbode = address.noFixedAbode,
       )
     }
 

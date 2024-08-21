@@ -118,20 +118,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
         "comment": "Skull and crossbones covering chest"
       }
     ],
-    "addresses": [
-      {
-        "fullAddress": "${responseSetup.addresses[0].fullAddress}",
-        "postalCode": "${responseSetup.addresses[0].postcode}",
-        "startDate": "2020-07-17",
-        "primaryAddress": true,
-        "phoneNumbers": [
-          {
-            "type": "HOME, MOB",
-            "number": "01141234567"
-          }
-        ]
-      }
-    ],
+    "addresses": [${responseSetup.addresses.joinToString { address(it) }}],
     "emailAddresses": [
         ${responseSetup.email?.let { """ {"email": "${responseSetup.email}" }""".trimIndent() } }
     ],
@@ -156,8 +143,25 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
 
 private fun identifier(identifier: ApiResponseSetupIdentifier) =
   """
-                  {
-                    "type": "${identifier.type}",
-                    "value": "${identifier.value}"
-                  }
+    {
+      "type": "${identifier.type}",
+      "value": "${identifier.value}"
+    }
+  """.trimIndent()
+
+private fun address(address: ApiResponseSetupAddress) =
+  """
+    {
+      ${address.fullAddress?.let { """ "fullAddress": "${address.fullAddress}", """.trimIndent() } ?: "" }
+      ${address.postcode?.let { """ "postalCode": "${address.postcode}", """.trimIndent() } ?: "" }
+      ${address.startDate?.let { """ "startDate": "${address.startDate}", """.trimIndent() } ?: "" }
+      ${address.noFixedAbode?.let { """ "noFixedAddress": "${address.noFixedAbode}", """.trimIndent() } ?: "" }
+      "primaryAddress": true,
+      "phoneNumbers": [
+        {
+          "type": "HOME, MOB",
+          "number": "01141234567"
+        }
+      ]
+    }
   """.trimIndent()
