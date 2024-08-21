@@ -50,8 +50,6 @@ class ProbationMergeEventListener(
   private fun handleEvent(domainEvent: DomainEvent, messageId: String?) {
     try {
       mergeEventProcessor.processEvent(domainEvent)
-    } catch (e: FeignException.NotFound) {
-      log.info("Discarding message for status code: ${e.status()}")
     } catch (e: Exception) {
       telemetryService.trackEvent(
         MESSAGE_PROCESSING_FAILED,

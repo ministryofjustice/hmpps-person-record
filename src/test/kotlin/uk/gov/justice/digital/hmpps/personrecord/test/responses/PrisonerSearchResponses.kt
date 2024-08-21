@@ -142,7 +142,6 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
       }
     ],
     "identifiers": [${responseSetup.identifiers.joinToString { identifier(it) }}],
-
     "allConvictedOffences": [
       {
         "statuteCode": "TH68",
