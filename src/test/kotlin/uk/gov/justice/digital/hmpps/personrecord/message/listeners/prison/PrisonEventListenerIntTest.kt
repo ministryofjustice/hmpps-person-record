@@ -8,6 +8,7 @@ import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.AllConvictedOffences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.EmailAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Identifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
@@ -50,6 +51,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -70,8 +72,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val nationalInsuranceNumber = randomNationalInsuranceNumber()
     val driverLicenseNumber = randomDriverLicenseNumber()
     val ethnicity = randomEthnicity()
+    val sentenceDate = randomDate()
 
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), prefix = prefix, dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, sentences = listOf(ApiResponseSetupSentences(sentenceDate)), cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), prefix = prefix, dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
@@ -89,6 +92,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.nationality).isEqualTo(nationality)
       assertThat(personEntity.religion).isEqualTo(religion)
       assertThat(personEntity.ethnicity).isEqualTo(ethnicity)
+      assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(LocalDate.of(2018, 3, 10))
       assertThat(personEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
       assertThat(personEntity.references.getType(IdentifierType.CRO).first().identifierValue).isEqualTo(cro)
       assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(nationalInsuranceNumber)
@@ -293,6 +297,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
           religion = randomReligion(),
           identifiers = listOf(Identifier(type = "NINO", randomNationalInsuranceNumber()), Identifier(type = "DL", randomDriverLicenseNumber())),
           ethnicity = randomEthnicity(),
+          allConvictedOffences = listOf(AllConvictedOffences(randomDate())),
         ),
       ),
     )

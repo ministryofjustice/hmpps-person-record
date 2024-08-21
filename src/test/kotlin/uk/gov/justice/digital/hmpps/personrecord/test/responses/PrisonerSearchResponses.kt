@@ -135,7 +135,9 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
         "offenceCode": "TH68010",
         "offenceDescription": "Theft from a shop",
         "offenceDate": "2024-05-23",
-        "latestBooking": true
+        "latestBooking": true,
+        "sentenceStartDate": "2018-03-10",
+        "primarySentence": true
       }
     ]
   }

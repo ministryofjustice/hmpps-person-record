@@ -37,7 +37,12 @@ class SentenceInfoEntity(
 ) {
   companion object {
     fun from(sentenceInfo: SentenceInfo): SentenceInfoEntity? {
-      return SentenceInfoEntity(sentenceDate = sentenceInfo.sentenceDate)
+      if (sentenceInfo.primarySentence == false) {
+        return null
+      }
+      return SentenceInfoEntity(
+        sentenceDate = sentenceInfo.sentenceDate,
+      )
     }
 
     fun fromList(sentenceInfo: List<SentenceInfo>): List<SentenceInfoEntity> {
