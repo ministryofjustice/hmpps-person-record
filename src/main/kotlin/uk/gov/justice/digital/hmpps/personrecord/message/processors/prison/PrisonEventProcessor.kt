@@ -16,7 +16,6 @@ class PrisonEventProcessor(
   val telemetryService: TelemetryService,
   val personService: PersonService,
   val personRepository: PersonRepository,
-
 ) : BasePrisonEventProcessor() {
 
   companion object {

@@ -72,36 +72,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should not push 404 to dead letter queue but discard message instead`() {
-    val sourceCrn = randomCRN()
-    val targetCrn = randomCRN()
-    stub404Response(probationUrl(targetCrn))
-
-    publishDomainEvent(
-      OFFENDER_MERGED,
-      DomainEvent(
-        eventType = OFFENDER_MERGED,
-        additionalInformation = AdditionalInformation(
-          sourceCrn = sourceCrn,
-          targetCrn = targetCrn,
-        ),
-      ),
-    )
-
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationMergeEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationMergeEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationMergeEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(probationMergeEventsQueue!!.dlqUrl!!)?.get()
-    } matches { it == 0 }
-
-    checkTelemetry(
-      MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-  }
-
-  @Test
   fun `should retry on 500 error`() {
     val sourceCrn = randomCRN()
     val targetCrn = randomCRN()

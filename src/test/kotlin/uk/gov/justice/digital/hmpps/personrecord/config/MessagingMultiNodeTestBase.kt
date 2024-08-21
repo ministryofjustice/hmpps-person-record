@@ -253,15 +253,15 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
   ) {
-    stubPrisonResponse(target, scenario, currentScenarioState)
+    stubPrisonResponse(target, scenario, currentScenarioState, nextScenarioState)
 
     publishDomainEvent(
       eventType,
       DomainEvent(
         eventType = eventType,
         additionalInformation = AdditionalInformation(
-          prisonNumber = source.prisonNumber,
-          sourcePrisonNumber = target.prisonNumber,
+          prisonNumber = target.prisonNumber,
+          sourcePrisonNumber = source.prisonNumber,
         ),
       ),
     )
@@ -351,15 +351,18 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         ),
     )
   }
+
   fun stubPrisonResponse(
     apiResponseSetup: ApiResponseSetup,
-    scenarioName: String? = "scenario",
+    scenarioName: String? = BASE_SCENARIO,
     currentScenarioState: String? = STARTED,
+    nextScenarioState: String? = STARTED,
   ) {
     wiremock.stubFor(
       WireMock.get("/prisoner/${apiResponseSetup.prisonNumber}")
         .inScenario(scenarioName)
         .whenScenarioStateIs(currentScenarioState)
+        .willSetStateTo(nextScenarioState)
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")

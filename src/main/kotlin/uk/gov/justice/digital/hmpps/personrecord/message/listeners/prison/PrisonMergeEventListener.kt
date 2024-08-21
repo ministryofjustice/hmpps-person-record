@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import feign.FeignException
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -12,7 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonMergeEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
-import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
@@ -51,15 +49,13 @@ class PrisonMergeEventListener(
   private fun handleEvent(domainEvent: DomainEvent, messageId: String?) {
     try {
       mergeEventProcessor.processEvent(domainEvent)
-    } catch (e: FeignException.NotFound) {
-      log.info("Discarding message for status code: ${e.status()}")
     } catch (e: Exception) {
       telemetryService.trackEvent(
         MESSAGE_PROCESSING_FAILED,
         mapOf(
-          EventKeys.EVENT_TYPE to domainEvent.eventType,
-          EventKeys.SOURCE_SYSTEM to SourceSystemType.NOMIS.name,
-          EventKeys.MESSAGE_ID to messageId,
+          EVENT_TYPE to domainEvent.eventType,
+          SOURCE_SYSTEM to SourceSystemType.NOMIS.name,
+          MESSAGE_ID to messageId,
         ),
       )
       throw e
