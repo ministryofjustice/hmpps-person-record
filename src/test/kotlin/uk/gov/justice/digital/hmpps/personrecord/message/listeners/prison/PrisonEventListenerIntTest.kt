@@ -104,7 +104,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.addresses.size).isEqualTo(1)
       assertThat(personEntity.addresses[0].postcode).isEqualTo(postcode)
       assertThat(personEntity.addresses[0].fullAddress).isEqualTo(fullAddress)
-      assertThat(personEntity.addresses[0].startDate).isEqualTo(LocalDate.of(1970,1,1))
+      assertThat(personEntity.addresses[0].startDate).isEqualTo(LocalDate.of(1970, 1, 1))
       assertThat(personEntity.addresses[0].noFixedAbode).isEqualTo(true)
       assertThat(personEntity.contacts.size).isEqualTo(3)
       assertThat(personEntity.contacts[0].contactType).isEqualTo(EMAIL)
