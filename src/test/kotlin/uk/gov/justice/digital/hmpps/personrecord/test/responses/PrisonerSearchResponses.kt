@@ -136,7 +136,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
         "offenceDescription": "Theft from a shop",
         "offenceDate": "2024-05-23",
         "latestBooking": true,
-        "sentenceStartDate": "2018-03-10",
+        ${responseSetup.sentenceStartDate?.let { """ "sentenceStartDate": "${responseSetup.sentenceStartDate}", """.trimIndent() } ?: "" }
         "primarySentence": true
       }
     ]
