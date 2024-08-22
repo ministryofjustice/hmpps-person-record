@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
+import kotlin.random.Random
 
 data class ApiResponseSetupIdentifier(val type: String, val value: String)
 
@@ -36,4 +37,5 @@ data class ApiResponseSetup(
   val identifiers: List<ApiResponseSetupIdentifier> = listOf(),
   val sentences: List<ApiResponseSetupSentences>? = listOf(),
   val sentenceStartDate: LocalDate? = randomDate(),
+  val primarySentence: Boolean? = Random.nextBoolean(),
 )

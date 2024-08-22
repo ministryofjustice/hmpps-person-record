@@ -137,7 +137,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
         "offenceDate": "2024-05-23",
         "latestBooking": true,
         ${responseSetup.sentenceStartDate?.let { """ "sentenceStartDate": "${responseSetup.sentenceStartDate}", """.trimIndent() } ?: "" }
-        "primarySentence": true
+        ${responseSetup.primarySentence?.let { """ "primarySentence": "${responseSetup.primarySentence}"""".trimIndent() } ?: "" }
       }
     ]
   }
