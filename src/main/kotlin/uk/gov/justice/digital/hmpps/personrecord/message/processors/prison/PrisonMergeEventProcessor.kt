@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.prison
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -31,9 +32,13 @@ class PrisonMergeEventProcessor(
       onSuccess = {
         it?.let {
           mergeService.processMerge(
-            Person.from(it),
+            MergeEvent(
+              sourceSystemId = Pair(EventKeys.SOURCE_PRISON_NUMBER, domainEvent.additionalInformation.sourcePrisonNumber!!),
+              targetSystemId = Pair(EventKeys.TARGET_PRISON_NUMBER, domainEvent.additionalInformation.prisonNumber),
+              mergedRecord = Person.from(it),
+            ),
             sourcePersonCallback = {
-              personRepository.findByPrisonNumberAndSourceSystem(domainEvent.additionalInformation.sourcePrisonNumber!!)
+              personRepository.findByPrisonNumberAndSourceSystem(domainEvent.additionalInformation.sourcePrisonNumber)
             },
             targetPersonCallback = {
               personRepository.findByPrisonNumberAndSourceSystem(domainEvent.additionalInformation.prisonNumber)
