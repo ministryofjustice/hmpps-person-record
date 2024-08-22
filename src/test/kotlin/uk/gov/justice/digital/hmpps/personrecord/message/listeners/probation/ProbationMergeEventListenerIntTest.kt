@@ -103,6 +103,45 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
+  fun `processes offender merge event with source record does not exist`() {
+    val sourceCrn = randomCRN()
+    val targetCrn = randomCRN()
+    val source = ApiResponseSetup(crn = sourceCrn)
+    val target = ApiResponseSetup(crn = targetCrn)
+    val personKeyEntity = createPersonKey()
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
+      personKeyEntity = personKeyEntity,
+    )
+
+    probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+
+    checkTelemetry(
+      MERGE_MESSAGE_RECEIVED,
+      mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      CPR_MERGE_RECORD_NOT_FOUND,
+      mapOf(
+        "RECORD_TYPE" to "SOURCE",
+        "SOURCE_CRN" to sourceCrn,
+        "TARGET_CRN" to targetCrn,
+        "FROM_SOURCE_SYSTEM" to "DELIUS",
+        "TO_SOURCE_SYSTEM" to "DELIUS",
+      ),
+    )
+    checkTelemetry(
+      CPR_RECORD_MERGED,
+      mapOf(
+        "TO_UUID" to personKeyEntity.personId.toString(),
+        "FROM_UUID" to null,
+        "TO_SOURCE_SYSTEM" to "DELIUS",
+        "FROM_SOURCE_SYSTEM" to null,
+      ),
+    )
+  }
+
+  @Test
   fun `should retry on 500 error`() {
     val sourceCrn = randomCRN()
     val targetCrn = randomCRN()
