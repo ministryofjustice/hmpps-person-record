@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -31,9 +32,13 @@ class ProbationMergeEventProcessor(
       onSuccess = {
         it?.let {
           mergeService.processMerge(
-            Person.from(it),
+            MergeEvent(
+              sourceSystemId = Pair(EventKeys.SOURCE_CRN, domainEvent.additionalInformation.sourceCrn!!),
+              targetSystemId = Pair(EventKeys.TARGET_CRN, domainEvent.additionalInformation.targetCrn),
+              mergedRecord = Person.from(it),
+            ),
             sourcePersonCallback = {
-              personRepository.findByCrn(domainEvent.additionalInformation.sourceCrn!!)
+              personRepository.findByCrn(domainEvent.additionalInformation.sourceCrn)
             },
             targetPersonCallback = {
               personRepository.findByCrn(domainEvent.additionalInformation.targetCrn)

@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBa
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MERGE_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
@@ -65,6 +66,36 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val sourcePerson = personRepository.findByPrisonNumberAndSourceSystem(sourcePrisonNumber)
     assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
+  }
+
+  @Test
+  fun `processes prisoner merge event when target record does not exist`() {
+    val targetPrisonNumber = randomPrisonNumber()
+    val sourcePrisonNumber = randomPrisonNumber()
+    val source = ApiResponseSetup(prisonNumber = sourcePrisonNumber)
+    val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
+    val personKeyEntity = createPersonKey()
+    createPerson(
+      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = SourceSystemType.NOMIS),
+      personKeyEntity = personKeyEntity,
+    )
+
+    prisonMergeEventAndResponseSetup(PRISONER_MERGED, source = source, target = target)
+
+    checkTelemetry(
+      MERGE_MESSAGE_RECEIVED,
+      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to "NOMIS"),
+    )
+    checkTelemetry(
+      CPR_MERGE_RECORD_NOT_FOUND,
+      mapOf(
+        "RECORD_TYPE" to "TARGET",
+        "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
+        "TARGET_PRISON_NUMBER" to targetPrisonNumber,
+        "FROM_SOURCE_SYSTEM" to "NOMIS",
+        "TO_SOURCE_SYSTEM" to "NOMIS",
+      ),
+    )
   }
 
   @Test

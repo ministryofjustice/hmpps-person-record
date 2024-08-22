@@ -20,4 +20,5 @@ enum class TelemetryEventType(val eventName: String) {
   CPR_SELF_MATCH("CprSplinkSelfMatch"),
   CPR_LOW_SELF_SCORE_NOT_CREATING_UUID("CprSplinkSelfMatchNotCreatingUuid"),
   CPR_RECORD_MERGED("CprRecordMerged"),
+  CPR_MERGE_RECORD_NOT_FOUND("CprMergeRecordNotFound"),
 }
