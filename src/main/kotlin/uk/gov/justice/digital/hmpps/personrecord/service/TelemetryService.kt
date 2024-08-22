@@ -22,6 +22,7 @@ enum class EventKeys {
   DEFENDANT_ID,
 
   // Merge
+  RECORD_TYPE,
   SOURCE_CRN,
   TARGET_CRN,
   TO_UUID,
