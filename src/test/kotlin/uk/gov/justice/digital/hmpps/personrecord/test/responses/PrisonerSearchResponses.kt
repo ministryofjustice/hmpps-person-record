@@ -131,6 +131,8 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     "identifiers": [${responseSetup.identifiers.joinToString { identifier(it) }}],
     "allConvictedOffences": [
       {
+        ${responseSetup.sentenceStartDate?.let { """ "sentenceStartDate": "${responseSetup.sentenceStartDate}", """.trimIndent() } ?: ""}
+        ${responseSetup.primarySentence?.let { """ "primarySentence": "${responseSetup.primarySentence}", """.trimIndent() } ?: ""}
         "statuteCode": "TH68",
         "offenceCode": "TH68010",
         "offenceDescription": "Theft from a shop",
