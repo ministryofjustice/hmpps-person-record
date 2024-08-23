@@ -17,7 +17,7 @@ data class ApiResponseSetupAddress(
   val fullAddress: String?,
 )
 
-data class ApiResponseSetupSentences(val sentenceDate: LocalDate)
+data class ApiResponseSetupSentences(val sentenceDate: LocalDate?)
 
 data class ApiResponseSetup(
   val crn: String? = null,
@@ -34,5 +34,7 @@ data class ApiResponseSetup(
   val dateOfBirth: LocalDate? = randomDate(),
   val driverLicenseNumber: String? = randomDriverLicenseNumber(),
   val identifiers: List<ApiResponseSetupIdentifier> = listOf(),
-  val sentences: List<ApiResponseSetupSentences> = listOf(),
+  val sentences: List<ApiResponseSetupSentences>? = listOf(),
+  val sentenceStartDate: LocalDate? = null,
+  val primarySentence: Boolean? = null,
 )

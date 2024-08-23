@@ -35,6 +35,7 @@ data class Prisoner(
   val phoneNumbers: List<PhoneNumber> = emptyList(),
   val addresses: List<Address> = emptyList(),
   val identifiers: List<Identifier> = emptyList(),
+  val allConvictedOffences: List<AllConvictedOffences>? = emptyList(),
 ) {
 
   fun getHomePhone(): String? {
