@@ -6,7 +6,7 @@ import java.time.LocalDate
 
 class SentenceInfo(
   val sentenceDate: LocalDate? = null,
-  val primarySentence: Boolean? = null,
+  val primarySentence: Boolean? = true,
 ) {
   companion object {
 
