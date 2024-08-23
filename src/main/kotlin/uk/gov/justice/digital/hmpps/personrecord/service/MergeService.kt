@@ -47,9 +47,26 @@ class MergeService(
       targetPersonEntity == null -> handleTargetRecordNotFound(mergeEvent)
       else -> when {
         isSameOrNullSourceUuid(sourcePersonEntity, targetPersonEntity) -> mergeRecord(mergeEvent, sourcePersonEntity, targetPersonEntity)
-        else -> return // CPR-342
+        else -> handleMergeWithDifferentUuids(mergeEvent, sourcePersonEntity!!, targetPersonEntity)
       }
     }
+  }
+
+  private fun handleMergeWithDifferentUuids(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
+    when {
+      sourcePersonKeyHasMultipleRecords(sourcePersonEntity) -> return
+      else -> handleSourceUuidWithSingleRecord(mergeEvent, sourcePersonEntity, targetPersonEntity)
+    }
+  }
+
+  private fun handleSourceUuidWithSingleRecord(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
+    removeLinkFromRecord(sourcePersonEntity)
+    mergeRecord(mergeEvent, sourcePersonEntity, targetPersonEntity)
+  }
+
+  private fun removeLinkFromRecord(entity: PersonEntity) {
+    entity.personKey = null
+    personRepository.saveAndFlush(entity)
   }
 
   private fun handleTargetRecordNotFound(mergeEvent: MergeEvent) {
@@ -108,6 +125,8 @@ class MergeService(
 
   private fun isSameOrNullSourceUuid(sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity?): Boolean =
     (sourcePersonEntity == PersonEntity.empty && targetPersonEntity != PersonEntity.empty) || (sourcePersonEntity?.personKey?.id == targetPersonEntity?.personKey?.id)
+
+  private fun sourcePersonKeyHasMultipleRecords(sourcePersonEntity: PersonEntity?): Boolean = sourcePersonEntity?.personKey?.personEntities?.size!! > 1
 
   private suspend fun collectPeople(sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?): Pair<PersonEntity?, PersonEntity?> {
     return coroutineScope {
