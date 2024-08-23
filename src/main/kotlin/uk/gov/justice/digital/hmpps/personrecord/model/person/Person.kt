@@ -170,6 +170,8 @@ data class Person(
         sourceSystemType = NOMIS,
         nationality = prisoner.nationality,
         religion = prisoner.religion,
+        sentences = prisoner.allConvictedOffences?.map { SentenceInfo.from(it) } ?: emptyList(),
+
       )
     }
   }

@@ -36,7 +36,7 @@ class IntegrationTestBase {
 
   internal fun checkTelemetry(
     event: TelemetryEventType,
-    expected: Map<String, String>,
+    expected: Map<String, String?>,
     times: Int = 1,
   ) {
     await.atMost(3, SECONDS) untilAsserted {

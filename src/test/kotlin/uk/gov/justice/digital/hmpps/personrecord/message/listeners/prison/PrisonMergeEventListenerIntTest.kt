@@ -99,6 +99,45 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
+  fun `processes prisoner merge event when source record does not exist`() {
+    val targetPrisonNumber = randomPrisonNumber()
+    val sourcePrisonNumber = randomPrisonNumber()
+    val source = ApiResponseSetup(prisonNumber = sourcePrisonNumber)
+    val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
+    val personKeyEntity = createPersonKey()
+    createPerson(
+      Person(prisonNumber = targetPrisonNumber, sourceSystemType = SourceSystemType.NOMIS),
+      personKeyEntity = personKeyEntity,
+    )
+
+    prisonMergeEventAndResponseSetup(PRISONER_MERGED, source = source, target = target)
+
+    checkTelemetry(
+      MERGE_MESSAGE_RECEIVED,
+      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to "NOMIS"),
+    )
+    checkTelemetry(
+      CPR_MERGE_RECORD_NOT_FOUND,
+      mapOf(
+        "RECORD_TYPE" to "SOURCE",
+        "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
+        "TARGET_PRISON_NUMBER" to targetPrisonNumber,
+        "FROM_SOURCE_SYSTEM" to "NOMIS",
+        "TO_SOURCE_SYSTEM" to "NOMIS",
+      ),
+    )
+    checkTelemetry(
+      CPR_RECORD_MERGED,
+      mapOf(
+        "TO_UUID" to personKeyEntity.personId.toString(),
+        "FROM_UUID" to null,
+        "TO_SOURCE_SYSTEM" to "NOMIS",
+        "FROM_SOURCE_SYSTEM" to null,
+      ),
+    )
+  }
+
+  @Test
   fun `should retry on 500 error`() {
     val sourcePrisonNumber = randomPrisonNumber()
     val targetPrisonNumber = randomPrisonNumber()

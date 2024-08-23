@@ -1,20 +1,26 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.AllConvictedOffences
 import java.time.LocalDate
 
 class SentenceInfo(
   val sentenceDate: LocalDate? = null,
+  val primarySentence: Boolean? = null,
 ) {
   companion object {
-    fun from(sentenceInfo: Sentences): SentenceInfo {
+
+    fun from(sentences: AllConvictedOffences): SentenceInfo {
       return SentenceInfo(
-        sentenceDate = sentenceInfo.sentenceDate,
+        sentenceDate = sentences.sentenceStartDate,
+        primarySentence = sentences.primarySentence,
       )
     }
 
-    fun fromList(sentenceDate: LocalDate?): SentenceInfo {
-      return SentenceInfo(sentenceDate = sentenceDate)
+    fun from(sentences: Sentences): SentenceInfo {
+      return SentenceInfo(
+        sentenceDate = sentences.sentenceDate,
+      )
     }
   }
 }

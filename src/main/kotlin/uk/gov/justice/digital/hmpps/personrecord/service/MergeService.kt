@@ -44,10 +44,9 @@ class MergeService(
   private suspend fun processMergingOfRecords(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) {
     val (sourcePersonEntity, targetPersonEntity) = collectPeople(sourcePersonCallback, targetPersonCallback)
     when {
-      sourcePersonEntity == null -> return // CPR-341
       targetPersonEntity == null -> handleTargetRecordNotFound(mergeEvent)
       else -> when {
-        isSameUuid(sourcePersonEntity, targetPersonEntity) -> mergeRecord(mergeEvent, sourcePersonEntity, targetPersonEntity)
+        isSameOrNullSourceUuid(sourcePersonEntity, targetPersonEntity) -> mergeRecord(mergeEvent, sourcePersonEntity, targetPersonEntity)
         else -> return // CPR-342
       }
     }
@@ -66,26 +65,49 @@ class MergeService(
     )
   }
 
-  private fun mergeRecord(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity?) {
-    updateAndLinkRecords(mergeEvent, sourcePersonEntity, targetPersonEntity)
+  private fun handleSourceRecordNotFound(mergeEvent: MergeEvent, targetPersonEntity: PersonEntity) {
+    telemetryService.trackEvent(
+      CPR_MERGE_RECORD_NOT_FOUND,
+      mapOf(
+        EventKeys.RECORD_TYPE to RecordType.SOURCE.name,
+        mergeEvent.sourceSystemId.first to mergeEvent.sourceSystemId.second,
+        mergeEvent.targetSystemId.first to mergeEvent.targetSystemId.second,
+        EventKeys.FROM_SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystemType.name,
+        EventKeys.TO_SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystemType.name,
+      ),
+    )
+    updateTargetRecord(mergeEvent, targetPersonEntity)
+  }
+
+  private fun mergeRecord(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity) {
+    when {
+      sourcePersonEntity == null -> handleSourceRecordNotFound(mergeEvent, targetPersonEntity)
+      else -> updateAndLinkRecords(mergeEvent, sourcePersonEntity, targetPersonEntity)
+    }
     telemetryService.trackEvent(
       CPR_RECORD_MERGED,
       mapOf(
-        EventKeys.TO_UUID to targetPersonEntity?.personKey?.personId.toString(),
-        EventKeys.FROM_UUID to sourcePersonEntity?.personKey?.personId.toString(),
-        EventKeys.TO_SOURCE_SYSTEM to targetPersonEntity?.sourceSystem?.name,
+        EventKeys.TO_UUID to targetPersonEntity.personKey?.let { it.personId.toString() },
+        EventKeys.FROM_UUID to sourcePersonEntity?.personKey?.let { it.personId.toString() },
+        EventKeys.TO_SOURCE_SYSTEM to targetPersonEntity.sourceSystem.name,
         EventKeys.FROM_SOURCE_SYSTEM to sourcePersonEntity?.sourceSystem?.name,
       ),
     )
   }
 
-  private fun updateAndLinkRecords(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity?) {
-    targetPersonEntity?.update(mergeEvent.mergedRecord)
-    sourcePersonEntity?.mergedTo = targetPersonEntity?.id
+  private fun updateTargetRecord(mergeEvent: MergeEvent, targetPersonEntity: PersonEntity) {
+    targetPersonEntity.update(mergeEvent.mergedRecord)
+    personRepository.saveAndFlush(targetPersonEntity)
+  }
+
+  private fun updateAndLinkRecords(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
+    sourcePersonEntity.mergedTo = targetPersonEntity.id
+    targetPersonEntity.update(mergeEvent.mergedRecord)
     personRepository.saveAllAndFlush(listOf(targetPersonEntity, sourcePersonEntity))
   }
 
-  private fun isSameUuid(sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity?): Boolean = sourcePersonEntity?.personKey?.id == targetPersonEntity?.personKey?.id
+  private fun isSameOrNullSourceUuid(sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity?): Boolean =
+    (sourcePersonEntity == PersonEntity.empty && targetPersonEntity != PersonEntity.empty) || (sourcePersonEntity?.personKey?.id == targetPersonEntity?.personKey?.id)
 
   private suspend fun collectPeople(sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?): Pair<PersonEntity?, PersonEntity?> {
     return coroutineScope {
