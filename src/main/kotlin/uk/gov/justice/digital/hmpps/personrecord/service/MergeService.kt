@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
@@ -61,7 +62,14 @@ class MergeService(
   private fun handleMergeWithDifferentUuids(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
     when {
       sourcePersonKeyHasMultipleRecords(sourcePersonEntity) -> handleSourceUuidWithMultipleRecords(mergeEvent, sourcePersonEntity, targetPersonEntity)
-      else -> {}
+      else -> handleSourceUuidWithSingleRecord(mergeEvent, sourcePersonEntity, targetPersonEntity)
+    }
+  }
+
+  private fun handleSourceUuidWithSingleRecord(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
+    mergeRecord(mergeEvent, sourcePersonEntity, targetPersonEntity) { sourcePerson, targetPerson ->
+      linkSourceUuidToTargetAndMarkAsMerged(sourcePerson!!, targetPerson)
+      updateAndLinkRecords(mergeEvent, sourcePerson, targetPerson)
     }
   }
 
@@ -133,6 +141,12 @@ class MergeService(
     sourcePersonEntity.mergedTo = targetPersonEntity.id
     targetPersonEntity.update(mergeEvent.mergedRecord)
     personRepository.saveAllAndFlush(listOf(targetPersonEntity, sourcePersonEntity))
+  }
+
+  private fun linkSourceUuidToTargetAndMarkAsMerged(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
+    sourcePersonEntity.personKey?.mergedTo = targetPersonEntity.personKey?.id
+    sourcePersonEntity.personKey?.status = UUIDStatusType.MERGED
+    personRepository.saveAndFlush(sourcePersonEntity)
   }
 
   private fun isSameUuid(sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity?): Boolean = sourcePersonEntity?.personKey?.id == targetPersonEntity?.personKey?.id

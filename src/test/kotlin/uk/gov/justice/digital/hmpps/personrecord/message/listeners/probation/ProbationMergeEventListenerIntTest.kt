@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.Ad
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
@@ -193,6 +194,47 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val targetCluster = personKeyRepository.findByPersonId(personKeyEntity2.personId)
     assertThat(targetCluster.personEntities.size).isEqualTo(1)
+  }
+
+  @Test
+  fun `processes offender merge event with different UUIDs where source has a single record`() {
+    val sourceCrn = randomCRN()
+    val targetCrn = randomCRN()
+    val source = ApiResponseSetup(crn = sourceCrn)
+    val target = ApiResponseSetup(crn = targetCrn)
+    val personKeyEntity1 = createPersonKey()
+    val personKeyEntity2 = createPersonKey()
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
+      personKeyEntity = personKeyEntity1,
+    )
+    val targetPerson = createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
+      personKeyEntity = personKeyEntity2,
+    )
+
+    probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+
+    checkTelemetry(
+      MERGE_MESSAGE_RECEIVED,
+      mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      CPR_RECORD_MERGED,
+      mapOf(
+        "TO_UUID" to personKeyEntity2.personId.toString(),
+        "FROM_UUID" to personKeyEntity1.personId.toString(),
+        "SOURCE_CRN" to sourceCrn,
+        "TARGET_CRN" to targetCrn,
+        "TO_SOURCE_SYSTEM" to "DELIUS",
+        "FROM_SOURCE_SYSTEM" to "DELIUS",
+      ),
+    )
+
+    val sourcePerson = personRepository.findByCrn(sourceCrn)
+    assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
+    assertThat(sourcePerson?.personKey?.mergedTo).isEqualTo(targetPerson.personKey?.id)
+    assertThat(sourcePerson?.personKey?.status).isEqualTo(UUIDStatusType.MERGED)
   }
 
   @Test
