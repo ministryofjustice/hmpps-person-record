@@ -25,7 +25,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -266,16 +265,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         ),
       ),
     )
-  }
-
-  fun createAndSavePersonWithUuid(person: Person): UUID {
-    val uuid = UUID.randomUUID()
-    val personEntity = PersonEntity.from(person = person)
-    val personKey = PersonKeyEntity(personId = uuid, status = UUIDStatusType.ACTIVE)
-    personKeyRepository.saveAndFlush(personKey)
-    personEntity.personKey = personKey
-    personRepository.saveAndFlush(personEntity)
-    return uuid
   }
 
   fun createPersonKey(): PersonKeyEntity {

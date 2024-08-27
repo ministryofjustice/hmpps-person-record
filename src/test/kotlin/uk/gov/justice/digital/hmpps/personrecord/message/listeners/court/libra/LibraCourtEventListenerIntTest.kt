@@ -226,13 +226,14 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val firstName = randomName()
     val lastName = randomName()
     val postcode = randomPostcode()
-    createAndSavePersonWithUuid(
+    createPerson(
       Person(
         firstName = firstName,
         lastName = lastName,
         addresses = listOf(Address(postcode = postcode)),
         sourceSystemType = LIBRA,
       ),
+      personKeyEntity = createPersonKey(),
     )
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.98883))
     stubMatchScore(matchResponse, currentScenarioState = "checkRecordExistCandidateCheck", nextScenarioState = "candidateUuidCheck")
