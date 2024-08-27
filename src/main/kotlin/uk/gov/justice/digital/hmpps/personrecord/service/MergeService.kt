@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import jakarta.transaction.Transactional
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.service.PersonService.Companion.MAX_ATTEMPTS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
@@ -35,6 +35,7 @@ class MergeService(
     ConstraintViolationException::class,
   )
 
+  @Transactional
   fun processMerge(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, retryExceptions) {
       processMergingOfRecords(mergeEvent, sourcePersonCallback, targetPersonCallback)
@@ -59,21 +60,16 @@ class MergeService(
 
   private fun handleMergeWithDifferentUuids(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
     when {
-      sourcePersonKeyHasMultipleRecords(sourcePersonEntity) -> {}
-      else -> handleSourceUuidWithSingleRecord(mergeEvent, sourcePersonEntity, targetPersonEntity)
+      sourcePersonKeyHasMultipleRecords(sourcePersonEntity) -> handleSourceUuidWithMultipleRecords(mergeEvent, sourcePersonEntity, targetPersonEntity)
+      else -> {}
     }
   }
 
-  private fun handleSourceUuidWithSingleRecord(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
+  private fun handleSourceUuidWithMultipleRecords(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
     mergeRecord(mergeEvent, sourcePersonEntity, targetPersonEntity) { sourcePerson, targetPerson ->
       removeUuidLinkFromRecord(sourcePerson!!)
       updateAndLinkRecords(mergeEvent, sourcePerson, targetPerson)
     }
-  }
-
-  private fun removeUuidLinkFromRecord(entity: PersonEntity) {
-    entity.personKey = null
-    personRepository.saveAndFlush(entity)
   }
 
   private fun handleTargetRecordNotFound(mergeEvent: MergeEvent) {
@@ -122,6 +118,12 @@ class MergeService(
     )
   }
 
+  private fun removeUuidLinkFromRecord(entity: PersonEntity) {
+    entity.personKey?.personEntities?.remove(entity)
+    entity.personKey = null
+    personRepository.saveAndFlush(entity)
+  }
+
   private fun updateTargetRecord(mergeEvent: MergeEvent, targetPersonEntity: PersonEntity) {
     targetPersonEntity.update(mergeEvent.mergedRecord)
     personRepository.saveAndFlush(targetPersonEntity)
@@ -155,5 +157,7 @@ class MergeService(
       TARGET,
       SOURCE,
     }
+
+    const val MAX_ATTEMPTS: Int = 5
   }
 }

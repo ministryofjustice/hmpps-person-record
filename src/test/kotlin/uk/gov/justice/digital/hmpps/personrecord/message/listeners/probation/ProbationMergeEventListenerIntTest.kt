@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.Ad
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
@@ -23,6 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
@@ -146,7 +148,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `processes offender merge event with different UUIDS with single record`() {
+  fun `processes offender merge event with different UUIDs where source has multiple records`() {
     val sourceCrn = randomCRN()
     val targetCrn = randomCRN()
     val source = ApiResponseSetup(crn = sourceCrn)
@@ -154,10 +156,14 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val personKeyEntity1 = createPersonKey()
     val personKeyEntity2 = createPersonKey()
     createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCRN()))),
       personKeyEntity = personKeyEntity1,
     )
     createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
+      personKeyEntity = personKeyEntity1,
+    )
+    val targetPerson = createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
       personKeyEntity = personKeyEntity2,
     )
@@ -179,6 +185,16 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "FROM_SOURCE_SYSTEM" to "DELIUS",
       ),
     )
+
+    val sourcePerson = personRepository.findByCrn(sourceCrn)
+    assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
+    assertThat(sourcePerson?.personKey).isNull()
+
+    val sourceCluster = personKeyRepository.findByPersonId(personKeyEntity1.personId)
+    assertThat(sourceCluster.personEntities.size).isEqualTo(1)
+
+    val targetCluster = personKeyRepository.findByPersonId(personKeyEntity2.personId)
+    assertThat(targetCluster.personEntities.size).isEqualTo(1)
   }
 
   @Test
