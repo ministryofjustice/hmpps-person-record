@@ -63,6 +63,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "TO_UUID" to personKeyEntity.personId.toString(),
         "FROM_UUID" to personKeyEntity.personId.toString(),
+        "SOURCE_CRN" to sourceCrn,
+        "TARGET_CRN" to targetCrn,
         "TO_SOURCE_SYSTEM" to "DELIUS",
         "FROM_SOURCE_SYSTEM" to "DELIUS",
       ),
@@ -135,8 +137,10 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "TO_UUID" to personKeyEntity.personId.toString(),
         "FROM_UUID" to null,
+        "SOURCE_CRN" to sourceCrn,
+        "TARGET_CRN" to targetCrn,
         "TO_SOURCE_SYSTEM" to "DELIUS",
-        "FROM_SOURCE_SYSTEM" to null,
+        "FROM_SOURCE_SYSTEM" to "DELIUS",
       ),
     )
   }
@@ -167,10 +171,12 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       CPR_RECORD_MERGED,
       mapOf(
-        "TO_UUID" to personKeyEntity1.personId.toString(),
-        "FROM_UUID" to null,
+        "TO_UUID" to personKeyEntity2.personId.toString(),
+        "FROM_UUID" to personKeyEntity1.personId.toString(),
+        "SOURCE_CRN" to sourceCrn,
+        "TARGET_CRN" to targetCrn,
         "TO_SOURCE_SYSTEM" to "DELIUS",
-        "FROM_SOURCE_SYSTEM" to null,
+        "FROM_SOURCE_SYSTEM" to "DELIUS",
       ),
     )
   }

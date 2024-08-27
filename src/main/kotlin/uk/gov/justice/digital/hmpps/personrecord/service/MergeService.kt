@@ -45,26 +45,33 @@ class MergeService(
     val (sourcePersonEntity, targetPersonEntity) = collectPeople(sourcePersonCallback, targetPersonCallback)
     when {
       targetPersonEntity == null -> handleTargetRecordNotFound(mergeEvent)
-      else -> when {
-        isSameOrNullSourceUuid(sourcePersonEntity, targetPersonEntity) -> mergeRecord(mergeEvent, sourcePersonEntity, targetPersonEntity)
-        else -> handleMergeWithDifferentUuids(mergeEvent, sourcePersonEntity!!, targetPersonEntity)
-      }
+      sourcePersonEntity == null -> handleSourceRecordNotFound(mergeEvent, targetPersonEntity)
+      isSameUuid(sourcePersonEntity, targetPersonEntity) -> handleMergeWithSameUuids(mergeEvent, sourcePersonEntity, targetPersonEntity)
+      else -> handleMergeWithDifferentUuids(mergeEvent, sourcePersonEntity, targetPersonEntity)
+    }
+  }
+
+  private fun handleMergeWithSameUuids(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
+    mergeRecord(mergeEvent, sourcePersonEntity, targetPersonEntity) { sourcePerson, targetPerson ->
+      updateAndLinkRecords(mergeEvent, sourcePerson!!, targetPerson)
     }
   }
 
   private fun handleMergeWithDifferentUuids(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
     when {
-      sourcePersonKeyHasMultipleRecords(sourcePersonEntity) -> return
+      sourcePersonKeyHasMultipleRecords(sourcePersonEntity) -> {}
       else -> handleSourceUuidWithSingleRecord(mergeEvent, sourcePersonEntity, targetPersonEntity)
     }
   }
 
   private fun handleSourceUuidWithSingleRecord(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
-    removeLinkFromRecord(sourcePersonEntity)
-    mergeRecord(mergeEvent, sourcePersonEntity, targetPersonEntity)
+    mergeRecord(mergeEvent, sourcePersonEntity, targetPersonEntity) { sourcePerson, targetPerson ->
+      removeUuidLinkFromRecord(sourcePerson!!)
+      updateAndLinkRecords(mergeEvent, sourcePerson, targetPerson)
+    }
   }
 
-  private fun removeLinkFromRecord(entity: PersonEntity) {
+  private fun removeUuidLinkFromRecord(entity: PersonEntity) {
     entity.personKey = null
     personRepository.saveAndFlush(entity)
   }
@@ -93,21 +100,24 @@ class MergeService(
         EventKeys.TO_SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystemType.name,
       ),
     )
-    updateTargetRecord(mergeEvent, targetPersonEntity)
+    mergeRecord(mergeEvent, null, targetPersonEntity) { _, targetPerson ->
+      updateTargetRecord(mergeEvent, targetPerson)
+    }
   }
 
-  private fun mergeRecord(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity) {
-    when {
-      sourcePersonEntity == null -> handleSourceRecordNotFound(mergeEvent, targetPersonEntity)
-      else -> updateAndLinkRecords(mergeEvent, sourcePersonEntity, targetPersonEntity)
-    }
+  private fun mergeRecord(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity, mergeAction: (sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity) -> Unit) {
+    val initialSourceUuid = sourcePersonEntity?.personKey?.let { it.personId.toString() }
+    val initialTargetUuid = targetPersonEntity.personKey?.let { it.personId.toString() }
+    mergeAction(sourcePersonEntity, targetPersonEntity)
     telemetryService.trackEvent(
       CPR_RECORD_MERGED,
       mapOf(
-        EventKeys.TO_UUID to targetPersonEntity.personKey?.let { it.personId.toString() },
-        EventKeys.FROM_UUID to sourcePersonEntity?.personKey?.let { it.personId.toString() },
-        EventKeys.TO_SOURCE_SYSTEM to targetPersonEntity.sourceSystem.name,
-        EventKeys.FROM_SOURCE_SYSTEM to sourcePersonEntity?.sourceSystem?.name,
+        EventKeys.TO_UUID to initialTargetUuid,
+        EventKeys.FROM_UUID to initialSourceUuid,
+        mergeEvent.sourceSystemId.first to mergeEvent.sourceSystemId.second,
+        mergeEvent.targetSystemId.first to mergeEvent.targetSystemId.second,
+        EventKeys.FROM_SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystemType.name,
+        EventKeys.TO_SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystemType.name,
       ),
     )
   }
@@ -123,8 +133,7 @@ class MergeService(
     personRepository.saveAllAndFlush(listOf(targetPersonEntity, sourcePersonEntity))
   }
 
-  private fun isSameOrNullSourceUuid(sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity?): Boolean =
-    (sourcePersonEntity == PersonEntity.empty && targetPersonEntity != PersonEntity.empty) || (sourcePersonEntity?.personKey?.id == targetPersonEntity?.personKey?.id)
+  private fun isSameUuid(sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity?): Boolean = sourcePersonEntity?.personKey?.id == targetPersonEntity?.personKey?.id
 
   private fun sourcePersonKeyHasMultipleRecords(sourcePersonEntity: PersonEntity?): Boolean = sourcePersonEntity?.personKey?.personEntities?.size!! > 1
 
