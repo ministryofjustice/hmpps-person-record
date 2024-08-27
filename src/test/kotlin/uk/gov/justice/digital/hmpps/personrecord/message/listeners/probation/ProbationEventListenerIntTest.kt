@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CHANGED
@@ -86,6 +87,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
     assertThat(personEntity.personKey).isNotNull()
+    assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
     assertThat(personEntity.firstName).isEqualTo("${prefix}FirstName")
     assertThat(personEntity.middleNames).isEqualTo("PreferredMiddleName")
     assertThat(personEntity.lastName).isEqualTo("${prefix}LastName")

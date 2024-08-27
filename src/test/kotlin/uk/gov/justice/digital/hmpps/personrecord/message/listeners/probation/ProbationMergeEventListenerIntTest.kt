@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.Ad
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
@@ -24,7 +23,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration

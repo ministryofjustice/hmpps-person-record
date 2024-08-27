@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
@@ -85,6 +86,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     await.atMost(5, SECONDS) untilAsserted {
       val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
       assertThat(personEntity.personKey).isNotNull()
+      assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
       assertThat(personEntity.title).isEqualTo("Ms")
       assertThat(personEntity.firstName).isEqualTo(prefix + "FirstName")
       assertThat(personEntity.middleNames).isEqualTo(prefix + "MiddleName1 " + prefix + "MiddleName2")
@@ -102,7 +104,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.pseudonyms[0].title).isEqualTo(prefix + "AliasTitle")
       assertThat(personEntity.pseudonyms[0].middleNames).isEqualTo(prefix + "AliasMiddleName")
       assertThat(personEntity.pseudonyms[0].lastName).isEqualTo(prefix + "AliasLastName")
-
       assertThat(personEntity.pseudonyms[0].dateOfBirth).isEqualTo(personDateOfBirth)
       assertThat(personEntity.addresses.size).isEqualTo(1)
       assertThat(personEntity.addresses[0].postcode).isEqualTo(postcode)
