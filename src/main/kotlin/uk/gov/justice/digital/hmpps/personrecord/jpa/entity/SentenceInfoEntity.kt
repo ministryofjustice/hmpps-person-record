@@ -37,17 +37,10 @@ class SentenceInfoEntity(
 ) {
   companion object {
     fun from(sentenceInfo: SentenceInfo): SentenceInfoEntity? {
-      // check if primary sentence exists and is true
-      val isPrimarySentencePresent = sentenceInfo.primarySentence == true || sentenceInfo.sentenceDate != null
-      return when (isPrimarySentencePresent) {
-        true -> SentenceInfoEntity(
-          // populates for sentence start date on prison api
-          sentenceDate = sentenceInfo.sentenceDate,
-        )
-        else -> SentenceInfoEntity(
-          // still populate if sentence date is available on the Probation API
-          sentenceDate = sentenceInfo.sentenceDate,
-        )
+      val isPrimarySentencePresent = sentenceInfo.sentenceDate != null && sentenceInfo.primarySentence == true
+      return when {
+        isPrimarySentencePresent -> SentenceInfoEntity(sentenceDate = sentenceInfo.sentenceDate)
+        else -> null
       }
     }
 
