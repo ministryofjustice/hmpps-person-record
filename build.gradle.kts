@@ -8,9 +8,9 @@ kotlin {
 
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.3"
-  kotlin("plugin.spring") version "2.0.10"
-  kotlin("jvm") version "2.0.10"
-  kotlin("plugin.jpa") version "2.0.10"
+  kotlin("plugin.spring") version "2.0.20"
+  kotlin("jvm") version "2.0.20"
+  kotlin("plugin.jpa") version "2.0.20"
   id("io.gitlab.arturbosch.detekt") version "1.23.6"
   id("org.jetbrains.kotlinx.kover") version "0.8.3"
   id("org.gradle.test-retry") version "1.5.10"
@@ -29,7 +29,7 @@ dependencies {
   implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.3")
-  implementation("org.springframework.security:spring-security-config:6.3.2")
+  implementation("org.springframework.security:spring-security-config:6.3.3")
   constraints {
     implementation("org.bouncycastle:bcprov-jdk18on:1.78.1") {
       because("1.77 has CVEs")
@@ -48,7 +48,7 @@ dependencies {
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
-  testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.0.10")
+  testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.0.20")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.2")
   testImplementation("org.jmock:jmock:2.13.1")
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.0.4")
