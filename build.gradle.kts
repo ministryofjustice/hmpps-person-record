@@ -7,7 +7,7 @@ kotlin {
 }
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.3"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.4"
   kotlin("plugin.spring") version "2.0.20"
   kotlin("jvm") version "2.0.20"
   kotlin("plugin.jpa") version "2.0.20"
@@ -21,8 +21,8 @@ configurations {
 }
 
 dependencies {
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.0.4")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:4.3.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.0.5")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:4.3.2")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("jakarta.validation:jakarta.validation-api:3.1.0")
@@ -38,7 +38,7 @@ dependencies {
   implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.3")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 
-  runtimeOnly("org.postgresql:postgresql:42.7.3")
+  runtimeOnly("org.postgresql:postgresql:42.7.4")
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
@@ -51,7 +51,7 @@ dependencies {
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.0.20")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.2")
   testImplementation("org.jmock:jmock:2.13.1")
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.0.4")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.0.5")
 }
 
 java {
