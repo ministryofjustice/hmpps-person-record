@@ -154,10 +154,11 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should check sentence start date is null`() {
+  fun `should check sentence start date is not populated when primary sentence is false`() {
     val prisonNumber = randomPrisonNumber()
+    val sentenceStartDate = randomDate()
 
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomPnc(), primarySentence = false, email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = randomFullAddress())), prefix = randomName(), dateOfBirth = randomDate(), nationality = null, religion = null))
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomPnc(), sentenceStartDate = sentenceStartDate, primarySentence = false, email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = randomFullAddress())), prefix = randomName(), dateOfBirth = randomDate(), nationality = null, religion = null))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
@@ -167,8 +168,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     await.atMost(5, SECONDS) untilAsserted {
       val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
-
-      assertThat(personEntity.sentenceInfo[0].sentenceDate).isNull()
+      assertThat(personEntity.sentenceInfo.size).isEqualTo(0)
     }
 
     checkTelemetry(
