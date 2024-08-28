@@ -21,7 +21,8 @@ private fun findCandidates(person: Person): Specification<PersonEntity> {
 
   return Specification.where(
     exactMatchReferences(references)
-      .or(soundexFirstLastName.and(levenshteinDob.or(levenshteinPostcode))),
+      .or(soundexFirstLastName.and(levenshteinDob.or(levenshteinPostcode)))
+      .and(PersonSpecification.isNotMerged()),
   )
 }
 

@@ -7,11 +7,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
@@ -35,12 +31,6 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   @Autowired
   private lateinit var searchService: SearchService
-
-  @Autowired
-  private lateinit var personRepository: PersonRepository
-
-  @Autowired
-  private lateinit var personKeyRepository: PersonKeyRepository
 
   @Test
   fun `should find candidate records only in searching source system`() {
@@ -96,30 +86,33 @@ class SearchServiceIntTest : IntegrationTestBase() {
       dateOfBirth = LocalDate.of(1975, 1, 1),
       sourceSystemType = LIBRA,
     )
-    createPersonWithUuid(personToFind)
-    createPersonWithUuid(
+    createPerson(personToFind, personKeyEntity = createPersonKey())
+    createPerson(
       Person(
         firstName = firstName,
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
         sourceSystemType = COMMON_PLATFORM,
       ),
+      personKeyEntity = createPersonKey(),
     )
-    createPersonWithUuid(
+    createPerson(
       Person(
         firstName = firstName,
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
         sourceSystemType = NOMIS,
       ),
+      personKeyEntity = createPersonKey(),
     )
-    createPersonWithUuid(
+    createPerson(
       Person(
         firstName = firstName,
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
         sourceSystemType = DELIUS,
       ),
+      personKeyEntity = createPersonKey(),
     )
 
     val matchResponse = MatchResponse(
@@ -210,7 +203,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
       sourceSystemType = COMMON_PLATFORM,
     )
-    createPersonWithUuid(personToFind)
+    createPerson(personToFind, personKeyEntity = createPersonKey())
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
@@ -488,7 +481,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
   @Test
   fun `should find candidate records on Levenshtein matches on multiple postcodes`() {
     val firstName = randomName()
-    createPersonWithUuid(
+    createPerson(
       Person(
         firstName = firstName,
         lastName = "Smythe",
@@ -499,14 +492,16 @@ class SearchServiceIntTest : IntegrationTestBase() {
         ),
         sourceSystemType = COMMON_PLATFORM,
       ),
+      personKeyEntity = createPersonKey(),
     )
-    createPersonWithUuid(
+    createPerson(
       Person(
         firstName = firstName,
         lastName = "Smythe",
         addresses = listOf(Address(postcode = "PR7 3DU")),
         sourceSystemType = COMMON_PLATFORM,
       ),
+      personKeyEntity = createPersonKey(),
     )
 
     val searchingPerson = Person(
@@ -581,6 +576,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         lastName = lastName,
         sourceSystemType = COMMON_PLATFORM,
       ),
+      personKeyEntity = createPersonKey(),
     )
 
     val searchingPerson = Person(
@@ -588,6 +584,29 @@ class SearchServiceIntTest : IntegrationTestBase() {
       lastName = lastName,
       sourceSystemType = COMMON_PLATFORM,
     )
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
+
+    noCandidatesFound(candidateRecords)
+  }
+
+  @Test
+  fun `should not find candidate records when record is marked as merged to another record`() {
+    val cro = randomCro()
+    val searchingPerson = Person(
+      references = listOf(Reference(IdentifierType.CRO, cro)),
+      sourceSystemType = COMMON_PLATFORM,
+    )
+
+    val sourcePerson = createPerson(searchingPerson, personKeyEntity = createPersonKey())
+    val targetPerson = createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.CRO, randomCro())),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
+      personKeyEntity = createPersonKey(),
+    )
+    mergeRecord(sourcePerson, targetPerson)
+
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     noCandidatesFound(candidateRecords)
@@ -648,15 +667,6 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   private fun noCandidatesFound(records: List<MatchResult>) {
     assertThat(records.size).isEqualTo(0)
-  }
-
-  private fun createPerson(person: Person): PersonEntity = personRepository.saveAndFlush(PersonEntity.from(person))
-
-  private fun createPersonWithUuid(person: Person): PersonEntity {
-    val personKeyEntity = personKeyRepository.saveAndFlush(PersonKeyEntity.new())
-    val personEntity = createPerson(person)
-    personEntity.personKey = personKeyEntity
-    return personRepository.saveAndFlush(personEntity)
   }
 
   private fun stubMatchScore(matchResponse: MatchResponse) {
