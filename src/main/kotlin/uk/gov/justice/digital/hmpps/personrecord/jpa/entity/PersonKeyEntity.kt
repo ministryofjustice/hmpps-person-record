@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType.STRING
+import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -10,6 +12,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import java.util.*
 
 @Entity
@@ -25,6 +28,13 @@ class PersonKeyEntity(
   @Column
   @OneToMany(mappedBy = "personKey", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
   var personEntities: MutableList<PersonEntity> = mutableListOf(),
+
+  @Column(name = "merged_to")
+  var mergedTo: Long? = null,
+
+  @Column
+  @Enumerated(STRING)
+  var status: UUIDStatusType = UUIDStatusType.ACTIVE,
 
   @Version
   var version: Int = 0,

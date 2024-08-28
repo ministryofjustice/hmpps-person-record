@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CHANGED
@@ -86,6 +87,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
     assertThat(personEntity.personKey).isNotNull()
+    assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
     assertThat(personEntity.firstName).isEqualTo("${prefix}FirstName")
     assertThat(personEntity.middleNames).isEqualTo("PreferredMiddleName")
     assertThat(personEntity.lastName).isEqualTo("${prefix}LastName")
@@ -137,7 +139,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       addresses = listOf(Address(postcode = "LS1 1AB")),
       sourceSystemType = NOMIS,
     )
-    val uuid = createAndSavePersonWithUuid(person)
+    val personKeyEntity = createPersonKey()
+    createPerson(person, personKeyEntity = personKeyEntity)
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
@@ -158,12 +161,12 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_CANDIDATE_RECORD_FOUND_UUID,
       mapOf(
         "SOURCE_SYSTEM" to DELIUS.name,
-        "UUID" to uuid.toString(),
+        "UUID" to personKeyEntity.personId.toString(),
       ),
     )
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
-    val personKey = personKeyRepository.findByPersonId(uuid)
+    val personKey = personKeyRepository.findByPersonId(personKeyEntity.personId)
     assertThat(personKey.personEntities.size).isEqualTo(2)
   }
 
