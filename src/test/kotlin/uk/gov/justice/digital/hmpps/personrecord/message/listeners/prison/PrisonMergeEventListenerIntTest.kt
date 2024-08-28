@@ -62,8 +62,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "FROM_UUID" to personKeyEntity.personId.toString(),
         "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
         "TARGET_PRISON_NUMBER" to targetPrisonNumber,
-        "TO_SOURCE_SYSTEM" to "NOMIS",
-        "FROM_SOURCE_SYSTEM" to "NOMIS",
+        "SOURCE_SYSTEM" to "NOMIS",
       ),
     )
 
@@ -95,8 +94,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "RECORD_TYPE" to "TARGET",
         "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
         "TARGET_PRISON_NUMBER" to targetPrisonNumber,
-        "FROM_SOURCE_SYSTEM" to "NOMIS",
-        "TO_SOURCE_SYSTEM" to "NOMIS",
+        "SOURCE_SYSTEM" to "NOMIS",
       ),
     )
   }
@@ -125,8 +123,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "RECORD_TYPE" to "SOURCE",
         "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
         "TARGET_PRISON_NUMBER" to targetPrisonNumber,
-        "FROM_SOURCE_SYSTEM" to "NOMIS",
-        "TO_SOURCE_SYSTEM" to "NOMIS",
+        "SOURCE_SYSTEM" to "NOMIS",
       ),
     )
     checkTelemetry(
@@ -136,8 +133,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "FROM_UUID" to null,
         "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
         "TARGET_PRISON_NUMBER" to targetPrisonNumber,
-        "TO_SOURCE_SYSTEM" to "NOMIS",
-        "FROM_SOURCE_SYSTEM" to "NOMIS",
+        "SOURCE_SYSTEM" to "NOMIS",
       ),
     )
   }
@@ -176,8 +172,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "FROM_UUID" to personKeyEntity1.personId.toString(),
         "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
         "TARGET_PRISON_NUMBER" to targetPrisonNumber,
-        "TO_SOURCE_SYSTEM" to "NOMIS",
-        "FROM_SOURCE_SYSTEM" to "NOMIS",
+        "SOURCE_SYSTEM" to "NOMIS",
       ),
     )
 
@@ -222,8 +217,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "FROM_UUID" to personKeyEntity1.personId.toString(),
         "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
         "TARGET_PRISON_NUMBER" to targetPrisonNumber,
-        "TO_SOURCE_SYSTEM" to "NOMIS",
-        "FROM_SOURCE_SYSTEM" to "NOMIS",
+        "SOURCE_SYSTEM" to "NOMIS",
       ),
     )
 

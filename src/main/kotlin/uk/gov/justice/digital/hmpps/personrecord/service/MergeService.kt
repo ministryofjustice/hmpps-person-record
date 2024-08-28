@@ -87,8 +87,7 @@ class MergeService(
         EventKeys.RECORD_TYPE to RecordType.TARGET.name,
         mergeEvent.sourceSystemId.first to mergeEvent.sourceSystemId.second,
         mergeEvent.targetSystemId.first to mergeEvent.targetSystemId.second,
-        EventKeys.FROM_SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystemType.name,
-        EventKeys.TO_SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystemType.name,
+        EventKeys.SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystemType.name,
       ),
     )
   }
@@ -100,8 +99,7 @@ class MergeService(
         EventKeys.RECORD_TYPE to RecordType.SOURCE.name,
         mergeEvent.sourceSystemId.first to mergeEvent.sourceSystemId.second,
         mergeEvent.targetSystemId.first to mergeEvent.targetSystemId.second,
-        EventKeys.FROM_SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystemType.name,
-        EventKeys.TO_SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystemType.name,
+        EventKeys.SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystemType.name,
       ),
     )
     mergeRecord(mergeEvent, null, targetPersonEntity) { _, targetPerson ->
@@ -120,8 +118,7 @@ class MergeService(
         EventKeys.FROM_UUID to initialSourceUuid,
         mergeEvent.sourceSystemId.first to mergeEvent.sourceSystemId.second,
         mergeEvent.targetSystemId.first to mergeEvent.targetSystemId.second,
-        EventKeys.FROM_SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystemType.name,
-        EventKeys.TO_SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystemType.name,
+        EventKeys.SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystemType.name,
       ),
     )
   }

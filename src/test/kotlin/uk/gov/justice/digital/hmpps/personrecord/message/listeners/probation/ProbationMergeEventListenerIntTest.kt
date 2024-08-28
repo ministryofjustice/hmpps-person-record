@@ -66,8 +66,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "FROM_UUID" to personKeyEntity.personId.toString(),
         "SOURCE_CRN" to sourceCrn,
         "TARGET_CRN" to targetCrn,
-        "TO_SOURCE_SYSTEM" to "DELIUS",
-        "FROM_SOURCE_SYSTEM" to "DELIUS",
+        "SOURCE_SYSTEM" to "DELIUS",
       ),
     )
 
@@ -99,8 +98,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "RECORD_TYPE" to "TARGET",
         "SOURCE_CRN" to sourceCrn,
         "TARGET_CRN" to targetCrn,
-        "FROM_SOURCE_SYSTEM" to "DELIUS",
-        "TO_SOURCE_SYSTEM" to "DELIUS",
+        "SOURCE_SYSTEM" to "DELIUS",
       ),
     )
   }
@@ -129,8 +127,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "RECORD_TYPE" to "SOURCE",
         "SOURCE_CRN" to sourceCrn,
         "TARGET_CRN" to targetCrn,
-        "FROM_SOURCE_SYSTEM" to "DELIUS",
-        "TO_SOURCE_SYSTEM" to "DELIUS",
+        "SOURCE_SYSTEM" to "DELIUS",
       ),
     )
     checkTelemetry(
@@ -140,8 +137,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "FROM_UUID" to null,
         "SOURCE_CRN" to sourceCrn,
         "TARGET_CRN" to targetCrn,
-        "TO_SOURCE_SYSTEM" to "DELIUS",
-        "FROM_SOURCE_SYSTEM" to "DELIUS",
+        "SOURCE_SYSTEM" to "DELIUS",
       ),
     )
   }
@@ -180,8 +176,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "FROM_UUID" to personKeyEntity1.personId.toString(),
         "SOURCE_CRN" to sourceCrn,
         "TARGET_CRN" to targetCrn,
-        "TO_SOURCE_SYSTEM" to "DELIUS",
-        "FROM_SOURCE_SYSTEM" to "DELIUS",
+        "SOURCE_SYSTEM" to "DELIUS",
       ),
     )
 
@@ -226,8 +221,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "FROM_UUID" to personKeyEntity1.personId.toString(),
         "SOURCE_CRN" to sourceCrn,
         "TARGET_CRN" to targetCrn,
-        "TO_SOURCE_SYSTEM" to "DELIUS",
-        "FROM_SOURCE_SYSTEM" to "DELIUS",
+        "SOURCE_SYSTEM" to "DELIUS",
       ),
     )
 
@@ -273,8 +267,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "TO_UUID" to personKeyEntity.personId.toString(),
         "FROM_UUID" to personKeyEntity.personId.toString(),
-        "TO_SOURCE_SYSTEM" to "DELIUS",
-        "FROM_SOURCE_SYSTEM" to "DELIUS",
+        "SOURCE_SYSTEM" to "DELIUS",
       ),
     )
   }
