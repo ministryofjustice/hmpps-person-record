@@ -33,6 +33,7 @@ object PersonSpecification {
   private const val PERSON_KEY = "personKey"
   private const val POSTCODE = "postcode"
   private const val DATE_FORMAT = "YYYY-MM-DD"
+  private const val MERGED_TO = "mergedTo"
 
   fun exactMatch(input: String?, field: String): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
@@ -106,6 +107,12 @@ object PersonSpecification {
     return Specification { root, _, criteriaBuilder ->
       val personKeyJoin: Join<PersonEntity, PersonKeyEntity> = root.join(PERSON_KEY, INNER)
       criteriaBuilder.isNotNull(personKeyJoin)
+    }
+  }
+
+  fun isNotMerged(): Specification<PersonEntity> {
+    return Specification { root, _, criteriaBuilder ->
+      criteriaBuilder.isNull(root.get<Long>(MERGED_TO))
     }
   }
 }

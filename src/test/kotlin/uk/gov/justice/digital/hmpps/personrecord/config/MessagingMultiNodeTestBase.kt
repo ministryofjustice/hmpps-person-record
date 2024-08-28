@@ -20,11 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.Ad
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -46,12 +41,6 @@ import java.util.UUID
 
 @ExtendWith(MultiApplicationContextExtension::class)
 abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
-
-  @Autowired
-  lateinit var personKeyRepository: PersonKeyRepository
-
-  @Autowired
-  lateinit var personRepository: PersonRepository
 
   @Autowired
   lateinit var objectMapper: ObjectMapper
@@ -265,17 +254,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         ),
       ),
     )
-  }
-
-  fun createPersonKey(): PersonKeyEntity {
-    val personKeyEntity = PersonKeyEntity.new()
-    return personKeyRepository.saveAndFlush(personKeyEntity)
-  }
-
-  fun createPerson(person: Person, personKeyEntity: PersonKeyEntity? = null): PersonEntity {
-    val personEntity = PersonEntity.from(person = person)
-    personEntity.personKey = personKeyEntity
-    return personRepository.saveAndFlush(personEntity)
   }
 
   private fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenario: String, currentScenarioState: String, nextScenarioState: String) {

@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.termfrequency.PncFrequencyRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -25,9 +24,6 @@ class GenerateTermFrequenciesIntTest : WebTestBase() {
 
   @Autowired
   lateinit var pncFrequencyRepository: PncFrequencyRepository
-
-  @Autowired
-  lateinit var personRepository: PersonRepository
 
   @Test
   fun `should generate and populate pnc term frequency table`() {
