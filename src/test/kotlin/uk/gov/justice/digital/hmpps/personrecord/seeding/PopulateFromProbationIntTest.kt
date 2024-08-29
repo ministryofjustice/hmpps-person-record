@@ -34,7 +34,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
     stubResponse(crnOne, "POPOne", crnTwo, "POPTwo", 0, scenarioName, STARTED)
     stubResponse(crnThree, "POPThree", crnFour, "POPFour", 1, scenarioName, STARTED)
     stubResponse(crnFive, "POPFive", crnSix, "POPSix", 2, scenarioName, STARTED)
-    stubSingleResponse(crnSeven, "POPSeven", 3, scenarioName, STARTED)
+    stubSingleResponse(crnSeven, "POPSeven", 3, scenarioName)
 
     webTestClient.post()
       .uri("/populatefromprobation")
@@ -133,11 +133,11 @@ class PopulateFromProbationIntTest : WebTestBase() {
     )
   }
 
-  private fun stubSingleResponse(firstCrn: String, firstPrefix: String, page: Int, scenarioName: String, scenarioState: String) {
+  private fun stubSingleResponse(firstCrn: String, firstPrefix: String, page: Int, scenarioName: String) {
     wiremock.stubFor(
       WireMock.get("/all-probation-cases?size=2&page=$page&sort=id%2Casc")
         .inScenario(scenarioName)
-        .whenScenarioStateIs(scenarioState)
+        .whenScenarioStateIs(STARTED)
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
