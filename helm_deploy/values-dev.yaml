@@ -34,3 +34,6 @@ generic-prometheus-alerts:
   sqsAlertsTotalMessagesThreshold: 1
   rdsAlertsDatabases:
     cloud-platform-21758fcf16e3a488: "hmpps-person-record-database"
+
+cron:
+  generateTermFrequencies: "0 12 * * 1-5"
