@@ -5,7 +5,7 @@ metadata:
 spec:
   schedule:  "{{ .Values.cron.generateTermFrequencies }}"
   concurrencyPolicy: Replace
-  failedJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 1
   startingDeadlineSeconds: 43200
   successfulJobsHistoryLimit: 5
   jobTemplate:
