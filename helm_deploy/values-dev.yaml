@@ -30,7 +30,9 @@ generic-prometheus-alerts:
   sqsNumberAlertQueueNames:
     - "hmpps-person-record-development-cpr_court_case_events_dlq"
     - "hmpps-person-record-development-cpr_delius_offender_events_dlq"
+    - "hmpps-person-record-development-cpr_delius_merge_events_dlq"
     - "hmpps-person-record-development-cpr_nomis_events_dlq"
+    - "hmpps-person-record-development-cpr_nomis_merge_events_dlq"
   sqsAlertsTotalMessagesThreshold: 1
   rdsAlertsDatabases:
     cloud-platform-21758fcf16e3a488: "hmpps-person-record-database"

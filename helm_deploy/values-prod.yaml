@@ -26,11 +26,14 @@ generic-prometheus-alerts:
   sqsOldestAlertQueueNames:
     - "hmpps-person-record-prod-cpr_court_case_events_queue"
     - "hmpps-person-record-prod-cpr_delius_offender_events_queue"
+    - "hmpps-person-record-prod-cpr_delius_merge_events_queue"
     - "hmpps-person-record-prod-cpr_nomis_events_queue"
+    - "hmpps-person-record-prod-cpr_nomis_merge_events_queue"
   sqsNumberAlertQueueNames:
     - "hmpps-person-record-prod-cpr_court_case_events_dlq"
     - "hmpps-person-record-prod-cpr_delius_offender_events_dlq"
-    - "hmpps-person-record-prod-cpr_nomis_events_dlq"
+    - "hmpps-person-record-prod-cpr_delius_merge_events_dlq"
+    - "hmpps-person-record-prod-cpr_nomis_merge_events_dlq"
   sqsAlertsTotalMessagesThreshold: 1
   rdsAlertsDatabases:
     cloud-platform-325c1d58e0fe99fe: "hmpps-person-record-database"
