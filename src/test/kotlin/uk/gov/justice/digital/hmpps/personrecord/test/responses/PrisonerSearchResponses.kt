@@ -20,7 +20,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     "maritalStatus": "Widowed",
     ${responseSetup.religion?.let { """ "religion": "${responseSetup.religion}", """.trimIndent() } ?: "" }
     ${responseSetup.nationality?.let { """ "nationality": "${responseSetup.nationality}", """.trimIndent() } ?: "" }
-    "status": "ACTIVE IN",
+    ${responseSetup.currentlyManaged?.let { """ "status": "${responseSetup.currentlyManaged}", """.trimIndent() } ?: "" }
     "lastMovementTypeCode": "CRT",
     "lastMovementReasonCode": "CA",
     "inOutStatus": "IN",

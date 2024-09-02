@@ -7,6 +7,10 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.ValueSource
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.AllConvictedOffences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.EmailAddress
@@ -26,6 +30,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
@@ -54,6 +59,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupIdentifier
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit.SECONDS
+import java.util.stream.Stream
 
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -118,6 +124,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.contacts[2].contactType).isEqualTo(MOBILE)
       assertThat(personEntity.contacts[2].contactValue).isEqualTo("01141234567")
       assertThat(personEntity.selfMatchScore).isEqualTo(0.9999)
+      assertThat(personEntity.currentlyManaged).isEqualTo(null)
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceStartDate)
     }
 
@@ -304,6 +311,28 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
+  @ParameterizedTest
+  @MethodSource("currentlyManagedParameters")
+  fun `should map currently managed field correctly`(status: String?, result: Boolean?) {
+    val prisonNumber = randomPrisonNumber()
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, currentlyManaged = status))
+
+    val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber)
+    val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
+    publishDomainEvent(PRISONER_CREATED, domainEvent)
+
+    checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
+
+    checkTelemetry(
+      CPR_RECORD_CREATED,
+      mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
+    )
+    await.atMost(5, SECONDS) untilAsserted {
+      val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
+      assertThat(personEntity.currentlyManaged).isEqualTo(result)
+    }
+  }
+
   private fun createPrisoner(): String {
     val prisonNumber = randomPrisonNumber()
 
@@ -352,5 +381,19 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
             .withStatus(500),
         ),
     )
+  }
+
+  companion object {
+    @JvmStatic
+    private fun currentlyManagedParameters(): Stream<Arguments> {
+      return Stream.of(
+        Arguments.of("Active : IN", true),
+        Arguments.of("Active: OUT", true),
+        Arguments.of("Inactive: TRN", true),
+        Arguments.of("Inactive: OUT", false),
+        Arguments.of("Inactive: IN", null),
+        Arguments.of(null, null),
+      )
+    }
   }
 }

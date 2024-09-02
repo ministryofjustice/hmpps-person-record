@@ -5,10 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import jakarta.validation.constraints.NotBlank
 import uk.gov.justice.digital.hmpps.personrecord.client.model.PhoneNumber
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.deserializers.CROIdentifierDeserializer
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.deserializers.CurrentlyManagedDeserializer
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.deserializers.PNCIdentifierDeserializer
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifierDeserializer
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifierDeserializer
 import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -35,6 +36,9 @@ data class Prisoner(
   val phoneNumbers: List<PhoneNumber> = emptyList(),
   val addresses: List<Address> = emptyList(),
   val identifiers: List<Identifier> = emptyList(),
+  @JsonProperty("status")
+  @JsonDeserialize(using = CurrentlyManagedDeserializer::class)
+  val currentlyManaged: Boolean? = null,
   val allConvictedOffences: List<AllConvictedOffences>? = emptyList(),
 ) {
 

@@ -99,6 +99,9 @@ class PersonEntity(
   @Column
   val ethnicity: String? = null,
 
+  @Column(name = "currently_managed")
+  var currentlyManaged: Boolean? = null,
+
   @Column(name = "self_match_score")
   val selfMatchScore: Double? = null,
 
@@ -195,6 +198,7 @@ class PersonEntity(
         ethnicity = person.ethnicity,
         nationality = person.nationality,
         religion = person.religion,
+        currentlyManaged = person.currentlyManaged,
       )
       personEntity.updateChildEntities(person)
       return personEntity

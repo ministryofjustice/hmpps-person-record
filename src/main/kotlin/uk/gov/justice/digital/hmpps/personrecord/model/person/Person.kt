@@ -38,7 +38,7 @@ data class Person(
   var isAboveMatchScoreThreshold: Boolean = false,
   val sourceSystemType: SourceSystemType,
   val sentences: List<SentenceInfo> = emptyList(),
-
+  val currentlyManaged: Boolean? = null,
 ) {
   companion object {
     fun List<Reference>.getType(type: IdentifierType): List<Reference> {
@@ -171,7 +171,7 @@ data class Person(
         nationality = prisoner.nationality,
         religion = prisoner.religion,
         sentences = prisoner.allConvictedOffences?.map { SentenceInfo.from(it) } ?: emptyList(),
-
+        currentlyManaged = prisoner.currentlyManaged,
       )
     }
   }
