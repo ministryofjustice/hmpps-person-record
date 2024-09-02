@@ -1,9 +1,8 @@
-package uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.deserializers
+package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 
 class PNCIdentifierDeserializer : StdDeserializer<PNCIdentifier>(PNCIdentifier::class.java) {
 

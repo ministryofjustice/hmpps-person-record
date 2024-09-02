@@ -5,11 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import jakarta.validation.constraints.NotBlank
 import uk.gov.justice.digital.hmpps.personrecord.client.model.PhoneNumber
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.deserializers.CROIdentifierDeserializer
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.deserializers.CurrentlyManagedDeserializer
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.deserializers.PNCIdentifierDeserializer
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifierDeserializer
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifierDeserializer
 import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)

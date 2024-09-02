@@ -9,10 +9,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Address
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.deserializers.CROIdentifierDeserializer
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.deserializers.PNCIdentifierDeserializer
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifierDeserializer
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifierDeserializer
 import java.time.LocalDate
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
