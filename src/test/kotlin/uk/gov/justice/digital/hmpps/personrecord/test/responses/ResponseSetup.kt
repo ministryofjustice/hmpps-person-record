@@ -37,5 +37,5 @@ data class ApiResponseSetup(
   val sentences: List<ApiResponseSetupSentences>? = listOf(),
   val sentenceStartDate: LocalDate? = null,
   val primarySentence: Boolean? = null,
-  val currentlyManaged: String? = null
+  val currentlyManaged: String? = null,
 )
