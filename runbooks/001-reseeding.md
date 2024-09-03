@@ -3,6 +3,11 @@
 This is the runbook to delete all current data from the database and repopulate the information from NOMIS and NDELIUS.
 This includes switching off message processing and a UUID linking process.
 
+## Prerequisites
+
+* Must have kubernetes access to the desired namespace
+* Must have `kubectl`, which can be installed [here](https://kubernetes.io/docs/tasks/tools/#kubectl)
+
 ## 1. Pause message consumption
 
 Firstly, pause message consumption by adding the profile `seeding` to the spring configuration in helm.
