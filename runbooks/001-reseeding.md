@@ -25,14 +25,17 @@ Which the code change then needs a PR raising and releasing to the desired envir
 ## 2. Delete existing data
 
 Secondly, delete the already existing data (if any) from the database for specific source systems.
-To do this run these SQL scripts to delete the desired data for the desired source system:
 
-**NOMIS**:
+To connect to the desired database follow these step to [establish a db connection via port forwarding](002-setup-db-port-forwarding.md)
+
+Then to delete, run these SQL scripts to delete the desired data for the desired source system:
+
+For **NOMIS**:
 ```
 delete from personrecordservice.person p where p.source_system = 'NOMIS'
 ```
 
-**DELIUS**:
+For **DELIUS**:
 ```
 delete from personrecordservice.person p where p.source_system = 'DELIUS'
 ```
