@@ -1,4 +1,4 @@
-# 001 - Reseeding
+# 001 - Seeding Data
 
 This is the runbook to delete all current data from the database and repopulate the information from NOMIS and NDELIUS.
 This includes switching off message processing and a UUID linking process.
