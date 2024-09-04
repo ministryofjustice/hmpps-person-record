@@ -24,10 +24,6 @@ Mostly runs against dev services, uses localstack for the queues
 
 `$ make run-local`
 
-### importing cluster data manually
-
-[How to import cluster data](./scripts/db/README-cluster-data.md)
-
 ## process a Common Platform message when running locally
 
 ```shell
