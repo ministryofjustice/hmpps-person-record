@@ -49,7 +49,7 @@ delete from personrecordservice.person p where p.source_system = 'DELIUS'
 
 Verify data has been deleted.
 
-# 3. Start Reseeding Jobs
+## 3. Start Reseeding Jobs
 
 Once the data has been cleared and message consumption has stopped, you can start the reseeding jobs.
 
@@ -79,13 +79,13 @@ curl -i -X POST http://localhost:8080/populatefromprobation
 ```
 Will notify once finished with: `DELIUS seeding finished, approx records <number>`
 
-# 4. Record Linking
+## 4. Record Linking
 
 To link the seeded data from a provided data cluster.
 
 Follow: [Link Cluster Data](./002-link-cluster-data.md)
 
-# 5. Resume Message Consumption
+## 5. Resume Message Consumption
  
 Resume message consumption by removing the profile `seeding` to the spring configuration in helm.
 This is done by removing it from the desired environment helm chart spring environment variable, which can be found at `helm_deploy/hmpps-person-record/values-<environment>.yaml`:
