@@ -100,3 +100,9 @@ Where `<environment>` is the values of: `dev`, `preprod` or `prod`.
 Which the code change then needs a PR raising and releasing to the desired environment.
 
 Verify message consumption has resumed.
+
+## Troubleshooting
+
+### Seeding Processing Fails
+
+If the processing of messages fails to create the new records. Either from a mapping issue or api issue. Prepare a fix then follow from step 2 to proceed with seeding the data.
