@@ -24,26 +24,6 @@ Mostly runs against dev services, uses localstack for the queues
 
 `$ make run-local`
 
-## Seeding data
-
-1. Pause message consumption by adding the profile `seeding` to the spring configuration in helm
-2. Delete all data with source system of NOMIS or DELIUS as appropriate
-    
-```
-    delete from personrecordservice.person p where p.source_system = 'DELIUS'
-```    
-3. Get a shell on the hmpps-person-record pod (this is for preproduction):
-```
-kubectl exec -it deployment/hmpps-person-record -n hmpps-person-record-preprod -- bash
-
-# takes 90 minutes to 3 hours
-curl -i -X POST http://localhost:8080/populatefromprison 
-
-# takes 7-8 hours
-curl -i -X POST http://localhost:8080/populatefromprobation
-```
-4. remove the profile `seeding` to resume message consumption
-
 ### importing cluster data manually
 
 [How to import cluster data](./scripts/db/README-cluster-data.md)
