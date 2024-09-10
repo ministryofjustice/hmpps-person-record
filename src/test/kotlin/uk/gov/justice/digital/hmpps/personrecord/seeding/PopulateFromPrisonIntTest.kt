@@ -127,7 +127,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     // first call fails
     wiremock.stubFor(
       WireMock.post("/prisoner-search/prisoner-numbers")
-        .withRequestBody(equalToJson("""{"prisonNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
+        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
         .inScenario(scenarioName)
         .whenScenarioStateIs(STARTED)
         .willSetStateTo("next request will fail")
@@ -141,7 +141,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     // second call fails too
     wiremock.stubFor(
       WireMock.post("/prisoner-search/prisoner-numbers")
-        .withRequestBody(equalToJson("""{"prisonNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
+        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
         .inScenario(scenarioName)
         .whenScenarioStateIs("next request will fail")
         .willSetStateTo("next request will time out")
@@ -155,7 +155,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     // third call times out
     wiremock.stubFor(
       WireMock.post("/prisoner-search/prisoner-numbers")
-        .withRequestBody(equalToJson("""{"prisonNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
+        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
         .inScenario(scenarioName)
         .whenScenarioStateIs("next request will time out")
         .willSetStateTo("next request will succeed")
@@ -242,7 +242,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     )
     wiremock.stubFor(
       WireMock.post("/prisoner-search/prisoner-numbers")
-        .withRequestBody(equalToJson("""{"prisonNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
+        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
         .inScenario("retry getPrisonNumbers")
         .whenScenarioStateIs(STARTED)
         .willReturn(
@@ -281,7 +281,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
 
     wiremock.stubFor(
       WireMock.post("/prisoner-search/prisoner-numbers")
-        .withRequestBody(equalToJson("""{"prisonNumbers": ["$prisonNumberThree"]}"""))
+        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberThree"]}"""))
         .inScenario("retry getPrisonNumbers")
         .whenScenarioStateIs("next request will succeed")
         .willReturn(
@@ -314,7 +314,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
   ) {
     wiremock.stubFor(
       WireMock.post("/prisoner-search/prisoner-numbers")
-        .withRequestBody(equalToJson("""{"prisonNumbers": ["$firstNumber","$secondNumber"]}"""))
+        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$firstNumber","$secondNumber"]}"""))
         .inScenario(scenarioName)
         .whenScenarioStateIs(scenarioState)
         .willReturn(
@@ -331,7 +331,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       WireMock.post("/prisoner-search/prisoner-numbers")
         .inScenario(scenarioName)
         .whenScenarioStateIs(scenarioState)
-        .withRequestBody(equalToJson("""{"prisonNumbers": ["$prisonNumberSeven"]}"""))
+        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberSeven"]}"""))
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")

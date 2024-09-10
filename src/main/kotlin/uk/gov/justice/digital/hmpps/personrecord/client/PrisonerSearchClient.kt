@@ -22,4 +22,4 @@ interface PrisonerSearchClient {
   fun getPrisonNumbers(@RequestBody prisonNumbers: PrisonNumbers): List<Prisoner>?
 }
 
-class PrisonNumbers(val prisonNumbers: List<String>)
+class PrisonNumbers(val prisonerNumbers: List<String>)
