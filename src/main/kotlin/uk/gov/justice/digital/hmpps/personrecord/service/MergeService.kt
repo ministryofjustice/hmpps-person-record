@@ -148,7 +148,7 @@ class MergeService(
 
   private fun isSameUuid(sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity?): Boolean = sourcePersonEntity?.personKey?.id == targetPersonEntity?.personKey?.id
 
-  private fun sourcePersonKeyHasMultipleRecords(sourcePersonEntity: PersonEntity?): Boolean = sourcePersonEntity?.personKey?.personEntities?.size!! > 1
+  private fun sourcePersonKeyHasMultipleRecords(sourcePersonEntity: PersonEntity?): Boolean = (sourcePersonEntity?.personKey?.personEntities?.size ?: 0) > 1
 
   private suspend fun collectPeople(sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?): Pair<PersonEntity?, PersonEntity?> {
     return coroutineScope {
