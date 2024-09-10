@@ -188,6 +188,46 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
+  fun `processes prisoner merge event with different UUIDs where source doesn't have an UUID`() {
+    val targetPrisonNumber = randomPrisonNumber()
+    val sourcePrisonNumber = randomPrisonNumber()
+    val source = ApiResponseSetup(prisonNumber = sourcePrisonNumber)
+    val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
+    val personKeyEntity2 = createPersonKey()
+    createPerson(
+      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = SourceSystemType.NOMIS),
+    )
+    val targetPerson = createPerson(
+      Person(prisonNumber = targetPrisonNumber, sourceSystemType = SourceSystemType.NOMIS),
+      personKeyEntity = personKeyEntity2,
+    )
+
+    prisonMergeEventAndResponseSetup(PRISONER_MERGED, source = source, target = target)
+
+    checkTelemetry(
+      MERGE_MESSAGE_RECEIVED,
+      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to "NOMIS"),
+    )
+    checkTelemetry(
+      CPR_RECORD_MERGED,
+      mapOf(
+        "TO_UUID" to personKeyEntity2.personId.toString(),
+        "FROM_UUID" to null,
+        "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
+        "TARGET_PRISON_NUMBER" to targetPrisonNumber,
+        "SOURCE_SYSTEM" to "NOMIS",
+      ),
+    )
+
+    val sourcePerson = personRepository.findByPrisonNumberAndSourceSystem(sourcePrisonNumber)
+    assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
+    assertThat(sourcePerson?.personKey).isNull()
+
+    val targetCluster = personKeyRepository.findByPersonId(personKeyEntity2.personId)
+    assertThat(targetCluster.personEntities.size).isEqualTo(1)
+  }
+
+  @Test
   fun `processes prisoner merge event with different UUIDs where source has a single record`() {
     val targetPrisonNumber = randomPrisonNumber()
     val sourcePrisonNumber = randomPrisonNumber()
