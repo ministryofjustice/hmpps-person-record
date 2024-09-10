@@ -49,6 +49,16 @@ delete from personrecordservice.person p where p.source_system = 'DELIUS'
 
 Verify data has been deleted.
 
+Cleanup empty UUID's:
+```shell
+DELETE FROM personrecordservice.personkey pk
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM personrecordservice.person p
+    WHERE p.fk_person_key_id = pk.id
+);
+```
+
 ## 3. Start Reseeding Jobs
 
 Once the data has been cleared and message consumption has stopped, you can start the reseeding jobs.
