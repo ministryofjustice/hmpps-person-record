@@ -1,13 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications
 
 import jakarta.persistence.criteria.Join
-import jakarta.persistence.criteria.JoinType.INNER
 import jakarta.persistence.criteria.JoinType.LEFT
 import jakarta.persistence.criteria.Predicate
 import org.springframework.data.jpa.domain.Specification
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -105,8 +103,7 @@ object PersonSpecification {
 
   fun hasPersonKey(): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
-      val personKeyJoin: Join<PersonEntity, PersonKeyEntity> = root.join(PERSON_KEY, INNER)
-      criteriaBuilder.isNotNull(personKeyJoin)
+      criteriaBuilder.isNotNull(root.get<Long>(PERSON_KEY))
     }
   }
 
