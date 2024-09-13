@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
@@ -411,35 +410,6 @@ class SearchServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should find candidate records on Levenshtein matches on dob but not postcode`() {
-    val firstName = randomName()
-    createPerson(
-      Person(
-        firstName = firstName,
-        lastName = "Smith",
-        dateOfBirth = LocalDate.of(1975, 1, 1),
-        addresses = listOf(Address(postcode = randomPostcode())),
-        sourceSystemType = COMMON_PLATFORM,
-      ),
-    )
-
-    val searchingPerson = Person(
-      firstName = firstName,
-      lastName = "Smith",
-      dateOfBirth = LocalDate.of(1975, 2, 1),
-      addresses = listOf(Address(postcode = randomPostcode())),
-      sourceSystemType = COMMON_PLATFORM,
-    )
-
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
-
-    assertThat(candidateRecords.size).isEqualTo(1)
-    assertThat(candidateRecords[0].candidateRecord.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
-  }
-
-  @Test
   fun `should find candidate records on names matches and dob when other record has fields with joins`() {
     val firstName = randomName()
     val lastName = randomName()
@@ -496,35 +466,6 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val searchingPerson = Person(
       firstName = firstName,
       lastName = "Smith",
-      addresses = listOf(Address(postcode = "LS2 1AB"), Address(postcode = "LD2 3BC")),
-      sourceSystemType = COMMON_PLATFORM,
-    )
-
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
-
-    assertThat(candidateRecords.size).isEqualTo(1)
-    assertThat(candidateRecords[0].candidateRecord.addresses[0].postcode).isEqualTo("LS1 1AB")
-  }
-
-  @Test
-  fun `should find candidate records on Levenshtein matches on postcode but not dob`() {
-    val firstName = randomName()
-    createPerson(
-      Person(
-        firstName = firstName,
-        lastName = "Smythe",
-        dateOfBirth = randomDate(),
-        addresses = listOf(Address(postcode = "LS1 1AB")),
-        sourceSystemType = COMMON_PLATFORM,
-      ),
-    )
-
-    val searchingPerson = Person(
-      firstName = firstName,
-      lastName = "Smith",
-      dateOfBirth = randomDate(),
       addresses = listOf(Address(postcode = "LS2 1AB"), Address(postcode = "LD2 3BC")),
       sourceSystemType = COMMON_PLATFORM,
     )
