@@ -23,15 +23,16 @@ object PersonSpecification {
 
   const val FIRST_NAME = "firstName"
   const val LAST_NAME = "lastName"
-  const val DOB = "dateOfBirth"
+  const val DOB = "dateOfBirthText"
   const val SOURCE_SYSTEM = "sourceSystem"
 
   private const val IDENTIFIER_TYPE = "identifierType"
   private const val IDENTIFIER_VALUE = "identifierValue"
   private const val PERSON_KEY = "personKey"
   private const val POSTCODE = "postcode"
-  private const val DATE_FORMAT = "YYYY-MM-DD"
   private const val MERGED_TO = "mergedTo"
+
+  private const val SIMILARITY_THRESHOLD = 0.6
 
   fun exactMatch(input: String?, field: String): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
@@ -72,9 +73,20 @@ object PersonSpecification {
       postcodes.takeIf { it.isNotEmpty() }?.let {
         val addressJoin: Join<PersonEntity, AddressEntity> = root.join("addresses", LEFT)
         val postcodePredicates: Array<Predicate> = postcodes.map {
-          criteriaBuilder.le(
-            criteriaBuilder.function("levenshtein_less_equal", Integer::class.java, criteriaBuilder.literal(it), addressJoin.get<String>(POSTCODE), criteriaBuilder.literal(limit)),
-            limit,
+          criteriaBuilder.and(
+            criteriaBuilder.greaterThanOrEqualTo(
+              criteriaBuilder.function(
+                "similarity",
+                Double::class.java,
+                addressJoin.get<String>(POSTCODE),
+                criteriaBuilder.literal(it),
+              ),
+              SIMILARITY_THRESHOLD,
+            ),
+            criteriaBuilder.le(
+              criteriaBuilder.function("levenshtein_less_equal", Integer::class.java, criteriaBuilder.literal(it), addressJoin.get<String>(POSTCODE), criteriaBuilder.literal(limit)),
+              limit,
+            ),
           )
         }.toTypedArray()
         criteriaBuilder.or(*postcodePredicates)
@@ -85,17 +97,22 @@ object PersonSpecification {
   fun levenshteinDate(input: LocalDate?, field: String, limit: Int = 2): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
       input?.let {
-        val dbDateAsString = criteriaBuilder.function(
-          "TO_CHAR",
-          String::class.java,
-          root.get<LocalDate>(field),
-          criteriaBuilder.literal(DATE_FORMAT),
-        )
-        criteriaBuilder.le(
-          criteriaBuilder.function(
-            "levenshtein_less_equal", Integer::class.java, criteriaBuilder.literal(input.toString()), dbDateAsString, criteriaBuilder.literal(limit),
+        criteriaBuilder.and(
+          criteriaBuilder.greaterThanOrEqualTo(
+            criteriaBuilder.function(
+              "similarity",
+              Double::class.java,
+              root.get<String>(field),
+              criteriaBuilder.literal(it.toString()),
+            ),
+            SIMILARITY_THRESHOLD,
           ),
-          limit,
+          criteriaBuilder.le(
+            criteriaBuilder.function(
+              "levenshtein_less_equal", Integer::class.java, criteriaBuilder.literal(it.toString()), root.get<String>(field), criteriaBuilder.literal(limit),
+            ),
+            limit,
+          ),
         )
       } ?: criteriaBuilder.disjunction()
     }

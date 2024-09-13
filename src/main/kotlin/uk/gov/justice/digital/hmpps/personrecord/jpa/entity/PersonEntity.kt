@@ -93,6 +93,9 @@ class PersonEntity(
   @Column(name = "date_of_birth")
   var dateOfBirth: LocalDate? = null,
 
+  @Column(name = "date_of_birth_text")
+  var dateOfBirthText: String? = null,
+
   @Column
   val sex: String? = null,
 
@@ -189,6 +192,7 @@ class PersonEntity(
         middleNames = person.middleNames?.joinToString(" ") { it },
         lastName = person.lastName,
         dateOfBirth = person.dateOfBirth,
+        dateOfBirthText = person.dateOfBirth.toString(),
         defendantId = person.defendantId,
         crn = person.crn,
         prisonNumber = person.prisonNumber,
