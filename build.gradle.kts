@@ -13,7 +13,7 @@ plugins {
   kotlin("plugin.jpa") version "2.0.20"
   id("io.gitlab.arturbosch.detekt") version "1.23.7"
   id("org.jetbrains.kotlinx.kover") version "0.8.3"
-  id("org.gradle.test-retry") version "1.5.10"
+  id("org.gradle.test-retry") version "1.6.0"
 }
 
 configurations {
@@ -22,7 +22,7 @@ configurations {
 
 dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.0.5")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:4.3.2")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:4.4.2")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("jakarta.validation:jakarta.validation-api:3.1.0")
@@ -36,7 +36,7 @@ dependencies {
     }
   }
   implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.3")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
 
   runtimeOnly("org.postgresql:postgresql:42.7.4")
   runtimeOnly("org.flywaydb:flyway-core")
