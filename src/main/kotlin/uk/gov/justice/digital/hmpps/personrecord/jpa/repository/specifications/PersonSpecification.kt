@@ -34,22 +34,6 @@ object PersonSpecification {
 
   private const val SIMILARITY_THRESHOLD = 0.6
 
-  fun checkSimilarity(input: String?, field: String): Specification<PersonEntity> {
-    return Specification { root, _, criteriaBuilder ->
-      input?.let {
-        criteriaBuilder.greaterThanOrEqualTo(
-          criteriaBuilder.function(
-            "similarity",
-            Double::class.java,
-            root.get<String>(field),
-            criteriaBuilder.literal(it),
-          ),
-          SIMILARITY_THRESHOLD,
-        )
-      } ?: criteriaBuilder.disjunction()
-    }
-  }
-
   fun exactMatch(input: String?, field: String): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
       input?.takeIf { it.isNotBlank() }?.let {
@@ -113,11 +97,22 @@ object PersonSpecification {
   fun levenshteinDate(input: LocalDate?, field: String, limit: Int = 2): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
       input?.let {
-        criteriaBuilder.le(
-          criteriaBuilder.function(
-            "levenshtein_less_equal", Integer::class.java, criteriaBuilder.literal(input.toString()), root.get<String>(field), criteriaBuilder.literal(limit),
+        criteriaBuilder.and(
+          criteriaBuilder.greaterThanOrEqualTo(
+            criteriaBuilder.function(
+              "similarity",
+              Double::class.java,
+              root.get<String>(field),
+              criteriaBuilder.literal(it.toString()),
+            ),
+            SIMILARITY_THRESHOLD,
           ),
-          limit,
+          criteriaBuilder.le(
+            criteriaBuilder.function(
+              "levenshtein_less_equal", Integer::class.java, criteriaBuilder.literal(it.toString()), root.get<String>(field), criteriaBuilder.literal(limit),
+            ),
+            limit,
+          ),
         )
       } ?: criteriaBuilder.disjunction()
     }

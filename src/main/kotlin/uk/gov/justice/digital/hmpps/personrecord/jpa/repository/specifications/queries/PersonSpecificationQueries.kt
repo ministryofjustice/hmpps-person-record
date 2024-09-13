@@ -4,7 +4,6 @@ import org.springframework.data.jpa.domain.Specification
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.SOURCE_SYSTEM
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.checkSimilarity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.exactMatch
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.exactMatchReferences
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -21,11 +20,9 @@ private fun findCandidates(person: Person): Specification<PersonEntity> {
   val levenshteinPostcode = Specification.where(PersonSpecification.levenshteinPostcodes(postcodes))
 
   return Specification.where(
-    checkSimilarity(person.dateOfBirth.toString(), PersonSpecification.DOB).and(
-      exactMatchReferences(references)
-        .or(soundexFirstLastName.and(levenshteinDob.or(levenshteinPostcode)))
-        .and(PersonSpecification.isNotMerged()),
-    ),
+    exactMatchReferences(references)
+      .or(soundexFirstLastName.and(levenshteinDob.or(levenshteinPostcode)))
+      .and(PersonSpecification.isNotMerged()),
   )
 }
 
