@@ -5,7 +5,7 @@ import kotlinx.coroutines.delay
 import kotlin.reflect.KClass
 
 object RetryExecutor {
-  private val retryables = listOf(feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class)
+  private val retryables = listOf(feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class, FeignException.BadGateway::class)
   suspend fun <T> runWithRetry(
     maxAttempts: Int,
     delay: Long,
