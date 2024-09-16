@@ -6,6 +6,7 @@ enum class TelemetryEventType(val eventName: String) {
   FIFO_HEARING_UPDATED("CprFIFOHearingUpdated"),
   MESSAGE_RECEIVED("CprDomainEventReceived"),
   MERGE_MESSAGE_RECEIVED("CprMergeEventReceived"),
+  UNMERGE_MESSAGE_RECEIVED("CprUnmergeEventReceived"),
   MATCH_CALL_FAILED("CprMatchCallFailed"),
   MESSAGE_PROCESSING_FAILED("CprMessageProcessingFailed"),
   CPR_RECORD_CREATED("CprRecordCreated"),
