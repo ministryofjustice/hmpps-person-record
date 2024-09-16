@@ -33,7 +33,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val targetCrn = randomCRN()
     val source = ApiResponseSetup(crn = sourceCrn)
     val target = ApiResponseSetup(crn = targetCrn)
-    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, source, target)
+    probationMergeEventAndResponseSetup(OFFENDER_UNMERGED, source, target)
 
     checkTelemetry(
       UNMERGE_MESSAGE_RECEIVED,
@@ -49,7 +49,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val source = ApiResponseSetup(crn = sourceCrn)
     val target = ApiResponseSetup(crn = targetCrn)
-    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, source, target, scenario = "retry", currentScenarioState = "next request will succeed")
+    probationMergeEventAndResponseSetup(OFFENDER_UNMERGED, source, target, scenario = "retry", currentScenarioState = "next request will succeed")
 
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       probationMergeEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationMergeEventsQueue!!.queueUrl)?.get()
