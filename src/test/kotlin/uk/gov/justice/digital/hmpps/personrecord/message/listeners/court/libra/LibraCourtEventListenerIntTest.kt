@@ -369,7 +369,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  @Disabled("Disabling as it takes too long to run in a CI context - out of memory errors")
   fun `should process libra with large amount of candidates - CPR-354`() {
     personRepository.deleteAllInBatch()
     personKeyRepository.deleteAllInBatch()
