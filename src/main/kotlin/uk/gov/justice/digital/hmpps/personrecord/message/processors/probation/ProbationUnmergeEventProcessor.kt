@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 @Component
 class ProbationUnmergeEventProcessor(
   val telemetryService: TelemetryService,
-  val personRepository: PersonRepository,
 ) : BaseProbationEventProcessor() {
 
   fun processEvent(domainEvent: DomainEvent) {
