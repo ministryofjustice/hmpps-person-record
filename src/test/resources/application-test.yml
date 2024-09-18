@@ -75,8 +75,6 @@ spring:
       read-timeout: 300
       default-request-headers:
         Accept: application/json
-  jpa:
-    show-sql: true
   flyway:
     out-of-order: true
   datasource:
