@@ -28,7 +28,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   private fun probationUrl(crn: String) = "/probation-cases/$crn"
 
   @Test
-  fun `processes offender unmerge event is published`() {
+  fun `offender unmerge event is published`() {
     val sourceCrn = randomCRN()
     val targetCrn = randomCRN()
     val source = ApiResponseSetup(crn = sourceCrn)
@@ -62,8 +62,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       UNMERGE_MESSAGE_RECEIVED,
       mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
     )
-
-    //  Add check to make sure record updated once added CPR-338
   }
 
   @Test

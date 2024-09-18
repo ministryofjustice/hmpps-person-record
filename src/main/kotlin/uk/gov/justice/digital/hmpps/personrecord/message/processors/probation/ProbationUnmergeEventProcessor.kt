@@ -27,7 +27,7 @@ class ProbationUnmergeEventProcessor(
         log.info("Successfully mapped unmerged record")
       },
       onFailure = {
-        log.error("Error retrieving offender detail: ${it.message}")
+        log.error("Cannot find merge target CRN  within Delius: ${it.message}")
         throw it
       },
     )
