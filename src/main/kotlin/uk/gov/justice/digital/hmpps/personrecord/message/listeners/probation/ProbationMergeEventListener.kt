@@ -10,11 +10,14 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationMergeEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationUnmergeEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 
 const val PROBATION_MERGE_EVENT_QUEUE_CONFIG_KEY = "cprdeliusmergeeventsqueue"
@@ -23,6 +26,7 @@ const val PROBATION_MERGE_EVENT_QUEUE_CONFIG_KEY = "cprdeliusmergeeventsqueue"
 @Profile("!seeding")
 class ProbationMergeEventListener(
   val mergeEventProcessor: ProbationMergeEventProcessor,
+  val unmergeEventProcessor: ProbationUnmergeEventProcessor,
   val objectMapper: ObjectMapper,
   val telemetryService: TelemetryService,
 ) {
@@ -38,7 +42,10 @@ class ProbationMergeEventListener(
     when (sqsMessage.type) {
       NOTIFICATION -> {
         val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
-        handleEvent(domainEvent, sqsMessage.messageId)
+        when (sqsMessage.messageAttributes?.eventType?.value) {
+          OFFENDER_MERGED -> handleMergeEvent(domainEvent, sqsMessage.messageId)
+          OFFENDER_UNMERGED -> handleUnmergeEvent(domainEvent, sqsMessage.messageId)
+        }
       }
       else -> {
         log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
@@ -46,9 +53,25 @@ class ProbationMergeEventListener(
     }
   }
 
-  private fun handleEvent(domainEvent: DomainEvent, messageId: String?) {
+  private fun handleMergeEvent(domainEvent: DomainEvent, messageId: String?) {
     try {
       mergeEventProcessor.processEvent(domainEvent)
+    } catch (e: Exception) {
+      telemetryService.trackEvent(
+        MESSAGE_PROCESSING_FAILED,
+        mapOf(
+          EVENT_TYPE to domainEvent.eventType,
+          SOURCE_SYSTEM to SourceSystemType.DELIUS.name,
+          MESSAGE_ID to messageId,
+        ),
+      )
+      throw e
+    }
+  }
+
+  private fun handleUnmergeEvent(domainEvent: DomainEvent, messageId: String?) {
+    try {
+      unmergeEventProcessor.processEvent(domainEvent)
     } catch (e: Exception) {
       telemetryService.trackEvent(
         MESSAGE_PROCESSING_FAILED,
