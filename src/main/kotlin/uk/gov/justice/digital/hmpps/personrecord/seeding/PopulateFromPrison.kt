@@ -46,6 +46,7 @@ class PopulateFromPrison(
 
       log.info("Starting Prison seeding, total pages: $totalPages")
       for (page in 1..totalPages) {
+        log.info("Processing Prison seeding, page: $page / $totalPages")
         runWithRetry(retries, delayMillis) {
           prisonerSearchClient.getPrisonNumbers(PrisonNumbers(numbers))
         }?.forEach {
