@@ -383,7 +383,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should find candidate records on Levenshtein matches on dob`() {
+  fun `should find candidate records on exact match of at least 2 date parts of dob`() {
     val firstName = randomName()
     createPerson(
       Person(
@@ -444,7 +444,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should find candidate records on Levenshtein matches on postcode`() {
+  fun `should find candidate records on exact match on first 3 chars of postcode`() {
     val firstName = randomName()
     createPerson(
       Person(
@@ -479,7 +479,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should find candidate records on Levenshtein matches on multiple postcodes`() {
+  fun `should find candidate records on exact match on first 3 chars on multiple postcodes`() {
     val firstName = randomName()
     createPerson(
       Person(
