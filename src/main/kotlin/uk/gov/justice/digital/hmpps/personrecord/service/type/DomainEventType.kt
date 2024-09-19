@@ -10,3 +10,4 @@ const val OFFENDER_ALIAS_CHANGED = "OFFENDER_ALIAS_CHANGED"
 const val OFFENDER_ADDRESS_CHANGED = "OFFENDER_ADDRESS_CHANGED"
 
 const val OFFENDER_MERGED = "probation-case.merge.completed"
+const val OFFENDER_UNMERGED = "probation-case.unmerge.completed"

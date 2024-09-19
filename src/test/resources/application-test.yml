@@ -49,7 +49,7 @@ hmpps.sqs:
       queueName: cpr_delius_merge_events_queue
       dlqName: cpr_delius_merge_events_queue_dlq
       subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ "probation-case.merge.completed"] }'
+      subscribeFilter: '{"eventType":[ "probation-case.merge.completed", "probation-case.unmerge.completed"] }'
     cprnomiseventsqueue:
       queueName: cpr_nomis_events_queue
       dlqName: cpr_nomis_events_dlq
