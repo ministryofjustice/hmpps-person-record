@@ -16,12 +16,12 @@ private fun findCandidates(person: Person): Specification<PersonEntity> {
     PersonSpecification.soundex(person.firstName, PersonSpecification.FIRST_NAME)
       .and(PersonSpecification.soundex(person.lastName, PersonSpecification.LAST_NAME)),
   )
-  val levenshteinDob = Specification.where(PersonSpecification.levenshteinDate(person.dateOfBirth, PersonSpecification.DOB))
-  val levenshteinPostcode = Specification.where(PersonSpecification.levenshteinPostcodes(postcodes))
+  val hasTwoDateParts = Specification.where(PersonSpecification.matchDateParts(person.dateOfBirth, PersonSpecification.DOB))
+  val matchesPostcodePrefix = Specification.where(PersonSpecification.exactMatchPostcodePrefix(postcodes))
 
   return Specification.where(
     exactMatchReferences(references)
-      .or(soundexFirstLastName.and(levenshteinDob.or(levenshteinPostcode)))
+      .or(soundexFirstLastName.and(hasTwoDateParts.or(matchesPostcodePrefix)))
       .and(PersonSpecification.isNotMerged()),
   )
 }
