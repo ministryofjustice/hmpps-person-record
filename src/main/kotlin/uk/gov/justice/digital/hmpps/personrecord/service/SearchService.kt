@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class SearchService(
   private val telemetryService: TelemetryService,
   private val matchService: MatchService,
-  private val readWriteLockService: ReadWriteLockService,
   private val personRepository: PersonRepository,
 ) {
 
@@ -75,9 +74,8 @@ class SearchService(
     return currentPage.totalElements
   }
 
-  private fun executePagedQuery(query: Specification<PersonEntity>, pageNum: Int): Page<PersonEntity> = readWriteLockService.withReadLock {
+  private fun executePagedQuery(query: Specification<PersonEntity>, pageNum: Int): Page<PersonEntity> =
     personRepository.findAll(query, PageRequest.of(pageNum, PAGE_SIZE))
-  }
 
   companion object {
     const val PAGE_SIZE: Int = 50
