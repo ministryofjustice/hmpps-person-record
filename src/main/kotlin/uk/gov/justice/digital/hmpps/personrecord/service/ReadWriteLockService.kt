@@ -1,23 +1,23 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 @Service
 class ReadWriteLockService {
 
-  private val lockMap = mutableMapOf<SourceSystemType, ReentrantReadWriteLock>()
+  private val lock = ReentrantReadWriteLock()
 
-  // Synchronize access to lockMap to prevent race conditions
-  private fun getLock(sourceSystem: SourceSystemType): ReentrantReadWriteLock {
-    return synchronized(lockMap) {
-      lockMap.getOrPut(sourceSystem) { ReentrantReadWriteLock() }
+  fun <T> withReadLock(block: () -> T): T {
+    lock.readLock().lock()
+    try {
+      return block()
+    } finally {
+      lock.readLock().unlock()
     }
   }
 
-  fun <T> withWriteLock(sourceSystem: SourceSystemType, block: () -> T?): T? {
-    val lock = getLock(sourceSystem)
+  fun <T> withWriteLock(block: () -> T?): T? {
     lock.writeLock().lock()
     return try {
       block()
