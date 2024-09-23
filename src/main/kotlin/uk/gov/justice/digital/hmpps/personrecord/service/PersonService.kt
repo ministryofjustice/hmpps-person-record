@@ -50,7 +50,7 @@ class PersonService(
 
   fun processMessage(person: Person, event: String? = null, callback: (isAboveSelfMatchThreshold: Boolean) -> PersonEntity?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, retryExceptions) {
-      readWriteLockService.withWriteLock(person.sourceSystemType) { processPerson(person, event, callback) }
+      readWriteLockService.withWriteLock { processPerson(person, event, callback) }
     }
   }
 
