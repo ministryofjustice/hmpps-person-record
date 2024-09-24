@@ -17,7 +17,7 @@ import java.time.LocalDate
 
 object PersonSpecification {
 
-  const val SEARCH_VERSION = "2"
+  const val SEARCH_VERSION = "1.5"
 
   val SEARCH_IDENTIFIERS = listOf(PNC, CRO, NATIONAL_INSURANCE_NUMBER, DRIVER_LICENSE_NUMBER)
 
@@ -30,6 +30,7 @@ object PersonSpecification {
   private const val IDENTIFIER_VALUE = "identifierValue"
   private const val PERSON_KEY = "personKey"
   private const val POSTCODE = "postcode"
+  private const val DATE_FORMAT = "YYYY-MM-DD"
   private const val MERGED_TO = "mergedTo"
 
   fun exactMatch(input: String?, field: String): Specification<PersonEntity> {
@@ -66,46 +67,35 @@ object PersonSpecification {
     }
   }
 
-  fun exactMatchPostcodePrefix(postcodes: Set<String>, prefixLength: Int = 3): Specification<PersonEntity> {
+  fun levenshteinPostcodes(postcodes: Set<String>, limit: Int = 1): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
       postcodes.takeIf { it.isNotEmpty() }?.let {
         val addressJoin: Join<PersonEntity, AddressEntity> = root.join("addresses", LEFT)
         val postcodePredicates: Array<Predicate> = postcodes.map {
-          criteriaBuilder.equal(criteriaBuilder.function("LEFT", String::class.java, addressJoin.get<String>(POSTCODE), criteriaBuilder.literal(prefixLength)), it.take(prefixLength))
+          criteriaBuilder.le(
+            criteriaBuilder.function("levenshtein_less_equal", Integer::class.java, criteriaBuilder.literal(it), addressJoin.get<String>(POSTCODE), criteriaBuilder.literal(limit)),
+            limit,
+          )
         }.toTypedArray()
         criteriaBuilder.or(*postcodePredicates)
       } ?: criteriaBuilder.disjunction()
     }
   }
 
-  fun matchDateParts(input: LocalDate?, field: String): Specification<PersonEntity> {
+  fun levenshteinDate(input: LocalDate?, field: String, limit: Int = 2): Specification<PersonEntity> {
     return Specification { root, _, criteriaBuilder ->
       input?.let {
-        val yearMatch: Predicate = criteriaBuilder.equal(
-          criteriaBuilder.function(
-            "date_part",
-            Int::class.java, criteriaBuilder.literal("YEAR"), root.get<LocalDate>(field),
-          ),
-          input.year,
+        val dbDateAsString = criteriaBuilder.function(
+          "TO_CHAR",
+          String::class.java,
+          root.get<LocalDate>(field),
+          criteriaBuilder.literal(DATE_FORMAT),
         )
-        val monthMatch: Predicate = criteriaBuilder.equal(
+        criteriaBuilder.le(
           criteriaBuilder.function(
-            "date_part",
-            Int::class.java, criteriaBuilder.literal("MONTH"), root.get<LocalDate>(field),
+            "levenshtein_less_equal", Integer::class.java, criteriaBuilder.literal(input.toString()), dbDateAsString, criteriaBuilder.literal(limit),
           ),
-          input.monthValue,
-        )
-        val dayMatch: Predicate = criteriaBuilder.equal(
-          criteriaBuilder.function(
-            "date_part",
-            Int::class.java, criteriaBuilder.literal("DAY"), root.get<LocalDate>(field),
-          ),
-          input.dayOfMonth,
-        )
-        criteriaBuilder.or(
-          criteriaBuilder.and(yearMatch, monthMatch),
-          criteriaBuilder.and(yearMatch, dayMatch),
-          criteriaBuilder.and(monthMatch, dayMatch),
+          limit,
         )
       } ?: criteriaBuilder.disjunction()
     }
