@@ -41,17 +41,20 @@ class SearchService(
 
   private fun searchForRecords(person: Person, personQuery: PersonQuery): List<MatchResult> {
     val highConfidenceMatches = mutableListOf<MatchResult>()
-    val findPerson = personRepository.findMatchCandidates(
+    val sourceSystem = when {
+      personQuery.queryName == PersonQueryType.FIND_CANDIDATES_BY_SOURCE_SYSTEM -> person.sourceSystemType.name
+      else -> null
+    }
+    val hasPersonKey = personQuery.queryName == PersonQueryType.FIND_CANDIDATES_WITH_UUID
+    val matchCandidates = personRepository.findMatchCandidates(
       person,
-      when {
-        personQuery.queryName == PersonQueryType.FIND_CANDIDATES_BY_SOURCE_SYSTEM -> person.sourceSystemType.name else -> null
-      },
-      personQuery.queryName == PersonQueryType.FIND_CANDIDATES_WITH_UUID,
+      sourceSystem,
+      hasPersonKey,
 
     )
-    val totalElements = findPerson.size
+    val totalElements = matchCandidates.size
 
-    val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(findPerson, person)
+    val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(matchCandidates, person)
     highConfidenceMatches.addAll(batchOfHighConfidenceMatches)
 
     telemetryService.trackEvent(
