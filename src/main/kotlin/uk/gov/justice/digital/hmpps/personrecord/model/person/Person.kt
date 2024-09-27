@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -54,6 +55,7 @@ data class Person(
         personId = person.personId,
       )
     }
+
 
     fun from(probationCase: ProbationCase): Person {
       val contacts: List<Contact> = listOf(
@@ -174,5 +176,9 @@ data class Person(
         currentlyManaged = prisoner.currentlyManaged,
       )
     }
+  }
+
+  fun getSomeIdentifiers() : List<Reference> {
+    return this.references.filter { PersonSpecification.SEARCH_IDENTIFIERS.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }
   }
 }

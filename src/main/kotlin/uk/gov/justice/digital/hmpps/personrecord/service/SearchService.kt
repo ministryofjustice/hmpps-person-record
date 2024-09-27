@@ -1,8 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -18,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class SearchService(
   private val telemetryService: TelemetryService,
   private val matchService: MatchService,
-  private val readWriteLockService: ReadWriteLockService,
   private val personRepository: PersonRepository,
 ) {
 
@@ -44,10 +40,12 @@ class SearchService(
 
   private fun searchForRecords(person: Person, personQuery: PersonQuery): List<MatchResult> {
     val highConfidenceMatches = mutableListOf<MatchResult>()
-    val totalElements = forPage(personQuery.query) { page ->
-      val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(page.content, person)
-      highConfidenceMatches.addAll(batchOfHighConfidenceMatches)
-    }
+    val findPerson = personRepository.findMatchCandidates(person)
+    val totalElements = findPerson.size
+
+    val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(findPerson, person)
+    highConfidenceMatches.addAll(batchOfHighConfidenceMatches)
+
     telemetryService.trackEvent(
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
@@ -60,23 +58,6 @@ class SearchService(
       ),
     )
     return highConfidenceMatches.toList().sortedByDescending { it.probability }
-  }
-
-  private inline fun forPage(query: Specification<PersonEntity>, page: (Page<PersonEntity>) -> Unit): Long {
-    var pageNum = 0
-    var currentPage: Page<PersonEntity>
-    do {
-      currentPage = executePagedQuery(query, pageNum)
-      if (currentPage.hasContent()) {
-        page(currentPage)
-      }
-      pageNum++
-    } while (currentPage.hasNext())
-    return currentPage.totalElements
-  }
-
-  private fun executePagedQuery(query: Specification<PersonEntity>, pageNum: Int): Page<PersonEntity> = readWriteLockService.withReadLock {
-    personRepository.findAll(query, PageRequest.of(pageNum, PAGE_SIZE))
   }
 
   companion object {
