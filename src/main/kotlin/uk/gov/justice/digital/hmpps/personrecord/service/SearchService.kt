@@ -2,9 +2,10 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonBlockingRulesRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.PersonQuery
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.PersonQueryType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.findCandidatesBySourceSystem
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.findCandidatesWithUuid
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -15,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class SearchService(
   private val telemetryService: TelemetryService,
   private val matchService: MatchService,
-  private val personRepository: PersonRepository,
+  private val personRepository: PersonBlockingRulesRepository,
 ) {
 
   fun processCandidateRecords(matches: List<MatchResult>): PersonEntity? {
@@ -40,7 +41,14 @@ class SearchService(
 
   private fun searchForRecords(person: Person, personQuery: PersonQuery): List<MatchResult> {
     val highConfidenceMatches = mutableListOf<MatchResult>()
-    val findPerson = personRepository.findMatchCandidates(person)
+    val findPerson = personRepository.findMatchCandidates(
+      person,
+      when {
+        personQuery.queryName == PersonQueryType.FIND_CANDIDATES_BY_SOURCE_SYSTEM -> person.sourceSystemType.name else -> null
+      },
+      personQuery.queryName == PersonQueryType.FIND_CANDIDATES_WITH_UUID,
+
+    )
     val totalElements = findPerson.size
 
     val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(findPerson, person)

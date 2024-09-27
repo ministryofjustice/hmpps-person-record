@@ -29,8 +29,8 @@ interface PersonRepository : JpaSpecificationExecutor<PersonEntity>, JpaReposito
       INNER JOIN personrecordservice.reference r1_0
       ON pe1_0.id = r1_0.fk_person_id
       WHERE
-      r1_0.identifier_type = :#{#person.getSomeIdentifiers()[0].identifierType.name}
-    AND r1_0.identifier_value = :#{#person.getSomeIdentifiers()[0].identifierValue}
+      r1_0.identifier_type = :#{#person.identifiersForMatching()[0].identifierType.name}
+      AND r1_0.identifier_value = :#{#person.identifiersForMatching()[0].identifierValue}
       AND pe1_0.merged_to IS NULL
       AND pe1_0.fk_person_key_id IS NOT NULL
 

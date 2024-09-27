@@ -56,7 +56,6 @@ data class Person(
       )
     }
 
-
     fun from(probationCase: ProbationCase): Person {
       val contacts: List<Contact> = listOf(
         Contact.from(ContactType.HOME, probationCase.contactDetails?.telephone),
@@ -178,7 +177,7 @@ data class Person(
     }
   }
 
-  fun getSomeIdentifiers() : List<Reference> {
+  fun getIdentifiersForMatching(): List<Reference> {
     return this.references.filter { PersonSpecification.SEARCH_IDENTIFIERS.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }
   }
 }
