@@ -51,7 +51,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process libra messages`() {
     val firstName = randomName()
-    val lastName = randomName()
+    val lastName = randomName() + "'apostrophe"
     val postcode = randomPostcode()
     val pnc = randomPnc()
     val dateOfBirth = randomDate()
@@ -166,7 +166,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val firstName = randomName()
     val lastName = randomName()
     val dateOfBirth = randomDate()
-    val person = Person(
+    val personFromProbation = Person(
       firstName = firstName,
       lastName = lastName,
       dateOfBirth = dateOfBirth,
@@ -174,10 +174,10 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       sourceSystemType = DELIUS,
     )
     val personKeyEntity = createPersonKey()
-    createPerson(person, personKeyEntity = personKeyEntity)
+    createPerson(personFromProbation, personKeyEntity = personKeyEntity)
 
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(matchResponse)
+    val highConfidenceMatchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    stubMatchScore(highConfidenceMatchResponse)
 
     val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = "")
     val messageId1 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
@@ -308,13 +308,13 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
 
-    val matchResponse = MatchResponse(
+    val twoHighConfidenceMatchResponse = MatchResponse(
       matchProbabilities = mutableMapOf(
         "0" to 0.99999999,
         "1" to 0.99999999,
       ),
     )
-    stubMatchScore(matchResponse)
+    stubMatchScore(twoHighConfidenceMatchResponse)
 
     publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
@@ -330,7 +330,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should process multiple pages of candidates`() {
+  fun `should process large number of candidates`() {
     val firstName = randomName()
     repeat(100) {
       personRepository.saveAndFlush(

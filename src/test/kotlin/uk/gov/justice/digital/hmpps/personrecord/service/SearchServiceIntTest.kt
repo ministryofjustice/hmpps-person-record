@@ -466,7 +466,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val searchingPerson = Person(
       firstName = firstName,
       lastName = "Smith",
-      addresses = listOf(Address(postcode = "LS1 2AB"), Address(postcode = "LD2 3BC")),
+      addresses = listOf(Address(postcode = "LS1 1AB"), Address(postcode = "LD2 3BC")),
       sourceSystemType = COMMON_PLATFORM,
     )
 
@@ -504,12 +504,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
       personKeyEntity = createPersonKey(),
     )
 
+    val postcodeWhichWillMatch = Address(postcode = "LS2 3BC")
     val searchingPerson = Person(
       firstName = firstName,
       lastName = "Smith",
       addresses = listOf(
-        Address(postcode = "LS2 2AB"),
-        Address(postcode = "LD2 3BC"),
+        Address(postcode = "LS5 1AB"),
+        postcodeWhichWillMatch,
       ),
       sourceSystemType = COMMON_PLATFORM,
     )
