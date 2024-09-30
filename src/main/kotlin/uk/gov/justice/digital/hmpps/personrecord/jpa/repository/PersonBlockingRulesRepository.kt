@@ -13,15 +13,17 @@ class PersonBlockingRulesRepository {
 
   fun findMatchCandidates(person: Person, sourceSystem: String?, hasPersonKey: Boolean): List<PersonEntity> {
     val query = entityManager!!.createNativeQuery(findMatchCandidatesGenerateSQL(person, sourceSystem, hasPersonKey), PersonEntity::class.java)
+    query.setParameter("firstName", person.firstName)
+    query.setParameter("lastName", person.lastName)
     return query.resultList as List<PersonEntity>
   }
 
   fun findMatchCandidatesGenerateSQL(person: Person, sourceSystem: String?, hasPersonKey: Boolean): String {
-    var sql: String = ""
-    var sourceSystemCondition = when {
+    var sql = ""
+    val sourceSystemCondition = when {
       sourceSystem.isNullOrEmpty() -> "" else -> "AND pe1_0.source_system = '$sourceSystem'"
     }
-    var personKeyCondition = when {
+    val personKeyCondition = when {
       hasPersonKey -> "AND pe1_0.fk_person_key_id IS NOT NULL" else -> ""
     }
 
@@ -51,9 +53,7 @@ class PersonBlockingRulesRepository {
     sourceSystemCondition: String,
   ): String = """
         $SELECT_EXPRESSION
-        WHERE
-        personrecordservice.soundex(pe1_0.first_name) = personrecordservice.soundex('${person.firstName}')
-        AND personrecordservice.soundex(pe1_0.last_name) = personrecordservice.soundex('${person.lastName}')
+        $SOUNDEX_EXPRESSION
         AND date_part('year', pe1_0.date_of_birth) = ${person.dateOfBirth?.year}
         AND date_part('month', pe1_0.date_of_birth) = ${person.dateOfBirth?.monthValue}
         AND pe1_0.merged_to IS NULL
@@ -63,9 +63,7 @@ class PersonBlockingRulesRepository {
         UNION
   
         $SELECT_EXPRESSION
-        WHERE
-        personrecordservice.soundex(pe1_0.first_name) = personrecordservice.soundex('${person.firstName}')
-        AND personrecordservice.soundex(pe1_0.last_name) = personrecordservice.soundex('${person.lastName}')
+        $SOUNDEX_EXPRESSION
         AND date_part('year', pe1_0.date_of_birth) = ${person.dateOfBirth?.year}
         AND date_part('day', pe1_0.date_of_birth) = ${person.dateOfBirth?.dayOfMonth}
         AND pe1_0.merged_to IS NULL
@@ -75,9 +73,7 @@ class PersonBlockingRulesRepository {
         UNION
   
         $SELECT_EXPRESSION
-        WHERE
-        personrecordservice.soundex(pe1_0.first_name) = personrecordservice.soundex('${person.firstName}')
-        AND personrecordservice.soundex(pe1_0.last_name) = personrecordservice.soundex('${person.lastName}')
+        $SOUNDEX_EXPRESSION
         AND date_part('month', pe1_0.date_of_birth) = ${person.dateOfBirth?.monthValue}
         AND date_part('day', pe1_0.date_of_birth) = ${person.dateOfBirth?.dayOfMonth}
         AND pe1_0.merged_to IS NULL
@@ -98,9 +94,7 @@ class PersonBlockingRulesRepository {
         $SELECT_EXPRESSION
         INNER JOIN personrecordservice.address a1_0
         ON pe1_0.id = a1_0.fk_person_id
-        WHERE
-        personrecordservice.soundex(pe1_0.first_name) = personrecordservice.soundex('${person.firstName}')
-        AND personrecordservice.soundex(pe1_0.last_name) = personrecordservice.soundex('${person.lastName}')
+        $SOUNDEX_EXPRESSION
         AND LEFT(a1_0.postcode, $POSTCODE_MATCH_SIZE) = '${it.take(POSTCODE_MATCH_SIZE)}'
         AND pe1_0.merged_to IS NULL
         $personKeyCondition
@@ -119,5 +113,10 @@ class PersonBlockingRulesRepository {
     FROM
     personrecordservice.person pe1_0 
     """
+
+    const val SOUNDEX_EXPRESSION = """
+          WHERE
+          personrecordservice.soundex(pe1_0.first_name) = personrecordservice.soundex(:firstName)
+          AND personrecordservice.soundex(pe1_0.last_name) = personrecordservice.soundex(:lastName)"""
   }
 }
