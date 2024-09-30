@@ -51,7 +51,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process libra messages`() {
     val firstName = randomName()
-    val lastName = randomName()
+    val lastName = randomName() + "'apostrophe"
     val postcode = randomPostcode()
     val pnc = randomPnc()
     val dateOfBirth = randomDate()
