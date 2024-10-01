@@ -70,6 +70,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val addressStartDate = randomDate()
     val addressEndDate = randomDate()
     val ethnicity = randomEthnicity()
+    val sentenceDate = randomDate()
     val crn = probationDomainEventAndResponseSetup(
       NEW_OFFENDER_CREATED,
       pnc,
@@ -81,7 +82,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street"),
       ),
       ethnicity = ethnicity,
-      sentences = listOf(ApiResponseSetupSentences(randomDate())),
+      sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
     )
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
@@ -95,7 +96,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
     assertThat(personEntity.crn).isEqualTo(crn)
     assertThat(personEntity.ethnicity).isEqualTo(ethnicity)
-    assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(LocalDate.of(2024, 8, 9))
+    assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
     assertThat(personEntity.references.getType(IdentifierType.CRO).first().identifierValue).isEqualTo(cro)
     assertThat(personEntity.pseudonyms.size).isEqualTo(1)
     assertThat(personEntity.pseudonyms[0].firstName).isEqualTo("${prefix}FirstName")
