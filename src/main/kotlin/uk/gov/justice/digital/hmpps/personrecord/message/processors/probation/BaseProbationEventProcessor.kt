@@ -23,7 +23,7 @@ class BaseProbationEventProcessor {
     internal val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun getProbationCase(crn: String): Result<ProbationCase?> = runBlocking {
+  suspend fun getProbationCase(crn: String): Result<ProbationCase?> = runBlocking {
     try {
       return@runBlocking RetryExecutor.runWithRetry(MAX_RETRY_ATTEMPTS, retryDelay) {
         Result.success(corePersonRecordAndDeliusClient.getProbationCase(crn))
