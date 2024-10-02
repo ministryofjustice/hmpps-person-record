@@ -99,13 +99,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     stubMatchScore(matchResponse)
 
-    val blitzer = Blitzer(15, 4)
-    try {
-      blitzer.blitz {
-        courtEventsTopic?.snsClient?.publish(buildPublishRequest(defendantId, pncNumber))?.get()
-      }
-    } finally {
-      blitzer.shutdown()
+    blitz(15, 4) {
+      courtEventsTopic?.snsClient?.publish(buildPublishRequest(defendantId, pncNumber))?.get()
     }
 
     await untilCallTo {
