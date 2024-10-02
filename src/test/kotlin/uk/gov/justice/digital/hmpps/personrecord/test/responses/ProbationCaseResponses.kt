@@ -45,11 +45,7 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
         "mobile": "01234567890",
         "email": "test@gmail.com"
       },
-      "sentences": [
-        {
-          "date": "2024-08-09"
-        }
-      ]
+      "sentences": [${probationCase.sentences?.joinToString { sentence(it) } ?: ""}]
     }
 """.trimIndent()
 
@@ -61,5 +57,12 @@ private fun address(address: ApiResponseSetupAddress) =
       ${address.noFixedAbode?.let { """ "noFixedAbode": "${address.noFixedAbode}", """.trimIndent() } ?: ""}
       ${address.fullAddress?.let { """ "fullAddress": "${address.fullAddress}", """.trimIndent() } ?: ""}
       ${address.postcode?.let { """ "postcode": "${address.postcode}" """.trimIndent() } ?: ""}
+    }
+  """.trimIndent()
+
+private fun sentence(sentence: ApiResponseSetupSentences) =
+  """
+    {
+      ${sentence.sentenceDate?.let { """ "date": "${sentence.sentenceDate}" """ }}
     }
   """.trimIndent()
