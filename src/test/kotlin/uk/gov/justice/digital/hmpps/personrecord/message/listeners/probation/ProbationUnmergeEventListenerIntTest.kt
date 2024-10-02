@@ -29,27 +29,27 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `offender unmerge event is published`() {
-    val sourceCrn = randomCRN()
-    val targetCrn = randomCRN()
-    val source = ApiResponseSetup(crn = sourceCrn)
-    val target = ApiResponseSetup(crn = targetCrn)
-    probationMergeEventAndResponseSetup(OFFENDER_UNMERGED, source, target)
+    val reactivatedCrn = randomCRN()
+    val unmergedCrn = randomCRN()
+    val reactivated = ApiResponseSetup(crn = reactivatedCrn)
+    val unmerged = ApiResponseSetup(crn = unmergedCrn)
+    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
     checkTelemetry(
       UNMERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
     )
   }
 
   @Test
   fun `should retry on 500 error`() {
-    val sourceCrn = randomCRN()
-    val targetCrn = randomCRN()
-    stub500Response(probationUrl(targetCrn), "next request will succeed", "retry")
+    val reactivatedCrn = randomCRN()
+    val unmergedCrn = randomCRN()
+    stub500Response(probationUrl(unmergedCrn), "next request will succeed", "retry")
 
-    val source = ApiResponseSetup(crn = sourceCrn)
-    val target = ApiResponseSetup(crn = targetCrn)
-    probationMergeEventAndResponseSetup(OFFENDER_UNMERGED, source, target, scenario = "retry", currentScenarioState = "next request will succeed")
+    val reactivated = ApiResponseSetup(crn = reactivatedCrn)
+    val unmerged = ApiResponseSetup(crn = unmergedCrn)
+    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged, scenario = "retry", currentScenarioState = "next request will succeed")
 
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       probationMergeEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationMergeEventsQueue!!.queueUrl)?.get()
@@ -60,25 +60,25 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     } matches { it == 0 }
     checkTelemetry(
       UNMERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
     )
   }
 
   @Test
   fun `should log when message processing fails`() {
-    val sourceCrn = randomCRN()
-    val targetCrn = randomCRN()
-    stub500Response(probationUrl(targetCrn), STARTED, "failure")
-    stub500Response(probationUrl(targetCrn), STARTED, "failure")
-    stub500Response(probationUrl(targetCrn), STARTED, "failure")
+    val reactivatedCrn = randomCRN()
+    val unmergedCrn = randomCRN()
+    stub500Response(probationUrl(unmergedCrn), STARTED, "failure")
+    stub500Response(probationUrl(unmergedCrn), STARTED, "failure")
+    stub500Response(probationUrl(unmergedCrn), STARTED, "failure")
 
     val messageId = publishDomainEvent(
       OFFENDER_UNMERGED,
       DomainEvent(
         eventType = OFFENDER_UNMERGED,
         additionalInformation = AdditionalInformation(
-          sourceCrn = sourceCrn,
-          targetCrn = targetCrn,
+          reactivatedCRN = reactivatedCrn,
+          unmergedCRN = unmergedCrn,
         ),
       ),
     )
@@ -92,7 +92,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       UNMERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       MESSAGE_PROCESSING_FAILED,
