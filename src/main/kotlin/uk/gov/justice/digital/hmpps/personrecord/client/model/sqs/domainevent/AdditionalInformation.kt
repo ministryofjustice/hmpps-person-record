@@ -18,10 +18,10 @@ data class AdditionalInformation(
   val targetCrn: String? = null,
 
   @JsonProperty("reactivatedCRN")
-  val reactivatedCRN: String? = null,
+  val reactivatedCrn: String? = null,
 
   @JsonProperty("unmergedCRN")
-  val unmergedCRN: String? = null,
+  val unmergedCrn: String? = null,
 
   @JsonProperty("removedNomsNumber")
   val sourcePrisonNumber: String? = null,

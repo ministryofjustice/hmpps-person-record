@@ -21,14 +21,15 @@ class ProbationUnmergeEventProcessor(
     telemetryService.trackEvent(
       UNMERGE_MESSAGE_RECEIVED,
       mapOf(
-        EventKeys.REACTIVATED_CRN to domainEvent.additionalInformation?.reactivatedCRN,
-        EventKeys.UNMERGED_CRN to domainEvent.additionalInformation?.unmergedCRN,
+        EventKeys.REACTIVATED_CRN to domainEvent.additionalInformation?.reactivatedCrn,
+        EventKeys.UNMERGED_CRN to domainEvent.additionalInformation?.unmergedCrn,
         EventKeys.EVENT_TYPE to domainEvent.eventType,
         EventKeys.SOURCE_SYSTEM to DELIUS.name,
       ),
     )
-    val deferredUnmergedCRNRequest = async { getProbationCase(domainEvent.additionalInformation?.unmergedCRN!!) }
-    val deferredReactivatedCRNRequest = async { getProbationCase(domainEvent.additionalInformation?.reactivatedCRN!!) }
+
+    val deferredUnmergedCRNRequest = async { getProbationCase(domainEvent.additionalInformation?.unmergedCrn!!) }
+    val deferredReactivatedCRNRequest = async { getProbationCase(domainEvent.additionalInformation?.reactivatedCrn!!) }
 
     val unmergedProbationCase = deferredUnmergedCRNRequest.await().getOrThrow()
     val reactivatedProbationCase = deferredReactivatedCRNRequest.await().getOrThrow()

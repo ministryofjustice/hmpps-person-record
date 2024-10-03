@@ -193,8 +193,8 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       DomainEvent(
         eventType = eventType,
         additionalInformation = AdditionalInformation(
-          reactivatedCRN = reactivated.crn,
-          unmergedCRN = unmerged.crn,
+          reactivatedCrn = reactivated.crn,
+          unmergedCrn = unmerged.crn,
         ),
       ),
     )
