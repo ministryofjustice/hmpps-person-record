@@ -77,8 +77,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       DomainEvent(
         eventType = OFFENDER_UNMERGED,
         additionalInformation = AdditionalInformation(
-          reactivatedCRN = reactivatedCrn,
-          unmergedCRN = unmergedCrn,
+          reactivatedCrn = reactivatedCrn,
+          unmergedCrn = unmergedCrn,
         ),
       ),
     )
@@ -101,6 +101,36 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         EventKeys.EVENT_TYPE.toString() to OFFENDER_UNMERGED,
         EventKeys.MESSAGE_ID.toString() to messageId,
       ),
+    )
+  }
+
+  @Test
+  fun `should not push 404 to dead letter queue but discard message instead`() {
+    val reactivatedCrn = randomCRN()
+    val unmergedCrn = randomCRN()
+    stub404Response(probationUrl(unmergedCrn))
+
+    publishDomainEvent(
+      OFFENDER_UNMERGED,
+      DomainEvent(
+        eventType = OFFENDER_UNMERGED,
+        additionalInformation = AdditionalInformation(
+          reactivatedCrn = reactivatedCrn,
+          unmergedCrn = unmergedCrn,
+        ),
+      ),
+    )
+
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      probationMergeEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationMergeEventsQueue!!.queueUrl)?.get()
+    } matches { it == 0 }
+
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      probationMergeEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(probationMergeEventsQueue!!.dlqUrl!!)?.get()
+    } matches { it == 0 }
+    checkTelemetry(
+      UNMERGE_MESSAGE_RECEIVED,
+      mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
     )
   }
 }

@@ -16,13 +16,13 @@ class ProbationUnmergeEventProcessor(
     telemetryService.trackEvent(
       UNMERGE_MESSAGE_RECEIVED,
       mapOf(
-        EventKeys.REACTIVATED_CRN to domainEvent.additionalInformation?.reactivatedCRN,
-        EventKeys.UNMERGED_CRN to domainEvent.additionalInformation?.unmergedCRN,
+        EventKeys.REACTIVATED_CRN to domainEvent.additionalInformation?.reactivatedCrn,
+        EventKeys.UNMERGED_CRN to domainEvent.additionalInformation?.unmergedCrn,
         EventKeys.EVENT_TYPE to domainEvent.eventType,
         EventKeys.SOURCE_SYSTEM to DELIUS.name,
       ),
     )
-    getProbationCase(domainEvent.additionalInformation?.unmergedCRN!!).fold(
+    getProbationCase(domainEvent.additionalInformation?.unmergedCrn!!).fold(
       onSuccess = {
         log.info("Successfully mapped unmerged record")
       },
