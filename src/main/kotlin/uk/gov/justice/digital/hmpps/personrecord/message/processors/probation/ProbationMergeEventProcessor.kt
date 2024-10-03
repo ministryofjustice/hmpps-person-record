@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 
-import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
@@ -19,7 +18,7 @@ class ProbationMergeEventProcessor(
   val mergeService: MergeService,
 ) : BaseProbationEventProcessor() {
 
-  fun processEvent(domainEvent: DomainEvent) = runBlocking {
+  fun processEvent(domainEvent: DomainEvent) {
     telemetryService.trackEvent(
       MERGE_MESSAGE_RECEIVED,
       mapOf(

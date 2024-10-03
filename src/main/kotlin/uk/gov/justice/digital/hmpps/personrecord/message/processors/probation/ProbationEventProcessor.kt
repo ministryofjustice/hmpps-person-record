@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 
-import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -17,7 +16,7 @@ class ProbationEventProcessor(
   val personRepository: PersonRepository,
 ) : BaseProbationEventProcessor() {
 
-  fun processEvent(crn: String, eventType: String) = runBlocking {
+  fun processEvent(crn: String, eventType: String) {
     telemetryService.trackEvent(
       MESSAGE_RECEIVED,
       mapOf(EventKeys.CRN to crn, EventKeys.EVENT_TYPE to eventType, EventKeys.SOURCE_SYSTEM to DELIUS.name),

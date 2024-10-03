@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -17,7 +18,7 @@ class ProbationUnmergeEventProcessor(
   val unmergeService: UnmergeService,
 ) : BaseProbationEventProcessor() {
 
-  fun processEvent(domainEvent: DomainEvent) = runBlocking {
+  fun processEvent(domainEvent: DomainEvent) {
     telemetryService.trackEvent(
       UNMERGE_MESSAGE_RECEIVED,
       mapOf(
@@ -28,15 +29,21 @@ class ProbationUnmergeEventProcessor(
       ),
     )
 
+    val (unmergedProbationCase, reactivatedProbationCase) = collectProbationCases(domainEvent)
+    unmergeService.processUnmerge(
+      reactivatedPerson = Person.from(reactivatedProbationCase),
+      unmergedPerson = Person.from(unmergedProbationCase),
+    )
+  }
+
+  private fun collectProbationCases(domainEvent: DomainEvent): Pair<ProbationCase, ProbationCase> = runBlocking {
     val deferredUnmergedCRNRequest = async { getProbationCase(domainEvent.additionalInformation?.unmergedCrn!!) }
     val deferredReactivatedCRNRequest = async { getProbationCase(domainEvent.additionalInformation?.reactivatedCrn!!) }
-
     val unmergedProbationCase = deferredUnmergedCRNRequest.await().getOrThrow()
     val reactivatedProbationCase = deferredReactivatedCRNRequest.await().getOrThrow()
-
-    unmergeService.processUnmerge(
-      reactivatedPerson = Person.from(reactivatedProbationCase!!),
-      unmergedPerson = Person.from(unmergedProbationCase!!),
+    return@runBlocking Pair(
+      unmergedProbationCase!!,
+      reactivatedProbationCase!!,
     )
   }
 }
