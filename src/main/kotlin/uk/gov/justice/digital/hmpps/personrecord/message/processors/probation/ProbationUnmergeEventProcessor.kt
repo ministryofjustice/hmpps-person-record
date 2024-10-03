@@ -28,7 +28,7 @@ class ProbationUnmergeEventProcessor(
       ),
     )
     val deferredUnmergedCRNRequest = async { getProbationCase(domainEvent.additionalInformation?.unmergedCRN!!) }
-    val deferredReactivatedCRNRequest = async { getProbationCase(domainEvent.additionalInformation?.unmergedCRN!!) }
+    val deferredReactivatedCRNRequest = async { getProbationCase(domainEvent.additionalInformation?.reactivatedCRN!!) }
 
     val unmergedProbationCase = deferredUnmergedCRNRequest.await().getOrThrow()
     val reactivatedProbationCase = deferredReactivatedCRNRequest.await().getOrThrow()

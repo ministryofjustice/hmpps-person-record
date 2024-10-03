@@ -10,14 +10,17 @@ import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_SELF_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.UNMERGE_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
+
 class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @BeforeEach
@@ -38,6 +41,24 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       UNMERGE_MESSAGE_RECEIVED,
       mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      CPR_SELF_MATCH,
+      mapOf(
+        "IS_ABOVE_SELF_MATCH_THRESHOLD" to "true",
+        "PROBABILITY_SCORE" to "0.9999",
+        "SOURCE_SYSTEM" to SourceSystemType.DELIUS.name,
+        "CRN" to reactivatedCrn,
+      ),
+    )
+    checkTelemetry(
+      CPR_SELF_MATCH,
+      mapOf(
+        "IS_ABOVE_SELF_MATCH_THRESHOLD" to "true",
+        "PROBABILITY_SCORE" to "0.9999",
+        "SOURCE_SYSTEM" to SourceSystemType.DELIUS.name,
+        "CRN" to unmergedCrn,
+      ),
     )
   }
 
