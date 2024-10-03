@@ -92,6 +92,9 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     stub500Response(probationUrl(unmergedCrn), STARTED, "failure")
     stub500Response(probationUrl(unmergedCrn), STARTED, "failure")
     stub500Response(probationUrl(unmergedCrn), STARTED, "failure")
+    stub500Response(probationUrl(reactivatedCrn), STARTED, "failure")
+    stub500Response(probationUrl(reactivatedCrn), STARTED, "failure")
+    stub500Response(probationUrl(reactivatedCrn), STARTED, "failure")
 
     val messageId = publishDomainEvent(
       OFFENDER_UNMERGED,
@@ -129,6 +132,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should not push 404 to dead letter queue but discard message instead`() {
     val reactivatedCrn = randomCRN()
     val unmergedCrn = randomCRN()
+    stub404Response(probationUrl(reactivatedCrn))
     stub404Response(probationUrl(unmergedCrn))
 
     publishDomainEvent(
