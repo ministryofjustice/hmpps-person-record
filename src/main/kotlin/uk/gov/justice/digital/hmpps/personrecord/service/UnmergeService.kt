@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import jakarta.transaction.Transactional
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.hibernate.exception.ConstraintViolationException
@@ -47,12 +48,9 @@ class UnmergeService(
 
   private suspend fun collectSelfMatchScores(reactivatedPerson: Person, unmergedPerson: Person) {
     return coroutineScope {
-      async {
-        processSelfMatchScore(reactivatedPerson)
-      }.await()
-      async {
-        processSelfMatchScore(unmergedPerson)
-      }.await()
+      val deferredReactivatedSelfMatch = async { processSelfMatchScore(reactivatedPerson) }
+      val deferredUnmergedSelfMatchScore = async { processSelfMatchScore(unmergedPerson) }
+      awaitAll(deferredReactivatedSelfMatch, deferredUnmergedSelfMatchScore)
     }
   }
 
