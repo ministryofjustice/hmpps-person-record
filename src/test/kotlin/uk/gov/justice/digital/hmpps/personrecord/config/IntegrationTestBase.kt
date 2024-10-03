@@ -61,7 +61,7 @@ class IntegrationTestBase {
           }
         }.all { it }
       }
-      assertThat(matchingEvents?.size).`as`("Missing data: $event properties=$expected and actual data ${allEvents?.joinToString(System.lineSeparator())}").isEqualTo(times)
+      assertThat(matchingEvents?.size).`as`("Missing data $event $expected and actual data $allEvents").isEqualTo(times)
     }
   }
 
