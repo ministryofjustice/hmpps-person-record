@@ -11,7 +11,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 
 @Entity
 @Table(name = "override_marker")
@@ -30,7 +30,7 @@ class OverrideMarkerEntity(
 
   @Column(name = "marker_type")
   @Enumerated(EnumType.STRING)
-  val markerType: ContactType,
+  val markerType: OverrideMarkerType,
 
   @Column(name = "marker_value")
   val markerValue: String? = null,
