@@ -4,18 +4,13 @@ import jakarta.transaction.Transactional
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
-import org.hibernate.exception.ConstraintViolationException
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.dao.CannotAcquireLockException
-import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.orm.ObjectOptimisticLockingFailureException
-import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
-import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
@@ -27,18 +22,9 @@ class MergeService(
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
-  private val retryExceptions = listOf(
-    ObjectOptimisticLockingFailureException::class,
-    CannotAcquireLockException::class,
-    JpaSystemException::class,
-    JpaObjectRetrievalFailureException::class,
-    DataIntegrityViolationException::class,
-    ConstraintViolationException::class,
-  )
-
   @Transactional
   fun processMerge(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) = runBlocking {
-    runWithRetry(MAX_ATTEMPTS, retryDelay, retryExceptions) {
+    runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
       processMergingOfRecords(mergeEvent, sourcePersonCallback, targetPersonCallback)
     }
   }
@@ -150,17 +136,10 @@ class MergeService(
 
   private fun sourcePersonKeyHasMultipleRecords(sourcePersonEntity: PersonEntity?): Boolean = (sourcePersonEntity?.personKey?.personEntities?.size ?: 0) > 1
 
-  private suspend fun collectPeople(sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?): Pair<PersonEntity?, PersonEntity?> {
-    return coroutineScope {
-      Pair(
-        async {
-          sourcePersonCallback()
-        }.await(),
-        async {
-          targetPersonCallback()
-        }.await(),
-      )
-    }
+  private suspend fun collectPeople(sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?): Pair<PersonEntity?, PersonEntity?> = coroutineScope {
+    val deferredSourcePersonCallback = async { sourcePersonCallback() }
+    val deferredTargetSourceCallback = async { targetPersonCallback() }
+    return@coroutineScope Pair(deferredSourcePersonCallback.await(), deferredTargetSourceCallback.await())
   }
 
   companion object {

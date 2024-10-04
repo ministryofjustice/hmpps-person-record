@@ -6,7 +6,6 @@ import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
-import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
@@ -99,13 +98,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     stubMatchScore(matchResponse)
 
-    val blitzer = Blitzer(15, 4)
-    try {
-      blitzer.blitz {
-        courtEventsTopic?.snsClient?.publish(buildPublishRequest(defendantId, pncNumber))?.get()
-      }
-    } finally {
-      blitzer.shutdown()
+    blitz(15, 4) {
+      courtEventsTopic?.snsClient?.publish(buildPublishRequest(defendantId, pncNumber))?.get()
     }
 
     await untilCallTo {
