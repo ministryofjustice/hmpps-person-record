@@ -15,6 +15,7 @@ import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.MergeService.Companion.MAX_ATTEMPTS
+import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_SELF_MATCH
@@ -26,18 +27,9 @@ class UnmergeService(
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
-  private val retryExceptions = listOf(
-    ObjectOptimisticLockingFailureException::class,
-    CannotAcquireLockException::class,
-    JpaSystemException::class,
-    JpaObjectRetrievalFailureException::class,
-    DataIntegrityViolationException::class,
-    ConstraintViolationException::class,
-  )
-
   @Transactional
   fun processUnmerge(reactivatedPerson: Person, unmergedPerson: Person) = runBlocking {
-    runWithRetry(MAX_ATTEMPTS, retryDelay, retryExceptions) {
+    runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
       processUnmergingOfRecords(reactivatedPerson, unmergedPerson)
     }
   }

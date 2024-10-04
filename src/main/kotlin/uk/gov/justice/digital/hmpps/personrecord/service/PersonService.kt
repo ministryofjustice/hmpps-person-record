@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CHANGED
@@ -39,17 +40,8 @@ class PersonService(
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
-  private val retryExceptions = listOf(
-    ObjectOptimisticLockingFailureException::class,
-    CannotAcquireLockException::class,
-    JpaSystemException::class,
-    JpaObjectRetrievalFailureException::class,
-    DataIntegrityViolationException::class,
-    ConstraintViolationException::class,
-  )
-
   fun processMessage(person: Person, event: String? = null, callback: (isAboveSelfMatchThreshold: Boolean) -> PersonEntity?) = runBlocking {
-    runWithRetry(MAX_ATTEMPTS, retryDelay, retryExceptions) {
+    runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
       readWriteLockService.withWriteLock(person.sourceSystemType) { processPerson(person, event, callback) }
     }
   }

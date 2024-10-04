@@ -2,6 +2,12 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import feign.FeignException
 import kotlinx.coroutines.delay
+import org.hibernate.exception.ConstraintViolationException
+import org.springframework.dao.CannotAcquireLockException
+import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.orm.ObjectOptimisticLockingFailureException
+import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
+import org.springframework.orm.jpa.JpaSystemException
 import kotlin.reflect.KClass
 
 object RetryExecutor {
@@ -27,4 +33,13 @@ object RetryExecutor {
     }
     throw lastException ?: RuntimeException("Unexpected error")
   }
+
+  val ENTITY_RETRY_EXCEPTIONS = listOf(
+    ObjectOptimisticLockingFailureException::class,
+    CannotAcquireLockException::class,
+    JpaSystemException::class,
+    JpaObjectRetrievalFailureException::class,
+    DataIntegrityViolationException::class,
+    ConstraintViolationException::class,
+  )
 }

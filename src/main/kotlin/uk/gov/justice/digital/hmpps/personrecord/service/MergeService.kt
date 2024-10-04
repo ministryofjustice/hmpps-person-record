@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
@@ -27,18 +28,9 @@ class MergeService(
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
-  private val retryExceptions = listOf(
-    ObjectOptimisticLockingFailureException::class,
-    CannotAcquireLockException::class,
-    JpaSystemException::class,
-    JpaObjectRetrievalFailureException::class,
-    DataIntegrityViolationException::class,
-    ConstraintViolationException::class,
-  )
-
   @Transactional
   fun processMerge(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) = runBlocking {
-    runWithRetry(MAX_ATTEMPTS, retryDelay, retryExceptions) {
+    runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
       processMergingOfRecords(mergeEvent, sourcePersonCallback, targetPersonCallback)
     }
   }
