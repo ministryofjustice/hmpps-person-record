@@ -151,9 +151,9 @@ class MergeService(
   private fun sourcePersonKeyHasMultipleRecords(sourcePersonEntity: PersonEntity?): Boolean = (sourcePersonEntity?.personKey?.personEntities?.size ?: 0) > 1
 
   private suspend fun collectPeople(sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?): Pair<PersonEntity?, PersonEntity?> = coroutineScope {
-      val deferredSourcePersonCallback = async { sourcePersonCallback() }
-      val deferredTargetSourceCallback = async { targetPersonCallback() }
-      return@coroutineScope Pair(deferredSourcePersonCallback.await(), deferredTargetSourceCallback.await())
+    val deferredSourcePersonCallback = async { sourcePersonCallback() }
+    val deferredTargetSourceCallback = async { targetPersonCallback() }
+    return@coroutineScope Pair(deferredSourcePersonCallback.await(), deferredTargetSourceCallback.await())
   }
 
   companion object {
