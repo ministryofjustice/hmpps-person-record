@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries
+package uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries
 
 import org.springframework.data.jpa.domain.Specification
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity

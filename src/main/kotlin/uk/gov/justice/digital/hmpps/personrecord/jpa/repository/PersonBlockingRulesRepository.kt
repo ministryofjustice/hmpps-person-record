@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 
 @Component
 class PersonBlockingRulesRepository {
+
   @PersistenceContext
   private val entityManager: EntityManager? = null
 

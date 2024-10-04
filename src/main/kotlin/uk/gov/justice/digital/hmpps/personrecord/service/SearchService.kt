@@ -3,11 +3,12 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonBlockingRulesRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQueries
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.PersonQuery
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.PersonQueryType
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.findCandidatesBySourceSystem
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.findCandidatesWithUuid
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQuery
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQueryType
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.findCandidatesBySourceSystem
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.findCandidatesWithUuid
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
@@ -46,11 +47,11 @@ class SearchService(
       else -> null
     }
     val hasPersonKey = personQuery.queryName == PersonQueryType.FIND_CANDIDATES_WITH_UUID
+    println(PersonQueries.findCandidatesQuery(person))
     val matchCandidates = personRepository.findMatchCandidates(
       person,
       sourceSystem,
       hasPersonKey,
-
     )
     val totalElements = matchCandidates.size
 
