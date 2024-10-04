@@ -4,13 +4,7 @@ import jakarta.transaction.Transactional
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
-import org.hibernate.exception.ConstraintViolationException
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.dao.CannotAcquireLockException
-import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.orm.ObjectOptimisticLockingFailureException
-import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
-import org.springframework.orm.jpa.JpaSystemException
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
