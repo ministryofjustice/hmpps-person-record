@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonBlockingRu
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQueries
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQuery
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
 
@@ -34,7 +35,20 @@ class SearchService(
 
   fun findCandidateRecordsBySourceSystem(person: Person): List<MatchResult> = searchForRecords(person, PersonQueries.findCandidatesBySourceSystem(person))
 
-  fun findCandidateRecordsWithUuid(person: Person): List<MatchResult> = searchForRecords(person, PersonQueries.findCandidatesWithUuid(person))
+  fun findCandidateRecordsWithUuid(person: Person, personRecordId: Long? = null): List<MatchResult> {
+    val candidates = searchForRecords(person, PersonQueries.findCandidatesWithUuid(person))
+    return filterClustersWithExcludeMarker(candidates, personRecordId)
+  }
+
+  private fun filterClustersWithExcludeMarker(candidates: List<MatchResult>, personRecordId: Long?): List<MatchResult> {
+    val clusters = candidates.groupBy { it.candidateRecord.personKey?.personId }
+    val excludedClusters = clusters.filter { (_, records) ->
+      records.any { record ->
+        record.candidateRecord.overrideMarkers.any { it.markerType == OverrideMarkerType.EXCLUDE && it.markerValue == personRecordId.toString() }
+      }
+    }.map { it.key }
+    return candidates.filter { candidate -> excludedClusters.contains(candidate.candidateRecord.personKey?.personId).not() }
+  }
 
   private fun searchForRecords(person: Person, personQuery: PersonQuery): List<MatchResult> {
     val highConfidenceMatches = mutableListOf<MatchResult>()

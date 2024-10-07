@@ -64,6 +64,10 @@ class PersonEntity(
   var sentenceInfo: MutableList<SentenceInfoEntity> = mutableListOf(),
 
   @Column
+  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  var overrideMarkers: MutableList<OverrideMarkerEntity> = mutableListOf(),
+
+  @Column
   var crn: String? = null,
 
   @Column(name = "defendant_id")
