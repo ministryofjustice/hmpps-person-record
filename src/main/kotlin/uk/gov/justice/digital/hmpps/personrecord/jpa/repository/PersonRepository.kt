@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 
 @Repository
-interface PersonRepository: JpaRepository<PersonEntity, Long> {
+interface PersonRepository : JpaRepository<PersonEntity, Long> {
 
   fun findByDefendantId(defendantId: String): PersonEntity?
 
