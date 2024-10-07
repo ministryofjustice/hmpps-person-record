@@ -3,11 +3,8 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonBlockingRulesRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.PersonQuery
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.PersonQueryType
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.findCandidatesBySourceSystem
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.findCandidatesWithUuid
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQueries
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQuery
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
@@ -35,23 +32,13 @@ class SearchService(
     return matches.firstOrNull()?.candidateRecord
   }
 
-  fun findCandidateRecordsBySourceSystem(person: Person): List<MatchResult> = searchForRecords(person, findCandidatesBySourceSystem(person))
+  fun findCandidateRecordsBySourceSystem(person: Person): List<MatchResult> = searchForRecords(person, PersonQueries.findCandidatesBySourceSystem(person))
 
-  fun findCandidateRecordsWithUuid(person: Person): List<MatchResult> = searchForRecords(person, findCandidatesWithUuid(person))
+  fun findCandidateRecordsWithUuid(person: Person): List<MatchResult> = searchForRecords(person, PersonQueries.findCandidatesWithUuid(person))
 
   private fun searchForRecords(person: Person, personQuery: PersonQuery): List<MatchResult> {
     val highConfidenceMatches = mutableListOf<MatchResult>()
-    val sourceSystem = when {
-      personQuery.queryName == PersonQueryType.FIND_CANDIDATES_BY_SOURCE_SYSTEM -> person.sourceSystemType.name
-      else -> null
-    }
-    val hasPersonKey = personQuery.queryName == PersonQueryType.FIND_CANDIDATES_WITH_UUID
-    val matchCandidates = personRepository.findMatchCandidates(
-      person,
-      sourceSystem,
-      hasPersonKey,
-
-    )
+    val matchCandidates = personRepository.findMatchCandidates(person, personQuery.query)
     val totalElements = matchCandidates.size
 
     val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(matchCandidates, person)
@@ -62,7 +49,7 @@ class SearchService(
       mapOf(
         EventKeys.SOURCE_SYSTEM to person.sourceSystemType.name,
         EventKeys.RECORD_COUNT to totalElements.toString(),
-        EventKeys.SEARCH_VERSION to PersonSpecification.SEARCH_VERSION,
+        EventKeys.SEARCH_VERSION to PersonQueries.SEARCH_VERSION,
         EventKeys.HIGH_CONFIDENCE_COUNT to highConfidenceMatches.count().toString(),
         EventKeys.LOW_CONFIDENCE_COUNT to (totalElements - highConfidenceMatches.count()).toString(),
         EventKeys.QUERY to personQuery.queryName.name,
