@@ -12,8 +12,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.PersonSpecification.SEARCH_VERSION
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.specifications.queries.PersonQueryType
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQueries
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQueryType
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
@@ -426,7 +426,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "SOURCE_SYSTEM" to "LIBRA",
         "RECORD_COUNT" to "200",
-        "SEARCH_VERSION" to SEARCH_VERSION,
+        "SEARCH_VERSION" to PersonQueries.SEARCH_VERSION,
         "QUERY" to "FIND_CANDIDATES_BY_SOURCE_SYSTEM",
       ),
     )
