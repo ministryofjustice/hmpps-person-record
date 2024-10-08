@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonBlockingRulesRepository
@@ -38,8 +39,14 @@ class SearchService(
 
   private fun searchForRecords(person: Person, personQuery: PersonQuery): List<MatchResult> {
     val highConfidenceMatches = mutableListOf<MatchResult>()
-    val matchCandidates = personRepository.findMatchCandidates(person, personQuery.query)
-    val totalElements = matchCandidates.size
+
+    val pageable = PageRequest.of(0, PAGE_SIZE)
+
+    val matchCandidatesPage = personRepository.findMatchCandidates(person, personQuery.query, pageable)
+
+    val matchCandidates = matchCandidatesPage.content
+
+    val totalElements = matchCandidatesPage.totalElements
 
     val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(matchCandidates, person)
     highConfidenceMatches.addAll(batchOfHighConfidenceMatches)
