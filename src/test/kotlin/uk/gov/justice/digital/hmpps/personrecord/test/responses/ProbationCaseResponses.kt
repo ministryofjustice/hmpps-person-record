@@ -40,6 +40,10 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
       "ethnicity": {
         ${probationCase.ethnicity?.let { """ "code": "${probationCase.ethnicity}" """.trimIndent() } ?: ""}
       },
+      "nationality": {
+        ${probationCase.nationality?.let { """ "code": "${probationCase.nationality}", """.trimIndent() } ?: ""}
+        "description": "string"
+      },
       "contactDetails": {
         "telephone": "01234567890",
         "mobile": "01234567890",
