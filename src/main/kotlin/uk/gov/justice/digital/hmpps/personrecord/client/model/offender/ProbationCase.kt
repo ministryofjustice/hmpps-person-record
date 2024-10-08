@@ -5,13 +5,14 @@ import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ProbationCase(
-  val title: Title? = null,
+  val title: Descriptor? = null,
   val name: Name,
-  val ethnicity: Ethnicity? = null,
+  val ethnicity: Descriptor? = null,
   val identifiers: Identifiers,
   val dateOfBirth: LocalDate? = null,
   val aliases: List<ProbationCaseAlias>? = emptyList(),
   val contactDetails: ContactDetails? = null,
   val addresses: List<Address> = emptyList(),
   val sentences: List<Sentences>? = emptyList(),
+  val nationality: Descriptor? = null,
 )
