@@ -635,6 +635,31 @@ class SearchServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
+  fun `should not find candidate records when exclude marker set`() {
+    val pnc = randomPnc()
+    val personToFind = Person(
+      references = listOf(Reference(IdentifierType.PNC, pnc)),
+      sourceSystemType = COMMON_PLATFORM,
+    )
+    val existingPerson = createPerson(personToFind, personKeyEntity = createPersonKey())
+    val excludedRecord = createPerson(personToFind, personKeyEntity = createPersonKey())
+
+    excludeRecord(existingPerson, excludingRecord = excludedRecord)
+
+    val matchResponse = MatchResponse(
+      matchProbabilities = mutableMapOf(
+        "0" to 0.9999999,
+        "1" to 0.9999999,
+      ),
+    )
+    stubMatchScore(matchResponse)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind, excludedRecord.id)
+
+    assertThat(candidateRecords.size).isEqualTo(1)
+    assertThat(candidateRecords[0].candidateRecord.id).isEqualTo(excludedRecord.id)
+  }
+
+  @Test
   fun `should order multiple matches descending`() {
     val pnc = randomPnc()
     val personToFind = Person(
