@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQueries
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -177,7 +176,7 @@ data class Person(
     }
   }
 
-  fun getIdentifiersForMatching(): List<Reference> {
-    return this.references.filter { PersonQueries.SEARCH_IDENTIFIERS.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }
+  fun getIdentifiersForMatching(identifiers: List<IdentifierType>): List<Reference> {
+    return this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }
   }
 }

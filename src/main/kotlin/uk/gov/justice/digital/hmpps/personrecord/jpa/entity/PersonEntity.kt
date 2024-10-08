@@ -120,6 +120,11 @@ class PersonEntity(
   var version: Int = 0,
 
 ) {
+
+  fun getIdentifiersForMatching(identifiers: List<IdentifierType>): List<ReferenceEntity> {
+    return this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }
+  }
+
   fun update(person: Person) {
     this.title = person.title
     this.firstName = person.firstName

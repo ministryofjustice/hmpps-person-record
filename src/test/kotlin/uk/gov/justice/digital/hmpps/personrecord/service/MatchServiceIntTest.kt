@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -40,7 +41,7 @@ class MatchServiceIntTest : IntegrationTestBase() {
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
 
-    val highConfidenceMatches = matchService.findHighConfidenceMatches(candidateRecords, newRecord)
+    val highConfidenceMatches = matchService.findHighConfidenceMatches(candidateRecords, PersonSearchCriteria.from(newRecord))
     assertThat(highConfidenceMatches.size).isEqualTo(1)
     assertThat(highConfidenceMatches[0].probability).isEqualTo(0.9999999)
     assertThat(highConfidenceMatches[0].candidateRecord.firstName).isEqualTo(firstName)
@@ -64,7 +65,7 @@ class MatchServiceIntTest : IntegrationTestBase() {
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.988899))
     stubMatchScore(matchResponse)
 
-    val highConfidenceMatches = matchService.findHighConfidenceMatches(candidateRecords, newRecord)
+    val highConfidenceMatches = matchService.findHighConfidenceMatches(candidateRecords, PersonSearchCriteria.from(newRecord))
     assertThat(highConfidenceMatches.size).isEqualTo(0)
   }
 
@@ -96,7 +97,7 @@ class MatchServiceIntTest : IntegrationTestBase() {
       PersonEntity.from(newRecord2),
     )
 
-    val highConfidenceMatches = matchService.findHighConfidenceMatches(candidateRecords, newRecord1)
+    val highConfidenceMatches = matchService.findHighConfidenceMatches(candidateRecords, PersonSearchCriteria.from(newRecord1))
     assertThat(highConfidenceMatches.size).isEqualTo(2)
     assertThat(highConfidenceMatches[0].probability).isEqualTo(0.999999)
     assertThat(highConfidenceMatches[0].candidateRecord.firstName).isEqualTo(newRecord1.firstName)
@@ -121,7 +122,7 @@ class MatchServiceIntTest : IntegrationTestBase() {
     stubMatchScore(matchResponse)
 
     val candidateRecords: List<PersonEntity> = generateSequence { PersonEntity.from(newRecord) }.take(100).toList()
-    val highConfidenceMatches = matchService.findHighConfidenceMatches(candidateRecords, newRecord)
+    val highConfidenceMatches = matchService.findHighConfidenceMatches(candidateRecords, PersonSearchCriteria.from(newRecord))
 
     assertThat(wiremock.findAll(postRequestedFor(urlEqualTo("/person/match"))).size).isEqualTo(2)
     assertThat(highConfidenceMatches.size).isEqualTo(100)

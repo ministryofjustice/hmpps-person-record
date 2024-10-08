@@ -88,8 +88,8 @@ class IntegrationTestBase {
       OverrideMarkerEntity(
         markerType = OverrideMarkerType.EXCLUDE,
         markerValue = excludingRecord.id.toString(),
-        person = sourceRecord
-      )
+        person = sourceRecord,
+      ),
     )
     personRepository.saveAndFlush(sourceRecord)
   }

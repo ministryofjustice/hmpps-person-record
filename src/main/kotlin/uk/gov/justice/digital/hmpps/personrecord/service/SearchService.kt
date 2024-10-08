@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonBlockingRulesRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQueries
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQuery
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
@@ -33,11 +34,15 @@ class SearchService(
     return matches.firstOrNull()?.candidateRecord
   }
 
-  fun findCandidateRecordsBySourceSystem(person: Person): List<MatchResult> = searchForRecords(person, PersonQueries.findCandidatesBySourceSystem(person))
+  fun findCandidateRecordsBySourceSystem(person: Person): List<MatchResult> {
+    val searchCriteria = PersonSearchCriteria.from(person)
+    return searchForRecords(searchCriteria, PersonQueries.findCandidatesBySourceSystem(searchCriteria))
+  }
 
-  fun findCandidateRecordsWithUuid(person: Person, personRecordId: Long? = null): List<MatchResult> {
-    val candidates = searchForRecords(person, PersonQueries.findCandidatesWithUuid(person))
-    return filterClustersWithExcludeMarker(candidates, personRecordId)
+  fun findCandidateRecordsWithUuid(personEntity: PersonEntity): List<MatchResult> {
+    val searchCriteria = PersonSearchCriteria.from(personEntity)
+    val candidates = searchForRecords(searchCriteria, PersonQueries.findCandidatesWithUuid(searchCriteria))
+    return filterClustersWithExcludeMarker(candidates, searchCriteria.id)
   }
 
   private fun filterClustersWithExcludeMarker(candidates: List<MatchResult>, personRecordId: Long?): List<MatchResult> {
@@ -50,18 +55,18 @@ class SearchService(
     return candidates.filter { candidate -> excludedClusters.contains(candidate.candidateRecord.personKey?.personId).not() }
   }
 
-  private fun searchForRecords(person: Person, personQuery: PersonQuery): List<MatchResult> {
+  private fun searchForRecords(searchCriteria: PersonSearchCriteria, personQuery: PersonQuery): List<MatchResult> {
     val highConfidenceMatches = mutableListOf<MatchResult>()
-    val matchCandidates = personRepository.findMatchCandidates(person, personQuery.query)
+    val matchCandidates = personRepository.findMatchCandidates(searchCriteria, personQuery.query)
     val totalElements = matchCandidates.size
 
-    val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(matchCandidates, person)
+    val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(matchCandidates, searchCriteria)
     highConfidenceMatches.addAll(batchOfHighConfidenceMatches)
 
     telemetryService.trackEvent(
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
-        EventKeys.SOURCE_SYSTEM to person.sourceSystemType.name,
+        EventKeys.SOURCE_SYSTEM to searchCriteria.sourceSystemType.name,
         EventKeys.RECORD_COUNT to totalElements.toString(),
         EventKeys.SEARCH_VERSION to PersonQueries.SEARCH_VERSION,
         EventKeys.HIGH_CONFIDENCE_COUNT to highConfidenceMatches.count().toString(),

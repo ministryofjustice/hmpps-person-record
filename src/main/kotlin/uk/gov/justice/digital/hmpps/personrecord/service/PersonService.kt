@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
@@ -50,7 +51,7 @@ class PersonService(
   }
 
   private fun processSelfMatchScore(person: Person) {
-    val (isAboveSelfMatchThreshold, selfMatchScore) = matchService.getSelfMatchScore(person)
+    val (isAboveSelfMatchThreshold, selfMatchScore) = matchService.getSelfMatchScore(PersonSearchCriteria.from(person))
     person.selfMatchScore = selfMatchScore
     person.isAboveMatchScoreThreshold = isAboveSelfMatchThreshold
     trackEvent(
@@ -77,7 +78,7 @@ class PersonService(
   }
 
   private fun getPersonKey(person: Person, personEntity: PersonEntity): PersonKeyEntity {
-    val linkedPersonEntity = searchByAllSourceSystemsAndHasUuid(person, personEntity)
+    val linkedPersonEntity = searchByAllSourceSystemsAndHasUuid(personEntity)
     return when {
       linkedPersonEntity == null -> createPersonKey(person)
       else -> retrievePersonKey(person, linkedPersonEntity)
@@ -146,8 +147,8 @@ class PersonService(
     return personEntity.personKey!!
   }
 
-  fun searchByAllSourceSystemsAndHasUuid(person: Person, personEntity: PersonEntity): PersonEntity? {
-    val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecordsWithUuid(person, personEntity.id)
+  fun searchByAllSourceSystemsAndHasUuid(personEntity: PersonEntity): PersonEntity? {
+    val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecordsWithUuid(personEntity)
     return searchService.processCandidateRecords(highConfidenceMatches)
   }
 

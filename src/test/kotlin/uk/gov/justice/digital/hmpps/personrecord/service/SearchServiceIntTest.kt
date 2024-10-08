@@ -80,13 +80,15 @@ class SearchServiceIntTest : IntegrationTestBase() {
   fun `should find candidate records only in searching in different source systems`() {
     val firstName = randomName()
     val lastName = randomName()
-    val personToFind = Person(
-      firstName = firstName,
-      lastName = lastName,
-      dateOfBirth = LocalDate.of(1975, 1, 1),
-      sourceSystemType = LIBRA,
+    val personToFind = createPerson(
+      Person(
+        firstName = firstName,
+        lastName = lastName,
+        dateOfBirth = LocalDate.of(1975, 1, 1),
+        sourceSystemType = LIBRA,
+      ),
+      personKeyEntity = createPersonKey(),
     )
-    createPerson(personToFind, personKeyEntity = createPersonKey())
     createPerson(
       Person(
         firstName = firstName,
@@ -199,11 +201,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
   @Test
   fun `should find candidate records with a uuid`() {
     val driverLicenseNumber = randomDriverLicenseNumber()
-    val personToFind = Person(
-      references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
-      sourceSystemType = COMMON_PLATFORM,
+    val personToFind = createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
+      personKeyEntity = createPersonKey(),
     )
-    createPerson(personToFind, personKeyEntity = createPersonKey())
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
@@ -222,11 +226,12 @@ class SearchServiceIntTest : IntegrationTestBase() {
   @Test
   fun `should not find candidate records with no uuid`() {
     val driverLicenseNumber = randomDriverLicenseNumber()
-    val personToFind = Person(
-      references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
-      sourceSystemType = COMMON_PLATFORM,
+    val personToFind = createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
     )
-    createPerson(personToFind)
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
@@ -517,7 +522,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.addresses[0].postcode).isEqualTo("LS2 1AB")
@@ -585,7 +590,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       lastName = lastName,
       sourceSystemType = COMMON_PLATFORM,
     )
-    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
     noCandidatesFound(candidateRecords)
   }
@@ -608,7 +613,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
     mergeRecord(sourcePerson, targetPerson)
 
-    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
     noCandidatesFound(candidateRecords)
   }
@@ -629,7 +634,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       addresses = listOf(Address(postcode = "LS1 1AB")),
       sourceSystemType = COMMON_PLATFORM,
     )
-    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
     noCandidatesFound(candidateRecords)
   }
@@ -653,7 +658,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind, excludedRecord.id)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(excludedRecord)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.id).isEqualTo(excludedRecord.id)
