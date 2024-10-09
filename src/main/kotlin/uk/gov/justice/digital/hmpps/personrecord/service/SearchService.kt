@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonBlockingRulesRepository
@@ -56,12 +58,22 @@ class SearchService(
   }
 
   private fun searchForRecords(searchCriteria: PersonSearchCriteria, personQuery: PersonQuery): List<MatchResult> {
+    var pageNumber = 0
     val highConfidenceMatches = mutableListOf<MatchResult>()
-    val matchCandidates = personRepository.findMatchCandidates(searchCriteria, personQuery.query)
-    val totalElements = matchCandidates.size
+    val totalElements = personRepository.countMatchCandidates(personQuery.query, searchCriteria)
+    var matchCandidatesPage: Page<PersonEntity>
 
-    val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(matchCandidates, searchCriteria)
-    highConfidenceMatches.addAll(batchOfHighConfidenceMatches)
+    do {
+      val pageable = PageRequest.of(pageNumber, PAGE_SIZE)
+
+      matchCandidatesPage = personRepository.findMatchCandidates(searchCriteria, personQuery.query, pageable, totalElements)
+      val matchCandidates = matchCandidatesPage.content
+
+      val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(matchCandidates, searchCriteria)
+      highConfidenceMatches.addAll(batchOfHighConfidenceMatches)
+
+      pageNumber++
+    } while (matchCandidatesPage.hasNext())
 
     telemetryService.trackEvent(
       CPR_CANDIDATE_RECORD_SEARCH,
