@@ -64,6 +64,10 @@ class PersonEntity(
   var sentenceInfo: MutableList<SentenceInfoEntity> = mutableListOf(),
 
   @Column
+  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  var overrideMarkers: MutableList<OverrideMarkerEntity> = mutableListOf(),
+
+  @Column
   var crn: String? = null,
 
   @Column(name = "defendant_id")
@@ -116,6 +120,11 @@ class PersonEntity(
   var version: Int = 0,
 
 ) {
+
+  fun getIdentifiersForMatching(identifiers: List<IdentifierType>): List<ReferenceEntity> {
+    return this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }
+  }
+
   fun update(person: Person) {
     this.title = person.title
     this.firstName = person.firstName

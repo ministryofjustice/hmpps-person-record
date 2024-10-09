@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.MatchRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
 
@@ -22,15 +22,15 @@ class MatchService(
   private val retryDelay: Long = 0,
 ) {
 
-  fun findHighConfidenceMatches(candidateRecords: List<PersonEntity>, newRecord: Person): List<MatchResult> {
+  fun findHighConfidenceMatches(candidateRecords: List<PersonEntity>, searchCriteria: PersonSearchCriteria): List<MatchResult> {
     val highConfidenceMatches = candidateRecords.chunked(MAX_RECORDS).flatMap {
-      collectHighConfidenceCandidates(it, newRecord)
+      collectHighConfidenceCandidates(it, searchCriteria)
     }
     return highConfidenceMatches
   }
 
-  private fun collectHighConfidenceCandidates(candidateRecords: List<PersonEntity>, newRecord: Person): List<MatchResult> {
-    val candidateScores: List<MatchResult> = scores(candidateRecords, newRecord)
+  private fun collectHighConfidenceCandidates(candidateRecords: List<PersonEntity>, searchCriteria: PersonSearchCriteria): List<MatchResult> {
+    val candidateScores: List<MatchResult> = scores(candidateRecords, searchCriteria)
     candidateScores.forEach { candidate ->
       telemetryService.trackEvent(
         CPR_MATCH_SCORE,
@@ -43,8 +43,8 @@ class MatchService(
     return candidateScores.filter { candidate -> isAboveThreshold(candidate.probability) }
   }
 
-  private fun scores(candidateRecords: List<PersonEntity>, newRecord: Person): List<MatchResult> {
-    val fromMatchRecord = MatchRecord.from(newRecord)
+  private fun scores(candidateRecords: List<PersonEntity>, searchCriteria: PersonSearchCriteria): List<MatchResult> {
+    val fromMatchRecord = MatchRecord.from(searchCriteria)
     val toMatchRecords: List<MatchingRecord> = candidateRecords.map { personEntity ->
       MatchingRecord(
         matchRecord = MatchRecord.from(personEntity),
@@ -66,8 +66,8 @@ class MatchService(
     return matchResult
   }
 
-  fun getSelfMatchScore(newRecord: Person): Pair<Boolean, Double> {
-    val matchRecord = MatchRecord.from(newRecord)
+  fun getSelfMatchScore(searchCriteria: PersonSearchCriteria): Pair<Boolean, Double> {
+    val matchRecord = MatchRecord.from(searchCriteria)
     val matchRequest = MatchRequest(
       matchingFrom = matchRecord,
       matchingTo = listOf(matchRecord),

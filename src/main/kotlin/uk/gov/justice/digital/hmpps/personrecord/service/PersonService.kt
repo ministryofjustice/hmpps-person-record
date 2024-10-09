@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
@@ -50,7 +51,7 @@ class PersonService(
   }
 
   private fun processSelfMatchScore(person: Person) {
-    val (isAboveSelfMatchThreshold, selfMatchScore) = matchService.getSelfMatchScore(person)
+    val (isAboveSelfMatchThreshold, selfMatchScore) = matchService.getSelfMatchScore(PersonSearchCriteria.from(person))
     person.selfMatchScore = selfMatchScore
     person.isAboveMatchScoreThreshold = isAboveSelfMatchThreshold
     trackEvent(
@@ -67,19 +68,20 @@ class PersonService(
     if (isUpdateEvent(event)) {
       trackEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
     }
+    val personEntity = createPersonEntity(person)
     val personKey: PersonKeyEntity? = when {
-      person.isAboveMatchScoreThreshold -> getPersonKey(person)
+      person.isAboveMatchScoreThreshold -> getPersonKey(person, personEntity)
       else -> handleLowSelfMatchScore(person)
     }
-    createPersonEntity(person, personKey)
+    linkToPersonKey(personEntity, personKey)
     trackEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
   }
 
-  private fun getPersonKey(person: Person): PersonKeyEntity {
-    val personEntity = searchByAllSourceSystemsAndHasUuid(person)
+  private fun getPersonKey(person: Person, personEntity: PersonEntity): PersonKeyEntity {
+    val linkedPersonEntity = searchByAllSourceSystemsAndHasUuid(personEntity)
     return when {
-      personEntity == null -> createPersonKey(person)
-      else -> retrievePersonKey(person, personEntity)
+      linkedPersonEntity == null -> createPersonKey(person)
+      else -> retrievePersonKey(person, linkedPersonEntity)
     }
   }
 
@@ -105,10 +107,16 @@ class PersonService(
     personRepository.saveAndFlush(personEntity)
   }
 
-  private fun createPersonEntity(person: Person, personKeyEntity: PersonKeyEntity?) {
+  private fun createPersonEntity(person: Person): PersonEntity {
     val personEntity = PersonEntity.from(person)
-    personEntity.personKey = personKeyEntity
-    personRepository.saveAndFlush(personEntity)
+    return personRepository.saveAndFlush(personEntity)
+  }
+
+  private fun linkToPersonKey(personEntity: PersonEntity, personKeyEntity: PersonKeyEntity?) {
+    personKeyEntity.let {
+      personEntity.personKey = personKeyEntity
+      personRepository.saveAndFlush(personEntity)
+    }
   }
 
   private fun isUpdateEvent(event: String?) = listOf(
@@ -139,8 +147,8 @@ class PersonService(
     return personEntity.personKey!!
   }
 
-  fun searchByAllSourceSystemsAndHasUuid(person: Person): PersonEntity? {
-    val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecordsWithUuid(person)
+  fun searchByAllSourceSystemsAndHasUuid(personEntity: PersonEntity): PersonEntity? {
+    val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecordsWithUuid(personEntity)
     return searchService.processCandidateRecords(highConfidenceMatches)
   }
 

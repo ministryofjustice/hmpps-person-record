@@ -1,53 +1,48 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries
 
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
 
 object PersonQueries {
 
   const val SEARCH_VERSION = "1.5"
-  val SEARCH_IDENTIFIERS = listOf(PNC, CRO, NATIONAL_INSURANCE_NUMBER, DRIVER_LICENSE_NUMBER)
 
-  fun findCandidatesWithUuid(person: Person): PersonQuery = PersonQuery(
+  fun findCandidatesWithUuid(searchCriteria: PersonSearchCriteria): PersonQuery = PersonQuery(
     queryName = PersonQueryType.FIND_CANDIDATES_WITH_UUID,
     query = generateFindCandidatesSQL(
       BlockingRules(globalConditions = BlockingRules.hasPersonKey()),
-      person,
+      searchCriteria,
     ),
   )
 
-  fun findCandidatesBySourceSystem(person: Person): PersonQuery = PersonQuery(
+  fun findCandidatesBySourceSystem(searchCriteria: PersonSearchCriteria): PersonQuery = PersonQuery(
     queryName = PersonQueryType.FIND_CANDIDATES_BY_SOURCE_SYSTEM,
     query = generateFindCandidatesSQL(
-      BlockingRules(globalConditions = BlockingRules.exactMatchSourceSystem(person.sourceSystemType)),
-      person,
+      BlockingRules(globalConditions = BlockingRules.exactMatchSourceSystem(searchCriteria.sourceSystemType)),
+      searchCriteria,
     ),
   )
 
-  private fun generateFindCandidatesSQL(blockingRules: BlockingRules, person: Person): String {
+  private fun generateFindCandidatesSQL(blockingRules: BlockingRules, searchCriteria: PersonSearchCriteria): String {
     val rules: MutableList<String> = mutableListOf()
     rules.addAll(
-      person.getIdentifiersForMatching().map {
+      searchCriteria.identifiers.map {
         blockingRules.exactMatchOnIdentifier(it.identifierType, it.identifierValue)
       },
     )
     rules.addAll(
-      person.addresses.mapNotNull { it.postcode }.map {
+      searchCriteria.postcodes.map {
         blockingRules.matchFirstPartPostcode(it)
       },
     )
-    rules.addAll(twoDatePartMatch(blockingRules, person))
+    rules.addAll(twoDatePartMatch(blockingRules, searchCriteria))
     return blockingRules.union(rules)
   }
 
-  private fun twoDatePartMatch(blockingRules: BlockingRules, person: Person): List<String> {
+  private fun twoDatePartMatch(blockingRules: BlockingRules, searchCriteria: PersonSearchCriteria): List<String> {
     return listOf(
-      blockingRules.yearAndDayMatch(person.dateOfBirth),
-      blockingRules.monthAndDayMatch(person.dateOfBirth),
-      blockingRules.yearAndMonthMatch(person.dateOfBirth),
+      blockingRules.yearAndDayMatch(searchCriteria.dateOfBirth),
+      blockingRules.monthAndDayMatch(searchCriteria.dateOfBirth),
+      blockingRules.yearAndMonthMatch(searchCriteria.dateOfBirth),
     )
   }
 }

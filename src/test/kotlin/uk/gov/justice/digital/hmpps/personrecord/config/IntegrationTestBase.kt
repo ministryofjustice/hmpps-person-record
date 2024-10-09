@@ -14,11 +14,13 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDO
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
 import uk.gov.justice.digital.hmpps.personrecord.health.HealthInfo
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import java.util.concurrent.TimeUnit.SECONDS
@@ -78,6 +80,17 @@ class IntegrationTestBase {
 
   internal fun mergeRecord(sourceRecord: PersonEntity, targetRecord: PersonEntity) {
     sourceRecord.mergedTo = targetRecord.id
+    personRepository.saveAndFlush(sourceRecord)
+  }
+
+  internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
+    sourceRecord.overrideMarkers.add(
+      OverrideMarkerEntity(
+        markerType = OverrideMarkerType.EXCLUDE,
+        markerValue = excludingRecord.id.toString(),
+        person = sourceRecord,
+      ),
+    )
     personRepository.saveAndFlush(sourceRecord)
   }
 

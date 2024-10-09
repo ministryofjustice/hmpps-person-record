@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import java.util.UUID
 
@@ -52,12 +52,12 @@ data class MatchRecord(
   val pnc: String? = "",
 ) {
   companion object {
-    fun from(newRecord: Person): MatchRecord {
+    fun from(searchCriteria: PersonSearchCriteria): MatchRecord {
       return MatchRecord(
-        firstName = newRecord.firstName,
-        lastname = newRecord.lastName,
-        dateOfBirth = newRecord.dateOfBirth?.toString(),
-        pnc = newRecord.references.firstOrNull { it.identifierType == IdentifierType.PNC }?.identifierValue,
+        firstName = searchCriteria.firstName,
+        lastname = searchCriteria.lastName,
+        dateOfBirth = searchCriteria.dateOfBirth?.toString(),
+        pnc = searchCriteria.identifiers.firstOrNull { it.identifierType == IdentifierType.PNC }?.identifierValue,
       )
     }
 
