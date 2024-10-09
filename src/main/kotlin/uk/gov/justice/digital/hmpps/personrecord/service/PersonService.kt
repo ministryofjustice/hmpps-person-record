@@ -35,19 +35,20 @@ class PersonService(
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
-  fun processMessage(person: Person, event: String? = null, callback: (isAboveSelfMatchThreshold: Boolean) -> PersonEntity?) = runBlocking {
+  fun processMessage(person: Person, event: String? = null, callback: (isAboveSelfMatchThreshold: Boolean) -> PersonEntity?): PersonEntity? = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
-      readWriteLockService.withWriteLock(person.sourceSystemType) { processPerson(person, event, callback) }
+      readWriteLockService.withWriteLock(person.sourceSystemType) { return@withWriteLock processPerson(person, event, callback) }
     }
   }
 
-  private fun processPerson(person: Person, event: String?, callback: (isAboveSelfMatchThreshold: Boolean) -> PersonEntity?) {
+  private fun processPerson(person: Person, event: String?, callback: (isAboveSelfMatchThreshold: Boolean) -> PersonEntity?): PersonEntity {
     processSelfMatchScore(person)
     val existingPersonEntity: PersonEntity? = callback(person.isAboveMatchScoreThreshold)
-    when {
+    val personEntity: PersonEntity = when {
       (existingPersonEntity == null) -> handlePersonCreation(person, event)
       else -> handlePersonUpdate(person, existingPersonEntity, event)
     }
+    return personEntity
   }
 
   private fun processSelfMatchScore(person: Person) {
@@ -64,7 +65,7 @@ class PersonService(
     )
   }
 
-  private fun handlePersonCreation(person: Person, event: String?) {
+  private fun handlePersonCreation(person: Person, event: String?): PersonEntity {
     if (isUpdateEvent(event)) {
       trackEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
     }
@@ -75,6 +76,7 @@ class PersonService(
     }
     linkToPersonKey(personEntity, personKey)
     trackEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
+    return personEntity
   }
 
   private fun getPersonKey(person: Person, personEntity: PersonEntity): PersonKeyEntity {
@@ -94,17 +96,18 @@ class PersonService(
     return PersonKeyEntity.empty
   }
 
-  private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?) {
+  private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?): PersonEntity {
     if (isCreateEvent(event)) {
       trackEvent(CPR_NEW_RECORD_EXISTS, person)
     }
-    updateExistingPersonEntity(person, existingPersonEntity)
+    val updatedEntity = updateExistingPersonEntity(person, existingPersonEntity)
     trackEvent(TelemetryEventType.CPR_RECORD_UPDATED, person)
+    return updatedEntity
   }
 
-  private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity) {
+  private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
     personEntity.update(person)
-    personRepository.saveAndFlush(personEntity)
+    return personRepository.saveAndFlush(personEntity)
   }
 
   private fun createPersonEntity(person: Person): PersonEntity {

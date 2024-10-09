@@ -2,23 +2,23 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import jakarta.transaction.Transactional
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.MergeService.Companion.MAX_ATTEMPTS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_SELF_MATCH
 
 @Service
 class UnmergeService(
   private val telemetryService: TelemetryService,
-  private val matchService: MatchService,
+  private val personService: PersonService,
+  private val personRepository: PersonRepository,
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
@@ -30,29 +30,23 @@ class UnmergeService(
   }
 
   private suspend fun processUnmergingOfRecords(reactivatedPerson: Person, unmergedPerson: Person) {
-    collectSelfMatchScores(reactivatedPerson, unmergedPerson)
+    val (reactivatedPersonEntity, unmergedPersonEntity) = collectPersonEntities(reactivatedPerson, unmergedPerson)
   }
 
-  private suspend fun collectSelfMatchScores(reactivatedPerson: Person, unmergedPerson: Person) {
+  private suspend fun collectPersonEntities(reactivatedPerson: Person, unmergedPerson: Person): Pair<PersonEntity?, PersonEntity?> {
     return coroutineScope {
-      val deferredReactivatedSelfMatch = async { processSelfMatchScore(reactivatedPerson) }
-      val deferredUnmergedSelfMatchScore = async { processSelfMatchScore(unmergedPerson) }
-      awaitAll(deferredReactivatedSelfMatch, deferredUnmergedSelfMatchScore)
+      val deferredReactivatedPersonSearch = async {
+        personService.processMessage(reactivatedPerson) {
+          personRepository.findByCrn(reactivatedPerson.crn!!)
+        }
+      }
+      val deferredUnmergedPersonSearch = async {
+        personService.processMessage(unmergedPerson) {
+          personRepository.findByCrn(unmergedPerson.crn!!)
+        }
+      }
+      Pair(deferredReactivatedPersonSearch.await(), deferredUnmergedPersonSearch.await())
     }
-  }
-
-  private fun processSelfMatchScore(person: Person) {
-    val (isAboveSelfMatchThreshold, selfMatchScore) = matchService.getSelfMatchScore(PersonSearchCriteria.from(person))
-    person.selfMatchScore = selfMatchScore
-    person.isAboveMatchScoreThreshold = isAboveSelfMatchThreshold
-    trackEvent(
-      CPR_SELF_MATCH,
-      person,
-      mapOf(
-        EventKeys.PROBABILITY_SCORE to selfMatchScore.toString(),
-        EventKeys.IS_ABOVE_SELF_MATCH_THRESHOLD to isAboveSelfMatchThreshold.toString(),
-      ),
-    )
   }
 
   private fun trackEvent(

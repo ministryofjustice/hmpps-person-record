@@ -20,10 +20,13 @@ data class ApiResponseSetupAddress(
 data class ApiResponseSetupSentences(val sentenceDate: LocalDate?)
 
 data class ApiResponseSetup(
+  val title: String? = null,
   val crn: String? = null,
   val cro: String? = null,
   val pnc: String? = null,
   val prefix: String? = null,
+  val firstName: String? = null,
+  val lastName: String? = null,
   val nationality: String? = null,
   val religion: String? = null,
   val prisonNumber: String? = null,
