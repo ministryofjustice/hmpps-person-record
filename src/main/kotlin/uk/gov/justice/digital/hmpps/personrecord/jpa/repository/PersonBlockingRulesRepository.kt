@@ -21,9 +21,24 @@ class PersonBlockingRulesRepository {
 
     // apply pagination
     query.setFirstResult((pageable.offset.toInt()))
+    query.maxResults = pageable.pageSize
 
     val results = query.resultList as List<PersonEntity>
 
-    return PageImpl(results, pageable, results.size.toLong())
+    val countQuery = countMatchCandidates(personQuery, person)
+    return PageImpl(results, pageable, countQuery)
+  }
+
+  fun countMatchCandidates(personQuery: String, person: Person): Long {
+    val queryString = "SELECT COUNT (*) FROM ($personQuery) AS total"
+
+    println("executing count query " + queryString)
+
+    val query = entityManager!!.createNativeQuery(queryString)
+
+    query.setParameter("firstName", person.firstName)
+    query.setParameter("lastName", person.lastName)
+
+    return (query.singleResult as Number).toLong()
   }
 }
