@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
@@ -14,6 +15,11 @@ class PersonKeyService(
   private val personKeyRepository: PersonKeyRepository,
   private val telemetryService: TelemetryService,
 ) {
+
+  fun setPersonKeyStatus(personKeyEntity: PersonKeyEntity, status: UUIDStatusType) {
+    personKeyEntity.status = status
+    personKeyRepository.saveAndFlush(personKeyEntity)
+  }
 
   fun getPersonKey(personEntity: PersonEntity): PersonKeyEntity {
     val highConfidenceRecordWithUuid = searchByAllSourceSystemsAndHasUuid(personEntity)

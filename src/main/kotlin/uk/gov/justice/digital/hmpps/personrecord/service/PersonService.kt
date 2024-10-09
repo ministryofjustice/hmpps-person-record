@@ -32,17 +32,17 @@ class PersonService(
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
-  fun processMessage(person: Person, event: String? = null, callback: (isAboveSelfMatchThreshold: Boolean) -> PersonEntity?): PersonEntity = runBlocking {
+  fun processMessage(person: Person, event: String? = null, linkRecord: Boolean = true, callback: (isAboveSelfMatchThreshold: Boolean) -> PersonEntity?): PersonEntity = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
-      readWriteLockService.withWriteLock(person.sourceSystemType) { return@withWriteLock processPerson(person, event, callback) }
+      readWriteLockService.withWriteLock(person.sourceSystemType) { return@withWriteLock processPerson(person, event, linkRecord, callback) }
     }
   }
 
-  private fun processPerson(person: Person, event: String?, callback: (isAboveSelfMatchThreshold: Boolean) -> PersonEntity?): PersonEntity {
+  private fun processPerson(person: Person, event: String?, linkRecord: Boolean, callback: (isAboveSelfMatchThreshold: Boolean) -> PersonEntity?): PersonEntity {
     processSelfMatchScore(person)
     val existingPersonEntity: PersonEntity? = callback(person.isAboveMatchScoreThreshold)
     val personEntity: PersonEntity = when {
-      (existingPersonEntity == null) -> handlePersonCreation(person, event)
+      (existingPersonEntity == null) -> handlePersonCreation(person, event, linkRecord)
       else -> handlePersonUpdate(person, existingPersonEntity, event)
     }
     return personEntity
@@ -62,13 +62,13 @@ class PersonService(
     )
   }
 
-  private fun handlePersonCreation(person: Person, event: String?): PersonEntity {
+  private fun handlePersonCreation(person: Person, event: String?, linkRecord: Boolean): PersonEntity {
     if (isUpdateEvent(event)) {
       trackEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
     }
     val personEntity = createPersonEntity(person)
     val personKey: PersonKeyEntity? = when {
-      person.isAboveMatchScoreThreshold -> personKeyService.getPersonKey(personEntity)
+      linkRecord && person.isAboveMatchScoreThreshold -> personKeyService.getPersonKey(personEntity)
       else -> handleLowSelfMatchScore(person)
     }
     linkToPersonKey(personEntity, personKey)
