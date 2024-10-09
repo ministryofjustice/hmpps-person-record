@@ -27,6 +27,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNINumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNationality
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
@@ -211,6 +212,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress(postcode = "LS1 1AB", fullAddress = "abc street")),
     sentences: List<ApiResponseSetupSentences> = listOf(ApiResponseSetupSentences(randomDate())),
     ethnicity: String = randomEthnicity(),
+    nationality: String = randomNationality(),
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
@@ -221,6 +223,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       pnc = pnc,
       prefix = prefix,
       ethnicity = ethnicity,
+      nationality = nationality,
       prisonNumber = prisonNumber,
       addresses = addresses,
       nationalInsuranceNumber = randomNINumber(),

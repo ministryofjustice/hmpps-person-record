@@ -43,6 +43,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNationality
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
@@ -70,6 +71,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val addressStartDate = randomDate()
     val addressEndDate = randomDate()
     val ethnicity = randomEthnicity()
+    val nationality = randomNationality()
     val sentenceDate = randomDate()
     val crn = probationDomainEventAndResponseSetup(
       NEW_OFFENDER_CREATED,
@@ -82,6 +84,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street"),
       ),
       ethnicity = ethnicity,
+      nationality = nationality,
       sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
     )
 
@@ -96,6 +99,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
     assertThat(personEntity.crn).isEqualTo(crn)
     assertThat(personEntity.ethnicity).isEqualTo(ethnicity)
+    assertThat(personEntity.nationality).isEqualTo(nationality)
     assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
     assertThat(personEntity.references.getType(IdentifierType.CRO).first().identifierValue).isEqualTo(cro)
     assertThat(personEntity.pseudonyms.size).isEqualTo(1)
