@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -18,24 +17,22 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DETAILS_C
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_NEW_RECORD_EXISTS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_SELF_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 
 @Service
 class PersonService(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
-  private val personKeyRepository: PersonKeyRepository,
   private val readWriteLockService: ReadWriteLockService,
   private val searchService: SearchService,
   private val matchService: MatchService,
+  private val personKeyService: PersonKeyService,
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
-  fun processMessage(person: Person, event: String? = null, callback: (isAboveSelfMatchThreshold: Boolean) -> PersonEntity?): PersonEntity? = runBlocking {
+  fun processMessage(person: Person, event: String? = null, callback: (isAboveSelfMatchThreshold: Boolean) -> PersonEntity?): PersonEntity = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
       readWriteLockService.withWriteLock(person.sourceSystemType) { return@withWriteLock processPerson(person, event, callback) }
     }
@@ -71,20 +68,12 @@ class PersonService(
     }
     val personEntity = createPersonEntity(person)
     val personKey: PersonKeyEntity? = when {
-      person.isAboveMatchScoreThreshold -> getPersonKey(person, personEntity)
+      person.isAboveMatchScoreThreshold -> personKeyService.getPersonKey(personEntity)
       else -> handleLowSelfMatchScore(person)
     }
     linkToPersonKey(personEntity, personKey)
     trackEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
     return personEntity
-  }
-
-  private fun getPersonKey(person: Person, personEntity: PersonEntity): PersonKeyEntity {
-    val linkedPersonEntity = searchByAllSourceSystemsAndHasUuid(personEntity)
-    return when {
-      linkedPersonEntity == null -> createPersonKey(person)
-      else -> retrievePersonKey(person, linkedPersonEntity)
-    }
   }
 
   private fun handleLowSelfMatchScore(person: Person): PersonKeyEntity? {
@@ -130,30 +119,6 @@ class PersonService(
   ).contains(event)
 
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
-
-  private fun createPersonKey(person: Person): PersonKeyEntity {
-    val personKey = PersonKeyEntity.new()
-    trackEvent(
-      CPR_UUID_CREATED,
-      person,
-      mapOf(EventKeys.UUID to personKey.personId.toString()),
-    )
-    return personKeyRepository.saveAndFlush(personKey)
-  }
-
-  private fun retrievePersonKey(person: Person, personEntity: PersonEntity): PersonKeyEntity {
-    trackEvent(
-      CPR_CANDIDATE_RECORD_FOUND_UUID,
-      person,
-      mapOf(EventKeys.UUID to personEntity.personKey?.personId?.toString()),
-    )
-    return personEntity.personKey!!
-  }
-
-  fun searchByAllSourceSystemsAndHasUuid(personEntity: PersonEntity): PersonEntity? {
-    val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecordsWithUuid(personEntity)
-    return searchService.processCandidateRecords(highConfidenceMatches)
-  }
 
   fun searchBySourceSystem(person: Person): PersonEntity? {
     val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecordsBySourceSystem(person)

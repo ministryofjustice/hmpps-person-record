@@ -31,6 +31,7 @@ class ProbationUnmergeEventProcessor(
 
     val (unmergedProbationCase, reactivatedProbationCase) = collectProbationCases(domainEvent)
     unmergeService.processUnmerge(
+      event = domainEvent.eventType,
       reactivatedPerson = Person.from(reactivatedProbationCase),
       unmergedPerson = Person.from(unmergedProbationCase),
     )

@@ -49,7 +49,7 @@ class SearchService(
     val clusters = candidates.groupBy { it.candidateRecord.personKey?.personId }
     val excludedClusters = clusters.filter { (_, records) ->
       records.any { record ->
-        record.candidateRecord.overrideMarkers.any { it.markerType == OverrideMarkerType.EXCLUDE && it.markerValue == personRecordId.toString() }
+        record.candidateRecord.overrideMarkers.any { it.markerType == OverrideMarkerType.EXCLUDE && it.markerValue == personRecordId }
       }
     }.map { it.key }
     return candidates.filter { candidate -> excludedClusters.contains(candidate.candidateRecord.personKey?.personId).not() }

@@ -33,7 +33,7 @@ class OverrideMarkerEntity(
   val markerType: OverrideMarkerType,
 
   @Column(name = "marker_value")
-  val markerValue: String? = null,
+  val markerValue: Long? = null,
 
   @Version
   var version: Int = 0,
