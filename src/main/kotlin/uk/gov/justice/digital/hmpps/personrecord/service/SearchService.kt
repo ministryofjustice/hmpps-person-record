@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonBlockingRulesRepository
@@ -56,21 +58,34 @@ class SearchService(
   }
 
   private fun searchForRecords(searchCriteria: PersonSearchCriteria, personQuery: PersonQuery): List<MatchResult> {
+    var pageNumber = 0
     val highConfidenceMatches = mutableListOf<MatchResult>()
-    val matchCandidates = personRepository.findMatchCandidates(searchCriteria, personQuery.query)
-    val totalElements = matchCandidates.size
+    var matchCandidatesPage: Page<PersonEntity>
+    do {
+      val pageable = PageRequest.of(pageNumber, PAGE_SIZE)
 
-    val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(matchCandidates, searchCriteria)
-    highConfidenceMatches.addAll(batchOfHighConfidenceMatches)
+      matchCandidatesPage = personRepository.findMatchCandidates(searchCriteria, personQuery.query, pageable)
+      val matchCandidates = matchCandidatesPage.content
+      val uniqueMatchCandidates = matchCandidates.distinctBy { it.id }
+
+      val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(uniqueMatchCandidates, searchCriteria)
+      highConfidenceMatches.addAll(
+        batchOfHighConfidenceMatches.filter { newMatch ->
+          highConfidenceMatches.none { it.candidateRecord.id == newMatch.candidateRecord.id }
+        },
+      )
+
+      pageNumber++
+    } while (matchCandidatesPage.hasNext())
 
     telemetryService.trackEvent(
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         EventKeys.SOURCE_SYSTEM to searchCriteria.sourceSystemType.name,
-        EventKeys.RECORD_COUNT to totalElements.toString(),
+        EventKeys.RECORD_COUNT to matchCandidatesPage.totalElements.toString(),
         EventKeys.SEARCH_VERSION to PersonQueries.SEARCH_VERSION,
         EventKeys.HIGH_CONFIDENCE_COUNT to highConfidenceMatches.count().toString(),
-        EventKeys.LOW_CONFIDENCE_COUNT to (totalElements - highConfidenceMatches.count()).toString(),
+        EventKeys.LOW_CONFIDENCE_COUNT to (matchCandidatesPage.totalElements - highConfidenceMatches.count()).toString(),
         EventKeys.QUERY to personQuery.queryName.name,
       ),
     )
