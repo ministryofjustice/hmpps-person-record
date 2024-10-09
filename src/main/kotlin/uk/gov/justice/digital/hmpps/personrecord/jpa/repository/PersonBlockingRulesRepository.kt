@@ -15,7 +15,9 @@ class PersonBlockingRulesRepository {
   private val entityManager: EntityManager? = null
 
   fun findMatchCandidates(searchCriteria: PersonSearchCriteria, personQuery: String, pageable: Pageable): Page<PersonEntity> {
+    val countQuery = countMatchCandidates(personQuery, searchCriteria)
     val query = entityManager!!.createNativeQuery(personQuery, PersonEntity::class.java)
+
     query.setParameter("firstName", searchCriteria.firstName)
     query.setParameter("lastName", searchCriteria.lastName)
 
@@ -25,7 +27,6 @@ class PersonBlockingRulesRepository {
 
     val results = query.resultList as List<PersonEntity>
 
-    val countQuery = countMatchCandidates(personQuery, searchCriteria)
     return PageImpl(results, pageable, countQuery)
   }
 
