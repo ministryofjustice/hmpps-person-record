@@ -14,20 +14,19 @@ class PersonBlockingRulesRepository {
   @PersistenceContext
   private val entityManager: EntityManager? = null
 
-  fun findMatchCandidates(searchCriteria: PersonSearchCriteria, personQuery: String, pageable: Pageable): Page<PersonEntity> {
-    val countQuery = countMatchCandidates(personQuery, searchCriteria)
+  fun findMatchCandidates(searchCriteria: PersonSearchCriteria, personQuery: String, pageable: Pageable, totalResults: Long?): Page<PersonEntity> {
     val query = entityManager!!.createNativeQuery(personQuery, PersonEntity::class.java)
 
     query.setParameter("firstName", searchCriteria.firstName)
     query.setParameter("lastName", searchCriteria.lastName)
 
     // apply pagination
-    query.setFirstResult((pageable.offset.toInt()))
+    query.firstResult = pageable.offset.toInt()
     query.maxResults = pageable.pageSize
 
     val results = query.resultList as List<PersonEntity>
 
-    return PageImpl(results, pageable, countQuery)
+    return PageImpl(results, pageable, totalResults ?: 0L)
   }
 
   fun countMatchCandidates(personQuery: String, person: PersonSearchCriteria): Long {
