@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.UnmergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -33,14 +34,18 @@ class ProbationUnmergeEventProcessor(
 
     val (unmergedProbationCase, reactivatedProbationCase) = collectProbationCases(domainEvent)
     unmergeService.processUnmerge(
-      event = domainEvent.eventType,
-      reactivatedPerson = Person.from(reactivatedProbationCase),
-      unmergedPerson = Person.from(unmergedProbationCase),
+      UnmergeEvent(
+        event = domainEvent.eventType,
+        reactivatedRecord = Person.from(reactivatedProbationCase),
+        reactivatedSystemId = Pair(EventKeys.REACTIVATED_CRN, reactivatedProbationCase.identifiers.crn!!),
+        unmergedRecord = Person.from(unmergedProbationCase),
+        unmergedSystemId = Pair(EventKeys.UNMERGED_CRN, unmergedProbationCase.identifiers.crn!!)
+      ),
       reactivatedPersonCallback = {
-        personRepository.findByCrn(reactivatedProbationCase.identifiers.crn!!)
+        personRepository.findByCrn(reactivatedProbationCase.identifiers.crn)
       },
       unmergedPersonCallback = {
-        personRepository.findByCrn(unmergedProbationCase.identifiers.crn!!)
+        personRepository.findByCrn(unmergedProbationCase.identifiers.crn)
       },
     )
   }
