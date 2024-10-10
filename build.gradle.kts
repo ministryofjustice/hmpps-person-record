@@ -30,6 +30,11 @@ dependencies {
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.3")
   implementation("org.springframework.security:spring-security-config:6.3.3")
+  constraints {
+    implementation("commons-io:commons-io:2.17.0") {
+      because("2.13.0 has CVEs")
+    }
+  }
   implementation("commons-io:commons-io:2.17.0")
   constraints {
     implementation("org.bouncycastle:bcprov-jdk18on:1.78.1") {
