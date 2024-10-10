@@ -23,21 +23,21 @@ class UnmergeService(
 ) {
 
   @Transactional
-  fun processUnmerge(event: String, reactivatedPerson: Person, unmergedPerson: Person) = runBlocking {
+  fun processUnmerge(event: String, reactivatedPerson: Person, unmergedPerson: Person, reactivatedPersonCallback: () -> PersonEntity?, unmergedPersonCallback: () -> PersonEntity?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
-      processUnmergingOfRecords(event, reactivatedPerson, unmergedPerson)
+      processUnmergingOfRecords(event, reactivatedPerson, unmergedPerson, reactivatedPersonCallback, unmergedPersonCallback)
     }
   }
 
-  private suspend fun processUnmergingOfRecords(event: String, reactivatedPerson: Person, unmergedPerson: Person) {
-    val unmergedPersonEntity = processUnmergedPerson(event, unmergedPerson)
-    val reactivatedPersonEntity = processReactivatedPerson(event, reactivatedPerson)
+  private suspend fun processUnmergingOfRecords(event: String, reactivatedPerson: Person, unmergedPerson: Person, reactivatedPersonCallback: () -> PersonEntity?, unmergedPersonCallback: () -> PersonEntity?) {
+    val unmergedPersonEntity = processUnmergedPerson(event, unmergedPerson, unmergedPersonCallback)
+    val reactivatedPersonEntity = processReactivatedPerson(event, reactivatedPerson, reactivatedPersonCallback)
     addExcludeOverrideMarkers(reactivatedPersonEntity, unmergedPersonEntity)
   }
 
-  private fun processUnmergedPerson(event: String, unmergedPerson: Person): PersonEntity {
+  private fun processUnmergedPerson(event: String, unmergedPerson: Person, unmergedPersonCallback: () -> PersonEntity?): PersonEntity {
     val unmergedPersonEntity = personService.processMessage(unmergedPerson, event) {
-      personRepository.findByCrn(unmergedPerson.crn!!)
+      unmergedPersonCallback()
     }
     if (isNotSingleRecordCluster(unmergedPersonEntity)) {
       personKeyService.setPersonKeyStatus(unmergedPersonEntity.personKey!!, UUIDStatusType.NEEDS_ATTENTION)
@@ -45,9 +45,9 @@ class UnmergeService(
     return unmergedPersonEntity
   }
 
-  private fun processReactivatedPerson(event: String, reactivatedPerson: Person): PersonEntity {
+  private fun processReactivatedPerson(event: String, reactivatedPerson: Person, reactivatedPersonCallback: () -> PersonEntity?): PersonEntity {
     val reactivatedPersonEntity = personService.processMessage(reactivatedPerson, event, linkRecord = false) {
-      personRepository.findByCrn(reactivatedPerson.crn!!)
+      reactivatedPersonCallback()
     }
     // CPR-399
     return reactivatedPersonEntity
