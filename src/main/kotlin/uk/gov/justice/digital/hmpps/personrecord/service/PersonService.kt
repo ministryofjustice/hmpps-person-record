@@ -52,7 +52,7 @@ class PersonService(
     val (isAboveSelfMatchThreshold, selfMatchScore) = matchService.getSelfMatchScore(PersonSearchCriteria.from(person))
     person.selfMatchScore = selfMatchScore
     person.isAboveMatchScoreThreshold = isAboveSelfMatchThreshold
-    trackEvent(
+    telemetryService.trackEventWithIds(
       CPR_SELF_MATCH,
       person,
       mapOf(
@@ -64,7 +64,7 @@ class PersonService(
 
   private fun handlePersonCreation(person: Person, event: String?, linkRecord: Boolean): PersonEntity {
     if (isUpdateEvent(event)) {
-      trackEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
+      telemetryService.trackEventWithIds(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
     }
     val personEntity = createPersonEntity(person)
     val personKey: PersonKeyEntity? = when {
@@ -72,12 +72,12 @@ class PersonService(
       else -> handleLowSelfMatchScore(person)
     }
     linkToPersonKey(personEntity, personKey)
-    trackEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
+    telemetryService.trackEventWithIds(TelemetryEventType.CPR_RECORD_CREATED, person)
     return personEntity
   }
 
   private fun handleLowSelfMatchScore(person: Person): PersonKeyEntity? {
-    trackEvent(
+    telemetryService.trackEventWithIds(
       TelemetryEventType.CPR_LOW_SELF_SCORE_NOT_CREATING_UUID,
       person,
       mapOf(EventKeys.PROBABILITY_SCORE to person.selfMatchScore.toString()),
@@ -87,10 +87,10 @@ class PersonService(
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?): PersonEntity {
     if (isCreateEvent(event)) {
-      trackEvent(CPR_NEW_RECORD_EXISTS, person)
+      telemetryService.trackEventWithIds(CPR_NEW_RECORD_EXISTS, person)
     }
     val updatedEntity = updateExistingPersonEntity(person, existingPersonEntity)
-    trackEvent(TelemetryEventType.CPR_RECORD_UPDATED, person)
+    telemetryService.trackEventWithIds(TelemetryEventType.CPR_RECORD_UPDATED, person)
     return updatedEntity
   }
 
@@ -123,20 +123,6 @@ class PersonService(
   fun searchBySourceSystem(person: Person): PersonEntity? {
     val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecordsBySourceSystem(person)
     return searchService.processCandidateRecords(highConfidenceMatches)
-  }
-
-  private fun trackEvent(
-    eventType: TelemetryEventType,
-    person: Person,
-    elementMap: Map<EventKeys, String?> = emptyMap(),
-  ) {
-    val identifierMap = mapOf(
-      EventKeys.SOURCE_SYSTEM to person.sourceSystemType.name,
-      EventKeys.DEFENDANT_ID to person.defendantId,
-      EventKeys.CRN to person.crn,
-      EventKeys.PRISON_NUMBER to person.prisonNumber,
-    )
-    telemetryService.trackEvent(eventType, identifierMap + elementMap)
   }
 
   companion object {

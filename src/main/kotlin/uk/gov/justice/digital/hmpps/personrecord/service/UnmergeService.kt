@@ -64,8 +64,10 @@ class UnmergeService(
   }
 
   private fun clusterDoesNotHadAdditionalRecords(unmergedPersonEntity: PersonEntity, reactivatedPersonEntity: PersonEntity): Boolean {
-    val additionalRecords = unmergedPersonEntity.personKey?.personEntities?.filter {
-      listOf(unmergedPersonEntity.id!!, reactivatedPersonEntity.id!!).contains(it.id).not()
+    val additionalRecords = unmergedPersonEntity.personKey?.let {
+      it.personEntities.filter {
+        listOf(unmergedPersonEntity.id!!, reactivatedPersonEntity.id!!).contains(it.id).not()
+      }
     }
     return (additionalRecords?.size ?: 0) > 0
   }
