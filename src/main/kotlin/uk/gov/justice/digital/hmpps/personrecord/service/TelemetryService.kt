@@ -53,7 +53,7 @@ class TelemetryService(private val telemetryClient: TelemetryClient) {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  fun trackEventWithIds(
+  fun trackPersonEvent(
     eventType: TelemetryEventType,
     person: Person,
     elementMap: Map<EventKeys, String?> = emptyMap(),
