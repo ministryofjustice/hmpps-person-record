@@ -57,10 +57,10 @@ class UnmergeService(
 
   private fun addExcludeOverrideMarkers(reactivatedPerson: PersonEntity, unmergedPerson: PersonEntity) {
     reactivatedPerson.overrideMarkers.add(
-      OverrideMarkerEntity(markerType = OverrideMarkerType.EXCLUDE, markerValue = unmergedPerson.id),
+      OverrideMarkerEntity(markerType = OverrideMarkerType.EXCLUDE, markerValue = unmergedPerson.id, person = reactivatedPerson),
     )
     unmergedPerson.overrideMarkers.add(
-      OverrideMarkerEntity(markerType = OverrideMarkerType.EXCLUDE, markerValue = reactivatedPerson.id),
+      OverrideMarkerEntity(markerType = OverrideMarkerType.EXCLUDE, markerValue = reactivatedPerson.id, person = unmergedPerson),
     )
   }
 }
