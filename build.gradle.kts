@@ -35,7 +35,6 @@ dependencies {
       because("2.13.0 has CVEs")
     }
   }
-  implementation("commons-io:commons-io:2.17.0")
   constraints {
     implementation("org.bouncycastle:bcprov-jdk18on:1.78.1") {
       because("1.77 has CVEs")
