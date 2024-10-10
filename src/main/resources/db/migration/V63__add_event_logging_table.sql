@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS event_logging
     before_data                             JSONB       DEFAULT NULL,
     processed_data                          JSONB       DEFAULT NULL,
     source_system_id                        TEXT        DEFAULT NULL,
-    UUID                                    UUID        DEFAULT NULL,
+    uuid                                    UUID        DEFAULT NULL,
     data_source                             TEXT        DEFAULT NULL,
     message_event_type                      TEXT        DEFAULT NULL,
     event_timestamp                         TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP
