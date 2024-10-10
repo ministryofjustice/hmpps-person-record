@@ -43,7 +43,7 @@ class UnmergeService(
         unmergeEvent.unmergedRecord,
         unmergeEvent.unmergedSystemId,
         UnmergeRecordType.UNMERGED,
-        unmergedPersonCallback
+        unmergedPersonCallback,
       )
     }
 
@@ -53,7 +53,7 @@ class UnmergeService(
         unmergeEvent.reactivatedRecord,
         unmergeEvent.reactivatedSystemId,
         UnmergeRecordType.REACTIVATED,
-        reactivatedPersonCallback
+        reactivatedPersonCallback,
       )
     }
 
@@ -70,13 +70,13 @@ class UnmergeService(
           unmergeEvent.reactivatedSystemId.first to unmergeEvent.reactivatedSystemId.second,
           EventKeys.SOURCE_SYSTEM to reactivatedPersonEntity.sourceSystem.name,
           EventKeys.RECORD_TYPE to UnmergeRecordType.REACTIVATED.name,
-        )
+        ),
       )
     }
     addExcludeOverrideMarkers(reactivatedPersonEntity, unmergedPersonEntity)
   }
 
-  private fun searchForPersonRecord(record: Person, systemId: Pair<EventKeys, String>,  recordType: UnmergeRecordType, callback: () -> PersonEntity?): PersonEntity? {
+  private fun searchForPersonRecord(record: Person, systemId: Pair<EventKeys, String>, recordType: UnmergeRecordType, callback: () -> PersonEntity?): PersonEntity? {
     val personEntity = callback()
     if (personEntity == null) {
       telemetryService.trackEvent(
@@ -84,7 +84,7 @@ class UnmergeService(
         mapOf(
           systemId.first to systemId.second,
           EventKeys.SOURCE_SYSTEM to record.sourceSystemType.name,
-          EventKeys.RECORD_TYPE to recordType.name
+          EventKeys.RECORD_TYPE to recordType.name,
         ),
       )
     }

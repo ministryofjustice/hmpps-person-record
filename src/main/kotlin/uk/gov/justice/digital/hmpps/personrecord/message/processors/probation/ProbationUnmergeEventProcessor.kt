@@ -39,7 +39,7 @@ class ProbationUnmergeEventProcessor(
         reactivatedRecord = Person.from(reactivatedProbationCase),
         reactivatedSystemId = Pair(EventKeys.REACTIVATED_CRN, reactivatedProbationCase.identifiers.crn!!),
         unmergedRecord = Person.from(unmergedProbationCase),
-        unmergedSystemId = Pair(EventKeys.UNMERGED_CRN, unmergedProbationCase.identifiers.crn!!)
+        unmergedSystemId = Pair(EventKeys.UNMERGED_CRN, unmergedProbationCase.identifiers.crn!!),
       ),
       reactivatedPersonCallback = {
         personRepository.findByCrn(reactivatedProbationCase.identifiers.crn)
