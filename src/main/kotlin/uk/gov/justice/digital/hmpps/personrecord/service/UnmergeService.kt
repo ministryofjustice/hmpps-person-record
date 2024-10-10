@@ -4,8 +4,10 @@ import jakarta.transaction.Transactional
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.UnmergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
@@ -17,50 +19,81 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class UnmergeService(
   private val telemetryService: TelemetryService,
   private val personService: PersonService,
+  private val personRepository: PersonRepository,
   private val personKeyService: PersonKeyService,
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
   @Transactional
-  fun processUnmerge(event: String, reactivatedPerson: Person, unmergedPerson: Person, reactivatedPersonCallback: () -> PersonEntity?, unmergedPersonCallback: () -> PersonEntity?) = runBlocking {
+  fun processUnmerge(unmergeEvent: UnmergeEvent, reactivatedPersonCallback: () -> PersonEntity?, unmergedPersonCallback: () -> PersonEntity?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
-      processUnmergingOfRecords(event, reactivatedPerson, unmergedPerson, reactivatedPersonCallback, unmergedPersonCallback)
+      processUnmergingOfRecords(unmergeEvent, reactivatedPersonCallback, unmergedPersonCallback)
     }
   }
 
-  private suspend fun processUnmergingOfRecords(event: String, reactivatedPerson: Person, unmergedPerson: Person, reactivatedPersonCallback: () -> PersonEntity?, unmergedPersonCallback: () -> PersonEntity?) {
-    val unmergedPersonEntity = retrieveUnmergedPerson(event, unmergedPerson, unmergedPersonCallback)
-    val reactivatedPersonEntity = retrieveReactivatedPerson(event, reactivatedPerson, reactivatedPersonCallback)
-    unmergeRecords(unmergedPersonEntity, reactivatedPersonEntity)
+  private suspend fun processUnmergingOfRecords(unmergeEvent: UnmergeEvent, reactivatedPersonCallback: () -> PersonEntity?, unmergedPersonCallback: () -> PersonEntity?) {
+    val unmergedPersonEntity = retrieveUnmergedPerson(unmergeEvent, unmergedPersonCallback)
+    val reactivatedPersonEntity = retrieveReactivatedPerson(unmergeEvent, reactivatedPersonCallback)
+    unmergeRecords(unmergeEvent, unmergedPersonEntity, reactivatedPersonEntity)
   }
 
-  private fun retrieveUnmergedPerson(event: String, unmergedPerson: Person, unmergedPersonCallback: () -> PersonEntity?): PersonEntity =
-    personService.processMessage(unmergedPerson, event) {
-      searchForPersonRecord(unmergedPerson, UnmergeRecordType.UNMERGED, unmergedPersonCallback)
+  private fun retrieveUnmergedPerson(unmergeEvent: UnmergeEvent, unmergedPersonCallback: () -> PersonEntity?): PersonEntity =
+    personService.processMessage(unmergeEvent.unmergedRecord, unmergeEvent.event) {
+      searchForPersonRecord(
+        unmergeEvent.unmergedRecord,
+        unmergeEvent.unmergedSystemId,
+        UnmergeRecordType.UNMERGED,
+        unmergedPersonCallback,
+      )
     }
 
-  private fun retrieveReactivatedPerson(event: String, reactivatedPerson: Person, reactivatedPersonCallback: () -> PersonEntity?): PersonEntity =
-    personService.processMessage(reactivatedPerson, event, linkRecord = false) {
-      searchForPersonRecord(reactivatedPerson, UnmergeRecordType.REACTIVATED, reactivatedPersonCallback)
+  private fun retrieveReactivatedPerson(unmergeEvent: UnmergeEvent, reactivatedPersonCallback: () -> PersonEntity?): PersonEntity =
+    personService.processMessage(unmergeEvent.reactivatedRecord, unmergeEvent.event, linkRecord = false) {
+      searchForPersonRecord(
+        unmergeEvent.reactivatedRecord,
+        unmergeEvent.reactivatedSystemId,
+        UnmergeRecordType.REACTIVATED,
+        reactivatedPersonCallback,
+      )
     }
 
-  private fun unmergeRecords(unmergedPersonEntity: PersonEntity, reactivatedPersonEntity: PersonEntity) {
+  private fun unmergeRecords(unmergeEvent: UnmergeEvent, unmergedPersonEntity: PersonEntity, reactivatedPersonEntity: PersonEntity) {
     if (clusterDoesNotHadAdditionalRecords(unmergedPersonEntity, reactivatedPersonEntity)) {
       personKeyService.setPersonKeyStatus(unmergedPersonEntity.personKey!!, UUIDStatusType.NEEDS_ATTENTION)
+    }
+    when {
+      mergeLinkExists(reactivatedPersonEntity) -> removeMergedToLink(reactivatedPersonEntity)
+      else -> telemetryService.trackEvent(
+        TelemetryEventType.CPR_UNMERGE_LINK_NOT_FOUND,
+        mapOf(
+          unmergeEvent.unmergedSystemId.first to unmergeEvent.unmergedSystemId.second,
+          unmergeEvent.reactivatedSystemId.first to unmergeEvent.reactivatedSystemId.second,
+          EventKeys.SOURCE_SYSTEM to reactivatedPersonEntity.sourceSystem.name,
+          EventKeys.RECORD_TYPE to UnmergeRecordType.REACTIVATED.name,
+        ),
+      )
     }
     addExcludeOverrideMarkers(reactivatedPersonEntity, unmergedPersonEntity)
   }
 
-  private fun searchForPersonRecord(person: Person, recordType: UnmergeRecordType, callback: () -> PersonEntity?): PersonEntity? {
+  private fun searchForPersonRecord(record: Person, systemId: Pair<EventKeys, String>, recordType: UnmergeRecordType, callback: () -> PersonEntity?): PersonEntity? {
     val personEntity = callback()
     if (personEntity == null) {
-      telemetryService.trackEventWithIds(
+      telemetryService.trackEvent(
         TelemetryEventType.CPR_UNMERGE_RECORD_NOT_FOUND,
-        person,
-        mapOf(EventKeys.RECORD_TYPE to recordType.name),
+        mapOf(
+          systemId.first to systemId.second,
+          EventKeys.SOURCE_SYSTEM to record.sourceSystemType.name,
+          EventKeys.RECORD_TYPE to recordType.name,
+        ),
       )
     }
     return personEntity
+  }
+
+  private fun removeMergedToLink(personEntity: PersonEntity) {
+    personEntity.mergedTo = null
+    personRepository.saveAndFlush(personEntity)
   }
 
   private fun clusterDoesNotHadAdditionalRecords(unmergedPersonEntity: PersonEntity, reactivatedPersonEntity: PersonEntity): Boolean {
@@ -71,6 +104,8 @@ class UnmergeService(
     }
     return (additionalRecords?.size ?: 0) > 0
   }
+
+  private fun mergeLinkExists(personEntity: PersonEntity): Boolean = personEntity.mergedTo != null
 
   private fun addExcludeOverrideMarkers(reactivatedPerson: PersonEntity, unmergedPerson: PersonEntity) {
     reactivatedPerson.overrideMarkers.add(
