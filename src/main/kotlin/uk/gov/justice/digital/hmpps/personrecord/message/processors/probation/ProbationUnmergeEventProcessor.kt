@@ -5,6 +5,7 @@ import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
@@ -16,6 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class ProbationUnmergeEventProcessor(
   val telemetryService: TelemetryService,
   val unmergeService: UnmergeService,
+  val personRepository: PersonRepository,
 ) : BaseProbationEventProcessor() {
 
   fun processEvent(domainEvent: DomainEvent) {
@@ -31,8 +33,15 @@ class ProbationUnmergeEventProcessor(
 
     val (unmergedProbationCase, reactivatedProbationCase) = collectProbationCases(domainEvent)
     unmergeService.processUnmerge(
+      event = domainEvent.eventType,
       reactivatedPerson = Person.from(reactivatedProbationCase),
       unmergedPerson = Person.from(unmergedProbationCase),
+      reactivatedPersonCallback = {
+        personRepository.findByCrn(reactivatedProbationCase.identifiers.crn!!)
+      },
+      unmergedPersonCallback = {
+        personRepository.findByCrn(unmergedProbationCase.identifiers.crn!!)
+      },
     )
   }
 

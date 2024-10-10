@@ -64,8 +64,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `creates person when when new offender created event is published`() {
+    val title = randomName()
     val prisonNumber = randomPrisonNumber()
-    val prefix = randomName()
+    val firstName = randomName()
+    val lastName = randomName()
     val pnc = randomPnc()
     val cro = randomCro()
     val addressStartDate = randomDate()
@@ -75,8 +77,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val sentenceDate = randomDate()
     val crn = probationDomainEventAndResponseSetup(
       NEW_OFFENDER_CREATED,
-      pnc,
-      prefix = prefix,
+      pnc = pnc,
+      title = title,
+      firstName = firstName,
+      lastName = lastName,
       prisonNumber = prisonNumber,
       cro = cro,
       addresses = listOf(
@@ -92,10 +96,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     assertThat(personEntity.personKey).isNotNull()
     assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
-    assertThat(personEntity.firstName).isEqualTo("${prefix}FirstName")
+    assertThat(personEntity.firstName).isEqualTo(firstName)
     assertThat(personEntity.middleNames).isEqualTo("PreferredMiddleName")
-    assertThat(personEntity.lastName).isEqualTo("${prefix}LastName")
-    assertThat(personEntity.title).isEqualTo("Mr")
+    assertThat(personEntity.lastName).isEqualTo(lastName)
+    assertThat(personEntity.title).isEqualTo(title)
     assertThat(personEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
     assertThat(personEntity.crn).isEqualTo(crn)
     assertThat(personEntity.ethnicity).isEqualTo(ethnicity)
@@ -103,9 +107,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
     assertThat(personEntity.references.getType(IdentifierType.CRO).first().identifierValue).isEqualTo(cro)
     assertThat(personEntity.pseudonyms.size).isEqualTo(1)
-    assertThat(personEntity.pseudonyms[0].firstName).isEqualTo("${prefix}FirstName")
+    assertThat(personEntity.pseudonyms[0].firstName).isEqualTo("FirstName")
     assertThat(personEntity.pseudonyms[0].middleNames).isEqualTo("MiddleName")
-    assertThat(personEntity.pseudonyms[0].lastName).isEqualTo("${prefix}LastName")
+    assertThat(personEntity.pseudonyms[0].lastName).isEqualTo("LastName")
     assertThat(personEntity.pseudonyms[0].dateOfBirth).isEqualTo(LocalDate.of(2024, 5, 30))
     assertThat(personEntity.addresses.size).isEqualTo(2)
     assertThat(personEntity.addresses[0].noFixedAbode).isEqualTo(true)
@@ -136,7 +140,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should link person to an existing NOMIS record`() {
     val prisonNumber = randomPrisonNumber()
-    val prefix = randomName()
+    val firstName = randomName()
     val pnc = randomPnc()
     val cro = randomCro()
     val person = Person(
@@ -151,7 +155,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
 
-    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, prefix = prefix, prisonNumber = prisonNumber, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = "LS1 1AB", fullAddress = "abc street"), ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street")))
+    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, firstName = firstName, prisonNumber = prisonNumber, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = "LS1 1AB", fullAddress = "abc street"), ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street")))
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(

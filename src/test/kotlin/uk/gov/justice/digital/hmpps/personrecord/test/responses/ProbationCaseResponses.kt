@@ -5,21 +5,21 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
       "identifiers": {
           "deliusId": 2500000501,
           ${probationCase.pnc?.let { """ "pnc": "${probationCase.pnc}", """.trimIndent() } ?: ""}
-          "crn": "${probationCase.crn}",
-          "cro": "${probationCase.cro}",
-          "prisonerNumber": "${probationCase.prisonNumber}",
-          "ni": "${probationCase.nationalInsuranceNumber}"
+          "crn": "${probationCase.crn ?: ""}",
+          "cro": "${probationCase.cro ?: ""}",
+          "prisonerNumber": "${probationCase.prisonNumber ?: ""}",
+          "ni": "${probationCase.nationalInsuranceNumber ?: ""}"
       },
       "name": {
-          "forename": "${probationCase.prefix}FirstName",
+          "forename": "${probationCase.prefix ?: ""}${probationCase.firstName ?: "" }",
           "middleName": "PreferredMiddleName",
-          "surname": "${probationCase.prefix}LastName"
+          "surname": "${probationCase.prefix ?: ""}${probationCase.lastName ?: ""}"
       },
       "title": {
-        "code": "Mr",
+        "code": "${probationCase.title ?: ""}",
         "description": "Example"
       },
-      "dateOfBirth": "1980-08-29",
+      "dateOfBirth": "${probationCase.dateOfBirth ?: ""}",
       "gender": {
           "code": "M",
           "description": "Male"
@@ -27,9 +27,9 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
       "aliases": [
         {
           "name": {
-            "forename": "${probationCase.prefix}FirstName",
+            "forename": "${probationCase.prefix ?: ""}FirstName",
             "middleName": "MiddleName",
-            "surname": "${probationCase.prefix}LastName",
+            "surname": "${probationCase.prefix ?: ""}LastName",
             "previousSurname": "string",
             "preferred": "string"
           },
