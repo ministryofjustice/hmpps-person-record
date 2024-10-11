@@ -90,6 +90,6 @@ class SearchService(
   }
 
   companion object {
-    const val PAGE_SIZE: Int = 50
+    const val PAGE_SIZE: Int = 100
   }
 }
