@@ -52,7 +52,7 @@ class PersonService(
     val (isAboveSelfMatchThreshold, selfMatchScore) = matchService.getSelfMatchScore(PersonSearchCriteria.from(person))
     person.selfMatchScore = selfMatchScore
     person.isAboveMatchScoreThreshold = isAboveSelfMatchThreshold
-    telemetryService.trackEventWithIds(
+    telemetryService.trackPersonEvent(
       CPR_SELF_MATCH,
       person,
       mapOf(
@@ -64,7 +64,7 @@ class PersonService(
 
   private fun handlePersonCreation(person: Person, event: String?, linkRecord: Boolean): PersonEntity {
     if (isUpdateEvent(event)) {
-      telemetryService.trackEventWithIds(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
+      telemetryService.trackPersonEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
     }
     val personEntity = createPersonEntity(person)
     val personKey: PersonKeyEntity? = when {
@@ -72,12 +72,12 @@ class PersonService(
       else -> handleLowSelfMatchScore(person)
     }
     linkToPersonKey(personEntity, personKey)
-    telemetryService.trackEventWithIds(TelemetryEventType.CPR_RECORD_CREATED, person)
+    telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
     return personEntity
   }
 
   private fun handleLowSelfMatchScore(person: Person): PersonKeyEntity? {
-    telemetryService.trackEventWithIds(
+    telemetryService.trackPersonEvent(
       TelemetryEventType.CPR_LOW_SELF_SCORE_NOT_CREATING_UUID,
       person,
       mapOf(EventKeys.PROBABILITY_SCORE to person.selfMatchScore.toString()),
@@ -87,10 +87,10 @@ class PersonService(
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?): PersonEntity {
     if (isCreateEvent(event)) {
-      telemetryService.trackEventWithIds(CPR_NEW_RECORD_EXISTS, person)
+      telemetryService.trackPersonEvent(CPR_NEW_RECORD_EXISTS, person)
     }
     val updatedEntity = updateExistingPersonEntity(person, existingPersonEntity)
-    telemetryService.trackEventWithIds(TelemetryEventType.CPR_RECORD_UPDATED, person)
+    telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_UPDATED, person)
     return updatedEntity
   }
 
