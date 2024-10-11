@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.UnmergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
@@ -74,6 +75,7 @@ class UnmergeService(
       )
     }
     addExcludeOverrideMarkers(reactivatedPersonEntity, unmergedPersonEntity)
+    findAndAssignUuid(reactivatedPersonEntity)
   }
 
   private fun searchForPersonRecord(record: Person, systemId: Pair<EventKeys, String>, recordType: UnmergeRecordType, callback: () -> PersonEntity?): PersonEntity? {
@@ -91,7 +93,16 @@ class UnmergeService(
     return personEntity
   }
 
+  private fun findAndAssignUuid(reactivatedPersonEntity: PersonEntity) {
+    reactivatedPersonEntity.personKey = personKeyService.getPersonKey(reactivatedPersonEntity)
+    personRepository.saveAndFlush(reactivatedPersonEntity)
+  }
+
   private fun removeMergedToLink(personEntity: PersonEntity) {
+    if (personEntity.personKey != PersonKeyEntity.empty) {
+      personEntity.personKey?.personEntities?.remove(personEntity)
+      personEntity.personKey = null
+    }
     personEntity.mergedTo = null
     personRepository.saveAndFlush(personEntity)
   }

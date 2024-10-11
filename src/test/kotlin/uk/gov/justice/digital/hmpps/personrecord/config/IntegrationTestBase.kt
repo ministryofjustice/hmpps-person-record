@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyReposit
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import java.util.concurrent.TimeUnit.SECONDS
@@ -78,9 +79,13 @@ class IntegrationTestBase {
     return personRepository.saveAndFlush(personEntity)
   }
 
-  internal fun mergeRecord(sourceRecord: PersonEntity, targetRecord: PersonEntity) {
-    sourceRecord.mergedTo = targetRecord.id
-    personRepository.saveAndFlush(sourceRecord)
+  internal fun mergeRecord(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity, mergePersonKey: Boolean = false) {
+    sourcePersonEntity.mergedTo = targetPersonEntity.id
+    if (mergePersonKey) {
+      sourcePersonEntity.personKey?.mergedTo = targetPersonEntity.personKey?.id
+      sourcePersonEntity.personKey?.status = UUIDStatusType.MERGED
+    }
+    personRepository.saveAndFlush(sourcePersonEntity)
   }
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
