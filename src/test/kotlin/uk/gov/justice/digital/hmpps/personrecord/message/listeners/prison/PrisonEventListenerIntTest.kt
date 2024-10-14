@@ -297,7 +297,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should allow a person to be created from a prison event when an offender record already exists with the prisonNumber`() {
     val prisonNumber = randomPrisonNumber()
-    probationDomainEventAndResponseSetup(eventType = OFFENDER_ALIAS_CHANGED, pnc = "", prisonNumber = prisonNumber)
+    probationDomainEventAndResponseSetup(eventType = OFFENDER_ALIAS_CHANGED, ApiResponseSetup(pnc = randomPnc(), prisonNumber = prisonNumber))
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
 
