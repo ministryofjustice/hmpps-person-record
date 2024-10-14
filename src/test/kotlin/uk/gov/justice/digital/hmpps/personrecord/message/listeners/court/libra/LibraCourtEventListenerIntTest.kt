@@ -348,7 +348,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
     val probabilities = mutableMapOf<String, Double>()
-    repeat(50) { index ->
+    repeat(100) { index ->
       probabilities[index.toString()] = 0.999999
     }
     val matchResponse = MatchResponse(matchProbabilities = probabilities)
