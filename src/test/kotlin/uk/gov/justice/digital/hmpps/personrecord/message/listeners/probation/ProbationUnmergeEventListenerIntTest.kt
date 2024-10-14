@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.UnmergeService.Companion.UnmergeRecordType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_SELF_MATCH
@@ -100,6 +101,15 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       CPR_UUID_CREATED,
       mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      TelemetryEventType.CPR_RECORD_UNMERGED,
+      mapOf(
+        "REACTIVATED_CRN" to reactivatedCrn,
+        "UNMERGED_CRN" to unmergedCrn,
+        "UNMERGED_UUID" to personKey.personId.toString(),
+        "SOURCE_SYSTEM" to "DELIUS",
+      ),
     )
 
     val unmergedPerson = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(unmergedCrn) }
@@ -302,6 +312,15 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_UNMERGE_LINK_NOT_FOUND,
       mapOf("REACTIVATED_CRN" to reactivatedCrn, "RECORD_TYPE" to UnmergeRecordType.REACTIVATED.name, "SOURCE_SYSTEM" to "DELIUS"),
       times = 0,
+    )
+    checkTelemetry(
+      TelemetryEventType.CPR_RECORD_UNMERGED,
+      mapOf(
+        "REACTIVATED_CRN" to reactivatedCrn,
+        "UNMERGED_CRN" to unmergedCrn,
+        "UNMERGED_UUID" to unmergedPersonKey.personId.toString(),
+        "SOURCE_SYSTEM" to "DELIUS",
+      ),
     )
 
     val reactivatedMergedPersonKey = await.atMost(10, SECONDS) untilNotNull { personKeyRepository.findByPersonId(reactivatedPersonKey.personId) }

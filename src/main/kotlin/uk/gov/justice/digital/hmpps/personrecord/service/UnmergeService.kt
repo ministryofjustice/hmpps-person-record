@@ -63,6 +63,16 @@ class UnmergeService(
     }
     val (updatedReactivatedPersonEntity, _) = removeLinkAndAddMarkersToRecord(unmergeEvent, reactivatedPersonEntity, unmergedPersonEntity)
     findAndAssignUuid(updatedReactivatedPersonEntity)
+    telemetryService.trackEvent(
+      TelemetryEventType.CPR_RECORD_UNMERGED,
+      mapOf(
+        EventKeys.REACTIVATED_UUID to reactivatedPersonEntity.personKey?.personId.toString(),
+        EventKeys.UNMERGED_UUID to unmergedPersonEntity.personKey?.personId.toString(),
+        unmergeEvent.unmergedSystemId.first to unmergeEvent.unmergedSystemId.second,
+        unmergeEvent.reactivatedSystemId.first to unmergeEvent.reactivatedSystemId.second,
+        EventKeys.SOURCE_SYSTEM to unmergeEvent.reactivatedRecord.sourceSystemType.name,
+      ),
+    )
   }
 
   private fun removeLinkAndAddMarkersToRecord(unmergeEvent: UnmergeEvent, reactivatedPersonEntity: PersonEntity, unmergedPersonEntity: PersonEntity): Pair<PersonEntity, PersonEntity> {
