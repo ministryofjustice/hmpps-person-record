@@ -4,12 +4,14 @@ import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
@@ -18,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.UnmergeService.Companion.UnmergeRecordType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -28,6 +31,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.UNMERGE_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
@@ -48,23 +52,19 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val unmergedCrn = randomCRN()
 
     val personKey = createPersonKey()
-    val unmergedEntity = createPerson(
-      person = Person(
-        crn = unmergedCrn,
-        sourceSystemType = SourceSystemType.DELIUS,
-      ),
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
       personKeyEntity = personKey,
     )
-    val reactivatedEntity = createPerson(
-      person = Person(
-        crn = reactivatedCrn,
-        sourceSystemType = SourceSystemType.DELIUS,
-      ),
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
+      personKeyEntity = personKey,
     )
-    mergeRecord(reactivatedEntity, unmergedEntity)
 
     val reactivated = ApiResponseSetup(crn = reactivatedCrn)
     val unmerged = ApiResponseSetup(crn = unmergedCrn)
+
+    probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
     checkTelemetry(
@@ -116,15 +116,13 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val unmergedCrn = randomCRN()
 
     createPerson(
-      person = Person(
-        crn = reactivatedCrn,
-        sourceSystemType = SourceSystemType.DELIUS,
-      ),
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
       personKeyEntity = createPersonKey(),
     )
 
     val reactivated = ApiResponseSetup(crn = reactivatedCrn)
     val unmerged = ApiResponseSetup(crn = unmergedCrn)
+
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
     checkTelemetry(
@@ -149,15 +147,13 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val personKeyEntity = createPersonKey()
     createPerson(
-      person = Person(
-        crn = unmergedCrn,
-        sourceSystemType = SourceSystemType.DELIUS,
-      ),
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
       personKeyEntity = personKeyEntity,
     )
 
     val reactivated = ApiResponseSetup(crn = reactivatedCrn)
     val unmerged = ApiResponseSetup(crn = unmergedCrn)
+
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
     checkTelemetry(
@@ -184,7 +180,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val unmergedCrn = randomCRN()
 
     val personKey = createPersonKey()
-
     createPerson(
       person = Person(
         crn = randomCRN(),
@@ -192,24 +187,19 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
       personKeyEntity = personKey,
     )
-    val unmergedEntity = createPerson(
-      person = Person(
-        crn = unmergedCrn,
-        sourceSystemType = SourceSystemType.DELIUS,
-      ),
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
       personKeyEntity = personKey,
     )
-    val reactivatedEntity = createPerson(
-      person = Person(
-        crn = reactivatedCrn,
-        sourceSystemType = SourceSystemType.DELIUS,
-      ),
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
       personKeyEntity = personKey,
     )
-    mergeRecord(reactivatedEntity, unmergedEntity)
 
     val reactivated = ApiResponseSetup(crn = reactivatedCrn)
     val unmerged = ApiResponseSetup(crn = unmergedCrn)
+
+    probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
     checkTelemetry(
@@ -231,24 +221,19 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val unmergedCrn = randomCRN()
 
     val personKey = createPersonKey()
-    val reactivatedEntity = createPerson(
-      person = Person(
-        crn = unmergedCrn,
-        sourceSystemType = SourceSystemType.DELIUS,
-      ),
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
       personKeyEntity = personKey,
     )
-    val unmergedEntity = createPerson(
-      person = Person(
-        crn = reactivatedCrn,
-        sourceSystemType = SourceSystemType.DELIUS,
-      ),
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
       personKeyEntity = personKey,
     )
-    mergeRecord(reactivatedEntity, unmergedEntity)
 
     val reactivated = ApiResponseSetup(crn = reactivatedCrn)
     val unmerged = ApiResponseSetup(crn = unmergedCrn)
+
+    probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
     checkTelemetry(
@@ -257,7 +242,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "REACTIVATED_CRN" to reactivatedCrn,
         "UNMERGED_CRN" to unmergedCrn,
         "EVENT_TYPE" to OFFENDER_UNMERGED,
-        "SOURCE_SYSTEM" to "DELIUS"
+        "SOURCE_SYSTEM" to "DELIUS",
       ),
     )
     checkTelemetry(
@@ -270,7 +255,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(
       CPR_UNMERGE_LINK_NOT_FOUND,
-      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("REACTIVATED_CRN" to reactivatedCrn, "RECORD_TYPE" to UnmergeRecordType.REACTIVATED.name, "SOURCE_SYSTEM" to "DELIUS"),
       times = 0,
     )
 
@@ -283,30 +268,28 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val reactivatedCrn = randomCRN()
     val unmergedCrn = randomCRN()
 
-    val reactivatedPersonKey = createPersonKey()
-    val reactivatedEntity = createPerson(
-      person = Person(
-        crn = unmergedCrn,
-        sourceSystemType = SourceSystemType.DELIUS,
-      ),
-      personKeyEntity = reactivatedPersonKey,
-    )
     val unmergedPersonKey = createPersonKey()
-    val unmergedEntity = createPerson(
-      person = Person(
-        crn = reactivatedCrn,
-        sourceSystemType = SourceSystemType.DELIUS,
-      ),
+    val reactivatedPersonKey = createPersonKey()
+
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
       personKeyEntity = unmergedPersonKey,
     )
-    mergeRecord(reactivatedEntity, unmergedEntity, mergePersonKey = true)
-
-    val test = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(reactivatedCrn) }
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
+      personKeyEntity = reactivatedPersonKey,
+    )
 
     val reactivated = ApiResponseSetup(crn = reactivatedCrn)
     val unmerged = ApiResponseSetup(crn = unmergedCrn)
+
+    probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
+    checkTelemetry(
+      UNMERGE_MESSAGE_RECEIVED,
+      mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
+    )
     checkTelemetry(
       CPR_RECORD_UPDATED,
       mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
@@ -317,18 +300,13 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(
       CPR_UNMERGE_LINK_NOT_FOUND,
-      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("REACTIVATED_CRN" to reactivatedCrn, "RECORD_TYPE" to UnmergeRecordType.REACTIVATED.name, "SOURCE_SYSTEM" to "DELIUS"),
       times = 0,
-    )
-    checkTelemetry(
-      UNMERGE_MESSAGE_RECEIVED,
-      mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
     )
 
     val reactivatedMergedPersonKey = await.atMost(10, SECONDS) untilNotNull { personKeyRepository.findByPersonId(reactivatedPersonKey.personId) }
     assertThat(reactivatedMergedPersonKey.personEntities.size).isEqualTo(0)
     assertThat(reactivatedMergedPersonKey.status).isEqualTo(UUIDStatusType.MERGED)
-
 
     val reactivatedPerson = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(reactivatedCrn) }
     assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(reactivatedPersonKey.personId)

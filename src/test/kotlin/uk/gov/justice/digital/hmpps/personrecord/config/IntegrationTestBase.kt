@@ -79,13 +79,15 @@ class IntegrationTestBase {
     return personRepository.saveAndFlush(personEntity)
   }
 
-  internal fun mergeRecord(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity, mergePersonKey: Boolean = false) {
+  internal fun mergeRecord(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
     sourcePersonEntity.mergedTo = targetPersonEntity.id
-    if (mergePersonKey) {
-      sourcePersonEntity.personKey?.mergedTo = targetPersonEntity.personKey?.id
-      sourcePersonEntity.personKey?.status = UUIDStatusType.MERGED
-    }
     personRepository.saveAndFlush(sourcePersonEntity)
+  }
+
+  internal fun mergeUuid(sourcePersonKey: PersonKeyEntity, targetPersonEntity: PersonKeyEntity): PersonKeyEntity {
+    sourcePersonKey.mergedTo = targetPersonEntity.id
+    sourcePersonKey.status = UUIDStatusType.MERGED
+    return personKeyRepository.saveAndFlush(sourcePersonKey)
   }
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {

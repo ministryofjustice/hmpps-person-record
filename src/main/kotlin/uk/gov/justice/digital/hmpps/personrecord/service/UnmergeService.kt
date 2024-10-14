@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.UnmergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
@@ -35,7 +34,7 @@ class UnmergeService(
   private suspend fun processUnmergingOfRecords(unmergeEvent: UnmergeEvent, reactivatedPersonCallback: () -> PersonEntity?, unmergedPersonCallback: () -> PersonEntity?) {
     val unmergedPersonEntity = retrieveUnmergedPerson(unmergeEvent, unmergedPersonCallback)
     val reactivatedPersonEntity = retrieveReactivatedPerson(unmergeEvent, reactivatedPersonCallback)
-    unmergeRecords(unmergeEvent, unmergedPersonEntity, reactivatedPersonEntity)
+    unmergeRecords(unmergeEvent, reactivatedPersonEntity, unmergedPersonEntity)
   }
 
   private fun retrieveUnmergedPerson(unmergeEvent: UnmergeEvent, unmergedPersonCallback: () -> PersonEntity?): PersonEntity =
@@ -58,10 +57,15 @@ class UnmergeService(
       )
     }
 
-  private fun unmergeRecords(unmergeEvent: UnmergeEvent, unmergedPersonEntity: PersonEntity, reactivatedPersonEntity: PersonEntity) {
+  private fun unmergeRecords(unmergeEvent: UnmergeEvent, reactivatedPersonEntity: PersonEntity, unmergedPersonEntity: PersonEntity) {
     if (clusterDoesNotHadAdditionalRecords(unmergedPersonEntity, reactivatedPersonEntity)) {
       personKeyService.setPersonKeyStatus(unmergedPersonEntity.personKey!!, UUIDStatusType.NEEDS_ATTENTION)
     }
+    val (updatedReactivatedPersonEntity, _) = removeLinkAndAddMarkersToRecord(unmergeEvent, reactivatedPersonEntity, unmergedPersonEntity)
+    findAndAssignUuid(updatedReactivatedPersonEntity)
+  }
+
+  private fun removeLinkAndAddMarkersToRecord(unmergeEvent: UnmergeEvent, reactivatedPersonEntity: PersonEntity, unmergedPersonEntity: PersonEntity): Pair<PersonEntity, PersonEntity> {
     when {
       mergeLinkExists(reactivatedPersonEntity) -> removeMergedToLink(reactivatedPersonEntity)
       else -> telemetryService.trackEvent(
@@ -74,8 +78,9 @@ class UnmergeService(
         ),
       )
     }
+    removeUuidLink(reactivatedPersonEntity)
     addExcludeOverrideMarkers(reactivatedPersonEntity, unmergedPersonEntity)
-    findAndAssignUuid(reactivatedPersonEntity)
+    return Pair(personRepository.saveAndFlush(reactivatedPersonEntity), personRepository.saveAndFlush(unmergedPersonEntity))
   }
 
   private fun searchForPersonRecord(record: Person, systemId: Pair<EventKeys, String>, recordType: UnmergeRecordType, callback: () -> PersonEntity?): PersonEntity? {
@@ -99,12 +104,14 @@ class UnmergeService(
   }
 
   private fun removeMergedToLink(personEntity: PersonEntity) {
-    if (personEntity.personKey != PersonKeyEntity.empty) {
+    personEntity.mergedTo = null
+  }
+
+  private fun removeUuidLink(personEntity: PersonEntity) {
+    personEntity.personKey.let {
       personEntity.personKey?.personEntities?.remove(personEntity)
       personEntity.personKey = null
     }
-    personEntity.mergedTo = null
-    personRepository.saveAndFlush(personEntity)
   }
 
   private fun clusterDoesNotHadAdditionalRecords(unmergedPersonEntity: PersonEntity, reactivatedPersonEntity: PersonEntity): Boolean {
