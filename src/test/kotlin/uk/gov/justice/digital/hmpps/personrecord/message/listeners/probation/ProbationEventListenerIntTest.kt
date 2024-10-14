@@ -46,6 +46,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationality
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
@@ -64,6 +65,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `creates person when when new offender created event is published`() {
+    val crn = randomCRN()
     val title = randomName()
     val prisonNumber = randomPrisonNumber()
     val firstName = randomName()
@@ -75,8 +77,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val ethnicity = randomEthnicity()
     val nationality = randomNationality()
     val sentenceDate = randomDate()
-    val crn = probationDomainEventAndResponseSetup(
-      NEW_OFFENDER_CREATED,
+
+    val apiResponse = ApiResponseSetup(
+      crn = crn,
       pnc = pnc,
       title = title,
       firstName = firstName,
@@ -91,6 +94,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       nationality = nationality,
       sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
     )
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
@@ -139,6 +143,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should link person to an existing NOMIS record`() {
+    val crn = randomCRN()
     val prisonNumber = randomPrisonNumber()
     val firstName = randomName()
     val pnc = randomPnc()
@@ -155,7 +160,15 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
 
-    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc, firstName = firstName, prisonNumber = prisonNumber, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = "LS1 1AB", fullAddress = "abc street"), ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street")))
+    val apiResponse = ApiResponseSetup(
+      crn = crn,
+      pnc = pnc,
+      firstName = firstName,
+      prisonNumber = prisonNumber,
+      cro = cro,
+      addresses = listOf(ApiResponseSetupAddress(postcode = "LS1 1AB", fullAddress = "abc street"), ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street")),
+    )
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(
@@ -182,7 +195,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should write offender without PNC if PNC is missing`() {
-    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, null)
+    val crn = randomCRN()
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = null))
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
     assertThat(personEntity.references.getType(IdentifierType.PNC)).isEqualTo(emptyList<ReferenceEntity>())
@@ -195,11 +209,13 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should create two offenders with same prisonNumber but different CRNs`() {
     val prisonNumber: String = randomPrisonNumber()
-    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, null, prisonNumber = prisonNumber)
+    val crn = randomCRN()
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, prisonNumber = prisonNumber))
     await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
-    val nextCrn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, null, prisonNumber = prisonNumber)
+    val nextCrn = randomCRN()
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = nextCrn, prisonNumber = prisonNumber))
     await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(nextCrn) }
 
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to nextCrn))
@@ -208,7 +224,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should handle new offender details with an empty pnc`() {
-    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, "")
+    val crn = randomCRN()
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = ""))
 
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
@@ -242,7 +259,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should retry on 500 error`() {
     val crn = randomCRN()
     stub500Response(probationUrl(crn), "next request will succeed", "retry")
-    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc = "", crn = crn, scenario = "retry", currentScenarioState = "next request will succeed")
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = randomPnc()), scenario = "retry", currentScenarioState = "next request will succeed")
 
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       probationEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationEventsQueue!!.queueUrl)?.get()
@@ -293,14 +310,15 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @ValueSource(strings = [OFFENDER_DETAILS_CHANGED, OFFENDER_ALIAS_CHANGED, OFFENDER_ADDRESS_CHANGED])
   fun `should process probation events successfully`(event: String) {
     val pnc = randomPnc()
-    val crn = probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, pnc)
+    val crn = randomCRN()
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc))
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(personEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
     val changedPnc = randomPnc()
-    probationEventAndResponseSetup(event, changedPnc, crn)
+    probationEventAndResponseSetup(event, ApiResponseSetup(crn = crn, pnc = changedPnc))
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to event, "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
