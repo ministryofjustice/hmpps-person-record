@@ -186,8 +186,8 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
   ) {
-    stubSingleProbationResponse(reactivated, scenario, currentScenarioState, nextScenarioState)
     stubSingleProbationResponse(unmerged, scenario, currentScenarioState, nextScenarioState)
+    stubSingleProbationResponse(reactivated, scenario, currentScenarioState, nextScenarioState)
 
     publishDomainEvent(
       eventType,

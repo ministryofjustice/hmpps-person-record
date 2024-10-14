@@ -34,7 +34,7 @@ class UnmergeService(
   private suspend fun processUnmergingOfRecords(unmergeEvent: UnmergeEvent, reactivatedPersonCallback: () -> PersonEntity?, unmergedPersonCallback: () -> PersonEntity?) {
     val unmergedPersonEntity = retrieveUnmergedPerson(unmergeEvent, unmergedPersonCallback)
     val reactivatedPersonEntity = retrieveReactivatedPerson(unmergeEvent, reactivatedPersonCallback)
-    unmergeRecords(unmergeEvent, unmergedPersonEntity, reactivatedPersonEntity)
+    unmergeRecords(unmergeEvent, reactivatedPersonEntity, unmergedPersonEntity)
   }
 
   private fun retrieveUnmergedPerson(unmergeEvent: UnmergeEvent, unmergedPersonCallback: () -> PersonEntity?): PersonEntity =
@@ -57,10 +57,25 @@ class UnmergeService(
       )
     }
 
-  private fun unmergeRecords(unmergeEvent: UnmergeEvent, unmergedPersonEntity: PersonEntity, reactivatedPersonEntity: PersonEntity) {
+  private fun unmergeRecords(unmergeEvent: UnmergeEvent, reactivatedPersonEntity: PersonEntity, unmergedPersonEntity: PersonEntity) {
     if (clusterDoesNotHadAdditionalRecords(unmergedPersonEntity, reactivatedPersonEntity)) {
       personKeyService.setPersonKeyStatus(unmergedPersonEntity.personKey!!, UUIDStatusType.NEEDS_ATTENTION)
     }
+    val (updatedReactivatedPersonEntity, _) = removeLinkAndAddMarkersToRecord(unmergeEvent, reactivatedPersonEntity, unmergedPersonEntity)
+    findAndAssignUuid(updatedReactivatedPersonEntity)
+    telemetryService.trackEvent(
+      TelemetryEventType.CPR_RECORD_UNMERGED,
+      mapOf(
+        EventKeys.REACTIVATED_UUID to reactivatedPersonEntity.personKey?.personId.toString(),
+        EventKeys.UNMERGED_UUID to unmergedPersonEntity.personKey?.personId.toString(),
+        unmergeEvent.unmergedSystemId.first to unmergeEvent.unmergedSystemId.second,
+        unmergeEvent.reactivatedSystemId.first to unmergeEvent.reactivatedSystemId.second,
+        EventKeys.SOURCE_SYSTEM to unmergeEvent.reactivatedRecord.sourceSystemType.name,
+      ),
+    )
+  }
+
+  private fun removeLinkAndAddMarkersToRecord(unmergeEvent: UnmergeEvent, reactivatedPersonEntity: PersonEntity, unmergedPersonEntity: PersonEntity): Pair<PersonEntity, PersonEntity> {
     when {
       mergeLinkExists(reactivatedPersonEntity) -> removeMergedToLink(reactivatedPersonEntity)
       else -> telemetryService.trackEvent(
@@ -73,7 +88,9 @@ class UnmergeService(
         ),
       )
     }
+    removeUuidLink(reactivatedPersonEntity)
     addExcludeOverrideMarkers(reactivatedPersonEntity, unmergedPersonEntity)
+    return Pair(personRepository.saveAndFlush(reactivatedPersonEntity), personRepository.saveAndFlush(unmergedPersonEntity))
   }
 
   private fun searchForPersonRecord(record: Person, systemId: Pair<EventKeys, String>, recordType: UnmergeRecordType, callback: () -> PersonEntity?): PersonEntity? {
@@ -91,9 +108,20 @@ class UnmergeService(
     return personEntity
   }
 
+  private fun findAndAssignUuid(reactivatedPersonEntity: PersonEntity) {
+    reactivatedPersonEntity.personKey = personKeyService.getPersonKey(reactivatedPersonEntity)
+    personRepository.saveAndFlush(reactivatedPersonEntity)
+  }
+
   private fun removeMergedToLink(personEntity: PersonEntity) {
     personEntity.mergedTo = null
-    personRepository.saveAndFlush(personEntity)
+  }
+
+  private fun removeUuidLink(personEntity: PersonEntity) {
+    personEntity.personKey.let {
+      personEntity.personKey?.personEntities?.remove(personEntity)
+      personEntity.personKey = null
+    }
   }
 
   private fun clusterDoesNotHadAdditionalRecords(unmergedPersonEntity: PersonEntity, reactivatedPersonEntity: PersonEntity): Boolean {
