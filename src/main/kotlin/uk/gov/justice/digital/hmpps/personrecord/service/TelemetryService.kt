@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import java.util.*
 
 enum class EventKeys {
   MESSAGE_ID,
@@ -71,7 +72,21 @@ class TelemetryService(private val telemetryClient: TelemetryClient) {
 
   fun trackEvent(eventType: TelemetryEventType, customDimensions: Map<EventKeys, String?>) {
     log.debug("Sending telemetry event ${eventType.eventName} ")
-    val transformedDimensions: Map<String, String?> = customDimensions.entries.associate { it.key.name to it.value }
-    telemetryClient.trackEvent(eventType.eventName, transformedDimensions, null)
+
+    val operationId = getOperationId()
+
+    val correlationId = if (operationId != "No OperationId") {
+      operationId
+    } else {
+      UUID.randomUUID().toString()
+    }
+
+    val updatedDimensions = customDimensions.entries.associate { it.key.name to it.value } + mapOf("Correlationid" to correlationId, "OperationId" to operationId)
+
+    telemetryClient.trackEvent(eventType.eventName, updatedDimensions, null)
+  }
+
+  fun getOperationId(): String {
+    return telemetryClient.context.operation.id ?: "No OperationId"
   }
 }
