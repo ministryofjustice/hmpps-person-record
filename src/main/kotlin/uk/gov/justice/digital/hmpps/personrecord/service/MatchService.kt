@@ -96,7 +96,7 @@ class MatchService(
 
   companion object {
     const val THRESHOLD_SCORE = 0.999
-    const val MAX_RECORDS = 50
+    const val MAX_RECORDS = 100
   }
 }
 
