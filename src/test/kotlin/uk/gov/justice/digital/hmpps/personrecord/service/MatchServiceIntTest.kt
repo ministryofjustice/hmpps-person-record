@@ -106,7 +106,7 @@ class MatchServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should chunk candidates and only send 50 records at a time`() {
+  fun `should chunk candidates and only send 100 records at a time`() {
     val newRecord = Person(
       firstName = randomName(),
       lastName = randomName(),
@@ -115,17 +115,17 @@ class MatchServiceIntTest : IntegrationTestBase() {
     )
 
     val probabilities = mutableMapOf<String, Double>()
-    repeat(50) { index ->
+    repeat(100) { index ->
       probabilities[index.toString()] = 0.999999
     }
     val matchResponse = MatchResponse(matchProbabilities = probabilities)
     stubMatchScore(matchResponse)
 
-    val candidateRecords: List<PersonEntity> = generateSequence { PersonEntity.from(newRecord) }.take(100).toList()
+    val candidateRecords: List<PersonEntity> = generateSequence { PersonEntity.from(newRecord) }.take(200).toList()
     val highConfidenceMatches = matchService.findHighConfidenceMatches(candidateRecords, PersonSearchCriteria.from(newRecord))
 
     assertThat(wiremock.findAll(postRequestedFor(urlEqualTo("/person/match"))).size).isEqualTo(2)
-    assertThat(highConfidenceMatches.size).isEqualTo(100)
+    assertThat(highConfidenceMatches.size).isEqualTo(200)
   }
 
   private fun stubMatchScore(matchResponse: MatchResponse) {
