@@ -3,8 +3,10 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.UnmergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
@@ -16,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class ProbationUnmergeEventProcessor(
   val telemetryService: TelemetryService,
   val unmergeService: UnmergeService,
+  val personRepository: PersonRepository,
 ) : BaseProbationEventProcessor() {
 
   fun processEvent(domainEvent: DomainEvent) {
@@ -31,8 +34,19 @@ class ProbationUnmergeEventProcessor(
 
     val (unmergedProbationCase, reactivatedProbationCase) = collectProbationCases(domainEvent)
     unmergeService.processUnmerge(
-      reactivatedPerson = Person.from(reactivatedProbationCase),
-      unmergedPerson = Person.from(unmergedProbationCase),
+      UnmergeEvent(
+        event = domainEvent.eventType,
+        reactivatedRecord = Person.from(reactivatedProbationCase),
+        reactivatedSystemId = Pair(EventKeys.REACTIVATED_CRN, reactivatedProbationCase.identifiers.crn!!),
+        unmergedRecord = Person.from(unmergedProbationCase),
+        unmergedSystemId = Pair(EventKeys.UNMERGED_CRN, unmergedProbationCase.identifiers.crn!!),
+      ),
+      reactivatedPersonCallback = {
+        personRepository.findByCrn(reactivatedProbationCase.identifiers.crn)
+      },
+      unmergedPersonCallback = {
+        personRepository.findByCrn(unmergedProbationCase.identifiers.crn)
+      },
     )
   }
 

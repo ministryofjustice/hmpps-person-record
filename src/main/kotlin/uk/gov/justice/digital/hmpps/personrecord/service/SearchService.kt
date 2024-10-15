@@ -51,29 +51,20 @@ class SearchService(
     val clusters = candidates.groupBy { it.candidateRecord.personKey?.personId }
     val excludedClusters = clusters.filter { (_, records) ->
       records.any { record ->
-        record.candidateRecord.overrideMarkers.any { it.markerType == OverrideMarkerType.EXCLUDE && it.markerValue == personRecordId.toString() }
+        record.candidateRecord.overrideMarkers.any { it.markerType == OverrideMarkerType.EXCLUDE && it.markerValue == personRecordId }
       }
     }.map { it.key }
     return candidates.filter { candidate -> excludedClusters.contains(candidate.candidateRecord.personKey?.personId).not() }
   }
 
   private fun searchForRecords(searchCriteria: PersonSearchCriteria, personQuery: PersonQuery): List<MatchResult> {
-    var pageNumber = 0
     val highConfidenceMatches = mutableListOf<MatchResult>()
     val totalElements = personRepository.countMatchCandidates(personQuery.query, searchCriteria)
-    var matchCandidatesPage: Page<PersonEntity>
 
-    do {
-      val pageable = PageRequest.of(pageNumber, PAGE_SIZE)
-
-      matchCandidatesPage = personRepository.findMatchCandidates(searchCriteria, personQuery.query, pageable, totalElements)
-      val matchCandidates = matchCandidatesPage.content
-
-      val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(matchCandidates, searchCriteria)
+    forPage(searchCriteria, personQuery, totalElements) { page ->
+      val batchOfHighConfidenceMatches: List<MatchResult> = matchService.findHighConfidenceMatches(page.content, searchCriteria)
       highConfidenceMatches.addAll(batchOfHighConfidenceMatches)
-
-      pageNumber++
-    } while (matchCandidatesPage.hasNext())
+    }
 
     telemetryService.trackEvent(
       CPR_CANDIDATE_RECORD_SEARCH,
@@ -89,7 +80,20 @@ class SearchService(
     return highConfidenceMatches.toList().sortedByDescending { it.probability }
   }
 
+  private inline fun forPage(searchCriteria: PersonSearchCriteria, personQuery: PersonQuery, totalElements: Long, page: (Page<PersonEntity>) -> Unit) {
+    var pageNumber = 0
+    var matchCandidatesPage: Page<PersonEntity>
+    do {
+      val pageable = PageRequest.of(pageNumber, PAGE_SIZE)
+
+      matchCandidatesPage = personRepository.findMatchCandidates(searchCriteria, personQuery.query, pageable, totalElements)
+      page(matchCandidatesPage)
+
+      pageNumber++
+    } while (matchCandidatesPage.hasNext())
+  }
+
   companion object {
-    const val PAGE_SIZE: Int = 50
+    const val PAGE_SIZE: Int = 100
   }
 }

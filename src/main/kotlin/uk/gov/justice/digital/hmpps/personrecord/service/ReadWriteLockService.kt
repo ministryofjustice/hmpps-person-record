@@ -15,7 +15,7 @@ class ReadWriteLockService {
     }
   }
 
-  fun <T> withWriteLock(sourceSystem: SourceSystemType, block: () -> T?): T? {
+  fun <T> withWriteLock(sourceSystem: SourceSystemType, block: () -> T): T {
     val lock = getLock(sourceSystem)
     lock.writeLock().lock()
     return try {

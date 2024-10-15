@@ -1,71 +1,154 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import jakarta.transaction.Transactional
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
+import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.UnmergeEvent
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.MergeService.Companion.MAX_ATTEMPTS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_SELF_MATCH
 
 @Service
 class UnmergeService(
   private val telemetryService: TelemetryService,
-  private val matchService: MatchService,
+  private val personService: PersonService,
+  private val personRepository: PersonRepository,
+  private val personKeyService: PersonKeyService,
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
   @Transactional
-  fun processUnmerge(reactivatedPerson: Person, unmergedPerson: Person) = runBlocking {
+  fun processUnmerge(unmergeEvent: UnmergeEvent, reactivatedPersonCallback: () -> PersonEntity?, unmergedPersonCallback: () -> PersonEntity?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
-      processUnmergingOfRecords(reactivatedPerson, unmergedPerson)
+      processUnmergingOfRecords(unmergeEvent, reactivatedPersonCallback, unmergedPersonCallback)
     }
   }
 
-  private suspend fun processUnmergingOfRecords(reactivatedPerson: Person, unmergedPerson: Person) {
-    collectSelfMatchScores(reactivatedPerson, unmergedPerson)
+  private suspend fun processUnmergingOfRecords(unmergeEvent: UnmergeEvent, reactivatedPersonCallback: () -> PersonEntity?, unmergedPersonCallback: () -> PersonEntity?) {
+    val unmergedPersonEntity = retrieveUnmergedPerson(unmergeEvent, unmergedPersonCallback)
+    val reactivatedPersonEntity = retrieveReactivatedPerson(unmergeEvent, reactivatedPersonCallback)
+    unmergeRecords(unmergeEvent, reactivatedPersonEntity, unmergedPersonEntity)
   }
 
-  private suspend fun collectSelfMatchScores(reactivatedPerson: Person, unmergedPerson: Person) {
-    return coroutineScope {
-      val deferredReactivatedSelfMatch = async { processSelfMatchScore(reactivatedPerson) }
-      val deferredUnmergedSelfMatchScore = async { processSelfMatchScore(unmergedPerson) }
-      awaitAll(deferredReactivatedSelfMatch, deferredUnmergedSelfMatchScore)
+  private fun retrieveUnmergedPerson(unmergeEvent: UnmergeEvent, unmergedPersonCallback: () -> PersonEntity?): PersonEntity =
+    personService.processMessage(unmergeEvent.unmergedRecord, unmergeEvent.event) {
+      searchForPersonRecord(
+        unmergeEvent.unmergedRecord,
+        unmergeEvent.unmergedSystemId,
+        UnmergeRecordType.UNMERGED,
+        unmergedPersonCallback,
+      )
     }
-  }
 
-  private fun processSelfMatchScore(person: Person) {
-    val (isAboveSelfMatchThreshold, selfMatchScore) = matchService.getSelfMatchScore(PersonSearchCriteria.from(person))
-    person.selfMatchScore = selfMatchScore
-    person.isAboveMatchScoreThreshold = isAboveSelfMatchThreshold
-    trackEvent(
-      CPR_SELF_MATCH,
-      person,
+  private fun retrieveReactivatedPerson(unmergeEvent: UnmergeEvent, reactivatedPersonCallback: () -> PersonEntity?): PersonEntity =
+    personService.processMessage(unmergeEvent.reactivatedRecord, unmergeEvent.event, linkRecord = false) {
+      searchForPersonRecord(
+        unmergeEvent.reactivatedRecord,
+        unmergeEvent.reactivatedSystemId,
+        UnmergeRecordType.REACTIVATED,
+        reactivatedPersonCallback,
+      )
+    }
+
+  private fun unmergeRecords(unmergeEvent: UnmergeEvent, reactivatedPersonEntity: PersonEntity, unmergedPersonEntity: PersonEntity) {
+    if (clusterDoesNotHadAdditionalRecords(unmergedPersonEntity, reactivatedPersonEntity)) {
+      personKeyService.setPersonKeyStatus(unmergedPersonEntity.personKey!!, UUIDStatusType.NEEDS_ATTENTION)
+    }
+    val (updatedReactivatedPersonEntity, _) = removeLinkAndAddMarkersToRecord(unmergeEvent, reactivatedPersonEntity, unmergedPersonEntity)
+    findAndAssignUuid(updatedReactivatedPersonEntity)
+    telemetryService.trackEvent(
+      TelemetryEventType.CPR_RECORD_UNMERGED,
       mapOf(
-        EventKeys.PROBABILITY_SCORE to selfMatchScore.toString(),
-        EventKeys.IS_ABOVE_SELF_MATCH_THRESHOLD to isAboveSelfMatchThreshold.toString(),
+        EventKeys.REACTIVATED_UUID to reactivatedPersonEntity.personKey?.personId.toString(),
+        EventKeys.UNMERGED_UUID to unmergedPersonEntity.personKey?.personId.toString(),
+        unmergeEvent.unmergedSystemId.first to unmergeEvent.unmergedSystemId.second,
+        unmergeEvent.reactivatedSystemId.first to unmergeEvent.reactivatedSystemId.second,
+        EventKeys.SOURCE_SYSTEM to unmergeEvent.reactivatedRecord.sourceSystemType.name,
       ),
     )
   }
 
-  private fun trackEvent(
-    eventType: TelemetryEventType,
-    person: Person,
-    elementMap: Map<EventKeys, String?> = emptyMap(),
-  ) {
-    val identifierMap = mapOf(
-      EventKeys.SOURCE_SYSTEM to person.sourceSystemType.name,
-      EventKeys.DEFENDANT_ID to person.defendantId,
-      EventKeys.CRN to person.crn,
-      EventKeys.PRISON_NUMBER to person.prisonNumber,
+  private fun removeLinkAndAddMarkersToRecord(unmergeEvent: UnmergeEvent, reactivatedPersonEntity: PersonEntity, unmergedPersonEntity: PersonEntity): Pair<PersonEntity, PersonEntity> {
+    when {
+      mergeLinkExists(reactivatedPersonEntity) -> removeMergedToLink(reactivatedPersonEntity)
+      else -> telemetryService.trackEvent(
+        TelemetryEventType.CPR_UNMERGE_LINK_NOT_FOUND,
+        mapOf(
+          unmergeEvent.unmergedSystemId.first to unmergeEvent.unmergedSystemId.second,
+          unmergeEvent.reactivatedSystemId.first to unmergeEvent.reactivatedSystemId.second,
+          EventKeys.SOURCE_SYSTEM to reactivatedPersonEntity.sourceSystem.name,
+          EventKeys.RECORD_TYPE to UnmergeRecordType.REACTIVATED.name,
+        ),
+      )
+    }
+    removeUuidLink(reactivatedPersonEntity)
+    addExcludeOverrideMarkers(reactivatedPersonEntity, unmergedPersonEntity)
+    return Pair(personRepository.saveAndFlush(reactivatedPersonEntity), personRepository.saveAndFlush(unmergedPersonEntity))
+  }
+
+  private fun searchForPersonRecord(record: Person, systemId: Pair<EventKeys, String>, recordType: UnmergeRecordType, callback: () -> PersonEntity?): PersonEntity? {
+    val personEntity = callback()
+    if (personEntity == null) {
+      telemetryService.trackEvent(
+        TelemetryEventType.CPR_UNMERGE_RECORD_NOT_FOUND,
+        mapOf(
+          systemId.first to systemId.second,
+          EventKeys.SOURCE_SYSTEM to record.sourceSystemType.name,
+          EventKeys.RECORD_TYPE to recordType.name,
+        ),
+      )
+    }
+    return personEntity
+  }
+
+  private fun findAndAssignUuid(reactivatedPersonEntity: PersonEntity) {
+    reactivatedPersonEntity.personKey = personKeyService.getPersonKey(reactivatedPersonEntity)
+    personRepository.saveAndFlush(reactivatedPersonEntity)
+  }
+
+  private fun removeMergedToLink(personEntity: PersonEntity) {
+    personEntity.mergedTo = null
+  }
+
+  private fun removeUuidLink(personEntity: PersonEntity) {
+    personEntity.personKey.let {
+      personEntity.personKey?.personEntities?.remove(personEntity)
+      personEntity.personKey = null
+    }
+  }
+
+  private fun clusterDoesNotHadAdditionalRecords(unmergedPersonEntity: PersonEntity, reactivatedPersonEntity: PersonEntity): Boolean {
+    val additionalRecords = unmergedPersonEntity.personKey?.let {
+      it.personEntities.filter {
+        listOf(unmergedPersonEntity.id!!, reactivatedPersonEntity.id!!).contains(it.id).not()
+      }
+    }
+    return (additionalRecords?.size ?: 0) > 0
+  }
+
+  private fun mergeLinkExists(personEntity: PersonEntity): Boolean = personEntity.mergedTo != null
+
+  private fun addExcludeOverrideMarkers(reactivatedPerson: PersonEntity, unmergedPerson: PersonEntity) {
+    reactivatedPerson.overrideMarkers.add(
+      OverrideMarkerEntity(markerType = OverrideMarkerType.EXCLUDE, markerValue = unmergedPerson.id, person = reactivatedPerson),
     )
-    telemetryService.trackEvent(eventType, identifierMap + elementMap)
+    unmergedPerson.overrideMarkers.add(
+      OverrideMarkerEntity(markerType = OverrideMarkerType.EXCLUDE, markerValue = reactivatedPerson.id, person = unmergedPerson),
+    )
+  }
+
+  companion object {
+    enum class UnmergeRecordType {
+      REACTIVATED,
+      UNMERGED,
+    }
+    const val MAX_ATTEMPTS: Int = 5
   }
 }
