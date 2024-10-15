@@ -18,27 +18,6 @@ object RetryExecutor {
   private const val EXPONENTIAL_FACTOR = 2.0
 
   private val retryables = listOf(feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class, FeignException.BadGateway::class)
-//  suspend fun <T> runWithRetry(
-//    maxAttempts: Int,
-//    delay: Long,
-//    exceptions: List<KClass<out Exception>> = retryables,
-//    retryFunction: suspend () -> T,
-//  ): T {
-//    var lastException: Exception? = null
-//    repeat(maxAttempts) {
-//      try {
-//        return retryFunction()
-//      } catch (e: Exception) {
-//        if (e::class in exceptions) {
-//          lastException = e
-//        } else {
-//          throw e
-//        }
-//      }
-//      delay(delay)
-//    }
-//    throw lastException ?: RuntimeException("Unexpected error")
-//  }
 
   suspend fun <T> runWithRetry(
     maxAttempts: Int,
