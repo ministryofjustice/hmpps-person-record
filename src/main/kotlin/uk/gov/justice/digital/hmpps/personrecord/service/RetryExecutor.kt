@@ -8,28 +8,66 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
 import org.springframework.orm.jpa.JpaSystemException
+import kotlin.math.min
+import kotlin.random.Random
 import kotlin.reflect.KClass
 
 object RetryExecutor {
+  private const val JITTER_MIN = 0.8
+  private const val JITTER_MAX = 1.2
+  private const val EXPONENTIAL_FACTOR = 2.0
+
   private val retryables = listOf(feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class, FeignException.BadGateway::class)
+//  suspend fun <T> runWithRetry(
+//    maxAttempts: Int,
+//    delay: Long,
+//    exceptions: List<KClass<out Exception>> = retryables,
+//    retryFunction: suspend () -> T,
+//  ): T {
+//    var lastException: Exception? = null
+//    repeat(maxAttempts) {
+//      try {
+//        return retryFunction()
+//      } catch (e: Exception) {
+//        if (e::class in exceptions) {
+//          lastException = e
+//        } else {
+//          throw e
+//        }
+//      }
+//      delay(delay)
+//    }
+//    throw lastException ?: RuntimeException("Unexpected error")
+//  }
+
   suspend fun <T> runWithRetry(
     maxAttempts: Int,
     delay: Long,
     exceptions: List<KClass<out Exception>> = retryables,
-    retryFunction: suspend () -> T,
+    maxDelayMillis: Long = 1000,
+    action: suspend () -> T,
   ): T {
+    var currentDelay = delay
     var lastException: Exception? = null
+
     repeat(maxAttempts) {
       try {
-        return retryFunction()
+        return action()
       } catch (e: Exception) {
-        if (e::class in exceptions) {
-          lastException = e
-        } else {
-          throw e
+        when {
+          e::class in exceptions -> {
+            lastException = e
+
+            val jitterValue = Random.nextDouble(JITTER_MIN, JITTER_MAX)
+            val delayTime = (currentDelay * jitterValue).toLong()
+
+            delay(delayTime)
+
+            currentDelay = min((currentDelay * EXPONENTIAL_FACTOR).toLong(), maxDelayMillis)
+          }
+          else -> throw e
         }
       }
-      delay(delay)
     }
     throw lastException ?: RuntimeException("Unexpected error")
   }
