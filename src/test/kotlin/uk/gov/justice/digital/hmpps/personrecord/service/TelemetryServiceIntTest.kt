@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 class TelemetryServiceIntTest : IntegrationTestBase() {
 
   @Test
-  fun `should log CORRELATION_ID in telemetry events`() {
+  fun `should log correlation id in telemetry events`() {
     val telemetryLogs = telemetryRepository.findAll()
 
     val correlationIdKey = EventKeys.CORRELATION_ID.name
