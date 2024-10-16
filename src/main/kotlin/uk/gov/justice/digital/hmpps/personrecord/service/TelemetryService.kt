@@ -81,7 +81,4 @@ class TelemetryService(private val telemetryClient: TelemetryClient) {
     telemetryClient.trackEvent(eventType.eventName, updatedDimensions, null)
   }
 
-  fun getOperationId(): String {
-    return telemetryClient.context.operation.id ?: "No OperationId"
-  }
 }
