@@ -191,4 +191,14 @@ class SearchIntTest : WebTestBase() {
       .expectStatus()
       .isUnauthorized
   }
+
+  @Test
+  fun `should return NOT FOUND when empty personId`() {
+    webTestClient.get()
+      .uri(searchUrl(""))
+      .authorised(listOf(Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO.name))
+      .exchange()
+      .expectStatus()
+      .isNotFound
+  }
 }

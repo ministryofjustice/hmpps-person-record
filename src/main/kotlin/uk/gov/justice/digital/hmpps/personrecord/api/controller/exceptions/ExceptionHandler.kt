@@ -50,16 +50,4 @@ class ExceptionHandler {
         ),
       )
   }
-
-  @ExceptionHandler(Exception::class)
-  fun handleException(e: Exception): ResponseEntity<ErrorResponse?>? {
-    return ResponseEntity
-      .status(HttpStatus.INTERNAL_SERVER_ERROR)
-      .body(
-        ErrorResponse(
-          status = HttpStatus.INTERNAL_SERVER_ERROR,
-          userMessage = "Unexpected error: ${e.message}",
-        ),
-      )
-  }
 }
