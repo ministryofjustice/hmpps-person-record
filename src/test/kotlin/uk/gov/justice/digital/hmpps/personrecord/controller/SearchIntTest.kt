@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -27,6 +28,38 @@ class SearchIntTest : WebTestBase() {
     createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
       personKeyEntity = createPersonKey(),
+    )
+
+    val responseBody = webTestClient.get()
+      .uri(searchUrl(crn))
+      .authorised(listOf(Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO.name))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBodyList(PersonIdentifierRecord::class.java)
+      .returnResult()
+      .responseBody!!
+
+    assertThat(responseBody.size).isEqualTo(1)
+    assertThat(responseBody[0].id).isEqualTo(crn)
+    assertThat(responseBody[0].sourceSystem).isEqualTo(DELIUS.name)
+  }
+
+  @Test
+  fun `should not return LIBRA person record that is linked`() {
+    val crn = randomCRN()
+    val personKeyEntity = createPersonKey()
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
+      personKeyEntity = personKeyEntity,
+    )
+    createPerson(
+      Person(
+        firstName = randomName(),
+        lastName = randomName(),
+        sourceSystemType = LIBRA,
+      ),
+      personKeyEntity = personKeyEntity,
     )
 
     val responseBody = webTestClient.get()

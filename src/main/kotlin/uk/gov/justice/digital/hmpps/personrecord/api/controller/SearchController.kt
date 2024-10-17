@@ -33,7 +33,7 @@ class SearchController(
 
   private fun buildListOfLinkedRecords(personEntity: PersonEntity): List<PersonIdentifierRecord> {
     return personEntity.personKey?.let { personKeyEntity ->
-      personKeyEntity.personEntities.map {
+      personKeyEntity.personEntities.filter { SOURCE_SYSTEMS.contains(it.sourceSystem) }.map {
         buildIdentifierRecord(it)
       }
     } ?: listOf(buildIdentifierRecord(personEntity))
@@ -58,5 +58,9 @@ class SearchController(
       deferredPrisonPersonSearch,
       deferredCommonPlatformPersonSearch,
     ).filterNotNull().firstOrNull()
+  }
+
+  companion object {
+    private val SOURCE_SYSTEMS = listOf(SourceSystemType.DELIUS, SourceSystemType.NOMIS, SourceSystemType.COMMON_PLATFORM)
   }
 }
