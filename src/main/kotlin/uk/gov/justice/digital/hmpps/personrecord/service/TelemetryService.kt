@@ -10,6 +10,7 @@ enum class EventKeys {
   MESSAGE_ID,
   SOURCE_SYSTEM,
   EVENT_TYPE,
+  CORRELATION_ID,
   RECORD_COUNT,
   SEARCH_VERSION,
   UUID,
@@ -71,7 +72,15 @@ class TelemetryService(private val telemetryClient: TelemetryClient) {
 
   fun trackEvent(eventType: TelemetryEventType, customDimensions: Map<EventKeys, String?>) {
     log.debug("Sending telemetry event ${eventType.eventName} ")
-    val transformedDimensions: Map<String, String?> = customDimensions.entries.associate { it.key.name to it.value }
-    telemetryClient.trackEvent(eventType.eventName, transformedDimensions, null)
+
+    val correlationId = telemetryClient.context.operation.id
+
+    val updatedDimensions = customDimensions.entries.associate { it.key.name to it.value } + mapOf("CORRELATION_ID" to correlationId)
+
+    log.debug("Test : setting correlation id to $correlationId")
+    log.debug("TelemetryService : setting correlation id to $correlationId")
+
+
+    telemetryClient.trackEvent(eventType.eventName, updatedDimensions, null)
   }
 }

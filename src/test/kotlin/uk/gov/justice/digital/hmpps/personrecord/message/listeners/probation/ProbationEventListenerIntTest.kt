@@ -52,6 +52,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
 import java.time.LocalDate
+import java.util.UUID
 import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -305,6 +306,24 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
   }
+
+  @Test
+  fun `should log correlation id to telemetry`() {
+    val crn = randomCRN()
+
+    val correlationId = UUID.randomUUID().toString()
+//    telemetryClient.context.operation.id = correlationId
+    //val correlationId = UUID.randomUUID().toString()
+telemetryClient.context.operation.id = correlationId
+   // CorrelationIdContext.setCorrelationId(correlationId)
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn))
+
+   // `when` (telemetryClient.context.operation.id).thenReturn(correlationId)
+
+    checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS","CORRELATION_ID" to correlationId), 1)
+
+  }
+
 
   @ParameterizedTest
   @ValueSource(strings = [OFFENDER_DETAILS_CHANGED, OFFENDER_ALIAS_CHANGED, OFFENDER_ADDRESS_CHANGED])

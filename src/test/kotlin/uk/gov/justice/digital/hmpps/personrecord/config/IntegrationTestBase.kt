@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.config
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
+import com.microsoft.applicationinsights.TelemetryClient
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
@@ -22,7 +23,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestConfig
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -41,6 +44,10 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var telemetryRepository: TelemetryTestRepository
+
+  @Autowired
+  lateinit var telemetryClient: TelemetryClient
+
 
   @Autowired
   private lateinit var buildProperties: BuildProperties
