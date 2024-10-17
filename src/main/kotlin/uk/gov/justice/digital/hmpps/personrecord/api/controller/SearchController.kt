@@ -1,9 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller
 
 import jakarta.validation.constraints.NotBlank
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -20,13 +17,24 @@ class SearchController(
   private val personRepository: PersonRepository,
 ) {
 
-  @GetMapping("/search/{personId}")
-  suspend fun searchByPersonId(@NotBlank @PathVariable(name = "personId") personId: String): List<PersonIdentifierRecord> {
-    val personRecord = getPersonRecord(personId)
-    return when {
-      personRecord != PersonEntity.empty -> buildListOfLinkedRecords(personRecord!!)
-      else -> throw PersonRecordNotFoundException(personId)
-    }
+  @GetMapping("/search/offender/{crn}")
+  fun searchByCrn(@NotBlank @PathVariable(name = "crn") crn: String): List<PersonIdentifierRecord> {
+    return handlePersonRecord(personRepository.findByCrn(crn), crn)
+  }
+
+  @GetMapping("/search/prisoner/{prisonNumber}")
+  fun searchByPrisonNumber(@NotBlank @PathVariable(name = "prisonNumber") prisonNumber: String): List<PersonIdentifierRecord> {
+    return handlePersonRecord(personRepository.findByPrisonNumberAndSourceSystem(prisonNumber), prisonNumber)
+  }
+
+  @GetMapping("/search/defendant/{defendantId}")
+  fun searchByDefendantId(@NotBlank @PathVariable(name = "defendantId") defendantId: String): List<PersonIdentifierRecord> {
+    return handlePersonRecord(personRepository.findByDefendantId(defendantId), defendantId)
+  }
+
+  private fun handlePersonRecord(personEntity: PersonEntity?, identifier: String): List<PersonIdentifierRecord> = when {
+    personEntity != PersonEntity.empty -> buildListOfLinkedRecords(personEntity!!)
+    else -> throw PersonRecordNotFoundException(identifier)
   }
 
   private fun buildListOfLinkedRecords(personEntity: PersonEntity): List<PersonIdentifierRecord> {
@@ -42,16 +50,5 @@ class SearchController(
       SourceSystemType.COMMON_PLATFORM -> PersonIdentifierRecord(id = personEntity.defendantId!!, SourceSystemType.COMMON_PLATFORM.name)
       else -> null
     }
-  }
-
-  private suspend fun getPersonRecord(personId: String): PersonEntity? = coroutineScope {
-    val deferredProbationPersonSearch = async { personRepository.findByCrn(personId) }
-    val deferredPrisonPersonSearch = async { personRepository.findByPrisonNumberAndSourceSystem(personId) }
-    val deferredCommonPlatformPersonSearch = async { personRepository.findByDefendantId(personId) }
-    return@coroutineScope awaitAll(
-      deferredProbationPersonSearch,
-      deferredPrisonPersonSearch,
-      deferredCommonPlatformPersonSearch,
-    ).filterNotNull().firstOrNull()
   }
 }
