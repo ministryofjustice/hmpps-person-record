@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
