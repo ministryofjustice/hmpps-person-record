@@ -20,7 +20,7 @@ import java.util.UUID
 
 class SearchIntTest : WebTestBase() {
 
-  private fun searchUrl(personId: String) = "/api/search/$personId"
+  private fun searchUrl(personId: String) = "/search/$personId"
 
   @Test
   fun `should returns person record with one record`() {

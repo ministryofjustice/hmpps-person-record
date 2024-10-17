@@ -6,14 +6,10 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestControllerAdvice
 class ExceptionHandler {
-
-  data class ErrorResponse(
-    val status: HttpStatus,
-    val userMessage: String? = null,
-  )
 
   @ExceptionHandler(PersonRecordNotFoundException::class)
   fun handlePersonRecordNotFoundException(e: PersonRecordNotFoundException): ResponseEntity<ErrorResponse> {
