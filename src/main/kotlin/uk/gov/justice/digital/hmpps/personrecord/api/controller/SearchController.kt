@@ -32,21 +32,18 @@ class SearchController(
   }
 
   private fun buildListOfLinkedRecords(personEntity: PersonEntity): List<PersonIdentifierRecord> {
-    return personEntity.personKey?.let { personKeyEntity ->
-      personKeyEntity.personEntities.filter { SOURCE_SYSTEMS.contains(it.sourceSystem) }.map {
-        buildIdentifierRecord(it)
-      }
-    } ?: listOf(buildIdentifierRecord(personEntity))
+    return personEntity.personKey?.personEntities?.mapNotNull {
+      buildIdentifierRecord(it)
+    } ?: listOfNotNull(buildIdentifierRecord(personEntity))
   }
 
-  private fun buildIdentifierRecord(personEntity: PersonEntity): PersonIdentifierRecord {
-    val identifier = when (personEntity.sourceSystem) {
-      SourceSystemType.DELIUS -> personEntity.crn
-      SourceSystemType.NOMIS -> personEntity.prisonNumber
-      SourceSystemType.COMMON_PLATFORM -> personEntity.defendantId
-      else -> ""
-    } ?: ""
-    return PersonIdentifierRecord(id = identifier, sourceSystem = personEntity.sourceSystem.name)
+  private fun buildIdentifierRecord(personEntity: PersonEntity): PersonIdentifierRecord? {
+    return when (personEntity.sourceSystem) {
+      SourceSystemType.DELIUS -> PersonIdentifierRecord(id = personEntity.crn!!, SourceSystemType.DELIUS.name)
+      SourceSystemType.NOMIS -> PersonIdentifierRecord(id = personEntity.prisonNumber!!, SourceSystemType.NOMIS.name)
+      SourceSystemType.COMMON_PLATFORM -> PersonIdentifierRecord(id = personEntity.defendantId!!, SourceSystemType.COMMON_PLATFORM.name)
+      else -> null
+    }
   }
 
   private suspend fun getPersonRecord(personId: String): PersonEntity? = coroutineScope {
@@ -58,9 +55,5 @@ class SearchController(
       deferredPrisonPersonSearch,
       deferredCommonPlatformPersonSearch,
     ).filterNotNull().firstOrNull()
-  }
-
-  companion object {
-    private val SOURCE_SYSTEMS = listOf(SourceSystemType.DELIUS, SourceSystemType.NOMIS, SourceSystemType.COMMON_PLATFORM)
   }
 }
