@@ -5,6 +5,7 @@ import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
+import java.util.UUID
 
 @Configuration
 @Profile("test")
@@ -16,12 +17,16 @@ class TelemetryTestConfig {
   }
 
   class OurTelemetryClient(private val telemetryRepository: TelemetryTestRepository, private val objectMapper: ObjectMapper) : TelemetryClient() {
+
     override fun trackEvent(
       event: String?,
       properties: MutableMap<String, String>?,
       metrics: MutableMap<String, Double>?,
     ) {
+      this.context.operation.id = UUID.randomUUID().toString()
+
       val telemetry = TelemetryEntity(event = event, properties = objectMapper.writeValueAsString(properties))
+
       telemetryRepository.saveAndFlush(telemetry)
     }
   }
