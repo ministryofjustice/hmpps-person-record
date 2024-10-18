@@ -17,17 +17,16 @@ class TelemetryTestConfig {
   }
 
   class OurTelemetryClient(private val telemetryRepository: TelemetryTestRepository, private val objectMapper: ObjectMapper) : TelemetryClient() {
-    init{
-      when (this.context.operation.id){
-        null -> this.context.operation.id =  UUID.randomUUID().toString()
-      }
-    }
+
     override fun trackEvent(
       event: String?,
       properties: MutableMap<String, String>?,
       metrics: MutableMap<String, Double>?,
     ) {
+      this.context.operation.id = UUID.randomUUID().toString()
+
       val telemetry = TelemetryEntity(event = event, properties = objectMapper.writeValueAsString(properties))
+
       telemetryRepository.saveAndFlush(telemetry)
     }
   }
