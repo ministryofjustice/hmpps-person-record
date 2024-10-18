@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.CO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -26,9 +27,10 @@ class SearchIntTest : WebTestBase() {
   @Test
   fun `should return OFFENDER person record with one record`() {
     val crn = randomCRN()
+    val personKeyEntity = createPersonKey()
     createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
-      personKeyEntity = createPersonKey(),
+      personKeyEntity = personKeyEntity,
     )
 
     val responseBody = webTestClient.get()
@@ -41,6 +43,8 @@ class SearchIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
+    checkTelemetry(TelemetryEventType.CPR_SEARCH_REQUEST, mapOf("CRN" to crn, "UUID" to personKeyEntity.personId.toString()))
+
     assertThat(responseBody.size).isEqualTo(1)
     assertThat(responseBody[0].id).isEqualTo(crn)
     assertThat(responseBody[0].sourceSystem).isEqualTo(DELIUS.name)
@@ -49,6 +53,7 @@ class SearchIntTest : WebTestBase() {
   @Test
   fun `should return PRISONER person record with one record`() {
     val prisonNumber = randomPrisonNumber()
+    val personKeyEntity = createPersonKey()
     createPerson(
       Person(
         firstName = randomName(),
@@ -56,7 +61,7 @@ class SearchIntTest : WebTestBase() {
         prisonNumber = prisonNumber,
         sourceSystemType = NOMIS,
       ),
-      personKeyEntity = createPersonKey(),
+      personKeyEntity = personKeyEntity,
     )
 
     val responseBody = webTestClient.get()
@@ -69,6 +74,8 @@ class SearchIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
+    checkTelemetry(TelemetryEventType.CPR_SEARCH_REQUEST, mapOf("PRISON_NUMBER" to prisonNumber, "UUID" to personKeyEntity.personId.toString()))
+
     assertThat(responseBody.size).isEqualTo(1)
     assertThat(responseBody[0].id).isEqualTo(prisonNumber)
     assertThat(responseBody[0].sourceSystem).isEqualTo(NOMIS.name)
@@ -77,12 +84,13 @@ class SearchIntTest : WebTestBase() {
   @Test
   fun `should return DEFENDANT person record with one record`() {
     val defendantId = randomDefendantId()
+    val personKeyEntity = createPersonKey()
     createPerson(
       Person(
         defendantId = defendantId,
         sourceSystemType = COMMON_PLATFORM,
       ),
-      personKeyEntity = createPersonKey(),
+      personKeyEntity = personKeyEntity,
     )
 
     val responseBody = webTestClient.get()
@@ -94,6 +102,8 @@ class SearchIntTest : WebTestBase() {
       .expectBodyList(PersonIdentifierRecord::class.java)
       .returnResult()
       .responseBody!!
+
+    checkTelemetry(TelemetryEventType.CPR_SEARCH_REQUEST, mapOf("DEFENDANT_ID" to defendantId, "UUID" to personKeyEntity.personId.toString()))
 
     assertThat(responseBody.size).isEqualTo(1)
     assertThat(responseBody[0].id).isEqualTo(defendantId)
