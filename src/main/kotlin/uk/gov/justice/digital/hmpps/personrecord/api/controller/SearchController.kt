@@ -42,11 +42,13 @@ class SearchController(
   }
 
   private fun buildListOfLinkedRecords(personEntity: PersonEntity, identifier: Pair<EventKeys, String>): List<PersonIdentifierRecord> {
-    telemetryService.trackEvent(TelemetryEventType.CPR_SEARCH_REQUEST,
+    telemetryService.trackEvent(
+      TelemetryEventType.CPR_SEARCH_REQUEST,
       mapOf(
         identifier.first to identifier.second,
-        EventKeys.UUID to personEntity.personKey?.let { it.personId.toString() }
-      ))
+        EventKeys.UUID to personEntity.personKey?.let { it.personId.toString() },
+      ),
+    )
     return personEntity.personKey?.personEntities?.mapNotNull {
       buildIdentifierRecord(it)
     } ?: listOfNotNull(buildIdentifierRecord(personEntity))
