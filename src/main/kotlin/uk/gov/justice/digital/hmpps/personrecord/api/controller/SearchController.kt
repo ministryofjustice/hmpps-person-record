@@ -22,7 +22,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @Tag(name = "Search")
 @RestController
-@PreAuthorize("hasRole('${Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO}')")
+@PreAuthorize("hasRole('${Roles.SEARCH_API_READ_ONLY}')")
 class SearchController(
   private val personRepository: PersonRepository,
 ) {
