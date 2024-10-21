@@ -19,14 +19,14 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
-@Tag(name = "search")
+@Tag(name = "search", description = "APIs for person search")
 @RestController
 @PreAuthorize("hasRole('ROLE_CORE_PERSON_RECORD_API__SEARCH__RO')")
 class SearchController(
   private val personRepository: PersonRepository,
 ) {
 
-  @Operation(description = "Search for person record and associated records with a CRN in the given system")
+  @Operation(description = "Search for person record and associated records with a CRN within the system")
   @GetMapping("/search/offender/{crn}")
   @ApiResponses(
     ApiResponse(responseCode = "200", description = "OK"),
@@ -54,7 +54,7 @@ class SearchController(
     return handlePersonRecord(personRepository.findByCrn(crn), crn)
   }
 
-  @Operation(description = "Search for person record and associated records with a prisoner number in the given system")
+  @Operation(description = "Search for person record and associated records with a prisoner number within the system")
   @GetMapping("/search/prisoner/{prisonNumber}")
   @ApiResponses(
     ApiResponse(responseCode = "200", description = "OK"),
@@ -83,7 +83,7 @@ class SearchController(
     return handlePersonRecord(personRepository.findByPrisonNumberAndSourceSystem(prisonNumber), prisonNumber)
   }
 
-  @Operation(description = "Search for person record and associated records with a defendant identifier in the given system")
+  @Operation(description = "Search for person record and associated records with a defendant identifier within the system")
   @GetMapping("/search/defendant/{defendantId}")
   @ApiResponses(
     ApiResponse(responseCode = "200", description = "OK"),

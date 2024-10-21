@@ -32,6 +32,7 @@ dependencies {
   implementation("org.springframework.security:spring-security-config:6.3.3")
 
   implementation("io.swagger.core.v3:swagger-annotations:2.2.25")
+  implementation("org.springdoc:springdoc-openapi-ui:1.7.0")
 
   constraints {
     implementation("commons-io:commons-io:2.17.0") {
