@@ -29,7 +29,7 @@ dependencies {
   implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.3")
-  implementation("org.springframework.security:spring-security-config:6.3.3")
+  implementation("org.springframework.security:spring-security-config:6.3.4")
 
   implementation("io.swagger.core.v3:swagger-annotations:2.2.25")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
