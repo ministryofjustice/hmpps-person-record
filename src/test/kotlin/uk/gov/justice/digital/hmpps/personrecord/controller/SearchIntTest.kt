@@ -33,7 +33,7 @@ class SearchIntTest : WebTestBase() {
 
     val responseBody = webTestClient.get()
       .uri(searchOffenderUrl(crn))
-      .authorised(listOf(Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO.name))
+      .authorised(listOf(Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO))
       .exchange()
       .expectStatus()
       .isOk
@@ -61,7 +61,7 @@ class SearchIntTest : WebTestBase() {
 
     val responseBody = webTestClient.get()
       .uri(searchPrisonerUrl(prisonNumber))
-      .authorised(listOf(Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO.name))
+      .authorised(listOf(Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO))
       .exchange()
       .expectStatus()
       .isOk
@@ -87,7 +87,7 @@ class SearchIntTest : WebTestBase() {
 
     val responseBody = webTestClient.get()
       .uri(searchDefendantUrl(defendantId))
-      .authorised(listOf(Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO.name))
+      .authorised(listOf(Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO))
       .exchange()
       .expectStatus()
       .isOk
@@ -119,7 +119,7 @@ class SearchIntTest : WebTestBase() {
 
     val responseBody = webTestClient.get()
       .uri(searchOffenderUrl(crn))
-      .authorised(listOf(Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO.name))
+      .authorised(listOf(Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO))
       .exchange()
       .expectStatus()
       .isOk
@@ -141,7 +141,7 @@ class SearchIntTest : WebTestBase() {
 
     val responseBody = webTestClient.get()
       .uri(searchOffenderUrl(crn))
-      .authorised(listOf(Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO.name))
+      .authorised(listOf(Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO))
       .exchange()
       .expectStatus()
       .isOk
@@ -169,7 +169,7 @@ class SearchIntTest : WebTestBase() {
 
     val responseBody = webTestClient.get()
       .uri(searchOffenderUrl(crn))
-      .authorised(listOf(Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO.name))
+      .authorised(listOf(Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO))
       .exchange()
       .expectStatus()
       .isOk
@@ -211,7 +211,7 @@ class SearchIntTest : WebTestBase() {
 
     val responseBody = webTestClient.get()
       .uri(searchOffenderUrl(crn))
-      .authorised(listOf(Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO.name))
+      .authorised(listOf(Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO))
       .exchange()
       .expectStatus()
       .isOk
@@ -254,7 +254,7 @@ class SearchIntTest : WebTestBase() {
   fun `should return NOT FOUND when empty personId`(url: String) {
     webTestClient.get()
       .uri(url)
-      .authorised(listOf(Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO.name))
+      .authorised(listOf(Roles.ROLE_CORE_PERSON_RECORD_API__SEARCH__RO))
       .exchange()
       .expectStatus()
       .isNotFound
