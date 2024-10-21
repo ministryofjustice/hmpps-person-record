@@ -11,12 +11,8 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
-import org.springframework.security.web.SecurityFilterChain
-import uk.gov.justice.hmpps.kotlin.auth.AuthAwareTokenConverter
 import uk.gov.justice.hmpps.kotlin.auth.dsl.ResourceServerConfigurationCustomizer
 
-@EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true, proxyTargetClass = true)
 @Configuration
 class SecurityConfiguration {
 
@@ -37,30 +33,6 @@ class SecurityConfiguration {
     authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider)
 
     return authorizedClientManager
-  }
-
-  @Bean
-  fun filterChain(http: HttpSecurity): SecurityFilterChain {
-    http
-      .headers { headers -> headers.frameOptions { it.sameOrigin() } }
-      .sessionManagement { session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-      .authorizeHttpRequests {
-        it
-          .requestMatchers(
-            "/v3/api-docs/**",
-            "/swagger-ui/**",
-            "/swagger-ui.html",
-          ).permitAll()
-          .anyRequest().authenticated()
-      }
-      .csrf { it.disable() }
-      .oauth2ResourceServer { oauth2ResourceServer ->
-        oauth2ResourceServer
-          .jwt { jwt ->
-            jwt.jwtAuthenticationConverter(AuthAwareTokenConverter())
-          }
-      }
-    return http.build()
   }
 
   @Bean
