@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.jobs
 
+import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.termfrequency.PncFrequencyRepository
 
 @RestController
+@Tag(name = "Jobs")
 class GenerateTermFrequencies(
   private val pncFrequencyRepository: PncFrequencyRepository,
 ) {
