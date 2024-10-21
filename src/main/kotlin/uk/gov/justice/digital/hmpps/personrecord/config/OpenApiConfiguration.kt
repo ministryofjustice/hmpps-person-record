@@ -21,7 +21,7 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
     .servers(
       listOf(
         Server().url("https://hmpps-person-record-dev.hmpps.service.justice.gov.uk").description("Development"),
-        Server().url("https://hmpps-person-record.hmpps.service.justice.gov.uk").description("Pre-Production"),
+        Server().url("https://hmpps-person-record-preprod.hmpps.service.justice.gov.uk").description("Pre-Production"),
         Server().url("https://hmpps-person-record.hmpps.service.justice.gov.uk").description("Production"),
         Server().url("http://localhost:8080").description("Local"),
       ),
@@ -35,7 +35,8 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
     .info(
       Info().title("HMPPS Core Person Record")
         .version(version)
-        .contact(Contact().name("HMPPS Digital Studio").email("feedback@digital.justice.gov.uk")),
+        .contact(Contact().name("HMPPS Digital Studio").email("feedback@digital.justice.gov.uk"))
+        .contact(Contact().name("HMPPS Person Record").email("hmpps-person-record@digital.justice.gov.uk")),
     )
     .components(
       Components().addSecuritySchemes(

@@ -32,11 +32,6 @@ class SearchController(
   @ApiResponses(
     ApiResponse(responseCode = "200", description = "OK"),
     ApiResponse(
-      responseCode = "400",
-      description = "Invalid request.",
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-    ),
-    ApiResponse(
       responseCode = "404",
       description = "Requested resource not found.",
       content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
@@ -56,15 +51,10 @@ class SearchController(
     return handlePersonRecord(personRepository.findByCrn(crn), crn)
   }
 
-  @Operation(description = "Search for person record and associated records with a prisoner number within the system")
+  @Operation(description = "Search for person record and associated records with a prison number within the system")
   @GetMapping("/search/prisoner/{prisonNumber}")
   @ApiResponses(
     ApiResponse(responseCode = "200", description = "OK"),
-    ApiResponse(
-      responseCode = "400",
-      description = "Invalid request.",
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-    ),
     ApiResponse(
       responseCode = "404",
       description = "Requested resource not found.",
@@ -90,11 +80,6 @@ class SearchController(
   @ApiResponses(
     ApiResponse(responseCode = "200", description = "OK"),
     ApiResponse(
-      responseCode = "400",
-      description = "Invalid request.",
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-    ),
-    ApiResponse(
       responseCode = "404",
       description = "Requested resource not found.",
       content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
@@ -108,7 +93,7 @@ class SearchController(
   fun searchByDefendantId(
     @NotBlank
     @PathVariable(name = "defendantId")
-    @Parameter(description = "The identifier of the probation source system (COMMON_PLATFORM)", required = true)
+    @Parameter(description = "The identifier of the HMCTS (courts and tribunals) source system", required = true)
     defendantId: String,
   ): List<PersonIdentifierRecord> {
     return handlePersonRecord(personRepository.findByDefendantId(defendantId), defendantId)
