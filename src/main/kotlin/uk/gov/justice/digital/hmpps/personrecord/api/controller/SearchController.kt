@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
-@Tag(name = "search", description = "APIs for person search")
+@Tag(name = "Search")
 @RestController
 @PreAuthorize("hasRole('ROLE_CORE_PERSON_RECORD_API__SEARCH__RO')")
 class SearchController(
