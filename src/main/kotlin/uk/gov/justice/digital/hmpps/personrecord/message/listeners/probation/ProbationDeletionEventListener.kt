@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationDeleteProcessor
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationMergeEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
@@ -20,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_GDPR_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 
-const val PROBATION_DELETION_EVENT_QUEUE_CONFIG_KEY = "cprdeliusdeletioneventsqueue"
+const val PROBATION_DELETION_EVENT_QUEUE_CONFIG_KEY = "cprdeliusdeleteeventsqueue"
 
 @Component
 @Profile("!seeding")

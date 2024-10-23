@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.format
 
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient

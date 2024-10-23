@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.UnmergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase

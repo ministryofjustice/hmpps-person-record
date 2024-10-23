@@ -7,17 +7,17 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.format.EncodingService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 
 @Service
 class PrisonEventProcessor(
-    private val telemetryService: TelemetryService,
-    private val personService: PersonService,
-    private val personRepository: PersonRepository,
-    private val encodingService: EncodingService,
+  private val telemetryService: TelemetryService,
+  private val personService: PersonService,
+  private val personRepository: PersonRepository,
+  private val encodingService: EncodingService,
 ) {
 
   private companion object {

@@ -19,9 +19,9 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Service
 class MergeService(
-    private val telemetryService: TelemetryService,
-    private val personRepository: PersonRepository,
-    @Value("\${retry.delay}") private val retryDelay: Long,
+  private val telemetryService: TelemetryService,
+  private val personRepository: PersonRepository,
+  @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
   @Transactional
