@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PROBATION_GDPR_DELETION
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_GDPR_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 
 const val PROBATION_DELETION_EVENT_QUEUE_CONFIG_KEY = "cprdeliusdeleteeventsqueue"
@@ -41,7 +41,7 @@ class ProbationDeletionEventListener(
       NOTIFICATION -> {
         val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
         when (sqsMessage.messageAttributes?.eventType?.value) {
-          PROBATION_GDPR_DELETION -> handleDeleteEvent(domainEvent, sqsMessage.messageId)
+          OFFENDER_GDPR_DELETION -> handleDeleteEvent(domainEvent, sqsMessage.messageId)
         }
       }
       else -> {
@@ -52,7 +52,8 @@ class ProbationDeletionEventListener(
 
   private fun handleDeleteEvent(domainEvent: DomainEvent, messageId: String?) {
     try {
-      probationDeleteProcessor.processEvent("TODO: GET MAPPING OF DELETE EVENT", domainEvent.eventType)
+      val crn = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }!!.value
+      probationDeleteProcessor.processEvent(crn, domainEvent.eventType)
     } catch (e: FeignException.NotFound) {
       log.info("Discarding merge message for status code: ${e.status()}")
     } catch (e: Exception) {
