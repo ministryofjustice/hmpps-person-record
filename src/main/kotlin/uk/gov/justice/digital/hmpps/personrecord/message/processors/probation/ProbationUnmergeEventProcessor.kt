@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.UnmergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
@@ -11,15 +12,17 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.UnmergeService
+import uk.gov.justice.digital.hmpps.personrecord.service.format.EncodingService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.UnmergeService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.UNMERGE_MESSAGE_RECEIVED
 
 @Component
 class ProbationUnmergeEventProcessor(
-  val telemetryService: TelemetryService,
-  val unmergeService: UnmergeService,
-  val personRepository: PersonRepository,
-) : BaseProbationEventProcessor() {
+  private val telemetryService: TelemetryService,
+  private val unmergeService: UnmergeService,
+  private val personRepository: PersonRepository,
+  private val encodingService: EncodingService,
+) {
 
   fun processEvent(domainEvent: DomainEvent) {
     telemetryService.trackEvent(
@@ -51,8 +54,8 @@ class ProbationUnmergeEventProcessor(
   }
 
   private fun collectProbationCases(domainEvent: DomainEvent): Pair<ProbationCase, ProbationCase> = runBlocking {
-    val deferredUnmergedCRNRequest = async { getProbationCase(domainEvent.additionalInformation?.unmergedCrn!!) }
-    val deferredReactivatedCRNRequest = async { getProbationCase(domainEvent.additionalInformation?.reactivatedCrn!!) }
+    val deferredUnmergedCRNRequest = async { encodingService.getProbationCase(domainEvent.additionalInformation?.unmergedCrn!!) }
+    val deferredReactivatedCRNRequest = async { encodingService.getProbationCase(domainEvent.additionalInformation?.reactivatedCrn!!) }
     val unmergedProbationCase = deferredUnmergedCRNRequest.await().getOrThrow()
     val reactivatedProbationCase = deferredReactivatedCRNRequest.await().getOrThrow()
     return@runBlocking Pair(

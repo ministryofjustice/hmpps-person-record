@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
+import uk.gov.justice.digital.hmpps.personrecord.service.search.MatchService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import java.time.LocalDate
 

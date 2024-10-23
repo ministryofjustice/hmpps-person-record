@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
@@ -7,16 +8,22 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
-import uk.gov.justice.digital.hmpps.personrecord.service.MergeService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.MergeService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.format.EncodingService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MERGE_MESSAGE_RECEIVED
 
 @Component
 class ProbationMergeEventProcessor(
-  val telemetryService: TelemetryService,
-  val personRepository: PersonRepository,
-  val mergeService: MergeService,
-) : BaseProbationEventProcessor() {
+  private val telemetryService: TelemetryService,
+  private val personRepository: PersonRepository,
+  private val mergeService: MergeService,
+  private val encodingService: EncodingService,
+) {
+
+  private companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
 
   fun processEvent(domainEvent: DomainEvent) {
     telemetryService.trackEvent(
@@ -28,7 +35,7 @@ class ProbationMergeEventProcessor(
         EventKeys.SOURCE_SYSTEM to DELIUS.name,
       ),
     )
-    getProbationCase(domainEvent.additionalInformation?.targetCrn!!).fold(
+    encodingService.getProbationCase(domainEvent.additionalInformation?.targetCrn!!).fold(
       onSuccess = {
         it?.let {
           mergeService.processMerge(
