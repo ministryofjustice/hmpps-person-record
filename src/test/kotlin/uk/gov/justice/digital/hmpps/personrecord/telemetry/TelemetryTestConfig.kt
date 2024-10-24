@@ -17,15 +17,16 @@ class TelemetryTestConfig {
   }
 
   class OurTelemetryClient(private val telemetryRepository: TelemetryTestRepository, private val objectMapper: ObjectMapper) : TelemetryClient() {
+    val testCorrelation: String = UUID.randomUUID().toString()
 
     override fun trackEvent(
       event: String?,
       properties: MutableMap<String, String>?,
       metrics: MutableMap<String, Double>?,
     ) {
-      val correlationId = UUID.randomUUID().toString()
+      // val correlationId = UUID.randomUUID().toString()
       val updatedProperties = properties?.toMutableMap() ?: mutableMapOf()
-      updatedProperties["CORRELATION_ID"] = correlationId!!
+      updatedProperties["CORRELATION_ID"] = testCorrelation
 
       val telemetry = TelemetryEntity(event = event, properties = objectMapper.writeValueAsString(updatedProperties))
 

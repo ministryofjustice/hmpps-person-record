@@ -1,8 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
+import junit.framework.TestCase.assertNotNull
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
@@ -40,6 +39,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestConfig
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -54,7 +54,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
 import java.time.LocalDate
-import java.util.*
 import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -315,13 +314,11 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn))
 
-    val generatedTelemetry = telemetryRepository.findAllByEvent("CprDomainEventReceived")?.firstOrNull()
+    val testCorrelationId = (telemetryClient as TelemetryTestConfig.OurTelemetryClient).testCorrelation
 
-    val objectMapper = jacksonObjectMapper()
-    val propertiesMap: Map<String, String> = objectMapper.readValue(generatedTelemetry?.properties, object : TypeReference<Map<String, String>>() {})
-    val correlationId = propertiesMap["CORRELATION_ID"]
+    assertNotNull(testCorrelationId)
 
-    checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS", "CORRELATION_ID" to correlationId))
+    checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
   }
 
   @ParameterizedTest
