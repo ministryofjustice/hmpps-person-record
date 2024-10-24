@@ -54,8 +54,6 @@ class ProbationDeletionEventListener(
     try {
       val crn = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }!!.value
       probationDeleteProcessor.processEvent(crn, domainEvent.eventType)
-    } catch (e: FeignException.NotFound) {
-      log.info("Discarding merge message for status code: ${e.status()}")
     } catch (e: Exception) {
       telemetryService.trackEvent(
         MESSAGE_PROCESSING_FAILED,
