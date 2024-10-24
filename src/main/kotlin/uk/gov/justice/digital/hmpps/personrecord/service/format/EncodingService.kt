@@ -14,28 +14,23 @@ import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 class EncodingService(
   private var corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
   private var prisonerSearchClient: PrisonerSearchClient,
+  @Value("\${retry.delay}")
+  private val retryDelay: Long = 0,
 ) {
 
-  @Value("\${retry.delay}")
-  private val retryDelay: Long = 0
-
-  fun getProbationCase(crn: String): Result<ProbationCase?> = runBlocking {
-    try {
-      return@runBlocking RetryExecutor.runWithRetry(MAX_RETRY_ATTEMPTS, retryDelay) {
-        Result.success(corePersonRecordAndDeliusClient.getProbationCase(crn))
+  fun getProbationCase(crn: String): Result<ProbationCase?> = runCatching {
+    runBlocking {
+      RetryExecutor.runWithRetry(MAX_RETRY_ATTEMPTS, retryDelay) {
+        corePersonRecordAndDeliusClient.getProbationCase(crn)
       }
-    } catch (e: Exception) {
-      Result.failure(e)
     }
   }
 
-  fun getPrisonerDetails(prisonNumber: String): Result<Prisoner?> = runBlocking {
-    try {
-      return@runBlocking RetryExecutor.runWithRetry(MAX_RETRY_ATTEMPTS, retryDelay) {
-        Result.success(prisonerSearchClient.getPrisoner(prisonNumber))
+  fun getPrisonerDetails(prisonNumber: String): Result<Prisoner?> = runCatching {
+    runBlocking {
+      RetryExecutor.runWithRetry(MAX_RETRY_ATTEMPTS, retryDelay) {
+        prisonerSearchClient.getPrisoner(prisonNumber)
       }
-    } catch (e: Exception) {
-      Result.failure(e)
     }
   }
 

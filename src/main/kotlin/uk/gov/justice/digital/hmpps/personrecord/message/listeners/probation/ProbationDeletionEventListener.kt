@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import feign.FeignException
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -54,8 +53,6 @@ class ProbationDeletionEventListener(
     try {
       val crn = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }!!.value
       probationDeleteProcessor.processEvent(crn, domainEvent.eventType)
-    } catch (e: FeignException.NotFound) {
-      log.info("Discarding merge message for status code: ${e.status()}")
     } catch (e: Exception) {
       telemetryService.trackEvent(
         MESSAGE_PROCESSING_FAILED,
