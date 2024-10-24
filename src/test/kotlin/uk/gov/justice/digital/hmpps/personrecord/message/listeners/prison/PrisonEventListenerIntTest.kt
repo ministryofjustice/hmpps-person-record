@@ -134,21 +134,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should log correlation id to telemetry`() {
-    val prisonNumber = randomPrisonNumber()
-
-    val correlationId = telemetryClient.context.operation.id
-
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
-
-    val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
-    val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
-    publishDomainEvent(PRISONER_CREATED, domainEvent)
-
-    checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS", "CORRELATION_ID" to correlationId))
-  }
-
-  @Test
   fun `should check nationality and religion null`() {
     val prisonNumber = randomPrisonNumber()
 

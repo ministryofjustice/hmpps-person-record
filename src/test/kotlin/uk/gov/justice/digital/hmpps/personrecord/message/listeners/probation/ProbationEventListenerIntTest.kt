@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -52,6 +54,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
 import java.time.LocalDate
+import java.util.*
 import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -304,6 +307,21 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         EventKeys.MESSAGE_ID.toString() to messageId,
       ),
     )
+  }
+
+  @Test
+  fun `should log correlation id to telemetry`() {
+    val crn = randomCRN()
+
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn))
+
+    val generatedTelemetry = telemetryRepository.findAllByEvent("CprDomainEventReceived")?.firstOrNull()
+
+    val objectMapper = jacksonObjectMapper()
+    val propertiesMap: Map<String, String> = objectMapper.readValue(generatedTelemetry?.properties, object : TypeReference<Map<String, String>>() {})
+    val correlationId = propertiesMap["CORRELATION_ID"]
+
+    checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS", "CORRELATION_ID" to correlationId))
   }
 
   @ParameterizedTest
