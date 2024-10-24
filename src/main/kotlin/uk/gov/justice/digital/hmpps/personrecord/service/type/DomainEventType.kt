@@ -11,3 +11,4 @@ const val OFFENDER_ADDRESS_CHANGED = "OFFENDER_ADDRESS_CHANGED"
 
 const val OFFENDER_MERGED = "probation-case.merge.completed"
 const val OFFENDER_UNMERGED = "probation-case.unmerge.completed"
+const val OFFENDER_GDPR_DELETION = "probation-case.deleted.gdpr"

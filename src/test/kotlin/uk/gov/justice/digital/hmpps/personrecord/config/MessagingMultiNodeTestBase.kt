@@ -73,6 +73,10 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId("cprdeliusmergeeventsqueue")
   }
 
+  val probationDeleteEventsQueue by lazy {
+    hmppsQueueService.findByQueueId("cprdeliusdeleteeventsqueue")
+  }
+
   val prisonEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprnomiseventsqueue")
   }
@@ -363,6 +367,12 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     probationMergeEventsQueue!!.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.dlqUrl).build(),
     )
+    probationDeleteEventsQueue!!.sqsClient.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(probationDeleteEventsQueue!!.queueUrl).build(),
+    )
+    probationDeleteEventsQueue!!.sqsDlqClient!!.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(probationDeleteEventsQueue!!.dlqUrl).build(),
+    )
     prisonEventsQueue!!.sqsClient.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.queueUrl).build(),
     )
@@ -389,6 +399,13 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     } matches { it == 0 }
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       probationMergeEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(probationMergeEventsQueue!!.dlqUrl!!).get()
+    } matches { it == 0 }
+
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      probationDeleteEventsQueue!!.sqsClient.countAllMessagesOnQueue(probationDeleteEventsQueue!!.queueUrl).get()
+    } matches { it == 0 }
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      probationDeleteEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(probationDeleteEventsQueue!!.dlqUrl!!).get()
     } matches { it == 0 }
 
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
