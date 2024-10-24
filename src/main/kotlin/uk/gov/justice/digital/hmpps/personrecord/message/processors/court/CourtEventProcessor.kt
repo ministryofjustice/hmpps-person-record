@@ -16,8 +16,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person.Companion.g
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
-import uk.gov.justice.digital.hmpps.personrecord.service.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 
 @Service

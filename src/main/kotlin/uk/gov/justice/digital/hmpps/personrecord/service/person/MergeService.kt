@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.service
+package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import jakarta.transaction.Transactional
 import kotlinx.coroutines.async
@@ -10,8 +10,10 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
+import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 

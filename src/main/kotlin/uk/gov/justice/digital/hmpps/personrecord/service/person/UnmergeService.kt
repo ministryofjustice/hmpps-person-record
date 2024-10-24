@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.service
+package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import jakarta.transaction.Transactional
 import kotlinx.coroutines.runBlocking
@@ -11,8 +11,10 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
+import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Service

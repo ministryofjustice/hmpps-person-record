@@ -73,6 +73,10 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId("cprdeliusmergeeventsqueue")
   }
 
+  val probationDeleteEventsQueue by lazy {
+    hmppsQueueService.findByQueueId("cprdeliusdeleteeventsqueue")
+  }
+
   val prisonEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprnomiseventsqueue")
   }

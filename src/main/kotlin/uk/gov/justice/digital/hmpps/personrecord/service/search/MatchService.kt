@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.service
+package uk.gov.justice.digital.hmpps.personrecord.service.search
 
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
@@ -9,6 +9,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
+import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
+import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
 
