@@ -340,11 +340,11 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
     val recordB = createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordBCrn))),
-      personKeyEntity = cluster
+      personKeyEntity = cluster,
     )
     createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordCCrn))),
-      personKeyEntity = cluster
+      personKeyEntity = cluster,
     )
     mergeRecord(recordB, recordA)
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
@@ -359,7 +359,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to  cluster.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordBCrn, "UUID" to cluster.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
     await untilAsserted { assertThat(personRepository.findByCrn(recordACrn)).isNull() }
