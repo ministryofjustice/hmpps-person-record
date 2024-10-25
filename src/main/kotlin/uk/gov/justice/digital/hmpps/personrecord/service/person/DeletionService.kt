@@ -20,6 +20,7 @@ class DeletionService(
   private val personKeyRepository: PersonKeyRepository,
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
+
   fun processDelete(personCallback: () -> PersonEntity?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
       personCallback()?.let {
@@ -31,6 +32,16 @@ class DeletionService(
   private fun handleDeletion(personEntity: PersonEntity) {
     handlePersonKeyDeletion(personEntity)
     deletePersonRecord(personEntity)
+    handleMergedRecords(personEntity)
+  }
+
+  private fun handleMergedRecords(personEntity: PersonEntity) {
+    personEntity.id?.let {
+      val mergedRecords: List<PersonEntity?> = personRepository.findByMergedTo(it)
+      mergedRecords.forEach {
+        processDelete { it }
+      }
+    }
   }
 
   private fun deletePersonRecord(personEntity: PersonEntity) {

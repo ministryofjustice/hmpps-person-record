@@ -29,7 +29,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should process offender with 1 record on UUID`() {
+  fun `should process offender delete with 1 record on single UUID`() {
     val crn = randomCRN()
     val domainEvent = buildDomainEvent(crn)
     val personKey = createPersonKey()
@@ -53,10 +53,11 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     await untilAsserted { assertThat(personRepository.findByCrn(crn)).isNull() }
+    await untilAsserted { assertThat(personKeyRepository.findByPersonId(personKey.personId)).isNull() }
   }
 
   @Test
-  fun `should process offender with multiple records on UUID`() {
+  fun `should process offender delete with multiple records on single UUID`() {
     val crn = randomCRN()
     val domainEvent = buildDomainEvent(crn)
     val personKey = createPersonKey()
@@ -83,8 +84,93 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     val uuidSearch = personKeyRepository.findByPersonId(personKey.personId)
     assertThat(uuidSearch).isNotNull()
-    assertThat(uuidSearch.personEntities.size).isEqualTo(1)
-    assertThat(uuidSearch.personEntities.first().crn).isNotEqualTo(crn)
+    assertThat(uuidSearch?.personEntities?.size).isEqualTo(1)
+    assertThat(uuidSearch?.personEntities?.first()?.crn).isNotEqualTo(crn)
+  }
+
+  @Test
+  fun `should process offender delete with 2 records which have merged on a single UUID`() {
+    val mergedToCrn = randomCRN()
+    val mergedFromCrn = randomCRN()
+    val domainEvent = buildDomainEvent(mergedToCrn)
+    val personKey = createPersonKey()
+    val mergedTo = createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = mergedToCrn))),
+      personKeyEntity = personKey,
+    )
+    val mergedFrom = createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = mergedFromCrn))),
+      personKeyEntity = personKey,
+    )
+    mergeRecord(mergedFrom, mergedTo)
+    publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
+
+    checkTelemetry(
+      MESSAGE_RECEIVED,
+      mapOf("CRN" to mergedToCrn, "EVENT_TYPE" to OFFENDER_GDPR_DELETION, "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      CPR_RECORD_DELETED,
+      mapOf("CRN" to mergedToCrn, "UUID" to personKey.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      CPR_RECORD_DELETED,
+      mapOf("CRN" to mergedFromCrn, "UUID" to personKey.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      CPR_UUID_DELETED,
+      mapOf("CRN" to mergedFromCrn, "UUID" to personKey.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+    )
+
+    await untilAsserted { assertThat(personRepository.findByCrn(mergedToCrn)).isNull() }
+    await untilAsserted { assertThat(personRepository.findByCrn(mergedFromCrn)).isNull() }
+    await untilAsserted { assertThat(personKeyRepository.findByPersonId(personKey.personId)).isNull() }
+  }
+
+  @Test
+  fun `should process offender delete with 2 records which have merged on different UUIDs`() {
+    val mergedToCrn = randomCRN()
+    val mergedFromCrn = randomCRN()
+    val domainEvent = buildDomainEvent(mergedToCrn)
+    val mergedToPersonKey = createPersonKey()
+    val mergedTo = createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = mergedToCrn))),
+      personKeyEntity = mergedToPersonKey,
+    )
+    val mergedFromPersonKey = createPersonKey()
+    val mergedFrom = createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = mergedFromCrn))),
+      personKeyEntity = mergedFromPersonKey,
+    )
+    mergeRecord(mergedFrom, mergedTo)
+    mergeUuid(mergedFromPersonKey, mergedToPersonKey)
+    publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
+
+    checkTelemetry(
+      MESSAGE_RECEIVED,
+      mapOf("CRN" to mergedToCrn, "EVENT_TYPE" to OFFENDER_GDPR_DELETION, "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      CPR_RECORD_DELETED,
+      mapOf("CRN" to mergedToCrn, "UUID" to mergedToPersonKey.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      CPR_UUID_DELETED,
+      mapOf("CRN" to mergedToCrn, "UUID" to mergedToPersonKey.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      CPR_RECORD_DELETED,
+      mapOf("CRN" to mergedFromCrn, "UUID" to mergedFromPersonKey.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      CPR_UUID_DELETED,
+      mapOf("CRN" to mergedFromCrn, "UUID" to mergedFromPersonKey.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+    )
+
+    await untilAsserted { assertThat(personRepository.findByCrn(mergedToCrn)).isNull() }
+    await untilAsserted { assertThat(personRepository.findByCrn(mergedFromCrn)).isNull() }
+    await untilAsserted { assertThat(personKeyRepository.findByPersonId(mergedToPersonKey.personId)).isNull() }
+    await untilAsserted { assertThat(personKeyRepository.findByPersonId(mergedFromPersonKey.personId)).isNull() }
   }
 
   private fun buildDomainEvent(crn: String, eventType: String = OFFENDER_GDPR_DELETION): DomainEvent {
