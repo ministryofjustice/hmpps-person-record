@@ -84,9 +84,9 @@ class IntegrationTestBase {
     personRepository.saveAndFlush(sourcePersonEntity)
   }
 
-  internal fun mergeUuid(sourcePersonKey: PersonKeyEntity, targetPersonEntity: PersonKeyEntity): PersonKeyEntity {
-    sourcePersonKey.mergedTo = targetPersonEntity.id
-    sourcePersonKey.status = UUIDStatusType.MERGED
+  internal fun mergeUuid(sourcePersonKey: PersonKeyEntity, targetPersonKeyEntity: PersonKeyEntity): PersonKeyEntity {
+    sourcePersonKey.mergedTo = targetPersonKeyEntity.id
+    if (sourcePersonKey.personEntities.size == 1) sourcePersonKey.status = UUIDStatusType.MERGED
     return personKeyRepository.saveAndFlush(sourcePersonKey)
   }
 

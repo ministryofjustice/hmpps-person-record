@@ -49,7 +49,7 @@ class DeletionService(
     trackEvent(
       TelemetryEventType.CPR_RECORD_DELETED,
       personEntity,
-      mapOf(EventKeys.UUID to personEntity.personKey?.personId.toString()),
+      mapOf(EventKeys.UUID to personEntity.personKey?.let { it.personId.toString() }),
     )
   }
 
@@ -67,7 +67,7 @@ class DeletionService(
     trackEvent(
       TelemetryEventType.CPR_UUID_DELETED,
       personEntity,
-      mapOf(EventKeys.UUID to personEntity.personKey?.personId.toString()),
+      mapOf(EventKeys.UUID to personEntity.personKey?.let { it.personId.toString() }),
     )
   }
 
