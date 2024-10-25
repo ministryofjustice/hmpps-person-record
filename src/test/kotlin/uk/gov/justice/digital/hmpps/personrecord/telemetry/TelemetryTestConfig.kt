@@ -24,11 +24,7 @@ class TelemetryTestConfig {
       properties: MutableMap<String, String>?,
       metrics: MutableMap<String, Double>?,
     ) {
-      // val correlationId = UUID.randomUUID().toString()
-      val updatedProperties = properties?.toMutableMap() ?: mutableMapOf()
-      updatedProperties["CORRELATION_ID"] = testCorrelation
-
-      val telemetry = TelemetryEntity(event = event, properties = objectMapper.writeValueAsString(updatedProperties))
+      val telemetry = TelemetryEntity(event = event, properties = objectMapper.writeValueAsString(properties))
 
       telemetryRepository.saveAndFlush(telemetry)
     }

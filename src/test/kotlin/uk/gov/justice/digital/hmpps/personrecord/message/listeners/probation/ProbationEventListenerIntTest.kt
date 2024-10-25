@@ -317,8 +317,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val testCorrelationId = (telemetryClient as TelemetryTestConfig.OurTelemetryClient).testCorrelation
 
     assertNotNull(testCorrelationId)
-
-    checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
   }
 
   @ParameterizedTest

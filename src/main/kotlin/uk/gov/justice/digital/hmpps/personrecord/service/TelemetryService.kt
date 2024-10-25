@@ -65,10 +65,8 @@ class TelemetryService(private val telemetryClient: TelemetryClient) {
   }
 
   fun trackEvent(eventType: TelemetryEventType, customDimensions: Map<EventKeys, String?>) {
-    val correlationId = telemetryClient.context.operation.id
+    val transformedDimensions = customDimensions.entries.associate { it.key.name to it.value }
 
-    val updatedDimensions = customDimensions.entries.associate { it.key.name to it.value } + mapOf("CORRELATION_ID" to correlationId)
-
-    telemetryClient.trackEvent(eventType.eventName, updatedDimensions, null)
+    telemetryClient.trackEvent(eventType.eventName, transformedDimensions, null)
   }
 }
