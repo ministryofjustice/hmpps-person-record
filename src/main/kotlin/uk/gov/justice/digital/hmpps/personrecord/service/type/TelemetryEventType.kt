@@ -26,4 +26,5 @@ enum class TelemetryEventType(val eventName: String) {
   CPR_UNMERGE_LINK_NOT_FOUND("CprUnmergeLinkNotFound"),
   CPR_RECORD_UNMERGED("CprRecordUnmerged"),
   CPR_RECORD_DELETED("CprRecordHardDeleted"),
+  CPR_UUID_DELETED("CprUUIDHardDeleted"),
 }
