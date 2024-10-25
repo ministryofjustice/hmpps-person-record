@@ -63,7 +63,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     telemetryRepository.deleteAll()
   }
 
-  fun probationUrl(crn: String) = "/probation-cases/$crn"
+  private fun probationUrl(crn: String) = "/probation-cases/$crn"
 
   @Test
   fun `creates person when when new offender created event is published`() {

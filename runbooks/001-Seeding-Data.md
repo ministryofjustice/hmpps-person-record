@@ -93,7 +93,7 @@ Will notify once finished with: `DELIUS seeding finished, approx records <number
 
 To link the seeded data from a provided data cluster.
 
-Follow: [Link Cluster Data](./002-link-cluster-data.md)
+Follow: [Link Cluster Data](./002-Link-Cluster-Data.md)
 
 ## 5. Resume Message Consumption
  
