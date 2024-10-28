@@ -71,6 +71,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
         "RECORD_COUNT" to "0",
+        "UUID_COUNT" to "0",
         "HIGH_CONFIDENCE_COUNT" to "0",
         "LOW_CONFIDENCE_COUNT" to "0",
       ),
@@ -139,6 +140,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
         "RECORD_COUNT" to "1",
+        "UUID_COUNT" to "1",
         "HIGH_CONFIDENCE_COUNT" to "1",
         "LOW_CONFIDENCE_COUNT" to "0",
         "QUERY" to PersonQueryType.FIND_CANDIDATES_BY_SOURCE_SYSTEM.name,
@@ -204,6 +206,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_CANDIDATE_RECORD_FOUND_UUID,
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
+        "CLUSTER_SIZE" to "1",
         "UUID" to personKeyEntity.personId.toString(),
       ),
     )
