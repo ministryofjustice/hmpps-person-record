@@ -14,4 +14,6 @@ interface PersonRepository : JpaRepository<PersonEntity, Long> {
   fun findByCrn(crn: String): PersonEntity?
 
   fun findByPrisonNumberAndSourceSystem(prisonNumber: String, sourceSystem: SourceSystemType? = NOMIS): PersonEntity?
+
+  fun findByMergedTo(mergedTo: Long): List<PersonEntity?>
 }

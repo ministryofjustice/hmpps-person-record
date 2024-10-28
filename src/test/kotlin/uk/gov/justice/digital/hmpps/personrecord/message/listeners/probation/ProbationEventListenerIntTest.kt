@@ -190,7 +190,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
     val personKey = personKeyRepository.findByPersonId(personKeyEntity.personId)
-    assertThat(personKey.personEntities.size).isEqualTo(2)
+    assertThat(personKey?.personEntities?.size).isEqualTo(2)
   }
 
   @Test
