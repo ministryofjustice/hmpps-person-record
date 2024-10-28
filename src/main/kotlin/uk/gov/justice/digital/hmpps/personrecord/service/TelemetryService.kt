@@ -11,9 +11,11 @@ enum class EventKeys {
   SOURCE_SYSTEM,
   EVENT_TYPE,
   RECORD_COUNT,
+  UUID_COUNT,
   SEARCH_VERSION,
   UUID,
   QUERY,
+  CLUSTER_SIZE,
 
   // Identifiers
   CRN,

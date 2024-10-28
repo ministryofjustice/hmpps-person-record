@@ -176,6 +176,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "SOURCE_SYSTEM" to DELIUS.name,
         "RECORD_COUNT" to "1",
+        "UUID_COUNT" to "1",
         "HIGH_CONFIDENCE_COUNT" to "1",
         "LOW_CONFIDENCE_COUNT" to "0",
       ),
@@ -184,6 +185,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_CANDIDATE_RECORD_FOUND_UUID,
       mapOf(
         "SOURCE_SYSTEM" to DELIUS.name,
+        "CLUSTER_SIZE" to "1",
         "UUID" to personKeyEntity.personId.toString(),
       ),
     )

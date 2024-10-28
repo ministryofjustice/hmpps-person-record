@@ -29,9 +29,10 @@ class SearchService(
         mapOf(
           EventKeys.SOURCE_SYSTEM to record.candidateRecord.sourceSystem.name,
           EventKeys.DEFENDANT_ID to record.candidateRecord.defendantId,
-          EventKeys.CRN to (record.candidateRecord.crn ?: ""),
+          EventKeys.CRN to record.candidateRecord.crn,
           EventKeys.PRISON_NUMBER to record.candidateRecord.prisonNumber,
           EventKeys.PROBABILITY_SCORE to record.probability.toString(),
+          EventKeys.UUID to record.candidateRecord.personKey?.let { it.personId.toString() },
         ),
       )
     }
@@ -74,6 +75,7 @@ class SearchService(
         EventKeys.SOURCE_SYSTEM to searchCriteria.sourceSystemType.name,
         EventKeys.RECORD_COUNT to totalElements.toString(),
         EventKeys.SEARCH_VERSION to PersonQueries.SEARCH_VERSION,
+        EventKeys.UUID_COUNT to highConfidenceMatches.groupBy { match -> match.candidateRecord.personKey?.let { it.personId.toString() } }.size.toString(),
         EventKeys.HIGH_CONFIDENCE_COUNT to highConfidenceMatches.count().toString(),
         EventKeys.LOW_CONFIDENCE_COUNT to (totalElements - highConfidenceMatches.count()).toString(),
         EventKeys.QUERY to personQuery.queryName.name,
