@@ -220,7 +220,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     val personKey = personKeyRepository.findByPersonId(personKeyEntity.personId)
-    assertThat(personKey.personEntities.size).isEqualTo(2)
+    assertThat(personKey?.personEntities?.size).isEqualTo(2)
   }
 
   @Test

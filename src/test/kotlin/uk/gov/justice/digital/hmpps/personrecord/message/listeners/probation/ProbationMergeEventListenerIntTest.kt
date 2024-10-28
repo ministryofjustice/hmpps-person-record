@@ -185,10 +185,10 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(sourcePerson?.personKey).isNull()
 
     val sourceCluster = personKeyRepository.findByPersonId(personKeyEntity1.personId)
-    assertThat(sourceCluster.personEntities.size).isEqualTo(1)
+    assertThat(sourceCluster?.personEntities?.size).isEqualTo(1)
 
     val targetCluster = personKeyRepository.findByPersonId(personKeyEntity2.personId)
-    assertThat(targetCluster.personEntities.size).isEqualTo(1)
+    assertThat(targetCluster?.personEntities?.size).isEqualTo(1)
   }
 
   @Test
@@ -228,7 +228,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(sourcePerson?.personKey).isNull()
 
     val targetCluster = personKeyRepository.findByPersonId(personKeyEntity2.personId)
-    assertThat(targetCluster.personEntities.size).isEqualTo(1)
+    assertThat(targetCluster?.personEntities?.size).isEqualTo(1)
   }
 
   @Test
