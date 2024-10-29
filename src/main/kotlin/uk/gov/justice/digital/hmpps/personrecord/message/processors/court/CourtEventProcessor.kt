@@ -94,23 +94,12 @@ class CourtEventProcessor(
       ),
     )
     personService.processMessage(person) { isAboveSelfMatchThreshold ->
-      when {
-        isAboveSelfMatchThreshold -> retrievePersonAndGenerateLibraDefendantId(person)
-        else -> {
-          person.defendantId = UUID.randomUUID().toString()
-          PersonEntity.empty
-        }
+      val personEntity = when {
+        isAboveSelfMatchThreshold -> personService.searchBySourceSystem(person)
+        else -> PersonEntity.empty
       }
+      person.defendantId = personEntity?.defendantId ?: UUID.randomUUID().toString()
+      return@processMessage personEntity
     }
-  }
-
-  private fun retrievePersonAndGenerateLibraDefendantId(person: Person): PersonEntity? {
-    val personEntity = personService.searchBySourceSystem(person)
-    val libraDefendantId: String = when {
-      personEntity?.defendantId.isNullOrBlank().not() -> personEntity?.defendantId.toString()
-      else -> UUID.randomUUID().toString()
-    }
-    person.defendantId = libraDefendantId
-    return personEntity
   }
 }
