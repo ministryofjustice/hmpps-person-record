@@ -29,6 +29,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupContact
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
@@ -297,6 +298,43 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val personWithNullPnc = personRepository.findByDefendantId(secondDefendantId)
     assertThat(personWithNullPnc?.references?.getType(IdentifierType.PNC)).isEqualTo(emptyList<ReferenceEntity>())
+  }
+
+  @Test
+  fun `should not process youth cases`() {
+    val youthDefendantId = randomDefendantId()
+    val messageId = publishCourtMessage(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(defendantId = youthDefendantId, isYouth = true),
+        ),
+      ),
+      COMMON_PLATFORM_HEARING,
+    )
+
+    checkTelemetry(
+      MESSAGE_RECEIVED,
+      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
+      times = 0,
+    )
+  }
+
+  @Test
+  fun `should process when is youth is null`() {
+    val youthDefendantId = randomDefendantId()
+    val messageId = publishCourtMessage(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(defendantId = youthDefendantId, isYouth = null),
+        ),
+      ),
+      COMMON_PLATFORM_HEARING,
+    )
+
+    checkTelemetry(
+      MESSAGE_RECEIVED,
+      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
+    )
   }
 
   private fun buildPublishRequest(
