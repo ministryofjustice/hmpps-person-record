@@ -18,7 +18,7 @@ data class CommonPlatformHearingSetup(
   val contact: CommonPlatformHearingSetupContact? = null,
   val nationalInsuranceNumber: String = randomNationalInsuranceNumber(),
   val hearingId: String = randomHearingId(),
-  val isYouth: Boolean = false,
+  val isYouth: Boolean? = false,
 )
 
 data class CommonPlatformHearingSetupAlias(val firstName: String, val lastName: String)

@@ -22,5 +22,5 @@ data class Defendant(
   val personDefendant: PersonDefendant? = null,
   val ethnicity: Ethnicity? = null,
   val aliases: List<DefendantAlias>? = emptyList(),
-  val isYouth: Boolean? = null,
+  val isYouth: Boolean = false,
 )

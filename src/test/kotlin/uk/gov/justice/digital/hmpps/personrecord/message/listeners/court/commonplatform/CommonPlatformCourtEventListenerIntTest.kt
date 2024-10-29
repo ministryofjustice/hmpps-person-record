@@ -319,6 +319,24 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
+  @Test
+  fun `should process when is youth is null`() {
+    val youthDefendantId = randomDefendantId()
+    val messageId = publishCourtMessage(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(defendantId = youthDefendantId, isYouth = null),
+        ),
+      ),
+      COMMON_PLATFORM_HEARING,
+    )
+
+    checkTelemetry(
+      MESSAGE_RECEIVED,
+      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
+    )
+  }
+
   private fun buildPublishRequest(
     defendantId: String,
     pnc: PNCIdentifier,

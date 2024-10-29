@@ -50,7 +50,7 @@ class CourtEventProcessor(
 
     val uniqueDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
       .flatMap { it.defendants }
-      .filter { it.isYouth?.not() ?: true }
+      .filterNot { it.isYouth }
       .distinctBy {
         it.personDefendant?.personDetails?.firstName +
           it.personDefendant?.personDetails?.lastName +
