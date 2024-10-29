@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
+import java.util.UUID
 
 @Service
 class CourtEventProcessor(
@@ -94,9 +95,22 @@ class CourtEventProcessor(
     )
     personService.processMessage(person) { isAboveSelfMatchThreshold ->
       when {
-        isAboveSelfMatchThreshold -> personService.searchBySourceSystem(person)
-        else -> PersonEntity.empty
+        isAboveSelfMatchThreshold -> retrievePersonAndGenerateLibraDefendantId(person)
+        else -> {
+          person.defendantId = UUID.randomUUID().toString()
+          PersonEntity.empty
+        }
       }
     }
+  }
+
+  private fun retrievePersonAndGenerateLibraDefendantId(person: Person): PersonEntity? {
+    val personEntity = personService.searchBySourceSystem(person)
+    val libraDefendantId: String = when {
+      personEntity?.defendantId.isNullOrBlank().not() -> personEntity?.defendantId.toString()
+      else -> UUID.randomUUID().toString()
+    }
+    person.defendantId = libraDefendantId
+    return personEntity
   }
 }
