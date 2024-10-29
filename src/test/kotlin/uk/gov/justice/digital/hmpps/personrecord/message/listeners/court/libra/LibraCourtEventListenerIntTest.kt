@@ -34,6 +34,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -87,6 +88,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(matchingPerson.size).isEqualTo(1)
 
     val person = matchingPerson[0]
+    assertThat(person.defendantId).isNotNull()
     assertThat(person.title).isEqualTo("Mr")
     assertThat(person.lastName).isEqualTo(lastName)
     assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
@@ -104,10 +106,12 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val lastName = randomName()
     val postcode = randomPostcode()
     val dateOfBirth = randomDate()
+    val libraDefendantId = randomDefendantId()
     createPerson(
       Person(
         firstName = firstName,
         lastName = lastName,
+        defendantId = libraDefendantId,
         addresses = listOf(Address(postcode = postcode)),
         dateOfBirth = dateOfBirth,
         sourceSystemType = LIBRA,
@@ -148,13 +152,10 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
 
-    val updatedPersonEntities = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findAll()
+    val person = await.atMost(30, SECONDS) untilNotNull {
+      personRepository.findByDefendantId(libraDefendantId)
     }
 
-    val updatedMatchingPerson = updatedPersonEntities.filter { it.firstName.equals(firstName) }
-    assertThat(updatedMatchingPerson.size).isEqualTo(1)
-    val person = updatedMatchingPerson[0]
     assertThat(person.title).isEqualTo("Mr")
     assertThat(person.lastName).isEqualTo(lastName)
     assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
@@ -489,6 +490,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(matchingPerson.size).isEqualTo(1)
 
     val person = matchingPerson[0]
+    assertThat(person.defendantId).isNotNull()
     assertThat(person.title).isEqualTo("Mr")
     assertThat(person.lastName).isEqualTo(lastName)
     assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)

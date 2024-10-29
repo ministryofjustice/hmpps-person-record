@@ -24,7 +24,7 @@ data class Person(
   val dateOfBirth: LocalDate? = null,
   val crn: String? = null,
   var prisonNumber: String? = null,
-  val defendantId: String? = null,
+  var defendantId: String? = null,
   val title: String? = null,
   val aliases: List<Alias> = emptyList(),
   val masterDefendantId: String? = null,

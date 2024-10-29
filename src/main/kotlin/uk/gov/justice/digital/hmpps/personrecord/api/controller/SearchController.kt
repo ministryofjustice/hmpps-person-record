@@ -115,6 +115,7 @@ class SearchController(
       SourceSystemType.DELIUS -> PersonIdentifierRecord(id = personEntity.crn!!, SourceSystemType.DELIUS.name)
       SourceSystemType.NOMIS -> PersonIdentifierRecord(id = personEntity.prisonNumber!!, SourceSystemType.NOMIS.name)
       SourceSystemType.COMMON_PLATFORM -> PersonIdentifierRecord(id = personEntity.defendantId!!, SourceSystemType.COMMON_PLATFORM.name)
+      SourceSystemType.LIBRA -> PersonIdentifierRecord(id = personEntity.defendantId!!, SourceSystemType.LIBRA.name)
       else -> null
     }
   }

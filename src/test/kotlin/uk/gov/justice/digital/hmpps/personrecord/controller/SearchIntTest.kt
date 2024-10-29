@@ -101,24 +101,18 @@ class SearchIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should not return LIBRA person record that is linked`() {
-    val crn = randomCRN()
-    val personKeyEntity = createPersonKey()
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
-      personKeyEntity = personKeyEntity,
-    )
+  fun `should return LIBRA person record with one record`() {
+    val libraDefendantId = randomDefendantId()
     createPerson(
       Person(
-        firstName = randomName(),
-        lastName = randomName(),
+        defendantId = libraDefendantId,
         sourceSystemType = LIBRA,
       ),
-      personKeyEntity = personKeyEntity,
+      personKeyEntity = createPersonKey(),
     )
 
     val responseBody = webTestClient.get()
-      .uri(searchOffenderUrl(crn))
+      .uri(searchDefendantUrl(libraDefendantId))
       .authorised(listOf(Roles.SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -128,8 +122,8 @@ class SearchIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(responseBody.size).isEqualTo(1)
-    assertThat(responseBody[0].id).isEqualTo(crn)
-    assertThat(responseBody[0].sourceSystem).isEqualTo(DELIUS.name)
+    assertThat(responseBody[0].id).isEqualTo(libraDefendantId)
+    assertThat(responseBody[0].sourceSystem).isEqualTo(LIBRA.name)
   }
 
   @Test
