@@ -18,25 +18,25 @@ let multipleUuidMatches = AppEvents
 | where AppRoleName == ('hmpps-person-record')
 | where Name == "CprCandidateRecordSearch"
 | where Properties.QUERY == "FIND_CANDIDATES_WITH_UUID"
-| extend numOfUuids = toint(Properties.HIGH_CONFIDENCE_COUNT)
-| where numOfUuids > 1
-| project numOfUuids, OperationId;
+| extend NumberOfFoundUuids = toint(Properties.UUID_COUNT)
+| where NumberOfFoundUuids > 1
+| project NumberOfFoundUuids, OperationId;
 
 let foundUuid = AppEvents
 | where AppRoleName == ('hmpps-person-record')
 | where Name == "CprSplinkCandidateRecordsFoundGetUUID"
-| extend DefendantId = Properties.DEFENDANT_ID, CRN = Properties.CRN, PrisonNumber = Properties.PRISON_NUMBER, SourceSystem = Properties.SOURCE_SYSTEM
-| project DefendantId, CRN, PrisonNumber, SourceSystem, OperationId;
+| extend DefendantId = Properties.DEFENDANT_ID, CRN = Properties.CRN, PrisonNumber = Properties.PRISON_NUMBER, SourceSystem = Properties.SOURCE_SYSTEM, LinkedUuid = Properties.UUID, ClusterSize = Properties.CLUSTER_SIZE
+| project DefendantId, CRN, PrisonNumber, SourceSystem, LinkedUuid, ClusterSize, OperationId;
 
 multipleUuidMatches
 | join foundUuid on $left.OperationId == $right.OperationId
-| project numOfUuids, DefendantId, CRN, PrisonNumber, SourceSystem
-| order by numOfUuids
+| project NumberOfFoundUuids, LinkedUuid, ClusterSize, DefendantId, CRN, PrisonNumber, SourceSystem
+| order by NumberOfFoundUuids
 ```
 
 Will output in the format (with examples):
 
-| numOfUuids | DefendantId                          | CRN | PrisonNumber | SourceSystem    |
-|------------|--------------------------------------|-----|--------------|-----------------|
-| 7          | 66688f70-79fb-4fbf-acb7-3e2924b781b9 | ... | ...          | COMMON_PLATFORM |
-| ...        | ...                                  | ... | ...          |                 |
+| numOfUuids | LinkedUuid                           | ClusterSize | DefendantId                          | CRN | PrisonNumber | SourceSystem    |
+|------------|--------------------------------------|-------------|--------------------------------------|-----|--------------|-----------------|
+| 7          | ed4961c9-9938-434f-8164-0800a2609d28 | 1           | 66688f70-79fb-4fbf-acb7-3e2924b781b9 | ... | ...          | COMMON_PLATFORM |
+| ...        |                                      |             | ...                                  | ... | ...          |                 |
