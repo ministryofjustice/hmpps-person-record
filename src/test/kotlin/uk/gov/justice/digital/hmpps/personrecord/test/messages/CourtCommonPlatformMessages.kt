@@ -18,6 +18,7 @@ data class CommonPlatformHearingSetup(
   val contact: CommonPlatformHearingSetupContact? = null,
   val nationalInsuranceNumber: String = randomNationalInsuranceNumber(),
   val hearingId: String = randomHearingId(),
+  val isYouth: Boolean = false,
 )
 
 data class CommonPlatformHearingSetupAlias(val firstName: String, val lastName: String)
@@ -72,6 +73,7 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) =
                 "masterDefendantId": "${commonPlatformHearingSetup.defendantId}",
                 "pncId": ${commonPlatformHearingSetup.pnc?.let { """ "${commonPlatformHearingSetup.pnc}" """.trimIndent() } ?: "null" },
                 "croNumber": "${commonPlatformHearingSetup.cro}",
+                ${commonPlatformHearingSetup.isYouth.let { """ "isYouth": ${commonPlatformHearingSetup.isYouth}, """.trimIndent() }}
                 "offences": [
                   {
                     "id": "a63d9020-aa6b-4997-92fd-72a692b036de",
