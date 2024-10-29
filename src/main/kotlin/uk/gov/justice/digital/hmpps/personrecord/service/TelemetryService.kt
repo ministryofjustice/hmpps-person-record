@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import com.microsoft.applicationinsights.TelemetryClient
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -53,10 +52,6 @@ enum class EventKeys {
 @Service
 class TelemetryService(private val telemetryClient: TelemetryClient) {
 
-  companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
-
   fun trackPersonEvent(
     eventType: TelemetryEventType,
     person: Person,
@@ -72,8 +67,8 @@ class TelemetryService(private val telemetryClient: TelemetryClient) {
   }
 
   fun trackEvent(eventType: TelemetryEventType, customDimensions: Map<EventKeys, String?>) {
-    log.debug("Sending telemetry event ${eventType.eventName} ")
-    val transformedDimensions: Map<String, String?> = customDimensions.entries.associate { it.key.name to it.value }
+    val transformedDimensions = customDimensions.entries.associate { it.key.name to it.value }
+
     telemetryClient.trackEvent(eventType.eventName, transformedDimensions, null)
   }
 }
