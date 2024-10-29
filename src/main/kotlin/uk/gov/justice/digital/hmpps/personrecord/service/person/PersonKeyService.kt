@@ -47,7 +47,10 @@ class PersonKeyService(
     trackEvent(
       CPR_CANDIDATE_RECORD_FOUND_UUID,
       personEntity,
-      mapOf(EventKeys.UUID to highConfidenceRecordWithUuid.personKey?.personId?.toString()),
+      mapOf(
+        EventKeys.UUID to highConfidenceRecordWithUuid.personKey?.personId?.toString(),
+        EventKeys.CLUSTER_SIZE to highConfidenceRecordWithUuid.personKey?.personEntities?.size.toString(),
+      ),
     )
     return highConfidenceRecordWithUuid.personKey!!
   }

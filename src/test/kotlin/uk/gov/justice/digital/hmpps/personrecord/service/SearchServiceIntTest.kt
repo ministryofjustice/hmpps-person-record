@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.service.search.MatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.SearchService
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -696,6 +697,71 @@ class SearchServiceIntTest : IntegrationTestBase() {
     assertThat(candidateRecords[0].probability).isEqualTo(0.999999911)
     assertThat(candidateRecords[1].candidateRecord.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
     assertThat(candidateRecords[1].probability).isEqualTo(0.9999999)
+  }
+
+  @Test
+  fun `should log correct number of clusters`() {
+    val cro = randomCro()
+    val cluster1 = createPersonKey()
+    createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.CRO, cro)),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
+      personKeyEntity = cluster1,
+    )
+    createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.CRO, cro)),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
+      personKeyEntity = cluster1,
+    )
+
+    val cluster2 = createPersonKey()
+    createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.CRO, cro)),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
+      personKeyEntity = cluster2,
+    )
+    createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.CRO, cro)),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
+      personKeyEntity = cluster2,
+    )
+
+    val matchResponse = MatchResponse(
+      matchProbabilities = mutableMapOf(
+        "0" to 0.9999999,
+        "1" to 0.9999999,
+        "2" to 0.9999999,
+        "3" to 0.9999999,
+      ),
+    )
+    stubMatchScore(matchResponse)
+
+    val searchingPerson = Person(
+      references = listOf(Reference(IdentifierType.CRO, cro)),
+      sourceSystemType = COMMON_PLATFORM,
+    )
+    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
+
+    checkTelemetry(
+      CPR_CANDIDATE_RECORD_SEARCH,
+      mapOf(
+        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
+        "RECORD_COUNT" to "4",
+        "UUID_COUNT" to "2",
+        "HIGH_CONFIDENCE_COUNT" to "4",
+        "LOW_CONFIDENCE_COUNT" to "0",
+      ),
+    )
+
+    assertThat(candidateRecords.size).isEqualTo(4)
   }
 
   private fun noCandidatesFound(records: List<MatchResult>) {
