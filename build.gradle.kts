@@ -40,7 +40,7 @@ dependencies {
     }
   }
   constraints {
-    implementation("org.bouncycastle:bcprov-jdk18on:1.78.1") {
+    implementation("org.bouncycastle:bcprov-jdk18on:1.79") {
       because("1.77 has CVEs")
     }
   }
