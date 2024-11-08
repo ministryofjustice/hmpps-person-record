@@ -46,7 +46,7 @@ class DeletionService(
 
   private fun deletePersonRecord(personEntity: PersonEntity) {
     personRepository.delete(personEntity)
-    trackEvent(
+    telemetryService.trackPersonEvent(
       TelemetryEventType.CPR_RECORD_DELETED,
       personEntity,
       mapOf(EventKeys.UUID to personEntity.personKey?.let { it.personId.toString() }),
@@ -64,7 +64,7 @@ class DeletionService(
 
   private fun deletePersonKey(personKeyEntity: PersonKeyEntity, personEntity: PersonEntity) {
     personKeyRepository.delete(personKeyEntity)
-    trackEvent(
+    telemetryService.trackPersonEvent(
       TelemetryEventType.CPR_UUID_DELETED,
       personEntity,
       mapOf(EventKeys.UUID to personEntity.personKey?.let { it.personId.toString() }),
@@ -74,20 +74,6 @@ class DeletionService(
   private fun removeLinkToRecord(personEntity: PersonEntity) {
     personEntity.personKey?.personEntities?.remove(personEntity)
     personKeyRepository.saveAndFlush(personEntity.personKey!!)
-  }
-
-  private fun trackEvent(
-    eventType: TelemetryEventType,
-    personEntity: PersonEntity,
-    elementMap: Map<EventKeys, String?> = emptyMap(),
-  ) {
-    val identifierMap = mapOf(
-      EventKeys.SOURCE_SYSTEM to personEntity.sourceSystem.name,
-      EventKeys.DEFENDANT_ID to personEntity.defendantId,
-      EventKeys.CRN to personEntity.crn,
-      EventKeys.PRISON_NUMBER to personEntity.prisonNumber,
-    )
-    telemetryService.trackEvent(eventType, identifierMap + elementMap)
   }
 
   companion object {

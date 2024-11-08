@@ -72,8 +72,9 @@ class IntegrationTestBase {
     }
   }
 
-  internal fun createPersonKey(): PersonKeyEntity {
+  internal fun createPersonKey(status: UUIDStatusType = UUIDStatusType.ACTIVE): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
+    personKeyEntity.status = status
     return personKeyRepository.saveAndFlush(personKeyEntity)
   }
 
