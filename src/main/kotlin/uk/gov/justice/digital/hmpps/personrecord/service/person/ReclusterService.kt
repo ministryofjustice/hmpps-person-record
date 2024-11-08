@@ -33,10 +33,14 @@ class ReclusterService(
           EventKeys.UUID to personEntity.personKey?.personId.toString(),
         ),
       )
+      clusterHasOneRecord(personEntity.personKey) -> {} // CPR-437
+      else -> {} // CPR-439
     }
   }
 
   private fun clusterNeedsAttention(personKeyEntity: PersonKeyEntity?) = personKeyEntity?.status == UUIDStatusType.NEEDS_ATTENTION
+
+  private fun clusterHasOneRecord(personKeyEntity: PersonKeyEntity?) = personKeyEntity?.personEntities?.size == 1
 
   companion object {
     private const val MAX_ATTEMPTS = 5
