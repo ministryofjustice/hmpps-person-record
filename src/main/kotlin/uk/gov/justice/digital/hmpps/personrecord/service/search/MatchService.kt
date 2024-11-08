@@ -19,8 +19,8 @@ const val MAX_RETRY_ATTEMPTS: Int = 3
 
 @Service
 class MatchService(
-  val matchScoreClient: MatchScoreClient,
-  val telemetryService: TelemetryService,
+  private val matchScoreClient: MatchScoreClient,
+  private val telemetryService: TelemetryService,
   @Value("\${retry.delay}")
   private val retryDelay: Long = 0,
 ) {

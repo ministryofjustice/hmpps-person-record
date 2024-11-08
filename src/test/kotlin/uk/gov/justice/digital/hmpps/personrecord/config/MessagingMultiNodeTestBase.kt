@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.awaitility.kotlin.await
@@ -34,9 +33,6 @@ import java.util.UUID
 
 @ExtendWith(MultiApplicationContextExtension::class)
 abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
-
-  @Autowired
-  lateinit var objectMapper: ObjectMapper
 
   @Autowired
   lateinit var hmppsQueueService: HmppsQueueService
@@ -261,21 +257,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
   }
 
-  fun stubMatchScore(matchResponse: MatchResponse, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) {
-    wiremock.stubFor(
-      WireMock.post("/person/match")
-        .inScenario(scenario)
-        .whenScenarioStateIs(currentScenarioState)
-        .willSetStateTo(nextScenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(objectMapper.writeValueAsString(matchResponse)),
-        ),
-    )
-  }
-
   fun stubSelfMatchScore(score: Double = 0.9999, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) = stubMatchScore(
     matchResponse = MatchResponse(
       matchProbabilities = mutableMapOf("0" to score),
@@ -423,9 +404,5 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     } matches { it == 0 }
 
     stubSelfMatchScore()
-  }
-
-  companion object {
-    private const val BASE_SCENARIO = "baseScenario"
   }
 }
