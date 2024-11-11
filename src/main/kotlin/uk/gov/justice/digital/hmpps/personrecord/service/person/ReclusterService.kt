@@ -69,9 +69,8 @@ class ReclusterService(
 
   private fun matchRecordAgainstCluster(recordToMatch: PersonEntity, personEntities: List<PersonEntity>): Pair<List<PersonEntity>, List<PersonEntity>> {
     val recordsToMatch = personEntities.filterNot { it == recordToMatch }
-    val recordMatches = matchService.findHighConfidenceMatches(recordsToMatch, PersonSearchCriteria.from(recordToMatch))
-    val matchedRecords = recordMatches.map { it.candidateRecord }
-    val unmatchedRecords = recordsToMatch.filter { entity -> recordMatches.map { it.candidateRecord.id }.contains(entity.id).not() }
+  val recordMatches = matchService.findHighConfidenceMatches(recordsToMatch, PersonSearchCriteria.from(recordToMatch)).map { it.candidateRecord }
+    val unmatchedRecords = recordsToMatch.filter { entity -> recordMatches.map { it.id }.contains(entity.id).not() }
     return Pair(matchedRecords, unmatchedRecords)
   }
 
