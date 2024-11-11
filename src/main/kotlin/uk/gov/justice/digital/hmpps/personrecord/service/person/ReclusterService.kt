@@ -46,24 +46,24 @@ class ReclusterService(
   }
 
   private fun checkClusterRecordsMatch(personKeyEntity: PersonKeyEntity): List<PersonEntity> {
-    val initialRecord = personKeyEntity.personEntities.first()
-    val (initialMatchedRecords, initialUnmatchedRecords) = matchRecordAgainstCluster(initialRecord, personKeyEntity.personEntities)
+    val recordsInClusterMatched: MutableList<PersonEntity> = mutableListOf()
+    val recordsInClusterNotMatched: MutableList<PersonEntity> = personKeyEntity.personEntities.toMutableList()
 
-    val recordsInClusterNotMatched: MutableList<PersonEntity> = initialUnmatchedRecords.toMutableList()
-
-    recordsInClusterNotMatched.forEach { record ->
-      val (matchedRecords, _) = matchRecordAgainstCluster(
-        record,
-        personKeyEntity.personEntities.drop(personKeyEntity.personEntities.indexOf(record)),
-      )
+    personKeyEntity.personEntities.forEach { personEntity ->
       when {
-        matchedRecords.isNotEmpty() -> recordsInClusterNotMatched.remove(record)
+        recordsInClusterMatched.contains(personEntity) -> return@forEach
+      }
+      val (matchedRecords, notMatchedRecords) = matchRecordAgainstCluster(personEntity, personKeyEntity.personEntities)
+      when {
+        matchedRecords.isNotEmpty() -> {
+          recordsInClusterNotMatched.remove(personEntity)
+          recordsInClusterMatched.add(personEntity)
+          addAllIfNotPresent(recordsInClusterMatched, matchedRecords)
+          removeAllIfPresent(recordsInClusterNotMatched, notMatchedRecords)
+        }
       }
     }
 
-    when {
-      initialMatchedRecords.isEmpty() -> recordsInClusterNotMatched.add(initialRecord)
-    }
     return recordsInClusterNotMatched.toList()
   }
 
@@ -72,6 +72,14 @@ class ReclusterService(
     val matchedRecords = matchService.findHighConfidenceMatches(recordsToMatch, PersonSearchCriteria.from(recordToMatch)).map { it.candidateRecord }
     val unmatchedRecords = recordsToMatch.filter { matchedRecord -> matchedRecords.map { it.id }.contains(matchedRecord.id).not() }
     return Pair(matchedRecords, unmatchedRecords)
+  }
+
+  fun <T> addAllIfNotPresent(list: MutableList<T>, elements: List<T>) {
+    list.addAll(elements.filterNot { list.contains(it) })
+  }
+
+  fun <T> removeAllIfPresent(list: MutableList<T>, elements: List<T>) {
+    list.removeAll(elements.filter { list.contains(it) })
   }
 
   private fun clusterNeedsAttention(personKeyEntity: PersonKeyEntity?) = personKeyEntity?.status == UUIDStatusType.NEEDS_ATTENTION
