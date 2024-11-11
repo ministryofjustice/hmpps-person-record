@@ -67,7 +67,7 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should verify multiple records in cluster do not matchx to each other`() {
+  fun `should verify multiple records in cluster do not match to each other`() {
     val personKeyEntity = createPersonKey()
     createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCRN()))),

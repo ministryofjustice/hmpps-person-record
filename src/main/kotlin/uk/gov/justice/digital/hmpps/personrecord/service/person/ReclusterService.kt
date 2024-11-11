@@ -41,16 +41,37 @@ class ReclusterService(
   }
 
   private fun handleMultipleRecordsInCluster(personKeyEntity: PersonKeyEntity) {
-    val recordToCheck = personKeyEntity.personEntities.first()
-    val recordsToMatch = personKeyEntity.personEntities.drop(1)
-    val (matchedRecords, unmatchedRecords) = matchRecordAgainstCluster(recordToCheck, recordsToMatch)
-    println(matchedRecords)
+    checkClusterRecordsMatch(personKeyEntity)
+    // CPR-452
   }
 
-  private fun matchRecordAgainstCluster(personEntity: PersonEntity, personEntities: List<PersonEntity>): Pair<List<PersonEntity>, List<PersonEntity>> {
-    val recordMatches = matchService.findHighConfidenceMatches(personEntities, PersonSearchCriteria.from(personEntity))
+  private fun checkClusterRecordsMatch(personKeyEntity: PersonKeyEntity): List<PersonEntity> {
+    val initialRecord = personKeyEntity.personEntities.first()
+    val (initialMatchedRecords, initialUnmatchedRecords) = matchRecordAgainstCluster(initialRecord, personKeyEntity.personEntities)
+
+    val recordsInClusterNotMatched: MutableList<PersonEntity> = initialUnmatchedRecords.toMutableList()
+
+    recordsInClusterNotMatched.forEach { record ->
+      val (matchedRecords, _) = matchRecordAgainstCluster(
+        record,
+        personKeyEntity.personEntities.drop(personKeyEntity.personEntities.indexOf(record)),
+      )
+      when {
+        matchedRecords.isNotEmpty() -> recordsInClusterNotMatched.remove(record)
+      }
+    }
+
+    when {
+      initialMatchedRecords.isEmpty() -> recordsInClusterNotMatched.add(initialRecord)
+    }
+    return recordsInClusterNotMatched.toList()
+  }
+
+  private fun matchRecordAgainstCluster(recordToMatch: PersonEntity, personEntities: List<PersonEntity>): Pair<List<PersonEntity>, List<PersonEntity>> {
+    val recordsToMatch = personEntities.filterNot { it == recordToMatch }
+    val recordMatches = matchService.findHighConfidenceMatches(recordsToMatch, PersonSearchCriteria.from(recordToMatch))
     val matchedRecords = recordMatches.map { it.candidateRecord }
-    val unmatchedRecords = personEntities.filter { entity -> recordMatches.map { it.candidateRecord.id }.contains(entity.id).not() }
+    val unmatchedRecords = recordsToMatch.filter { entity -> recordMatches.map { it.candidateRecord.id }.contains(entity.id).not() }
     return Pair(matchedRecords, unmatchedRecords)
   }
 
