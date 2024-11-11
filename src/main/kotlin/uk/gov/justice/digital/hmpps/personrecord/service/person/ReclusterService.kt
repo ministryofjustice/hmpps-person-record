@@ -56,10 +56,8 @@ class ReclusterService(
       val (matchedRecords, notMatchedRecords) = matchRecordAgainstCluster(personEntity, personKeyEntity.personEntities)
       when {
         matchedRecords.isNotEmpty() -> {
-          recordsInClusterNotMatched.remove(personEntity)
-          recordsInClusterMatched.add(personEntity)
-          addAllIfNotPresent(recordsInClusterMatched, matchedRecords)
-          removeAllIfPresent(recordsInClusterNotMatched, notMatchedRecords)
+          addAllIfNotPresent(recordsInClusterMatched, matchedRecords + personEntity)
+          removeAllIfPresent(recordsInClusterNotMatched, notMatchedRecords + personEntity)
         }
       }
     }
