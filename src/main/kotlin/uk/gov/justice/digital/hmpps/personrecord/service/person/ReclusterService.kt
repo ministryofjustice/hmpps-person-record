@@ -68,11 +68,11 @@ class ReclusterService(
       when {
         recordsInClusterMatched.contains(personEntity) -> return@forEach
       }
-      val (matchedRecords, notMatchedRecords) = matchRecordAgainstCluster(personEntity, personKeyEntity.personEntities)
+      val matchedRecords = matchRecordAgainstCluster(personEntity, personKeyEntity.personEntities)
       when {
         matchedRecords.isNotEmpty() -> {
           addAllIfNotPresent(recordsInClusterMatched, matchedRecords + personEntity)
-          removeAllIfPresent(recordsInClusterNotMatched, notMatchedRecords + personEntity)
+          removeAllIfPresent(recordsInClusterNotMatched, matchedRecords + personEntity)
         }
       }
     }
@@ -80,10 +80,9 @@ class ReclusterService(
     return recordsInClusterNotMatched.toList()
   }
 
-  private fun matchRecordAgainstCluster(recordToMatch: PersonEntity, personEntities: List<PersonEntity>): Pair<List<PersonEntity>, List<PersonEntity>> {
+  private fun matchRecordAgainstCluster(recordToMatch: PersonEntity, personEntities: List<PersonEntity>): List<PersonEntity> {
     val recordsToMatch = personEntities.filterNot { it == recordToMatch }
-    val matched = matchService.findHighConfidenceMatches(recordsToMatch, PersonSearchCriteria.from(recordToMatch)).map { it.candidateRecord }
-    return recordsToMatch.partition { matched.contains(it) }
+    return matchService.findHighConfidenceMatches(recordsToMatch, PersonSearchCriteria.from(recordToMatch)).map { it.candidateRecord }
   }
 
   fun <T> addAllIfNotPresent(list: MutableList<T>, elements: List<T>) {
