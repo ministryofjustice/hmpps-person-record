@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
@@ -33,7 +34,7 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
     reclusterService.recluster(cluster)
 
     checkTelemetry(
-      TelemetryEventType.CPR_UUID_RECLUSTER_NEEDS_ATTENTION,
+      TelemetryEventType.CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION,
       mapOf("UUID" to personKeyEntity.personId.toString()),
     )
   }
@@ -64,6 +65,11 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
 
     val cluster = await untilNotNull { personKeyRepository.findByPersonId(personKeyEntity.personId) }
     reclusterService.recluster(cluster)
+
+    checkTelemetry(
+      TelemetryEventType.CPR_RECLUSTER_NO_CHANGE,
+      mapOf("UUID" to personKeyEntity.personId.toString()),
+    )
   }
 
   @Test
@@ -82,15 +88,33 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
       personKeyEntity = personKeyEntity,
     )
 
-    val matchResponse = MatchResponse(
+    // Initial check return 1 matched record and 1 unmatched record
+    val initialResponse = MatchResponse(
       matchProbabilities = mutableMapOf(
         "0" to 0.999999,
         "1" to 0.600000,
       ),
     )
-    stubMatchScore(matchResponse)
+    stubMatchScore(initialResponse, nextScenarioState = "notMatchedRecordCheck")
+
+    // Then
+    // No high confidence link when checking the unmatched record against the cluster
+    val noMatchResponse = MatchResponse(
+      matchProbabilities = mutableMapOf(
+        "0" to 0.600000,
+        "1" to 0.600000,
+      ),
+    )
+    stubMatchScore(noMatchResponse, currentScenarioState = "notMatchedRecordCheck")
 
     val cluster = await untilNotNull { personKeyRepository.findByPersonId(personKeyEntity.personId) }
     reclusterService.recluster(cluster)
+
+    checkTelemetry(
+      TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
+      mapOf("UUID" to personKeyEntity.personId.toString()),
+    )
+
+    assertThat(cluster.status).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
   }
 }
