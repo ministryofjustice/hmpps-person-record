@@ -1,7 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
+import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import com.microsoft.applicationinsights.TelemetryClient
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -13,6 +16,7 @@ import org.springframework.boot.info.BuildProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.test.context.ActiveProfiles
+import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
 import uk.gov.justice.digital.hmpps.personrecord.health.HealthInfo
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
@@ -30,6 +34,9 @@ import java.util.concurrent.TimeUnit.SECONDS
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
 class IntegrationTestBase {
+
+  @Autowired
+  lateinit var objectMapper: ObjectMapper
 
   @Autowired
   lateinit var personKeyRepository: PersonKeyRepository
@@ -114,7 +121,24 @@ class IntegrationTestBase {
     personRepository.saveAndFlush(sourceRecord)
   }
 
+  internal fun stubMatchScore(matchResponse: MatchResponse, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) {
+    wiremock.stubFor(
+      WireMock.post("/person/match")
+        .inScenario(scenario)
+        .whenScenarioStateIs(currentScenarioState)
+        .willSetStateTo(nextScenarioState)
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(200)
+            .withBody(objectMapper.writeValueAsString(matchResponse)),
+        ),
+    )
+  }
+
   companion object {
+
+    internal const val BASE_SCENARIO = "baseScenario"
 
     @JvmStatic
     @RegisterExtension

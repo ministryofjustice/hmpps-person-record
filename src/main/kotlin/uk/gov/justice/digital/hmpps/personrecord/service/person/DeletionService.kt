@@ -11,7 +11,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_DELETED
 
 @Component
 class DeletionService(
@@ -47,7 +48,7 @@ class DeletionService(
   private fun deletePersonRecord(personEntity: PersonEntity) {
     personRepository.delete(personEntity)
     telemetryService.trackPersonEvent(
-      TelemetryEventType.CPR_RECORD_DELETED,
+      CPR_RECORD_DELETED,
       personEntity,
       mapOf(EventKeys.UUID to personEntity.personKey?.let { it.personId.toString() }),
     )
@@ -65,7 +66,7 @@ class DeletionService(
   private fun deletePersonKey(personKeyEntity: PersonKeyEntity, personEntity: PersonEntity) {
     personKeyRepository.delete(personKeyEntity)
     telemetryService.trackPersonEvent(
-      TelemetryEventType.CPR_UUID_DELETED,
+      CPR_UUID_DELETED,
       personEntity,
       mapOf(EventKeys.UUID to personEntity.personKey?.let { it.personId.toString() }),
     )

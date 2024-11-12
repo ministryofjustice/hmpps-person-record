@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -28,9 +27,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
 
 class SearchServiceIntTest : IntegrationTestBase() {
-
-  @Autowired
-  private lateinit var objectMapper: ObjectMapper
 
   @Autowired
   private lateinit var searchService: SearchService

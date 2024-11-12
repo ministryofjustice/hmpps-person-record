@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
@@ -18,9 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import java.time.LocalDate
 
 class MatchServiceIntTest : IntegrationTestBase() {
-
-  @Autowired
-  private lateinit var objectMapper: ObjectMapper
 
   @Autowired
   private lateinit var matchService: MatchService
@@ -127,17 +122,5 @@ class MatchServiceIntTest : IntegrationTestBase() {
 
     assertThat(wiremock.findAll(postRequestedFor(urlEqualTo("/person/match"))).size).isEqualTo(2)
     assertThat(highConfidenceMatches.size).isEqualTo(200)
-  }
-
-  private fun stubMatchScore(matchResponse: MatchResponse) {
-    wiremock.stubFor(
-      WireMock.post("/person/match")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(objectMapper.writeValueAsString(matchResponse)),
-        ),
-    )
   }
 }
