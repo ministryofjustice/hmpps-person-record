@@ -12,12 +12,15 @@ import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RE
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.MatchService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_RECLUSTER_NEEDS_ATTENTION
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_NO_CHANGE
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION
 
 @Component
 class ReclusterService(
   private val matchService: MatchService,
   private val telemetryService: TelemetryService,
+  private val personKeyService: PersonKeyService,
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
@@ -30,7 +33,7 @@ class ReclusterService(
   private fun handleRecluster(personKeyEntity: PersonKeyEntity) {
     when {
       clusterNeedsAttention(personKeyEntity) -> telemetryService.trackEvent(
-        CPR_UUID_RECLUSTER_NEEDS_ATTENTION,
+        CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION,
         mapOf(
           EventKeys.UUID to personKeyEntity.personId.toString(),
         ),
@@ -41,8 +44,20 @@ class ReclusterService(
   }
 
   private fun handleMultipleRecordsInCluster(personKeyEntity: PersonKeyEntity) {
-    checkClusterRecordsMatch(personKeyEntity)
-    // CPR-452
+    val notMatchedRecords = checkClusterRecordsMatch(personKeyEntity)
+    when {
+      notMatchedRecords.isEmpty() -> telemetryService.trackEvent(
+        CPR_RECLUSTER_NO_CHANGE,
+        mapOf(EventKeys.UUID to personKeyEntity.personId.toString()),
+      )
+      else -> {
+        personKeyService.setPersonKeyStatus(personKeyEntity, UUIDStatusType.NEEDS_ATTENTION)
+        telemetryService.trackEvent(
+          CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
+          mapOf(EventKeys.UUID to personKeyEntity.personId.toString()),
+        )
+      }
+    }
   }
 
   private fun checkClusterRecordsMatch(personKeyEntity: PersonKeyEntity): List<PersonEntity> {
