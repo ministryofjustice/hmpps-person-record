@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
@@ -19,7 +20,9 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_NO_CHANGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_NO_MATCH_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_SINGLE_MATCH_FOUND_MERGE
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_STARTED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION
+import java.util.UUID
 
 @Component
 class ReclusterService(
@@ -28,13 +31,20 @@ class ReclusterService(
   private val personKeyService: PersonKeyService,
   private val searchService: SearchService,
   private val personRepository: PersonRepository,
+  private val personKeyRepository: PersonKeyRepository,
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
   @Transactional
-  fun recluster(personKeyEntity: PersonKeyEntity) = runBlocking {
+  fun recluster(personUUID: UUID?) = runBlocking {
+    telemetryService.trackEvent(
+      CPR_RECLUSTER_STARTED,
+      mapOf(EventKeys.UUID to personUUID.toString()),
+    )
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
-      handleRecluster(personKeyEntity)
+      personKeyRepository.findByPersonId(personUUID)?.let {
+        handleRecluster(it)
+      }
     }
   }
 
@@ -117,12 +127,24 @@ class ReclusterService(
   }
 
   private fun mergeRecordToUUID(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
-    sourcePersonEntity.personKey?.mergedTo = targetPersonEntity.personKey?.id
-    sourcePersonEntity.personKey?.status = UUIDStatusType.RECLUSTER_MERGE
-    sourcePersonEntity.personKey?.personEntities?.remove(sourcePersonEntity)
-    sourcePersonEntity.personKey = targetPersonEntity.personKey
-    targetPersonEntity.personKey?.personEntities?.add(sourcePersonEntity)
-    personRepository.saveAll(listOf(sourcePersonEntity, targetPersonEntity))
+    val sourcePersonKey = sourcePersonEntity.personKey
+    val targetPersonKey = targetPersonEntity.personKey
+
+    // Step 1: Mark the source key as merged
+    sourcePersonKey?.mergedTo = targetPersonKey?.id
+    sourcePersonKey?.status = UUIDStatusType.RECLUSTER_MERGE
+
+    // Step 2: Detach source entity from its original personKey
+    sourcePersonKey?.personEntities?.remove(sourcePersonEntity)
+    personKeyRepository.save(sourcePersonKey!!)
+
+    // Step 3: Attach the source entity to the target personKey
+    sourcePersonEntity.personKey = targetPersonKey
+    personRepository.save(sourcePersonEntity)
+
+    // Step 4: Add the source entity to the target's personEntities list
+    targetPersonKey?.personEntities?.add(sourcePersonEntity)
+    personKeyRepository.save(targetPersonKey!!)
   }
 
   private fun <T> addAllIfNotPresent(list: MutableList<T>, elements: List<T>) {
