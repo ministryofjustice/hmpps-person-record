@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
@@ -27,6 +28,11 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
 
 class SearchServiceIntTest : IntegrationTestBase() {
+
+  @BeforeEach
+  fun beforeEach() {
+    telemetryRepository.deleteAll()
+  }
 
   @Autowired
   private lateinit var searchService: SearchService
@@ -86,7 +92,6 @@ class SearchServiceIntTest : IntegrationTestBase() {
         dateOfBirth = LocalDate.of(1975, 1, 1),
         sourceSystemType = LIBRA,
       ),
-      personKeyEntity = createPersonKey(),
     )
     createPerson(
       Person(
@@ -127,7 +132,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     stubMatchScore(matchResponse)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind)
 
-    assertThat(candidateRecords.size).isEqualTo(4)
+    assertThat(candidateRecords.size).isEqualTo(3)
   }
 
   @Test
@@ -205,13 +210,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
         references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
         sourceSystemType = COMMON_PLATFORM,
       ),
-      personKeyEntity = createPersonKey(),
     )
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
         sourceSystemType = COMMON_PLATFORM,
       ),
+      personKeyEntity = createPersonKey(),
     )
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999, "1" to 0.9999999))
@@ -659,8 +664,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     stubMatchScore(matchResponse)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(excludedRecord)
 
-    assertThat(candidateRecords.size).isEqualTo(1)
-    assertThat(candidateRecords[0].candidateRecord.id).isEqualTo(excludedRecord.id)
+    noCandidatesFound(candidateRecords)
   }
 
   @Test
