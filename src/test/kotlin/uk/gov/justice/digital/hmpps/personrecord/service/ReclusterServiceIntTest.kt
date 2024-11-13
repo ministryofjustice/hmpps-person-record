@@ -14,9 +14,13 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.person.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -113,7 +117,211 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
     assertThat(targetCluster.personEntities.size).isEqualTo(2)
 
     checkTelemetry(
-      TelemetryEventType.CPR_RECLUSTER_SINGLE_MATCH_FOUND_MERGE,
+      TelemetryEventType.CPR_RECLUSTER_MATCH_FOUND_MERGE,
+      mapOf(
+        "FROM_UUID" to cluster1.personId.toString(),
+        "TO_UUID" to cluster2.personId.toString(),
+      ),
+    )
+  }
+
+  @Test
+  fun `should recluster when single record matches to one other cluster with multiple records`() {
+    val cro = randomCro()
+    val cluster1 = createPersonKey()
+    createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.CRO, cro)),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
+      personKeyEntity = cluster1,
+    )
+
+    val cluster2 = createPersonKey()
+    createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.CRO, cro)),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
+      personKeyEntity = cluster2,
+    )
+    createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.CRO, cro)),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
+      personKeyEntity = cluster2,
+    )
+    createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.CRO, cro)),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
+      personKeyEntity = cluster2,
+    )
+
+    val matchResponse = MatchResponse(
+      matchProbabilities = mutableMapOf(
+        "0" to 0.999999,
+        "1" to 0.999999,
+        "2" to 0.999999,
+        "3" to 0.999999,
+      ),
+    )
+    stubMatchScore(matchResponse)
+
+    reclusterService.recluster(cluster1.personId)
+
+    checkTelemetry(
+      TelemetryEventType.CPR_RECLUSTER_STARTED,
+      mapOf("UUID" to cluster1.personId.toString()),
+    )
+
+    val sourceCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster1.personId) }
+    assertThat(sourceCluster.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
+    assertThat(sourceCluster.personEntities.size).isEqualTo(0)
+    assertThat(sourceCluster.mergedTo).isEqualTo(cluster2.id)
+
+    val targetCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster2.personId) }
+    assertThat(targetCluster.personEntities.size).isEqualTo(4)
+
+    checkTelemetry(
+      TelemetryEventType.CPR_RECLUSTER_MATCH_FOUND_MERGE,
+      mapOf(
+        "FROM_UUID" to cluster1.personId.toString(),
+        "TO_UUID" to cluster2.personId.toString(),
+      ),
+    )
+  }
+
+  @Test
+  fun `should recluster when single record matches to one other cluster with multiple records (only matches 1)`() {
+    val cro = randomCro()
+    val cluster1 = createPersonKey()
+    createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.CRO, cro)),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
+      personKeyEntity = cluster1,
+    )
+
+    val cluster2 = createPersonKey()
+    createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.CRO, cro)),
+        sourceSystemType = LIBRA,
+      ),
+      personKeyEntity = cluster2,
+    )
+    createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.CRO, cro)),
+        sourceSystemType = DELIUS,
+      ),
+      personKeyEntity = cluster2,
+    )
+    createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.CRO, cro)),
+        sourceSystemType = NOMIS,
+      ),
+      personKeyEntity = cluster2,
+    )
+
+    val matchResponse = MatchResponse(
+      matchProbabilities = mutableMapOf(
+        "0" to 0.999999,
+        "1" to 0.999999,
+        "2" to 0.788888,
+        "3" to 0.788888,
+      ),
+    )
+    stubMatchScore(matchResponse)
+
+    reclusterService.recluster(cluster1.personId)
+
+    checkTelemetry(
+      TelemetryEventType.CPR_RECLUSTER_STARTED,
+      mapOf("UUID" to cluster1.personId.toString()),
+    )
+
+    val sourceCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster1.personId) }
+    assertThat(sourceCluster.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
+    assertThat(sourceCluster.personEntities.size).isEqualTo(0)
+    assertThat(sourceCluster.mergedTo).isEqualTo(cluster2.id)
+
+    val targetCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster2.personId) }
+    assertThat(targetCluster.personEntities.size).isEqualTo(4)
+
+    checkTelemetry(
+      TelemetryEventType.CPR_RECLUSTER_MATCH_FOUND_MERGE,
+      mapOf(
+        "FROM_UUID" to cluster1.personId.toString(),
+        "TO_UUID" to cluster2.personId.toString(),
+      ),
+    )
+  }
+
+  @Test
+  fun `should recluster when single record matches to multiple clusters`() {
+    val cro = randomCro()
+    val cluster1 = createPersonKey()
+    createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.CRO, cro)),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
+      personKeyEntity = cluster1,
+    )
+
+    val cluster2 = createPersonKey()
+    createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.CRO, cro)),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
+      personKeyEntity = cluster2,
+    )
+
+    val cluster3 = createPersonKey()
+    createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.CRO, cro)),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
+      personKeyEntity = cluster3,
+    )
+
+    val matchResponse = MatchResponse(
+      matchProbabilities = mutableMapOf(
+        "0" to 0.999999,
+        "1" to 0.9999993,
+        "2" to 0.9999992,
+      ),
+    )
+    stubMatchScore(matchResponse)
+
+    reclusterService.recluster(cluster1.personId)
+
+    checkTelemetry(
+      TelemetryEventType.CPR_RECLUSTER_STARTED,
+      mapOf("UUID" to cluster1.personId.toString()),
+    )
+
+    val sourceCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster1.personId) }
+    assertThat(sourceCluster.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
+    assertThat(sourceCluster.personEntities.size).isEqualTo(0)
+    assertThat(sourceCluster.mergedTo).isEqualTo(cluster2.id)
+
+    val targetCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster2.personId) }
+    assertThat(targetCluster.personEntities.size).isEqualTo(2)
+
+    val unaffectedCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster3.personId) }
+    assertThat(unaffectedCluster.personEntities.size).isEqualTo(1)
+
+    checkTelemetry(
+      TelemetryEventType.CPR_RECLUSTER_MATCH_FOUND_MERGE,
       mapOf(
         "FROM_UUID" to cluster1.personId.toString(),
         "TO_UUID" to cluster2.personId.toString(),

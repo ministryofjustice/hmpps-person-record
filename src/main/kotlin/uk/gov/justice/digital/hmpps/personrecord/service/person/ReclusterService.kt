@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.search.SearchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_NO_CHANGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_NO_MATCH_FOUND
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_SINGLE_MATCH_FOUND_MERGE
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MATCH_FOUND_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_STARTED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION
 import java.util.UUID
@@ -69,19 +69,20 @@ class ReclusterService(
         CPR_RECLUSTER_NO_MATCH_FOUND,
         mapOf(EventKeys.UUID to personKeyEntity.personId.toString()),
       )
-      hasSingleHighConfidenceMatch(highConfidenceMatches) -> handleSingleRecordHighConfidenceMatch(record, highConfidenceMatches.first())
+      else -> handleHighConfidenceMatches(record, highConfidenceMatches)
     }
   }
 
-  private fun handleSingleRecordHighConfidenceMatch(personEntity: PersonEntity, highConfidenceMatch: PersonEntity) {
+  private fun handleHighConfidenceMatches(personEntity: PersonEntity, highConfidenceMatches: List<PersonEntity>) {
+    val highestConfidenceRecord = highConfidenceMatches.first()
     telemetryService.trackEvent(
-      CPR_RECLUSTER_SINGLE_MATCH_FOUND_MERGE,
+      CPR_RECLUSTER_MATCH_FOUND_MERGE,
       mapOf(
         EventKeys.FROM_UUID to personEntity.personKey?.personId.toString(),
-        EventKeys.TO_UUID to highConfidenceMatch.personKey?.personId.toString(),
+        EventKeys.TO_UUID to highestConfidenceRecord.personKey?.personId.toString(),
       ),
     )
-    mergeRecordToUUID(personEntity, highConfidenceMatch)
+    mergeRecordToUUID(personEntity, highestConfidenceRecord)
   }
 
   private fun handleMultipleRecordsInCluster(personKeyEntity: PersonKeyEntity) {
@@ -127,24 +128,24 @@ class ReclusterService(
   }
 
   private fun mergeRecordToUUID(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
-    val sourcePersonKey = sourcePersonEntity.personKey
-    val targetPersonKey = targetPersonEntity.personKey
+    val sourcePersonKey = sourcePersonEntity.personKey!!
+    val targetPersonKey = targetPersonEntity.personKey!!
 
     // Step 1: Mark the source key as merged
-    sourcePersonKey?.mergedTo = targetPersonKey?.id
-    sourcePersonKey?.status = UUIDStatusType.RECLUSTER_MERGE
+    sourcePersonKey.mergedTo = targetPersonKey.id
+    sourcePersonKey.status = UUIDStatusType.RECLUSTER_MERGE
 
     // Step 2: Detach source entity from its original personKey
-    sourcePersonKey?.personEntities?.remove(sourcePersonEntity)
-    personKeyRepository.save(sourcePersonKey!!)
+    sourcePersonKey.personEntities.remove(sourcePersonEntity)
+    personKeyRepository.save(sourcePersonKey)
 
     // Step 3: Attach the source entity to the target personKey
     sourcePersonEntity.personKey = targetPersonKey
     personRepository.save(sourcePersonEntity)
 
     // Step 4: Add the source entity to the target's personEntities list
-    targetPersonKey?.personEntities?.add(sourcePersonEntity)
-    personKeyRepository.save(targetPersonKey!!)
+    targetPersonKey.personEntities.add(sourcePersonEntity)
+    personKeyRepository.save(targetPersonKey)
   }
 
   private fun <T> addAllIfNotPresent(list: MutableList<T>, elements: List<T>) {
@@ -154,8 +155,6 @@ class ReclusterService(
   private fun <T> removeAllIfPresent(list: MutableList<T>, elements: List<T>) {
     list.removeAll(elements.filter { list.contains(it) })
   }
-
-  private fun hasSingleHighConfidenceMatch(highConfidenceMatches: List<PersonEntity>) = highConfidenceMatches.size == 1
 
   private fun clusterNeedsAttention(personKeyEntity: PersonKeyEntity?) = personKeyEntity?.status == UUIDStatusType.NEEDS_ATTENTION
 
