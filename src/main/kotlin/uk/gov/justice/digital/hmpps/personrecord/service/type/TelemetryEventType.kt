@@ -32,5 +32,5 @@ enum class TelemetryEventType(val eventName: String) {
   CPR_RECLUSTER_NO_CHANGE("CprReclusterNoChange"),
   CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED("CprReclusterClusterRecordsNotLinked"),
   CPR_RECLUSTER_NO_MATCH_FOUND("CprReclusterNoMatchFound"),
-  CPR_RECLUSTER_SINGLE_MATCH_FOUND_MERGE("CprReclusterSingleMatchFoundMergeRecluster"),
+  CPR_RECLUSTER_MATCH_FOUND_MERGE("CprReclusterMatchFoundMergeRecluster"),
 }
