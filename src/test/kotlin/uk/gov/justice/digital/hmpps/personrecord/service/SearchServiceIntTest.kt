@@ -771,7 +771,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         references = listOf(Reference(IdentifierType.PNC, randomPnc())),
         sourceSystemType = COMMON_PLATFORM,
       ),
-      personKeyEntity = createPersonKey()
+      personKeyEntity = createPersonKey(),
     )
 
     val candidateRecords = searchService.findCandidateRecordsWithUuid(record)
