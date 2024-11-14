@@ -15,7 +15,6 @@ class BlockingRules(
       WHERE
         r1_0.identifier_type = '${identifierType.name}'
         AND r1_0.identifier_value = '$identifierValue'
-        AND pe1_0.merged_to IS NULL
       $globalConditions
   """.trimIndent()
 
@@ -33,7 +32,6 @@ class BlockingRules(
       $SOUNDEX_EXPRESSION
         AND date_part('year', pe1_0.date_of_birth) = ${dateOfBirth?.year}
         AND date_part('month', pe1_0.date_of_birth) = ${dateOfBirth?.monthValue}
-        AND pe1_0.merged_to IS NULL
       $globalConditions
   """.trimIndent()
 
@@ -42,7 +40,6 @@ class BlockingRules(
       $SOUNDEX_EXPRESSION
         AND date_part('year', pe1_0.date_of_birth) = ${dateOfBirth?.year}
         AND date_part('day', pe1_0.date_of_birth) = ${dateOfBirth?.dayOfMonth}
-        AND pe1_0.merged_to IS NULL
       $globalConditions
   """.trimIndent()
 
@@ -77,12 +74,20 @@ class BlockingRules(
 
     fun exactMatchSourceSystem(sourceSystemType: SourceSystemType): String = """
       AND pe1_0.source_system = '${sourceSystemType.name}'
+    """.trimIndent()
+
+    fun hasNoMergeLink(): String = """
       AND pe1_0.merged_to IS NULL
     """.trimIndent()
 
     fun hasPersonKey(): String = """
       AND pe1_0.fk_person_key_id IS NOT NULL
-      AND pe1_0.merged_to IS NULL
     """.trimIndent()
+
+    fun notSelf(id: Long?): String = id?.let {
+      """
+       AND pe1_0.id != '$it'
+      """.trimIndent()
+    } ?: ""
   }
 }

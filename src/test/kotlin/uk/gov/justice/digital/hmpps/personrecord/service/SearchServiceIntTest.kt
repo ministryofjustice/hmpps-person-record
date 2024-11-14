@@ -92,7 +92,6 @@ class SearchServiceIntTest : IntegrationTestBase() {
         dateOfBirth = LocalDate.of(1975, 1, 1),
         sourceSystemType = LIBRA,
       ),
-      personKeyEntity = createPersonKey(),
     )
     createPerson(
       Person(
@@ -133,7 +132,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     stubMatchScore(matchResponse)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind)
 
-    assertThat(candidateRecords.size).isEqualTo(4)
+    assertThat(candidateRecords.size).isEqualTo(3)
   }
 
   @Test
@@ -211,13 +210,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
         references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
         sourceSystemType = COMMON_PLATFORM,
       ),
-      personKeyEntity = createPersonKey(),
     )
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
         sourceSystemType = COMMON_PLATFORM,
       ),
+      personKeyEntity = createPersonKey(),
     )
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999, "1" to 0.9999999))
@@ -665,8 +664,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     stubMatchScore(matchResponse)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(excludedRecord)
 
-    assertThat(candidateRecords.size).isEqualTo(1)
-    assertThat(candidateRecords[0].candidateRecord.id).isEqualTo(excludedRecord.id)
+    noCandidatesFound(candidateRecords)
   }
 
   @Test
@@ -764,6 +762,21 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     assertThat(candidateRecords.size).isEqualTo(4)
+  }
+
+  @Test
+  fun `should not find its self`() {
+    val record = createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.PNC, randomPnc())),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
+      personKeyEntity = createPersonKey(),
+    )
+
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(record)
+
+    noCandidatesFound(candidateRecords)
   }
 
   private fun noCandidatesFound(records: List<MatchResult>) {
