@@ -764,6 +764,21 @@ class SearchServiceIntTest : IntegrationTestBase() {
     assertThat(candidateRecords.size).isEqualTo(4)
   }
 
+  @Test
+  fun `should not find its self`() {
+    val record = createPerson(
+      Person(
+        references = listOf(Reference(IdentifierType.PNC, randomPnc())),
+        sourceSystemType = COMMON_PLATFORM,
+      ),
+      personKeyEntity = createPersonKey()
+    )
+
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(record)
+
+    noCandidatesFound(candidateRecords)
+  }
+
   private fun noCandidatesFound(records: List<MatchResult>) {
     assertThat(records.size).isEqualTo(0)
   }
