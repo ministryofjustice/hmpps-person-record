@@ -2,7 +2,9 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.libra
 
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
+import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilAsserted
+import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
@@ -38,6 +40,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit.SECONDS
@@ -151,6 +154,10 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
+
+    await untilCallTo {
+      reclusterEventsQueue?.sqsClient?.countMessagesOnQueue(reclusterEventsQueue!!.queueUrl)?.get()
+    } matches { it == 1 }
 
     val person = await.atMost(30, SECONDS) untilNotNull {
       personRepository.findByDefendantId(libraDefendantId)

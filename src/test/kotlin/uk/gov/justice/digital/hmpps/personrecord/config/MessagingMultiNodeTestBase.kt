@@ -16,10 +16,10 @@ import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.ProbationEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.AdditionalInformation
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
@@ -79,6 +79,10 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   val prisonMergeEventsQueue by lazy {
     hmppsQueueService.findByQueueId("cprnomismergeeventsqueue")
+  }
+
+  val reclusterEventsQueue by lazy {
+    hmppsQueueService.findByQueueId("cprreclustereventsqueue")
   }
 
   internal fun publishCourtMessage(message: String, messageType: MessageType, topic: String = courtEventsTopic?.arn!!): String {
@@ -368,6 +372,13 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       PurgeQueueRequest.builder().queueUrl(prisonMergeEventsQueue!!.dlqUrl).build(),
     )
 
+    reclusterEventsQueue!!.sqsClient.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(reclusterEventsQueue!!.queueUrl).build(),
+    )
+    reclusterEventsQueue!!.sqsDlqClient!!.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(reclusterEventsQueue!!.dlqUrl).build(),
+    )
+
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       probationEventsQueue!!.sqsClient.countAllMessagesOnQueue(probationEventsQueue!!.queueUrl).get()
     } matches { it == 0 }
@@ -401,6 +412,13 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     } matches { it == 0 }
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       prisonMergeEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(prisonMergeEventsQueue!!.dlqUrl!!).get()
+    } matches { it == 0 }
+
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      reclusterEventsQueue!!.sqsClient.countAllMessagesOnQueue(reclusterEventsQueue!!.queueUrl).get()
+    } matches { it == 0 }
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      reclusterEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(reclusterEventsQueue!!.dlqUrl!!).get()
     } matches { it == 0 }
 
     stubSelfMatchScore()

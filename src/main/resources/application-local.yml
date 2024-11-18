@@ -55,6 +55,9 @@ hmpps.sqs:
       dlqName: cpr_nomis_merge_events_queue_dlq
       subscribeTopicId: domainevents
       subscribeFilter: '{"eventType":[ "prisoner-offender-events.prisoner.merged"] }'
+    cprreclustereventsqueue:
+      queueName: cpr_recluster_events_queue
+      dlqName: cpr_recluster_events_dlq
   topics:
     courtcaseeventstopic:
       arn: arn:aws:sns:eu-west-2:000000000000:courtcaseeventstopic
