@@ -83,7 +83,6 @@ class TelemetryService(private val telemetryClient: TelemetryClient) {
 
   fun trackEvent(eventType: TelemetryEventType, customDimensions: Map<EventKeys, String?>) {
     val transformedDimensions = customDimensions.entries.associate { it.key.name to it.value }
-
     telemetryClient.trackEvent(eventType.eventName, transformedDimensions, null)
   }
 }

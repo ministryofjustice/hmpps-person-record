@@ -5,11 +5,18 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria
 object PersonQueries {
 
   const val SEARCH_VERSION = "1.5"
+  private const val BLOCKING_RULES_SEPARATOR = " "
 
   fun findCandidatesWithUuid(searchCriteria: PersonSearchCriteria): PersonQuery = PersonQuery(
     queryName = PersonQueryType.FIND_CANDIDATES_WITH_UUID,
     query = generateFindCandidatesSQL(
-      BlockingRules(globalConditions = BlockingRules.hasPersonKey()),
+      BlockingRules(
+        globalConditions = combineBlockingRules(
+          BlockingRules.hasPersonKey(),
+          BlockingRules.hasNoMergeLink(),
+          BlockingRules.notSelf(searchCriteria.id),
+        ),
+      ),
       searchCriteria,
     ),
   )
@@ -17,7 +24,12 @@ object PersonQueries {
   fun findCandidatesBySourceSystem(searchCriteria: PersonSearchCriteria): PersonQuery = PersonQuery(
     queryName = PersonQueryType.FIND_CANDIDATES_BY_SOURCE_SYSTEM,
     query = generateFindCandidatesSQL(
-      BlockingRules(globalConditions = BlockingRules.exactMatchSourceSystem(searchCriteria.sourceSystemType)),
+      BlockingRules(
+        globalConditions = combineBlockingRules(
+          BlockingRules.exactMatchSourceSystem(searchCriteria.sourceSystemType),
+          BlockingRules.hasNoMergeLink(),
+        ),
+      ),
       searchCriteria,
     ),
   )
@@ -45,4 +57,6 @@ object PersonQueries {
       blockingRules.yearAndMonthMatch(searchCriteria.dateOfBirth),
     )
   }
+
+  private fun combineBlockingRules(vararg rules: String): String = rules.toList().joinToString(BLOCKING_RULES_SEPARATOR)
 }
