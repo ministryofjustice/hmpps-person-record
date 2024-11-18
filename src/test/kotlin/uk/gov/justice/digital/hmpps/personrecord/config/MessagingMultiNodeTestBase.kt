@@ -81,6 +81,10 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId("cprnomismergeeventsqueue")
   }
 
+  val reclusterEventsQueue by lazy {
+    hmppsQueueService.findByQueueId("cprreclustereventsqueue")
+  }
+
   internal fun publishCourtMessage(message: String, messageType: MessageType, topic: String = courtEventsTopic?.arn!!): String {
     var messageBuilder = PublishRequest.builder()
       .topicArn(topic)
@@ -368,6 +372,13 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       PurgeQueueRequest.builder().queueUrl(prisonMergeEventsQueue!!.dlqUrl).build(),
     )
 
+    reclusterEventsQueue!!.sqsClient.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(reclusterEventsQueue!!.queueUrl).build(),
+    )
+    reclusterEventsQueue!!.sqsDlqClient!!.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(reclusterEventsQueue!!.dlqUrl).build(),
+    )
+
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       probationEventsQueue!!.sqsClient.countAllMessagesOnQueue(probationEventsQueue!!.queueUrl).get()
     } matches { it == 0 }
@@ -401,6 +412,13 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     } matches { it == 0 }
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       prisonMergeEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(prisonMergeEventsQueue!!.dlqUrl!!).get()
+    } matches { it == 0 }
+
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      reclusterEventsQueue!!.sqsClient.countAllMessagesOnQueue(reclusterEventsQueue!!.queueUrl).get()
+    } matches { it == 0 }
+    await.atMost(Duration.ofSeconds(2)) untilCallTo {
+      reclusterEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(reclusterEventsQueue!!.dlqUrl!!).get()
     } matches { it == 0 }
 
     stubSelfMatchScore()

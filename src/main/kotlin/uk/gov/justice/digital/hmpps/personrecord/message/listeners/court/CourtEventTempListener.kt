@@ -5,9 +5,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
-import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import software.amazon.awssdk.services.sns.model.PublishRequest
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
@@ -20,10 +17,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.FIFO
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.QueueService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.FIFO_DEFENDANT_RECEIVED
-import uk.gov.justice.hmpps.sqs.HmppsQueueService
-import uk.gov.justice.hmpps.sqs.MissingTopicException
-import java.util.UUID
 
 const val CPR_COURT_EVENTS_TEMP_QUEUE_CONFIG_KEY = "cprcourtcaseeventstemporaryqueue"
 
@@ -32,8 +27,7 @@ const val CPR_COURT_EVENTS_TEMP_QUEUE_CONFIG_KEY = "cprcourtcaseeventstemporaryq
 class CourtEventTempListener(
   val objectMapper: ObjectMapper,
   val telemetryService: TelemetryService,
-  val hmppsQueueService: HmppsQueueService,
-
+  val queueService: QueueService,
 ) {
 
   @SqsListener(CPR_COURT_EVENTS_TEMP_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
@@ -70,7 +64,7 @@ class CourtEventTempListener(
       )
     }
 
-    publishCourtMessageToFifoTopic(objectMapper.writeValueAsString(commonPlatformHearingEvent), COMMON_PLATFORM_HEARING)
+    queueService.publishCourtMessageToFifoTopic(objectMapper.writeValueAsString(commonPlatformHearingEvent), COMMON_PLATFORM_HEARING)
   }
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
@@ -84,24 +78,6 @@ class CourtEventTempListener(
         FIFO to "false",
       ),
     )
-    publishCourtMessageToFifoTopic(sqsMessage.message, LIBRA_COURT_CASE)
-  }
-
-  private fun publishCourtMessageToFifoTopic(message: String, messageType: MessageType) {
-    val topic = hmppsQueueService.findByTopicId("courteventsfifotopic")
-      ?: throw MissingTopicException("Could not find topic courteventsfifotopic")
-    val messageBuilder = PublishRequest.builder()
-      .topicArn(topic.arn)
-      .message(message)
-      .messageAttributes(
-        mapOf(
-          "messageType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(messageType.name).build(),
-          "messageId" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(UUID.randomUUID().toString()).build(),
-        ),
-      ).messageGroupId(UUID.randomUUID().toString())
-
-    topic.snsClient.publish(messageBuilder.build())?.get()
+    queueService.publishCourtMessageToFifoTopic(sqsMessage.message, LIBRA_COURT_CASE)
   }
 }

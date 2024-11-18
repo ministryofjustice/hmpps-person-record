@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.ReadWriteLockService
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.QueueService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.MatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.MatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.SearchService
@@ -35,6 +36,7 @@ class PersonService(
   private val searchService: SearchService,
   private val matchService: MatchService,
   private val personKeyService: PersonKeyService,
+  private val queueService: QueueService,
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
@@ -97,6 +99,7 @@ class PersonService(
     }
     val updatedEntity = updateExistingPersonEntity(person, existingPersonEntity)
     telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_UPDATED, person)
+    updatedEntity.personKey?.personId?.let { queueService.publishReclusterMessageToQueue(it) }
     return updatedEntity
   }
 
