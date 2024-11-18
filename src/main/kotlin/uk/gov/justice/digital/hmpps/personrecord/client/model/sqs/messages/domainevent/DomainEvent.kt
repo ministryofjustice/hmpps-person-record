@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.domainevent
+package uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties

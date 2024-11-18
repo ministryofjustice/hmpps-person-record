@@ -1,10 +1,12 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.queue
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.Recluster
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingQueueException
 import uk.gov.justice.hmpps.sqs.MissingTopicException
@@ -14,6 +16,7 @@ import software.amazon.awssdk.services.sqs.model.MessageAttributeValue as SQSMes
 
 @Component
 class QueueService(
+  private val objectMapper: ObjectMapper,
   private val hmppsQueueService: HmppsQueueService,
 ) {
 
@@ -36,9 +39,12 @@ class QueueService(
 
   fun publishReclusterMessageToQueue(uuid: UUID) {
     val queue = findByQueueIdOrThrow(Queues.RECLUSTER_EVENTS_QUEUE.id)
+    val message = objectMapper.writeValueAsString(
+      Recluster(uuid = uuid.toString())
+    )
     val messageBuilder = SendMessageRequest.builder()
       .queueUrl(queue.queueUrl)
-      .messageBody(uuid.toString())
+      .messageBody(message)
       .messageAttributes(
         mapOf(
           "messageType" to SQSMessageAttribute.builder().dataType("String")
