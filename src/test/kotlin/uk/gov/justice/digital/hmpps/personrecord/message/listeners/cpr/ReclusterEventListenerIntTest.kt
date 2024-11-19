@@ -1,8 +1,8 @@
-package uk.gov.justice.digital.hmpps.personrecord.service
+package uk.gov.justice.digital.hmpps.personrecord.message.listeners.cpr
 
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilNotNull
+import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
-import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -19,14 +19,15 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
-import uk.gov.justice.digital.hmpps.personrecord.service.person.ReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.QueueService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 
-class ReclusterServiceIntTest : IntegrationTestBase() {
+class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @BeforeEach
   fun beforeEach() {
@@ -34,7 +35,7 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
   }
 
   @Autowired
-  private lateinit var reclusterService: ReclusterService
+  private lateinit var queueService: QueueService
 
   @Test
   fun `should log event if cluster needs attention`() {
@@ -44,8 +45,12 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
       personKeyEntity = personKeyEntity,
     )
 
-    reclusterService.recluster(personKeyEntity.personId)
+    queueService.publishReclusterMessageToQueue(personKeyEntity.personId!!)
 
+    checkTelemetry(
+      CPR_RECLUSTER_MESSAGE_RECEIVED,
+      mapOf("UUID" to personKeyEntity.personId.toString()),
+    )
     checkTelemetry(
       TelemetryEventType.CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION,
       mapOf("UUID" to personKeyEntity.personId.toString()),
@@ -64,8 +69,12 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
       personKeyEntity = cluster1,
     )
 
-    reclusterService.recluster(cluster1.personId)
+    queueService.publishReclusterMessageToQueue(cluster1.personId!!)
 
+    checkTelemetry(
+      CPR_RECLUSTER_MESSAGE_RECEIVED,
+      mapOf("UUID" to cluster1.personId.toString()),
+    )
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
@@ -110,15 +119,24 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
     )
     stubMatchScore(matchResponse)
 
-    reclusterService.recluster(cluster1.personId)
+    queueService.publishReclusterMessageToQueue(cluster1.personId!!)
 
-    val sourceCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster1.personId) }
-    assertThat(sourceCluster.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
-    assertThat(sourceCluster.personEntities.size).isEqualTo(0)
-    assertThat(sourceCluster.mergedTo).isEqualTo(cluster2.id)
+    checkTelemetry(
+      CPR_RECLUSTER_MESSAGE_RECEIVED,
+      mapOf("UUID" to cluster1.personId.toString()),
+    )
 
-    val targetCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster2.personId) }
-    assertThat(targetCluster.personEntities.size).isEqualTo(2)
+    await untilAsserted {
+      val sourceCluster = personKeyRepository.findByPersonId(cluster1.personId)
+      assertThat(sourceCluster?.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
+      assertThat(sourceCluster?.personEntities?.size).isEqualTo(0)
+      assertThat(sourceCluster?.mergedTo).isEqualTo(cluster2.id)
+    }
+
+    await untilAsserted {
+      val targetCluster = personKeyRepository.findByPersonId(cluster2.personId)
+      assertThat(targetCluster?.personEntities?.size).isEqualTo(2)
+    }
 
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
@@ -183,15 +201,24 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
     )
     stubMatchScore(matchResponse)
 
-    reclusterService.recluster(cluster1.personId)
+    queueService.publishReclusterMessageToQueue(cluster1.personId!!)
 
-    val sourceCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster1.personId) }
-    assertThat(sourceCluster.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
-    assertThat(sourceCluster.personEntities.size).isEqualTo(0)
-    assertThat(sourceCluster.mergedTo).isEqualTo(cluster2.id)
+    checkTelemetry(
+      CPR_RECLUSTER_MESSAGE_RECEIVED,
+      mapOf("UUID" to cluster1.personId.toString()),
+    )
 
-    val targetCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster2.personId) }
-    assertThat(targetCluster.personEntities.size).isEqualTo(4)
+    await untilAsserted {
+      val sourceCluster = personKeyRepository.findByPersonId(cluster1.personId)
+      assertThat(sourceCluster?.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
+      assertThat(sourceCluster?.personEntities?.size).isEqualTo(0)
+      assertThat(sourceCluster?.mergedTo).isEqualTo(cluster2.id)
+    }
+
+    await untilAsserted {
+      val targetCluster = personKeyRepository.findByPersonId(cluster2.personId)
+      assertThat(targetCluster?.personEntities?.size).isEqualTo(4)
+    }
 
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
@@ -256,15 +283,24 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
     )
     stubMatchScore(matchResponse)
 
-    reclusterService.recluster(cluster1.personId)
+    queueService.publishReclusterMessageToQueue(cluster1.personId!!)
 
-    val sourceCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster1.personId) }
-    assertThat(sourceCluster.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
-    assertThat(sourceCluster.personEntities.size).isEqualTo(0)
-    assertThat(sourceCluster.mergedTo).isEqualTo(cluster2.id)
+    checkTelemetry(
+      CPR_RECLUSTER_MESSAGE_RECEIVED,
+      mapOf("UUID" to cluster1.personId.toString()),
+    )
 
-    val targetCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster2.personId) }
-    assertThat(targetCluster.personEntities.size).isEqualTo(4)
+    await untilAsserted {
+      val sourceCluster = personKeyRepository.findByPersonId(cluster1.personId)
+      assertThat(sourceCluster?.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
+      assertThat(sourceCluster?.personEntities?.size).isEqualTo(0)
+      assertThat(sourceCluster?.mergedTo).isEqualTo(cluster2.id)
+    }
+
+    await untilAsserted {
+      val targetCluster = personKeyRepository.findByPersonId(cluster2.personId)
+      assertThat(targetCluster?.personEntities?.size).isEqualTo(4)
+    }
 
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
@@ -323,18 +359,29 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
     )
     stubMatchScore(matchResponse)
 
-    reclusterService.recluster(cluster1.personId)
+    queueService.publishReclusterMessageToQueue(cluster1.personId!!)
 
-    val sourceCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster1.personId) }
-    assertThat(sourceCluster.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
-    assertThat(sourceCluster.personEntities.size).isEqualTo(0)
-    assertThat(sourceCluster.mergedTo).isEqualTo(cluster2.id)
+    checkTelemetry(
+      CPR_RECLUSTER_MESSAGE_RECEIVED,
+      mapOf("UUID" to cluster1.personId.toString()),
+    )
 
-    val targetCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster2.personId) }
-    assertThat(targetCluster.personEntities.size).isEqualTo(2)
+    await untilAsserted {
+      val sourceCluster = personKeyRepository.findByPersonId(cluster1.personId)
+      assertThat(sourceCluster?.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
+      assertThat(sourceCluster?.personEntities?.size).isEqualTo(0)
+      assertThat(sourceCluster?.mergedTo).isEqualTo(cluster2.id)
+    }
 
-    val unaffectedCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster3.personId) }
-    assertThat(unaffectedCluster.personEntities.size).isEqualTo(1)
+    await untilAsserted {
+      val targetCluster = personKeyRepository.findByPersonId(cluster2.personId)
+      assertThat(targetCluster?.personEntities?.size).isEqualTo(2)
+    }
+
+    await untilAsserted {
+      val unaffectedCluster = personKeyRepository.findByPersonId(cluster3.personId)
+      assertThat(unaffectedCluster?.personEntities?.size).isEqualTo(1)
+    }
 
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
@@ -379,8 +426,12 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
     )
     stubMatchScore(matchResponse)
 
-    reclusterService.recluster(personKeyEntity.personId)
+    queueService.publishReclusterMessageToQueue(personKeyEntity.personId!!)
 
+    checkTelemetry(
+      CPR_RECLUSTER_MESSAGE_RECEIVED,
+      mapOf("UUID" to personKeyEntity.personId.toString()),
+    )
     checkTelemetry(
       TelemetryEventType.CPR_RECLUSTER_NO_CHANGE,
       mapOf("UUID" to personKeyEntity.personId.toString()),
@@ -422,14 +473,20 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
     )
     stubMatchScore(noMatchResponse, currentScenarioState = "notMatchedRecordCheck")
 
-    reclusterService.recluster(personKeyEntity.personId)
+    queueService.publishReclusterMessageToQueue(personKeyEntity.personId!!)
 
+    checkTelemetry(
+      CPR_RECLUSTER_MESSAGE_RECEIVED,
+      mapOf("UUID" to personKeyEntity.personId.toString()),
+    )
     checkTelemetry(
       TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
       mapOf("UUID" to personKeyEntity.personId.toString()),
     )
 
-    val cluster = await untilNotNull { personKeyRepository.findByPersonId(personKeyEntity.personId) }
-    assertThat(cluster.status).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
+    await untilAsserted {
+      val cluster = personKeyRepository.findByPersonId(personKeyEntity.personId)
+      assertThat(cluster?.status).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
+    }
   }
 }
