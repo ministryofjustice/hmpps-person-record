@@ -21,5 +21,4 @@ class ReclusterEventProcessor(
     )
     reclusterService.recluster(UUID.fromString(reclusterEvent.uuid))
   }
-
 }

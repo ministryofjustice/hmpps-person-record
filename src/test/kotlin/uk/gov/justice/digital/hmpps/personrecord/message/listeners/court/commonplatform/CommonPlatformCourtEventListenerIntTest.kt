@@ -28,7 +28,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAlias
@@ -141,13 +140,15 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val personKey = createPersonKey()
     createPerson(
-      Person.from(Defendant(
-        id = defendantId,
-        pncId = PNCIdentifier.from(pnc),
-        cro = CROIdentifier.from(cro),
-        personDefendant = PersonDefendant(personDetails = PersonDetails(firstName = firstName, lastName = lastName, gender = "Male"))
-      )),
-      personKeyEntity = personKey
+      Person.from(
+        Defendant(
+          id = defendantId,
+          pncId = PNCIdentifier.from(pnc),
+          cro = CROIdentifier.from(cro),
+          personDefendant = PersonDefendant(personDetails = PersonDetails(firstName = firstName, lastName = lastName, gender = "Male")),
+        ),
+      ),
+      personKeyEntity = personKey,
     )
 
     val matchResponse = MatchResponse(

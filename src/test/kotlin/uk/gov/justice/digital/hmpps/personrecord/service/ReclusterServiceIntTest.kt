@@ -185,7 +185,6 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
 
     reclusterService.recluster(cluster1.personId)
 
-
     val sourceCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster1.personId) }
     assertThat(sourceCluster.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
     assertThat(sourceCluster.personEntities.size).isEqualTo(0)
