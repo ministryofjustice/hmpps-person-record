@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.microsoft.applicationinsights.TelemetryClient
 import jakarta.transaction.Transactional
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
@@ -10,12 +12,15 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
+import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import java.time.LocalDateTime
 
 @Service
 class UnmergeService(
@@ -23,6 +28,10 @@ class UnmergeService(
   private val personService: PersonService,
   private val personRepository: PersonRepository,
   private val personKeyService: PersonKeyService,
+  private val telemetryClient: TelemetryClient,
+  private val eventLoggingService: EventLoggingService,
+  private val objectMapper: ObjectMapper,
+
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
@@ -37,6 +46,32 @@ class UnmergeService(
     val unmergedPersonEntity = retrieveUnmergedPerson(unmergeEvent, unmergedPersonCallback)
     val reactivatedPersonEntity = retrieveReactivatedPerson(unmergeEvent, reactivatedPersonCallback)
     unmergeRecords(unmergeEvent, reactivatedPersonEntity, unmergedPersonEntity)
+
+    val operationId = telemetryClient.context.operation.id
+
+    val sourceSystemId = when (unmergeEvent.unmergedRecord.sourceSystemType) {
+      SourceSystemType.DELIUS -> unmergeEvent.unmergedRecord.crn
+      SourceSystemType.NOMIS -> unmergeEvent.unmergedRecord.prisonNumber
+      SourceSystemType.COMMON_PLATFORM -> unmergeEvent.unmergedRecord.defendantId
+      else -> null
+    }
+
+    val beforeDataDTO = Person.convertEntityToPerson(unmergedPersonEntity)
+    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
+
+    val processedDataDTO = Person.convertEntityToPerson(reactivatedPersonEntity)
+    val processedData = objectMapper.writeValueAsString(processedDataDTO)
+
+    eventLoggingService.mapToEventLogging(
+      operationId = operationId,
+      beforeData = beforeData,
+      processedData = processedData,
+      sourceSystemId = sourceSystemId,
+      uuid = reactivatedPersonEntity.personKey?.personId.toString(),
+      sourceSystem = reactivatedPersonEntity.sourceSystem.name,
+      messageEventType = unmergeEvent.event,
+      eventTimeStamp = LocalDateTime.now(),
+    )
   }
 
   private fun retrieveUnmergedPerson(unmergeEvent: UnmergeEvent, unmergedPersonCallback: () -> PersonEntity?): PersonEntity =

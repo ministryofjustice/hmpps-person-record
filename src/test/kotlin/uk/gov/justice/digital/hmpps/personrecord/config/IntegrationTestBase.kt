@@ -22,11 +22,13 @@ import uk.gov.justice.digital.hmpps.personrecord.health.HealthInfo
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLoggingRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import java.util.concurrent.TimeUnit.SECONDS
@@ -58,6 +60,12 @@ class IntegrationTestBase {
 
   @Autowired
   private lateinit var healthInfo: HealthInfo
+
+  @Autowired
+  lateinit var eventLoggingRepository: EventLoggingRepository
+
+  @Autowired
+  private lateinit var eventLoggingService: EventLoggingService
 
   internal fun checkTelemetry(
     event: TelemetryEventType,

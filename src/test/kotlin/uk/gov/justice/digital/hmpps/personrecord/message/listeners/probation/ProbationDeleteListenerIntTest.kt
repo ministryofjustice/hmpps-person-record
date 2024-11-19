@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
+import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
@@ -13,13 +14,16 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_GDPR_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -380,5 +384,39 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       personReference = personReference,
       additionalInformation = null,
     )
+  }
+
+  @Test
+  fun `should process offender delete and map to EventLogging table`() {
+    val crn = randomCRN()
+    val domainEvent = buildDomainEvent(crn)
+    val personKey = createPersonKey()
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
+      personKeyEntity = personKey,
+    )
+    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+
+    val beforeDataDTO = personEntity?.let { Person.convertEntityToPerson(it) }
+    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
+
+    publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
+
+    val processedDTO = personEntity?.let { Person.convertEntityToPerson(it) }
+    val processedData = objectMapper.writeValueAsString(processedDTO)
+
+    val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
+      eventLoggingRepository.findBySourceSystemId(crn)
+    }
+
+    assertThat(loggedEvent).isNotNull
+    assertThat(loggedEvent.messageEventType).isEqualTo(OFFENDER_GDPR_DELETION)
+    assertThat(loggedEvent.sourceSystemId).isEqualTo(crn)
+    assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
+    assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
+    assertThat(loggedEvent.beforeData).isEqualTo(beforeData)
+    assertThat(loggedEvent.processedData).isEqualTo(processedData)
+
+    assertThat(loggedEvent.uuid).isEqualTo(personEntity.personKey?.personId.toString())
   }
 }

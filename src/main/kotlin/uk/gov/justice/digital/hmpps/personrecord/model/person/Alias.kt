@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model.person
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.DefendantAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAlias
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import java.time.LocalDate
 
 data class Alias(
@@ -39,5 +40,14 @@ data class Alias(
         dateOfBirth = alias.dateOfBirth,
         title = alias.title,
       )
+    fun convertEntityToAlias(pseudonymEntity: PseudonymEntity): Alias {
+      return Alias(
+        firstName = pseudonymEntity.firstName,
+        middleNames = pseudonymEntity.middleNames,
+        lastName = pseudonymEntity.lastName,
+        dateOfBirth = pseudonymEntity.dateOfBirth,
+        title = pseudonymEntity.title,
+      )
+    }
   }
 }

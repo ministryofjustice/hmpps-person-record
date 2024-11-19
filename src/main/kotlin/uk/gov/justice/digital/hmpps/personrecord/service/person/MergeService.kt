@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.microsoft.applicationinsights.TelemetryClient
 import jakarta.transaction.Transactional
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -9,18 +11,26 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
+import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
+import java.time.LocalDateTime
 
 @Service
 class MergeService(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
+  private val eventLoggingService: EventLoggingService,
+  private val telemetryClient: TelemetryClient,
+  private val objectMapper: ObjectMapper,
+
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
@@ -33,12 +43,39 @@ class MergeService(
 
   private suspend fun processMergingOfRecords(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) {
     val (sourcePersonEntity, targetPersonEntity) = collectPeople(sourcePersonCallback, targetPersonCallback)
+
+    val operationId = telemetryClient.context.operation.id
+
+    val sourceSystemId = when (mergeEvent.mergedRecord.sourceSystemType) {
+      SourceSystemType.DELIUS -> mergeEvent.mergedRecord.crn
+      SourceSystemType.NOMIS -> mergeEvent.mergedRecord.prisonNumber
+      SourceSystemType.COMMON_PLATFORM -> mergeEvent.mergedRecord.defendantId
+      else -> null
+    }
+
     when {
       targetPersonEntity == null -> handleTargetRecordNotFound(mergeEvent)
       sourcePersonEntity == null -> handleSourceRecordNotFound(mergeEvent, targetPersonEntity)
       isSameUuid(sourcePersonEntity, targetPersonEntity) -> handleMergeWithSameUuids(mergeEvent, sourcePersonEntity, targetPersonEntity)
       else -> handleMergeWithDifferentUuids(mergeEvent, sourcePersonEntity, targetPersonEntity)
     }
+
+    val beforeDataDTO = targetPersonEntity?.let { Person.convertEntityToPerson(it) }
+    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
+
+    val processedDataDTO = sourcePersonEntity?.let { Person.convertEntityToPerson(it) }
+    val processedData = objectMapper.writeValueAsString(processedDataDTO)
+
+    eventLoggingService.mapToEventLogging(
+      operationId = operationId,
+      beforeData = beforeData,
+      processedData = processedData,
+      sourceSystemId = sourceSystemId,
+      uuid = sourcePersonEntity?.personKey?.personId?.toString(),
+      sourceSystem = sourcePersonEntity?.sourceSystem.toString(),
+      messageEventType = mergeEvent.event,
+      eventTimeStamp = LocalDateTime.now(),
+    )
   }
 
   private fun handleMergeWithSameUuids(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {

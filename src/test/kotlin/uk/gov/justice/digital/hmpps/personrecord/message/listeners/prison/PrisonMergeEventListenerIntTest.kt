@@ -5,6 +5,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
+import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
@@ -23,6 +24,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
+import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit.SECONDS
 
 class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -327,5 +330,47 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "EVENT_TYPE" to "prisoner-offender-events.prisoner.merged",
       ),
     )
+  }
+
+  @Test
+  fun `processes prisoner merge event maps to EventLogging table`() {
+    val targetPrisonNumber = randomPrisonNumber()
+    val sourcePrisonNumber = randomPrisonNumber()
+    val source = ApiResponseSetup(prisonNumber = sourcePrisonNumber)
+    val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
+    val personKeyEntity = createPersonKey()
+    createPerson(
+      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = SourceSystemType.NOMIS),
+      personKeyEntity = personKeyEntity,
+    )
+    createPerson(
+      Person(prisonNumber = targetPrisonNumber, sourceSystemType = SourceSystemType.NOMIS),
+      personKeyEntity = personKeyEntity,
+    )
+
+    prisonMergeEventAndResponseSetup(PRISONER_MERGED, source = source, target = target)
+
+    val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
+      eventLoggingRepository.findBySourceSystemId(targetPrisonNumber)
+    }
+
+    val sourcePerson = personRepository.findByPrisonNumberAndSourceSystem(sourcePrisonNumber)
+    val targetPerson = personRepository.findByPrisonNumberAndSourceSystem(targetPrisonNumber)
+
+    val beforeDataDTO = targetPerson?.let { Person.convertEntityToPerson(it) }
+    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
+
+    val processedDataDTO = sourcePerson?.let { Person.convertEntityToPerson(it) }
+    val processedData = objectMapper.writeValueAsString(processedDataDTO)
+
+    assertThat(loggedEvent).isNotNull
+    assertThat(loggedEvent.messageEventType).isEqualTo(PRISONER_MERGED)
+    assertThat(loggedEvent.sourceSystemId).isEqualTo(targetPrisonNumber)
+    assertThat(loggedEvent.sourceSystem).isEqualTo(targetPerson?.sourceSystem.toString())
+    assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
+    assertThat(loggedEvent.beforeData).isEqualTo(beforeData)
+    assertThat(loggedEvent.processedData).isEqualTo(processedData)
+
+    assertThat(loggedEvent.uuid).isEqualTo(sourcePerson?.personKey?.personId.toString())
   }
 }

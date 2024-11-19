@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import java.time.LocalDate
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Address as OffenderAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Address as PrisonerAddress
@@ -37,6 +38,14 @@ class Address(
 
     fun fromOffenderAddressList(addresses: List<OffenderAddress>): List<Address> {
       return addresses.map { from(it) }
+    }
+    fun convertEntityToAddress(addressEntity: AddressEntity): Address {
+      return Address(
+        postcode = addressEntity.postcode,
+        fullAddress = addressEntity.fullAddress,
+        startDate = addressEntity.startDate,
+        noFixedAbode = addressEntity.noFixedAbode,
+      )
     }
   }
 }

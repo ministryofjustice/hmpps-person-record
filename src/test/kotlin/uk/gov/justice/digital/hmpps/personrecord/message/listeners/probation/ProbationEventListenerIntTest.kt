@@ -13,6 +13,9 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
@@ -55,6 +58,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -345,5 +349,96 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECLUSTER_MESSAGE_RECEIVED,
       mapOf("UUID" to personEntity.personKey?.personId.toString()),
     )
+  }
+
+  @Test
+  fun `should log event to EventLogging table when new offender created`() {
+    val crn = randomCRN()
+    val title = randomName()
+    val prisonNumber = randomPrisonNumber()
+    val firstName = randomName()
+    val lastName = randomName()
+    val pnc = randomPnc()
+    val cro = randomCro()
+    val addressStartDate = randomDate()
+    val addressEndDate = randomDate()
+    val ethnicity = randomEthnicity()
+    val nationality = randomNationality()
+    val sentenceDate = randomDate()
+
+    val apiResponse = ApiResponseSetup(
+      crn = crn,
+      pnc = pnc,
+      title = title,
+      firstName = firstName,
+      lastName = lastName,
+      prisonNumber = prisonNumber,
+      cro = cro,
+      addresses = listOf(
+        ApiResponseSetupAddress(noFixedAbode = true, addressStartDate, addressEndDate, postcode = "LS1 1AB", fullAddress = "abc street"),
+        ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street"),
+      ),
+      ethnicity = ethnicity,
+      nationality = nationality,
+      sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
+    )
+
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
+
+    val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
+      eventLoggingRepository.findBySourceSystemId(crn)
+    }
+    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+
+    val processedDataDTO = personEntity?.let { Person.convertEntityToPerson(it) }
+    val processedData = objectMapper.writeValueAsString(processedDataDTO)
+
+    assertThat(loggedEvent.messageEventType).isEqualTo(NEW_OFFENDER_CREATED)
+    assertThat(loggedEvent.sourceSystemId).isEqualTo(crn)
+    assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
+    assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
+    assertThat(loggedEvent.beforeData).isNull()
+    assertThat(loggedEvent.processedData).isEqualTo(processedData)
+
+    assertThat(loggedEvent.uuid).isEqualTo(personEntity.personKey?.personId.toString())
+  }
+
+  @Test
+  fun `should log event to EventLogging table when offender updated`() {
+    val pnc = randomPnc()
+    val crn = randomCRN()
+    val personKeyEntity = createPersonKey()
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
+      personKeyEntity = personKeyEntity,
+    )
+
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc))
+
+    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+
+    val changedPnc = randomPnc()
+    probationEventAndResponseSetup(OFFENDER_DETAILS_CHANGED, ApiResponseSetup(crn = crn, pnc = changedPnc))
+
+    val updatedPersonEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+
+    val beforeDataDTO = personEntity?.let { Person.convertEntityToPerson(it) }
+    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
+
+    val processedDataDTO = updatedPersonEntity?.let { Person.convertEntityToPerson(it) }
+    val processedData = objectMapper.writeValueAsString(processedDataDTO)
+
+    val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
+      eventLoggingRepository.findLatestEventByCrn(crn)
+    }
+
+    assertThat(loggedEvent).isNotNull
+    assertThat(loggedEvent.messageEventType).isEqualTo(OFFENDER_DETAILS_CHANGED)
+    assertThat(loggedEvent.sourceSystemId).isEqualTo(crn)
+    assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
+    assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
+    assertThat(loggedEvent.beforeData).isEqualTo(beforeData)
+    assertThat(loggedEvent.processedData).isEqualTo(processedData)
+    assertThat(loggedEvent.uuid).isEqualTo(updatedPersonEntity.personKey?.personId.toString())
   }
 }

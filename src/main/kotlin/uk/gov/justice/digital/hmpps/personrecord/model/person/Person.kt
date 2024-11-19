@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraH
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner.Companion.getType
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -173,6 +174,32 @@ data class Person(
         religion = prisoner.religion,
         sentences = prisoner.allConvictedOffences?.map { SentenceInfo.from(it) } ?: emptyList(),
         currentlyManaged = prisoner.currentlyManaged,
+      )
+    }
+
+    fun convertEntityToPerson(existingPersonEntity: PersonEntity): Person {
+      return Person(
+        personId = existingPersonEntity.personKey?.personId,
+        firstName = existingPersonEntity.firstName,
+        middleNames = existingPersonEntity.middleNames?.split(" ") ?: emptyList(),
+        lastName = existingPersonEntity.lastName,
+        dateOfBirth = existingPersonEntity.dateOfBirth,
+        crn = existingPersonEntity.crn,
+        prisonNumber = existingPersonEntity.prisonNumber,
+        defendantId = existingPersonEntity.defendantId,
+        title = existingPersonEntity.title,
+        aliases = existingPersonEntity.pseudonyms.map { Alias.convertEntityToAlias(it) },
+        masterDefendantId = existingPersonEntity.masterDefendantId,
+        nationality = existingPersonEntity.nationality,
+        religion = existingPersonEntity.religion,
+        ethnicity = existingPersonEntity.ethnicity,
+        contacts = existingPersonEntity.contacts.map { Contact.convertEntityToContact(it) },
+        addresses = existingPersonEntity.addresses.map { Address.convertEntityToAddress(it) },
+        references = existingPersonEntity.references.map { Reference.convertEntityToReference(it) },
+        selfMatchScore = existingPersonEntity.selfMatchScore,
+        sourceSystemType = existingPersonEntity.sourceSystem,
+        sentences = existingPersonEntity.sentenceInfo.map { SentenceInfo.convertEntityToSentence(it) },
+        currentlyManaged = existingPersonEntity.currentlyManaged,
       )
     }
   }
