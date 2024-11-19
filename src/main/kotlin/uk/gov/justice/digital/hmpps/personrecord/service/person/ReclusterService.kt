@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MATCH_FOUND_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_NO_CHANGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_NO_MATCH_FOUND
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_STARTED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION
 import java.util.UUID
 
@@ -37,10 +36,6 @@ class ReclusterService(
 
   @Transactional
   fun recluster(personUUID: UUID?) = runBlocking {
-    telemetryService.trackEvent(
-      CPR_RECLUSTER_STARTED,
-      mapOf(EventKeys.UUID to personUUID.toString()),
-    )
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
       personKeyRepository.findByPersonId(personUUID)?.let {
         handleRecluster(it)
@@ -62,7 +57,6 @@ class ReclusterService(
   private fun handleSingleRecordInCluster(personKeyEntity: PersonKeyEntity) {
     val record = personKeyEntity.personEntities.first()
     val highConfidenceMatches = searchService.findCandidateRecordsWithUuid(record)
-      .filterNot { it.candidateRecord.id == record.id }
       .map { it.candidateRecord }
     when {
       highConfidenceMatches.isEmpty() -> telemetryService.trackEvent(

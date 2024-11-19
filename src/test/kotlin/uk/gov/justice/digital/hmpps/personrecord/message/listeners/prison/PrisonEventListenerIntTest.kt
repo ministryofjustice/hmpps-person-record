@@ -36,6 +36,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_NEW_RECORD_EXISTS
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
@@ -189,49 +190,51 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should log correct telemetry on created event but record already exists`() {
-    val prisonNumber = createPrisoner()
+    val prisoner = createPrisoner()
 
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisoner.prisonNumber))
 
-    val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
+    val additionalInformation = AdditionalInformation(prisonNumber = prisoner.prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
     publishDomainEvent(PRISONER_CREATED, domainEvent)
 
-    checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
-    checkTelemetry(CPR_NEW_RECORD_EXISTS, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
+    checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisoner.prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
+    checkTelemetry(CPR_NEW_RECORD_EXISTS, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisoner.prisonNumber))
     checkTelemetry(
       CPR_RECORD_UPDATED,
-      mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
+      mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisoner.prisonNumber),
     )
-    await untilCallTo {
-      reclusterEventsQueue?.sqsClient?.countMessagesOnQueue(reclusterEventsQueue!!.queueUrl)?.get()
-    } matches { it == 1 }
+    checkTelemetry(
+      CPR_RECLUSTER_MESSAGE_RECEIVED,
+      mapOf("UUID" to prisoner.personKey?.personId.toString()),
+    )
   }
 
   @Test
   fun `should receive the message successfully when prisoner updated event published`() {
-    val prisonNumber = createPrisoner()
+    val prisoner = createPrisoner()
 
     await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)
+      personRepository.findByPrisonNumberAndSourceSystem(prisoner.prisonNumber!!)
     }
 
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisoner.prisonNumber))
 
-    val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
+    val additionalInformation = AdditionalInformation(prisonNumber = prisoner.prisonNumber, categoriesChanged = listOf("SENTENCE"))
     val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, personReference = null, additionalInformation = additionalInformation)
     publishDomainEvent(PRISONER_UPDATED, domainEvent)
 
-    checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_UPDATED, "SOURCE_SYSTEM" to "NOMIS"))
+    checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisoner.prisonNumber, "EVENT_TYPE" to PRISONER_UPDATED, "SOURCE_SYSTEM" to "NOMIS"))
 
     checkTelemetry(
       CPR_RECORD_UPDATED,
-      mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
+      mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisoner.prisonNumber),
     )
 
-    await untilCallTo {
-      reclusterEventsQueue?.sqsClient?.countMessagesOnQueue(reclusterEventsQueue!!.queueUrl)?.get()
-    } matches { it == 1 }
+    checkTelemetry(
+      CPR_RECLUSTER_MESSAGE_RECEIVED,
+      mapOf("UUID" to prisoner.personKey?.personId.toString()),
+    )
   }
 
   @Test
@@ -341,13 +344,12 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
   }
 
-  private fun createPrisoner(): String {
-    val prisonNumber = randomPrisonNumber()
-
-    val person = PersonEntity.from(
+  private fun createPrisoner(): PersonEntity {
+    val personKey = createPersonKey()
+    val person = createPerson(
       Person.from(
         Prisoner(
-          prisonNumber = prisonNumber,
+          prisonNumber = randomPrisonNumber(),
           title = "Ms",
           firstName = randomName(),
           middleNames = "${randomName()} ${randomName()}",
@@ -363,15 +365,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
           allConvictedOffences = listOf(AllConvictedOffences(randomDate())),
         ),
       ),
+      personKeyEntity = personKey,
     )
-    val personKey = PersonKeyEntity.new()
 
-    personKeyRepository.saveAndFlush(personKey)
-    person.personKey = personKey
-    personRepository.saveAndFlush(
-      person,
-    )
-    return prisonNumber
+    return person
   }
 
   private fun stub500Response(

@@ -47,10 +47,6 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
     reclusterService.recluster(personKeyEntity.personId)
 
     checkTelemetry(
-      TelemetryEventType.CPR_RECLUSTER_STARTED,
-      mapOf("UUID" to personKeyEntity.personId.toString()),
-    )
-    checkTelemetry(
       TelemetryEventType.CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION,
       mapOf("UUID" to personKeyEntity.personId.toString()),
     )
@@ -70,10 +66,6 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
 
     reclusterService.recluster(cluster1.personId)
 
-    checkTelemetry(
-      TelemetryEventType.CPR_RECLUSTER_STARTED,
-      mapOf("UUID" to cluster1.personId.toString()),
-    )
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
@@ -119,11 +111,6 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
     stubMatchScore(matchResponse)
 
     reclusterService.recluster(cluster1.personId)
-
-    checkTelemetry(
-      TelemetryEventType.CPR_RECLUSTER_STARTED,
-      mapOf("UUID" to cluster1.personId.toString()),
-    )
 
     val sourceCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster1.personId) }
     assertThat(sourceCluster.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
@@ -198,10 +185,6 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
 
     reclusterService.recluster(cluster1.personId)
 
-    checkTelemetry(
-      TelemetryEventType.CPR_RECLUSTER_STARTED,
-      mapOf("UUID" to cluster1.personId.toString()),
-    )
 
     val sourceCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster1.personId) }
     assertThat(sourceCluster.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
@@ -276,11 +259,6 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
 
     reclusterService.recluster(cluster1.personId)
 
-    checkTelemetry(
-      TelemetryEventType.CPR_RECLUSTER_STARTED,
-      mapOf("UUID" to cluster1.personId.toString()),
-    )
-
     val sourceCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster1.personId) }
     assertThat(sourceCluster.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
     assertThat(sourceCluster.personEntities.size).isEqualTo(0)
@@ -348,11 +326,6 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
 
     reclusterService.recluster(cluster1.personId)
 
-    checkTelemetry(
-      TelemetryEventType.CPR_RECLUSTER_STARTED,
-      mapOf("UUID" to cluster1.personId.toString()),
-    )
-
     val sourceCluster = await untilNotNull { personKeyRepository.findByPersonId(cluster1.personId) }
     assertThat(sourceCluster.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
     assertThat(sourceCluster.personEntities.size).isEqualTo(0)
@@ -410,10 +383,6 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
     reclusterService.recluster(personKeyEntity.personId)
 
     checkTelemetry(
-      TelemetryEventType.CPR_RECLUSTER_STARTED,
-      mapOf("UUID" to personKeyEntity.personId.toString()),
-    )
-    checkTelemetry(
       TelemetryEventType.CPR_RECLUSTER_NO_CHANGE,
       mapOf("UUID" to personKeyEntity.personId.toString()),
     )
@@ -456,10 +425,6 @@ class ReclusterServiceIntTest : IntegrationTestBase() {
 
     reclusterService.recluster(personKeyEntity.personId)
 
-    checkTelemetry(
-      TelemetryEventType.CPR_RECLUSTER_STARTED,
-      mapOf("UUID" to personKeyEntity.personId.toString()),
-    )
     checkTelemetry(
       TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
       mapOf("UUID" to personKeyEntity.personId.toString()),

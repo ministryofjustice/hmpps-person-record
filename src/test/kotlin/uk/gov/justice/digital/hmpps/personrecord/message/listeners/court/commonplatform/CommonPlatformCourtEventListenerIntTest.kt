@@ -11,15 +11,21 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
@@ -132,22 +138,17 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val cro = randomCro()
     val firstName = randomName()
     val lastName = randomName()
-    val message = commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, firstName = firstName, lastName = lastName, cro = cro, defendantId = defendantId)))
-    publishCourtMessage(message, COMMON_PLATFORM_HEARING)
 
-    val personEntity = await.atMost(15, SECONDS) untilNotNull {
-      personRepository.findByDefendantId(defendantId)
-    }
-
-    assertThat(personEntity.firstName).isEqualTo(firstName)
-    assertThat(personEntity.selfMatchScore).isEqualTo(0.9999)
-    assertThat(personEntity.addresses.size).isEqualTo(1)
-
-    checkTelemetry(
-      CPR_RECORD_CREATED,
-      mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
+    val personKey = createPersonKey()
+    createPerson(
+      Person.from(Defendant(
+        id = defendantId,
+        pncId = PNCIdentifier.from(pnc),
+        cro = CROIdentifier.from(cro),
+        personDefendant = PersonDefendant(personDetails = PersonDetails(firstName = firstName, lastName = lastName, gender = "Male"))
+      )),
+      personKeyEntity = personKey
     )
-    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId))
 
     val matchResponse = MatchResponse(
       matchProbabilities = mutableMapOf("0" to 0.999999),
@@ -178,9 +179,10 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
 
-    await untilCallTo {
-      reclusterEventsQueue?.sqsClient?.countMessagesOnQueue(reclusterEventsQueue!!.queueUrl)?.get()
-    } matches { it == 1 }
+    checkTelemetry(
+      CPR_RECLUSTER_MESSAGE_RECEIVED,
+      mapOf("UUID" to personKey.personId.toString()),
+    )
   }
 
   @Test

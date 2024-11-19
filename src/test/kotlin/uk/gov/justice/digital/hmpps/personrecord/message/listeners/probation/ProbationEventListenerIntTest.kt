@@ -34,6 +34,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHA
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DETAILS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
@@ -341,8 +342,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val updatedPersonEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(updatedPersonEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(changedPnc)
 
-    await untilCallTo {
-      reclusterEventsQueue?.sqsClient?.countMessagesOnQueue(reclusterEventsQueue!!.queueUrl)?.get()
-    } matches { it == 1 }
+    checkTelemetry(
+      CPR_RECLUSTER_MESSAGE_RECEIVED,
+      mapOf("UUID" to personEntity.personKey?.personId.toString()),
+    )
   }
 }
