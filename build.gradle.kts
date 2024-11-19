@@ -7,7 +7,7 @@ kotlin {
 }
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.8"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.9"
   kotlin("plugin.spring") version "2.0.21"
   kotlin("jvm") version "2.0.21"
   kotlin("plugin.jpa") version "2.0.21"
@@ -29,9 +29,9 @@ dependencies {
   implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.3")
-  implementation("org.springframework.security:spring-security-config:6.3.4")
+  implementation("org.springframework.security:spring-security-config:6.4.0")
 
-  implementation("io.swagger.core.v3:swagger-annotations:2.2.25")
+  implementation("io.swagger.core.v3:swagger-annotations:2.2.26")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
 
   constraints {
