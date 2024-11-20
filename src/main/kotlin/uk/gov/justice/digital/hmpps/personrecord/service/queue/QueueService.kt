@@ -8,6 +8,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.Recluster
+import uk.gov.justice.digital.hmpps.personrecord.service.type.RECLUSTER_EVENT
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingQueueException
 import uk.gov.justice.hmpps.sqs.MissingTopicException
@@ -48,16 +49,16 @@ class QueueService(
       .messageBody(message)
       .messageAttributes(
         mapOf(
-          attribute("eventType", "recluster.required"),
-          attribute("messageType", NOTIFICATION),
-          attribute("messageId", UUID.randomUUID().toString()),
+          sqsAttribute("eventType", RECLUSTER_EVENT),
+          sqsAttribute("messageType", NOTIFICATION),
+          sqsAttribute("messageId", UUID.randomUUID().toString()),
         ),
       )
 
     queue.sqsClient.sendMessage(messageBuilder.build())
   }
 
-  private fun attribute(key: String, value: String): Pair<String, MessageAttributeValue> = key to SQSMessageAttribute.builder().dataType("String")
+  private fun sqsAttribute(key: String, value: String): Pair<String, MessageAttributeValue> = key to SQSMessageAttribute.builder().dataType("String")
     .stringValue(value).build()
 
   private fun findByTopicIdOrThrow(topicId: String) = hmppsQueueService.findByTopicId(topicId)
