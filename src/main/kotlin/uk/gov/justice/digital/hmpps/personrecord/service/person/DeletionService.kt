@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.microsoft.applicationinsights.TelemetryClient
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -26,7 +25,6 @@ class DeletionService(
   private val personRepository: PersonRepository,
   private val personKeyRepository: PersonKeyRepository,
   private val eventLoggingService: EventLoggingService,
-  private val telemetryClient: TelemetryClient,
   private val objectMapper: ObjectMapper,
 
   @Value("\${retry.delay}") private val retryDelay: Long,
@@ -41,14 +39,7 @@ class DeletionService(
   }
 
   private fun handleDeletion(event: String?, personEntity: PersonEntity) {
-    val operationId = telemetryClient.context.operation.id
-
-    val sourceSystemId = when (personEntity.sourceSystem) {
-      SourceSystemType.DELIUS -> personEntity.crn
-      SourceSystemType.NOMIS -> personEntity.prisonNumber
-      SourceSystemType.COMMON_PLATFORM -> personEntity.defendantId
-      else -> null
-    }
+    val sourceSystemId = extractSourceSystemId(personEntity)
 
     val beforeDataDTO = Person.convertEntityToPerson(personEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
@@ -60,16 +51,7 @@ class DeletionService(
     val processedDataDTO = Person.convertEntityToPerson(personEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
-    eventLoggingService.mapToEventLogging(
-      operationId = operationId,
-      beforeData = beforeData,
-      processedData = processedData,
-      sourceSystemId = sourceSystemId,
-      uuid = personEntity.personKey?.personId.toString(),
-      sourceSystem = personEntity.sourceSystem.name,
-      messageEventType = event,
-      eventTimeStamp = LocalDateTime.now(),
-    )
+    logPersonDelete(personEntity, event, sourceSystemId, beforeData, processedData)
   }
 
   private fun handleMergedRecords(event: String?, personEntity: PersonEntity) {
@@ -112,6 +94,26 @@ class DeletionService(
   private fun removeLinkToRecord(personEntity: PersonEntity) {
     personEntity.personKey?.personEntities?.remove(personEntity)
     personKeyRepository.saveAndFlush(personEntity.personKey!!)
+  }
+  private fun extractSourceSystemId(personEntity: PersonEntity?): String? {
+    return when (personEntity?.sourceSystem) {
+      SourceSystemType.DELIUS -> personEntity.crn
+      SourceSystemType.NOMIS -> personEntity.prisonNumber
+      SourceSystemType.COMMON_PLATFORM -> personEntity.defendantId
+      else -> null
+    }
+  }
+
+  private fun logPersonDelete(updatedPersonEntity: PersonEntity?, event: String?, sourceSystemId: String?, beforeData: String, processedData: String) {
+    eventLoggingService.mapToEventLogging(
+      beforeData = beforeData,
+      processedData = processedData,
+      sourceSystemId = sourceSystemId,
+      uuid = updatedPersonEntity?.personKey?.personId?.toString(),
+      sourceSystem = updatedPersonEntity?.sourceSystem.toString(),
+      eventType = event,
+      eventTimeStamp = LocalDateTime.now(),
+    )
   }
 
   companion object {

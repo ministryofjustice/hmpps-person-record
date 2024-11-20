@@ -410,7 +410,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     assertThat(loggedEvent).isNotNull
-    assertThat(loggedEvent.messageEventType).isEqualTo(OFFENDER_GDPR_DELETION)
+    assertThat(loggedEvent.eventType).isEqualTo(OFFENDER_GDPR_DELETION)
     assertThat(loggedEvent.sourceSystemId).isEqualTo(crn)
     assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())

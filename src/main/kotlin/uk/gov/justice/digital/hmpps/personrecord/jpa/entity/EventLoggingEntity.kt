@@ -7,7 +7,6 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.LocalDateTime
-import java.util.*
 
 @Entity
 @Table(name = "event_logging")
@@ -35,8 +34,8 @@ class EventLoggingEntity(
   @Column(name = "source_system")
   var sourceSystem: String? = null,
 
-  @Column(name = "message_event_type")
-  var messageEventType: String? = null,
+  @Column(name = "event_type")
+  var eventType: String? = null,
 
   @Column(name = "event_timestamp")
   val eventTimestamp: LocalDateTime? = null,

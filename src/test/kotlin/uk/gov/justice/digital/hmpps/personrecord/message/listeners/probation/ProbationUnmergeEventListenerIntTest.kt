@@ -36,6 +36,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
+import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -427,5 +428,50 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       UNMERGE_MESSAGE_RECEIVED,
       mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
     )
+  }
+
+  @Test
+  fun `offender unmerge event is published and mapped to EventLogging table`() {
+    val reactivatedCrn = randomCRN()
+    val unmergedCrn = randomCRN()
+
+    val personKey = createPersonKey()
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
+      personKeyEntity = personKey,
+    )
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
+      personKeyEntity = personKey,
+    )
+
+    val reactivated = ApiResponseSetup(crn = reactivatedCrn)
+    val unmerged = ApiResponseSetup(crn = unmergedCrn)
+
+    probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
+    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
+
+    val unmergedPerson = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(unmergedCrn) }
+    val reactivatedPerson = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(reactivatedCrn) }
+
+    val beforeDataDTO = unmergedPerson?.let { Person.convertEntityToPerson(it) }
+    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
+
+    val processedDataDTO = reactivatedPerson?.let { Person.convertEntityToPerson(it) }
+    val processedData = objectMapper.writeValueAsString(processedDataDTO)
+
+    val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
+      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(reactivatedCrn)
+    }
+
+    assertThat(loggedEvent).isNotNull
+    assertThat(loggedEvent.eventType).isEqualTo(OFFENDER_UNMERGED)
+    assertThat(loggedEvent.sourceSystemId).isEqualTo(reactivatedCrn)
+    assertThat(loggedEvent.sourceSystem).isEqualTo(SourceSystemType.DELIUS.name)
+    assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
+    assertThat(loggedEvent.beforeData).isEqualTo(beforeData)
+    assertThat(loggedEvent.processedData).isEqualTo(processedData)
+
+    assertThat(loggedEvent.uuid).isEqualTo(reactivatedPerson?.personKey?.personId.toString())
   }
 }
