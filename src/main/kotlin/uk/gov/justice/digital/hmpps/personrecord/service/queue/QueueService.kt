@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.queue
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.services.sns.model.PublishRequest
+import software.amazon.awssdk.services.sqs.model.MessageAttributeValue
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
@@ -47,15 +48,17 @@ class QueueService(
       .messageBody(message)
       .messageAttributes(
         mapOf(
-          "messageType" to SQSMessageAttribute.builder().dataType("String")
-            .stringValue(NOTIFICATION).build(),
-          "messageId" to SQSMessageAttribute.builder().dataType("String")
-            .stringValue(UUID.randomUUID().toString()).build(),
+          attribute("eventType", "recluster.required"),
+          attribute("messageType", NOTIFICATION),
+          attribute("messageId", UUID.randomUUID().toString()),
         ),
       )
 
     queue.sqsClient.sendMessage(messageBuilder.build())
   }
+
+  private fun attribute(key: String, value: String): Pair<String, MessageAttributeValue> = key to SQSMessageAttribute.builder().dataType("String")
+    .stringValue(value).build()
 
   private fun findByTopicIdOrThrow(topicId: String) = hmppsQueueService.findByTopicId(topicId)
     ?: throw MissingTopicException("Could not find topic $topicId")
