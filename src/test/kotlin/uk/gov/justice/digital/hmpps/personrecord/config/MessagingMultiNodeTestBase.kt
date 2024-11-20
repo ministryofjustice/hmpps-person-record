@@ -262,15 +262,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
   }
 
-  fun stubSelfMatchScore(score: Double = 0.9999, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) = stubMatchScore(
-    matchResponse = MatchResponse(
-      matchProbabilities = mutableMapOf("0" to score),
-    ),
-    scenario = scenario,
-    currentScenarioState = currentScenarioState,
-    nextScenarioState = nextScenarioState,
-  )
-
   fun stub404Response(url: String) {
     wiremock.stubFor(
       WireMock.get(url)
