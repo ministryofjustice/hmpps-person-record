@@ -19,10 +19,15 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.QueueService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MATCH_FOUND_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MESSAGE_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_NO_CHANGE
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_NO_MATCH_FOUND
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -39,7 +44,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should log event if cluster needs attention`() {
-    val personKeyEntity = createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION)
+    val personKeyEntity = createPersonKey(status = NEEDS_ATTENTION)
     createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCRN()))),
       personKeyEntity = personKeyEntity,
@@ -52,7 +57,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("UUID" to personKeyEntity.personId.toString()),
     )
     checkTelemetry(
-      TelemetryEventType.CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION,
+      CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION,
       mapOf("UUID" to personKeyEntity.personId.toString()),
     )
   }
@@ -86,7 +91,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     checkTelemetry(
-      TelemetryEventType.CPR_RECLUSTER_NO_MATCH_FOUND,
+      CPR_RECLUSTER_NO_MATCH_FOUND,
       mapOf("UUID" to cluster1.personId.toString()),
     )
   }
@@ -149,7 +154,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     checkTelemetry(
-      TelemetryEventType.CPR_RECLUSTER_MATCH_FOUND_MERGE,
+      CPR_RECLUSTER_MATCH_FOUND_MERGE,
       mapOf(
         "FROM_UUID" to cluster1.personId.toString(),
         "TO_UUID" to cluster2.personId.toString(),
@@ -231,7 +236,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     checkTelemetry(
-      TelemetryEventType.CPR_RECLUSTER_MATCH_FOUND_MERGE,
+      CPR_RECLUSTER_MATCH_FOUND_MERGE,
       mapOf(
         "FROM_UUID" to cluster1.personId.toString(),
         "TO_UUID" to cluster2.personId.toString(),
@@ -313,7 +318,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     checkTelemetry(
-      TelemetryEventType.CPR_RECLUSTER_MATCH_FOUND_MERGE,
+      CPR_RECLUSTER_MATCH_FOUND_MERGE,
       mapOf(
         "FROM_UUID" to cluster1.personId.toString(),
         "TO_UUID" to cluster2.personId.toString(),
@@ -394,7 +399,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     checkTelemetry(
-      TelemetryEventType.CPR_RECLUSTER_MATCH_FOUND_MERGE,
+      CPR_RECLUSTER_MATCH_FOUND_MERGE,
       mapOf(
         "FROM_UUID" to cluster1.personId.toString(),
         "TO_UUID" to cluster2.personId.toString(),
@@ -433,7 +438,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("UUID" to personKeyEntity.personId.toString()),
     )
     checkTelemetry(
-      TelemetryEventType.CPR_RECLUSTER_NO_CHANGE,
+      CPR_RECLUSTER_NO_CHANGE,
       mapOf("UUID" to personKeyEntity.personId.toString()),
     )
   }
@@ -480,13 +485,13 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("UUID" to personKeyEntity.personId.toString()),
     )
     checkTelemetry(
-      TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
+      CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
       mapOf("UUID" to personKeyEntity.personId.toString()),
     )
 
     await untilAsserted {
       val cluster = personKeyRepository.findByPersonId(personKeyEntity.personId)
-      assertThat(cluster?.status).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
+      assertThat(cluster?.status).isEqualTo(NEEDS_ATTENTION)
     }
   }
 }
