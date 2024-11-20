@@ -121,7 +121,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.contacts[1].contactValue).isEqualTo("01141234567")
       assertThat(personEntity.contacts[2].contactType).isEqualTo(MOBILE)
       assertThat(personEntity.contacts[2].contactValue).isEqualTo("01141234567")
-      assertThat(personEntity.selfMatchScore).isEqualTo(0.9999)
       assertThat(personEntity.currentlyManaged).isEqualTo(null)
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceStartDate)
     }

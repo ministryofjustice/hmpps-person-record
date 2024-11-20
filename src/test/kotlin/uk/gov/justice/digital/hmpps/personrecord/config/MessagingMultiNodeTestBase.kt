@@ -421,7 +421,5 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       reclusterEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(reclusterEventsQueue!!.dlqUrl!!).get()
     } matches { it == 0 }
-
-    stubSelfMatchScore()
   }
 }

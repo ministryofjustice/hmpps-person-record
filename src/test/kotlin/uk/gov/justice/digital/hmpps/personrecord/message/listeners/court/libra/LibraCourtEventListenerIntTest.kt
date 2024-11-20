@@ -22,13 +22,11 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_LOW_SELF_SCORE_NOT_CREATING_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_SELF_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
@@ -97,7 +95,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
     assertThat(person.personKey).isNotNull()
-    assertThat(person.selfMatchScore).isEqualTo(0.9999)
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
   }
 
@@ -231,8 +228,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should process and create new person when has a match with low score`() {
-    stubSelfMatchScore(nextScenarioState = "checkRecordExistCandidateCheck")
+  fun `should process and create new person with uuid when has a match with low score`() {
     val firstName = randomName()
     val lastName = randomName()
     val postcode = randomPostcode()
@@ -246,8 +242,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       personKeyEntity = createPersonKey(),
     )
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.98883))
-    stubMatchScore(matchResponse, currentScenarioState = "checkRecordExistCandidateCheck", nextScenarioState = "candidateUuidCheck")
-    stubMatchScore(matchResponse, currentScenarioState = "candidateUuidCheck")
+    stubMatchScore(matchResponse)
 
     val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, postcode = postcode, cro = "", pncNumber = "")
     val messageId2 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
@@ -256,14 +251,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "MESSAGE_ID" to messageId2,
-        "SOURCE_SYSTEM" to LIBRA.name,
-      ),
-    )
-    checkTelemetry(
-      CPR_SELF_MATCH,
-      mapOf(
-        "IS_ABOVE_SELF_MATCH_THRESHOLD" to "true",
-        "PROBABILITY_SCORE" to "0.9999",
         "SOURCE_SYSTEM" to LIBRA.name,
       ),
     )
@@ -440,71 +427,5 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         "QUERY" to "FIND_CANDIDATES_BY_SOURCE_SYSTEM",
       ),
     )
-  }
-
-  @Test
-  fun `should not conduct a candidate search when self match does not meet threshold and then create a record`() {
-    stubSelfMatchScore(0.5123)
-    val firstName = randomName()
-    val lastName = randomName()
-    val postcode = randomPostcode()
-    val pnc = randomPnc()
-    val dateOfBirth = randomDate()
-    val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode)
-    val messageId = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
-
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf(
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to LIBRA.name,
-      ),
-    )
-    checkTelemetry(
-      CPR_SELF_MATCH,
-      mapOf(
-        "IS_ABOVE_SELF_MATCH_THRESHOLD" to "false",
-        "PROBABILITY_SCORE" to "0.5123",
-        "SOURCE_SYSTEM" to LIBRA.name,
-      ),
-    )
-    checkTelemetry(
-      CPR_CANDIDATE_RECORD_SEARCH,
-      mapOf(
-        "SOURCE_SYSTEM" to LIBRA.name,
-        "RECORD_COUNT" to "0",
-        "HIGH_CONFIDENCE_COUNT" to "0",
-        "LOW_CONFIDENCE_COUNT" to "0",
-      ),
-      times = 0,
-    )
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
-    checkTelemetry(
-      CPR_LOW_SELF_SCORE_NOT_CREATING_UUID,
-      mapOf(
-        "PROBABILITY_SCORE" to "0.5123",
-        "SOURCE_SYSTEM" to LIBRA.name,
-      ),
-    )
-    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"), times = 0)
-
-    val personEntities = await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findAll()
-    }
-    val matchingPerson = personEntities.filter { it.firstName.equals(firstName) }
-    assertThat(matchingPerson.size).isEqualTo(1)
-
-    val person = matchingPerson[0]
-    assertThat(person.defendantId).isNotNull()
-    assertThat(person.title).isEqualTo("Mr")
-    assertThat(person.lastName).isEqualTo(lastName)
-    assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
-    assertThat(person.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
-    assertThat(person.addresses.size).isEqualTo(1)
-    assertThat(person.addresses[0].postcode).isEqualTo(postcode)
-    assertThat(person.personKey).isNull()
-    assertThat(person.selfMatchScore).isEqualTo(0.5123)
-    assertThat(person.sourceSystem).isEqualTo(LIBRA)
   }
 }
