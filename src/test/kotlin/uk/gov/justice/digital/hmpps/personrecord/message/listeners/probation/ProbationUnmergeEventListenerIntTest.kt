@@ -118,13 +118,15 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val reactivated = ApiResponseSetup(crn = reactivatedCrn)
     val unmerged = ApiResponseSetup(crn = unmergedCrn)
 
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    stubMatchScore(matchResponse)
+
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
     checkTelemetry(
       UNMERGE_MESSAGE_RECEIVED,
       mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
     )
-
     checkTelemetry(
       CPR_UNMERGE_RECORD_NOT_FOUND,
       mapOf("UNMERGED_CRN" to unmergedCrn, "RECORD_TYPE" to UnmergeRecordType.UNMERGED.name, "SOURCE_SYSTEM" to "DELIUS"),
@@ -148,6 +150,9 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val reactivated = ApiResponseSetup(crn = reactivatedCrn)
     val unmerged = ApiResponseSetup(crn = unmergedCrn)
+
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    stubMatchScore(matchResponse)
 
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
@@ -194,11 +199,13 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val reactivated = ApiResponseSetup(crn = reactivatedCrn)
     val unmerged = ApiResponseSetup(crn = unmergedCrn)
 
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf(
-      "0" to 0.9999999,
-      "1" to 0.9999999,
-      "2" to 0.9999999,
-    ))
+    val matchResponse = MatchResponse(
+      matchProbabilities = mutableMapOf(
+        "0" to 0.9999999,
+        "1" to 0.9999999,
+        "2" to 0.9999999,
+      ),
+    )
     stubMatchScore(matchResponse)
 
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
@@ -288,7 +295,12 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val reactivated = ApiResponseSetup(crn = reactivatedCrn)
     val unmerged = ApiResponseSetup(crn = unmergedCrn)
 
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    val matchResponse = MatchResponse(
+      matchProbabilities = mutableMapOf(
+        "0" to 0.9999999,
+        "1" to 0.9999999,
+      ),
+    )
     stubMatchScore(matchResponse)
 
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
@@ -338,6 +350,10 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val reactivated = ApiResponseSetup(crn = reactivatedCrn)
     val unmerged = ApiResponseSetup(crn = unmergedCrn)
+
+    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
+    stubMatchScore(matchResponse)
+
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged, scenario = "retry", currentScenarioState = "next request will succeed")
 
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
