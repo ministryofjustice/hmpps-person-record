@@ -45,12 +45,6 @@ class MergeService(
 
     val operationId = telemetryClient.context.operation.id
 
-    val sourceSystemId = when (mergeEvent.mergedRecord.sourceSystemType) {
-      SourceSystemType.DELIUS -> mergeEvent.mergedRecord.crn
-      SourceSystemType.NOMIS -> mergeEvent.mergedRecord.prisonNumber
-      SourceSystemType.COMMON_PLATFORM -> mergeEvent.mergedRecord.defendantId
-      else -> null
-    }
 
     when {
       targetPersonEntity == null -> handleTargetRecordNotFound(mergeEvent)
@@ -58,6 +52,8 @@ class MergeService(
       isSameUuid(sourcePersonEntity, targetPersonEntity) -> handleMergeWithSameUuids(mergeEvent, sourcePersonEntity, targetPersonEntity)
       else -> handleMergeWithDifferentUuids(mergeEvent, sourcePersonEntity, targetPersonEntity)
     }
+
+    val sourceSystemId = extractSourceSystemId(targetPersonEntity)
 
     val beforeDataDTO = targetPersonEntity?.let { Person.convertEntityToPerson(it) }
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
@@ -183,6 +179,15 @@ class MergeService(
     enum class RecordType {
       TARGET,
       SOURCE,
+    }
+
+    private fun extractSourceSystemId(personEntity: PersonEntity?): String? {
+      return when (personEntity?.sourceSystem) {
+        SourceSystemType.DELIUS -> personEntity.crn
+        SourceSystemType.NOMIS -> personEntity.prisonNumber
+        SourceSystemType.COMMON_PLATFORM -> personEntity.defendantId
+        else -> null
+      }
     }
 
     const val MAX_ATTEMPTS: Int = 5
