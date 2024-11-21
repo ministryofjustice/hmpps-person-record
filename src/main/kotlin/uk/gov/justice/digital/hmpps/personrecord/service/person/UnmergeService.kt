@@ -48,12 +48,7 @@ class UnmergeService(
 
     val operationId = telemetryClient.context.operation.id
 
-    val sourceSystemId = when (unmergeEvent.unmergedRecord.sourceSystemType) {
-      SourceSystemType.DELIUS -> unmergeEvent.unmergedRecord.crn
-      SourceSystemType.NOMIS -> unmergeEvent.unmergedRecord.prisonNumber
-      SourceSystemType.COMMON_PLATFORM -> unmergeEvent.unmergedRecord.defendantId
-      else -> null
-    }
+     val sourceSystemId = extractSourceSystemId(reactivatedPersonEntity)
 
     val beforeDataDTO = Person.convertEntityToPerson(unmergedPersonEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
@@ -177,6 +172,14 @@ class UnmergeService(
     unmergedPerson.overrideMarkers.add(
       OverrideMarkerEntity(markerType = OverrideMarkerType.EXCLUDE, markerValue = reactivatedPerson.id, person = unmergedPerson),
     )
+  }
+  private fun extractSourceSystemId(personEntity: PersonEntity?): String? {
+    return when (personEntity?.sourceSystem) {
+      SourceSystemType.DELIUS -> personEntity.crn
+      SourceSystemType.NOMIS -> personEntity.prisonNumber
+      SourceSystemType.COMMON_PLATFORM -> personEntity.defendantId
+      else -> null
+    }
   }
 
   companion object {
