@@ -94,12 +94,7 @@ class PersonService(
 
     val operationId = telemetryClient.context.operation.id
 
-    val sourceSystemId = when (person.sourceSystemType) {
-      SourceSystemType.DELIUS -> person.crn
-      SourceSystemType.NOMIS -> person.prisonNumber
-      SourceSystemType.COMMON_PLATFORM -> person.defendantId
-      else -> null
-    }
+    val sourceSystemId = extractSourceSystemId(personEntity)
     val processedDataDTO = Person.convertEntityToPerson(personEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
@@ -128,12 +123,7 @@ class PersonService(
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?): PersonEntity {
     val operationId = telemetryClient.context.operation.id
 
-    val sourceSystemId = when (person.sourceSystemType) {
-      SourceSystemType.DELIUS -> person.crn
-      SourceSystemType.NOMIS -> person.prisonNumber
-      SourceSystemType.COMMON_PLATFORM -> person.defendantId
-      else -> null
-    }
+    val sourceSystemId = extractSourceSystemId(existingPersonEntity)
 
     val beforeDataDTO = Person.convertEntityToPerson(existingPersonEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
@@ -192,6 +182,15 @@ class PersonService(
   fun searchBySourceSystem(person: Person): PersonEntity? {
     val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecordsBySourceSystem(person)
     return searchService.processCandidateRecords(highConfidenceMatches)
+  }
+
+  private fun extractSourceSystemId(personEntity: PersonEntity?): String? {
+    return when (personEntity?.sourceSystem) {
+      SourceSystemType.DELIUS -> personEntity.crn
+      SourceSystemType.NOMIS -> personEntity.prisonNumber
+      SourceSystemType.COMMON_PLATFORM -> personEntity.defendantId
+      else -> null
+    }
   }
 
   companion object {
