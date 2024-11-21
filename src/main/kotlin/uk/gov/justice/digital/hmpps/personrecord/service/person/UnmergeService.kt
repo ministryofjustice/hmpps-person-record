@@ -15,14 +15,15 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Service
 class UnmergeService(
   private val telemetryService: TelemetryService,
-  private val personService: PersonService,
   private val personRepository: PersonRepository,
   private val personKeyService: PersonKeyService,
+  private val createUpdateService: CreateUpdateService,
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
@@ -40,7 +41,7 @@ class UnmergeService(
   }
 
   private fun retrieveUnmergedPerson(unmergeEvent: UnmergeEvent, unmergedPersonCallback: () -> PersonEntity?): PersonEntity =
-    personService.processMessage(unmergeEvent.unmergedRecord, unmergeEvent.event) {
+    createUpdateService.processMessage(unmergeEvent.unmergedRecord, unmergeEvent.event) {
       searchForPersonRecord(
         unmergeEvent.unmergedRecord,
         unmergeEvent.unmergedSystemId,
@@ -50,7 +51,7 @@ class UnmergeService(
     }
 
   private fun retrieveReactivatedPerson(unmergeEvent: UnmergeEvent, reactivatedPersonCallback: () -> PersonEntity?): PersonEntity =
-    personService.processMessage(unmergeEvent.reactivatedRecord, unmergeEvent.event, linkRecord = false) {
+    createUpdateService.processMessage(unmergeEvent.reactivatedRecord, unmergeEvent.event, linkRecord = false) {
       searchForPersonRecord(
         unmergeEvent.reactivatedRecord,
         unmergeEvent.reactivatedSystemId,
