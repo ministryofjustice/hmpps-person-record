@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.microsoft.applicationinsights.TelemetryClient
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -39,7 +38,6 @@ class DeletionService(
   }
 
   private fun handleDeletion(event: String?, personEntity: PersonEntity) {
-
     val sourceSystemId = extractSourceSystemId(personEntity)
 
     val beforeDataDTO = Person.convertEntityToPerson(personEntity)

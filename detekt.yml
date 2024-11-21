@@ -131,8 +131,8 @@ complexity:
     threshold: 60
   LongParameterList:
     active: true
-    functionThreshold: 9
-    constructorThreshold: 12
+    functionThreshold: 7
+    constructorThreshold: 11
     ignoreDefaultParameters: false
     ignoreDataClasses: true
     excludes: [ '**/*Entity.kt' ]

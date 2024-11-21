@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.microsoft.applicationinsights.TelemetryClient
 import jakarta.transaction.Transactional
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope

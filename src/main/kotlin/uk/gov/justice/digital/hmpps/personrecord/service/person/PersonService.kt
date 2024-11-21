@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.microsoft.applicationinsights.TelemetryClient
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -117,7 +116,6 @@ class PersonService(
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?): PersonEntity {
-
     val sourceSystemId = extractSourceSystemId(existingPersonEntity)
 
     val beforeDataDTO = Person.convertEntityToPerson(existingPersonEntity)

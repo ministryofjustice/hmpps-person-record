@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.microsoft.applicationinsights.TelemetryClient
 import jakarta.transaction.Transactional
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
@@ -45,7 +44,7 @@ class UnmergeService(
     val reactivatedPersonEntity = retrieveReactivatedPerson(unmergeEvent, reactivatedPersonCallback)
     unmergeRecords(unmergeEvent, reactivatedPersonEntity, unmergedPersonEntity)
 
-     val sourceSystemId = extractSourceSystemId(reactivatedPersonEntity)
+    val sourceSystemId = extractSourceSystemId(reactivatedPersonEntity)
 
     val beforeDataDTO = Person.convertEntityToPerson(unmergedPersonEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)

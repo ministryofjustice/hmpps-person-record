@@ -21,7 +21,6 @@ class EventLoggingService(
     sourceSystem: String? = null,
     messageEventType: String? = null,
   ): EventLoggingEntity {
-
     val operationId = telemetryClient.context.operation.id
 
     val eventLog = EventLoggingEntity(

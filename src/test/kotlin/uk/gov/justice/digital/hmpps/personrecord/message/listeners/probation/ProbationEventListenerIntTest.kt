@@ -14,9 +14,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
@@ -411,7 +408,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc))
 
-    await.atMost(10, SECONDS) untilAsserted  {
+    await.atMost(10, SECONDS) untilAsserted {
       assertThat(personRepository.findByCrn(crn)?.personKey?.personId).isNotNull()
     }
     val personEntity = personRepository.findByCrn(crn)
