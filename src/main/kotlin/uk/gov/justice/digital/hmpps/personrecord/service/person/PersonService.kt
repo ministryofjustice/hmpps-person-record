@@ -27,7 +27,6 @@ class PersonService(
 
   fun updatePersonEntity(person: Person, existingPersonEntity: PersonEntity): PersonEntity {
     val updatedEntity = updateExistingPersonEntity(person, existingPersonEntity)
-
     telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_UPDATED, person)
     updatedEntity.personKey?.personId?.let { queueService.publishReclusterMessageToQueue(it) }
     return updatedEntity

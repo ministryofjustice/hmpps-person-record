@@ -7,7 +7,6 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.LocalDateTime
-import java.util.*
 
 @Entity
 @Table(name = "event_logging")

@@ -24,7 +24,6 @@ class DeletionService(
   private val personKeyRepository: PersonKeyRepository,
   private val eventLoggingService: EventLoggingService,
   private val objectMapper: ObjectMapper,
-
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 

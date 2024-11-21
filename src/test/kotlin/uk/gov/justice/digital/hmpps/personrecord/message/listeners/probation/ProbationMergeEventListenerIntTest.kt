@@ -375,7 +375,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
 
     val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
-      eventLoggingRepository.findLatestEventByCrn(targetCrn)
+      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(targetCrn)
     }
 
     val sourcePerson = personRepository.findByCrn(sourceCrn)

@@ -28,7 +28,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
-import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import java.util.concurrent.TimeUnit.SECONDS
@@ -63,9 +62,6 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var eventLoggingRepository: EventLoggingRepository
-
-  @Autowired
-  private lateinit var eventLoggingService: EventLoggingService
 
   internal fun checkTelemetry(
     event: TelemetryEventType,

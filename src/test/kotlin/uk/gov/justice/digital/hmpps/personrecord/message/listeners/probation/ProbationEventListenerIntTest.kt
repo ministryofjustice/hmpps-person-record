@@ -402,29 +402,26 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should log event to EventLogging table when offender updated`() {
-    val pnc = randomPnc()
+    val firstName = randomName()
     val crn = randomCRN()
+    val changedFirstName = randomName()
 
-    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc))
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, firstName = firstName))
 
-    await.atMost(10, SECONDS) untilAsserted {
-      assertThat(personRepository.findByCrn(crn)?.personKey?.personId).isNotNull()
-    }
-    val personEntity = personRepository.findByCrn(crn)
+    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
-    val changedPnc = randomPnc()
-    probationEventAndResponseSetup(OFFENDER_DETAILS_CHANGED, ApiResponseSetup(crn = crn, pnc = changedPnc))
+    probationEventAndResponseSetup(OFFENDER_DETAILS_CHANGED, ApiResponseSetup(crn = crn, firstName = changedFirstName))
 
-    val updatedPersonEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
-
+    await.atMost(10, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(crn)?.firstName).isEqualTo(changedFirstName) }
+    val updatedPersonEntity = personRepository.findByCrn(crn)!!
     val beforeDataDTO = personEntity?.let { Person.convertEntityToPerson(it) }
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
-    val processedDataDTO = updatedPersonEntity?.let { Person.convertEntityToPerson(it) }
+    val processedDataDTO = Person.convertEntityToPerson(updatedPersonEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
-      eventLoggingRepository.findLatestEventByCrn(crn)
+      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(crn)
     }
 
     assertThat(loggedEvent).isNotNull

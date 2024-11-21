@@ -28,7 +28,6 @@ class UnmergeService(
   private val createUpdateService: CreateUpdateService,
   private val eventLoggingService: EventLoggingService,
   private val objectMapper: ObjectMapper,
-
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
