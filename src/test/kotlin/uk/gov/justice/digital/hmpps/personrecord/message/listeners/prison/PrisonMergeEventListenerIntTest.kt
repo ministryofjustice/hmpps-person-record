@@ -357,10 +357,10 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val sourcePerson = personRepository.findByPrisonNumberAndSourceSystem(sourcePrisonNumber)
     val targetPerson = personRepository.findByPrisonNumberAndSourceSystem(targetPrisonNumber)
 
-    val beforeDataDTO = targetPerson?.let { Person.convertEntityToPerson(it) }
+    val beforeDataDTO = sourcePerson?.let { Person.convertEntityToPerson(it) }
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
-    val processedDataDTO = sourcePerson?.let { Person.convertEntityToPerson(it) }
+    val processedDataDTO = targetPerson?.let { Person.convertEntityToPerson(it) }
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     assertThat(loggedEvent).isNotNull

@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
@@ -38,8 +37,6 @@ class DeletionService(
   }
 
   private fun handleDeletion(event: String?, personEntity: PersonEntity) {
-    val sourceSystemId = extractSourceSystemId(personEntity)
-
     val beforeDataDTO = Person.convertEntityToPerson(personEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
@@ -53,10 +50,10 @@ class DeletionService(
     eventLoggingService.mapToEventLogging(
       beforeData = beforeData,
       processedData = processedData,
-      sourceSystemId = sourceSystemId,
       uuid = personEntity.personKey?.personId.toString(),
       sourceSystem = personEntity.sourceSystem.name,
       messageEventType = event,
+      processedPerson = processedDataDTO,
     )
   }
 
@@ -65,7 +62,7 @@ class DeletionService(
       val mergedRecords: List<PersonEntity?> = personRepository.findByMergedTo(personEntity.id!!)
       mergedRecords.forEach {
           mergedRecord ->
-        processDelete(event, { mergedRecord })
+        processDelete(event) { mergedRecord }
       }
     }
   }
@@ -101,14 +98,7 @@ class DeletionService(
     personEntity.personKey?.personEntities?.remove(personEntity)
     personKeyRepository.saveAndFlush(personEntity.personKey!!)
   }
-  private fun extractSourceSystemId(personEntity: PersonEntity?): String? {
-    return when (personEntity?.sourceSystem) {
-      SourceSystemType.DELIUS -> personEntity.crn
-      SourceSystemType.NOMIS -> personEntity.prisonNumber
-      SourceSystemType.COMMON_PLATFORM -> personEntity.defendantId
-      else -> null
-    }
-  }
+
   companion object {
     const val MAX_ATTEMPTS: Int = 5
   }

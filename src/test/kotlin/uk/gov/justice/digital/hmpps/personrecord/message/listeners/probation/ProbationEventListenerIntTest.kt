@@ -382,11 +382,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
 
-    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
-
-    val processedDataDTO = personEntity?.let { Person.convertEntityToPerson(it) }
+    await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn)?.personKey }
+    val personEntity = personRepository.findByCrn(crn)!!
+    val processedDataDTO = Person.convertEntityToPerson(personEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
-
 
     val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
       eventLoggingRepository.findBySourceSystemId(crn)
@@ -398,7 +397,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(loggedEvent.beforeData).isNull()
     assertThat(loggedEvent.processedData).isEqualTo(processedData)
 
-    assertThat(loggedEvent.uuid).isEqualTo(personEntity.personKey?.personId)
+    assertThat(loggedEvent.uuid).isEqualTo(personEntity.personKey?.personId.toString())
   }
 
   @Test

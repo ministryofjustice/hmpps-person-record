@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
@@ -45,8 +44,6 @@ class UnmergeService(
     val reactivatedPersonEntity = retrieveReactivatedPerson(unmergeEvent, reactivatedPersonCallback)
     unmergeRecords(unmergeEvent, reactivatedPersonEntity, unmergedPersonEntity)
 
-    val sourceSystemId = extractSourceSystemId(reactivatedPersonEntity)
-
     val beforeDataDTO = Person.convertEntityToPerson(unmergedPersonEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
@@ -56,10 +53,10 @@ class UnmergeService(
     eventLoggingService.mapToEventLogging(
       beforeData = beforeData,
       processedData = processedData,
-      sourceSystemId = sourceSystemId,
       uuid = reactivatedPersonEntity.personKey?.personId.toString(),
       sourceSystem = reactivatedPersonEntity.sourceSystem.name,
       messageEventType = unmergeEvent.event,
+      processedPerson = processedDataDTO,
     )
   }
 
@@ -168,14 +165,6 @@ class UnmergeService(
     unmergedPerson.overrideMarkers.add(
       OverrideMarkerEntity(markerType = OverrideMarkerType.EXCLUDE, markerValue = reactivatedPerson.id, person = unmergedPerson),
     )
-  }
-  private fun extractSourceSystemId(personEntity: PersonEntity?): String? {
-    return when (personEntity?.sourceSystem) {
-      SourceSystemType.DELIUS -> personEntity.crn
-      SourceSystemType.NOMIS -> personEntity.prisonNumber
-      SourceSystemType.COMMON_PLATFORM -> personEntity.defendantId
-      else -> null
-    }
   }
 
   companion object {

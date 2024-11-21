@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
@@ -48,21 +47,19 @@ class MergeService(
       else -> handleMergeWithDifferentUuids(mergeEvent, sourcePersonEntity, targetPersonEntity)
     }
 
-    val sourceSystemId = extractSourceSystemId(targetPersonEntity)
-
-    val beforeDataDTO = targetPersonEntity?.let { Person.convertEntityToPerson(it) }
+    val beforeDataDTO = sourcePersonEntity?.let { Person.convertEntityToPerson(it) }
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
-    val processedDataDTO = sourcePersonEntity?.let { Person.convertEntityToPerson(it) }
+    val processedDataDTO = targetPersonEntity?.let { Person.convertEntityToPerson(it) }
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     eventLoggingService.mapToEventLogging(
       beforeData = beforeData,
       processedData = processedData,
-      sourceSystemId = sourceSystemId,
       uuid = sourcePersonEntity?.personKey?.personId?.toString(),
       sourceSystem = sourcePersonEntity?.sourceSystem.toString(),
       messageEventType = mergeEvent.event,
+      processedPerson = processedDataDTO,
     )
   }
 
@@ -173,15 +170,6 @@ class MergeService(
     enum class RecordType {
       TARGET,
       SOURCE,
-    }
-
-    private fun extractSourceSystemId(personEntity: PersonEntity?): String? {
-      return when (personEntity?.sourceSystem) {
-        SourceSystemType.DELIUS -> personEntity.crn
-        SourceSystemType.NOMIS -> personEntity.prisonNumber
-        SourceSystemType.COMMON_PLATFORM -> personEntity.defendantId
-        else -> null
-      }
     }
 
     const val MAX_ATTEMPTS: Int = 5

@@ -1,11 +1,13 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
 import uk.gov.justice.digital.hmpps.personrecord.service.ReadWriteLockService
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
@@ -28,6 +30,9 @@ class CreateUpdateService(
   private val personKeyService: PersonKeyService,
   private val readWriteLockService: ReadWriteLockService,
   @Value("\${retry.delay}") private val retryDelay: Long,
+  private val eventLoggingService: EventLoggingService,
+  private val objectMapper: ObjectMapper,
+
 ) {
 
   fun processMessage(person: Person, event: String? = null, linkRecord: Boolean = true, callback: () -> PersonEntity?): PersonEntity = runBlocking {
@@ -51,12 +56,24 @@ class CreateUpdateService(
     if (isUpdateEvent(event)) {
       telemetryService.trackPersonEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
     }
-    val personEntity: PersonEntity = personService.createPersonEntity(person,event)
+    val personEntity: PersonEntity = personService.createPersonEntity(person)
     val personKey: PersonKeyEntity? = when {
       linkRecord -> personKeyService.getPersonKey(personEntity)
       else -> PersonKeyEntity.empty
     }
     personService.linkPersonEntityToPersonKey(personEntity, personKey)
+    val processedDataDTO = Person.convertEntityToPerson(personEntity)
+    val processedData = objectMapper.writeValueAsString(processedDataDTO)
+
+    eventLoggingService.mapToEventLogging(
+      beforeData = null,
+      processedData = processedData,
+      uuid = personEntity.personKey?.personId?.toString(),
+      sourceSystem = personEntity.sourceSystem.toString(),
+      messageEventType = event,
+      processedPerson = processedDataDTO,
+    )
+
     return personEntity
   }
 
@@ -64,7 +81,23 @@ class CreateUpdateService(
     if (isCreateEvent(event)) {
       telemetryService.trackPersonEvent(CPR_NEW_RECORD_EXISTS, person)
     }
-    return personService.updatePersonEntity(person, existingPersonEntity,event)
+    val beforeDataDTO = Person.convertEntityToPerson(existingPersonEntity)
+    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
+
+    val updatedPerson = personService.updatePersonEntity(person, existingPersonEntity)
+
+    val processedDataDTO = Person.convertEntityToPerson(updatedPerson)
+    val processedData = objectMapper.writeValueAsString(processedDataDTO)
+
+    eventLoggingService.mapToEventLogging(
+      beforeData = beforeData,
+      processedData = processedData,
+      uuid = existingPersonEntity.personKey?.personId?.toString(),
+      sourceSystem = existingPersonEntity.sourceSystem.toString(),
+      messageEventType = event,
+      processedPerson = processedDataDTO,
+    )
+    return updatedPerson
   }
 
   private fun isUpdateEvent(event: String?) = listOf(

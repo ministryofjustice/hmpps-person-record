@@ -357,7 +357,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val updatedPersonEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByPrisonNumberAndSourceSystem(prisoner.prisonNumber!!) }
 
-    val processedDTO = updatedPersonEntity?.let { Person.convertEntityToPerson(it) }
+    val processedDTO = Person.convertEntityToPerson(updatedPersonEntity)
     val processedData = objectMapper.writeValueAsString(processedDTO)
 
     val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
