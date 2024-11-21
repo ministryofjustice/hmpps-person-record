@@ -27,7 +27,6 @@ class UnmergeService(
   private val personService: PersonService,
   private val personRepository: PersonRepository,
   private val personKeyService: PersonKeyService,
-  private val telemetryClient: TelemetryClient,
   private val eventLoggingService: EventLoggingService,
   private val objectMapper: ObjectMapper,
 
@@ -46,8 +45,6 @@ class UnmergeService(
     val reactivatedPersonEntity = retrieveReactivatedPerson(unmergeEvent, reactivatedPersonCallback)
     unmergeRecords(unmergeEvent, reactivatedPersonEntity, unmergedPersonEntity)
 
-    val operationId = telemetryClient.context.operation.id
-
      val sourceSystemId = extractSourceSystemId(reactivatedPersonEntity)
 
     val beforeDataDTO = Person.convertEntityToPerson(unmergedPersonEntity)
@@ -57,7 +54,6 @@ class UnmergeService(
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     eventLoggingService.mapToEventLogging(
-      operationId = operationId,
       beforeData = beforeData,
       processedData = processedData,
       sourceSystemId = sourceSystemId,

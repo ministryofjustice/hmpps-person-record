@@ -27,7 +27,6 @@ class MergeService(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   private val eventLoggingService: EventLoggingService,
-  private val telemetryClient: TelemetryClient,
   private val objectMapper: ObjectMapper,
 
   @Value("\${retry.delay}") private val retryDelay: Long,
@@ -42,9 +41,6 @@ class MergeService(
 
   private suspend fun processMergingOfRecords(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) {
     val (sourcePersonEntity, targetPersonEntity) = collectPeople(sourcePersonCallback, targetPersonCallback)
-
-    val operationId = telemetryClient.context.operation.id
-
 
     when {
       targetPersonEntity == null -> handleTargetRecordNotFound(mergeEvent)
@@ -62,7 +58,6 @@ class MergeService(
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     eventLoggingService.mapToEventLogging(
-      operationId = operationId,
       beforeData = beforeData,
       processedData = processedData,
       sourceSystemId = sourceSystemId,

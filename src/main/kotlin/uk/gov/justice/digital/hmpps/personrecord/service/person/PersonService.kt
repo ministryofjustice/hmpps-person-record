@@ -40,7 +40,6 @@ class PersonService(
   private val searchService: SearchService,
   private val matchService: MatchService,
   private val personKeyService: PersonKeyService,
-  private val telemetryClient: TelemetryClient,
   private val eventLoggingService: EventLoggingService,
   private val objectMapper: ObjectMapper,
   private val queueService: QueueService,
@@ -92,14 +91,11 @@ class PersonService(
     linkToPersonKey(personEntity, personKey)
     telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
 
-    val operationId = telemetryClient.context.operation.id
-
     val sourceSystemId = extractSourceSystemId(personEntity)
     val processedDataDTO = Person.convertEntityToPerson(personEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     eventLoggingService.mapToEventLogging(
-      operationId = operationId,
       beforeData = null,
       processedData = processedData,
       sourceSystemId = sourceSystemId,
@@ -121,7 +117,6 @@ class PersonService(
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?): PersonEntity {
-    val operationId = telemetryClient.context.operation.id
 
     val sourceSystemId = extractSourceSystemId(existingPersonEntity)
 
@@ -141,7 +136,6 @@ class PersonService(
     updatedEntity.personKey?.personId?.let { queueService.publishReclusterMessageToQueue(it) }
 
     eventLoggingService.mapToEventLogging(
-      operationId = operationId,
       beforeData = beforeData,
       processedData = processedData,
       sourceSystemId = sourceSystemId,

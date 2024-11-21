@@ -25,7 +25,6 @@ class DeletionService(
   private val personRepository: PersonRepository,
   private val personKeyRepository: PersonKeyRepository,
   private val eventLoggingService: EventLoggingService,
-  private val telemetryClient: TelemetryClient,
   private val objectMapper: ObjectMapper,
 
   @Value("\${retry.delay}") private val retryDelay: Long,
@@ -40,10 +39,8 @@ class DeletionService(
   }
 
   private fun handleDeletion(event: String?, personEntity: PersonEntity) {
-    val operationId = telemetryClient.context.operation.id
 
     val sourceSystemId = extractSourceSystemId(personEntity)
-
 
     val beforeDataDTO = Person.convertEntityToPerson(personEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
@@ -56,7 +53,6 @@ class DeletionService(
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     eventLoggingService.mapToEventLogging(
-      operationId = operationId,
       beforeData = beforeData,
       processedData = processedData,
       sourceSystemId = sourceSystemId,
