@@ -24,11 +24,9 @@ class SentenceInfo(
       )
     }
 
-    fun convertEntityToSentence(sentenceInfoEntity: SentenceInfoEntity): SentenceInfo {
+    fun from(sentenceInfoEntity: SentenceInfoEntity): SentenceInfo {
       return SentenceInfo(
-
         sentenceDate = sentenceInfoEntity.sentenceDate,
-
       )
     }
   }

@@ -176,7 +176,7 @@ data class Person(
       )
     }
 
-    fun convertEntityToPerson(existingPersonEntity: PersonEntity): Person {
+    fun from(existingPersonEntity: PersonEntity): Person {
       return Person(
         personId = existingPersonEntity.personKey?.personId,
         firstName = existingPersonEntity.firstName,
@@ -187,16 +187,16 @@ data class Person(
         prisonNumber = existingPersonEntity.prisonNumber,
         defendantId = existingPersonEntity.defendantId,
         title = existingPersonEntity.title,
-        aliases = existingPersonEntity.pseudonyms.map { Alias.convertEntityToAlias(it) },
+        aliases = existingPersonEntity.pseudonyms.map { Alias.from(it) },
         masterDefendantId = existingPersonEntity.masterDefendantId,
         nationality = existingPersonEntity.nationality,
         religion = existingPersonEntity.religion,
         ethnicity = existingPersonEntity.ethnicity,
         contacts = existingPersonEntity.contacts.map { Contact.convertEntityToContact(it) },
-        addresses = existingPersonEntity.addresses.map { Address.convertEntityToAddress(it) },
-        references = existingPersonEntity.references.map { Reference.convertEntityToReference(it) },
+        addresses = existingPersonEntity.addresses.map { Address.from(it) },
+        references = existingPersonEntity.references.map { Reference.from(it) },
         sourceSystemType = existingPersonEntity.sourceSystem,
-        sentences = existingPersonEntity.sentenceInfo.map { SentenceInfo.convertEntityToSentence(it) },
+        sentences = existingPersonEntity.sentenceInfo.map { SentenceInfo.from(it) },
         currentlyManaged = existingPersonEntity.currentlyManaged,
       )
     }

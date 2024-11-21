@@ -381,10 +381,10 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val sourcePerson = personRepository.findByCrn(sourceCrn)
     val targetPerson = personRepository.findByCrn(targetCrn)
 
-    val beforeDataDTO = sourcePerson?.let { Person.convertEntityToPerson(it) }
+    val beforeDataDTO = sourcePerson?.let { Person.from(it) }
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
-    val processedDataDTO = targetPerson?.let { Person.convertEntityToPerson(it) }
+    val processedDataDTO = targetPerson?.let { Person.from(it) }
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     assertThat(loggedEvent).isNotNull

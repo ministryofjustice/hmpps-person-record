@@ -1,13 +1,13 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
-import junit.framework.TestCase.assertNotNull
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -320,7 +320,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val testCorrelationId = (telemetryClient as TelemetryTestConfig.OurTelemetryClient).testCorrelation
 
-    assertNotNull(testCorrelationId)
+    Assertions.assertNotNull(testCorrelationId)
   }
 
   @ParameterizedTest
@@ -384,7 +384,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn)?.personKey }
     val personEntity = personRepository.findByCrn(crn)!!
-    val processedDataDTO = Person.convertEntityToPerson(personEntity)
+    val processedDataDTO = Person.from(personEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
@@ -414,10 +414,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     await.atMost(10, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(crn)?.firstName).isEqualTo(changedFirstName) }
     val updatedPersonEntity = personRepository.findByCrn(crn)!!
-    val beforeDataDTO = personEntity?.let { Person.convertEntityToPerson(it) }
+    val beforeDataDTO = Person.from(personEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
-    val processedDataDTO = Person.convertEntityToPerson(updatedPersonEntity)
+    val processedDataDTO = Person.from(updatedPersonEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     val loggedEvent = await.atMost(10, SECONDS) untilNotNull {

@@ -11,7 +11,7 @@ data class Reference(
     fun from(identifierType: IdentifierType, identifierValue: String?): Reference {
       return Reference(identifierType = identifierType, identifierValue = identifierValue)
     }
-    fun convertEntityToReference(referenceEntity: ReferenceEntity): Reference {
+    fun from(referenceEntity: ReferenceEntity): Reference {
       return Reference(
         identifierType = referenceEntity.identifierType,
         identifierValue = referenceEntity.identifierValue,

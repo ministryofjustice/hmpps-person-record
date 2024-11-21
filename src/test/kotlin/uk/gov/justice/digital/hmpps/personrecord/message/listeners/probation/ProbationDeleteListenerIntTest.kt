@@ -397,12 +397,12 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
-    val beforeDataDTO = personEntity?.let { Person.convertEntityToPerson(it) }
+    val beforeDataDTO = personEntity?.let { Person.from(it) }
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
-    val processedDTO = personEntity?.let { Person.convertEntityToPerson(it) }
+    val processedDTO = personEntity?.let { Person.from(it) }
     val processedData = objectMapper.writeValueAsString(processedDTO)
 
     val loggedEvent = await.atMost(10, SECONDS) untilNotNull {

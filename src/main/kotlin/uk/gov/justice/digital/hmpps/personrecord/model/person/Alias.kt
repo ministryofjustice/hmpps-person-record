@@ -40,7 +40,7 @@ data class Alias(
         dateOfBirth = alias.dateOfBirth,
         title = alias.title,
       )
-    fun convertEntityToAlias(pseudonymEntity: PseudonymEntity): Alias {
+    fun from(pseudonymEntity: PseudonymEntity): Alias {
       return Alias(
         firstName = pseudonymEntity.firstName,
         middleNames = pseudonymEntity.middleNames,

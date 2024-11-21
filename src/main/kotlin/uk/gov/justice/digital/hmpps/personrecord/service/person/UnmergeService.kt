@@ -43,10 +43,10 @@ class UnmergeService(
     val reactivatedPersonEntity = retrieveReactivatedPerson(unmergeEvent, reactivatedPersonCallback)
     unmergeRecords(unmergeEvent, reactivatedPersonEntity, unmergedPersonEntity)
 
-    val beforeDataDTO = Person.convertEntityToPerson(unmergedPersonEntity)
+    val beforeDataDTO = Person.from(unmergedPersonEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
-    val processedDataDTO = Person.convertEntityToPerson(reactivatedPersonEntity)
+    val processedDataDTO = Person.from(reactivatedPersonEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     eventLoggingService.mapToEventLogging(

@@ -62,7 +62,7 @@ class CreateUpdateService(
       else -> PersonKeyEntity.empty
     }
     personService.linkPersonEntityToPersonKey(personEntity, personKey)
-    val processedDataDTO = Person.convertEntityToPerson(personEntity)
+    val processedDataDTO = Person.from(personEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     eventLoggingService.mapToEventLogging(
@@ -81,12 +81,12 @@ class CreateUpdateService(
     if (isCreateEvent(event)) {
       telemetryService.trackPersonEvent(CPR_NEW_RECORD_EXISTS, person)
     }
-    val beforeDataDTO = Person.convertEntityToPerson(existingPersonEntity)
+    val beforeDataDTO = Person.from(existingPersonEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
     val updatedPerson = personService.updatePersonEntity(person, existingPersonEntity)
 
-    val processedDataDTO = Person.convertEntityToPerson(updatedPerson)
+    val processedDataDTO = Person.from(updatedPerson)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     eventLoggingService.mapToEventLogging(

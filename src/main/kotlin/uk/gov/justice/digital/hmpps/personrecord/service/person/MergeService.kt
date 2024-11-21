@@ -47,10 +47,10 @@ class MergeService(
       else -> handleMergeWithDifferentUuids(mergeEvent, sourcePersonEntity, targetPersonEntity)
     }
 
-    val beforeDataDTO = sourcePersonEntity?.let { Person.convertEntityToPerson(it) }
+    val beforeDataDTO = sourcePersonEntity?.let { Person.from(it) }
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
-    val processedDataDTO = targetPersonEntity?.let { Person.convertEntityToPerson(it) }
+    val processedDataDTO = targetPersonEntity?.let { Person.from(it) }
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     eventLoggingService.mapToEventLogging(

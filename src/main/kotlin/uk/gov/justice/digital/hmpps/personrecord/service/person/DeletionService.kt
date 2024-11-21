@@ -36,14 +36,14 @@ class DeletionService(
   }
 
   private fun handleDeletion(event: String?, personEntity: PersonEntity) {
-    val beforeDataDTO = Person.convertEntityToPerson(personEntity)
+    val beforeDataDTO = Person.from(personEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
     handlePersonKeyDeletion(personEntity)
     deletePersonRecord(personEntity)
     handleMergedRecords(event, personEntity)
 
-    val processedDataDTO = Person.convertEntityToPerson(personEntity)
+    val processedDataDTO = Person.from(personEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     eventLoggingService.mapToEventLogging(

@@ -39,7 +39,7 @@ class Address(
     fun fromOffenderAddressList(addresses: List<OffenderAddress>): List<Address> {
       return addresses.map { from(it) }
     }
-    fun convertEntityToAddress(addressEntity: AddressEntity): Address {
+    fun from(addressEntity: AddressEntity): Address {
       return Address(
         postcode = addressEntity.postcode,
         fullAddress = addressEntity.fullAddress,
