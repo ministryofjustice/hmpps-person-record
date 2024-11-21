@@ -106,9 +106,6 @@ class PersonEntity(
   @Column(name = "currently_managed")
   var currentlyManaged: Boolean? = null,
 
-  @Column(name = "self_match_score")
-  val selfMatchScore: Double? = null,
-
   @Column(name = "merged_to")
   var mergedTo: Long? = null,
 
@@ -202,7 +199,6 @@ class PersonEntity(
         crn = person.crn,
         prisonNumber = person.prisonNumber,
         masterDefendantId = person.masterDefendantId,
-        selfMatchScore = person.selfMatchScore,
         sourceSystem = person.sourceSystemType,
         ethnicity = person.ethnicity,
         nationality = person.nationality,
