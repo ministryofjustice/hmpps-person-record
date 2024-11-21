@@ -42,12 +42,8 @@ class DeletionService(
   private fun handleDeletion(event: String?, personEntity: PersonEntity) {
     val operationId = telemetryClient.context.operation.id
 
-    val sourceSystemId = when (personEntity.sourceSystem) {
-      SourceSystemType.DELIUS -> personEntity.crn
-      SourceSystemType.NOMIS -> personEntity.prisonNumber
-      SourceSystemType.COMMON_PLATFORM -> personEntity.defendantId
-      else -> null
-    }
+    val sourceSystemId = extractSourceSystemId(personEntity)
+
 
     val beforeDataDTO = Person.convertEntityToPerson(personEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
@@ -111,7 +107,14 @@ class DeletionService(
     personEntity.personKey?.personEntities?.remove(personEntity)
     personKeyRepository.saveAndFlush(personEntity.personKey!!)
   }
-
+  private fun extractSourceSystemId(personEntity: PersonEntity?): String? {
+    return when (personEntity?.sourceSystem) {
+      SourceSystemType.DELIUS -> personEntity.crn
+      SourceSystemType.NOMIS -> personEntity.prisonNumber
+      SourceSystemType.COMMON_PLATFORM -> personEntity.defendantId
+      else -> null
+    }
+  }
   companion object {
     const val MAX_ATTEMPTS: Int = 5
   }
