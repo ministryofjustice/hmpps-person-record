@@ -5,6 +5,7 @@ import junit.framework.TestCase.assertNotNull
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
+import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
@@ -407,15 +408,13 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should log event to EventLogging table when offender updated`() {
     val pnc = randomPnc()
     val crn = randomCRN()
-    val personKeyEntity = createPersonKey()
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
-      personKeyEntity = personKeyEntity,
-    )
 
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc))
 
-    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+    await.atMost(10, SECONDS) untilAsserted  {
+      assertThat(personRepository.findByCrn(crn)?.personKey?.personId).isNotNull()
+    }
+    val personEntity = personRepository.findByCrn(crn)
 
     val changedPnc = randomPnc()
     probationEventAndResponseSetup(OFFENDER_DETAILS_CHANGED, ApiResponseSetup(crn = crn, pnc = changedPnc))

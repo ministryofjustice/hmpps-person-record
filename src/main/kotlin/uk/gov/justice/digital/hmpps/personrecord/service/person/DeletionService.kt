@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRe
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_DELETED
-import java.time.LocalDateTime
 
 @Component
 class DeletionService(
@@ -68,7 +67,6 @@ class DeletionService(
       uuid = personEntity.personKey?.personId.toString(),
       sourceSystem = personEntity.sourceSystem.name,
       messageEventType = event,
-      eventTimeStamp = LocalDateTime.now(),
     )
   }
 

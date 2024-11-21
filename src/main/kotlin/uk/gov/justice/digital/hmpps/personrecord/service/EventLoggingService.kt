@@ -19,7 +19,6 @@ class EventLoggingService(
     uuid: String? = null,
     sourceSystem: String? = null,
     messageEventType: String? = null,
-    eventTimeStamp: LocalDateTime? = null,
   ): EventLoggingEntity {
     val eventLog = EventLoggingEntity(
       beforeData = beforeData,
@@ -28,7 +27,7 @@ class EventLoggingService(
       uuid = uuid,
       sourceSystem = sourceSystem,
       messageEventType = messageEventType,
-      eventTimestamp = eventTimeStamp,
+      eventTimestamp = LocalDateTime.now(),
       operationId = operationId,
     )
 

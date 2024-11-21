@@ -31,7 +31,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_NEW_RECORD_EXISTS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_SELF_MATCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
-import java.time.LocalDateTime
 
 @Service
 class PersonService(
@@ -112,7 +111,6 @@ class PersonService(
       uuid = personEntity.personKey?.personId?.toString(),
       sourceSystem = personEntity.sourceSystem.toString(),
       messageEventType = event,
-      eventTimeStamp = LocalDateTime.now(),
     )
 
     return personEntity
@@ -160,7 +158,6 @@ class PersonService(
       uuid = existingPersonEntity.personKey?.personId?.toString(),
       sourceSystem = existingPersonEntity.sourceSystem.toString(),
       messageEventType = event,
-      eventTimeStamp = LocalDateTime.now(),
     )
 
     return updatedEntity

@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RE
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import java.time.LocalDateTime
 
 @Service
 class UnmergeService(
@@ -70,7 +69,6 @@ class UnmergeService(
       uuid = reactivatedPersonEntity.personKey?.personId.toString(),
       sourceSystem = reactivatedPersonEntity.sourceSystem.name,
       messageEventType = unmergeEvent.event,
-      eventTimeStamp = LocalDateTime.now(),
     )
   }
 

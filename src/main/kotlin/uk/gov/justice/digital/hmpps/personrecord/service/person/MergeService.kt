@@ -21,7 +21,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRe
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
-import java.time.LocalDateTime
 
 @Service
 class MergeService(
@@ -74,7 +73,6 @@ class MergeService(
       uuid = sourcePersonEntity?.personKey?.personId?.toString(),
       sourceSystem = sourcePersonEntity?.sourceSystem.toString(),
       messageEventType = mergeEvent.event,
-      eventTimeStamp = LocalDateTime.now(),
     )
   }
 
