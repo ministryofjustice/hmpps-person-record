@@ -13,7 +13,6 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
-import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.ProbationEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
@@ -262,15 +261,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
   }
 
-  fun stubSelfMatchScore(score: Double = 0.9999, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) = stubMatchScore(
-    matchResponse = MatchResponse(
-      matchProbabilities = mutableMapOf("0" to score),
-    ),
-    scenario = scenario,
-    currentScenarioState = currentScenarioState,
-    nextScenarioState = nextScenarioState,
-  )
-
   fun stub404Response(url: String) {
     wiremock.stubFor(
       WireMock.get(url)
@@ -421,7 +411,5 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       reclusterEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(reclusterEventsQueue!!.dlqUrl!!).get()
     } matches { it == 0 }
-
-    stubSelfMatchScore()
   }
 }
