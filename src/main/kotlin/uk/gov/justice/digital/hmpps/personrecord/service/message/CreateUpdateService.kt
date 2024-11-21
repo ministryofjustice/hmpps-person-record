@@ -52,7 +52,10 @@ class CreateUpdateService(
       telemetryService.trackPersonEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
     }
     val personEntity: PersonEntity = personService.createPersonEntity(person)
-    val personKey: PersonKeyEntity = personKeyService.getPersonKey(personEntity)
+    val personKey: PersonKeyEntity? = when {
+      linkRecord -> personKeyService.getPersonKey(personEntity)
+      else -> PersonKeyEntity.empty
+    }
     personService.linkPersonEntityToPersonKey(personEntity, personKey)
     return personEntity
   }
