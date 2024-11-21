@@ -1,19 +1,13 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import kotlinx.coroutines.runBlocking
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
-import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
-import uk.gov.justice.digital.hmpps.personrecord.service.ReadWriteLockService
-import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
-import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.QueueService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.MatchResult
@@ -30,7 +24,7 @@ class PersonService(
   private val queueService: QueueService,
 ) {
 
-  fun createPersonEntity(person: Person): PersonEntity {
+  fun createPersonEntity(person: Person, event:String?): PersonEntity {
     val personEntity = createNewPersonEntity(person)
     telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
 
@@ -50,8 +44,14 @@ class PersonService(
     return personEntity
   }
 
-  fun updatePersonEntity(person: Person, existingPersonEntity: PersonEntity): PersonEntity {
+  fun updatePersonEntity(person: Person, existingPersonEntity: PersonEntity, event:String?): PersonEntity {
+
+    val beforeDataDTO = Person.convertEntityToPerson(existingPersonEntity)
+    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
+
     val updatedEntity = updateExistingPersonEntity(person, existingPersonEntity)
+
+    val sourceSystemId = extractSourceSystemId(updatedEntity)
 
     val processedDataDTO = Person.convertEntityToPerson(updatedEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)

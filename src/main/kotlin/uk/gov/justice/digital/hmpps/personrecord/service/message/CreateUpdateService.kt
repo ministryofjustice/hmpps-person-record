@@ -51,7 +51,7 @@ class CreateUpdateService(
     if (isUpdateEvent(event)) {
       telemetryService.trackPersonEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
     }
-    val personEntity: PersonEntity = personService.createPersonEntity(person)
+    val personEntity: PersonEntity = personService.createPersonEntity(person,event)
     val personKey: PersonKeyEntity? = when {
       linkRecord -> personKeyService.getPersonKey(personEntity)
       else -> PersonKeyEntity.empty
@@ -64,7 +64,7 @@ class CreateUpdateService(
     if (isCreateEvent(event)) {
       telemetryService.trackPersonEvent(CPR_NEW_RECORD_EXISTS, person)
     }
-    return personService.updatePersonEntity(person, existingPersonEntity)
+    return personService.updatePersonEntity(person, existingPersonEntity,event)
   }
 
   private fun isUpdateEvent(event: String?) = listOf(

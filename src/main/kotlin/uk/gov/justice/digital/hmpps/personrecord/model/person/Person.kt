@@ -195,7 +195,6 @@ data class Person(
         contacts = existingPersonEntity.contacts.map { Contact.convertEntityToContact(it) },
         addresses = existingPersonEntity.addresses.map { Address.convertEntityToAddress(it) },
         references = existingPersonEntity.references.map { Reference.convertEntityToReference(it) },
-        selfMatchScore = existingPersonEntity.selfMatchScore,
         sourceSystemType = existingPersonEntity.sourceSystem,
         sentences = existingPersonEntity.sentenceInfo.map { SentenceInfo.convertEntityToSentence(it) },
         currentlyManaged = existingPersonEntity.currentlyManaged,
