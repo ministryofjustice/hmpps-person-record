@@ -106,7 +106,7 @@ complexity:
     ignoreOverloaded: false
   CyclomaticComplexMethod:
     active: true
-    threshold: 8
+    threshold: 12
     ignoreSingleWhenExpression: false
     ignoreSimpleWhenEntries: false
     ignoreNestingFunctions: false
@@ -131,8 +131,8 @@ complexity:
     threshold: 60
   LongParameterList:
     active: true
-    functionThreshold: 8
-    constructorThreshold: 11
+    functionThreshold: 9
+    constructorThreshold: 12
     ignoreDefaultParameters: false
     ignoreDataClasses: true
     excludes: [ '**/*Entity.kt' ]

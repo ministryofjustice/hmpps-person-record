@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS event_logging
     source_system_id                        TEXT        DEFAULT NULL,
     uuid                                    TEXT        DEFAULT NULL,
     source_system                           TEXT        DEFAULT NULL,
-    event_type                              TEXT        DEFAULT NULL,
+    message_event_type                      TEXT        DEFAULT NULL,
     event_timestamp                         TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

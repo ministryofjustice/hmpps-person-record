@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.microsoft.applicationinsights.TelemetryClient
 import jakarta.transaction.Transactional
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -27,6 +28,7 @@ class MergeService(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   private val eventLoggingService: EventLoggingService,
+  private val telemetryClient: TelemetryClient,
   private val objectMapper: ObjectMapper,
 
   @Value("\${retry.delay}") private val retryDelay: Long,
@@ -42,7 +44,14 @@ class MergeService(
   private suspend fun processMergingOfRecords(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) {
     val (sourcePersonEntity, targetPersonEntity) = collectPeople(sourcePersonCallback, targetPersonCallback)
 
-    val sourceSystemId = extractSourceSystemId(targetPersonEntity)
+    val operationId = telemetryClient.context.operation.id
+
+    val sourceSystemId = when (mergeEvent.mergedRecord.sourceSystemType) {
+      SourceSystemType.DELIUS -> mergeEvent.mergedRecord.crn
+      SourceSystemType.NOMIS -> mergeEvent.mergedRecord.prisonNumber
+      SourceSystemType.COMMON_PLATFORM -> mergeEvent.mergedRecord.defendantId
+      else -> null
+    }
 
     when {
       targetPersonEntity == null -> handleTargetRecordNotFound(mergeEvent)
@@ -51,13 +60,22 @@ class MergeService(
       else -> handleMergeWithDifferentUuids(mergeEvent, sourcePersonEntity, targetPersonEntity)
     }
 
-    val beforeDataDTO = sourcePersonEntity?.let { Person.convertEntityToPerson(it) }
+    val beforeDataDTO = targetPersonEntity?.let { Person.convertEntityToPerson(it) }
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
-    val processedDataDTO = targetPersonEntity?.let { Person.convertEntityToPerson(it) }
+    val processedDataDTO = sourcePersonEntity?.let { Person.convertEntityToPerson(it) }
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
-    logPersonMerge(targetPersonEntity, mergeEvent.event, sourceSystemId, beforeData, processedData)
+    eventLoggingService.mapToEventLogging(
+      operationId = operationId,
+      beforeData = beforeData,
+      processedData = processedData,
+      sourceSystemId = sourceSystemId,
+      uuid = sourcePersonEntity?.personKey?.personId?.toString(),
+      sourceSystem = sourcePersonEntity?.sourceSystem.toString(),
+      messageEventType = mergeEvent.event,
+      eventTimeStamp = LocalDateTime.now(),
+    )
   }
 
   private fun handleMergeWithSameUuids(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
@@ -161,27 +179,6 @@ class MergeService(
     val deferredSourcePersonCallback = async { sourcePersonCallback() }
     val deferredTargetSourceCallback = async { targetPersonCallback() }
     return@coroutineScope Pair(deferredSourcePersonCallback.await(), deferredTargetSourceCallback.await())
-  }
-
-  private fun extractSourceSystemId(personEntity: PersonEntity?): String? {
-    return when (personEntity?.sourceSystem) {
-      SourceSystemType.DELIUS -> personEntity.crn
-      SourceSystemType.NOMIS -> personEntity.prisonNumber
-      SourceSystemType.COMMON_PLATFORM -> personEntity.defendantId
-      else -> null
-    }
-  }
-
-  private fun logPersonMerge(updatedPersonEntity: PersonEntity?, event: String?, sourceSystemId: String?, beforeData: String, processedData: String) {
-    eventLoggingService.mapToEventLogging(
-      beforeData = beforeData,
-      processedData = processedData,
-      sourceSystemId = sourceSystemId,
-      uuid = updatedPersonEntity?.personKey?.personId?.toString(),
-      sourceSystem = updatedPersonEntity?.sourceSystem.toString(),
-      eventType = event,
-      eventTimeStamp = LocalDateTime.now(),
-    )
   }
 
   companion object {

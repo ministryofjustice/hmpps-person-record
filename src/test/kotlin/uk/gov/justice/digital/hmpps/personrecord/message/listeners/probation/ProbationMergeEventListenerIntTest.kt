@@ -375,20 +375,20 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
 
     val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
-      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(targetCrn)
+      eventLoggingRepository.findLatestEventByCrn(targetCrn)
     }
 
     val sourcePerson = personRepository.findByCrn(sourceCrn)
     val targetPerson = personRepository.findByCrn(targetCrn)
 
-    val beforeDataDTO = sourcePerson?.let { Person.convertEntityToPerson(it) }
+    val beforeDataDTO = targetPerson?.let { Person.convertEntityToPerson(it) }
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
-    val processedDataDTO = targetPerson?.let { Person.convertEntityToPerson(it) }
+    val processedDataDTO = sourcePerson?.let { Person.convertEntityToPerson(it) }
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     assertThat(loggedEvent).isNotNull
-    assertThat(loggedEvent.eventType).isEqualTo(OFFENDER_MERGED)
+    assertThat(loggedEvent.messageEventType).isEqualTo(OFFENDER_MERGED)
     assertThat(loggedEvent.sourceSystemId).isEqualTo(targetCrn)
     assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())

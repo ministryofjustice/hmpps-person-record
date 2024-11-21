@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.microsoft.applicationinsights.TelemetryClient
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -40,6 +41,7 @@ class PersonService(
   private val searchService: SearchService,
   private val matchService: MatchService,
   private val personKeyService: PersonKeyService,
+  private val telemetryClient: TelemetryClient,
   private val eventLoggingService: EventLoggingService,
   private val objectMapper: ObjectMapper,
   private val queueService: QueueService,
@@ -91,11 +93,27 @@ class PersonService(
     linkToPersonKey(personEntity, personKey)
     telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
 
-    val sourceSystemId = extractSourceSystemId(personEntity)
+    val operationId = telemetryClient.context.operation.id
+
+    val sourceSystemId = when (person.sourceSystemType) {
+      SourceSystemType.DELIUS -> person.crn
+      SourceSystemType.NOMIS -> person.prisonNumber
+      SourceSystemType.COMMON_PLATFORM -> person.defendantId
+      else -> null
+    }
     val processedDataDTO = Person.convertEntityToPerson(personEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
-    logPersonCreation(personEntity, event, sourceSystemId, processedData)
+    eventLoggingService.mapToEventLogging(
+      operationId = operationId,
+      beforeData = null,
+      processedData = processedData,
+      sourceSystemId = sourceSystemId,
+      uuid = personEntity.personKey?.personId?.toString(),
+      sourceSystem = personEntity.sourceSystem.toString(),
+      messageEventType = event,
+      eventTimeStamp = LocalDateTime.now(),
+    )
 
     return personEntity
   }
@@ -110,7 +128,14 @@ class PersonService(
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?): PersonEntity {
-    val sourceSystemId = extractSourceSystemId(existingPersonEntity)
+    val operationId = telemetryClient.context.operation.id
+
+    val sourceSystemId = when (person.sourceSystemType) {
+      SourceSystemType.DELIUS -> person.crn
+      SourceSystemType.NOMIS -> person.prisonNumber
+      SourceSystemType.COMMON_PLATFORM -> person.defendantId
+      else -> null
+    }
 
     val beforeDataDTO = Person.convertEntityToPerson(existingPersonEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
@@ -120,13 +145,23 @@ class PersonService(
     }
 
     val updatedEntity = updateExistingPersonEntity(person, existingPersonEntity)
+
     val processedDataDTO = Person.convertEntityToPerson(updatedEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_UPDATED, person)
     updatedEntity.personKey?.personId?.let { queueService.publishReclusterMessageToQueue(it) }
 
-    logPersonUpdate(updatedEntity, event, sourceSystemId, beforeData, processedData)
+    eventLoggingService.mapToEventLogging(
+      operationId = operationId,
+      beforeData = beforeData,
+      processedData = processedData,
+      sourceSystemId = sourceSystemId,
+      uuid = existingPersonEntity.personKey?.personId?.toString(),
+      sourceSystem = existingPersonEntity.sourceSystem.toString(),
+      messageEventType = event,
+      eventTimeStamp = LocalDateTime.now(),
+    )
 
     return updatedEntity
   }
@@ -162,38 +197,6 @@ class PersonService(
     return searchService.processCandidateRecords(highConfidenceMatches)
   }
 
-  private fun extractSourceSystemId(personEntity: PersonEntity): String? {
-    return when (personEntity.sourceSystem) {
-      SourceSystemType.DELIUS -> personEntity.crn
-      SourceSystemType.NOMIS -> personEntity.prisonNumber
-      SourceSystemType.COMMON_PLATFORM -> personEntity.defendantId
-      else -> null
-    }
-  }
-
-  private fun logPersonCreation(personEntity: PersonEntity, event: String?, sourceSystemId: String?, processedData: String) {
-    eventLoggingService.mapToEventLogging(
-      beforeData = null,
-      processedData = processedData,
-      sourceSystemId = sourceSystemId,
-      uuid = personEntity.personKey?.personId?.toString(),
-      sourceSystem = personEntity.sourceSystem.toString(),
-      eventType = event,
-      eventTimeStamp = LocalDateTime.now(),
-    )
-  }
-
-  private fun logPersonUpdate(updatedPersonEntity: PersonEntity, event: String?, sourceSystemId: String?, beforeData: String, processedData: String) {
-    eventLoggingService.mapToEventLogging(
-      beforeData = beforeData,
-      processedData = processedData,
-      sourceSystemId = sourceSystemId,
-      uuid = updatedPersonEntity.personKey?.personId?.toString(),
-      sourceSystem = updatedPersonEntity.sourceSystem.toString(),
-      eventType = event,
-      eventTimeStamp = LocalDateTime.now(),
-    )
-  }
   companion object {
     const val MAX_ATTEMPTS: Int = 5
   }
