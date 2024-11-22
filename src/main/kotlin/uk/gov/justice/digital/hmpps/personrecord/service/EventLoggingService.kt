@@ -23,6 +23,7 @@ class EventLoggingService(
     uuid: String? = null,
     messageEventType: String? = null,
     processedPerson: Person?,
+    beforePerson: Person?,
   ): EventLoggingEntity {
     val operationId = telemetryClient.context.operation.id
 

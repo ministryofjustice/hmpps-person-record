@@ -52,6 +52,7 @@ class DeletionService(
       uuid = personEntity.personKey?.personId.toString(),
       messageEventType = event,
       processedPerson = processedDataDTO,
+      beforePerson = beforeDataDTO,
     )
   }
 

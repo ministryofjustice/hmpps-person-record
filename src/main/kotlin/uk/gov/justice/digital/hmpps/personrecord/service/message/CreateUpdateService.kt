@@ -71,6 +71,7 @@ class CreateUpdateService(
       uuid = personEntity.personKey?.personId?.toString(),
       messageEventType = event,
       processedPerson = processedDataDTO,
+      beforePerson = null,
     )
 
     return personEntity
@@ -94,6 +95,7 @@ class CreateUpdateService(
       uuid = existingPersonEntity.personKey?.personId?.toString(),
       messageEventType = event,
       processedPerson = processedDataDTO,
+      beforePerson = beforeDataDTO,
     )
     return updatedPerson
   }

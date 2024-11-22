@@ -55,6 +55,7 @@ class UnmergeService(
       uuid = reactivatedPersonEntity.personKey?.personId.toString(),
       messageEventType = unmergeEvent.event,
       processedPerson = processedDataDTO,
+      beforePerson = beforeDataDTO,
     )
   }
 
