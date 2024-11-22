@@ -388,7 +388,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
-      eventLoggingRepository.findBySourceSystemId(crn)
+      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(crn)
     }
     assertThat(loggedEvent.messageEventType).isEqualTo(NEW_OFFENDER_CREATED)
     assertThat(loggedEvent.sourceSystemId).isEqualTo(crn)

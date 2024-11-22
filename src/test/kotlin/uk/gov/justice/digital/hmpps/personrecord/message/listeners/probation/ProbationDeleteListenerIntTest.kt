@@ -406,7 +406,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val processedData = objectMapper.writeValueAsString(processedDTO)
 
     val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
-      eventLoggingRepository.findBySourceSystemId(crn)
+      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(crn)
     }
 
     assertThat(loggedEvent).isNotNull

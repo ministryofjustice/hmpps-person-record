@@ -361,7 +361,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val processedData = objectMapper.writeValueAsString(processedDTO)
 
     val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
-      eventLoggingRepository.findBySourceSystemId(prisoner.prisonNumber!!)
+      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(prisoner.prisonNumber!!)
     }
 
     assertThat(loggedEvent.messageEventType).isEqualTo(PRISONER_UPDATED)
