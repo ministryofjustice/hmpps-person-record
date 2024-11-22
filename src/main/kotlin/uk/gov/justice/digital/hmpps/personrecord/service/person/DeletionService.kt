@@ -46,7 +46,7 @@ class DeletionService(
     val processedDataDTO = Person.from(personEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
-    eventLoggingService.mapToEventLogging(
+    eventLoggingService.recordEventLog(
       beforeData = beforeData,
       processedData = processedData,
       uuid = personEntity.personKey?.personId.toString(),

@@ -49,7 +49,7 @@ class UnmergeService(
     val processedDataDTO = Person.from(reactivatedPersonEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
-    eventLoggingService.mapToEventLogging(
+    eventLoggingService.recordEventLog(
       beforeData = beforeData,
       processedData = processedData,
       uuid = reactivatedPersonEntity.personKey?.personId.toString(),

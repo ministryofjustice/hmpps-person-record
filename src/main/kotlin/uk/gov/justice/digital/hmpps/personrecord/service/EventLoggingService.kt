@@ -17,7 +17,7 @@ class EventLoggingService(
 
 ) {
 
-  fun mapToEventLogging(
+  fun recordEventLog(
     beforeData: String? = null,
     processedData: String? = null,
     uuid: String? = null,

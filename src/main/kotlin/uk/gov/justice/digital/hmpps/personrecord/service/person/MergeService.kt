@@ -53,7 +53,7 @@ class MergeService(
     val processedDataDTO = targetPersonEntity?.let { Person.from(it) }
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
-    eventLoggingService.mapToEventLogging(
+    eventLoggingService.recordEventLog(
       beforeData = beforeData,
       processedData = processedData,
       uuid = sourcePersonEntity?.personKey?.personId?.toString(),

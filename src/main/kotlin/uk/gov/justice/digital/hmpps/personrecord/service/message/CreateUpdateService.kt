@@ -65,7 +65,7 @@ class CreateUpdateService(
     val processedDataDTO = Person.from(personEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
-    eventLoggingService.mapToEventLogging(
+    eventLoggingService.recordEventLog(
       beforeData = null,
       processedData = processedData,
       uuid = personEntity.personKey?.personId?.toString(),
@@ -89,7 +89,7 @@ class CreateUpdateService(
     val processedDataDTO = Person.from(updatedPerson)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
-    eventLoggingService.mapToEventLogging(
+    eventLoggingService.recordEventLog(
       beforeData = beforeData,
       processedData = processedData,
       uuid = existingPersonEntity.personKey?.personId?.toString(),
