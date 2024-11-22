@@ -1,11 +1,11 @@
-package uk.gov.justice.digital.hmpps.personrecord.service.person
+package uk.gov.justice.digital.hmpps.personrecord.service.message
 
 import jakarta.transaction.Transactional
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 
-@Service
+@Component
 class MergeService(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,

@@ -188,6 +188,11 @@ class PersonEntity(
       return this.filter { it.identifierType == type }
     }
 
+    fun PersonEntity?.shouldCreateOrUpdate(shouldCreate: () -> PersonEntity, shouldUpdate: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {
+      this == null -> shouldCreate()
+      else -> shouldUpdate(this)
+    }
+
     fun from(person: Person): PersonEntity {
       val personEntity = PersonEntity(
         title = person.title,

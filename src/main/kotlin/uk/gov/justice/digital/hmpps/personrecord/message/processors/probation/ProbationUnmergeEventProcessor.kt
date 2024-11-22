@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.format.EncodingService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.UnmergeService
+import uk.gov.justice.digital.hmpps.personrecord.service.message.UnmergeService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.UNMERGE_MESSAGE_RECEIVED
 
 @Component
@@ -47,7 +47,7 @@ class ProbationUnmergeEventProcessor(
         personRepository.findByCrn(reactivatedProbationCase.identifiers.crn)
       },
       unmergedPersonCallback = {
-        personRepository.findByCrn(unmergedProbationCase.identifiers.crn)
+         personRepository.findByCrn(unmergedProbationCase.identifiers.crn)
       },
     )
   }

@@ -1,5 +1,6 @@
-package uk.gov.justice.digital.hmpps.personrecord.service.person
+package uk.gov.justice.digital.hmpps.personrecord.service.message
 
+import jakarta.transaction.Transactional
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -22,6 +23,7 @@ class DeletionService(
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
+  @Transactional
   fun processDelete(personCallback: () -> PersonEntity?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
       personCallback()?.let {

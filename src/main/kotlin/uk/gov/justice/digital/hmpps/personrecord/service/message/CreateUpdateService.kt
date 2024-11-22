@@ -1,9 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
+import jakarta.transaction.Transactional
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.shouldCreateOrUpdate
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.ReadWriteLockService
@@ -12,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRe
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.QueueService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
@@ -27,35 +30,37 @@ class CreateUpdateService(
   private val personService: PersonService,
   private val personKeyService: PersonKeyService,
   private val readWriteLockService: ReadWriteLockService,
+  private val queueService: QueueService,
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
-  fun processMessage(person: Person, event: String? = null, linkRecord: Boolean = true, callback: () -> PersonEntity?): PersonEntity = runBlocking {
+  @Transactional
+  fun processMessage(person: Person, event: String? = null, callback: () -> PersonEntity?): PersonEntity = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
       readWriteLockService.withWriteLock(person.sourceSystemType) {
-        return@withWriteLock processPerson(person, event, linkRecord, callback)
+        return@withWriteLock processPerson(person, event, callback)
       }
     }
   }
 
-  private fun processPerson(person: Person, event: String?, linkRecord: Boolean, callback: () -> PersonEntity?): PersonEntity {
-    val existingPersonEntity: PersonEntity? = callback()
-    val personEntity: PersonEntity = when {
-      (existingPersonEntity == null) -> handlePersonCreation(person, event, linkRecord)
-      else -> handlePersonUpdate(person, existingPersonEntity, event)
-    }
-    return personEntity
+  private fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?): PersonEntity {
+    val existingPersonEntitySearch: PersonEntity? = callback()
+    return existingPersonEntitySearch.shouldCreateOrUpdate(
+      shouldCreate = {
+        handlePersonCreation(person, event)
+      },
+      shouldUpdate = {
+        handlePersonUpdate(person, it, event)
+      }
+    )
   }
 
-  private fun handlePersonCreation(person: Person, event: String?, linkRecord: Boolean): PersonEntity {
+  private fun handlePersonCreation(person: Person, event: String?): PersonEntity {
     if (isUpdateEvent(event)) {
       telemetryService.trackPersonEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
     }
     val personEntity: PersonEntity = personService.createPersonEntity(person)
-    val personKey: PersonKeyEntity? = when {
-      linkRecord -> personKeyService.getPersonKey(personEntity)
-      else -> PersonKeyEntity.empty
-    }
+    val personKey: PersonKeyEntity = personKeyService.getPersonKey(personEntity)
     personService.linkPersonEntityToPersonKey(personEntity, personKey)
     return personEntity
   }
@@ -64,7 +69,9 @@ class CreateUpdateService(
     if (isCreateEvent(event)) {
       telemetryService.trackPersonEvent(CPR_NEW_RECORD_EXISTS, person)
     }
-    return personService.updatePersonEntity(person, existingPersonEntity)
+    val updatedPersonEntity = personService.updatePersonEntity(person, existingPersonEntity)
+    updatedPersonEntity.personKey?.personId?.let { queueService.publishReclusterMessageToQueue(it) }
+    return updatedPersonEntity
   }
 
   private fun isUpdateEvent(event: String?) = listOf(

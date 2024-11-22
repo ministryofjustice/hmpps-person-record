@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.service.person
+package uk.gov.justice.digital.hmpps.personrecord.service.message
 
 import jakarta.transaction.Transactional
 import kotlinx.coroutines.runBlocking
@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.MatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.SearchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED

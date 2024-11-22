@@ -4,6 +4,10 @@ import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 enum class EventKeys {
