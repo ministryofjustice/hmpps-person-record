@@ -19,10 +19,10 @@ class EventLoggingService(
 ) {
 
   fun recordEventLog(
+    beforePerson: Person?,
+    processedPerson: Person?,
     uuid: String? = null,
     messageEventType: String? = null,
-    processedPerson: Person?,
-    beforePerson: Person?,
   ): EventLoggingEntity {
     val operationId = telemetryClient.context.operation.id
     val personForIdentifier = processedPerson ?: beforePerson

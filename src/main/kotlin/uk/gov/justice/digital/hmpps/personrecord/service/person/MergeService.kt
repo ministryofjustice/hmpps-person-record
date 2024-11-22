@@ -49,10 +49,10 @@ class MergeService(
     val processedDataDTO = targetPersonEntity?.let { Person.from(it) }
 
     eventLoggingService.recordEventLog(
+      beforePerson = beforeDataDTO,
+      processedPerson = processedDataDTO,
       uuid = sourcePersonEntity?.personKey?.personId?.toString(),
       messageEventType = mergeEvent.event,
-      processedPerson = processedDataDTO,
-      beforePerson = beforeDataDTO,
     )
   }
 

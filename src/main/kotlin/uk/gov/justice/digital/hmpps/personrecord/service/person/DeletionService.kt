@@ -41,10 +41,10 @@ class DeletionService(
     handleMergedRecords(event, personEntity)
 
     eventLoggingService.recordEventLog(
+      beforePerson = beforeDataDTO,
+      processedPerson = null,
       uuid = personEntity.personKey?.personId.toString(),
       messageEventType = event,
-      processedPerson = null,
-      beforePerson = beforeDataDTO,
     )
   }
 

@@ -63,10 +63,10 @@ class CreateUpdateService(
     val processedDataDTO = Person.from(personEntity)
 
     eventLoggingService.recordEventLog(
+      beforePerson = null,
+      processedPerson = processedDataDTO,
       uuid = personEntity.personKey?.personId?.toString(),
       messageEventType = event,
-      processedPerson = processedDataDTO,
-      beforePerson = null,
     )
 
     return personEntity
@@ -83,10 +83,10 @@ class CreateUpdateService(
     val processedDataDTO = Person.from(updatedPerson)
 
     eventLoggingService.recordEventLog(
+      beforePerson = beforeDataDTO,
+      processedPerson = processedDataDTO,
       uuid = existingPersonEntity.personKey?.personId?.toString(),
       messageEventType = event,
-      processedPerson = processedDataDTO,
-      beforePerson = beforeDataDTO,
     )
     return updatedPerson
   }

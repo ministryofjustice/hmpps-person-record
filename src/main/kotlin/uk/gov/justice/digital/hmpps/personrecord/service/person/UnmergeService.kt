@@ -46,10 +46,10 @@ class UnmergeService(
     val processedDataDTO = Person.from(reactivatedPersonEntity)
 
     eventLoggingService.recordEventLog(
+      beforePerson = beforeDataDTO,
+      processedPerson = processedDataDTO,
       uuid = reactivatedPersonEntity.personKey?.personId.toString(),
       messageEventType = unmergeEvent.event,
-      processedPerson = processedDataDTO,
-      beforePerson = beforeDataDTO,
     )
   }
 
