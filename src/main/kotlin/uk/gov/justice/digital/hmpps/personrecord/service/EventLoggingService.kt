@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLoggingRepo
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDateTime
 
@@ -45,6 +46,7 @@ class EventLoggingService(
       DELIUS -> person.crn
       NOMIS -> person.prisonNumber
       COMMON_PLATFORM -> person.defendantId
+      LIBRA -> person.defendantId
       else -> null
     }
   }
