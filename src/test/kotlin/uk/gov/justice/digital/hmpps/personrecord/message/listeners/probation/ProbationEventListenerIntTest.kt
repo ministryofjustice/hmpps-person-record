@@ -1,12 +1,13 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
-import junit.framework.TestCase.assertNotNull
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
+import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -55,6 +56,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -318,7 +320,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val testCorrelationId = (telemetryClient as TelemetryTestConfig.OurTelemetryClient).testCorrelation
 
-    assertNotNull(testCorrelationId)
+    Assertions.assertNotNull(testCorrelationId)
   }
 
   @ParameterizedTest
@@ -344,5 +346,91 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECLUSTER_MESSAGE_RECEIVED,
       mapOf("UUID" to personEntity.personKey?.personId.toString()),
     )
+  }
+
+  @Test
+  fun `should log event to EventLogging table when new offender created`() {
+    val crn = randomCRN()
+    val title = randomName()
+    val prisonNumber = randomPrisonNumber()
+    val firstName = randomName()
+    val lastName = randomName()
+    val pnc = randomPnc()
+    val cro = randomCro()
+    val addressStartDate = randomDate()
+    val addressEndDate = randomDate()
+    val ethnicity = randomEthnicity()
+    val nationality = randomNationality()
+    val sentenceDate = randomDate()
+
+    val apiResponse = ApiResponseSetup(
+      crn = crn,
+      pnc = pnc,
+      title = title,
+      firstName = firstName,
+      lastName = lastName,
+      prisonNumber = prisonNumber,
+      cro = cro,
+      addresses = listOf(
+        ApiResponseSetupAddress(noFixedAbode = true, addressStartDate, addressEndDate, postcode = "LS1 1AB", fullAddress = "abc street"),
+        ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street"),
+      ),
+      ethnicity = ethnicity,
+      nationality = nationality,
+      sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
+    )
+
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
+
+    await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn)?.personKey }
+    val personEntity = personRepository.findByCrn(crn)!!
+    val processedDataDTO = Person.from(personEntity)
+    val processedData = objectMapper.writeValueAsString(processedDataDTO)
+
+    val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
+      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(crn)
+    }
+    assertThat(loggedEvent.eventType).isEqualTo(NEW_OFFENDER_CREATED)
+    assertThat(loggedEvent.sourceSystemId).isEqualTo(crn)
+    assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
+    assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
+    assertThat(loggedEvent.beforeData).isNull()
+    assertThat(loggedEvent.processedData).isEqualTo(processedData)
+
+    assertThat(loggedEvent.uuid).isEqualTo(personEntity.personKey?.personId.toString())
+  }
+
+  @Test
+  fun `should log event to EventLogging table when offender updated`() {
+    val firstName = randomName()
+    val crn = randomCRN()
+    val changedFirstName = randomName()
+
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, firstName = firstName))
+
+    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+
+    probationEventAndResponseSetup(OFFENDER_DETAILS_CHANGED, ApiResponseSetup(crn = crn, firstName = changedFirstName))
+
+    await.atMost(10, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(crn)?.firstName).isEqualTo(changedFirstName) }
+    val updatedPersonEntity = personRepository.findByCrn(crn)!!
+    val beforeDataDTO = Person.from(personEntity)
+    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
+
+    val processedDataDTO = Person.from(updatedPersonEntity)
+    val processedData = objectMapper.writeValueAsString(processedDataDTO)
+
+    val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
+      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(crn)
+    }
+
+    assertThat(loggedEvent).isNotNull
+    assertThat(loggedEvent.eventType).isEqualTo(OFFENDER_DETAILS_CHANGED)
+    assertThat(loggedEvent.sourceSystemId).isEqualTo(crn)
+    assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
+    assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
+    assertThat(loggedEvent.beforeData).isEqualTo(beforeData)
+    assertThat(loggedEvent.processedData).isEqualTo(processedData)
+    assertThat(loggedEvent.uuid).isEqualTo(updatedPersonEntity.personKey?.personId.toString())
   }
 }

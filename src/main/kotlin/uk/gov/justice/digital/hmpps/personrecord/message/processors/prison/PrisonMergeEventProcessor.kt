@@ -43,6 +43,7 @@ class PrisonMergeEventProcessor(
               sourceSystemId = Pair(EventKeys.SOURCE_PRISON_NUMBER, domainEvent.additionalInformation.sourcePrisonNumber!!),
               targetSystemId = Pair(EventKeys.TARGET_PRISON_NUMBER, domainEvent.additionalInformation.prisonNumber),
               mergedRecord = Person.from(it),
+              event = domainEvent.eventType,
             ),
             sourcePersonCallback = {
               personRepository.findByPrisonNumberAndSourceSystem(domainEvent.additionalInformation.sourcePrisonNumber)

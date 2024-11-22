@@ -43,6 +43,7 @@ class ProbationMergeEventProcessor(
               sourceSystemId = Pair(EventKeys.SOURCE_CRN, domainEvent.additionalInformation.sourceCrn!!),
               targetSystemId = Pair(EventKeys.TARGET_CRN, domainEvent.additionalInformation.targetCrn),
               mergedRecord = Person.from(it),
+              event = domainEvent.eventType,
             ),
             sourcePersonCallback = {
               personRepository.findByCrn(domainEvent.additionalInformation.sourceCrn)

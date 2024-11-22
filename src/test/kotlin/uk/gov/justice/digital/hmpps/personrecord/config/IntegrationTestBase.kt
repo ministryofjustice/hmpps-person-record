@@ -22,6 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.health.HealthInfo
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLoggingRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -58,6 +59,9 @@ class IntegrationTestBase {
 
   @Autowired
   private lateinit var healthInfo: HealthInfo
+
+  @Autowired
+  lateinit var eventLoggingRepository: EventLoggingRepository
 
   internal fun checkTelemetry(
     event: TelemetryEventType,

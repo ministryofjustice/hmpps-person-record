@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.shouldCreateOrUpdate
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
 import uk.gov.justice.digital.hmpps.personrecord.service.ReadWriteLockService
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
@@ -32,6 +33,8 @@ class CreateUpdateService(
   private val readWriteLockService: ReadWriteLockService,
   private val queueService: QueueService,
   @Value("\${retry.delay}") private val retryDelay: Long,
+  private val eventLoggingService: EventLoggingService,
+
 ) {
 
   @Transactional
@@ -62,6 +65,15 @@ class CreateUpdateService(
     val personEntity: PersonEntity = personService.createPersonEntity(person)
     val personKey: PersonKeyEntity = personKeyService.getPersonKey(personEntity)
     personService.linkPersonEntityToPersonKey(personEntity, personKey)
+    val processedDataDTO = Person.from(personEntity)
+
+    eventLoggingService.recordEventLog(
+      beforePerson = null,
+      processedPerson = processedDataDTO,
+      uuid = personEntity.personKey?.personId?.toString(),
+      eventType = event,
+    )
+
     return personEntity
   }
 
@@ -69,9 +81,18 @@ class CreateUpdateService(
     if (isCreateEvent(event)) {
       telemetryService.trackPersonEvent(CPR_NEW_RECORD_EXISTS, person)
     }
-    val updatedPersonEntity = personService.updatePersonEntity(person, existingPersonEntity)
-    updatedPersonEntity.personKey?.personId?.let { queueService.publishReclusterMessageToQueue(it) }
-    return updatedPersonEntity
+    val beforeDataDTO = Person.from(existingPersonEntity)
+    val updatedPerson = personService.updatePersonEntity(person, existingPersonEntity)
+    val processedDataDTO = Person.from(updatedPerson)
+
+    eventLoggingService.recordEventLog(
+      beforePerson = beforeDataDTO,
+      processedPerson = processedDataDTO,
+      uuid = existingPersonEntity.personKey?.personId?.toString(),
+      eventType = event,
+    )
+    updatedPerson.personKey?.personId?.let { queueService.publishReclusterMessageToQueue(it) }
+    return updatedPerson
   }
 
   private fun isUpdateEvent(event: String?) = listOf(

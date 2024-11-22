@@ -8,7 +8,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
+import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
@@ -20,29 +22,40 @@ class DeletionService(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   private val personKeyRepository: PersonKeyRepository,
+  private val eventLoggingService: EventLoggingService,
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
   @Transactional
-  fun processDelete(personCallback: () -> PersonEntity?) = runBlocking {
+  fun processDelete(event: String?, personCallback: () -> PersonEntity?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
       personCallback()?.let {
-        handleDeletion(it)
+        handleDeletion(event, it)
       }
     }
   }
 
-  private fun handleDeletion(personEntity: PersonEntity) {
+  private fun handleDeletion(event: String?, personEntity: PersonEntity) {
+    val beforeDataDTO = Person.from(personEntity)
+
     handlePersonKeyDeletion(personEntity)
     deletePersonRecord(personEntity)
-    handleMergedRecords(personEntity)
+    handleMergedRecords(event, personEntity)
+
+    eventLoggingService.recordEventLog(
+      beforePerson = beforeDataDTO,
+      processedPerson = null,
+      uuid = personEntity.personKey?.personId.toString(),
+      eventType = event,
+    )
   }
 
-  private fun handleMergedRecords(personEntity: PersonEntity) {
+  private fun handleMergedRecords(event: String?, personEntity: PersonEntity) {
     personEntity.id?.let {
-      val mergedRecords: List<PersonEntity?> = personRepository.findByMergedTo(it)
+      val mergedRecords: List<PersonEntity?> = personRepository.findByMergedTo(personEntity.id!!)
       mergedRecords.forEach {
-        processDelete { it }
+          mergedRecord ->
+        processDelete(event) { mergedRecord }
       }
     }
   }

@@ -20,7 +20,7 @@ class ProbationDeleteProcessor(
       MESSAGE_RECEIVED,
       mapOf(EventKeys.CRN to crn, EventKeys.EVENT_TYPE to eventType, EventKeys.SOURCE_SYSTEM to DELIUS.name),
     )
-    deletionService.processDelete {
+    deletionService.processDelete(eventType) {
       personRepository.findByCrn(crn)
     }
   }
