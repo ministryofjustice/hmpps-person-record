@@ -21,7 +21,6 @@ class EventLoggingService(
     beforeData: String? = null,
     processedData: String? = null,
     uuid: String? = null,
-    sourceSystem: String? = null,
     messageEventType: String? = null,
     processedPerson: Person?,
   ): EventLoggingEntity {
@@ -32,7 +31,7 @@ class EventLoggingService(
       processedData = processedData,
       sourceSystemId = extractSourceSystemId(processedPerson),
       uuid = uuid,
-      sourceSystem = sourceSystem,
+      sourceSystem = processedPerson?.sourceSystemType?.name,
       messageEventType = messageEventType,
       eventTimestamp = LocalDateTime.now(),
       operationId = operationId,
@@ -41,11 +40,11 @@ class EventLoggingService(
     return eventLoggingRepository.save(eventLog)
   }
 
-  private fun extractSourceSystemId(personEntity: Person?): String? {
-    return when (personEntity?.sourceSystemType) {
-      DELIUS -> personEntity.crn
-      NOMIS -> personEntity.prisonNumber
-      COMMON_PLATFORM -> personEntity.defendantId
+  private fun extractSourceSystemId(person: Person?): String? {
+    return when (person?.sourceSystemType) {
+      DELIUS -> person.crn
+      NOMIS -> person.prisonNumber
+      COMMON_PLATFORM -> person.defendantId
       else -> null
     }
   }

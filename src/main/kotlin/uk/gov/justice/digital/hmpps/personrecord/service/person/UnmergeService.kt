@@ -53,7 +53,6 @@ class UnmergeService(
       beforeData = beforeData,
       processedData = processedData,
       uuid = reactivatedPersonEntity.personKey?.personId.toString(),
-      sourceSystem = reactivatedPersonEntity.sourceSystem.name,
       messageEventType = unmergeEvent.event,
       processedPerson = processedDataDTO,
     )
