@@ -26,13 +26,13 @@ class EventLoggingService(
     beforePerson: Person?,
   ): EventLoggingEntity {
     val operationId = telemetryClient.context.operation.id
-
+    val personForIdentifier = processedPerson ?: beforePerson
     val eventLog = EventLoggingEntity(
       beforeData = beforeData,
       processedData = processedData,
-      sourceSystemId = extractSourceSystemId(processedPerson),
+      sourceSystemId = extractSourceSystemId(personForIdentifier),
       uuid = uuid,
-      sourceSystem = processedPerson?.sourceSystemType?.name,
+      sourceSystem = personForIdentifier?.sourceSystemType?.name,
       messageEventType = messageEventType,
       eventTimestamp = LocalDateTime.now(),
       operationId = operationId,

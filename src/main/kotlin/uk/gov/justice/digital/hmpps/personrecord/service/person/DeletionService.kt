@@ -43,15 +43,12 @@ class DeletionService(
     deletePersonRecord(personEntity)
     handleMergedRecords(event, personEntity)
 
-    val processedDataDTO = Person.from(personEntity)
-    val processedData = objectMapper.writeValueAsString(processedDataDTO)
-
     eventLoggingService.recordEventLog(
       beforeData = beforeData,
-      processedData = processedData,
+      processedData = null,
       uuid = personEntity.personKey?.personId.toString(),
       messageEventType = event,
-      processedPerson = processedDataDTO,
+      processedPerson = null,
       beforePerson = beforeDataDTO,
     )
   }
