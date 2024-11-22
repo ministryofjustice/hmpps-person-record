@@ -22,17 +22,17 @@ class EventLoggingService(
     beforePerson: Person?,
     processedPerson: Person?,
     uuid: String? = null,
-    messageEventType: String? = null,
+    eventType: String? = null,
   ): EventLoggingEntity {
     val operationId = telemetryClient.context.operation.id
     val personForIdentifier = processedPerson ?: beforePerson
     val eventLog = EventLoggingEntity(
-      beforeData = objectMapper.writeValueAsString(beforePerson),
-      processedData = objectMapper.writeValueAsString(processedPerson),
+      beforeData = beforePerson?.let { objectMapper.writeValueAsString(it) },
+      processedData = processedPerson?.let { objectMapper.writeValueAsString(it) },
       sourceSystemId = extractSourceSystemId(personForIdentifier),
       uuid = uuid,
       sourceSystem = personForIdentifier?.sourceSystemType?.name,
-      messageEventType = messageEventType,
+      eventType = eventType,
       eventTimestamp = LocalDateTime.now(),
       operationId = operationId,
     )

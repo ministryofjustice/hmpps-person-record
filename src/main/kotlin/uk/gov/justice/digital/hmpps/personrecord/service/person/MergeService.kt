@@ -52,7 +52,7 @@ class MergeService(
       beforePerson = beforeDataDTO,
       processedPerson = processedDataDTO,
       uuid = sourcePersonEntity?.personKey?.personId?.toString(),
-      messageEventType = mergeEvent.event,
+      eventType = mergeEvent.event,
     )
   }
 

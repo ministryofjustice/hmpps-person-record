@@ -364,7 +364,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     assertThat(loggedEvent).isNotNull
-    assertThat(loggedEvent.messageEventType).isEqualTo(PRISONER_MERGED)
+    assertThat(loggedEvent.eventType).isEqualTo(PRISONER_MERGED)
     assertThat(loggedEvent.sourceSystemId).isEqualTo(targetPrisonNumber)
     assertThat(loggedEvent.sourceSystem).isEqualTo(targetPerson?.sourceSystem.toString())
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())

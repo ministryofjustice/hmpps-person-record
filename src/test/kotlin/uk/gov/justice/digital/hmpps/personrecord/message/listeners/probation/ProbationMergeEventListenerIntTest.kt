@@ -388,7 +388,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     assertThat(loggedEvent).isNotNull
-    assertThat(loggedEvent.messageEventType).isEqualTo(OFFENDER_MERGED)
+    assertThat(loggedEvent.eventType).isEqualTo(OFFENDER_MERGED)
     assertThat(loggedEvent.sourceSystemId).isEqualTo(targetCrn)
     assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())

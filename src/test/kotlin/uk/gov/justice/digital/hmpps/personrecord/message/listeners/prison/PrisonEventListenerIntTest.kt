@@ -364,7 +364,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(prisoner.prisonNumber!!)
     }
 
-    assertThat(loggedEvent.messageEventType).isEqualTo(PRISONER_UPDATED)
+    assertThat(loggedEvent.eventType).isEqualTo(PRISONER_UPDATED)
     assertThat(loggedEvent.sourceSystemId).isEqualTo(prisoner.prisonNumber)
     assertThat(loggedEvent.sourceSystem).isEqualTo(SourceSystemType.NOMIS.name)
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
