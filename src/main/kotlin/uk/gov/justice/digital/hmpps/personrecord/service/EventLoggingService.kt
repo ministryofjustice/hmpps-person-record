@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLoggingEntity
@@ -14,12 +15,10 @@ import java.time.LocalDateTime
 class EventLoggingService(
   private val eventLoggingRepository: EventLoggingRepository,
   private val telemetryClient: TelemetryClient,
-
+  private val objectMapper: ObjectMapper,
 ) {
 
   fun recordEventLog(
-    beforeData: String? = null,
-    processedData: String? = null,
     uuid: String? = null,
     messageEventType: String? = null,
     processedPerson: Person?,
@@ -28,8 +27,8 @@ class EventLoggingService(
     val operationId = telemetryClient.context.operation.id
     val personForIdentifier = processedPerson ?: beforePerson
     val eventLog = EventLoggingEntity(
-      beforeData = beforeData,
-      processedData = processedData,
+      beforeData = objectMapper.writeValueAsString(beforePerson),
+      processedData = objectMapper.writeValueAsString(processedPerson),
       sourceSystemId = extractSourceSystemId(personForIdentifier),
       uuid = uuid,
       sourceSystem = personForIdentifier?.sourceSystemType?.name,

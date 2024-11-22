@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -31,7 +30,6 @@ class CreateUpdateService(
   private val readWriteLockService: ReadWriteLockService,
   @Value("\${retry.delay}") private val retryDelay: Long,
   private val eventLoggingService: EventLoggingService,
-  private val objectMapper: ObjectMapper,
 
 ) {
 
@@ -63,11 +61,8 @@ class CreateUpdateService(
     }
     personService.linkPersonEntityToPersonKey(personEntity, personKey)
     val processedDataDTO = Person.from(personEntity)
-    val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     eventLoggingService.recordEventLog(
-      beforeData = null,
-      processedData = processedData,
       uuid = personEntity.personKey?.personId?.toString(),
       messageEventType = event,
       processedPerson = processedDataDTO,
@@ -82,16 +77,12 @@ class CreateUpdateService(
       telemetryService.trackPersonEvent(CPR_NEW_RECORD_EXISTS, person)
     }
     val beforeDataDTO = Person.from(existingPersonEntity)
-    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
     val updatedPerson = personService.updatePersonEntity(person, existingPersonEntity)
 
     val processedDataDTO = Person.from(updatedPerson)
-    val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     eventLoggingService.recordEventLog(
-      beforeData = beforeData,
-      processedData = processedData,
       uuid = existingPersonEntity.personKey?.personId?.toString(),
       messageEventType = event,
       processedPerson = processedDataDTO,

@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.transaction.Transactional
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -25,8 +24,6 @@ class MergeService(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   private val eventLoggingService: EventLoggingService,
-  private val objectMapper: ObjectMapper,
-
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
@@ -48,14 +45,10 @@ class MergeService(
     }
 
     val beforeDataDTO = sourcePersonEntity?.let { Person.from(it) }
-    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
     val processedDataDTO = targetPersonEntity?.let { Person.from(it) }
-    val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     eventLoggingService.recordEventLog(
-      beforeData = beforeData,
-      processedData = processedData,
       uuid = sourcePersonEntity?.personKey?.personId?.toString(),
       messageEventType = mergeEvent.event,
       processedPerson = processedDataDTO,

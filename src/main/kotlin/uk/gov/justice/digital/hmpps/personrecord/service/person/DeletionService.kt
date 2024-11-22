@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -23,7 +22,6 @@ class DeletionService(
   private val personRepository: PersonRepository,
   private val personKeyRepository: PersonKeyRepository,
   private val eventLoggingService: EventLoggingService,
-  private val objectMapper: ObjectMapper,
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
@@ -37,15 +35,12 @@ class DeletionService(
 
   private fun handleDeletion(event: String?, personEntity: PersonEntity) {
     val beforeDataDTO = Person.from(personEntity)
-    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
     handlePersonKeyDeletion(personEntity)
     deletePersonRecord(personEntity)
     handleMergedRecords(event, personEntity)
 
     eventLoggingService.recordEventLog(
-      beforeData = beforeData,
-      processedData = null,
       uuid = personEntity.personKey?.personId.toString(),
       messageEventType = event,
       processedPerson = null,
