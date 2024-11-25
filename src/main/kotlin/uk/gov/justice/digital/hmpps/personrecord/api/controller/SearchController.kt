@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.PersonRecordNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.PersonIdentifierRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.extractSourceSystemId
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
@@ -100,7 +101,7 @@ class SearchController(
   }
 
   private fun handlePersonRecord(personEntity: PersonEntity?, identifier: String): List<PersonIdentifierRecord> = when {
-    personEntity != PersonEntity.empty -> buildListOfLinkedRecords(personEntity!!)
+    personEntity != PersonEntity.empty -> buildListOfLinkedRecords(personEntity)
     else -> throw PersonRecordNotFoundException(identifier)
   }
 
@@ -111,12 +112,6 @@ class SearchController(
   }
 
   private fun buildIdentifierRecord(personEntity: PersonEntity): PersonIdentifierRecord? {
-    return when (personEntity.sourceSystem) {
-      SourceSystemType.DELIUS -> PersonIdentifierRecord(id = personEntity.crn!!, SourceSystemType.DELIUS.name)
-      SourceSystemType.NOMIS -> PersonIdentifierRecord(id = personEntity.prisonNumber!!, SourceSystemType.NOMIS.name)
-      SourceSystemType.COMMON_PLATFORM -> PersonIdentifierRecord(id = personEntity.defendantId!!, SourceSystemType.COMMON_PLATFORM.name)
-      SourceSystemType.LIBRA -> PersonIdentifierRecord(id = personEntity.defendantId!!, SourceSystemType.LIBRA.name)
-      else -> null
-    }
+    return personEntity.extractSourceSystemId()?.let { PersonIdentifierRecord(id = it, personEntity.sourceSystem.name) }
   }
 }

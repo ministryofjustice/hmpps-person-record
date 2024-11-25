@@ -170,8 +170,20 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
+      CPR_UNMERGE_RECORD_NOT_FOUND,
+      mapOf("RECORD_TYPE" to UnmergeRecordType.REACTIVATED.name, "CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
       CPR_RECORD_CREATED,
       mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      CPR_RECORD_UPDATED,
+      mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      CPR_UNMERGE_LINK_NOT_FOUND,
+      mapOf("REACTIVATED_CRN" to reactivatedCrn, "RECORD_TYPE" to UnmergeRecordType.REACTIVATED.name, "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_UUID_CREATED,

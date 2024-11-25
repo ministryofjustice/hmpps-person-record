@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLoggingEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLoggingRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person.Companion.extractSourceSystemId
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
@@ -30,7 +31,7 @@ class EventLoggingService(
     val eventLog = EventLoggingEntity(
       beforeData = beforePerson?.let { objectMapper.writeValueAsString(it) },
       processedData = processedPerson?.let { objectMapper.writeValueAsString(it) },
-      sourceSystemId = extractSourceSystemId(personForIdentifier),
+      sourceSystemId = personForIdentifier.extractSourceSystemId(),
       uuid = uuid,
       sourceSystem = personForIdentifier?.sourceSystemType?.name,
       eventType = eventType,
@@ -41,13 +42,4 @@ class EventLoggingService(
     return eventLoggingRepository.save(eventLog)
   }
 
-  private fun extractSourceSystemId(person: Person?): String? {
-    return when (person?.sourceSystemType) {
-      DELIUS -> person.crn
-      NOMIS -> person.prisonNumber
-      COMMON_PLATFORM -> person.defendantId
-      LIBRA -> person.defendantId
-      else -> null
-    }
-  }
 }

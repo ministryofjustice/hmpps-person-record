@@ -26,7 +26,6 @@ class DeletionService(
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
-  @Transactional
   fun processDelete(event: String?, personCallback: () -> PersonEntity?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
       personCallback()?.let {
@@ -35,6 +34,7 @@ class DeletionService(
     }
   }
 
+  @Transactional
   private fun handleDeletion(event: String?, personEntity: PersonEntity) {
     val beforeDataDTO = Person.from(personEntity)
 
@@ -89,7 +89,7 @@ class DeletionService(
 
   private fun removeLinkToRecord(personEntity: PersonEntity) {
     personEntity.personKey?.personEntities?.remove(personEntity)
-    personKeyRepository.saveAndFlush(personEntity.personKey!!)
+    personKeyRepository.save(personEntity.personKey!!)
   }
 
   companion object {

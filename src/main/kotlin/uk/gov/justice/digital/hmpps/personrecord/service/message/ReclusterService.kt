@@ -35,7 +35,6 @@ class ReclusterService(
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
-  @Transactional
   fun recluster(personUUID: UUID?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
       personKeyRepository.findByPersonId(personUUID)?.let {
@@ -44,6 +43,7 @@ class ReclusterService(
     }
   }
 
+  @Transactional
   private fun handleRecluster(personKeyEntity: PersonKeyEntity) {
     when {
       clusterNeedsAttention(personKeyEntity) -> telemetryService.trackEvent(

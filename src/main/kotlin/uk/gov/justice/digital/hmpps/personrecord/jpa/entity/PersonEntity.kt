@@ -17,6 +17,10 @@ import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDate
 
 @Entity
@@ -180,16 +184,27 @@ class PersonEntity(
     this.sentenceInfo.addAll(personSentences)
   }
 
+
   companion object {
 
-    val empty: PersonEntity? = null
+    val empty = null
+
+    fun PersonEntity?.extractSourceSystemId(): String? {
+      return when (this?.sourceSystem) {
+        DELIUS -> this.crn
+        NOMIS -> this.prisonNumber
+        COMMON_PLATFORM -> this.defendantId
+        LIBRA -> this.defendantId
+        else -> null
+      }
+    }
 
     fun List<ReferenceEntity>.getType(type: IdentifierType): List<ReferenceEntity> {
       return this.filter { it.identifierType == type }
     }
 
     fun PersonEntity?.shouldCreateOrUpdate(shouldCreate: () -> PersonEntity, shouldUpdate: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {
-      this == null -> shouldCreate()
+      this == empty -> shouldCreate()
       else -> shouldUpdate(this)
     }
 

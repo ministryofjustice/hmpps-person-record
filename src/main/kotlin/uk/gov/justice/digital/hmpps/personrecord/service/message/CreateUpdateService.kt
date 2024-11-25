@@ -37,7 +37,6 @@ class CreateUpdateService(
 
 ) {
 
-  @Transactional
   fun processMessage(person: Person, event: String? = null, callback: () -> PersonEntity?): PersonEntity = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
       readWriteLockService.withWriteLock(person.sourceSystemType) {
@@ -46,6 +45,7 @@ class CreateUpdateService(
     }
   }
 
+  @Transactional
   private fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?): PersonEntity {
     val existingPersonEntitySearch: PersonEntity? = callback()
     return existingPersonEntitySearch.shouldCreateOrUpdate(
@@ -63,8 +63,8 @@ class CreateUpdateService(
       telemetryService.trackPersonEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
     }
     val personEntity: PersonEntity = personService.createPersonEntity(person)
-    val personKey: PersonKeyEntity = personKeyService.getPersonKey(personEntity)
-    personService.linkPersonEntityToPersonKey(personEntity, personKey)
+    personService.linkRecordToPersonKey(personEntity)
+
     val processedDataDTO = Person.from(personEntity)
 
     eventLoggingService.recordEventLog(

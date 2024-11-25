@@ -27,13 +27,13 @@ class MergeService(
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
-  @Transactional
   fun processMerge(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
       processMergingOfRecords(mergeEvent, sourcePersonCallback, targetPersonCallback)
     }
   }
 
+  @Transactional
   private suspend fun processMergingOfRecords(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) {
     val (sourcePersonEntity, targetPersonEntity) = collectPeople(sourcePersonCallback, targetPersonCallback)
 
@@ -129,7 +129,7 @@ class MergeService(
   private fun removeUuidLinkFromRecord(entity: PersonEntity) {
     entity.personKey?.personEntities?.remove(entity)
     entity.personKey = null
-    personRepository.saveAndFlush(entity)
+    personRepository.save(entity)
   }
 
   private fun updateTargetRecord(mergeEvent: MergeEvent, targetPersonEntity: PersonEntity) {

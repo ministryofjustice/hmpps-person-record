@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class PersonService(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
+  private val personKeyService: PersonKeyService,
   private val searchService: SearchService,
 ) {
 
@@ -31,24 +32,23 @@ class PersonService(
     return updatedEntity
   }
 
-  fun linkPersonEntityToPersonKey(personEntity: PersonEntity, personKeyEntity: PersonKeyEntity) {
+  fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
+    val personKeyEntity = personKeyService.getPersonKey(personEntity)
     personEntity.personKey = personKeyEntity
-    personRepository.saveAndFlush(personEntity)
+    return personRepository.save(personEntity)
   }
 
-  fun removePersonKeyLink(personEntity: PersonEntity) {
-    personEntity.personKey.let {
-      personEntity.personKey?.personEntities?.remove(personEntity)
-      personEntity.personKey = null
-      personRepository.save(personEntity)
-    }
+  fun removePersonKeyLink(personEntity: PersonEntity): PersonEntity {
+    personEntity.personKey?.personEntities?.remove(personEntity)
+    personEntity.personKey = null
+    return personRepository.save(personEntity)
   }
 
-  fun addExcludeOverrideMarker(personEntity: PersonEntity, excludingRecord: PersonEntity) {
+  fun addExcludeOverrideMarker(personEntity: PersonEntity, excludeRecord: PersonEntity): PersonEntity {
     personEntity.overrideMarkers.add(
-      OverrideMarkerEntity(markerType = OverrideMarkerType.EXCLUDE, markerValue = excludingRecord.id, person = personEntity),
+      OverrideMarkerEntity(markerType = OverrideMarkerType.EXCLUDE, markerValue = excludeRecord.id, person = personEntity),
     )
-    personRepository.save(personEntity)
+    return personRepository.save(personEntity)
   }
 
   fun removeMergedLink(personEntity: PersonEntity) {

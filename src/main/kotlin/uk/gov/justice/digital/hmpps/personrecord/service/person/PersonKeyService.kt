@@ -21,7 +21,7 @@ class PersonKeyService(
 
   fun setPersonKeyStatus(personKeyEntity: PersonKeyEntity, status: UUIDStatusType) {
     personKeyEntity.status = status
-    personKeyRepository.saveAndFlush(personKeyEntity)
+    personKeyRepository.save(personKeyEntity)
   }
 
   fun getPersonKey(personEntity: PersonEntity): PersonKeyEntity {
@@ -39,7 +39,7 @@ class PersonKeyService(
       personEntity,
       mapOf(EventKeys.UUID to personKey.personId.toString()),
     )
-    return personKeyRepository.saveAndFlush(personKey)
+    return personKeyRepository.save(personKey)
   }
 
   private fun retrievePersonKey(personEntity: PersonEntity, highConfidenceRecordWithUuid: PersonEntity): PersonKeyEntity {
