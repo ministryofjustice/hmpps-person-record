@@ -19,6 +19,7 @@ object RetryExecutor {
   private const val EXPONENTIAL_FACTOR = 2.0
 
   private val retryables = listOf(feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class, FeignException.BadGateway::class)
+  private val log = LoggerFactory.getLogger(this::class.java)
 
   suspend fun <T> runWithRetry(
     maxAttempts: Int,
@@ -27,7 +28,6 @@ object RetryExecutor {
     maxDelayMillis: Long = 1000,
     action: suspend () -> T,
   ): T {
-    val log = LoggerFactory.getLogger(this::class.java)
     var currentDelay = delay
     var lastException: Exception? = null
 
