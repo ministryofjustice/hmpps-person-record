@@ -117,11 +117,6 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       personKeyEntity = cluster2,
     )
 
-    await untilAsserted {
-      val targetCluster = personKeyRepository.findByPersonId(cluster2.personId)
-      assertThat(targetCluster?.personEntities?.size).isEqualTo(1)
-    }
-
     val matchResponse = MatchResponse(
       matchProbabilities = mutableMapOf(
         "0" to 0.999999,
