@@ -16,6 +16,7 @@ import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -122,6 +123,21 @@ class PersonEntity(
 
 ) {
 
+  fun addExcludeOverrideMarker(excludeRecord: PersonEntity) {
+    this.overrideMarkers.add(
+      OverrideMarkerEntity(markerType = OverrideMarkerType.EXCLUDE, markerValue = excludeRecord.id, person = this),
+    )
+  }
+
+  fun removeMergedLink() {
+    this.mergedTo = null
+  }
+
+  fun removePersonKeyLink() {
+    this.personKey?.personEntities?.remove(this)
+    this.personKey = null
+  }
+
   fun getIdentifiersForMatching(identifiers: List<IdentifierType>): List<ReferenceEntity> {
     return this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }
   }
@@ -183,7 +199,6 @@ class PersonEntity(
     personSentences.forEach { personSentenceInfoEntity -> personSentenceInfoEntity.person = this }
     this.sentenceInfo.addAll(personSentences)
   }
-
 
   companion object {
 

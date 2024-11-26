@@ -6,14 +6,12 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.shouldCreateOrUpdate
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
 import uk.gov.justice.digital.hmpps.personrecord.service.ReadWriteLockService
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.QueueService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
@@ -29,12 +27,10 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class CreateUpdateService(
   private val telemetryService: TelemetryService,
   private val personService: PersonService,
-  private val personKeyService: PersonKeyService,
   private val readWriteLockService: ReadWriteLockService,
   private val queueService: QueueService,
-  @Value("\${retry.delay}") private val retryDelay: Long,
   private val eventLoggingService: EventLoggingService,
-
+  @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
   fun processMessage(person: Person, event: String? = null, callback: () -> PersonEntity?): PersonEntity = runBlocking {
@@ -54,7 +50,7 @@ class CreateUpdateService(
       },
       shouldUpdate = {
         handlePersonUpdate(person, it, event)
-      }
+      },
     )
   }
 

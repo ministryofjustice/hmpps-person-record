@@ -47,7 +47,7 @@ class ProbationUnmergeEventProcessor(
         personRepository.findByCrn(reactivatedProbationCase.identifiers.crn)
       },
       unmergedPersonCallback = {
-         personRepository.findByCrn(unmergedProbationCase.identifiers.crn)
+        personRepository.findByCrn(unmergedProbationCase.identifiers.crn)
       },
     )
   }

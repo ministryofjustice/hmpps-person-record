@@ -7,10 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLoggingEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLoggingRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person.Companion.extractSourceSystemId
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDateTime
 
 @Service
@@ -41,5 +37,4 @@ class EventLoggingService(
 
     return eventLoggingRepository.save(eventLog)
   }
-
 }

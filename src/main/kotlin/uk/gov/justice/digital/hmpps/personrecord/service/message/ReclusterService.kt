@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.MatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.SearchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
@@ -28,7 +27,6 @@ import java.util.UUID
 class ReclusterService(
   private val matchService: MatchService,
   private val telemetryService: TelemetryService,
-  private val personKeyService: PersonKeyService,
   private val searchService: SearchService,
   private val personRepository: PersonRepository,
   private val personKeyRepository: PersonKeyRepository,
@@ -88,7 +86,8 @@ class ReclusterService(
         mapOf(EventKeys.UUID to personKeyEntity.personId.toString()),
       )
       else -> {
-        personKeyService.setPersonKeyStatus(personKeyEntity, UUIDStatusType.NEEDS_ATTENTION)
+        personKeyEntity.status = UUIDStatusType.NEEDS_ATTENTION
+        personKeyRepository.save(personKeyEntity)
         telemetryService.trackEvent(
           CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
           mapOf(EventKeys.UUID to personKeyEntity.personId.toString()),

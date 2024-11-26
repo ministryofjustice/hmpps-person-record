@@ -1,12 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.MatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.SearchService
@@ -36,24 +33,6 @@ class PersonService(
     val personKeyEntity = personKeyService.getPersonKey(personEntity)
     personEntity.personKey = personKeyEntity
     return personRepository.save(personEntity)
-  }
-
-  fun removePersonKeyLink(personEntity: PersonEntity): PersonEntity {
-    personEntity.personKey?.personEntities?.remove(personEntity)
-    personEntity.personKey = null
-    return personRepository.save(personEntity)
-  }
-
-  fun addExcludeOverrideMarker(personEntity: PersonEntity, excludeRecord: PersonEntity): PersonEntity {
-    personEntity.overrideMarkers.add(
-      OverrideMarkerEntity(markerType = OverrideMarkerType.EXCLUDE, markerValue = excludeRecord.id, person = personEntity),
-    )
-    return personRepository.save(personEntity)
-  }
-
-  fun removeMergedLink(personEntity: PersonEntity) {
-    personEntity.mergedTo = null
-    personRepository.save(personEntity)
   }
 
   private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {

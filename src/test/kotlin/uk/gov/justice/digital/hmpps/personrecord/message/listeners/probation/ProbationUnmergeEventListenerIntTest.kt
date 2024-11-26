@@ -71,7 +71,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
 
-    await.atMost(10, SECONDS) untilAsserted  { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
+    await.atMost(10, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
 
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
@@ -138,16 +138,32 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(
       CPR_UNMERGE_RECORD_NOT_FOUND,
-      mapOf("UNMERGED_CRN" to unmergedCrn, "RECORD_TYPE" to UnmergeRecordType.UNMERGED.name, "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to unmergedCrn, "RECORD_TYPE" to UnmergeRecordType.UNMERGED.name, "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_RECORD_CREATED,
       mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
     )
+    checkTelemetry(
+      CPR_RECORD_UPDATED,
+      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      CPR_UUID_CREATED,
+      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      TelemetryEventType.CPR_RECORD_UNMERGED,
+      mapOf(
+        "REACTIVATED_CRN" to reactivatedCrn,
+        "UNMERGED_CRN" to unmergedCrn,
+        "SOURCE_SYSTEM" to "DELIUS",
+      ),
+    )
   }
 
   @Test
-  fun  `should create record when reactivated record not found and should create a UUID`() {
+  fun `should create record when reactivated record not found and should create a UUID`() {
     val reactivatedCrn = randomCRN()
     val unmergedCrn = randomCRN()
 
@@ -189,6 +205,15 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_UUID_CREATED,
       mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
     )
+    checkTelemetry(
+      TelemetryEventType.CPR_RECORD_UNMERGED,
+      mapOf(
+        "REACTIVATED_CRN" to reactivatedCrn,
+        "UNMERGED_CRN" to unmergedCrn,
+        "UNMERGED_UUID" to personKeyEntity.personId.toString(),
+        "SOURCE_SYSTEM" to "DELIUS",
+      ),
+    )
 
     val reactivatedPerson = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(reactivatedCrn) }
     assertThat(reactivatedPerson.personKey).isNotNull()
@@ -223,8 +248,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val matchResponse = MatchResponse(
       matchProbabilities = mutableMapOf(
         "0" to 0.9999999,
-        "1" to 0.9999999,
-        "2" to 0.9999999,
       ),
     )
     stubMatchScore(matchResponse)
@@ -239,6 +262,28 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       CPR_RECORD_UPDATED,
       mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      CPR_RECORD_UPDATED,
+      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      CPR_UNMERGE_LINK_NOT_FOUND,
+      mapOf("REACTIVATED_CRN" to reactivatedCrn, "RECORD_TYPE" to UnmergeRecordType.REACTIVATED.name, "SOURCE_SYSTEM" to "DELIUS"),
+      times = 0,
+    )
+    checkTelemetry(
+      CPR_UUID_CREATED,
+      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      TelemetryEventType.CPR_RECORD_UNMERGED,
+      mapOf(
+        "REACTIVATED_CRN" to reactivatedCrn,
+        "UNMERGED_CRN" to unmergedCrn,
+        "UNMERGED_UUID" to personKey.personId.toString(),
+        "SOURCE_SYSTEM" to "DELIUS",
+      ),
     )
 
     await.atMost(10, SECONDS) untilAsserted {

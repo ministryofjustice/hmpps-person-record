@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
@@ -23,6 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class MergeService(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
+  private val personKeyRepository: PersonKeyRepository,
   private val eventLoggingService: EventLoggingService,
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
@@ -38,8 +40,8 @@ class MergeService(
     val (sourcePersonEntity, targetPersonEntity) = collectPeople(sourcePersonCallback, targetPersonCallback)
 
     when {
-      targetPersonEntity == null -> handleTargetRecordNotFound(mergeEvent)
-      sourcePersonEntity == null -> handleSourceRecordNotFound(mergeEvent, targetPersonEntity)
+      targetPersonEntity == PersonEntity.empty -> handleTargetRecordNotFound(mergeEvent)
+      sourcePersonEntity == PersonEntity.empty -> handleSourceRecordNotFound(mergeEvent, targetPersonEntity)
       isSameUuid(sourcePersonEntity, targetPersonEntity) -> handleMergeWithSameUuids(mergeEvent, sourcePersonEntity, targetPersonEntity)
       else -> handleMergeWithDifferentUuids(mergeEvent, sourcePersonEntity, targetPersonEntity)
     }
@@ -72,13 +74,14 @@ class MergeService(
   private fun handleSourceUuidWithSingleRecord(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
     mergeRecord(mergeEvent, sourcePersonEntity, targetPersonEntity) { sourcePerson, targetPerson ->
       linkSourceUuidToTargetAndMarkAsMerged(sourcePerson!!, targetPerson)
+      sourcePerson.personKey?.let { personKeyRepository.save(it) }
       updateAndLinkRecords(mergeEvent, sourcePerson, targetPerson)
     }
   }
 
   private fun handleSourceUuidWithMultipleRecords(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
     mergeRecord(mergeEvent, sourcePersonEntity, targetPersonEntity) { sourcePerson, targetPerson ->
-      removeUuidLinkFromRecord(sourcePerson!!)
+      sourcePerson!!.removePersonKeyLink()
       updateAndLinkRecords(mergeEvent, sourcePerson, targetPerson)
     }
   }
@@ -105,15 +108,22 @@ class MergeService(
         EventKeys.SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystemType.name,
       ),
     )
-    mergeRecord(mergeEvent, null, targetPersonEntity) { _, targetPerson ->
-      updateTargetRecord(mergeEvent, targetPerson)
+    mergeRecord(mergeEvent, PersonEntity.empty, targetPersonEntity) { _, targetPerson ->
+      targetPerson.update(mergeEvent.mergedRecord)
     }
   }
 
   private fun mergeRecord(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity, mergeAction: (sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity) -> Unit) {
     val initialSourceUuid = sourcePersonEntity?.personKey?.let { it.personId.toString() }
     val initialTargetUuid = targetPersonEntity.personKey?.let { it.personId.toString() }
+
     mergeAction(sourcePersonEntity, targetPersonEntity)
+
+    sourcePersonEntity?.let {
+      personRepository.save(it)
+    }
+    personRepository.save(targetPersonEntity)
+
     telemetryService.trackEvent(
       CPR_RECORD_MERGED,
       mapOf(
@@ -126,27 +136,15 @@ class MergeService(
     )
   }
 
-  private fun removeUuidLinkFromRecord(entity: PersonEntity) {
-    entity.personKey?.personEntities?.remove(entity)
-    entity.personKey = null
-    personRepository.save(entity)
-  }
-
-  private fun updateTargetRecord(mergeEvent: MergeEvent, targetPersonEntity: PersonEntity) {
-    targetPersonEntity.update(mergeEvent.mergedRecord)
-    personRepository.save(targetPersonEntity)
-  }
-
   private fun updateAndLinkRecords(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
     sourcePersonEntity.mergedTo = targetPersonEntity.id
     targetPersonEntity.update(mergeEvent.mergedRecord)
-    personRepository.saveAll(listOf(targetPersonEntity, sourcePersonEntity))
   }
 
   private fun linkSourceUuidToTargetAndMarkAsMerged(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
     sourcePersonEntity.personKey?.mergedTo = targetPersonEntity.personKey?.id
     sourcePersonEntity.personKey?.status = UUIDStatusType.MERGED
-    personRepository.save(sourcePersonEntity)
+    sourcePersonEntity.personKey?.let { personKeyRepository.save(it) }
   }
 
   private fun isSameUuid(sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity?): Boolean = sourcePersonEntity?.personKey?.id == targetPersonEntity?.personKey?.id

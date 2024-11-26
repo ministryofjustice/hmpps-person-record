@@ -19,9 +19,9 @@ class PersonKeyService(
   private val telemetryService: TelemetryService,
 ) {
 
-  fun setPersonKeyStatus(personKeyEntity: PersonKeyEntity, status: UUIDStatusType) {
+  fun setPersonKeyStatus(personKeyEntity: PersonKeyEntity, status: UUIDStatusType): PersonKeyEntity {
     personKeyEntity.status = status
-    personKeyRepository.save(personKeyEntity)
+    return personKeyRepository.save(personKeyEntity)
   }
 
   fun getPersonKey(personEntity: PersonEntity): PersonKeyEntity {
@@ -39,7 +39,7 @@ class PersonKeyService(
       personEntity,
       mapOf(EventKeys.UUID to personKey.personId.toString()),
     )
-    return personKeyRepository.save(personKey)
+    return personKeyRepository.saveAndFlush(personKey)
   }
 
   private fun retrievePersonKey(personEntity: PersonEntity, highConfidenceRecordWithUuid: PersonEntity): PersonKeyEntity {
