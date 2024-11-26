@@ -125,16 +125,13 @@ class ReclusterService(
     val sourcePersonKey = sourcePersonEntity.personKey!!
     val targetPersonKey = targetPersonEntity.personKey!!
 
-    // Step 1: Mark the source key as merged
     sourcePersonKey.mergedTo = targetPersonKey.id
     sourcePersonKey.status = UUIDStatusType.RECLUSTER_MERGE
     personKeyRepository.save(sourcePersonKey)
 
-    // Step 3: Attach the source entity to the target personKey
     sourcePersonEntity.personKey = targetPersonKey
     personRepository.save(sourcePersonEntity)
 
-    // Step 4: Add the source entity to the target's personEntities list
     targetPersonKey.personEntities.add(sourcePersonEntity)
     personKeyRepository.save(targetPersonKey)
   }

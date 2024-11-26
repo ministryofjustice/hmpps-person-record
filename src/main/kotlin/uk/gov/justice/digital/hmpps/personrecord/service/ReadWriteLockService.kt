@@ -1,10 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
-@Service
+@Component
 class ReadWriteLockService {
 
   private val lockMap = mutableMapOf<SourceSystemType, ReentrantReadWriteLock>()

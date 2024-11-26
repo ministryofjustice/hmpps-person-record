@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import com.microsoft.applicationinsights.TelemetryClient
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -49,7 +49,7 @@ enum class EventKeys {
   HEARING_ID,
 }
 
-@Service
+@Component
 class TelemetryService(private val telemetryClient: TelemetryClient) {
 
   fun trackPersonEvent(

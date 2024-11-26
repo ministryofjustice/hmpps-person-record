@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
-import jakarta.transaction.Transactional
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -34,7 +33,6 @@ class DeletionService(
     }
   }
 
-  @Transactional
   private fun handleDeletion(event: String?, personEntity: PersonEntity) {
     val beforeDataDTO = Person.from(personEntity)
 

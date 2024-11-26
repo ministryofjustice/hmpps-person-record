@@ -2,14 +2,14 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.applicationinsights.TelemetryClient
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLoggingEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLoggingRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person.Companion.extractSourceSystemId
 import java.time.LocalDateTime
 
-@Service
+@Component
 class EventLoggingService(
   private val eventLoggingRepository: EventLoggingRepository,
   private val telemetryClient: TelemetryClient,

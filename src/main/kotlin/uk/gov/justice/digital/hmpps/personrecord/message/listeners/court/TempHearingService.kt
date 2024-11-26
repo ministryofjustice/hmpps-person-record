@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court
 
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
-@Service
+@Component
 class TempHearingService(
   val telemetryService: TelemetryService,
   val courtHearingRepository: CourtHearingRepository,

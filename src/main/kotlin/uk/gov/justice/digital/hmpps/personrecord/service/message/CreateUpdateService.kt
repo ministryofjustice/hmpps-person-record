@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
-import jakarta.transaction.Transactional
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -41,7 +40,6 @@ class CreateUpdateService(
     }
   }
 
-  @Transactional
   private fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?): PersonEntity {
     val existingPersonEntitySearch: PersonEntity? = callback()
     return existingPersonEntitySearch.shouldCreateOrUpdate(

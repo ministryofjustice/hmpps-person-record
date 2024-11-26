@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person
 
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.search.MatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.SearchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
-@Service
+@Component
 class PersonService(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,

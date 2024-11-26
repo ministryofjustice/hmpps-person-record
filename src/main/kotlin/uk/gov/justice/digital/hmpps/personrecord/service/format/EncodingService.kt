@@ -3,14 +3,14 @@ package uk.gov.justice.digital.hmpps.personrecord.service.format
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 
-@Service
+@Component
 class EncodingService(
   private var corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
   private var prisonerSearchClient: PrisonerSearchClient,
