@@ -18,7 +18,7 @@ class PersonKeyService(
   private val telemetryService: TelemetryService,
 ) {
 
-  fun getPersonKey(personEntity: PersonEntity): PersonKeyEntity {
+  fun getOrCreatePersonKey(personEntity: PersonEntity): PersonKeyEntity {
     val highConfidenceRecordWithUuid = searchByAllSourceSystemsAndHasUuid(personEntity)
     return when {
       highConfidenceRecordWithUuid == null -> createPersonKey(personEntity)
