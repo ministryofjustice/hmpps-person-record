@@ -39,7 +39,7 @@ object RetryExecutor {
           e::class in exceptions -> {
             lastException = e
 
-            log.debug("Retrying on Raised Error: ${e.message}")
+            log.debug("Retrying on raised error: ${e.message}")
             val jitterValue = Random.nextDouble(JITTER_MIN, JITTER_MAX)
             val delayTime = (currentDelay * jitterValue).toLong()
 
