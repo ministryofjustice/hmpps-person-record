@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.UnmergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.shouldCreateOrUpdate
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -17,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
@@ -117,12 +115,12 @@ class UnmergeService(
   }
 
   private fun setClusterToNeedsAttentionIfAdditionalRecords(unmergedPersonEntity: PersonEntity, reactivatedPersonEntity: PersonEntity) {
-     when {
-       clusterContainsAdditionalRecords(unmergedPersonEntity, reactivatedPersonEntity) -> {
-         // Get latest person key from persistence
-         val personKey = personKeyRepository.findByPersonId(unmergedPersonEntity.personKey!!.personId)
-         personKey!!.status = UUIDStatusType.NEEDS_ATTENTION
-         unmergedPersonEntity.personKey = personKeyRepository.save(personKey)
+    when {
+      clusterContainsAdditionalRecords(unmergedPersonEntity, reactivatedPersonEntity) -> {
+        // Get latest person key from persistence
+        val personKey = personKeyRepository.findByPersonId(unmergedPersonEntity.personKey!!.personId)
+        personKey!!.status = UUIDStatusType.NEEDS_ATTENTION
+        unmergedPersonEntity.personKey = personKeyRepository.save(personKey)
       }
     }
   }

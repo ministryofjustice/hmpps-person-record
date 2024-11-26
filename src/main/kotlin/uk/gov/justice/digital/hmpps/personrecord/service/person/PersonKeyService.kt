@@ -4,7 +4,6 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.MatchResult
@@ -18,11 +17,6 @@ class PersonKeyService(
   private val personKeyRepository: PersonKeyRepository,
   private val telemetryService: TelemetryService,
 ) {
-
-  fun setPersonKeyStatus(personKeyEntity: PersonKeyEntity, status: UUIDStatusType): PersonKeyEntity {
-    personKeyEntity.status = status
-    return personKeyRepository.save(personKeyEntity)
-  }
 
   fun getPersonKey(personEntity: PersonEntity): PersonKeyEntity {
     val highConfidenceRecordWithUuid = searchByAllSourceSystemsAndHasUuid(personEntity)
@@ -39,7 +33,7 @@ class PersonKeyService(
       personEntity,
       mapOf(EventKeys.UUID to personKey.personId.toString()),
     )
-    return personKeyRepository.saveAndFlush(personKey)
+    return personKeyRepository.save(personKey)
   }
 
   private fun retrievePersonKey(personEntity: PersonEntity, highConfidenceRecordWithUuid: PersonEntity): PersonKeyEntity {

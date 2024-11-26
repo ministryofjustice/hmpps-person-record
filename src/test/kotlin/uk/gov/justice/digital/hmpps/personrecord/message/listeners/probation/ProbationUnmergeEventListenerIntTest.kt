@@ -370,7 +370,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val matchResponse = MatchResponse(
       matchProbabilities = mutableMapOf(
         "0" to 0.9999999,
-        "1" to 0.9999999,
       ),
     )
     stubMatchScore(matchResponse)
@@ -395,6 +394,10 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_UNMERGE_LINK_NOT_FOUND,
       mapOf("REACTIVATED_CRN" to reactivatedCrn, "RECORD_TYPE" to UnmergeRecordType.REACTIVATED.name, "SOURCE_SYSTEM" to "DELIUS"),
       times = 0,
+    )
+    checkTelemetry(
+      CPR_UUID_CREATED,
+      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       TelemetryEventType.CPR_RECORD_UNMERGED,

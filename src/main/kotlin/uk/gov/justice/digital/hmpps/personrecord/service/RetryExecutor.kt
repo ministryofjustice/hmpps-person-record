@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import feign.FeignException
 import kotlinx.coroutines.delay
 import org.hibernate.exception.ConstraintViolationException
-import org.slf4j.LoggerFactory
 import org.springframework.dao.CannotAcquireLockException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.orm.ObjectOptimisticLockingFailureException
@@ -19,7 +18,6 @@ object RetryExecutor {
   private const val EXPONENTIAL_FACTOR = 2.0
 
   private val retryables = listOf(feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class, FeignException.BadGateway::class)
-  private val log = LoggerFactory.getLogger(this::class.java)
 
   suspend fun <T> runWithRetry(
     maxAttempts: Int,
@@ -39,7 +37,6 @@ object RetryExecutor {
           e::class in exceptions -> {
             lastException = e
 
-            log.debug("Retrying on raised error: ${e.message}")
             val jitterValue = Random.nextDouble(JITTER_MIN, JITTER_MAX)
             val delayTime = (currentDelay * jitterValue).toLong()
 

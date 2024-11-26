@@ -128,9 +128,6 @@ class ReclusterService(
     // Step 1: Mark the source key as merged
     sourcePersonKey.mergedTo = targetPersonKey.id
     sourcePersonKey.status = UUIDStatusType.RECLUSTER_MERGE
-
-    // Step 2: Detach source entity from its original personKey
-    sourcePersonKey.personEntities.remove(sourcePersonEntity)
     personKeyRepository.save(sourcePersonKey)
 
     // Step 3: Attach the source entity to the target personKey

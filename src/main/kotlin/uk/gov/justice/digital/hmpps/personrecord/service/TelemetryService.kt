@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import com.microsoft.applicationinsights.TelemetryClient
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -45,7 +44,6 @@ enum class EventKeys {
   PROBABILITY_SCORE,
   HIGH_CONFIDENCE_COUNT,
   LOW_CONFIDENCE_COUNT,
-  IS_ABOVE_SELF_MATCH_THRESHOLD,
 
   FIFO,
   HEARING_ID,
@@ -84,11 +82,6 @@ class TelemetryService(private val telemetryClient: TelemetryClient) {
 
   fun trackEvent(eventType: TelemetryEventType, customDimensions: Map<EventKeys, String?>) {
     val transformedDimensions = customDimensions.entries.associate { it.key.name to it.value }
-    log.debug("Sending telemetry event: ${eventType.name}")
     telemetryClient.trackEvent(eventType.eventName, transformedDimensions, null)
-  }
-
-  companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
