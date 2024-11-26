@@ -253,6 +253,9 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubMatchScore(matchResponse)
 
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
+
+    await.atMost(10, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
+
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
     checkTelemetry(
@@ -314,6 +317,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubMatchScore(matchResponse)
 
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
+    await.atMost(10, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
     checkTelemetry(
@@ -372,6 +376,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubMatchScore(matchResponse)
 
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
+    await.atMost(10, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
     checkTelemetry(
