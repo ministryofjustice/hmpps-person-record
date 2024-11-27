@@ -69,17 +69,6 @@ class MatchService(
     return matchResult
   }
 
-  fun getSelfMatchScore(searchCriteria: PersonSearchCriteria): Pair<Boolean, Double> {
-    val matchRecord = MatchRecord.from(searchCriteria)
-    val matchRequest = MatchRequest(
-      matchingFrom = matchRecord,
-      matchingTo = listOf(matchRecord),
-    )
-    val matchScores = getScores(matchRequest)
-    val selfMatchScore = matchScores?.matchProbabilities?.get("0")!!
-    return Pair(isAboveThreshold(selfMatchScore), selfMatchScore)
-  }
-
   private fun isAboveThreshold(score: Double): Boolean = score > THRESHOLD_SCORE
 
   private fun getScores(matchRequest: MatchRequest): MatchResponse? = runBlocking {

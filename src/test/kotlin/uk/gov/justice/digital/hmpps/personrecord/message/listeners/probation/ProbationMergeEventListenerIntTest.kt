@@ -5,6 +5,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
+import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
@@ -15,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
@@ -27,6 +29,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import java.time.Duration
+import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -350,5 +354,47 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         EventKeys.MESSAGE_ID.toString() to messageId,
       ),
     )
+  }
+
+  @Test
+  fun `processes offender merge event is mapped to EventLogging table`() {
+    val sourceCrn = randomCRN()
+    val targetCrn = randomCRN()
+    val source = ApiResponseSetup(crn = sourceCrn)
+    val target = ApiResponseSetup(crn = targetCrn)
+    val personKeyEntity = createPersonKey()
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
+      personKeyEntity = personKeyEntity,
+    )
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
+      personKeyEntity = personKeyEntity,
+    )
+
+    probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+
+    val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
+      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(targetCrn)
+    }
+
+    val sourcePerson = personRepository.findByCrn(sourceCrn)
+    val targetPerson = personRepository.findByCrn(targetCrn)
+
+    val beforeDataDTO = sourcePerson?.let { Person.from(it) }
+    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
+
+    val processedDataDTO = targetPerson?.let { Person.from(it) }
+    val processedData = objectMapper.writeValueAsString(processedDataDTO)
+
+    assertThat(loggedEvent).isNotNull
+    assertThat(loggedEvent.eventType).isEqualTo(OFFENDER_MERGED)
+    assertThat(loggedEvent.sourceSystemId).isEqualTo(targetCrn)
+    assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
+    assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
+    assertThat(loggedEvent.beforeData).isEqualTo(beforeData)
+    assertThat(loggedEvent.processedData).isEqualTo(processedData)
+
+    assertThat(loggedEvent.uuid).isEqualTo(sourcePerson?.personKey?.personId.toString())
   }
 }

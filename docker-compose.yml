@@ -1,6 +1,6 @@
 services:
 
-  postgres:
+  postgres-hmpps-person-record:
     image: postgres:16.1-alpine
     ports:
       - 5432:5432
