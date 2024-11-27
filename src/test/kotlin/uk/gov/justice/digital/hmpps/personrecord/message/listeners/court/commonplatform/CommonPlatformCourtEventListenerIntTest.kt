@@ -38,7 +38,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
+import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
+import java.time.Duration
 import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -276,6 +278,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       TelemetryEventType.MESSAGE_PROCESSING_FAILED,
       mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name),
     )
+    await.atMost(Duration.ofSeconds(3)) untilCallTo {
+      courtEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(courtEventsQueue!!.dlqUrl!!).get()
+    } matches { it == 1 }
   }
 
   @Test

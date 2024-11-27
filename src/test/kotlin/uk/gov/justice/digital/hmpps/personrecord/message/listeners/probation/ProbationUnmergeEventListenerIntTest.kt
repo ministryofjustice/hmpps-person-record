@@ -391,13 +391,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    probationMergeEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.queueUrl).build(),
-    ).get()
-    probationMergeEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.dlqUrl).build(),
-    ).get()
-
     checkTelemetry(
       UNMERGE_MESSAGE_RECEIVED,
       mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
@@ -410,6 +403,10 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         EventKeys.MESSAGE_ID.toString() to messageId,
       ),
     )
+
+    await.atMost(Duration.ofSeconds(3)) untilCallTo {
+      probationMergeEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(probationMergeEventsQueue!!.dlqUrl!!).get()
+    } matches { it == 1 }
   }
 
   @Test

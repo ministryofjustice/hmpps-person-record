@@ -4,7 +4,9 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
+import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilAsserted
+import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -56,6 +58,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupIdentifier
+import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
+import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit.SECONDS
@@ -265,12 +269,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
     val messageId = publishDomainEvent(PRISONER_CREATED, domainEvent)
 
-    prisonEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.queueUrl).build(),
-    ).get()
-    prisonEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.dlqUrl).build(),
-    ).get()
     checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
 
     checkTelemetry(
@@ -281,6 +279,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         "EVENT_TYPE" to "prisoner-offender-search.prisoner.created",
       ),
     )
+    await.atMost(Duration.ofSeconds(3)) untilCallTo {
+      prisonEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(prisonEventsQueue!!.dlqUrl!!).get()
+    } matches { it == 1 }
   }
 
   @Test

@@ -307,12 +307,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       DomainEvent(eventType = PRISONER_MERGED, personReference = null, additionalInformation = additionalInformation)
     val messageId = publishDomainEvent(PRISONER_MERGED, domainEvent)
 
-    prisonMergeEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonMergeEventsQueue!!.queueUrl).build(),
-    ).get()
-    prisonMergeEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonMergeEventsQueue!!.dlqUrl).build(),
-    ).get()
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
       mapOf(
@@ -330,6 +324,10 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "EVENT_TYPE" to "prisoner-offender-events.prisoner.merged",
       ),
     )
+
+    await.atMost(Duration.ofSeconds(3)) untilCallTo {
+      prisonMergeEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(prisonMergeEventsQueue!!.dlqUrl!!).get()
+    } matches { it == 1 }
   }
 
   @Test

@@ -351,6 +351,10 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         EventKeys.MESSAGE_ID.toString() to messageId,
       ),
     )
+
+    await.atMost(Duration.ofSeconds(3)) untilCallTo {
+      probationMergeEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(probationMergeEventsQueue!!.dlqUrl!!).get()
+    } matches { it == 1 }
   }
 
   @Test

@@ -294,13 +294,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     val messageId = publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
-    probationEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationEventsQueue!!.queueUrl).build(),
-    ).get()
-    probationEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationEventsQueue!!.dlqUrl).build(),
-    ).get()
-
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"), 1)
     checkTelemetry(
       MESSAGE_PROCESSING_FAILED,
@@ -310,6 +303,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         EventKeys.MESSAGE_ID.toString() to messageId,
       ),
     )
+
+    await.atMost(Duration.ofSeconds(3)) untilCallTo {
+      probationEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(probationEventsQueue!!.dlqUrl!!).get()
+    } matches { it == 1 }
   }
 
   @Test
