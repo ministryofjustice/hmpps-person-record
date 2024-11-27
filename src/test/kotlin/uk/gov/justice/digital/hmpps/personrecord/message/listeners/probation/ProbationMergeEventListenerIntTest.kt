@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
-import feign.FeignException
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
@@ -9,8 +8,6 @@ import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
@@ -343,7 +340,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_CRN" to sourceCrn,
         "TARGET_CRN" to targetCrn,
         "EVENT_TYPE" to OFFENDER_MERGED,
-        "SOURCE_SYSTEM" to "DELIUS"
+        "SOURCE_SYSTEM" to "DELIUS",
       ),
     )
     checkTelemetry(
