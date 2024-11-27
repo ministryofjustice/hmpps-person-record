@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
+import feign.FeignException
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
@@ -8,6 +9,7 @@ import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
@@ -317,7 +319,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should log when message processing fails`() {
+  fun `should log when message processing fails and push to DLQ`() {
     val sourceCrn = randomCRN()
     val targetCrn = randomCRN()
     stub500Response(probationUrl(targetCrn), STARTED, "failure")
@@ -335,16 +337,14 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    probationMergeEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.queueUrl).build(),
-    ).get()
-    probationMergeEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.dlqUrl).build(),
-    ).get()
-
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf(
+        "SOURCE_CRN" to sourceCrn,
+        "TARGET_CRN" to targetCrn,
+        "EVENT_TYPE" to OFFENDER_MERGED,
+        "SOURCE_SYSTEM" to "DELIUS"
+      ),
     )
     checkTelemetry(
       MESSAGE_PROCESSING_FAILED,
