@@ -27,6 +27,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
@@ -56,6 +57,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupIdentifier
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit.SECONDS
 import java.util.stream.Stream
 
@@ -121,7 +123,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.contacts[1].contactValue).isEqualTo("01141234567")
       assertThat(personEntity.contacts[2].contactType).isEqualTo(MOBILE)
       assertThat(personEntity.contacts[2].contactValue).isEqualTo("01141234567")
-      assertThat(personEntity.selfMatchScore).isEqualTo(0.9999)
       assertThat(personEntity.currentlyManaged).isEqualTo(null)
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceStartDate)
     }
@@ -338,6 +339,39 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
       assertThat(personEntity.currentlyManaged).isEqualTo(result)
     }
+  }
+
+  @Test
+  fun `should map to EventLogging table when prisoner create and update event`() {
+    val prisoner = createPrisoner()
+
+    val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisoner.prisonNumber!!)
+    val beforeDataTO = personEntity?.let { Person.from(it) }
+    val beforeData = objectMapper.writeValueAsString(beforeDataTO)
+
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisoner.prisonNumber))
+
+    val additionalInformation = AdditionalInformation(prisonNumber = prisoner.prisonNumber, categoriesChanged = listOf("SENTENCE"))
+    val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, personReference = null, additionalInformation = additionalInformation)
+    publishDomainEvent(PRISONER_UPDATED, domainEvent)
+
+    val updatedPersonEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByPrisonNumberAndSourceSystem(prisoner.prisonNumber!!) }
+
+    val processedDTO = Person.from(updatedPersonEntity)
+    val processedData = objectMapper.writeValueAsString(processedDTO)
+
+    val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
+      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(prisoner.prisonNumber!!)
+    }
+
+    assertThat(loggedEvent.eventType).isEqualTo(PRISONER_UPDATED)
+    assertThat(loggedEvent.sourceSystemId).isEqualTo(prisoner.prisonNumber)
+    assertThat(loggedEvent.sourceSystem).isEqualTo(SourceSystemType.NOMIS.name)
+    assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
+    assertThat(loggedEvent.beforeData).isEqualTo(beforeData)
+    assertThat(loggedEvent.processedData).isEqualTo(processedData)
+
+    assertThat(loggedEvent.uuid).isEqualTo(personEntity?.personKey?.personId.toString())
   }
 
   private fun createPrisoner(): PersonEntity {

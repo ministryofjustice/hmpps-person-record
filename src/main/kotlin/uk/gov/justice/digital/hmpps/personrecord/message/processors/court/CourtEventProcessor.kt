@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person.Companion.getType
@@ -17,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import java.util.UUID
@@ -24,6 +24,7 @@ import java.util.UUID
 @Service
 class CourtEventProcessor(
   private val objectMapper: ObjectMapper,
+  private val createUpdateService: CreateUpdateService,
   private val personService: PersonService,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
@@ -72,7 +73,7 @@ class CourtEventProcessor(
           EventKeys.SOURCE_SYSTEM to SourceSystemType.COMMON_PLATFORM.name,
         ),
       )
-      personService.processMessage(person) {
+      createUpdateService.processMessage(person) {
         person.defendantId?.let {
           personRepository.findByDefendantId(it)
         }
@@ -94,11 +95,8 @@ class CourtEventProcessor(
         EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
       ),
     )
-    personService.processMessage(person) { isAboveSelfMatchThreshold ->
-      val personEntity = when {
-        isAboveSelfMatchThreshold -> personService.searchBySourceSystem(person)
-        else -> PersonEntity.empty
-      }
+    createUpdateService.processMessage(person) {
+      val personEntity = personService.searchBySourceSystem(person)
       person.defendantId = personEntity?.defendantId ?: UUID.randomUUID().toString()
       return@processMessage personEntity
     }
