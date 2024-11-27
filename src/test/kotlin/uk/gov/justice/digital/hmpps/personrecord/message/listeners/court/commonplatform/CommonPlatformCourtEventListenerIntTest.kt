@@ -128,7 +128,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to "COMMON_PLATFORM",
         "DEFENDANT_ID" to defendantId,
       ),
-      29,
+      times = 29,
     )
   }
 

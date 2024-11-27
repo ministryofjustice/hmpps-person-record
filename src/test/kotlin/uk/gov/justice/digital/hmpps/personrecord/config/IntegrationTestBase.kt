@@ -66,8 +66,8 @@ class IntegrationTestBase {
   internal fun checkTelemetry(
     event: TelemetryEventType,
     expected: Map<String, String?>,
-    timeout: Long = 3,
     times: Int = 1,
+    timeout: Long = 3,
   ) {
     await.atMost(timeout, SECONDS) untilAsserted {
       val allEvents = telemetryRepository.findAllByEvent(event.eventName)
