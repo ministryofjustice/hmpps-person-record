@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 
 const val CPR_COURT_CASE_EVENTS_QUEUE_CONFIG_KEY = "cprcourtcaseeventsqueue"
@@ -21,24 +22,20 @@ const val CPR_COURT_CASE_EVENTS_QUEUE_CONFIG_KEY = "cprcourtcaseeventsqueue"
 @Component
 @Profile("!seeding")
 class CourtEventListener(
-  val objectMapper: ObjectMapper,
-  val courtEventProcessor: CourtEventProcessor,
-  val telemetryService: TelemetryService,
+  private val objectMapper: ObjectMapper,
+  private val courtEventProcessor: CourtEventProcessor,
+  private val telemetryService: TelemetryService,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
   @SqsListener(CPR_COURT_CASE_EVENTS_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
-  fun onMessage(
-    rawMessage: String,
-  ) {
+  fun onMessage(rawMessage: String) = TimeoutExecutor.runWithTimeout {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     when (sqsMessage.type) {
       NOTIFICATION -> handleEvent(sqsMessage)
-      else -> {
-        log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
-      }
+      else -> log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
     }
   }
 

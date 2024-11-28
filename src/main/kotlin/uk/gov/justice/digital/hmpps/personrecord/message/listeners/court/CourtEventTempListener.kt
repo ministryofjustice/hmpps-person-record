@@ -25,15 +25,13 @@ const val CPR_COURT_EVENTS_TEMP_QUEUE_CONFIG_KEY = "cprcourtcaseeventstemporaryq
 @Component
 @Profile("!dev")
 class CourtEventTempListener(
-  val objectMapper: ObjectMapper,
-  val telemetryService: TelemetryService,
-  val queueService: QueueService,
+  private val objectMapper: ObjectMapper,
+  private val telemetryService: TelemetryService,
+  private val queueService: QueueService,
 ) {
 
   @SqsListener(CPR_COURT_EVENTS_TEMP_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
-  fun onMessage(
-    rawMessage: String,
-  ) {
+  fun onMessage(rawMessage: String) {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     when (sqsMessage.getMessageType()) {
       COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
