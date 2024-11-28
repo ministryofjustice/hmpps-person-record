@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.Priso
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 
 const val PRISON_EVENT_QUEUE_CONFIG_KEY = "cprnomiseventsqueue"
@@ -33,13 +34,16 @@ class PrisonEventListener(
   fun onDomainEvent(
     rawMessage: String,
   ) {
-    val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-    when (sqsMessage.type) {
-      NOTIFICATION -> {
-        val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
-        handleEvent(domainEvent, sqsMessage.messageId)
+    TimeoutExecutor.runWithTimeout {
+      val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
+      when (sqsMessage.type) {
+        NOTIFICATION -> {
+          val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
+          handleEvent(domainEvent, sqsMessage.messageId)
+        }
+
+        else -> log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
       }
-      else -> log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
     }
   }
 

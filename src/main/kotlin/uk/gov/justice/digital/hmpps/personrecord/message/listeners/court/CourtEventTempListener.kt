@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.FIFO
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.QueueService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.FIFO_DEFENDANT_RECEIVED
 
@@ -34,10 +35,12 @@ class CourtEventTempListener(
   fun onMessage(
     rawMessage: String,
   ) {
-    val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-    when (sqsMessage.getMessageType()) {
-      COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
-      else -> processLibraEvent(sqsMessage)
+    TimeoutExecutor.runWithTimeout {
+      val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
+      when (sqsMessage.getMessageType()) {
+        COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
+        else -> processLibraEvent(sqsMessage)
+      }
     }
   }
 

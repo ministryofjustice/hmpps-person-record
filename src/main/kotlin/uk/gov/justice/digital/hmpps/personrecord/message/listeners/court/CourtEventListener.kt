@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 
 const val CPR_COURT_CASE_EVENTS_QUEUE_CONFIG_KEY = "cprcourtcaseeventsqueue"
@@ -33,11 +34,13 @@ class CourtEventListener(
   fun onMessage(
     rawMessage: String,
   ) {
-    val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-    when (sqsMessage.type) {
-      NOTIFICATION -> handleEvent(sqsMessage)
-      else -> {
-        log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
+    TimeoutExecutor.runWithTimeout {
+      val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
+      when (sqsMessage.type) {
+        NOTIFICATION -> handleEvent(sqsMessage)
+        else -> {
+          log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
+        }
       }
     }
   }

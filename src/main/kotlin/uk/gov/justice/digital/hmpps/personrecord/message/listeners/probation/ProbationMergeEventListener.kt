@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
@@ -39,17 +40,20 @@ class ProbationMergeEventListener(
   fun onDomainEvent(
     rawMessage: String,
   ) {
-    val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-    when (sqsMessage.type) {
-      NOTIFICATION -> {
-        val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
-        when (sqsMessage.messageAttributes?.eventType?.value) {
-          OFFENDER_MERGED -> handleMergeEvent(domainEvent, sqsMessage.messageId)
-          OFFENDER_UNMERGED -> handleUnmergeEvent(domainEvent, sqsMessage.messageId)
+    TimeoutExecutor.runWithTimeout {
+      val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
+      when (sqsMessage.type) {
+        NOTIFICATION -> {
+          val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
+          when (sqsMessage.messageAttributes?.eventType?.value) {
+            OFFENDER_MERGED -> handleMergeEvent(domainEvent, sqsMessage.messageId)
+            OFFENDER_UNMERGED -> handleUnmergeEvent(domainEvent, sqsMessage.messageId)
+          }
         }
-      }
-      else -> {
-        log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
+
+        else -> {
+          log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
+        }
       }
     }
   }

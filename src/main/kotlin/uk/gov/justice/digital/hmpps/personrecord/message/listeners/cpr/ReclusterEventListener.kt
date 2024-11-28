@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.Reclu
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.cpr.ReclusterEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.type.RECLUSTER_EVENT
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 
@@ -24,8 +25,10 @@ class ReclusterEventListener(
 
   @SqsListener(RECLUSTER_EVENTS_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
   fun onMessage(rawMessage: String) {
-    val reclusterEvent = objectMapper.readValue<Recluster>(rawMessage)
-    handleEvent(reclusterEvent)
+    TimeoutExecutor.runWithTimeout {
+      val reclusterEvent = objectMapper.readValue<Recluster>(rawMessage)
+      handleEvent(reclusterEvent)
+    }
   }
 
   private fun handleEvent(reclusterEvent: Recluster) {
