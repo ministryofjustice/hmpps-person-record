@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.cpr
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.awspring.cloud.sqs.annotation.SqsListener
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.Recluster
@@ -22,11 +21,10 @@ class ReclusterEventListener(
   private val objectMapper: ObjectMapper,
   private val reclusterEventProcessor: ReclusterEventProcessor,
   private val telemetryService: TelemetryService,
-  @Value("\${timeout.message}") private val messageTimeoutMs: Long = 90000,
 ) {
 
   @SqsListener(RECLUSTER_EVENTS_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
-  fun onMessage(rawMessage: String) = TimeoutExecutor.runWithTimeout(messageTimeoutMs) {
+  fun onMessage(rawMessage: String) = TimeoutExecutor.runWithTimeout {
     val reclusterEvent = objectMapper.readValue<Recluster>(rawMessage)
     handleEvent(reclusterEvent)
   }

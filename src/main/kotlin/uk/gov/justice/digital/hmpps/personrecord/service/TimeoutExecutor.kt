@@ -5,7 +5,10 @@ import kotlinx.coroutines.withTimeout
 
 object TimeoutExecutor {
 
-  fun runWithTimeout(timeout: Long, task: () -> Unit) = runBlocking {
+  // Rule of thumb: Message timeout <= visibility_timeout_seconds / maxReceiveCount
+  private const val MESSAGE_TIMEOUT: Long = 30000
+
+  fun runWithTimeout(timeout: Long = MESSAGE_TIMEOUT, task: () -> Unit) = runBlocking {
     withTimeout(timeout) {
       task()
     }

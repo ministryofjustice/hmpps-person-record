@@ -5,7 +5,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import feign.FeignException
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
@@ -28,18 +27,17 @@ const val PROBATION_MERGE_EVENT_QUEUE_CONFIG_KEY = "cprdeliusmergeeventsqueue"
 @Component
 @Profile("!seeding")
 class ProbationMergeEventListener(
-  val mergeEventProcessor: ProbationMergeEventProcessor,
-  val unmergeEventProcessor: ProbationUnmergeEventProcessor,
-  val objectMapper: ObjectMapper,
-  val telemetryService: TelemetryService,
-  @Value("\${timeout.message}") private val messageTimeoutMs: Long = 90000,
+  private val mergeEventProcessor: ProbationMergeEventProcessor,
+  private val unmergeEventProcessor: ProbationUnmergeEventProcessor,
+  private val objectMapper: ObjectMapper,
+  private val telemetryService: TelemetryService,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
   @SqsListener(PROBATION_MERGE_EVENT_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = TimeoutExecutor.runWithTimeout(messageTimeoutMs) {
+  fun onDomainEvent(rawMessage: String) = TimeoutExecutor.runWithTimeout {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     when (sqsMessage.type) {
       NOTIFICATION -> {

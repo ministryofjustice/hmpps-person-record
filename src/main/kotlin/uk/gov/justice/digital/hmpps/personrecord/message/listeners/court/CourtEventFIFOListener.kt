@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.FIFO_DEFENDANT_RECEIVED
 const val MAX_RETRY_ATTEMPTS: Int = 3
 const val CPR_COURT_EVENTS_FIFO_QUEUE_CONFIG_KEY = "cprcourteventsfifoqueue"
@@ -30,14 +29,12 @@ class CourtEventFIFOListener(
   private val objectMapper: ObjectMapper,
   private val telemetryService: TelemetryService,
   private val tempHearingService: TempHearingService,
-  @Value("\${timeout.message}")
-  private val messageTimeoutMs: Long = 90000,
   @Value("\${retry.delay}")
   private val retryDelay: Long = 0,
 ) {
 
   @SqsListener(CPR_COURT_EVENTS_FIFO_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
-  fun onMessage(rawMessage: String) = TimeoutExecutor.runWithTimeout(messageTimeoutMs) {
+  fun onMessage(rawMessage: String) {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     when (sqsMessage.getMessageType()) {
       MessageType.COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
