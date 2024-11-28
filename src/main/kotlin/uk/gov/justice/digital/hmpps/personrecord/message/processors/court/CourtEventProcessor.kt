@@ -49,56 +49,63 @@ class CourtEventProcessor(
       sqsMessage.message,
     )
 
-    val uniqueDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
-      .flatMap { it.defendants }
-      .filterNot { it.isYouth }
-      .distinctBy {
-        it.personDefendant?.personDetails?.firstName +
-          it.personDefendant?.personDetails?.lastName +
-          it.personDefendant?.personDetails?.dateOfBirth +
-          it.pncId +
-          it.cro
-      }
-    val defendantIDs = uniqueDefendants.joinToString(" ") { it.id.toString() }
-    log.debug("Processing Common Platform Event with ${uniqueDefendants.size} distinct defendants with defendantId $defendantIDs")
-
-    uniqueDefendants.forEach { defendant ->
-      val person = Person.from(defendant)
-      telemetryService.trackEvent(
-        MESSAGE_RECEIVED,
-        mapOf(
-          EventKeys.DEFENDANT_ID to person.defendantId,
-          EventKeys.EVENT_TYPE to COMMON_PLATFORM_HEARING.name,
-          EventKeys.MESSAGE_ID to sqsMessage.messageId,
-          EventKeys.SOURCE_SYSTEM to SourceSystemType.COMMON_PLATFORM.name,
-        ),
-      )
-      createUpdateService.processMessage(person) {
-        person.defendantId?.let {
-          personRepository.findByDefendantId(it)
+    run {
+      val uniqueDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
+        .flatMap { it.defendants }
+        .filterNot { it.isYouth }
+        .distinctBy {
+          it.personDefendant?.personDetails?.firstName +
+            it.personDefendant?.personDetails?.lastName +
+            it.personDefendant?.personDetails?.dateOfBirth +
+            it.pncId +
+            it.cro
         }
+      val defendantIDs = uniqueDefendants.joinToString(" ") { it.id.toString() }
+      log.debug("Processing Common Platform Event with ${uniqueDefendants.size} distinct defendants with defendantId $defendantIDs")
+
+      uniqueDefendants.forEach { defendant ->
+        val person = Person.from(defendant)
+        telemetryService.trackEvent(
+          MESSAGE_RECEIVED,
+          mapOf(
+            EventKeys.DEFENDANT_ID to person.defendantId,
+            EventKeys.EVENT_TYPE to COMMON_PLATFORM_HEARING.name,
+            EventKeys.MESSAGE_ID to sqsMessage.messageId,
+            EventKeys.SOURCE_SYSTEM to SourceSystemType.COMMON_PLATFORM.name,
+          ),
+        )
+        createUpdateService.processMessage(person) {
+          person.defendantId?.let {
+            personRepository.findByDefendantId(it)
+          }
+        }
+        person.defendantId = null
       }
     }
   }
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
     val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(sqsMessage.message)
-    val person = Person.from(libraHearingEvent)
 
-    telemetryService.trackEvent(
-      MESSAGE_RECEIVED,
-      mapOf(
-        EventKeys.PNC to person.references.getType(IdentifierType.PNC).toString(),
-        EventKeys.CRO to person.references.getType(IdentifierType.CRO).toString(),
-        EventKeys.EVENT_TYPE to LIBRA_COURT_CASE.name,
-        EventKeys.MESSAGE_ID to sqsMessage.messageId,
-        EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
-      ),
-    )
-    createUpdateService.processMessage(person) {
-      val personEntity = personService.searchBySourceSystem(person)
-      person.defendantId = personEntity?.defendantId ?: UUID.randomUUID().toString()
-      return@processMessage personEntity
+    run {
+      val person = Person.from(libraHearingEvent)
+
+      telemetryService.trackEvent(
+        MESSAGE_RECEIVED,
+        mapOf(
+          EventKeys.PNC to person.references.getType(IdentifierType.PNC).toString(),
+          EventKeys.CRO to person.references.getType(IdentifierType.CRO).toString(),
+          EventKeys.EVENT_TYPE to LIBRA_COURT_CASE.name,
+          EventKeys.MESSAGE_ID to sqsMessage.messageId,
+          EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
+        ),
+      )
+      createUpdateService.processMessage(person) {
+        val personEntity = personService.searchBySourceSystem(person)
+        person.defendantId = personEntity?.defendantId ?: UUID.randomUUID().toString()
+        return@processMessage personEntity
+      }
+      person.defendantId = null
     }
   }
 }
