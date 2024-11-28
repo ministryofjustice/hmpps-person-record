@@ -40,7 +40,19 @@ data class Person(
   val sentences: List<SentenceInfo> = emptyList(),
   val currentlyManaged: Boolean? = null,
 ) {
+
   companion object {
+
+    fun Person?.extractSourceSystemId(): String? {
+      return when (this?.sourceSystemType) {
+        DELIUS -> this.crn
+        NOMIS -> this.prisonNumber
+        COMMON_PLATFORM -> this.defendantId
+        LIBRA -> this.defendantId
+        else -> null
+      }
+    }
+
     fun List<Reference>.getType(type: IdentifierType): List<Reference> {
       return this.filter { it.identifierType == type }
     }

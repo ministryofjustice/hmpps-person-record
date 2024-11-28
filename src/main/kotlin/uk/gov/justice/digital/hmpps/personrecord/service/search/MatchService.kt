@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.search
 
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 const val MAX_RETRY_ATTEMPTS: Int = 3
 
-@Service
+@Component
 class MatchService(
   private val matchScoreClient: MatchScoreClient,
   private val telemetryService: TelemetryService,

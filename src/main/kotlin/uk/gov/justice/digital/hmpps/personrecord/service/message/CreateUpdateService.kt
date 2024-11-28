@@ -4,15 +4,15 @@ import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.shouldCreateOrUpdate
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
 import uk.gov.justice.digital.hmpps.personrecord.service.ReadWriteLockService
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.QueueService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
@@ -26,40 +26,39 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class CreateUpdateService(
   private val telemetryService: TelemetryService,
   private val personService: PersonService,
-  private val personKeyService: PersonKeyService,
   private val readWriteLockService: ReadWriteLockService,
-  @Value("\${retry.delay}") private val retryDelay: Long,
+  private val queueService: QueueService,
   private val eventLoggingService: EventLoggingService,
-
+  @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
-  fun processMessage(person: Person, event: String? = null, linkRecord: Boolean = true, callback: () -> PersonEntity?): PersonEntity = runBlocking {
+  fun processMessage(person: Person, event: String? = null, callback: () -> PersonEntity?): PersonEntity = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
       readWriteLockService.withWriteLock(person.sourceSystemType) {
-        return@withWriteLock processPerson(person, event, linkRecord, callback)
+        return@withWriteLock processPerson(person, event, callback)
       }
     }
   }
 
-  private fun processPerson(person: Person, event: String?, linkRecord: Boolean, callback: () -> PersonEntity?): PersonEntity {
-    val existingPersonEntity: PersonEntity? = callback()
-    val personEntity: PersonEntity = when {
-      (existingPersonEntity == null) -> handlePersonCreation(person, event, linkRecord)
-      else -> handlePersonUpdate(person, existingPersonEntity, event)
-    }
-    return personEntity
+  private fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?): PersonEntity {
+    val existingPersonEntitySearch: PersonEntity? = callback()
+    return existingPersonEntitySearch.shouldCreateOrUpdate(
+      shouldCreate = {
+        handlePersonCreation(person, event)
+      },
+      shouldUpdate = {
+        handlePersonUpdate(person, it, event)
+      },
+    )
   }
 
-  private fun handlePersonCreation(person: Person, event: String?, linkRecord: Boolean): PersonEntity {
+  private fun handlePersonCreation(person: Person, event: String?): PersonEntity {
     if (isUpdateEvent(event)) {
       telemetryService.trackPersonEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
     }
     val personEntity: PersonEntity = personService.createPersonEntity(person)
-    val personKey: PersonKeyEntity? = when {
-      linkRecord -> personKeyService.getPersonKey(personEntity)
-      else -> PersonKeyEntity.empty
-    }
-    personService.linkPersonEntityToPersonKey(personEntity, personKey)
+    personService.linkRecordToPersonKey(personEntity)
+
     val processedDataDTO = Person.from(personEntity)
 
     eventLoggingService.recordEventLog(
@@ -77,9 +76,7 @@ class CreateUpdateService(
       telemetryService.trackPersonEvent(CPR_NEW_RECORD_EXISTS, person)
     }
     val beforeDataDTO = Person.from(existingPersonEntity)
-
     val updatedPerson = personService.updatePersonEntity(person, existingPersonEntity)
-
     val processedDataDTO = Person.from(updatedPerson)
 
     eventLoggingService.recordEventLog(
@@ -88,6 +85,7 @@ class CreateUpdateService(
       uuid = existingPersonEntity.personKey?.personId?.toString(),
       eventType = event,
     )
+    updatedPerson.personKey?.personId?.let { queueService.publishReclusterMessageToQueue(it) }
     return updatedPerson
   }
 

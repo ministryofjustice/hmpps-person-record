@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.service.person
+package uk.gov.justice.digital.hmpps.personrecord.service.message
 
 import jakarta.transaction.Transactional
 import kotlinx.coroutines.runBlocking
@@ -27,14 +27,12 @@ import java.util.UUID
 class ReclusterService(
   private val matchService: MatchService,
   private val telemetryService: TelemetryService,
-  private val personKeyService: PersonKeyService,
   private val searchService: SearchService,
   private val personRepository: PersonRepository,
   private val personKeyRepository: PersonKeyRepository,
   @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
-  @Transactional
   fun recluster(personUUID: UUID?) = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
       personKeyRepository.findByPersonId(personUUID)?.let {
@@ -43,6 +41,7 @@ class ReclusterService(
     }
   }
 
+  @Transactional
   private fun handleRecluster(personKeyEntity: PersonKeyEntity) {
     when {
       clusterNeedsAttention(personKeyEntity) -> telemetryService.trackEvent(
@@ -87,7 +86,8 @@ class ReclusterService(
         mapOf(EventKeys.UUID to personKeyEntity.personId.toString()),
       )
       else -> {
-        personKeyService.setPersonKeyStatus(personKeyEntity, UUIDStatusType.NEEDS_ATTENTION)
+        personKeyEntity.status = UUIDStatusType.NEEDS_ATTENTION
+        personKeyRepository.save(personKeyEntity)
         telemetryService.trackEvent(
           CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
           mapOf(EventKeys.UUID to personKeyEntity.personId.toString()),
@@ -125,19 +125,13 @@ class ReclusterService(
     val sourcePersonKey = sourcePersonEntity.personKey!!
     val targetPersonKey = targetPersonEntity.personKey!!
 
-    // Step 1: Mark the source key as merged
     sourcePersonKey.mergedTo = targetPersonKey.id
     sourcePersonKey.status = UUIDStatusType.RECLUSTER_MERGE
-
-    // Step 2: Detach source entity from its original personKey
-    sourcePersonKey.personEntities.remove(sourcePersonEntity)
     personKeyRepository.save(sourcePersonKey)
 
-    // Step 3: Attach the source entity to the target personKey
     sourcePersonEntity.personKey = targetPersonKey
     personRepository.save(sourcePersonEntity)
 
-    // Step 4: Add the source entity to the target's personEntities list
     targetPersonKey.personEntities.add(sourcePersonEntity)
     personKeyRepository.save(targetPersonKey)
   }
