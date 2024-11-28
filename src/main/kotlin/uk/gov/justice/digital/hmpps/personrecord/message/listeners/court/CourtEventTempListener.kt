@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.awspring.cloud.sqs.annotation.SqsListener
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
@@ -26,21 +27,18 @@ const val CPR_COURT_EVENTS_TEMP_QUEUE_CONFIG_KEY = "cprcourtcaseeventstemporaryq
 @Component
 @Profile("!dev")
 class CourtEventTempListener(
-  val objectMapper: ObjectMapper,
-  val telemetryService: TelemetryService,
-  val queueService: QueueService,
+  private val objectMapper: ObjectMapper,
+  private val telemetryService: TelemetryService,
+  private val queueService: QueueService,
+  @Value("\${timeout.message}") private val messageTimeoutMs: Long = 90000,
 ) {
 
   @SqsListener(CPR_COURT_EVENTS_TEMP_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
-  fun onMessage(
-    rawMessage: String,
-  ) {
-    TimeoutExecutor.runWithTimeout {
-      val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-      when (sqsMessage.getMessageType()) {
-        COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
-        else -> processLibraEvent(sqsMessage)
-      }
+  fun onMessage(rawMessage: String) = TimeoutExecutor.runWithTimeout(messageTimeoutMs) {
+    val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
+    when (sqsMessage.getMessageType()) {
+      COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
+      else -> processLibraEvent(sqsMessage)
     }
   }
 

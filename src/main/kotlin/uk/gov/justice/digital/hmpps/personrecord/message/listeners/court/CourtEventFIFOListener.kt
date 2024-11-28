@@ -27,23 +27,21 @@ const val CPR_COURT_EVENTS_FIFO_QUEUE_CONFIG_KEY = "cprcourteventsfifoqueue"
 @Component
 @Profile("!dev")
 class CourtEventFIFOListener(
-  val objectMapper: ObjectMapper,
-  val telemetryService: TelemetryService,
-  val tempHearingService: TempHearingService,
+  private val objectMapper: ObjectMapper,
+  private val telemetryService: TelemetryService,
+  private val tempHearingService: TempHearingService,
+  @Value("\${timeout.message}")
+  private val messageTimeoutMs: Long = 90000,
   @Value("\${retry.delay}")
   private val retryDelay: Long = 0,
 ) {
-  @SqsListener(CPR_COURT_EVENTS_FIFO_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
-  fun onMessage(
-    rawMessage: String,
-  ) {
-    TimeoutExecutor.runWithTimeout {
-      val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
 
-      when (sqsMessage.getMessageType()) {
-        MessageType.COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
-        else -> processLibraEvent(sqsMessage)
-      }
+  @SqsListener(CPR_COURT_EVENTS_FIFO_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
+  fun onMessage(rawMessage: String) = TimeoutExecutor.runWithTimeout(messageTimeoutMs) {
+    val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
+    when (sqsMessage.getMessageType()) {
+      MessageType.COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
+      else -> processLibraEvent(sqsMessage)
     }
   }
 

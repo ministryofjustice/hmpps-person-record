@@ -23,6 +23,9 @@ core-person-record-and-delius:
 retry:
   delay: 450
 
+timeout:
+  message: 90000
+
 hmpps.sqs:
   enabled: true
   provider: localstack
