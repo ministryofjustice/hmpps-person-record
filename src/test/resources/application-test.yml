@@ -24,7 +24,7 @@ retry:
   delay: 450
 
 timeout:
-  message: 90000
+  message: 30000
 
 hmpps.sqs:
   enabled: true

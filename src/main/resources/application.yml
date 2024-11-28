@@ -102,7 +102,8 @@ retry:
   delay: 2000
 
 timeout:
-  message: 90000
+  # Rule of thumb: Message timeout <= visibility_timeout_seconds / maxReceiveCount
+  message: 30000
 
 populate-from-nomis:
   page-size: 1000

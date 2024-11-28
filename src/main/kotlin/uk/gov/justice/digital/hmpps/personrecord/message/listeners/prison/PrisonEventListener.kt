@@ -26,7 +26,7 @@ class PrisonEventListener(
   private val objectMapper: ObjectMapper,
   private val prisonEventProcessor: PrisonEventProcessor,
   private val telemetryService: TelemetryService,
-  @Value("\${timeout.message}") private val messageTimeoutMs: Long = 90000,
+  @Value("\${timeout.message}") private val  messageTimeoutMs: Long = 30000,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
