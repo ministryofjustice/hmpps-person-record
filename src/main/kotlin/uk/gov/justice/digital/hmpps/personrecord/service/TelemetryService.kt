@@ -44,9 +44,6 @@ enum class EventKeys {
   PROBABILITY_SCORE,
   HIGH_CONFIDENCE_COUNT,
   LOW_CONFIDENCE_COUNT,
-
-  FIFO,
-  HEARING_ID,
 }
 
 @Component

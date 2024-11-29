@@ -1,9 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.type
 
 enum class TelemetryEventType(val eventName: String) {
-  FIFO_DEFENDANT_RECEIVED("CprDefendantEventReceived"),
-  FIFO_HEARING_CREATED("CprFIFOHearingCreated"),
-  FIFO_HEARING_UPDATED("CprFIFOHearingUpdated"),
   MESSAGE_RECEIVED("CprDomainEventReceived"),
   MERGE_MESSAGE_RECEIVED("CprMergeEventReceived"),
   UNMERGE_MESSAGE_RECEIVED("CprUnmergeEventReceived"),

@@ -22,14 +22,6 @@ hmpps.sqs:
       subscribeTopicId: courtcaseeventstopic
       dlqName: cpr_court_case_events_queue_dlq
       dlqMaxReceiveCount: 1
-    cprcourtcaseeventstemporaryqueue:
-      queueName: cpr_court_case_events_temporary_queue
-      subscribeTopicId: courtcaseeventstopic
-    cprcourteventsfifoqueue:
-      queueName: cpr_court_events_queue.fifo
-      subscribeTopicId: courteventsfifotopic
-      dlqName: cpr_court_events_queue_dlq.fifo
-      dlqMaxReceiveCount: 1
     cprdeliusoffendereventsqueue:
       queueName: cpr_delius_offender_events_queue
       dlqName: cpr_delius_offender_events_queue_dlq
@@ -61,8 +53,6 @@ hmpps.sqs:
   topics:
     courtcaseeventstopic:
       arn: arn:aws:sns:eu-west-2:000000000000:courtcaseeventstopic
-    courteventsfifotopic:
-      arn: arn:aws:sns:eu-west-2:000000000000:courteventstopic.fifo
     domainevents:
       arn: arn:aws:sns:eu-west-2:000000000000:domainevents
 
