@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
 
@@ -25,8 +26,8 @@ data class ApiResponseSetup(
   val cro: String? = null,
   val pnc: String? = null,
   val prefix: String? = null,
-  val firstName: String? = null,
-  val lastName: String? = null,
+  val firstName: String? = randomName(),
+  val lastName: String? = randomName(),
   val nationality: String? = null,
   val religion: String? = null,
   val prisonNumber: String? = null,

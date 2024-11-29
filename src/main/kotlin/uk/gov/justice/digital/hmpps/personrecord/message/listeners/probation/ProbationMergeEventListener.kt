@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
@@ -26,19 +27,17 @@ const val PROBATION_MERGE_EVENT_QUEUE_CONFIG_KEY = "cprdeliusmergeeventsqueue"
 @Component
 @Profile("!seeding")
 class ProbationMergeEventListener(
-  val mergeEventProcessor: ProbationMergeEventProcessor,
-  val unmergeEventProcessor: ProbationUnmergeEventProcessor,
-  val objectMapper: ObjectMapper,
-  val telemetryService: TelemetryService,
+  private val mergeEventProcessor: ProbationMergeEventProcessor,
+  private val unmergeEventProcessor: ProbationUnmergeEventProcessor,
+  private val objectMapper: ObjectMapper,
+  private val telemetryService: TelemetryService,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
   @SqsListener(PROBATION_MERGE_EVENT_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(
-    rawMessage: String,
-  ) {
+  fun onDomainEvent(rawMessage: String) = TimeoutExecutor.runWithTimeout {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     when (sqsMessage.type) {
       NOTIFICATION -> {
@@ -48,9 +47,7 @@ class ProbationMergeEventListener(
           OFFENDER_UNMERGED -> handleUnmergeEvent(domainEvent, sqsMessage.messageId)
         }
       }
-      else -> {
-        log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
-      }
+      else -> log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
     }
   }
 

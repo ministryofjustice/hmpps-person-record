@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.service.person
+package uk.gov.justice.digital.hmpps.personrecord.service.message
 
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
@@ -87,7 +87,7 @@ class DeletionService(
 
   private fun removeLinkToRecord(personEntity: PersonEntity) {
     personEntity.personKey?.personEntities?.remove(personEntity)
-    personKeyRepository.saveAndFlush(personEntity.personKey!!)
+    personKeyRepository.save(personEntity.personKey!!)
   }
 
   companion object {

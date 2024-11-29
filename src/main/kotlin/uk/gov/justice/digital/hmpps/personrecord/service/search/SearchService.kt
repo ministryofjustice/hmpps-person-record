@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.search
 
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonBlockingRulesRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQueries
@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
 
-@Service
+@Component
 class SearchService(
   private val telemetryService: TelemetryService,
   private val matchService: MatchService,
