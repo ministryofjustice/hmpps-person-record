@@ -14,14 +14,6 @@ generic-service:
     PRISON_SERVICE_BASE_URL: https://prison-api.prison.service.justice.gov.uk
     CORE_PERSON_RECORD_AND_DELIUS_BASE_URL: https://core-person-record-and-delius.hmpps.service.justice.gov.uk
 
-  namespace_secrets:
-    sqs-cpr-court-case-events-temporary-secret:
-      HMPPS_SQS_QUEUES_CPRCOURTCASEEVENTSTEMPORARYQUEUE_QUEUE_NAME: "sqs_queue_name"
-    sqs-cpr-court-case-fifo-events-secret:
-      HMPPS_SQS_QUEUES_CPRCOURTEVENTSFIFOQUEUE_QUEUE_NAME: "sqs_queue_name"
-    court-case-events-fifo-topic:
-      HMPPS_SQS_TOPICS_COURTEVENTSFIFOTOPIC_ARN: "topic_arn"
-
 generic-prometheus-alerts:
   sqsOldestAlertQueueNames:
     - "hmpps-person-record-prod-cpr_court_case_events_queue"
