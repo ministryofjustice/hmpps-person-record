@@ -81,7 +81,11 @@ tasks {
   register("initialiseDatabase", Test::class) {
     include("**/HealthCheckIntTest.class")
   }
-
+  register("fastTest", Test::class) {
+    filter {
+      exclude("**/*ListenerIntTest*")
+    }
+  }
   getByName("check") {
     dependsOn(":ktlintCheck", "detekt")
     finalizedBy("koverHtmlReport")
