@@ -45,10 +45,5 @@ class PersonKeyEntity(
     val empty: PersonKeyEntity? = null
 
     fun new(): PersonKeyEntity = PersonKeyEntity(personId = UUID.randomUUID())
-
-    fun PersonKeyEntity?.shouldCreateOrRetrieve(shouldCreate: () -> PersonKeyEntity, shouldRetrieve: (personKeyEntity: PersonKeyEntity) -> PersonKeyEntity): PersonKeyEntity = when {
-      this == PersonEntity.empty -> shouldCreate()
-      else -> shouldRetrieve(this)
-    }
   }
 }
