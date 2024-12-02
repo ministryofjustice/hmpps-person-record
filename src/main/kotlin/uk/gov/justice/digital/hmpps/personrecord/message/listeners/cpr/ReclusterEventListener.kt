@@ -10,10 +10,9 @@ import uk.gov.justice.digital.hmpps.personrecord.message.processors.cpr.Recluste
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.service.type.RECLUSTER_EVENT
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
-
-private const val RECLUSTER_EVENTS_QUEUE_CONFIG_KEY = "cprreclustereventsqueue"
 
 @Component
 @Profile("!seeding")
@@ -23,7 +22,7 @@ class ReclusterEventListener(
   private val telemetryService: TelemetryService,
 ) {
 
-  @SqsListener(RECLUSTER_EVENTS_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
+  @SqsListener(Queues.RECLUSTER_EVENTS_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
   fun onMessage(rawMessage: String) = TimeoutExecutor.runWithTimeout {
     val reclusterEvent = objectMapper.readValue<Recluster>(rawMessage)
     handleEvent(reclusterEvent)
