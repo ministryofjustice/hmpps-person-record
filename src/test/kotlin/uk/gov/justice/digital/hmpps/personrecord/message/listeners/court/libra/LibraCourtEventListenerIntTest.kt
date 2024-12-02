@@ -369,7 +369,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should process libra with large amount of candidates - CPR-354`() {
     personRepository.deleteAllInBatch()
     personKeyRepository.deleteAllInBatch()
-    await untilAsserted { assertThat(personRepository.count()).isEqualTo(0) }
+    awaitAssert { assertThat(personRepository.count()).isEqualTo(0) }
 
     // Create 200,000 random records
     blitz(200000, 10) {
