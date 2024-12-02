@@ -101,7 +101,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
 
-    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+    val personEntity = await.atMost(4, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
     assertThat(personEntity.personKey).isNotNull()
     assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
@@ -203,7 +203,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should write offender without PNC if PNC is missing`() {
     val crn = randomCRN()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = null))
-    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+    val personEntity = await.atMost(4, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
     assertThat(personEntity.references.getType(IdentifierType.PNC)).isEqualTo(emptyList<ReferenceEntity>())
 
@@ -217,12 +217,12 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val prisonNumber: String = randomPrisonNumber()
     val crn = randomCRN()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, prisonNumber = prisonNumber))
-    await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+    await.atMost(4, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
     val nextCrn = randomCRN()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = nextCrn, prisonNumber = prisonNumber))
-    await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(nextCrn) }
+    await.atMost(4, SECONDS) untilNotNull { personRepository.findByCrn(nextCrn) }
 
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to nextCrn))
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
@@ -233,7 +233,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val crn = randomCRN()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = ""))
 
-    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+    val personEntity = await.atMost(4, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
     assertThat(personEntity.references.getType(IdentifierType.PNC)).isEqualTo(emptyList<ReferenceEntity>())
 
@@ -329,7 +329,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val pnc = randomPnc()
     val crn = randomCRN()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc))
-    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+    val personEntity = await.atMost(4, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(personEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
@@ -339,7 +339,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to event, "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
-    val updatedPersonEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+    val updatedPersonEntity = await.atMost(4, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
     assertThat(updatedPersonEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(changedPnc)
 
     checkTelemetry(
@@ -382,12 +382,12 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
 
-    await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn)?.personKey }
+    await.atMost(4, SECONDS) untilNotNull { personRepository.findByCrn(crn)?.personKey }
     val personEntity = personRepository.findByCrn(crn)!!
     val processedDataDTO = Person.from(personEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
-    val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
+    val loggedEvent = await.atMost(4, SECONDS) untilNotNull {
       eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(crn)
     }
     assertThat(loggedEvent.eventType).isEqualTo(NEW_OFFENDER_CREATED)
@@ -408,11 +408,11 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, firstName = firstName))
 
-    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+    val personEntity = await.atMost(4, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
     probationEventAndResponseSetup(OFFENDER_DETAILS_CHANGED, ApiResponseSetup(crn = crn, firstName = changedFirstName))
 
-    await.atMost(10, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(crn)?.firstName).isEqualTo(changedFirstName) }
+    await.atMost(4, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(crn)?.firstName).isEqualTo(changedFirstName) }
     val updatedPersonEntity = personRepository.findByCrn(crn)!!
     val beforeDataDTO = Person.from(personEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
@@ -420,7 +420,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val processedDataDTO = Person.from(updatedPersonEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
-    val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
+    val loggedEvent = await.atMost(4, SECONDS) untilNotNull {
       eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(crn)
     }
 

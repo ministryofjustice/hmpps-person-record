@@ -83,7 +83,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("CRN" to crn, "UUID" to personKey.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
-    await.atMost(10, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(crn)).isNull() }
+    await.atMost(4, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(crn)).isNull() }
 
     val updatedCluster = personKeyRepository.findByPersonId(personKey.personId)
     assertThat(updatedCluster).isNotNull()
@@ -394,14 +394,14 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
       personKeyEntity = personKey,
     )
-    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+    val personEntity = await.atMost(4, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
     val beforeDataDTO = Person.from(personEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
-    val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
+    val loggedEvent = await.atMost(4, SECONDS) untilNotNull {
       eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(crn)
     }
 
