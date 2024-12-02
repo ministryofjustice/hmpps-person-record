@@ -6,18 +6,12 @@
 
     <springProperty scope="context" name="app" source="spring.application.name"/>
 
-    <springProfile name="!local">
-        <appender name="aiAppender" class="com.microsoft.applicationinsights.logback.ApplicationInsightsAppender"/>
-    </springProfile>
-
     <logger name="uk.gov.justice.digital.hmpps.personrecord" additivity="false" level="DEBUG">
         <appender-ref ref="consoleAppender"/>
-        <appender-ref ref="aiAppender"/>
     </logger>
 
     <root level="INFO">
         <appender-ref ref="consoleAppender"/>
-        <appender-ref ref="aiAppender"/>
     </root>
 
 </configuration>
