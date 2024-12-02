@@ -7,6 +7,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import com.microsoft.applicationinsights.TelemetryClient
 import org.assertj.core.api.Assertions.assertThat
+import org.awaitility.kotlin.atMost
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.json.JSONObject
@@ -30,6 +31,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
+import java.time.Duration
 import java.util.concurrent.TimeUnit.SECONDS
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -82,6 +84,9 @@ class IntegrationTestBase {
       assertThat(matchingEvents?.size).`as`("Missing data $event $expected and actual data $allEvents").isEqualTo(times)
     }
   }
+
+  internal fun awaitAssert(function: () -> Unit) =
+    await atMost(Duration.ofSeconds(2)) untilAsserted function
 
   internal fun createPersonKey(status: UUIDStatusType = UUIDStatusType.ACTIVE): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()

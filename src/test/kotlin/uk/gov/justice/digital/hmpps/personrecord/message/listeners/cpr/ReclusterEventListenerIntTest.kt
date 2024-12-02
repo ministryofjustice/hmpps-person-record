@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.cpr
 
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -131,14 +129,14 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("UUID" to cluster1.personId.toString()),
     )
 
-    await untilAsserted {
+    awaitAssert {
       val sourceCluster = personKeyRepository.findByPersonId(cluster1.personId)
       assertThat(sourceCluster?.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
       assertThat(sourceCluster?.personEntities?.size).isEqualTo(0)
       assertThat(sourceCluster?.mergedTo).isEqualTo(cluster2.id)
     }
 
-    await untilAsserted {
+    awaitAssert {
       val targetCluster = personKeyRepository.findByPersonId(cluster2.personId)
       assertThat(targetCluster?.personEntities?.size).isEqualTo(2)
     }
@@ -213,14 +211,14 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("UUID" to cluster1.personId.toString()),
     )
 
-    await untilAsserted {
+    awaitAssert {
       val sourceCluster = personKeyRepository.findByPersonId(cluster1.personId)
       assertThat(sourceCluster?.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
       assertThat(sourceCluster?.personEntities?.size).isEqualTo(0)
       assertThat(sourceCluster?.mergedTo).isEqualTo(cluster2.id)
     }
 
-    await untilAsserted {
+    awaitAssert {
       val targetCluster = personKeyRepository.findByPersonId(cluster2.personId)
       assertThat(targetCluster?.personEntities?.size).isEqualTo(4)
     }
@@ -295,14 +293,14 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("UUID" to cluster1.personId.toString()),
     )
 
-    await untilAsserted {
+    awaitAssert {
       val sourceCluster = personKeyRepository.findByPersonId(cluster1.personId)
       assertThat(sourceCluster?.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
       assertThat(sourceCluster?.personEntities?.size).isEqualTo(0)
       assertThat(sourceCluster?.mergedTo).isEqualTo(cluster2.id)
     }
 
-    await untilAsserted {
+    awaitAssert {
       val targetCluster = personKeyRepository.findByPersonId(cluster2.personId)
       assertThat(targetCluster?.personEntities?.size).isEqualTo(4)
     }
@@ -371,19 +369,19 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("UUID" to cluster1.personId.toString()),
     )
 
-    await untilAsserted {
+    awaitAssert {
       val sourceCluster = personKeyRepository.findByPersonId(cluster1.personId)
       assertThat(sourceCluster?.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
       assertThat(sourceCluster?.personEntities?.size).isEqualTo(0)
       assertThat(sourceCluster?.mergedTo).isEqualTo(cluster2.id)
     }
 
-    await untilAsserted {
+    awaitAssert {
       val targetCluster = personKeyRepository.findByPersonId(cluster2.personId)
       assertThat(targetCluster?.personEntities?.size).isEqualTo(2)
     }
 
-    await untilAsserted {
+    awaitAssert {
       val unaffectedCluster = personKeyRepository.findByPersonId(cluster3.personId)
       assertThat(unaffectedCluster?.personEntities?.size).isEqualTo(1)
     }
@@ -489,7 +487,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("UUID" to personKeyEntity.personId.toString()),
     )
 
-    await untilAsserted {
+    awaitAssert {
       val cluster = personKeyRepository.findByPersonId(personKeyEntity.personId)
       assertThat(cluster?.status).isEqualTo(NEEDS_ATTENTION)
     }
