@@ -1,5 +1,3 @@
-import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.include
-
 kotlin {
   compilerOptions {
     jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
@@ -38,11 +36,7 @@ dependencies {
       because("2.13.0 has CVEs")
     }
   }
-  constraints {
-    implementation("org.bouncycastle:bcprov-jdk18on:1.79") {
-      because("1.77 has CVEs")
-    }
-  }
+
   implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.4")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
 
@@ -79,7 +73,11 @@ detekt {
 
 tasks {
   register("initialiseDatabase", Test::class) {
-    include("**/HealthCheckIntTest.class")
+    include("**/InitialiseDatabase.class")
+  }
+
+  test {
+    exclude("**/InitialiseDatabase.class")
   }
 
   getByName("check") {

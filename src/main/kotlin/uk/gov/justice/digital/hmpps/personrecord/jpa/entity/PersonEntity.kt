@@ -16,7 +16,12 @@ import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDate
 
 @Entity
@@ -118,6 +123,21 @@ class PersonEntity(
 
 ) {
 
+  fun addExcludeOverrideMarker(excludeRecord: PersonEntity) {
+    this.overrideMarkers.add(
+      OverrideMarkerEntity(markerType = OverrideMarkerType.EXCLUDE, markerValue = excludeRecord.id, person = this),
+    )
+  }
+
+  fun removeMergedLink() {
+    this.mergedTo = null
+  }
+
+  fun removePersonKeyLink() {
+    this.personKey?.personEntities?.remove(this)
+    this.personKey = null
+  }
+
   fun getIdentifiersForMatching(identifiers: List<IdentifierType>): List<ReferenceEntity> {
     return this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }
   }
@@ -182,10 +202,25 @@ class PersonEntity(
 
   companion object {
 
-    val empty: PersonEntity? = null
+    val empty = null
+
+    fun PersonEntity?.extractSourceSystemId(): String? {
+      return when (this?.sourceSystem) {
+        DELIUS -> this.crn
+        NOMIS -> this.prisonNumber
+        COMMON_PLATFORM -> this.defendantId
+        LIBRA -> this.defendantId
+        else -> null
+      }
+    }
 
     fun List<ReferenceEntity>.getType(type: IdentifierType): List<ReferenceEntity> {
       return this.filter { it.identifierType == type }
+    }
+
+    fun PersonEntity?.shouldCreateOrUpdate(shouldCreate: () -> PersonEntity, shouldUpdate: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {
+      this == empty -> shouldCreate()
+      else -> shouldUpdate(this)
     }
 
     fun from(person: Person): PersonEntity {

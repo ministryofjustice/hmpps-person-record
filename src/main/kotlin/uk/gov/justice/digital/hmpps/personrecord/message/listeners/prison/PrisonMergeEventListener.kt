@@ -15,34 +15,30 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
-
-const val PRISON_MERGE_EVENT_QUEUE_CONFIG_KEY = "cprnomismergeeventsqueue"
 
 @Component
 @Profile("!seeding")
 class PrisonMergeEventListener(
-  val mergeEventProcessor: PrisonMergeEventProcessor,
-  val objectMapper: ObjectMapper,
-  val telemetryService: TelemetryService,
+  private val mergeEventProcessor: PrisonMergeEventProcessor,
+  private val objectMapper: ObjectMapper,
+  private val telemetryService: TelemetryService,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  @SqsListener(PRISON_MERGE_EVENT_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(
-    rawMessage: String,
-  ) {
+  @SqsListener(Queues.PRISON_MERGE_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
+  fun onDomainEvent(rawMessage: String) = TimeoutExecutor.runWithTimeout {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     when (sqsMessage.type) {
       NOTIFICATION -> {
         val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
         handleEvent(domainEvent, sqsMessage.messageId)
       }
-      else -> {
-        log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
-      }
+      else -> log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
     }
   }
 

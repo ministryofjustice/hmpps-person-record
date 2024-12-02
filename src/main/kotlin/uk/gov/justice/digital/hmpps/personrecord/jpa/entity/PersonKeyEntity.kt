@@ -40,6 +40,7 @@ class PersonKeyEntity(
   var version: Int = 0,
 
 ) {
+
   companion object {
     val empty: PersonKeyEntity? = null
 

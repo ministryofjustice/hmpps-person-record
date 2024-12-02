@@ -53,15 +53,15 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val secondPnc = randomPnc()
     val messageId = publishCourtMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = firstPnc, defendantId = firstDefendantId), CommonPlatformHearingSetup(pnc = secondPnc, defendantId = secondDefendantId), CommonPlatformHearingSetup(pnc = "", defendantId = thirdDefendantId))), COMMON_PLATFORM_HEARING)
 
-    await.atMost(10, SECONDS) untilNotNull {
+    await.atMost(4, SECONDS) untilNotNull {
       assertThat(personRepository.findByDefendantId(firstDefendantId))
     }
 
-    await.atMost(10, SECONDS) untilNotNull {
+    await.atMost(4, SECONDS) untilNotNull {
       assertThat(personRepository.findByDefendantId(secondDefendantId))
     }
 
-    await.atMost(10, SECONDS) untilNotNull {
+    await.atMost(4, SECONDS) untilNotNull {
       assertThat(personRepository.findByDefendantId(thirdDefendantId))
     }
 

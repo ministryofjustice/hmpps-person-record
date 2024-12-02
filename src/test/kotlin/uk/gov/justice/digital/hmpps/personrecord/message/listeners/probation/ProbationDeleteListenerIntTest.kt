@@ -22,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import java.time.LocalDateTime
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
@@ -56,8 +55,8 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("CRN" to crn, "UUID" to personKey.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
-    await untilAsserted { assertThat(personRepository.findByCrn(crn)).isNull() }
-    await untilAsserted { assertThat(personKeyRepository.findByPersonId(personKey.personId)).isNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(crn)).isNull() }
+    awaitAssert { assertThat(personKeyRepository.findByPersonId(personKey.personId)).isNull() }
   }
 
   @Test
@@ -84,7 +83,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("CRN" to crn, "UUID" to personKey.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
-    await.atMost(10, TimeUnit.SECONDS) untilAsserted { assertThat(personRepository.findByCrn(crn)).isNull() }
+    await.atMost(4, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(crn)).isNull() }
 
     val updatedCluster = personKeyRepository.findByPersonId(personKey.personId)
     assertThat(updatedCluster).isNotNull()
@@ -121,9 +120,9 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("CRN" to recordBCrn, "UUID" to null, "SOURCE_SYSTEM" to "DELIUS"),
     )
 
-    await untilAsserted { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
-    await untilAsserted { assertThat(personRepository.findByCrn(recordACrn)).isNotNull() }
-    await untilAsserted { assertThat(personKeyRepository.findByPersonId(cluster.personId)).isNotNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(recordACrn)).isNotNull() }
+    awaitAssert { assertThat(personKeyRepository.findByPersonId(cluster.personId)).isNotNull() }
   }
 
   @Test
@@ -163,9 +162,9 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("CRN" to recordBCrn, "UUID" to cluster.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
-    await untilAsserted { assertThat(personRepository.findByCrn(recordACrn)).isNull() }
-    await untilAsserted { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
-    await untilAsserted { assertThat(personKeyRepository.findByPersonId(cluster.personId)).isNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(recordACrn)).isNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
+    awaitAssert { assertThat(personKeyRepository.findByPersonId(cluster.personId)).isNull() }
   }
 
   @Test
@@ -213,10 +212,10 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("CRN" to recordBCrn, "UUID" to clusterB.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
-    await untilAsserted { assertThat(personRepository.findByCrn(recordACrn)).isNull() }
-    await untilAsserted { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
-    await untilAsserted { assertThat(personKeyRepository.findByPersonId(clusterA.personId)).isNull() }
-    await untilAsserted { assertThat(personKeyRepository.findByPersonId(clusterB.personId)).isNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(recordACrn)).isNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
+    awaitAssert { assertThat(personKeyRepository.findByPersonId(clusterA.personId)).isNull() }
+    awaitAssert { assertThat(personKeyRepository.findByPersonId(clusterB.personId)).isNull() }
   }
 
   @Test
@@ -270,11 +269,11 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("CRN" to recordBCrn, "UUID" to clusterB.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
-    await untilAsserted { assertThat(personRepository.findByCrn(recordACrn)).isNull() }
-    await untilAsserted { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
-    await untilAsserted { assertThat(personRepository.findByCrn(recordCCrn)).isNull() }
-    await untilAsserted { assertThat(personKeyRepository.findByPersonId(clusterA.personId)).isNull() }
-    await untilAsserted { assertThat(personKeyRepository.findByPersonId(clusterB.personId)).isNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(recordACrn)).isNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(recordCCrn)).isNull() }
+    awaitAssert { assertThat(personKeyRepository.findByPersonId(clusterA.personId)).isNull() }
+    awaitAssert { assertThat(personKeyRepository.findByPersonId(clusterB.personId)).isNull() }
   }
 
   @Test
@@ -322,10 +321,10 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("CRN" to recordCCrn, "UUID" to null, "SOURCE_SYSTEM" to "DELIUS"),
     )
 
-    await untilAsserted { assertThat(personRepository.findByCrn(recordACrn)).isNull() }
-    await untilAsserted { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
-    await untilAsserted { assertThat(personRepository.findByCrn(recordCCrn)).isNull() }
-    await untilAsserted { assertThat(personKeyRepository.findByPersonId(cluster.personId)).isNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(recordACrn)).isNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(recordCCrn)).isNull() }
+    awaitAssert { assertThat(personKeyRepository.findByPersonId(cluster.personId)).isNull() }
   }
 
   @Test
@@ -366,8 +365,8 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("CRN" to recordBCrn, "UUID" to cluster.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
-    await untilAsserted { assertThat(personRepository.findByCrn(recordACrn)).isNull() }
-    await untilAsserted { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(recordACrn)).isNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
 
     val updatedCluster = personKeyRepository.findByPersonId(cluster.personId)
     assertThat(updatedCluster).isNotNull()
@@ -395,14 +394,14 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
       personKeyEntity = personKey,
     )
-    val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
+    val personEntity = await.atMost(4, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
-    val beforeDataDTO = personEntity?.let { Person.from(it) }
+    val beforeDataDTO = Person.from(personEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
-    val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
+    val loggedEvent = await.atMost(4, SECONDS) untilNotNull {
       eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(crn)
     }
 

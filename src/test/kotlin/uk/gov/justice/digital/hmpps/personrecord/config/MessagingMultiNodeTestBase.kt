@@ -45,44 +45,32 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByTopicId("courtcaseeventstopic")
   }
 
-  internal val courtEventsFIFOTopic by lazy {
-    hmppsQueueService.findByTopicId("courteventsfifotopic")
-  }
-
   val courtEventsQueue by lazy {
-    hmppsQueueService.findByQueueId("cprcourtcaseeventsqueue")
-  }
-
-  val courtEventsTemporaryQueue by lazy {
-    hmppsQueueService.findByQueueId("cprcourtcaseeventstemporaryqueue")
-  }
-
-  val courtEventsFIFOQueue by lazy {
-    hmppsQueueService.findByQueueId("cprcourteventsfifoqueue")
+    hmppsQueueService.findByQueueId(Queues.COURT_CASE_EVENTS_QUEUE_ID)
   }
 
   val probationEventsQueue by lazy {
-    hmppsQueueService.findByQueueId("cprdeliusoffendereventsqueue")
+    hmppsQueueService.findByQueueId(Queues.PROBATION_EVENT_QUEUE_ID)
   }
 
   val probationMergeEventsQueue by lazy {
-    hmppsQueueService.findByQueueId("cprdeliusmergeeventsqueue")
+    hmppsQueueService.findByQueueId(Queues.PROBATION_MERGE_EVENT_QUEUE_ID)
   }
 
   val probationDeleteEventsQueue by lazy {
-    hmppsQueueService.findByQueueId("cprdeliusdeleteeventsqueue")
+    hmppsQueueService.findByQueueId(Queues.PROBATION_DELETION_EVENT_QUEUE_ID)
   }
 
   val prisonEventsQueue by lazy {
-    hmppsQueueService.findByQueueId("cprnomiseventsqueue")
+    hmppsQueueService.findByQueueId(Queues.PRISON_EVENT_QUEUE_ID)
   }
 
   val prisonMergeEventsQueue by lazy {
-    hmppsQueueService.findByQueueId("cprnomismergeeventsqueue")
+    hmppsQueueService.findByQueueId(Queues.PRISON_MERGE_EVENT_QUEUE_ID)
   }
 
   val reclusterEventsQueue by lazy {
-    hmppsQueueService.findByQueueId(Queues.RECLUSTER_EVENTS_QUEUE.id)
+    hmppsQueueService.findByQueueId(Queues.RECLUSTER_EVENTS_QUEUE_ID)
   }
 
   internal fun publishCourtMessage(message: String, messageType: MessageType, topic: String = courtEventsTopic?.arn!!): String {
@@ -325,12 +313,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     courtEventsQueue!!.sqsClient.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(courtEventsQueue!!.queueUrl).build(),
     ).get()
-    courtEventsTemporaryQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(courtEventsTemporaryQueue!!.queueUrl).build(),
-    ).get()
-    courtEventsFIFOQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(courtEventsFIFOQueue!!.queueUrl).build(),
-    ).get()
     probationEventsQueue!!.sqsClient.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(probationEventsQueue!!.queueUrl).build(),
     )
@@ -370,44 +352,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       PurgeQueueRequest.builder().queueUrl(reclusterEventsQueue!!.dlqUrl).build(),
     )
 
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationEventsQueue!!.sqsClient.countAllMessagesOnQueue(probationEventsQueue!!.queueUrl).get()
-    } matches { it == 0 }
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(probationEventsQueue!!.dlqUrl!!).get()
-    } matches { it == 0 }
-
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationMergeEventsQueue!!.sqsClient.countAllMessagesOnQueue(probationMergeEventsQueue!!.queueUrl).get()
-    } matches { it == 0 }
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationMergeEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(probationMergeEventsQueue!!.dlqUrl!!).get()
-    } matches { it == 0 }
-
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationDeleteEventsQueue!!.sqsClient.countAllMessagesOnQueue(probationDeleteEventsQueue!!.queueUrl).get()
-    } matches { it == 0 }
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationDeleteEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(probationDeleteEventsQueue!!.dlqUrl!!).get()
-    } matches { it == 0 }
-
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      prisonEventsQueue!!.sqsClient.countAllMessagesOnQueue(prisonEventsQueue!!.queueUrl).get()
-    } matches { it == 0 }
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      prisonEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(prisonEventsQueue!!.dlqUrl!!).get()
-    } matches { it == 0 }
-
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      prisonMergeEventsQueue!!.sqsClient.countAllMessagesOnQueue(prisonMergeEventsQueue!!.queueUrl).get()
-    } matches { it == 0 }
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      prisonMergeEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(prisonMergeEventsQueue!!.dlqUrl!!).get()
-    } matches { it == 0 }
-
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      reclusterEventsQueue!!.sqsClient.countAllMessagesOnQueue(reclusterEventsQueue!!.queueUrl).get()
-    } matches { it == 0 }
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
       reclusterEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(reclusterEventsQueue!!.dlqUrl!!).get()
     } matches { it == 0 }
