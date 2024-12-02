@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import uk.gov.justice.digital.hmpps.personrecord.service.search.SearchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import java.util.UUID
 
@@ -25,7 +25,7 @@ import java.util.UUID
 class CourtEventProcessor(
   private val objectMapper: ObjectMapper,
   private val createUpdateService: CreateUpdateService,
-  private val personService: PersonService,
+  private val searchService: SearchService,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
 ) {
@@ -96,7 +96,7 @@ class CourtEventProcessor(
       ),
     )
     createUpdateService.processMessage(person) {
-      val personEntity = personService.searchBySourceSystem(person)
+      val personEntity = searchService.searchBySourceSystem(person)
       person.defendantId = personEntity?.defendantId ?: UUID.randomUUID().toString()
       return@processMessage personEntity
     }

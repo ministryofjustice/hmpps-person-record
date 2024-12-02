@@ -5,8 +5,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.search.MatchResult
-import uk.gov.justice.digital.hmpps.personrecord.service.search.SearchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Component
@@ -14,7 +12,6 @@ class PersonService(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   private val personKeyService: PersonKeyService,
-  private val searchService: SearchService,
 ) {
 
   fun createPersonEntity(person: Person): PersonEntity {
@@ -43,10 +40,5 @@ class PersonService(
   private fun createNewPersonEntity(person: Person): PersonEntity {
     val personEntity = PersonEntity.from(person)
     return personRepository.save(personEntity)
-  }
-
-  fun searchBySourceSystem(person: Person): PersonEntity? {
-    val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecordsBySourceSystem(person)
-    return searchService.processCandidateRecords(highConfidenceMatches)
   }
 }
