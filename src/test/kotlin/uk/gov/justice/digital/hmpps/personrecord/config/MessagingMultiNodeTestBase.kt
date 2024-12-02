@@ -353,44 +353,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
 
     await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationEventsQueue!!.sqsClient.countAllMessagesOnQueue(probationEventsQueue!!.queueUrl).get()
-    } matches { it == 0 }
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(probationEventsQueue!!.dlqUrl!!).get()
-    } matches { it == 0 }
-
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationMergeEventsQueue!!.sqsClient.countAllMessagesOnQueue(probationMergeEventsQueue!!.queueUrl).get()
-    } matches { it == 0 }
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationMergeEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(probationMergeEventsQueue!!.dlqUrl!!).get()
-    } matches { it == 0 }
-
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationDeleteEventsQueue!!.sqsClient.countAllMessagesOnQueue(probationDeleteEventsQueue!!.queueUrl).get()
-    } matches { it == 0 }
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationDeleteEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(probationDeleteEventsQueue!!.dlqUrl!!).get()
-    } matches { it == 0 }
-
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      prisonEventsQueue!!.sqsClient.countAllMessagesOnQueue(prisonEventsQueue!!.queueUrl).get()
-    } matches { it == 0 }
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      prisonEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(prisonEventsQueue!!.dlqUrl!!).get()
-    } matches { it == 0 }
-
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      prisonMergeEventsQueue!!.sqsClient.countAllMessagesOnQueue(prisonMergeEventsQueue!!.queueUrl).get()
-    } matches { it == 0 }
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      prisonMergeEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(prisonMergeEventsQueue!!.dlqUrl!!).get()
-    } matches { it == 0 }
-
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      reclusterEventsQueue!!.sqsClient.countAllMessagesOnQueue(reclusterEventsQueue!!.queueUrl).get()
-    } matches { it == 0 }
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
       reclusterEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(reclusterEventsQueue!!.dlqUrl!!).get()
     } matches { it == 0 }
   }

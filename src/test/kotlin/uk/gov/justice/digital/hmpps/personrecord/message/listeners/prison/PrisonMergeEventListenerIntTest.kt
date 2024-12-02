@@ -350,7 +350,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     prisonMergeEventAndResponseSetup(PRISONER_MERGED, source = source, target = target)
 
-    val loggedEvent = await.atMost(10, SECONDS) untilNotNull {
+    val loggedEvent = await.atMost(4, SECONDS) untilNotNull {
       eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(targetPrisonNumber)
     }
 

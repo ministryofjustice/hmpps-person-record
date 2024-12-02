@@ -14,22 +14,6 @@
         <appender name="aiAppender" class="com.microsoft.applicationinsights.logback.ApplicationInsightsAppender"/>
     </springProfile>
 
-    <springProfile name="!log-json">
-        <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
-            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-                <Pattern>${LOG_PATTERN}</Pattern>
-            </encoder>
-        </appender>
-    </springProfile>
-
-    <springProfile name="log-json">
-        <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
-            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-                <includeCallerInfo>true</includeCallerInfo>
-            </encoder>
-        </appender>
-    </springProfile>
-
     <logger name="uk.gov.justice.digital.hmpps.personrecord" additivity="false" level="DEBUG">
         <appender-ref ref="consoleAppender"/>
         <appender-ref ref="aiAppender"/>
