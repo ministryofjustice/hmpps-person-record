@@ -71,7 +71,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
 
-    await.atMost(10, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
+    await.atMost(4, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
 
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
@@ -106,8 +106,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    val unmergedPerson = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(unmergedCrn) }
-    val reactivatedPerson = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(reactivatedCrn) }
+    val unmergedPerson = await.atMost(4, SECONDS) untilNotNull { personRepository.findByCrn(unmergedCrn) }
+    val reactivatedPerson = await.atMost(4, SECONDS) untilNotNull { personRepository.findByCrn(reactivatedCrn) }
     assertThat(unmergedPerson.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
     assertThat(unmergedPerson.personKey?.personEntities?.size).isEqualTo(1)
     assertThat(reactivatedPerson.personKey?.personEntities?.size).isEqualTo(1)
@@ -215,7 +215,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    val reactivatedPerson = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(reactivatedCrn) }
+    val reactivatedPerson = await.atMost(4, SECONDS) untilNotNull { personRepository.findByCrn(reactivatedCrn) }
     assertThat(reactivatedPerson.personKey).isNotNull()
     assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(personKeyEntity.personId)
   }
@@ -254,7 +254,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
 
-    await.atMost(10, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
+    await.atMost(4, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
 
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
@@ -289,7 +289,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    await.atMost(10, SECONDS) untilAsserted {
+    await.atMost(4, SECONDS) untilAsserted {
       val personEntity = personRepository.findByCrn(unmergedCrn)
       assertThat(personEntity?.personKey?.status).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
     }
@@ -317,7 +317,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubMatchScore(matchResponse)
 
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
-    await.atMost(10, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
+    await.atMost(4, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
     checkTelemetry(
@@ -343,7 +343,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       times = 0,
     )
 
-    val reactivatedPerson = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(reactivatedCrn) }
+    val reactivatedPerson = await.atMost(4, SECONDS) untilNotNull { personRepository.findByCrn(reactivatedCrn) }
     assertThat(reactivatedPerson.mergedTo).isNull()
   }
 
@@ -375,7 +375,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubMatchScore(matchResponse)
 
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
-    await.atMost(10, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
+    await.atMost(4, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
     checkTelemetry(
@@ -409,11 +409,11 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    val reactivatedMergedPersonKey = await.atMost(10, SECONDS) untilNotNull { personKeyRepository.findByPersonId(reactivatedPersonKey.personId) }
+    val reactivatedMergedPersonKey = await.atMost(4, SECONDS) untilNotNull { personKeyRepository.findByPersonId(reactivatedPersonKey.personId) }
     assertThat(reactivatedMergedPersonKey.personEntities.size).isEqualTo(0)
     assertThat(reactivatedMergedPersonKey.status).isEqualTo(UUIDStatusType.MERGED)
 
-    val reactivatedPerson = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(reactivatedCrn) }
+    val reactivatedPerson = await.atMost(4, SECONDS) untilNotNull { personRepository.findByCrn(reactivatedCrn) }
     assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(reactivatedPersonKey.personId)
     assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(unmergedPersonKey.personId)
   }
