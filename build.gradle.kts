@@ -1,4 +1,6 @@
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
 import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.include
+import org.gradle.model.internal.core.ModelNodes.withType
 
 kotlin {
   compilerOptions {
@@ -79,7 +81,11 @@ detekt {
 
 tasks {
   register("initialiseDatabase", Test::class) {
-    include("**/HealthCheckIntTest.class")
+    include("**/InitialiseDatabase.class")
+  }
+
+  test {
+    exclude("**/InitialiseDatabase.class")
   }
 
   getByName("check") {
