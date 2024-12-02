@@ -19,7 +19,7 @@ class QueueService(
 ) {
 
   fun publishReclusterMessageToQueue(uuid: UUID) {
-    val queue = findByQueueIdOrThrow(Queues.RECLUSTER_EVENTS_QUEUE.id)
+    val queue = findByQueueIdOrThrow(Queues.RECLUSTER_EVENTS_QUEUE_ID)
     val message = objectMapper.writeValueAsString(
       Recluster(uuid = uuid.toString()),
     )
