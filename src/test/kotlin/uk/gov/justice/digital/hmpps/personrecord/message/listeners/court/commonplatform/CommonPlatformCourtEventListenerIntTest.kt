@@ -39,16 +39,15 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
-import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.SECONDS
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should successfully process common platform message with 3 defendants and create correct telemetry events`() {
-    val firstDefendantId = randomUUID().toString()
-    val secondDefendantId = randomUUID().toString()
-    val thirdDefendantId = randomUUID().toString()
+    val firstDefendantId = randomDefendantId()
+    val secondDefendantId = randomDefendantId()
+    val thirdDefendantId = randomDefendantId()
     val firstPnc = randomPnc()
     val secondPnc = randomPnc()
     val messageId = publishCourtMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = firstPnc, defendantId = firstDefendantId), CommonPlatformHearingSetup(pnc = secondPnc, defendantId = secondDefendantId), CommonPlatformHearingSetup(pnc = "", defendantId = thirdDefendantId))), COMMON_PLATFORM_HEARING)
@@ -94,7 +93,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should not push messages from Common Platform onto dead letter queue when processing fails - fires the same request so many times that some message writes will fail and be retried`() {
     val pncNumber = PNCIdentifier.from(randomPnc())
-    val defendantId = randomUUID().toString()
+    val defendantId = randomDefendantId()
 
     val matchResponse = MatchResponse(
       matchProbabilities = mutableMapOf(
@@ -132,7 +131,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should update an existing person record from common platform message`() {
-    val defendantId = randomUUID().toString()
+    val defendantId = randomDefendantId()
     val pnc = randomPnc()
     val cro = randomCro()
     val firstName = randomName()
@@ -194,9 +193,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val secondPnc = randomPnc()
     val thirdPnc = randomPnc()
 
-    val firstDefendantId = randomUUID().toString()
-    val secondDefendantId = randomUUID().toString()
-    val thirdDefendantId = randomUUID().toString()
+    val firstDefendantId = randomDefendantId()
+    val secondDefendantId = randomDefendantId()
+    val thirdDefendantId = randomDefendantId()
 
     val thirdDefendantNINumber = randomNationalInsuranceNumber()
 
@@ -280,8 +279,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process messages with pnc as empty string and null`() {
-    val firstDefendantId = randomUUID().toString()
-    val secondDefendantId = randomUUID().toString()
+    val firstDefendantId = randomDefendantId()
+    val secondDefendantId = randomDefendantId()
 
     val messageId = publishCourtMessage(
       commonPlatformHearing(
