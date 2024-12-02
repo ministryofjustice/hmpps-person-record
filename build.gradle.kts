@@ -32,15 +32,11 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
 
   constraints {
-    implementation("commons-io:commons-io:2.17.0") {
+    implementation("commons-io:commons-io:2.18.0") {
       because("2.13.0 has CVEs")
     }
   }
-  constraints {
-    implementation("org.bouncycastle:bcprov-jdk18on:1.79") {
-      because("1.77 has CVEs")
-    }
-  }
+
   implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.3")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
 
