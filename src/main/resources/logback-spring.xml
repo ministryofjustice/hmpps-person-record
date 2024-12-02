@@ -6,7 +6,21 @@
 
     <springProperty scope="context" name="app" source="spring.application.name"/>
 
-    <logger name="uk.gov.justice.digital.hmpps.personrecord" additivity="false" level="DEBUG">
+    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="uk.gov.justice.digital.hmpps" additivity="false" level="INFO">
+        <appender-ref ref="consoleAppender"/>
+    </logger>
+
+    <logger name="org.springframework" additivity="false" level="INFO">
+        <appender-ref ref="consoleAppender"/>
+    </logger>
+
+    <logger name="com.microsoft.applicationinsights" additivity="false" level="INFO">
         <appender-ref ref="consoleAppender"/>
     </logger>
 
