@@ -394,7 +394,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
       personKeyEntity = personKey,
     )
-    val personEntity = awaitNotNull { personRepository.findByCrn(crn) }
+    val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
 
     val beforeDataDTO = Person.from(personEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
