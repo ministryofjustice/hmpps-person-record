@@ -22,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import java.time.LocalDateTime
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
@@ -84,7 +83,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("CRN" to crn, "UUID" to personKey.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
-    await.atMost(10, TimeUnit.SECONDS) untilAsserted { assertThat(personRepository.findByCrn(crn)).isNull() }
+    await.atMost(10, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(crn)).isNull() }
 
     val updatedCluster = personKeyRepository.findByPersonId(personKey.personId)
     assertThat(updatedCluster).isNotNull()
@@ -397,7 +396,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
     val personEntity = await.atMost(10, SECONDS) untilNotNull { personRepository.findByCrn(crn) }
 
-    val beforeDataDTO = personEntity?.let { Person.from(it) }
+    val beforeDataDTO = Person.from(personEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
