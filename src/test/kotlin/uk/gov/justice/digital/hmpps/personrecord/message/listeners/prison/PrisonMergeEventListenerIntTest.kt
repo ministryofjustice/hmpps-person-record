@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -22,8 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
-import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
-import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -280,13 +276,8 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
     prisonMergeEventAndResponseSetup(PRISONER_MERGED, source, target, scenario = "retry", currentScenarioState = "next request will succeed")
 
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      prisonMergeEventsQueue?.sqsClient?.countAllMessagesOnQueue(prisonMergeEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
-
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      prisonMergeEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(prisonMergeEventsQueue!!.dlqUrl!!)?.get()
-    } matches { it == 0 }
+    expectNoMessagesOn(prisonMergeEventsQueue)
+    expectNoMessagesOnDlq(prisonMergeEventsQueue)
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
       mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to "NOMIS"),

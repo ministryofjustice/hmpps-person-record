@@ -3,9 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilAsserted
-import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -35,8 +33,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
-import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
-import java.time.Duration
 import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -289,7 +285,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    await.atMost(4, SECONDS) untilAsserted {
+    awaitAssert {
       val personEntity = personRepository.findByCrn(unmergedCrn)
       assertThat(personEntity?.personKey?.status).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
     }
@@ -317,7 +313,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubMatchScore(matchResponse)
 
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
-    await.atMost(4, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
     checkTelemetry(
@@ -375,7 +371,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubMatchScore(matchResponse)
 
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
-    await.atMost(4, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
     checkTelemetry(
@@ -432,13 +428,9 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged, scenario = "retry", currentScenarioState = "next request will succeed")
 
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationMergeEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationMergeEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
+    expectNoMessagesOn(probationMergeEventsQueue)
+    expectNoMessagesOnDlq(probationMergeEventsQueue)
 
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationMergeEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(probationMergeEventsQueue!!.dlqUrl!!)?.get()
-    } matches { it == 0 }
     checkTelemetry(
       UNMERGE_MESSAGE_RECEIVED,
       mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
@@ -506,13 +498,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationMergeEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationMergeEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
-
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationMergeEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(probationMergeEventsQueue!!.dlqUrl!!)?.get()
-    } matches { it == 0 }
+    expectNoMessagesOn(probationMergeEventsQueue)
+    expectNoMessagesOnDlq(probationMergeEventsQueue)
     checkTelemetry(
       UNMERGE_MESSAGE_RECEIVED,
       mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
