@@ -15,9 +15,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
-
-const val CPR_COURT_CASE_EVENTS_QUEUE_CONFIG_KEY = "cprcourtcaseeventsqueue"
 
 @Component
 @Profile("!seeding")
@@ -30,7 +29,7 @@ class CourtEventListener(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  @SqsListener(CPR_COURT_CASE_EVENTS_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
+  @SqsListener(Queues.COURT_CASE_EVENTS_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
   fun onMessage(rawMessage: String) = TimeoutExecutor.runWithTimeout {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     when (sqsMessage.type) {

@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import java.util.UUID
 
 class SearchIntTest : WebTestBase() {
 
@@ -194,7 +193,7 @@ class SearchIntTest : WebTestBase() {
       ),
       personKeyEntity = personKeyEntity,
     )
-    val defendantId = UUID.randomUUID().toString()
+    val defendantId = randomDefendantId()
     createPerson(
       Person(
         defendantId = defendantId,

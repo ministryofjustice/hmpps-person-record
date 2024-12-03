@@ -46,31 +46,31 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   }
 
   val courtEventsQueue by lazy {
-    hmppsQueueService.findByQueueId("cprcourtcaseeventsqueue")
+    hmppsQueueService.findByQueueId(Queues.COURT_CASE_EVENTS_QUEUE_ID)
   }
 
   val probationEventsQueue by lazy {
-    hmppsQueueService.findByQueueId("cprdeliusoffendereventsqueue")
+    hmppsQueueService.findByQueueId(Queues.PROBATION_EVENT_QUEUE_ID)
   }
 
   val probationMergeEventsQueue by lazy {
-    hmppsQueueService.findByQueueId("cprdeliusmergeeventsqueue")
+    hmppsQueueService.findByQueueId(Queues.PROBATION_MERGE_EVENT_QUEUE_ID)
   }
 
   val probationDeleteEventsQueue by lazy {
-    hmppsQueueService.findByQueueId("cprdeliusdeleteeventsqueue")
+    hmppsQueueService.findByQueueId(Queues.PROBATION_DELETION_EVENT_QUEUE_ID)
   }
 
   val prisonEventsQueue by lazy {
-    hmppsQueueService.findByQueueId("cprnomiseventsqueue")
+    hmppsQueueService.findByQueueId(Queues.PRISON_EVENT_QUEUE_ID)
   }
 
   val prisonMergeEventsQueue by lazy {
-    hmppsQueueService.findByQueueId("cprnomismergeeventsqueue")
+    hmppsQueueService.findByQueueId(Queues.PRISON_MERGE_EVENT_QUEUE_ID)
   }
 
   val reclusterEventsQueue by lazy {
-    hmppsQueueService.findByQueueId(Queues.RECLUSTER_EVENTS_QUEUE.id)
+    hmppsQueueService.findByQueueId(Queues.RECLUSTER_EVENTS_QUEUE_ID)
   }
 
   internal fun publishCourtMessage(message: String, messageType: MessageType, topic: String = courtEventsTopic?.arn!!): String {
@@ -95,9 +95,15 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     return response!!.messageId()
   }
 
-  private fun expectNoMessagesOn(queue: HmppsQueue?) {
+  fun expectNoMessagesOn(queue: HmppsQueue?) {
     await untilCallTo {
       queue?.sqsClient?.countMessagesOnQueue(queue.queueUrl)?.get()
+    } matches { it == 0 }
+  }
+
+  fun expectNoMessagesOnDlq(queue: HmppsQueue?) {
+    await untilCallTo {
+      queue?.sqsDlqClient?.countMessagesOnQueue(queue.dlqUrl!!)?.get()
     } matches { it == 0 }
   }
 

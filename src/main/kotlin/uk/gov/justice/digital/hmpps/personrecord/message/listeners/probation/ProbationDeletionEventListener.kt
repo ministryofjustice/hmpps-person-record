@@ -16,10 +16,9 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_GDPR_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
-
-const val PROBATION_DELETION_EVENT_QUEUE_CONFIG_KEY = "cprdeliusdeleteeventsqueue"
 
 @Component
 @Profile("!seeding")
@@ -32,7 +31,7 @@ class ProbationDeletionEventListener(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  @SqsListener(PROBATION_DELETION_EVENT_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
+  @SqsListener(Queues.PROBATION_DELETION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
   fun onDomainEvent(rawMessage: String) = TimeoutExecutor.runWithTimeout {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     when (sqsMessage.type) {

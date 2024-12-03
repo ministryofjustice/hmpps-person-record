@@ -80,7 +80,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
 
-    val personEntities = await.atMost(30, SECONDS) untilNotNull {
+    val personEntities = await.atMost(4, SECONDS) untilNotNull {
       personRepository.findAll()
     }
     val matchingPerson = personEntities.filter { it.firstName.equals(firstName) }
@@ -155,7 +155,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("UUID" to personEntity.personKey?.personId.toString()),
     )
 
-    val person = await.atMost(30, SECONDS) untilNotNull {
+    val person = awaitNotNullPerson {
       personRepository.findByDefendantId(libraDefendantId)
     }
 

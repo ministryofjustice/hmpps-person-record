@@ -16,10 +16,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
-
-const val PROBATION_EVENT_QUEUE_CONFIG_KEY = "cprdeliusoffendereventsqueue"
 
 @Component
 @Profile("!seeding")
@@ -32,7 +31,7 @@ class ProbationEventListener(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  @SqsListener(PROBATION_EVENT_QUEUE_CONFIG_KEY, factory = "hmppsQueueContainerFactoryProxy")
+  @SqsListener(Queues.PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
   fun onDomainEvent(rawMessage: String) = TimeoutExecutor.runWithTimeout {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     when (sqsMessage.type) {

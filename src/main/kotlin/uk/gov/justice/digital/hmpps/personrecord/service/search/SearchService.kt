@@ -22,7 +22,17 @@ class SearchService(
   private val personRepository: PersonBlockingRulesRepository,
 ) {
 
-  fun processCandidateRecords(matches: List<MatchResult>): PersonEntity? {
+  fun searchBySourceSystem(person: Person): PersonEntity? {
+    val highConfidenceMatches: List<MatchResult> = findCandidateRecordsBySourceSystem(person)
+    return processCandidateRecords(highConfidenceMatches)
+  }
+
+  fun searchByAllSourceSystemsAndHasUuid(personEntity: PersonEntity): PersonEntity? {
+    val highConfidenceMatches: List<MatchResult> = findCandidateRecordsWithUuid(personEntity)
+    return processCandidateRecords(highConfidenceMatches)
+  }
+
+  private fun processCandidateRecords(matches: List<MatchResult>): PersonEntity? {
     matches.takeIf { matches.size > 1 }?.forEach { record ->
       telemetryService.trackEvent(
         CPR_MATCH_PERSON_DUPLICATE,
