@@ -1,9 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.commonplatform
 
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
@@ -36,7 +33,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
-import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -96,13 +92,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       courtEventsTopic?.snsClient?.publish(buildPublishRequest(defendantId, pncNumber))?.get()
     }
 
-    await untilCallTo {
-      courtEventsQueue?.sqsClient?.countMessagesOnQueue(courtEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
-
-    await untilCallTo {
-      courtEventsQueue?.sqsDlqClient?.countMessagesOnQueue(courtEventsQueue!!.dlqUrl!!)?.get()
-    } matches { it == 0 }
+    expectNoMessagesOn(courtEventsQueue)
+    expectNoMessagesOnDlq(courtEventsQueue)
 
     checkTelemetry(
       CPR_RECORD_CREATED,
