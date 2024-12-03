@@ -95,9 +95,15 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     return response!!.messageId()
   }
 
-  private fun expectNoMessagesOn(queue: HmppsQueue?) {
+  fun expectNoMessagesOn(queue: HmppsQueue?) {
     await untilCallTo {
       queue?.sqsClient?.countMessagesOnQueue(queue.queueUrl)?.get()
+    } matches { it == 0 }
+  }
+
+  fun expectNoMessagesOnDlq(queue: HmppsQueue?) {
+    await untilCallTo {
+      queue?.sqsDlqClient?.countMessagesOnQueue(queue.dlqUrl!!)?.get()
     } matches { it == 0 }
   }
 

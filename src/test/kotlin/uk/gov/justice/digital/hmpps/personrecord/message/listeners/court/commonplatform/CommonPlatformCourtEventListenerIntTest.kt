@@ -1,11 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.commonplatform
 
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilAsserted
-import org.awaitility.kotlin.untilCallTo
-import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
@@ -38,8 +33,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
-import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
-import java.util.concurrent.TimeUnit.SECONDS
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -99,13 +92,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       courtEventsTopic?.snsClient?.publish(buildPublishRequest(defendantId, pncNumber))?.get()
     }
 
-    await untilCallTo {
-      courtEventsQueue?.sqsClient?.countMessagesOnQueue(courtEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
-
-    await untilCallTo {
-      courtEventsQueue?.sqsDlqClient?.countMessagesOnQueue(courtEventsQueue!!.dlqUrl!!)?.get()
-    } matches { it == 0 }
+    expectNoMessagesOn(courtEventsQueue)
+    expectNoMessagesOnDlq(courtEventsQueue)
 
     checkTelemetry(
       CPR_RECORD_CREATED,
@@ -158,7 +146,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "DEFENDANT_ID" to defendantId),
     )
 
-    await.atMost(15, SECONDS) untilAsserted {
+    awaitAssert {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
       assertThat(updatedPersonEntity.lastName).isEqualTo(changedLastName)
       assertThat(updatedPersonEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
@@ -212,15 +200,15 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       COMMON_PLATFORM_HEARING,
     )
 
-    val firstPerson = await.atMost(30, SECONDS) untilNotNull {
+    val firstPerson = awaitNotNullPerson {
       personRepository.findByDefendantId(firstDefendantId)
     }
 
-    val secondPerson = await.atMost(30, SECONDS) untilNotNull {
+    val secondPerson = awaitNotNullPerson {
       personRepository.findByDefendantId(secondDefendantId)
     }
 
-    val thirdPerson = await.atMost(30, SECONDS) untilNotNull {
+    val thirdPerson = awaitNotNullPerson {
       personRepository.findByDefendantId(thirdDefendantId)
     }
 
@@ -289,7 +277,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
       times = 2,
     )
-    val personWithEmptyPnc = await.atMost(15, SECONDS) untilNotNull {
+    val personWithEmptyPnc = awaitNotNullPerson {
       personRepository.findByDefendantId(firstDefendantId)
     }
     assertThat(personWithEmptyPnc.references.getType(IdentifierType.PNC)).isEqualTo(emptyList<ReferenceEntity>())

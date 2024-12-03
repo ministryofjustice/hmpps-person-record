@@ -33,7 +33,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import java.time.Duration
-import java.util.concurrent.TimeUnit.SECONDS
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -71,7 +70,7 @@ class IntegrationTestBase {
     expected: Map<String, String?>,
     times: Int = 1,
   ) {
-    await.atMost(3, SECONDS) untilAsserted {
+    awaitAssert {
       val allEvents = telemetryRepository.findAllByEvent(event.eventName)
       val matchingEvents = allEvents?.filter {
         expected.entries.map { (k, v) ->
