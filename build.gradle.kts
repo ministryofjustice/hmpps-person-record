@@ -37,7 +37,7 @@ dependencies {
     }
   }
 
-  implementation("org.springframework.cloud:spring-cloud-dependencies:2023.0.3")
+  implementation("org.springframework.cloud:spring-cloud-dependencies:2024.0.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
 
   runtimeOnly("org.postgresql:postgresql:42.7.4")
