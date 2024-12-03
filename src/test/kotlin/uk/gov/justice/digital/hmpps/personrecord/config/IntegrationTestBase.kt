@@ -10,6 +10,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.atMost
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
+import org.awaitility.kotlin.untilNotNull
 import org.json.JSONObject
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
@@ -87,6 +88,9 @@ class IntegrationTestBase {
 
   internal fun awaitAssert(function: () -> Unit) =
     await atMost(Duration.ofSeconds(2)) untilAsserted function
+
+  internal fun awaitNotNullPerson(function: () -> PersonEntity?): PersonEntity =
+    await atMost (Duration.ofSeconds(2)) untilNotNull function
 
   internal fun createPersonKey(status: UUIDStatusType = UUIDStatusType.ACTIVE): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
