@@ -355,7 +355,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, personReference = null, additionalInformation = additionalInformation)
     publishDomainEvent(PRISONER_UPDATED, domainEvent)
 
-    val updatedPersonEntity = await.atMost(4, SECONDS) untilNotNull { personRepository.findByPrisonNumberAndSourceSystem(prisoner.prisonNumber!!) }
+    val updatedPersonEntity = awaitNotNullPerson { personRepository.findByPrisonNumberAndSourceSystem(prisoner.prisonNumber!!) }
 
     val processedDTO = Person.from(updatedPersonEntity)
     val processedData = objectMapper.writeValueAsString(processedDTO)

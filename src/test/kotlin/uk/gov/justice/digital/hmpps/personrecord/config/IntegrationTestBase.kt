@@ -10,6 +10,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.atMost
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
+import org.awaitility.kotlin.untilNotNull
 import org.json.JSONObject
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,7 +33,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import java.time.Duration
-import java.util.concurrent.TimeUnit.SECONDS
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -70,7 +70,7 @@ class IntegrationTestBase {
     expected: Map<String, String?>,
     times: Int = 1,
   ) {
-    await.atMost(3, SECONDS) untilAsserted {
+    awaitAssert {
       val allEvents = telemetryRepository.findAllByEvent(event.eventName)
       val matchingEvents = allEvents?.filter {
         expected.entries.map { (k, v) ->
@@ -87,6 +87,9 @@ class IntegrationTestBase {
 
   internal fun awaitAssert(function: () -> Unit) =
     await atMost(Duration.ofSeconds(2)) untilAsserted function
+
+  internal fun awaitNotNullPerson(function: () -> PersonEntity?): PersonEntity =
+    await atMost (Duration.ofSeconds(2)) untilNotNull function
 
   internal fun createPersonKey(status: UUIDStatusType = UUIDStatusType.ACTIVE): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()

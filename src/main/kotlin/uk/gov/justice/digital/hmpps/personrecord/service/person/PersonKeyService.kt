@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.search.MatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.SearchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
@@ -19,7 +18,7 @@ class PersonKeyService(
 ) {
 
   fun getOrCreatePersonKey(personEntity: PersonEntity): PersonKeyEntity {
-    val highConfidenceRecordWithUuid = searchByAllSourceSystemsAndHasUuid(personEntity)
+    val highConfidenceRecordWithUuid = searchService.searchByAllSourceSystemsAndHasUuid(personEntity)
     return when {
       highConfidenceRecordWithUuid == null -> createPersonKey(personEntity)
       else -> retrievePersonKey(personEntity, highConfidenceRecordWithUuid)
@@ -46,10 +45,5 @@ class PersonKeyService(
       ),
     )
     return highConfidenceRecordWithUuid.personKey!!
-  }
-
-  private fun searchByAllSourceSystemsAndHasUuid(personEntity: PersonEntity): PersonEntity? {
-    val highConfidenceMatches: List<MatchResult> = searchService.findCandidateRecordsWithUuid(personEntity)
-    return searchService.processCandidateRecords(highConfidenceMatches)
   }
 }

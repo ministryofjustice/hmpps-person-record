@@ -1,11 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.commonplatform
 
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilAsserted
-import org.awaitility.kotlin.untilCallTo
-import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
@@ -38,31 +33,20 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
-import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
-import java.util.UUID.randomUUID
-import java.util.concurrent.TimeUnit.SECONDS
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should successfully process common platform message with 3 defendants and create correct telemetry events`() {
-    val firstDefendantId = randomUUID().toString()
-    val secondDefendantId = randomUUID().toString()
-    val thirdDefendantId = randomUUID().toString()
+    val firstDefendantId = randomDefendantId()
+    val secondDefendantId = randomDefendantId()
+    val thirdDefendantId = randomDefendantId()
     val firstPnc = randomPnc()
     val secondPnc = randomPnc()
     val messageId = publishCourtMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = firstPnc, defendantId = firstDefendantId), CommonPlatformHearingSetup(pnc = secondPnc, defendantId = secondDefendantId), CommonPlatformHearingSetup(pnc = "", defendantId = thirdDefendantId))), COMMON_PLATFORM_HEARING)
 
-    await.atMost(4, SECONDS) untilNotNull {
-      assertThat(personRepository.findByDefendantId(firstDefendantId))
-    }
-
-    await.atMost(4, SECONDS) untilNotNull {
-      assertThat(personRepository.findByDefendantId(secondDefendantId))
-    }
-
-    await.atMost(4, SECONDS) untilNotNull {
-      assertThat(personRepository.findByDefendantId(thirdDefendantId))
+    awaitNotNullPerson {
+      personRepository.findByDefendantId(thirdDefendantId)
     }
 
     checkTelemetry(
@@ -94,7 +78,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should not push messages from Common Platform onto dead letter queue when processing fails - fires the same request so many times that some message writes will fail and be retried`() {
     val pncNumber = PNCIdentifier.from(randomPnc())
-    val defendantId = randomUUID().toString()
+    val defendantId = randomDefendantId()
 
     val matchResponse = MatchResponse(
       matchProbabilities = mutableMapOf(
@@ -108,13 +92,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       courtEventsTopic?.snsClient?.publish(buildPublishRequest(defendantId, pncNumber))?.get()
     }
 
-    await untilCallTo {
-      courtEventsQueue?.sqsClient?.countMessagesOnQueue(courtEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
-
-    await untilCallTo {
-      courtEventsQueue?.sqsDlqClient?.countMessagesOnQueue(courtEventsQueue!!.dlqUrl!!)?.get()
-    } matches { it == 0 }
+    expectNoMessagesOn(courtEventsQueue)
+    expectNoMessagesOnDlq(courtEventsQueue)
 
     checkTelemetry(
       CPR_RECORD_CREATED,
@@ -132,7 +111,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should update an existing person record from common platform message`() {
-    val defendantId = randomUUID().toString()
+    val defendantId = randomDefendantId()
     val pnc = randomPnc()
     val cro = randomCro()
     val firstName = randomName()
@@ -167,7 +146,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "DEFENDANT_ID" to defendantId),
     )
 
-    await.atMost(15, SECONDS) untilAsserted {
+    awaitAssert {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
       assertThat(updatedPersonEntity.lastName).isEqualTo(changedLastName)
       assertThat(updatedPersonEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
@@ -194,9 +173,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val secondPnc = randomPnc()
     val thirdPnc = randomPnc()
 
-    val firstDefendantId = randomUUID().toString()
-    val secondDefendantId = randomUUID().toString()
-    val thirdDefendantId = randomUUID().toString()
+    val firstDefendantId = randomDefendantId()
+    val secondDefendantId = randomDefendantId()
+    val thirdDefendantId = randomDefendantId()
 
     val thirdDefendantNINumber = randomNationalInsuranceNumber()
 
@@ -221,15 +200,15 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       COMMON_PLATFORM_HEARING,
     )
 
-    val firstPerson = await.atMost(30, SECONDS) untilNotNull {
+    val firstPerson = awaitNotNullPerson {
       personRepository.findByDefendantId(firstDefendantId)
     }
 
-    val secondPerson = await.atMost(30, SECONDS) untilNotNull {
+    val secondPerson = awaitNotNullPerson {
       personRepository.findByDefendantId(secondDefendantId)
     }
 
-    val thirdPerson = await.atMost(30, SECONDS) untilNotNull {
+    val thirdPerson = awaitNotNullPerson {
       personRepository.findByDefendantId(thirdDefendantId)
     }
 
@@ -280,8 +259,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process messages with pnc as empty string and null`() {
-    val firstDefendantId = randomUUID().toString()
-    val secondDefendantId = randomUUID().toString()
+    val firstDefendantId = randomDefendantId()
+    val secondDefendantId = randomDefendantId()
 
     val messageId = publishCourtMessage(
       commonPlatformHearing(
@@ -298,7 +277,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
       times = 2,
     )
-    val personWithEmptyPnc = await.atMost(15, SECONDS) untilNotNull {
+    val personWithEmptyPnc = awaitNotNullPerson {
       personRepository.findByDefendantId(firstDefendantId)
     }
     assertThat(personWithEmptyPnc.references.getType(IdentifierType.PNC)).isEqualTo(emptyList<ReferenceEntity>())
