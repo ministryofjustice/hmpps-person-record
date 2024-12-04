@@ -10,7 +10,7 @@ generic-service:
       memory: 1Gi
     requests:
       memory: 1Gi
-
+      
   image:
     repository: quay.io/hmpps/hmpps-person-record
     tag: app_version # override at deployment time
