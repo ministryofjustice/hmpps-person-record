@@ -5,6 +5,12 @@ generic-service:
 
   replicaCount: 2
 
+  resources:
+    limits:
+      memory: 756Mi
+    requests:
+      memory: 756Mi
+
   image:
     repository: quay.io/hmpps/hmpps-person-record
     tag: app_version # override at deployment time
@@ -106,7 +112,3 @@ generic-prometheus-alerts:
 cron:
   generateTermFrequencies: "0 12 * * *"
 
-limits:
-  memory: 756Mi
-requests:
-  memory: 756Mi
