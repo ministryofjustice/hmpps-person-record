@@ -80,6 +80,10 @@ tasks {
     exclude("**/InitialiseDatabase.class")
   }
 
+  getByName("initialiseDatabase") {
+    onlyIf { gradle.startParameter.taskNames.contains("initialiseDatabase") }
+  }
+
   getByName("check") {
     dependsOn(":ktlintCheck", "detekt")
     finalizedBy("koverHtmlReport")
