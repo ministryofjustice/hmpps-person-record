@@ -7,9 +7,9 @@ generic-service:
 
   resources:
     limits:
-      memory: 756Mi
+      memory: 1Gi
     requests:
-      memory: 756Mi
+      memory: 1Gi
 
   image:
     repository: quay.io/hmpps/hmpps-person-record
@@ -42,7 +42,7 @@ generic-service:
 
   # Environment variables to load into the deployment
   env:
-    JAVA_OPTS: "-Xmx756m"
+    JAVA_OPTS: "-Xmx1024m"
     SERVER_PORT: "8080"
     SPRING_PROFILES_ACTIVE: "logstash"
     APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY)"
