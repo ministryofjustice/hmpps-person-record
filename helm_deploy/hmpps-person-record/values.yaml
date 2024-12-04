@@ -36,7 +36,7 @@ generic-service:
 
   # Environment variables to load into the deployment
   env:
-    JAVA_OPTS: "-Xmx512m"
+    JAVA_OPTS: "-Xmx756m"
     SERVER_PORT: "8080"
     SPRING_PROFILES_ACTIVE: "logstash"
     APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY)"
@@ -105,3 +105,8 @@ generic-prometheus-alerts:
 
 cron:
   generateTermFrequencies: "0 12 * * *"
+
+limits:
+  memory: 756Mi
+requests:
+  memory: 756Mi

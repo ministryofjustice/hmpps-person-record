@@ -25,7 +25,7 @@ class GenerateTermFrequencies(
   private suspend fun generatePncTermFrequencies() {
     CoroutineScope(Dispatchers.Default).launch {
       log.info("Starting PNC term frequency generation")
-      pncFrequencyRepository.deleteAllInBatch()
+      pncFrequencyRepository.deleteAll()
       pncFrequencyRepository.generatePncTermFrequency()
       log.info("Finished PNC term frequency generation")
     }
