@@ -37,8 +37,7 @@ class GenerateTermFrequencies(
   private suspend fun generatePersonAggregateData() {
     CoroutineScope(Dispatchers.Default).launch {
       log.info("Starting collection of person aggregate data")
-      termCleaningRepository.deletePersonAggregateData()
-      termCleaningRepository.collectPersonAggregateData()
+      termCleaningRepository.refreshPersonAggregateData()
       log.info("Finished collecting person aggregate data")
     }
   }
