@@ -3,9 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilAsserted
-import org.awaitility.kotlin.untilCallTo
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -51,8 +48,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
-import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
-import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit.SECONDS
@@ -63,8 +58,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun beforeEach() {
     telemetryRepository.deleteAll()
   }
-
-  private fun probationUrl(crn: String) = "/probation-cases/$crn"
 
   @Test
   fun `creates person when when new offender created event is published`() {
@@ -249,13 +242,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, personReference = personReference, additionalInformation = null)
     publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
-
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(probationEventsQueue!!.dlqUrl!!)?.get()
-    } matches { it == 0 }
+    expectNoMessagesOn(probationEventsQueue)
+    expectNoMessagesOnDlq(probationEventsQueue)
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"), 1)
   }
 
@@ -265,13 +253,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     stub500Response(probationUrl(crn), "next request will succeed", "retry")
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = randomPnc()), scenario = "retry", currentScenarioState = "next request will succeed")
 
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
+    expectNoMessagesOn(probationEventsQueue)
+    expectNoMessagesOnDlq(probationEventsQueue)
 
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(probationEventsQueue!!.dlqUrl!!)?.get()
-    } matches { it == 0 }
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"), 1)
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
   }
@@ -399,7 +383,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     probationEventAndResponseSetup(OFFENDER_DETAILS_CHANGED, ApiResponseSetup(crn = crn, firstName = changedFirstName))
 
-    await.atMost(4, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(crn)?.firstName).isEqualTo(changedFirstName) }
+    awaitAssert { assertThat(personRepository.findByCrn(crn)?.firstName).isEqualTo(changedFirstName) }
     val updatedPersonEntity = personRepository.findByCrn(crn)!!
     val beforeDataDTO = Person.from(personEntity)
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)

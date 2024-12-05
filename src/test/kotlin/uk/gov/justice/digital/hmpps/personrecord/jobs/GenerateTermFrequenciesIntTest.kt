@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.jobs
 
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,9 +35,7 @@ class GenerateTermFrequenciesIntTest : WebTestBase() {
       .expectStatus()
       .isOk
 
-    await.atMost(15, SECONDS) untilAsserted {
-      assertThat(pncFrequencyRepository.findAll().size).isGreaterThanOrEqualTo(100)
-    }
+    awaitAssert { assertThat(pncFrequencyRepository.findAll().size).isGreaterThanOrEqualTo(100) }
   }
 
   @Test

@@ -4,7 +4,6 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -89,7 +88,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
 
-    await.atMost(5, SECONDS) untilAsserted {
+    awaitAssert {
       val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
       assertThat(personEntity.personKey).isNotNull()
       assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
@@ -146,7 +145,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
 
-    await.atMost(5, SECONDS) untilAsserted {
+    awaitAssert {
       val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
 
       assertThat(personEntity.nationality).isEqualTo(null)
@@ -173,7 +172,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
 
-    await.atMost(5, SECONDS) untilAsserted {
+    awaitAssert {
       val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
       assertThat(personEntity.sentenceInfo.size).isEqualTo(0)
     }
@@ -211,7 +210,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should receive the message successfully when prisoner updated event published`() {
     val prisoner = createPrisoner()
 
-    await.atMost(30, SECONDS) untilNotNull {
+    awaitAssert {
       personRepository.findByPrisonNumberAndSourceSystem(prisoner.prisonNumber!!)
     }
 
@@ -335,7 +334,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
     )
-    await.atMost(5, SECONDS) untilAsserted {
+    awaitAssert {
       val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
       assertThat(personEntity.currentlyManaged).isEqualTo(result)
     }

@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
-import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
+import com.github.tomakehurst.wiremock.stubbing.Scenario
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilNotNull
@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
@@ -40,11 +40,11 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
     val personKeyEntity = createPersonKey()
     createPerson(
-      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = SourceSystemType.NOMIS),
+      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = NOMIS),
       personKeyEntity = personKeyEntity,
     )
     val targetPerson = createPerson(
-      Person(prisonNumber = targetPrisonNumber, sourceSystemType = SourceSystemType.NOMIS),
+      Person(prisonNumber = targetPrisonNumber, sourceSystemType = NOMIS),
       personKeyEntity = personKeyEntity,
     )
 
@@ -52,7 +52,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to "NOMIS"),
+      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
     )
     checkTelemetry(
       CPR_RECORD_MERGED,
@@ -61,7 +61,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "FROM_UUID" to personKeyEntity.personId.toString(),
         "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
         "TARGET_PRISON_NUMBER" to targetPrisonNumber,
-        "SOURCE_SYSTEM" to "NOMIS",
+        "SOURCE_SYSTEM" to NOMIS.name,
       ),
     )
 
@@ -77,7 +77,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
     val personKeyEntity = createPersonKey()
     createPerson(
-      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = SourceSystemType.NOMIS),
+      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = NOMIS),
       personKeyEntity = personKeyEntity,
     )
 
@@ -85,7 +85,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to "NOMIS"),
+      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
     )
     checkTelemetry(
       CPR_MERGE_RECORD_NOT_FOUND,
@@ -93,7 +93,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "RECORD_TYPE" to "TARGET",
         "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
         "TARGET_PRISON_NUMBER" to targetPrisonNumber,
-        "SOURCE_SYSTEM" to "NOMIS",
+        "SOURCE_SYSTEM" to NOMIS.name,
       ),
     )
   }
@@ -106,7 +106,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
     val personKeyEntity = createPersonKey()
     createPerson(
-      Person(prisonNumber = targetPrisonNumber, sourceSystemType = SourceSystemType.NOMIS),
+      Person(prisonNumber = targetPrisonNumber, sourceSystemType = NOMIS),
       personKeyEntity = personKeyEntity,
     )
 
@@ -114,7 +114,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to "NOMIS"),
+      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
     )
     checkTelemetry(
       CPR_MERGE_RECORD_NOT_FOUND,
@@ -122,7 +122,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "RECORD_TYPE" to "SOURCE",
         "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
         "TARGET_PRISON_NUMBER" to targetPrisonNumber,
-        "SOURCE_SYSTEM" to "NOMIS",
+        "SOURCE_SYSTEM" to NOMIS.name,
       ),
     )
     checkTelemetry(
@@ -132,7 +132,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "FROM_UUID" to null,
         "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
         "TARGET_PRISON_NUMBER" to targetPrisonNumber,
-        "SOURCE_SYSTEM" to "NOMIS",
+        "SOURCE_SYSTEM" to NOMIS.name,
       ),
     )
   }
@@ -146,15 +146,15 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val personKeyEntity1 = createPersonKey()
     val personKeyEntity2 = createPersonKey()
     createPerson(
-      Person(prisonNumber = randomPrisonNumber(), sourceSystemType = SourceSystemType.NOMIS),
+      Person(prisonNumber = randomPrisonNumber(), sourceSystemType = NOMIS),
       personKeyEntity = personKeyEntity1,
     )
     createPerson(
-      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = SourceSystemType.NOMIS),
+      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = NOMIS),
       personKeyEntity = personKeyEntity1,
     )
     val targetPerson = createPerson(
-      Person(prisonNumber = targetPrisonNumber, sourceSystemType = SourceSystemType.NOMIS),
+      Person(prisonNumber = targetPrisonNumber, sourceSystemType = NOMIS),
       personKeyEntity = personKeyEntity2,
     )
 
@@ -162,7 +162,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to "NOMIS"),
+      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
     )
     checkTelemetry(
       CPR_RECORD_MERGED,
@@ -171,7 +171,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "FROM_UUID" to personKeyEntity1.personId.toString(),
         "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
         "TARGET_PRISON_NUMBER" to targetPrisonNumber,
-        "SOURCE_SYSTEM" to "NOMIS",
+        "SOURCE_SYSTEM" to NOMIS.name,
       ),
     )
 
@@ -194,10 +194,10 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
     val personKeyEntity2 = createPersonKey()
     createPerson(
-      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = SourceSystemType.NOMIS),
+      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = NOMIS),
     )
     val targetPerson = createPerson(
-      Person(prisonNumber = targetPrisonNumber, sourceSystemType = SourceSystemType.NOMIS),
+      Person(prisonNumber = targetPrisonNumber, sourceSystemType = NOMIS),
       personKeyEntity = personKeyEntity2,
     )
 
@@ -205,7 +205,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to "NOMIS"),
+      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
     )
     checkTelemetry(
       CPR_RECORD_MERGED,
@@ -214,7 +214,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "FROM_UUID" to null,
         "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
         "TARGET_PRISON_NUMBER" to targetPrisonNumber,
-        "SOURCE_SYSTEM" to "NOMIS",
+        "SOURCE_SYSTEM" to NOMIS.name,
       ),
     )
 
@@ -235,11 +235,11 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val personKeyEntity1 = createPersonKey()
     val personKeyEntity2 = createPersonKey()
     createPerson(
-      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = SourceSystemType.NOMIS),
+      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = NOMIS),
       personKeyEntity = personKeyEntity1,
     )
     val targetPerson = createPerson(
-      Person(prisonNumber = targetPrisonNumber, sourceSystemType = SourceSystemType.NOMIS),
+      Person(prisonNumber = targetPrisonNumber, sourceSystemType = NOMIS),
       personKeyEntity = personKeyEntity2,
     )
 
@@ -247,7 +247,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to "NOMIS"),
+      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
     )
     checkTelemetry(
       CPR_RECORD_MERGED,
@@ -256,7 +256,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "FROM_UUID" to personKeyEntity1.personId.toString(),
         "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
         "TARGET_PRISON_NUMBER" to targetPrisonNumber,
-        "SOURCE_SYSTEM" to "NOMIS",
+        "SOURCE_SYSTEM" to NOMIS.name,
       ),
     )
 
@@ -280,7 +280,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     expectNoMessagesOnDlq(prisonMergeEventsQueue)
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to "NOMIS"),
+      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
     )
   }
 
@@ -288,9 +288,9 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should log when message processing fails`() {
     val targetPrisonNumber = randomPrisonNumber()
     val sourcePrisonNumber = randomPrisonNumber()
-    stub500Response(prisonURL(targetPrisonNumber), STARTED, "failure")
-    stub500Response(prisonURL(targetPrisonNumber), STARTED, "failure")
-    stub500Response(prisonURL(targetPrisonNumber), STARTED, "failure")
+    stub500Response(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", Scenario.STARTED)
+    stub500Response(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
+    stub500Response(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
 
     val additionalInformation =
       AdditionalInformation(prisonNumber = targetPrisonNumber, sourcePrisonNumber = sourcePrisonNumber)
@@ -310,14 +310,14 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
         "TARGET_PRISON_NUMBER" to targetPrisonNumber,
         "EVENT_TYPE" to PRISONER_MERGED,
-        "SOURCE_SYSTEM" to "NOMIS",
+        "SOURCE_SYSTEM" to NOMIS.name,
       ),
     )
     checkTelemetry(
       MESSAGE_PROCESSING_FAILED,
       mapOf(
         "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to "NOMIS",
+        "SOURCE_SYSTEM" to NOMIS.name,
         "EVENT_TYPE" to "prisoner-offender-events.prisoner.merged",
       ),
     )
@@ -331,11 +331,11 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
     val personKeyEntity = createPersonKey()
     createPerson(
-      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = SourceSystemType.NOMIS),
+      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = NOMIS),
       personKeyEntity = personKeyEntity,
     )
     createPerson(
-      Person(prisonNumber = targetPrisonNumber, sourceSystemType = SourceSystemType.NOMIS),
+      Person(prisonNumber = targetPrisonNumber, sourceSystemType = NOMIS),
       personKeyEntity = personKeyEntity,
     )
 

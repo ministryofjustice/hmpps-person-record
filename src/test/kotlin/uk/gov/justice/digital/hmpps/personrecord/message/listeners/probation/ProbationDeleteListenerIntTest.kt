@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -83,7 +82,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("CRN" to crn, "UUID" to personKey.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
-    await.atMost(4, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(crn)).isNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(crn)).isNull() }
 
     val updatedCluster = personKeyRepository.findByPersonId(personKey.personId)
     assertThat(updatedCluster).isNotNull()

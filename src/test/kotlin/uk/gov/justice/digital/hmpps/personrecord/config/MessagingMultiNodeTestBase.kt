@@ -266,11 +266,11 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
   }
 
-  fun stub500Response(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String) {
+  fun stub500Response(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String, currentScenarioState: String = STARTED) {
     wiremock.stubFor(
       WireMock.get(url)
         .inScenario(scenarioName)
-        .whenScenarioStateIs(STARTED)
+        .whenScenarioStateIs(currentScenarioState)
         .willSetStateTo(nextScenarioState)
         .willReturn(
           WireMock.aResponse()
