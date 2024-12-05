@@ -42,8 +42,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     telemetryRepository.deleteAll()
   }
 
-  private fun probationUrl(crn: String) = "/probation-cases/$crn"
-
   @Test
   fun `offender unmerge event is published`() {
     val reactivatedCrn = randomCRN()

@@ -65,6 +65,8 @@ class IntegrationTestBase {
   @Autowired
   lateinit var eventLoggingRepository: EventLoggingRepository
 
+  fun probationUrl(crn: String) = "/probation-cases/$crn"
+
   internal fun checkTelemetry(
     event: TelemetryEventType,
     expected: Map<String, String?>,
