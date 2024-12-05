@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.seeding
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
@@ -16,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.allProbationCasesResponse
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.allProbationCasesSingleResponse
 import java.time.LocalDate
-import java.util.concurrent.TimeUnit.SECONDS
 
 @ActiveProfiles("seeding")
 class PopulateFromProbationIntTest : WebTestBase() {
@@ -42,9 +39,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
       .expectStatus()
       .isOk
 
-    await.atMost(15, SECONDS) untilNotNull {
-      personRepository.findByCrn(crnSeven)
-    }
+    awaitNotNullPerson { personRepository.findByCrn(crnSeven) }
     val popOne = personRepository.findByCrn(crnOne)!!
     assertThat(popOne.firstName).isEqualTo("POPOneFirstName")
     assertThat(popOne.middleNames).isEqualTo("POPOneMiddleNameOne POPOneMiddleNameTwo")
@@ -111,9 +106,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
       .expectStatus()
       .isOk
 
-    await.atMost(15, SECONDS) untilNotNull {
-      personRepository.findByCrn(crnTwo)
-    }
+    awaitNotNullPerson { personRepository.findByCrn(crnTwo) }
 
     assertThat(personRepository.findByCrn(crnOne)!!.firstName).isEqualTo("POPOneFirstName")
     assertThat(personRepository.findByCrn(crnTwo)!!.firstName).isEqualTo("POPTwoFirstName")
