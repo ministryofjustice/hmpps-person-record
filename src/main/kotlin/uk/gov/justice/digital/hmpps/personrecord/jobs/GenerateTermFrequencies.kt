@@ -9,16 +9,19 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.termfrequency.PncFrequencyRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.termfrequency.TermCleaningRepository
 
 @RestController
 @Tag(name = "Jobs")
 class GenerateTermFrequencies(
   private val pncFrequencyRepository: PncFrequencyRepository,
+  private val termCleaningRepository: TermCleaningRepository,
 ) {
 
   @RequestMapping(method = [RequestMethod.POST], value = ["/jobs/generatetermfrequencies"])
   suspend fun generate(): String {
     generatePncTermFrequencies()
+    generatePersonAggregateData()
     return OK
   }
 
@@ -28,6 +31,15 @@ class GenerateTermFrequencies(
       pncFrequencyRepository.deleteAll()
       pncFrequencyRepository.generatePncTermFrequency()
       log.info("Finished PNC term frequency generation")
+    }
+  }
+
+  private suspend fun generatePersonAggregateData() {
+    CoroutineScope(Dispatchers.Default).launch {
+      log.info("Starting collection of person aggregate data")
+      termCleaningRepository.deletePersonAggregateData()
+      termCleaningRepository.collectPersonAggregateData()
+      log.info("Finished collecting person aggregate data")
     }
   }
 
