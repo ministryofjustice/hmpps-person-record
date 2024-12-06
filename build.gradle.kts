@@ -95,6 +95,8 @@ tasks {
         maxRetries.set(3)
       }
     }
+  }.configureEach {
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
   }
 }
 
