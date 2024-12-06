@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
 import jakarta.transaction.Transactional
-import kotlinx.coroutines.runBlocking
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -11,8 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
-import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
-import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.MatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.SearchService
@@ -30,19 +26,10 @@ class ReclusterService(
   private val searchService: SearchService,
   private val personRepository: PersonRepository,
   private val personKeyRepository: PersonKeyRepository,
-  @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
-  fun recluster(personUUID: UUID?) = runBlocking {
-    runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
-      personKeyRepository.findByPersonId(personUUID)?.let {
-        handleRecluster(it)
-      }
-    }
-  }
-
   @Transactional
-  private fun handleRecluster(personKeyEntity: PersonKeyEntity) {
+  fun recluster(personKeyEntity: PersonKeyEntity) {
     when {
       clusterNeedsAttention(personKeyEntity) -> telemetryService.trackEvent(
         CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION,
@@ -147,8 +134,4 @@ class ReclusterService(
   private fun clusterNeedsAttention(personKeyEntity: PersonKeyEntity?) = personKeyEntity?.status == UUIDStatusType.NEEDS_ATTENTION
 
   private fun clusterHasOneRecord(personKeyEntity: PersonKeyEntity?) = personKeyEntity?.personEntities?.size == 1
-
-  companion object {
-    private const val MAX_ATTEMPTS = 5
-  }
 }
