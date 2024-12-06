@@ -9,7 +9,8 @@ import uk.gov.justice.digital.hmpps.personrecord.HmppsPersonRecord
 class MultiApplicationContextExtension : BeforeAllCallback, CloseableResource {
 
   private val instance1: SpringApplicationBuilder = SpringApplicationBuilder(HmppsPersonRecord::class.java)
-    .profiles("test", "test-instance-1")
+    .profiles("test")
+    .properties("server.port=0")
 
   override fun beforeAll(context: ExtensionContext) {
     if (!started) {

@@ -157,7 +157,7 @@ class IntegrationTestBase {
     @JvmStatic
     @RegisterExtension
     var wiremock: WireMockExtension = WireMockExtension.newInstance()
-      .options(wireMockConfig().port(8090))
+      .options(wireMockConfig().dynamicPort())
       .failOnUnmatchedRequests(true)
       .build()
   }
