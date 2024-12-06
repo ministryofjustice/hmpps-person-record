@@ -2,21 +2,16 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.libra
 
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQueries
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQueryType
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
@@ -31,7 +26,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -42,11 +36,6 @@ import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit.SECONDS
 
 class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
-
-  @BeforeEach
-  fun beforeEach() {
-    telemetryRepository.deleteAll()
-  }
 
   @Test
   fun `should process libra messages`() {
@@ -360,71 +349,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         "RECORD_COUNT" to "300",
         "HIGH_CONFIDENCE_COUNT" to "300",
         "LOW_CONFIDENCE_COUNT" to "0",
-      ),
-    )
-  }
-
-  @Test
-  @Disabled("Disabling as it takes too long to run in a CI context - out of memory errors")
-  fun `should process libra with large amount of candidates - CPR-354`() {
-    personRepository.deleteAllInBatch()
-    personKeyRepository.deleteAllInBatch()
-    awaitAssert { assertThat(personRepository.count()).isEqualTo(0) }
-
-    // Create 200,000 random records
-    blitz(200000, 10) {
-      createPerson(
-        Person(
-          firstName = randomName(),
-          lastName = randomName(),
-          addresses = listOf(Address(postcode = randomPostcode())),
-          references = listOf(
-            Reference(IdentifierType.PNC, randomPnc()),
-            Reference(IdentifierType.PNC, randomPnc()),
-            Reference(IdentifierType.CRO, randomCro()),
-            Reference(IdentifierType.CRO, randomCro()),
-          ),
-          dateOfBirth = randomDate(),
-          sourceSystemType = LIBRA,
-        ),
-        personKeyEntity = createPersonKey(),
-      )
-    }
-
-    // Create 200 random records to match against
-    blitz(200, 10) {
-      createPerson(
-        Person(
-          firstName = "Jane",
-          lastName = "Smith",
-          dateOfBirth = LocalDate.of(1975, 1, 1),
-          addresses = listOf(Address(postcode = "LS1 1AB")),
-          sourceSystemType = LIBRA,
-        ),
-      )
-    }
-
-    val probabilities = mutableMapOf<String, Double>()
-    repeat(100) { index ->
-      probabilities[index.toString()] = 0.999999
-    }
-    val matchResponse = MatchResponse(matchProbabilities = probabilities)
-    stubMatchScore(matchResponse)
-
-    await.atMost(300, SECONDS) untilAsserted { assertThat(personRepository.count()).isEqualTo(200200) }
-
-    val libraMessage = LibraMessage(firstName = "Jayne", lastName = "Smith", postcode = "LS2 1AB")
-    publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
-
-    await.atMost(300, SECONDS) untilAsserted { assertThat(telemetryRepository.count()).isEqualTo(3) }
-
-    checkTelemetry(
-      CPR_CANDIDATE_RECORD_SEARCH,
-      mapOf(
-        "SOURCE_SYSTEM" to "LIBRA",
-        "RECORD_COUNT" to "200",
-        "SEARCH_VERSION" to PersonQueries.SEARCH_VERSION,
-        "QUERY" to "FIND_CANDIDATES_BY_SOURCE_SYSTEM",
       ),
     )
   }
