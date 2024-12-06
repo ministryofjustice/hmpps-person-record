@@ -313,6 +313,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   @BeforeEach
   fun beforeEachMessagingTest() {
+    telemetryRepository.deleteAll()
     courtEventsQueue!!.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(courtEventsQueue!!.dlqUrl).build(),
     ).get()
