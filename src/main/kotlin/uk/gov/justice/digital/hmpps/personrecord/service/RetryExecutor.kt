@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import feign.FeignException
 import kotlinx.coroutines.delay
 import org.hibernate.exception.ConstraintViolationException
+import org.slf4j.LoggerFactory
 import org.springframework.dao.CannotAcquireLockException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.orm.ObjectOptimisticLockingFailureException
@@ -28,6 +29,7 @@ object RetryExecutor {
   ): T {
     var currentDelay = delay
     var lastException: Exception? = null
+    val log = LoggerFactory.getLogger(this::class.java)
 
     repeat(maxAttempts) {
       try {
@@ -36,6 +38,7 @@ object RetryExecutor {
         when {
           e::class in exceptions -> {
             lastException = e
+            log.debug("Retrying on error: ${e.message}")
 
             val jitterValue = Random.nextDouble(JITTER_MIN, JITTER_MAX)
             val delayTime = (currentDelay * jitterValue).toLong()

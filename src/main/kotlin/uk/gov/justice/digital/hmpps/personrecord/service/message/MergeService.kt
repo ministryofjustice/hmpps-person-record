@@ -72,7 +72,6 @@ class MergeService(
   private fun handleSourceUuidWithSingleRecord(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
     mergeRecord(mergeEvent, sourcePersonEntity, targetPersonEntity) { sourcePerson, targetPerson ->
       linkSourceUuidToTargetAndMarkAsMerged(sourcePerson!!, targetPerson)
-      sourcePerson.personKey?.let { personKeyRepository.save(it) }
       updateAndLinkRecords(mergeEvent, sourcePerson, targetPerson)
     }
   }
@@ -140,9 +139,13 @@ class MergeService(
   }
 
   private fun linkSourceUuidToTargetAndMarkAsMerged(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
-    sourcePersonEntity.personKey?.mergedTo = targetPersonEntity.personKey?.id
-    sourcePersonEntity.personKey?.status = UUIDStatusType.MERGED
-    sourcePersonEntity.personKey?.let { personKeyRepository.save(it) }
+    sourcePersonEntity.personKey?.let {
+      it.apply {
+        mergedTo = targetPersonEntity.personKey?.id
+        status = UUIDStatusType.MERGED
+      }
+      personKeyRepository.save(it)
+    }
   }
 
   private fun isSameUuid(sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity?): Boolean = sourcePersonEntity?.personKey?.id == targetPersonEntity?.personKey?.id
