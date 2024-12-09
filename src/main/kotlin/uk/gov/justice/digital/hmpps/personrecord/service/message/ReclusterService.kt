@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -33,16 +32,19 @@ class ReclusterService(
 
   @Transactional
   fun recluster(personKeyEntity: PersonKeyEntity) {
-    val updatedPersonKey: PersonKeyEntity = when {
-      clusterNeedsAttention(personKeyEntity) -> logNeedsAttention(personKeyEntity)
-      clusterHasOneRecord(personKeyEntity) -> handleSingleRecordInCluster(personKeyEntity)
-      else -> handleMultipleRecordsInCluster(personKeyEntity)
-    }
+    val beforeSnapshotPersonKey = eventLoggingService.snapshotEntity(personKeyEntity)
+    val updatedPersonKeyEntity = handleRecluster(personKeyEntity)
     eventLoggingService.recordEventLog(
-      beforePersonKey = personKeyEntity,
-      afterPersonKey = updatedPersonKey,
+      beforePersonKey = beforeSnapshotPersonKey,
+      afterPersonKey = updatedPersonKeyEntity,
       eventType = RECLUSTER_EVENT
     )
+  }
+
+  private fun handleRecluster(personKeyEntity: PersonKeyEntity) = when {
+    clusterNeedsAttention(personKeyEntity) -> logNeedsAttention(personKeyEntity)
+    clusterHasOneRecord(personKeyEntity) -> handleSingleRecordInCluster(personKeyEntity)
+    else -> handleMultipleRecordsInCluster(personKeyEntity)
   }
 
   private fun handleSingleRecordInCluster(personKeyEntity: PersonKeyEntity): PersonKeyEntity {
@@ -114,6 +116,7 @@ class ReclusterService(
     val sourcePersonKey = sourcePersonEntity.personKey!!
     val targetPersonKey = targetPersonEntity.personKey!!
 
+    sourcePersonKey.personEntities.remove(sourcePersonEntity)
     sourcePersonKey.mergedTo = targetPersonKey.id
     sourcePersonKey.status = UUIDStatusType.RECLUSTER_MERGE
     personKeyRepository.save(sourcePersonKey)
@@ -122,7 +125,9 @@ class ReclusterService(
     personRepository.save(sourcePersonEntity)
 
     targetPersonKey.personEntities.add(sourcePersonEntity)
-    return personKeyRepository.save(targetPersonKey)
+    personKeyRepository.save(targetPersonKey)
+
+    return sourcePersonKey
   }
 
   private fun <T> addAllIfNotPresent(list: MutableList<T>, elements: List<T>) {

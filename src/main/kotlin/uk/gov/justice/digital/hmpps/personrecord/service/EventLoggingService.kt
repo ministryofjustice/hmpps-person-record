@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLoggingEntity
@@ -17,6 +18,16 @@ class EventLoggingService(
   private val telemetryClient: TelemetryClient,
   private val objectMapper: ObjectMapper,
 ) {
+
+  fun snapshotEntity(personEntity: PersonEntity): PersonEntity {
+    val json: String = objectMapper.writeValueAsString(personEntity)
+    return objectMapper.readValue(json)
+  }
+
+  fun snapshotEntity(personKeyEntity: PersonKeyEntity): PersonKeyEntity {
+    val json: String = objectMapper.writeValueAsString(personKeyEntity)
+    return objectMapper.readValue(json)
+  }
 
   fun recordEventLog(
     beforePerson: PersonEntity?,
