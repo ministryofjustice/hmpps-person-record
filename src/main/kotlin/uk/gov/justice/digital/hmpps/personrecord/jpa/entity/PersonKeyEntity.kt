@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -20,6 +22,7 @@ import java.util.*
 class PersonKeyEntity(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @JsonIgnore
   val id: Long? = null,
 
   @Column(name = "person_id")
@@ -27,6 +30,7 @@ class PersonKeyEntity(
 
   @Column
   @OneToMany(mappedBy = "personKey", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+  @JsonManagedReference
   var personEntities: MutableList<PersonEntity> = mutableListOf(),
 
   @Column(name = "merged_to")
@@ -37,10 +41,10 @@ class PersonKeyEntity(
   var status: UUIDStatusType = UUIDStatusType.ACTIVE,
 
   @Version
+  @JsonIgnore
   var version: Int = 0,
 
 ) {
-
   companion object {
     val empty: PersonKeyEntity? = null
 

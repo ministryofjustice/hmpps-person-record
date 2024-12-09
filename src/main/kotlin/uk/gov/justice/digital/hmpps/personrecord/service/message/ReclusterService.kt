@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -9,9 +10,11 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
+import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.MatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.SearchService
+import uk.gov.justice.digital.hmpps.personrecord.service.type.RECLUSTER_EVENT
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MATCH_FOUND_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_NO_CHANGE
@@ -25,34 +28,34 @@ class ReclusterService(
   private val searchService: SearchService,
   private val personRepository: PersonRepository,
   private val personKeyRepository: PersonKeyRepository,
+  private val eventLoggingService: EventLoggingService,
 ) {
 
   @Transactional
   fun recluster(personKeyEntity: PersonKeyEntity) {
-    when {
-      clusterNeedsAttention(personKeyEntity) -> telemetryService.trackEvent(
-        CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION,
-        mapOf(EventKeys.UUID to personKeyEntity.personId.toString()),
-      )
+    val updatedPersonKey: PersonKeyEntity = when {
+      clusterNeedsAttention(personKeyEntity) -> logNeedsAttention(personKeyEntity)
       clusterHasOneRecord(personKeyEntity) -> handleSingleRecordInCluster(personKeyEntity)
       else -> handleMultipleRecordsInCluster(personKeyEntity)
     }
+    eventLoggingService.recordEventLog(
+      beforePersonKey = personKeyEntity,
+      afterPersonKey = updatedPersonKey,
+      eventType = RECLUSTER_EVENT
+    )
   }
 
-  private fun handleSingleRecordInCluster(personKeyEntity: PersonKeyEntity) {
+  private fun handleSingleRecordInCluster(personKeyEntity: PersonKeyEntity): PersonKeyEntity {
     val record = personKeyEntity.personEntities.first()
     val highConfidenceMatches = searchService.findCandidateRecordsWithUuid(record)
       .map { it.candidateRecord }
-    when {
-      highConfidenceMatches.isEmpty() -> telemetryService.trackEvent(
-        CPR_RECLUSTER_NO_MATCH_FOUND,
-        mapOf(EventKeys.UUID to personKeyEntity.personId.toString()),
-      )
+    return when {
+      highConfidenceMatches.isEmpty() -> logNoMatchFound(personKeyEntity)
       else -> handleHighConfidenceMatches(record, highConfidenceMatches)
     }
   }
 
-  private fun handleHighConfidenceMatches(personEntity: PersonEntity, highConfidenceMatches: List<PersonEntity>) {
+  private fun handleHighConfidenceMatches(personEntity: PersonEntity, highConfidenceMatches: List<PersonEntity>): PersonKeyEntity {
     val highestConfidenceRecord = highConfidenceMatches.first()
     telemetryService.trackEvent(
       CPR_RECLUSTER_MATCH_FOUND_MERGE,
@@ -61,25 +64,25 @@ class ReclusterService(
         EventKeys.TO_UUID to highestConfidenceRecord.personKey?.personId.toString(),
       ),
     )
-    mergeRecordToUUID(personEntity, highestConfidenceRecord)
+    return mergeRecordToUUID(personEntity, highestConfidenceRecord)
   }
 
-  private fun handleMultipleRecordsInCluster(personKeyEntity: PersonKeyEntity) {
+  private fun handleMultipleRecordsInCluster(personKeyEntity: PersonKeyEntity): PersonKeyEntity {
     val notMatchedRecords = checkClusterRecordsMatch(personKeyEntity)
-    when {
-      notMatchedRecords.isEmpty() -> telemetryService.trackEvent(
-        CPR_RECLUSTER_NO_CHANGE,
-        mapOf(EventKeys.UUID to personKeyEntity.personId.toString()),
-      )
-      else -> {
-        personKeyEntity.status = UUIDStatusType.NEEDS_ATTENTION
-        personKeyRepository.save(personKeyEntity)
-        telemetryService.trackEvent(
-          CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
-          mapOf(EventKeys.UUID to personKeyEntity.personId.toString()),
-        )
-      }
+    return when {
+      notMatchedRecords.isEmpty() -> logNoChange(personKeyEntity)
+      else -> setRecordToNeedsAttention(personKeyEntity)
     }
+  }
+
+  private fun setRecordToNeedsAttention(personKeyEntity: PersonKeyEntity): PersonKeyEntity {
+    personKeyEntity.status = UUIDStatusType.NEEDS_ATTENTION
+    val updatedPersonKey = personKeyRepository.save(personKeyEntity)
+    telemetryService.trackEvent(
+      CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
+      mapOf(EventKeys.UUID to personKeyEntity.personId.toString()),
+    )
+    return updatedPersonKey
   }
 
   private fun checkClusterRecordsMatch(personKeyEntity: PersonKeyEntity): List<PersonEntity> {
@@ -107,7 +110,7 @@ class ReclusterService(
     return matchService.findHighConfidenceMatches(recordsToMatch, PersonSearchCriteria.from(recordToMatch)).map { it.candidateRecord }
   }
 
-  private fun mergeRecordToUUID(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
+  private fun mergeRecordToUUID(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity): PersonKeyEntity {
     val sourcePersonKey = sourcePersonEntity.personKey!!
     val targetPersonKey = targetPersonEntity.personKey!!
 
@@ -119,7 +122,7 @@ class ReclusterService(
     personRepository.save(sourcePersonEntity)
 
     targetPersonKey.personEntities.add(sourcePersonEntity)
-    personKeyRepository.save(targetPersonKey)
+    return personKeyRepository.save(targetPersonKey)
   }
 
   private fun <T> addAllIfNotPresent(list: MutableList<T>, elements: List<T>) {
@@ -133,4 +136,28 @@ class ReclusterService(
   private fun clusterNeedsAttention(personKeyEntity: PersonKeyEntity?) = personKeyEntity?.status == UUIDStatusType.NEEDS_ATTENTION
 
   private fun clusterHasOneRecord(personKeyEntity: PersonKeyEntity?) = personKeyEntity?.personEntities?.size == 1
+
+  private fun logNeedsAttention(personKeyEntity: PersonKeyEntity): PersonKeyEntity {
+    telemetryService.trackEvent(
+      CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION,
+      mapOf(EventKeys.UUID to personKeyEntity.personId.toString()),
+    )
+    return personKeyEntity
+  }
+
+  private fun logNoMatchFound(personKeyEntity: PersonKeyEntity): PersonKeyEntity {
+    telemetryService.trackEvent(
+      CPR_RECLUSTER_NO_MATCH_FOUND,
+      mapOf(EventKeys.UUID to personKeyEntity.personId.toString()),
+    )
+    return personKeyEntity
+  }
+
+  private fun logNoChange(personKeyEntity: PersonKeyEntity): PersonKeyEntity {
+    telemetryService.trackEvent(
+      CPR_RECLUSTER_NO_CHANGE,
+      mapOf(EventKeys.UUID to personKeyEntity.personId.toString()),
+    )
+    return personKeyEntity
+  }
 }

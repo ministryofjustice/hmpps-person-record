@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
+import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -18,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 class OverrideMarkerEntity(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @JsonIgnore
   val id: Long? = null,
 
   @ManyToOne(optional = false)
@@ -26,6 +29,7 @@ class OverrideMarkerEntity(
     referencedColumnName = "id",
     nullable = false,
   )
+  @JsonBackReference
   var person: PersonEntity? = null,
 
   @Column(name = "marker_type")
@@ -36,5 +40,6 @@ class OverrideMarkerEntity(
   val markerValue: Long? = null,
 
   @Version
+  @JsonIgnore
   var version: Int = 0,
 )

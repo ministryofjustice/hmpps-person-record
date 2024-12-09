@@ -35,23 +35,12 @@ data class Person(
   val contacts: List<Contact> = emptyList(),
   val addresses: List<Address> = emptyList(),
   val references: List<Reference> = emptyList(),
-  var selfMatchScore: Double? = null,
   val sourceSystemType: SourceSystemType,
   val sentences: List<SentenceInfo> = emptyList(),
   val currentlyManaged: Boolean? = null,
 ) {
 
   companion object {
-
-    fun Person?.extractSourceSystemId(): String? {
-      return when (this?.sourceSystemType) {
-        DELIUS -> this.crn
-        NOMIS -> this.prisonNumber
-        COMMON_PLATFORM -> this.defendantId
-        LIBRA -> this.defendantId
-        else -> null
-      }
-    }
 
     fun List<Reference>.getType(type: IdentifierType): List<Reference> {
       return this.filter { it.identifierType == type }

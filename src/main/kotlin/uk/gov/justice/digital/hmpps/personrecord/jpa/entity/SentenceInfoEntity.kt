@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
+import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
@@ -18,12 +20,14 @@ class SentenceInfoEntity(
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @JsonIgnore
   val id: Long? = null,
 
   @Column(name = "sentence_date")
   var sentenceDate: LocalDate? = null,
 
   @Version
+  @JsonIgnore
   var version: Int = 0,
 
   @ManyToOne(optional = false)
@@ -32,6 +36,7 @@ class SentenceInfoEntity(
     referencedColumnName = "id",
     nullable = false,
   )
+  @JsonBackReference
   var person: PersonEntity? = null,
 
 ) {

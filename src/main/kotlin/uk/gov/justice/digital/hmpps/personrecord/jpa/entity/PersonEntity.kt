@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
+import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -30,6 +33,7 @@ class PersonEntity(
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @JsonIgnore
   var id: Long? = null,
 
   @Column
@@ -46,30 +50,37 @@ class PersonEntity(
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "fk_person_key_id", referencedColumnName = "id", nullable = true)
+  @JsonBackReference
   var personKey: PersonKeyEntity? = null,
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @JsonManagedReference
   var pseudonyms: MutableList<PseudonymEntity> = mutableListOf(),
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @JsonManagedReference
   var addresses: MutableList<AddressEntity> = mutableListOf(),
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @JsonManagedReference
   var contacts: MutableList<ContactEntity> = mutableListOf(),
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @JsonManagedReference
   var references: MutableList<ReferenceEntity> = mutableListOf(),
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @JsonManagedReference
   var sentenceInfo: MutableList<SentenceInfoEntity> = mutableListOf(),
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @JsonManagedReference
   var overrideMarkers: MutableList<OverrideMarkerEntity> = mutableListOf(),
 
   @Column
@@ -119,9 +130,20 @@ class PersonEntity(
   val sourceSystem: SourceSystemType,
 
   @Version
+  @JsonIgnore
   var version: Int = 0,
 
 ) {
+
+  fun PersonEntity?.extractSourceSystemId(): String? {
+    return when (this?.sourceSystem) {
+      DELIUS -> this.crn
+      NOMIS -> this.prisonNumber
+      COMMON_PLATFORM -> this.defendantId
+      LIBRA -> this.defendantId
+      else -> null
+    }
+  }
 
   fun addExcludeOverrideMarker(excludeRecord: PersonEntity) {
     this.overrideMarkers.add(
