@@ -44,14 +44,9 @@ class MergeService(
       else -> handleMergeWithDifferentUuids(mergeEvent, sourcePersonEntity, targetPersonEntity)
     }
 
-    val beforeDataDTO = sourcePersonEntity?.let { Person.from(it) }
-
-    val processedDataDTO = targetPersonEntity?.let { Person.from(it) }
-
     eventLoggingService.recordEventLog(
-      beforePerson = beforeDataDTO,
-      processedPerson = processedDataDTO,
-      uuid = sourcePersonEntity?.personKey?.personId?.toString(),
+      beforePerson = sourcePersonEntity,
+      afterPerson = targetPersonEntity,
       eventType = mergeEvent.event,
     )
   }

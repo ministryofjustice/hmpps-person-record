@@ -59,30 +59,23 @@ class CreateUpdateService(
     val personEntity: PersonEntity = personService.createPersonEntity(person)
     personService.linkRecordToPersonKey(personEntity)
 
-    val processedDataDTO = Person.from(personEntity)
-
     eventLoggingService.recordEventLog(
       beforePerson = null,
-      processedPerson = processedDataDTO,
-      uuid = personEntity.personKey?.personId?.toString(),
+      afterPerson = personEntity,
       eventType = event,
     )
-
     return personEntity
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?): PersonEntity {
+    val beforePerson = eventLoggingService.snapshotEntity(existingPersonEntity)
     if (isCreateEvent(event)) {
       telemetryService.trackPersonEvent(CPR_NEW_RECORD_EXISTS, person)
     }
-    val beforeDataDTO = Person.from(existingPersonEntity)
     val updatedPerson = personService.updatePersonEntity(person, existingPersonEntity)
-    val processedDataDTO = Person.from(updatedPerson)
-
     eventLoggingService.recordEventLog(
-      beforePerson = beforeDataDTO,
-      processedPerson = processedDataDTO,
-      uuid = existingPersonEntity.personKey?.personId?.toString(),
+      beforePerson = beforePerson,
+      afterPerson = updatedPerson,
       eventType = event,
     )
     updatedPerson.personKey?.personId?.let { queueService.publishReclusterMessageToQueue(it) }

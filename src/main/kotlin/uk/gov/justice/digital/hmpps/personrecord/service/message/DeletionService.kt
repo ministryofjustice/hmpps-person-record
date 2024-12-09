@@ -34,16 +34,15 @@ class DeletionService(
   }
 
   private fun handleDeletion(event: String?, personEntity: PersonEntity) {
-    val beforeDataDTO = Person.from(personEntity)
+    val beforePerson = eventLoggingService.snapshotEntity(personEntity)
 
     handlePersonKeyDeletion(personEntity)
     deletePersonRecord(personEntity)
     handleMergedRecords(event, personEntity)
 
     eventLoggingService.recordEventLog(
-      beforePerson = beforeDataDTO,
-      processedPerson = null,
-      uuid = personEntity.personKey?.personId.toString(),
+      beforePerson = beforePerson,
+      afterPerson = null,
       eventType = event,
     )
   }
