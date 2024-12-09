@@ -1,6 +1,5 @@
-package uk.gov.justice.digital.hmpps.personrecord.controller
+package uk.gov.justice.digital.hmpps.personrecord.config
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 
 class InitialiseDatabase : IntegrationTestBase() {
 
