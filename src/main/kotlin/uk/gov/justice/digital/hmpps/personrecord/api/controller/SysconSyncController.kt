@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.api.model.SysconSyncPrisoner
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @Tag(name = "Syscon Sync")
@@ -45,7 +45,7 @@ class SysconSyncController {
     @PathVariable(name = "prisonNumber")
     @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true)
     prisonNumber: String,
-    @RequestBody prisoner: Prisoner,
+    @RequestBody prisoner: SysconSyncPrisoner,
   ): ResponseEntity<String> {
     log.info("Prisoner {} in body {}", prisonNumber, prisoner.prisonNumber)
     return ResponseEntity.status(CREATED).body("Record Created")
