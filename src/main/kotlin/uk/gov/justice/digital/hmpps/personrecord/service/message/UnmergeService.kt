@@ -42,8 +42,9 @@ class UnmergeService(
     unmergeRecords(unmergeEvent, reactivatedPersonEntity, unmergedPersonEntity)
 
     eventLoggingService.recordEventLog(
-      beforePerson = unmergedPersonEntity,
-      afterPerson = reactivatedPersonEntity,
+      beforePersonEntity = unmergedPersonEntity,
+      afterPersonEntity = reactivatedPersonEntity,
+      uuid = unmergedPersonEntity.personKey?.personId,
       eventType = unmergeEvent.event,
     )
   }

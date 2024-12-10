@@ -396,7 +396,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
     assertThat(loggedEvent.beforeData).isEqualTo(beforeData)
     assertThat(loggedEvent.processedData).isEqualTo(null)
-
-    assertThat(loggedEvent.uuid).isEqualTo(personEntity.personKey?.personId.toString())
+    assertThat(loggedEvent.uuid).isEqualTo(personKey.personId.toString())
   }
 }

@@ -44,8 +44,9 @@ class MergeService(
     }
 
     eventLoggingService.recordEventLog(
-      beforePerson = sourcePersonEntity,
-      afterPerson = targetPersonEntity,
+      beforePersonEntity = sourcePersonEntity,
+      afterPersonEntity = targetPersonEntity,
+      uuid = sourcePersonEntity?.personKey?.personId,
       eventType = mergeEvent.event,
     )
   }

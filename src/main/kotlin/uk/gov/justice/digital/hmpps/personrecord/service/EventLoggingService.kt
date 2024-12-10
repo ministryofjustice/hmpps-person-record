@@ -9,9 +9,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.extractSourceSystemId
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLoggingRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.CPR
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Component
 class EventLoggingService(
@@ -25,51 +25,39 @@ class EventLoggingService(
   fun snapshotPersonKeyEntity(personKeyEntity: PersonKeyEntity) = snapshotEntity<PersonKeyEntity>(personKeyEntity)
 
   fun recordEventLog(
-    beforePerson: PersonEntity?,
-    afterPerson: PersonEntity?,
+    beforePersonEntity: PersonEntity?,
+    afterPersonEntity: PersonEntity?,
+    uuid: UUID?,
     eventType: String? = null,
   ): EventLoggingEntity {
-    val personEntityForIdentifier = afterPerson ?: beforePerson
-    return saveEventLog(
-      beforeData = beforePerson?.let { objectMapper.writeValueAsString(it) },
-      afterData = afterPerson?.let { objectMapper.writeValueAsString(it) },
+    val personEntityForIdentifier = afterPersonEntity ?: beforePersonEntity
+    val operationId = telemetryClient.context.operation.id
+    val eventLog = EventLoggingEntity(
+      beforeData = beforePersonEntity?.let { objectMapper.writeValueAsString(it) },
+      processedData = afterPersonEntity?.let { objectMapper.writeValueAsString(it) },
       sourceSystemId = personEntityForIdentifier.extractSourceSystemId(),
-      uuid = personEntityForIdentifier?.personKey?.personId.toString(),
-      sourceSystem = personEntityForIdentifier?.sourceSystem,
+      uuid = uuid.toString(),
+      sourceSystem = personEntityForIdentifier?.sourceSystem?.name,
       eventType = eventType,
+      eventTimestamp = LocalDateTime.now(),
+      operationId = operationId,
     )
+    return eventLoggingRepository.save(eventLog)
   }
 
   fun recordEventLog(
     beforePersonKey: PersonKeyEntity?,
     afterPersonKey: PersonKeyEntity?,
+    uuid: UUID,
     eventType: String? = null,
-  ): EventLoggingEntity {
-    val personKeyForIdentifier = beforePersonKey ?: afterPersonKey
-    return saveEventLog(
-      beforeData = beforePersonKey?.let { objectMapper.writeValueAsString(it) },
-      afterData = afterPersonKey?.let { objectMapper.writeValueAsString(it) },
-      sourceSystemId = null,
-      uuid = personKeyForIdentifier?.personId.toString(),
-      eventType = eventType,
-    )
-  }
-
-  private fun saveEventLog(
-    beforeData: String?,
-    afterData: String?,
-    eventType: String?,
-    uuid: String,
-    sourceSystemId: String?,
-    sourceSystem: SourceSystemType? = CPR,
   ): EventLoggingEntity {
     val operationId = telemetryClient.context.operation.id
     val eventLog = EventLoggingEntity(
-      beforeData = beforeData,
-      processedData = afterData,
-      sourceSystemId = sourceSystemId,
-      uuid = uuid,
-      sourceSystem = sourceSystem?.name,
+      beforeData = beforePersonKey?.let { objectMapper.writeValueAsString(it) },
+      processedData = afterPersonKey?.let { objectMapper.writeValueAsString(it) },
+      sourceSystemId = null,
+      uuid = uuid.toString(),
+      sourceSystem = CPR.name,
       eventType = eventType,
       eventTimestamp = LocalDateTime.now(),
       operationId = operationId,

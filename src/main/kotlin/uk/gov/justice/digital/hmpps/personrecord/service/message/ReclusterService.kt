@@ -37,6 +37,7 @@ class ReclusterService(
     eventLoggingService.recordEventLog(
       beforePersonKey = beforeSnapshotPersonKey,
       afterPersonKey = updatedPersonKeyEntity,
+      uuid = personKeyEntity.personId!!,
       eventType = RECLUSTER_EVENT,
     )
   }
