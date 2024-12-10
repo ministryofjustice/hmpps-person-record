@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.cpr
 
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
@@ -33,7 +31,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import java.time.LocalDateTime
-import java.util.concurrent.TimeUnit.SECONDS
 
 class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -161,11 +158,8 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val afterData = objectMapper.writeValueAsString(personKeyRepository.findByPersonId(cluster1.personId))
 
-    val loggedEvent = await.atMost(4, SECONDS) untilNotNull {
-      eventLoggingRepository.findFirstByUuidOrderByEventTimestampDesc(cluster1.personId.toString())
-    }
+    val loggedEvent = awaitNotNullEventLog(cluster1.personId!!)
 
-    assertThat(loggedEvent).isNotNull
     assertThat(loggedEvent.eventType).isEqualTo(RECLUSTER_EVENT)
     assertThat(loggedEvent.sourceSystemId).isEqualTo(null)
     assertThat(loggedEvent.sourceSystem).isEqualTo(CPR.name)
