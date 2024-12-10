@@ -102,7 +102,10 @@ data class Person(
       }
 
       val references: List<Reference> = listOf(
-        Reference.from(IdentifierType.NATIONAL_INSURANCE_NUMBER, defendant.personDefendant?.personDetails?.nationalInsuranceNumber),
+        Reference.from(
+          IdentifierType.NATIONAL_INSURANCE_NUMBER,
+          defendant.personDefendant?.personDetails?.nationalInsuranceNumber
+        ),
         Reference.from(IdentifierType.DRIVER_LICENSE_NUMBER, defendant.personDefendant?.driverNumber),
         Reference.from(IdentifierType.ARREST_SUMMONS_NUMBER, defendant.personDefendant?.arrestSummonsNumber),
         Reference.from(IdentifierType.PNC, defendant.pncId?.pncId),
@@ -155,7 +158,7 @@ data class Person(
         Reference.from(IdentifierType.NATIONAL_INSURANCE_NUMBER, prisoner.identifiers.getType("NINO")?.value),
         Reference.from(IdentifierType.DRIVER_LICENSE_NUMBER, prisoner.identifiers.getType("DL")?.value),
 
-      )
+        )
 
       return Person(
         prisonNumber = prisoner.prisonNumber,
@@ -174,31 +177,6 @@ data class Person(
         religion = prisoner.religion,
         sentences = prisoner.allConvictedOffences?.map { SentenceInfo.from(it) } ?: emptyList(),
         currentlyManaged = prisoner.currentlyManaged,
-      )
-    }
-
-    fun from(existingPersonEntity: PersonEntity): Person {
-      return Person(
-        personId = existingPersonEntity.personKey?.personId,
-        firstName = existingPersonEntity.firstName,
-        middleNames = existingPersonEntity.middleNames?.split(" ") ?: emptyList(),
-        lastName = existingPersonEntity.lastName,
-        dateOfBirth = existingPersonEntity.dateOfBirth,
-        crn = existingPersonEntity.crn,
-        prisonNumber = existingPersonEntity.prisonNumber,
-        defendantId = existingPersonEntity.defendantId,
-        title = existingPersonEntity.title,
-        aliases = existingPersonEntity.pseudonyms.map { Alias.from(it) },
-        masterDefendantId = existingPersonEntity.masterDefendantId,
-        nationality = existingPersonEntity.nationality,
-        religion = existingPersonEntity.religion,
-        ethnicity = existingPersonEntity.ethnicity,
-        contacts = existingPersonEntity.contacts.map { Contact.convertEntityToContact(it) },
-        addresses = existingPersonEntity.addresses.map { Address.from(it) },
-        references = existingPersonEntity.references.map { Reference.from(it) },
-        sourceSystemType = existingPersonEntity.sourceSystem,
-        sentences = existingPersonEntity.sentenceInfo.map { SentenceInfo.from(it) },
-        currentlyManaged = existingPersonEntity.currentlyManaged,
       )
     }
   }

@@ -345,8 +345,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val prisoner = createPrisoner()
 
     val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisoner.prisonNumber!!)
-    val beforeDataTO = personEntity?.let { Person.from(it) }
-    val beforeData = objectMapper.writeValueAsString(beforeDataTO)
+    val beforeData = objectMapper.writeValueAsString(personEntity)
 
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisoner.prisonNumber))
 
@@ -356,8 +355,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val updatedPersonEntity = awaitNotNullPerson { personRepository.findByPrisonNumberAndSourceSystem(prisoner.prisonNumber!!) }
 
-    val processedDTO = Person.from(updatedPersonEntity)
-    val processedData = objectMapper.writeValueAsString(processedDTO)
+    val processedData = objectMapper.writeValueAsString(updatedPersonEntity)
 
     val loggedEvent = await.atMost(4, SECONDS) untilNotNull {
       eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(prisoner.prisonNumber!!)

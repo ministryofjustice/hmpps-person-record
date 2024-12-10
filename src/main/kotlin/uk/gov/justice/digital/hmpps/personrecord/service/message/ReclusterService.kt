@@ -116,16 +116,15 @@ class ReclusterService(
     val sourcePersonKey = sourcePersonEntity.personKey!!
     val targetPersonKey = targetPersonEntity.personKey!!
 
-    sourcePersonKey.personEntities.remove(sourcePersonEntity)
-    sourcePersonKey.mergedTo = targetPersonKey.id
-    sourcePersonKey.status = UUIDStatusType.RECLUSTER_MERGE
-    personKeyRepository.save(sourcePersonKey)
-
     sourcePersonEntity.personKey = targetPersonKey
     personRepository.save(sourcePersonEntity)
 
+    sourcePersonKey.personEntities.remove(sourcePersonEntity)
+    sourcePersonKey.mergedTo = targetPersonKey.id
+    sourcePersonKey.status = UUIDStatusType.RECLUSTER_MERGE
+
     targetPersonKey.personEntities.add(sourcePersonEntity)
-    personKeyRepository.save(targetPersonKey)
+    personKeyRepository.saveAll(listOf(targetPersonKey, sourcePersonKey))
 
     return sourcePersonKey
   }

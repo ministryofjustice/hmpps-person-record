@@ -135,16 +135,6 @@ class PersonEntity(
 
 ) {
 
-  fun PersonEntity?.extractSourceSystemId(): String? {
-    return when (this?.sourceSystem) {
-      DELIUS -> this.crn
-      NOMIS -> this.prisonNumber
-      COMMON_PLATFORM -> this.defendantId
-      LIBRA -> this.defendantId
-      else -> null
-    }
-  }
-
   fun addExcludeOverrideMarker(excludeRecord: PersonEntity) {
     this.overrideMarkers.add(
       OverrideMarkerEntity(markerType = OverrideMarkerType.EXCLUDE, markerValue = excludeRecord.id, person = this),

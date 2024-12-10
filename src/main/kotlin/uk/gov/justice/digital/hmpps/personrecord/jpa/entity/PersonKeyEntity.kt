@@ -50,15 +50,5 @@ class PersonKeyEntity(
     val empty: PersonKeyEntity? = null
 
     fun new(): PersonKeyEntity = PersonKeyEntity(personId = UUID.randomUUID())
-
-    fun PersonKeyEntity.addPersonEntity(personEntity: PersonEntity) {
-      this.personEntities.add(personEntity)
-      personEntity.personKey = this
-    }
-
-    fun PersonKeyEntity.removePersonEntity(personEntity: PersonEntity) {
-      this.personEntities.remove(personEntity)
-      personEntity.personKey = null
-    }
   }
 }
