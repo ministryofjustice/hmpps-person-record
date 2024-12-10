@@ -5,7 +5,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraH
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner.Companion.getType
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -104,7 +103,7 @@ data class Person(
       val references: List<Reference> = listOf(
         Reference.from(
           IdentifierType.NATIONAL_INSURANCE_NUMBER,
-          defendant.personDefendant?.personDetails?.nationalInsuranceNumber
+          defendant.personDefendant?.personDetails?.nationalInsuranceNumber,
         ),
         Reference.from(IdentifierType.DRIVER_LICENSE_NUMBER, defendant.personDefendant?.driverNumber),
         Reference.from(IdentifierType.ARREST_SUMMONS_NUMBER, defendant.personDefendant?.arrestSummonsNumber),
@@ -158,7 +157,7 @@ data class Person(
         Reference.from(IdentifierType.NATIONAL_INSURANCE_NUMBER, prisoner.identifiers.getType("NINO")?.value),
         Reference.from(IdentifierType.DRIVER_LICENSE_NUMBER, prisoner.identifiers.getType("DL")?.value),
 
-        )
+      )
 
       return Person(
         prisonNumber = prisoner.prisonNumber,

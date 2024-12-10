@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Compani
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLoggingRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.CPR
 import java.time.LocalDateTime
 
 @Component
@@ -19,15 +20,9 @@ class EventLoggingService(
   private val objectMapper: ObjectMapper,
 ) {
 
-  fun snapshotEntity(personEntity: PersonEntity): PersonEntity {
-    val json: String = objectMapper.writeValueAsString(personEntity)
-    return objectMapper.readValue(json)
-  }
+  fun snapshotPersonEntity(personEntity: PersonEntity) = snapshotEntity<PersonEntity>(personEntity)
 
-  fun snapshotEntity(personKeyEntity: PersonKeyEntity): PersonKeyEntity {
-    val json: String = objectMapper.writeValueAsString(personKeyEntity)
-    return objectMapper.readValue(json)
-  }
+  fun snapshotPersonKeyEntity(personKeyEntity: PersonKeyEntity) = snapshotEntity<PersonKeyEntity>(personKeyEntity)
 
   fun recordEventLog(
     beforePerson: PersonEntity?,
@@ -40,7 +35,7 @@ class EventLoggingService(
       afterData = afterPerson?.let { objectMapper.writeValueAsString(it) },
       sourceSystemId = personEntityForIdentifier.extractSourceSystemId(),
       uuid = personEntityForIdentifier?.personKey?.personId.toString(),
-      sourceSystem = personEntityForIdentifier?.sourceSystem ?: SourceSystemType.CPR ,
+      sourceSystem = personEntityForIdentifier?.sourceSystem,
       eventType = eventType,
     )
   }
@@ -56,7 +51,6 @@ class EventLoggingService(
       afterData = afterPersonKey?.let { objectMapper.writeValueAsString(it) },
       sourceSystemId = null,
       uuid = personKeyForIdentifier?.personId.toString(),
-      sourceSystem = SourceSystemType.CPR,
       eventType = eventType,
     )
   }
@@ -67,7 +61,7 @@ class EventLoggingService(
     eventType: String?,
     uuid: String,
     sourceSystemId: String?,
-    sourceSystem: SourceSystemType,
+    sourceSystem: SourceSystemType? = CPR,
   ): EventLoggingEntity {
     val operationId = telemetryClient.context.operation.id
     val eventLog = EventLoggingEntity(
@@ -75,11 +69,13 @@ class EventLoggingService(
       processedData = afterData,
       sourceSystemId = sourceSystemId,
       uuid = uuid,
-      sourceSystem = sourceSystem.name,
+      sourceSystem = sourceSystem?.name,
       eventType = eventType,
       eventTimestamp = LocalDateTime.now(),
       operationId = operationId,
     )
     return eventLoggingRepository.save(eventLog)
   }
+
+  private inline fun <reified T> snapshotEntity(entity: Any): T = objectMapper.readValue(objectMapper.writeValueAsString(entity))
 }

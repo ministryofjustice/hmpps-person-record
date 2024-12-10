@@ -68,7 +68,7 @@ class CreateUpdateService(
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?): PersonEntity {
-    val beforePerson = eventLoggingService.snapshotEntity(existingPersonEntity)
+    val beforePerson = eventLoggingService.snapshotPersonEntity(existingPersonEntity)
     if (isCreateEvent(event)) {
       telemetryService.trackPersonEvent(CPR_NEW_RECORD_EXISTS, person)
     }

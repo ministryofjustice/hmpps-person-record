@@ -32,12 +32,12 @@ class ReclusterService(
 
   @Transactional
   fun recluster(personKeyEntity: PersonKeyEntity) {
-    val beforeSnapshotPersonKey = eventLoggingService.snapshotEntity(personKeyEntity)
+    val beforeSnapshotPersonKey = eventLoggingService.snapshotPersonKeyEntity(personKeyEntity)
     val updatedPersonKeyEntity = handleRecluster(personKeyEntity)
     eventLoggingService.recordEventLog(
       beforePersonKey = beforeSnapshotPersonKey,
       afterPersonKey = updatedPersonKeyEntity,
-      eventType = RECLUSTER_EVENT
+      eventType = RECLUSTER_EVENT,
     )
   }
 
