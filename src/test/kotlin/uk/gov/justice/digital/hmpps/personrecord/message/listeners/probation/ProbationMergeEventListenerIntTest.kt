@@ -2,8 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
@@ -25,7 +23,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import java.time.LocalDateTime
-import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -357,9 +354,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
 
-    val loggedEvent = await.atMost(4, SECONDS) untilNotNull {
-      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(targetCrn)
-    }
+    val loggedEvent = awaitNotNullEventLog(targetCrn, OFFENDER_MERGED)
 
     val sourcePerson = personRepository.findByCrn(sourceCrn)
     val targetPerson = personRepository.findByCrn(targetCrn)
@@ -370,9 +365,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val processedDataDTO = targetPerson?.let { Person.from(it) }
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
-    assertThat(loggedEvent).isNotNull
-    assertThat(loggedEvent.eventType).isEqualTo(OFFENDER_MERGED)
-    assertThat(loggedEvent.sourceSystemId).isEqualTo(targetCrn)
     assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
     assertThat(loggedEvent.beforeData).isEqualTo(beforeData)
