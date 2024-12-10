@@ -93,6 +93,10 @@ class IntegrationTestBase {
   internal fun awaitNotNullPerson(function: () -> PersonEntity?): PersonEntity =
     await atMost (Duration.ofSeconds(3)) untilNotNull function
 
+  internal fun awaitNotNullEventLog(sourceSystemId: String, eventType: String) =
+    await atMost (Duration.ofSeconds(3)) untilNotNull {
+      eventLoggingRepository.findFirstBySourceSystemIdAndEventTypeOrderByEventTimestampDesc(sourceSystemId, eventType)
+    }
   internal fun createPersonKey(status: UUIDStatusType = UUIDStatusType.ACTIVE): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
     personKeyEntity.status = status

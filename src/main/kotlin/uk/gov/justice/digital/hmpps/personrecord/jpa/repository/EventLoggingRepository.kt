@@ -9,4 +9,6 @@ interface EventLoggingRepository : JpaRepository<EventLoggingEntity, Long> {
   fun findFirstBySourceSystemIdOrderByEventTimestampDesc(sourceSystemId: String): EventLoggingEntity?
 
   fun findFirstByUuidOrderByEventTimestampDesc(uuid: String): EventLoggingEntity?
+
+  fun findFirstBySourceSystemIdAndEventTypeOrderByEventTimestampDesc(sourceSystemId: String, evemntType: String): EventLoggingEntity?
 }
