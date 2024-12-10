@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
 import com.github.tomakehurst.wiremock.stubbing.Scenario
 import org.assertj.core.api.Assertions.assertThat
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
@@ -18,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit.SECONDS
 
 class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -332,7 +335,9 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     prisonMergeEventAndResponseSetup(PRISONER_MERGED, source = source, target = target)
 
-    val loggedEvent = awaitNotNullEventLog(targetPrisonNumber, PRISONER_MERGED)
+    val loggedEvent = await.atMost(4, SECONDS) untilNotNull {
+      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(targetPrisonNumber)
+    }
 
     val sourcePerson = personRepository.findByPrisonNumberAndSourceSystem(sourcePrisonNumber)
     val targetPerson = personRepository.findByPrisonNumberAndSourceSystem(targetPrisonNumber)
@@ -343,6 +348,9 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val processedDataDTO = targetPerson?.let { Person.from(it) }
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
+    assertThat(loggedEvent).isNotNull
+    assertThat(loggedEvent.eventType).isEqualTo(PRISONER_MERGED)
+    assertThat(loggedEvent.sourceSystemId).isEqualTo(targetPrisonNumber)
     assertThat(loggedEvent.sourceSystem).isEqualTo(targetPerson?.sourceSystem.toString())
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
     assertThat(loggedEvent.beforeData).isEqualTo(beforeData)

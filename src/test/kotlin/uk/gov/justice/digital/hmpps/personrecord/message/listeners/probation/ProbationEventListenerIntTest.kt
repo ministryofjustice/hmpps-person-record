@@ -384,7 +384,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val processedDataDTO = Person.from(updatedPersonEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
-    val loggedEvent = awaitNotNullEventLog(crn, OFFENDER_DETAILS_CHANGED)
+    val loggedEvent = await.atMost(4, SECONDS) untilNotNull {
+      eventLoggingRepository.findFirstBySourceSystemIdAndEventTypeOrderByEventTimestampDesc(crn, OFFENDER_DETAILS_CHANGED)
+    }
 
     assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())

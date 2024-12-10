@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import org.assertj.core.api.Assertions.assertThat
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
@@ -18,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -391,8 +394,13 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
-    val loggedEvent = awaitNotNullEventLog(crn, OFFENDER_GDPR_DELETION)
+    val loggedEvent = await.atMost(4, SECONDS) untilNotNull {
+      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(crn)
+    }
 
+    assertThat(loggedEvent).isNotNull
+    assertThat(loggedEvent.eventType).isEqualTo(OFFENDER_GDPR_DELETION)
+    assertThat(loggedEvent.sourceSystemId).isEqualTo(crn)
     assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
     assertThat(loggedEvent.beforeData).isEqualTo(beforeData)
