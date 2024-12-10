@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -57,7 +55,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupIdentifier
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.concurrent.TimeUnit.SECONDS
 import java.util.stream.Stream
 
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -359,11 +356,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val processedDTO = Person.from(updatedPersonEntity)
     val processedData = objectMapper.writeValueAsString(processedDTO)
 
-    val loggedEvent = await.atMost(4, SECONDS) untilNotNull {
-      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(prisoner.prisonNumber!!)
-    }
+    val loggedEvent = awaitNotNullEventLog(prisoner.prisonNumber!!, PRISONER_UPDATED)
 
-    assertThat(loggedEvent.eventType).isEqualTo(PRISONER_UPDATED)
     assertThat(loggedEvent.sourceSystemId).isEqualTo(prisoner.prisonNumber)
     assertThat(loggedEvent.sourceSystem).isEqualTo(SourceSystemType.NOMIS.name)
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())

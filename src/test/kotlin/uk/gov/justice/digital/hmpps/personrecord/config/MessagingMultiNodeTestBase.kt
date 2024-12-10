@@ -26,9 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseRes
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.HmppsTopic
-import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
-import java.time.Duration
 import java.util.UUID
 
 @ExtendWith(MultiApplicationContextExtension::class)
@@ -359,8 +357,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       PurgeQueueRequest.builder().queueUrl(reclusterEventsQueue!!.dlqUrl).build(),
     )
 
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      reclusterEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(reclusterEventsQueue!!.dlqUrl!!).get()
-    } matches { it == 0 }
+    expectNoMessagesOnDlq(reclusterEventsQueue)
   }
 }
