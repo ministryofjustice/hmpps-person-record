@@ -14,7 +14,6 @@ generic-service:
     tlsSecretName: hmpps-person-record-dev-cert-secret
 
   env:
-    APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.dev.json
     SPRING_PROFILES_ACTIVE: "dev"
     MATCH_SCORE_BASE_URL: https://hmpps-person-match-score-dev.hmpps.service.justice.gov.uk
     NOMIS_OAUTH_BASE_URL: https://sign-in-dev.hmpps.service.justice.gov.uk
