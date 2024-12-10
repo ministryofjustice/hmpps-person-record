@@ -369,29 +369,25 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should log event to EventLogging table when offender updated`() {
     val firstName = randomName()
     val crn = randomCRN()
-    val changedFirstName = randomName()
 
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, firstName = firstName))
 
     val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
+    val beforeDataDTO = Person.from(personEntity)
+    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
+    val changedFirstName = randomName()
     probationEventAndResponseSetup(OFFENDER_DETAILS_CHANGED, ApiResponseSetup(crn = crn, firstName = changedFirstName))
 
     awaitAssert { assertThat(personRepository.findByCrn(crn)?.firstName).isEqualTo(changedFirstName) }
     val updatedPersonEntity = personRepository.findByCrn(crn)!!
-    val beforeDataDTO = Person.from(personEntity)
-    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
-
     val processedDataDTO = Person.from(updatedPersonEntity)
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
     val loggedEvent = await.atMost(4, SECONDS) untilNotNull {
-      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(crn)
+      eventLoggingRepository.findFirstBySourceSystemIdAndEventTypeOrderByEventTimestampDesc(crn, OFFENDER_DETAILS_CHANGED)
     }
 
-    assertThat(loggedEvent).isNotNull
-    assertThat(loggedEvent.eventType).isEqualTo(OFFENDER_DETAILS_CHANGED)
-    assertThat(loggedEvent.sourceSystemId).isEqualTo(crn)
     assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
     assertThat(loggedEvent.beforeData).isEqualTo(beforeData)

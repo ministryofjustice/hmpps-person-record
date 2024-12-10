@@ -360,10 +360,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val processedData = objectMapper.writeValueAsString(processedDTO)
 
     val loggedEvent = await.atMost(4, SECONDS) untilNotNull {
-      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(prisoner.prisonNumber!!)
+      eventLoggingRepository.findFirstBySourceSystemIdAndEventTypeOrderByEventTimestampDesc(prisoner.prisonNumber!!, PRISONER_UPDATED)
     }
 
-    assertThat(loggedEvent.eventType).isEqualTo(PRISONER_UPDATED)
     assertThat(loggedEvent.sourceSystemId).isEqualTo(prisoner.prisonNumber)
     assertThat(loggedEvent.sourceSystem).isEqualTo(SourceSystemType.NOMIS.name)
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())

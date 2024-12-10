@@ -7,4 +7,5 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLoggingEntity
 @Repository
 interface EventLoggingRepository : JpaRepository<EventLoggingEntity, Long> {
   fun findFirstBySourceSystemIdOrderByEventTimestampDesc(sourceSystemId: String): EventLoggingEntity?
+  fun findFirstBySourceSystemIdAndEventTypeOrderByEventTimestampDesc(sourceSystemId: String, evemntType: String): EventLoggingEntity?
 }
