@@ -349,8 +349,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     await.atMost(4, SECONDS) untilNotNull { personRepository.findByCrn(crn)?.personKey }
     val personEntity = personRepository.findByCrn(crn)!!
-    val processedDataDTO = Person.from(personEntity)
-    val processedData = objectMapper.writeValueAsString(processedDataDTO)
+    val afterData = objectMapper.writeValueAsString(personEntity)
 
     val loggedEvent = await.atMost(4, SECONDS) untilNotNull {
       eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(crn)
@@ -360,7 +359,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
     assertThat(loggedEvent.beforeData).isNull()
-    assertThat(loggedEvent.processedData).isEqualTo(processedData)
+    assertThat(loggedEvent.processedData).isEqualTo(afterData)
 
     assertThat(loggedEvent.uuid).isEqualTo(personEntity.personKey?.personId.toString())
   }
@@ -373,23 +372,23 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, firstName = firstName))
 
     val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
-    val beforeDataDTO = Person.from(personEntity)
-    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
+
+    val beforeData = objectMapper.writeValueAsString(personEntity)
 
     val changedFirstName = randomName()
     probationEventAndResponseSetup(OFFENDER_DETAILS_CHANGED, ApiResponseSetup(crn = crn, firstName = changedFirstName))
 
     awaitAssert { assertThat(personRepository.findByCrn(crn)?.firstName).isEqualTo(changedFirstName) }
+
     val updatedPersonEntity = personRepository.findByCrn(crn)!!
-    val processedDataDTO = Person.from(updatedPersonEntity)
-    val processedData = objectMapper.writeValueAsString(processedDataDTO)
+    val afterData = objectMapper.writeValueAsString(updatedPersonEntity)
 
     val loggedEvent = awaitNotNullEventLog(crn, OFFENDER_DETAILS_CHANGED)
 
     assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
     assertThat(loggedEvent.beforeData).isEqualTo(beforeData)
-    assertThat(loggedEvent.processedData).isEqualTo(processedData)
+    assertThat(loggedEvent.processedData).isEqualTo(afterData)
     assertThat(loggedEvent.uuid).isEqualTo(updatedPersonEntity.personKey?.personId.toString())
   }
 }

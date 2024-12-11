@@ -5,7 +5,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraH
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner.Companion.getType
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -35,23 +34,12 @@ data class Person(
   val contacts: List<Contact> = emptyList(),
   val addresses: List<Address> = emptyList(),
   val references: List<Reference> = emptyList(),
-  var selfMatchScore: Double? = null,
   val sourceSystemType: SourceSystemType,
   val sentences: List<SentenceInfo> = emptyList(),
   val currentlyManaged: Boolean? = null,
 ) {
 
   companion object {
-
-    fun Person?.extractSourceSystemId(): String? {
-      return when (this?.sourceSystemType) {
-        DELIUS -> this.crn
-        NOMIS -> this.prisonNumber
-        COMMON_PLATFORM -> this.defendantId
-        LIBRA -> this.defendantId
-        else -> null
-      }
-    }
 
     fun List<Reference>.getType(type: IdentifierType): List<Reference> {
       return this.filter { it.identifierType == type }
@@ -113,7 +101,10 @@ data class Person(
       }
 
       val references: List<Reference> = listOf(
-        Reference.from(IdentifierType.NATIONAL_INSURANCE_NUMBER, defendant.personDefendant?.personDetails?.nationalInsuranceNumber),
+        Reference.from(
+          IdentifierType.NATIONAL_INSURANCE_NUMBER,
+          defendant.personDefendant?.personDetails?.nationalInsuranceNumber,
+        ),
         Reference.from(IdentifierType.DRIVER_LICENSE_NUMBER, defendant.personDefendant?.driverNumber),
         Reference.from(IdentifierType.ARREST_SUMMONS_NUMBER, defendant.personDefendant?.arrestSummonsNumber),
         Reference.from(IdentifierType.PNC, defendant.pncId?.pncId),
@@ -185,31 +176,6 @@ data class Person(
         religion = prisoner.religion,
         sentences = prisoner.allConvictedOffences?.map { SentenceInfo.from(it) } ?: emptyList(),
         currentlyManaged = prisoner.currentlyManaged,
-      )
-    }
-
-    fun from(existingPersonEntity: PersonEntity): Person {
-      return Person(
-        personId = existingPersonEntity.personKey?.personId,
-        firstName = existingPersonEntity.firstName,
-        middleNames = existingPersonEntity.middleNames?.split(" ") ?: emptyList(),
-        lastName = existingPersonEntity.lastName,
-        dateOfBirth = existingPersonEntity.dateOfBirth,
-        crn = existingPersonEntity.crn,
-        prisonNumber = existingPersonEntity.prisonNumber,
-        defendantId = existingPersonEntity.defendantId,
-        title = existingPersonEntity.title,
-        aliases = existingPersonEntity.pseudonyms.map { Alias.from(it) },
-        masterDefendantId = existingPersonEntity.masterDefendantId,
-        nationality = existingPersonEntity.nationality,
-        religion = existingPersonEntity.religion,
-        ethnicity = existingPersonEntity.ethnicity,
-        contacts = existingPersonEntity.contacts.map { Contact.convertEntityToContact(it) },
-        addresses = existingPersonEntity.addresses.map { Address.from(it) },
-        references = existingPersonEntity.references.map { Reference.from(it) },
-        sourceSystemType = existingPersonEntity.sourceSystem,
-        sentences = existingPersonEntity.sentenceInfo.map { SentenceInfo.from(it) },
-        currentlyManaged = existingPersonEntity.currentlyManaged,
       )
     }
   }

@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
@@ -44,14 +43,10 @@ class MergeService(
       else -> handleMergeWithDifferentUuids(mergeEvent, sourcePersonEntity, targetPersonEntity)
     }
 
-    val beforeDataDTO = sourcePersonEntity?.let { Person.from(it) }
-
-    val processedDataDTO = targetPersonEntity?.let { Person.from(it) }
-
     eventLoggingService.recordEventLog(
-      beforePerson = beforeDataDTO,
-      processedPerson = processedDataDTO,
-      uuid = sourcePersonEntity?.personKey?.personId?.toString(),
+      beforePersonEntity = sourcePersonEntity,
+      afterPersonEntity = targetPersonEntity,
+      uuid = sourcePersonEntity?.personKey?.personId,
       eventType = mergeEvent.event,
     )
   }

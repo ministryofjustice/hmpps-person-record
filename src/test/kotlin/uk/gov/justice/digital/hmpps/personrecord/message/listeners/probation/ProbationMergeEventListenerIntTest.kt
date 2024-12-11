@@ -359,11 +359,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val sourcePerson = personRepository.findByCrn(sourceCrn)
     val targetPerson = personRepository.findByCrn(targetCrn)
 
-    val beforeDataDTO = sourcePerson?.let { Person.from(it) }
-    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
-
-    val processedDataDTO = targetPerson?.let { Person.from(it) }
-    val processedData = objectMapper.writeValueAsString(processedDataDTO)
+    val beforeData = objectMapper.writeValueAsString(sourcePerson)
+    val processedData = objectMapper.writeValueAsString(targetPerson)
 
     assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())

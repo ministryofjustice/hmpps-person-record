@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
+import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType.STRING
@@ -21,6 +23,7 @@ class PseudonymEntity(
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @JsonIgnore
   val id: Long? = null,
 
   @ManyToOne(optional = false)
@@ -29,6 +32,7 @@ class PseudonymEntity(
     referencedColumnName = "id",
     nullable = false,
   )
+  @JsonBackReference
   var person: PersonEntity? = null,
 
   @Column
@@ -57,6 +61,7 @@ class PseudonymEntity(
   val type: NameType,
 
   @Version
+  @JsonIgnore
   var version: Int = 0,
 ) {
   companion object {

@@ -386,8 +386,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
     val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
 
-    val beforeDataDTO = Person.from(personEntity)
-    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
+    val beforeData = objectMapper.writeValueAsString(personEntity)
 
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
@@ -397,7 +396,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
     assertThat(loggedEvent.beforeData).isEqualTo(beforeData)
     assertThat(loggedEvent.processedData).isEqualTo(null)
-
-    assertThat(loggedEvent.uuid).isEqualTo(personEntity.personKey?.personId.toString())
+    assertThat(loggedEvent.uuid).isEqualTo(personKey.personId.toString())
   }
 }

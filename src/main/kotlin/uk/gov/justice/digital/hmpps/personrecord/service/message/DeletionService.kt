@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
@@ -34,16 +33,16 @@ class DeletionService(
   }
 
   private fun handleDeletion(event: String?, personEntity: PersonEntity) {
-    val beforeDataDTO = Person.from(personEntity)
+    val beforePersonEntity = eventLoggingService.snapshotPersonEntity(personEntity)
 
     handlePersonKeyDeletion(personEntity)
     deletePersonRecord(personEntity)
     handleMergedRecords(event, personEntity)
 
     eventLoggingService.recordEventLog(
-      beforePerson = beforeDataDTO,
-      processedPerson = null,
-      uuid = personEntity.personKey?.personId.toString(),
+      beforePersonEntity = beforePersonEntity,
+      afterPersonEntity = null,
+      uuid = personEntity.personKey?.personId,
       eventType = event,
     )
   }

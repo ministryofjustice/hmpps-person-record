@@ -21,6 +21,7 @@ import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
 import uk.gov.justice.digital.hmpps.personrecord.health.HealthInfo
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLoggingEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -33,6 +34,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import java.time.Duration
+import java.util.UUID
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -93,10 +95,16 @@ class IntegrationTestBase {
   internal fun awaitNotNullPerson(function: () -> PersonEntity?): PersonEntity =
     await atMost (Duration.ofSeconds(3)) untilNotNull function
 
-  internal fun awaitNotNullEventLog(sourceSystemId: String, eventType: String) =
+  internal fun awaitNotNullEventLog(sourceSystemId: String, eventType: String): EventLoggingEntity =
     await atMost (Duration.ofSeconds(3)) untilNotNull {
       eventLoggingRepository.findFirstBySourceSystemIdAndEventTypeOrderByEventTimestampDesc(sourceSystemId, eventType)
     }
+
+  internal fun awaitNotNullEventLog(uuid: UUID): EventLoggingEntity =
+    await atMost (Duration.ofSeconds(3)) untilNotNull {
+      eventLoggingRepository.findFirstByUuidOrderByEventTimestampDesc(uuid.toString())
+    }
+
   internal fun createPersonKey(status: UUIDStatusType = UUIDStatusType.ACTIVE): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
     personKeyEntity.status = status

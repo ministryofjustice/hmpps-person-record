@@ -41,13 +41,10 @@ class UnmergeService(
     setClusterToNeedsAttentionIfAdditionalRecords(unmergedPersonEntity, reactivatedPersonEntity)
     unmergeRecords(unmergeEvent, reactivatedPersonEntity, unmergedPersonEntity)
 
-    val beforeDataDTO = Person.from(unmergedPersonEntity)
-    val processedDataDTO = Person.from(reactivatedPersonEntity)
-
     eventLoggingService.recordEventLog(
-      beforePerson = beforeDataDTO,
-      processedPerson = processedDataDTO,
-      uuid = reactivatedPersonEntity.personKey?.personId.toString(),
+      beforePersonEntity = unmergedPersonEntity,
+      afterPersonEntity = reactivatedPersonEntity,
+      uuid = unmergedPersonEntity.personKey?.personId,
       eventType = unmergeEvent.event,
     )
   }
