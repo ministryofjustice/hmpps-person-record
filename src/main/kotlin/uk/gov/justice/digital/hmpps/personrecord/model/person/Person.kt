@@ -41,6 +41,8 @@ data class Person(
   val currentlyManaged: Boolean? = null,
 ) {
 
+  fun getPostcodesForMatching(): Set<String> = this.addresses.mapNotNull { it.postcode }.toSet()
+
   companion object {
 
     fun Person?.extractSourceSystemId(): String? {
@@ -214,7 +216,7 @@ data class Person(
     }
   }
 
-  fun getIdentifiersForMatching(identifiers: List<IdentifierType>): List<Reference> {
-    return this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }
+  fun getIdentifiersForMatching(identifiers: List<IdentifierType>): Set<Reference> {
+    return this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }.toSet()
   }
 }
