@@ -8,6 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
+import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.AllConvictedOffences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.EmailAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Identifier
@@ -323,6 +324,14 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber)
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
+    stubMatchScore(
+      MatchResponse(
+        matchProbabilities = mutableMapOf(
+          "0" to 0.9999999,
+          "1" to 0.9999991,
+        ),
+      ),
+    )
     publishDomainEvent(PRISONER_CREATED, domainEvent)
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
@@ -331,10 +340,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
     )
-    awaitAssert {
-      val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
-      assertThat(personEntity.currentlyManaged).isEqualTo(result)
-    }
+
+    val personEntity = awaitNotNullPerson { personRepository.findByPrisonNumberAndSourceSystem(prisonNumber) }
+    assertThat(personEntity.currentlyManaged).isEqualTo(result)
   }
 
   @Test
