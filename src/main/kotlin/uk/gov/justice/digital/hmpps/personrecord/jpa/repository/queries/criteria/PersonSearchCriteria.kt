@@ -28,7 +28,7 @@ data class PersonSearchCriteria(
       dateOfBirth = person.dateOfBirth,
       identifiers = person.getIdentifiersForMatching(SEARCH_IDENTIFIERS),
       postcodes = person.getPostcodesForMatching(),
-      sourceSystemType = person.sourceSystemType,
+      sourceSystemType = person.sourceSystem,
     )
 
     fun from(personEntity: PersonEntity): PersonSearchCriteria = PersonSearchCriteria(

@@ -217,7 +217,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       person = Person(
         crn = randomCRN(),
-        sourceSystemType = SourceSystemType.DELIUS,
+        sourceSystem = SourceSystemType.DELIUS,
       ),
       personKeyEntity = personKey,
     )

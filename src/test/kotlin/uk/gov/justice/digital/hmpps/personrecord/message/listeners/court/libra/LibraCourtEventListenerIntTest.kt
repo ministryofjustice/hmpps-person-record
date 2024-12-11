@@ -101,7 +101,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         defendantId = libraDefendantId,
         addresses = listOf(Address(postcode = postcode)),
         dateOfBirth = dateOfBirth,
-        sourceSystemType = LIBRA,
+        sourceSystem = LIBRA,
       ),
       personKeyEntity = createPersonKey(),
     )
@@ -166,7 +166,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       lastName = lastName,
       dateOfBirth = dateOfBirth,
       addresses = listOf(Address(postcode = "NT4 6YH")),
-      sourceSystemType = DELIUS,
+      sourceSystem = DELIUS,
     )
     val personKeyEntity = createPersonKey()
     createPerson(personFromProbation, personKeyEntity = personKeyEntity)
@@ -226,7 +226,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         firstName = firstName,
         lastName = lastName,
         addresses = listOf(Address(postcode = postcode)),
-        sourceSystemType = LIBRA,
+        sourceSystem = LIBRA,
       ),
       personKeyEntity = createPersonKey(),
     )
@@ -277,7 +277,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
           lastName = "MORGAN",
           dateOfBirth = LocalDate.of(1975, 1, 1),
           addresses = listOf(Address(postcode = "NT4 6YH")),
-          sourceSystemType = LIBRA,
+          sourceSystem = LIBRA,
         ),
       ),
     )
@@ -288,7 +288,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
           lastName = "MORGAN",
           dateOfBirth = LocalDate.of(1975, 1, 1),
           addresses = listOf(Address(postcode = "NT4 6YH")),
-          sourceSystemType = LIBRA,
+          sourceSystem = LIBRA,
         ),
       ),
     )
@@ -326,7 +326,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
             lastName = "MORGAN",
             dateOfBirth = LocalDate.of(1975, 1, 1),
             addresses = listOf(Address(postcode = "NT4 6YH")),
-            sourceSystemType = LIBRA,
+            sourceSystem = LIBRA,
           ),
         ),
       )

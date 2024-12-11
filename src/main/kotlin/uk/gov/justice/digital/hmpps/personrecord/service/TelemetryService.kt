@@ -56,7 +56,7 @@ class TelemetryService(private val telemetryClient: TelemetryClient) {
     elementMap: Map<EventKeys, String?> = emptyMap(),
   ) {
     val identifierMap = mapOf(
-      EventKeys.SOURCE_SYSTEM to person.sourceSystemType.name,
+      EventKeys.SOURCE_SYSTEM to person.sourceSystem.name,
       EventKeys.DEFENDANT_ID to person.defendantId,
       EventKeys.CRN to person.crn,
       EventKeys.PRISON_NUMBER to person.prisonNumber,

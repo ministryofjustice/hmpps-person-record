@@ -26,7 +26,7 @@ class PersonSearchCriteriaTest {
         Address(postcode = "BC2 2BC"),
         Address(postcode = "CD3 DC3"),
       ),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
     val searchCriteria = PersonSearchCriteria.from(person)
     assertThat(searchCriteria.postcodes.size).isEqualTo(3)
@@ -60,7 +60,7 @@ class PersonSearchCriteriaTest {
         Reference(identifierType = PNC, identifierValue = "12345"),
         Reference(identifierType = NATIONAL_INSURANCE_NUMBER, identifierValue = "12345"),
       ),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
     val searchCriteria = PersonSearchCriteria.from(person)
     assertThat(searchCriteria.identifiers.size).isEqualTo(3)
