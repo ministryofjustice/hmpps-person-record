@@ -138,8 +138,10 @@ class PersonEntity(
     this.personKey = null
   }
 
-  fun getIdentifiersForMatching(identifiers: List<IdentifierType>): List<ReferenceEntity> {
-    return this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }
+  fun getPostcodesForMatching(): Set<String> = this.addresses.mapNotNull { it.postcode }.toSet()
+
+  fun getIdentifiersForMatching(identifiers: List<IdentifierType>): Set<ReferenceEntity> {
+    return this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }.toSet()
   }
 
   fun update(person: Person) {
