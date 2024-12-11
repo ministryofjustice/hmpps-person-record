@@ -96,6 +96,10 @@ tasks {
       }
     }
   }
+
+  withType<JavaCompile>().configureEach {
+    options.isFork = true
+  }
 }
 
 configurations.matching { it.name == "detekt" }.all {
