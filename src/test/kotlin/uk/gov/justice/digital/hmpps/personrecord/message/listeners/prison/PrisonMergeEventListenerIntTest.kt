@@ -31,11 +31,11 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
     val personKeyEntity = createPersonKey()
     createPerson(
-      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = NOMIS),
+      Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
       personKeyEntity = personKeyEntity,
     )
     val targetPerson = createPerson(
-      Person(prisonNumber = targetPrisonNumber, sourceSystemType = NOMIS),
+      Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
       personKeyEntity = personKeyEntity,
     )
 
@@ -68,7 +68,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
     val personKeyEntity = createPersonKey()
     createPerson(
-      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = NOMIS),
+      Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
       personKeyEntity = personKeyEntity,
     )
 
@@ -97,7 +97,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
     val personKeyEntity = createPersonKey()
     createPerson(
-      Person(prisonNumber = targetPrisonNumber, sourceSystemType = NOMIS),
+      Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
       personKeyEntity = personKeyEntity,
     )
 
@@ -137,15 +137,15 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val personKeyEntity1 = createPersonKey()
     val personKeyEntity2 = createPersonKey()
     createPerson(
-      Person(prisonNumber = randomPrisonNumber(), sourceSystemType = NOMIS),
+      Person(prisonNumber = randomPrisonNumber(), sourceSystem = NOMIS),
       personKeyEntity = personKeyEntity1,
     )
     createPerson(
-      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = NOMIS),
+      Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
       personKeyEntity = personKeyEntity1,
     )
     val targetPerson = createPerson(
-      Person(prisonNumber = targetPrisonNumber, sourceSystemType = NOMIS),
+      Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
       personKeyEntity = personKeyEntity2,
     )
 
@@ -185,10 +185,10 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
     val personKeyEntity2 = createPersonKey()
     createPerson(
-      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = NOMIS),
+      Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
     )
     val targetPerson = createPerson(
-      Person(prisonNumber = targetPrisonNumber, sourceSystemType = NOMIS),
+      Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
       personKeyEntity = personKeyEntity2,
     )
 
@@ -226,11 +226,11 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val personKeyEntity1 = createPersonKey()
     val personKeyEntity2 = createPersonKey()
     createPerson(
-      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = NOMIS),
+      Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
       personKeyEntity = personKeyEntity1,
     )
     val targetPerson = createPerson(
-      Person(prisonNumber = targetPrisonNumber, sourceSystemType = NOMIS),
+      Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
       personKeyEntity = personKeyEntity2,
     )
 
@@ -322,11 +322,11 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
     val personKeyEntity = createPersonKey()
     createPerson(
-      Person(prisonNumber = sourcePrisonNumber, sourceSystemType = NOMIS),
+      Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
       personKeyEntity = personKeyEntity,
     )
     createPerson(
-      Person(prisonNumber = targetPrisonNumber, sourceSystemType = NOMIS),
+      Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
       personKeyEntity = personKeyEntity,
     )
 

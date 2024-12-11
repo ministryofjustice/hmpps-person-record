@@ -27,7 +27,7 @@ open class EventLoggingService(
       processedData = processedPerson?.let { objectMapper.writeValueAsString(it) },
       sourceSystemId = personForIdentifier.extractSourceSystemId(),
       uuid = uuid,
-      sourceSystem = personForIdentifier?.sourceSystemType?.name,
+      sourceSystem = personForIdentifier?.sourceSystem?.name,
       eventType = eventType,
       eventTimestamp = LocalDateTime.now(),
       operationId = operationId,

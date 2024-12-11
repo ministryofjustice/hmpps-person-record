@@ -141,7 +141,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       prisonNumber = prisonNumber,
       references = listOf(Reference.from(IdentifierType.PNC, pnc), Reference.from(IdentifierType.CRO, cro)),
       addresses = listOf(Address(postcode = "LS1 1AB")),
-      sourceSystemType = NOMIS,
+      sourceSystem = NOMIS,
     )
     val personKeyEntity = createPersonKey()
     createPerson(person, personKeyEntity = personKeyEntity)

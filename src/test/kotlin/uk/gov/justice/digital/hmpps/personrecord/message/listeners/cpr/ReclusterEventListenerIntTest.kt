@@ -61,7 +61,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster1,
     )
@@ -95,7 +95,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster1,
     )
@@ -104,7 +104,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster2,
     )
@@ -161,7 +161,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster1,
     )
@@ -170,21 +170,21 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster2,
     )
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster2,
     )
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster2,
     )
@@ -243,7 +243,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster1,
     )
@@ -252,21 +252,21 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = LIBRA,
+        sourceSystem = LIBRA,
       ),
       personKeyEntity = cluster2,
     )
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = DELIUS,
+        sourceSystem = DELIUS,
       ),
       personKeyEntity = cluster2,
     )
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = NOMIS,
+        sourceSystem = NOMIS,
       ),
       personKeyEntity = cluster2,
     )
@@ -325,7 +325,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster1,
     )
@@ -334,7 +334,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster2,
     )
@@ -343,7 +343,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster3,
     )

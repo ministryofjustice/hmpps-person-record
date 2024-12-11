@@ -236,7 +236,7 @@ class PersonEntity(
         crn = person.crn,
         prisonNumber = person.prisonNumber,
         masterDefendantId = person.masterDefendantId,
-        sourceSystem = person.sourceSystemType,
+        sourceSystem = person.sourceSystem,
         ethnicity = person.ethnicity,
         nationality = person.nationality,
         religion = person.religion,

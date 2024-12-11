@@ -34,7 +34,7 @@ class CreateUpdateService(
 
   fun processMessage(person: Person, event: String? = null, callback: () -> PersonEntity?): PersonEntity = runBlocking {
     runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
-      readWriteLockService.withWriteLock(person.sourceSystemType) {
+      readWriteLockService.withWriteLock(person.sourceSystem) {
         return@withWriteLock processPerson(person, event, callback)
       }
     }

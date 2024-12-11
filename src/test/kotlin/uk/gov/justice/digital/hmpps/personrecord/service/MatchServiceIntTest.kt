@@ -28,7 +28,7 @@ class MatchServiceIntTest : IntegrationTestBase() {
       firstName = firstName,
       lastName = lastName,
       dateOfBirth = LocalDate.of(1975, 1, 1),
-      sourceSystemType = LIBRA,
+      sourceSystem = LIBRA,
     )
     val candidateRecords: List<PersonEntity> = listOf(
       PersonEntity.from(newRecord),
@@ -52,7 +52,7 @@ class MatchServiceIntTest : IntegrationTestBase() {
       firstName = firstName,
       lastName = lastName,
       dateOfBirth = LocalDate.of(1975, 1, 1),
-      sourceSystemType = LIBRA,
+      sourceSystem = LIBRA,
     )
     val candidateRecords: List<PersonEntity> = listOf(
       PersonEntity.from(newRecord),
@@ -71,13 +71,13 @@ class MatchServiceIntTest : IntegrationTestBase() {
       firstName = randomName(),
       lastName = randomName(),
       dateOfBirth = LocalDate.of(1975, 1, 1),
-      sourceSystemType = LIBRA,
+      sourceSystem = LIBRA,
     )
     val newRecord2 = Person(
       firstName = randomName(),
       lastName = randomName(),
       dateOfBirth = LocalDate.of(1975, 1, 1),
-      sourceSystemType = LIBRA,
+      sourceSystem = LIBRA,
     )
 
     val matchResponse = MatchResponse(
@@ -107,7 +107,7 @@ class MatchServiceIntTest : IntegrationTestBase() {
       firstName = randomName(),
       lastName = randomName(),
       dateOfBirth = LocalDate.of(1975, 1, 1),
-      sourceSystemType = LIBRA,
+      sourceSystem = LIBRA,
     )
 
     val probabilities = mutableMapOf<String, Double>()
