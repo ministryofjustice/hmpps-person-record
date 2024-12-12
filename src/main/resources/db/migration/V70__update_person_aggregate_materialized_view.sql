@@ -3,10 +3,10 @@ BEGIN;
 
 DROP MATERIALIZED VIEW IF EXISTS personrecordservice.person_aggregate_data;
 CREATE MATERIALIZED VIEW personrecordservice.person_aggregate_data AS (
-	with person_in AS (
+    with person_in AS (
         SELECT
         *
-        FROM personrecordservice.person
+        FROM person
     ),
     alias_agg AS (
         SELECT
@@ -14,37 +14,37 @@ CREATE MATERIALIZED VIEW personrecordservice.person_aggregate_data AS (
             array_agg(ps.first_name) as first_name_alias_arr,
             array_agg(ps.last_name) as last_name_alias_arr,
             array_agg(ps.date_of_birth) as date_of_birth_alias_arr
-        FROM personrecordservice.pseudonym ps
+        FROM pseudonym ps
         group by ps.fk_person_id
     ),
     person_collected as (
-		SELECT
-	        p.id,
-	        p.title,
-	        p.source_system,
-	        p.first_name,
-	        p.middle_names,
-	        p.last_name,
-	        p.crn,
-	        p.prison_number,
-	        p.defendant_id,
-	        p.master_defendant_id,
-	        p.birth_place,
-	        p.birth_country,
-	        p.nationality,
-	        p.religion,
-	        p.sexual_orientation,
-	        p.date_of_birth,
-	        p.sex,
-	        p.ethnicity,
-	        a.first_name_alias_arr,
-	        a.last_name_alias_arr,
-	        a.date_of_birth_alias_arr,
-	        p.version
-	    FROM
-	        person_in p
-	    LEFT JOIN
-	        alias_agg a ON p.id = a.fk_person_id
+        SELECT
+            p.id,
+            p.title,
+            p.source_system,
+            p.first_name,
+            p.middle_names,
+            p.last_name,
+            p.crn,
+            p.prison_number,
+            p.defendant_id,
+            p.master_defendant_id,
+            p.birth_place,
+            p.birth_country,
+            p.nationality,
+            p.religion,
+            p.sexual_orientation,
+            p.date_of_birth,
+            p.sex,
+            p.ethnicity,
+            a.first_name_alias_arr,
+            a.last_name_alias_arr,
+            a.date_of_birth_alias_arr,
+            p.version
+        FROM
+            person_in p
+        LEFT JOIN
+            alias_agg a ON p.id = a.fk_person_id
     ),
     person_exploded AS (
         SELECT
@@ -360,6 +360,8 @@ CREATE MATERIALIZED VIEW personrecordservice.person_aggregate_data AS (
             ) as postcode
         FROM
             address
+        where
+            LENGTH(postcode) >= 3
         order by
             postcode
     ),
