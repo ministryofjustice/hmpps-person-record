@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.AllConvictedOffences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.EmailAddress
@@ -208,10 +207,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should receive the message successfully when prisoner updated event published`() {
     val prisoner = createPrisoner()
 
-    awaitAssert {
-      personRepository.findByPrisonNumberAndSourceSystem(prisoner.prisonNumber!!)
-    }
-
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisoner.prisonNumber))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisoner.prisonNumber, categoriesChanged = listOf("SENTENCE"))
@@ -262,12 +257,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
     val messageId = publishDomainEvent(PRISONER_CREATED, domainEvent)
 
-    prisonEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.queueUrl).build(),
-    ).get()
-    prisonEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.dlqUrl).build(),
-    ).get()
+    purgeQueueAndDlq(prisonEventsQueue)
     checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
 
     checkTelemetry(

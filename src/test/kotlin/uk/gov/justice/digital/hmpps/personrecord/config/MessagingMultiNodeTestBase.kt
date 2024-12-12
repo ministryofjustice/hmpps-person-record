@@ -312,51 +312,22 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   @BeforeEach
   fun beforeEachMessagingTest() {
     telemetryRepository.deleteAll()
-    courtEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(courtEventsQueue!!.dlqUrl).build(),
-    ).get()
-    courtEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(courtEventsQueue!!.queueUrl).build(),
-    ).get()
-    probationEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationEventsQueue!!.queueUrl).build(),
-    )
-    probationEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationEventsQueue!!.dlqUrl).build(),
-    )
-    probationMergeEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.queueUrl).build(),
-    )
-    probationMergeEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.dlqUrl).build(),
-    )
-    probationDeleteEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationDeleteEventsQueue!!.queueUrl).build(),
-    )
-    probationDeleteEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationDeleteEventsQueue!!.dlqUrl).build(),
-    )
-    prisonEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.queueUrl).build(),
-    )
-    prisonEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.dlqUrl).build(),
-    )
-
-    prisonMergeEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonMergeEventsQueue!!.queueUrl).build(),
-    )
-    prisonMergeEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonMergeEventsQueue!!.dlqUrl).build(),
-    )
-
-    reclusterEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(reclusterEventsQueue!!.queueUrl).build(),
-    )
-    reclusterEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(reclusterEventsQueue!!.dlqUrl).build(),
-    )
-
+    purgeQueueAndDlq(courtEventsQueue)
+    purgeQueueAndDlq(probationEventsQueue)
+    purgeQueueAndDlq(probationMergeEventsQueue)
+    purgeQueueAndDlq(probationDeleteEventsQueue)
+    purgeQueueAndDlq(prisonEventsQueue)
+    purgeQueueAndDlq(prisonMergeEventsQueue)
+    purgeQueueAndDlq(reclusterEventsQueue)
     expectNoMessagesOnDlq(reclusterEventsQueue)
+  }
+
+  fun purgeQueueAndDlq(hmppsQueue: HmppsQueue?) {
+    hmppsQueue!!.sqsClient.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(hmppsQueue.queueUrl).build(),
+    ).get()
+    hmppsQueue.sqsDlqClient!!.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(hmppsQueue.dlqUrl).build(),
+    ).get()
   }
 }
