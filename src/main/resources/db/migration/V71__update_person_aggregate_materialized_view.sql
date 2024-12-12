@@ -360,8 +360,6 @@ CREATE MATERIALIZED VIEW personrecordservice.person_aggregate_data AS (
             ) as postcode
         FROM
             address
-        where
-            LENGTH(postcode) >= 3
         order by
             postcode
     ),
@@ -376,6 +374,8 @@ CREATE MATERIALIZED VIEW personrecordservice.person_aggregate_data AS (
             ) AS postcode_outcode
         FROM
             address_cleaned
+        where
+            LENGTH(postcode) >= 3
     ),
     address_agg AS (
         SELECT
