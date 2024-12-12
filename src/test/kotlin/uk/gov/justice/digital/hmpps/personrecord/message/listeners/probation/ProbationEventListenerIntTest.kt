@@ -7,7 +7,6 @@ import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
@@ -269,13 +268,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       additionalInformation = null,
     )
     val messageId = publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
-
-    probationEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationEventsQueue!!.queueUrl).build(),
-    ).get()
-    probationEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationEventsQueue!!.dlqUrl).build(),
-    ).get()
+    purgeQueueAndDlq(probationEventsQueue)
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"), 1)
     checkTelemetry(

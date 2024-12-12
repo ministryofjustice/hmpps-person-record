@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 import com.github.tomakehurst.wiremock.stubbing.Scenario
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
@@ -289,12 +288,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       DomainEvent(eventType = PRISONER_MERGED, personReference = null, additionalInformation = additionalInformation)
     val messageId = publishDomainEvent(PRISONER_MERGED, domainEvent)
 
-    prisonMergeEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonMergeEventsQueue!!.queueUrl).build(),
-    ).get()
-    prisonMergeEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonMergeEventsQueue!!.dlqUrl).build(),
-    ).get()
+    purgeQueueAndDlq(prisonMergeEventsQueue)
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
       mapOf(
