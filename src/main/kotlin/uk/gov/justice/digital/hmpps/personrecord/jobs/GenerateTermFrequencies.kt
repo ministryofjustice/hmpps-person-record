@@ -21,7 +21,7 @@ class GenerateTermFrequencies(
   @RequestMapping(method = [RequestMethod.POST], value = ["/jobs/generatetermfrequencies"])
   suspend fun generate(): String {
     generatePncTermFrequencies()
-    generatePersonCleanedData()
+    generatePersonAggregateData()
     return OK
   }
 
@@ -34,24 +34,12 @@ class GenerateTermFrequencies(
     }
   }
 
-  private suspend fun generatePersonCleanedData() {
+  private suspend fun generatePersonAggregateData() {
     CoroutineScope(Dispatchers.Default).launch {
-      collectPersonAggregateData()
-      // Cleaned data depends upon aggregate data
-      collectPersonCleanedData()
+      log.info("Starting collection of person aggregate data")
+      termCleaningRepository.refreshPersonAggregateData()
+      log.info("Finished collecting person aggregate data")
     }
-  }
-
-  private fun collectPersonAggregateData() {
-    log.info("Starting collection of person aggregate data")
-    termCleaningRepository.refreshPersonAggregateData()
-    log.info("Finished collecting person aggregate data")
-  }
-
-  private fun collectPersonCleanedData() {
-    log.info("Started collecting cleaned person data")
-    termCleaningRepository.refreshPersonCleanedData()
-    log.info("Finished collecting cleaned person data")
   }
 
   companion object {
