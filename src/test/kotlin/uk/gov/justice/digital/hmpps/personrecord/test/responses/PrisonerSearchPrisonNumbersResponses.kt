@@ -9,10 +9,10 @@ fun onePrisoner(prisonNumber: String, prefix: String) = """
     "croNumber": "",
     "bookingId": "0001200924",
     "bookNumber": "38412A",
-    "preparedFirstName": "${prefix}FirstName",
+    "firstName": "${prefix}FirstName",
     "middleNames": "",
     "preparedLastName": "${prefix}LastName",
-    "preparedDateOfBirth": "1975-04-02",
+    "dateOfBirth": "1975-04-02",
     "gender": "Female",
     "ethnicity": "White: Eng./Welsh/Scot./N.Irish/British",
     "youthOffender": true,
@@ -29,18 +29,18 @@ fun onePrisoner(prisonNumber: String, prefix: String) = """
     "cellLocation": "A-1-002",
     "aliases": [
       {
-        "preparedFirstName": "${prefix}AliasOneFirstName",
+        "firstName": "${prefix}AliasOneFirstName",
         "middleNames": "${prefix}AliasOneMiddleNameOne ${prefix}AliasOneMiddleNameTwo",
         "preparedLastName": "${prefix}AliasOneLastName",
-        "preparedDateOfBirth": "1975-04-02",
+        "dateOfBirth": "1975-04-02",
         "gender": "Male",
         "ethnicity": "White : Irish"
       },
   {
-        "preparedFirstName": "${prefix}AliasTwoFirstName",
+        "firstName": "${prefix}AliasTwoFirstName",
         "middleNames": "${prefix}AliasTwoMiddleNameOne ${prefix}AliasTwoMiddleNameTwo",
         "preparedLastName": "${prefix}AliasTwoLastName",
-        "preparedDateOfBirth": "1975-04-02",
+        "dateOfBirth": "1975-04-02",
         "gender": "Male",
         "ethnicity": "White : Irish"
       }
@@ -138,10 +138,10 @@ fun twoPrisoners(prisonNumberOne: String, prefixOne: String, prisonNumberTwo: St
     "croNumber": "29906/12J",
     "bookingId": "0001200924",
     "bookNumber": "38412A",
-    "preparedFirstName": "${prefixOne}FirstName",
+    "firstName": "${prefixOne}FirstName",
     "middleNames": "${prefixOne}MiddleNameOne ${prefixOne}MiddleNameTwo",
     "preparedLastName": "${prefixOne}LastName",
-    "preparedDateOfBirth": "1975-04-02",
+    "dateOfBirth": "1975-04-02",
     "gender": "Female",
     "ethnicity": "White: Eng./Welsh/Scot./N.Irish/British",
     "youthOffender": true,
@@ -158,18 +158,18 @@ fun twoPrisoners(prisonNumberOne: String, prefixOne: String, prisonNumberTwo: St
     "cellLocation": "A-1-002",
     "aliases": [
       {
-        "preparedFirstName": "${prefixOne}AliasOneFirstName",
+        "firstName": "${prefixOne}AliasOneFirstName",
         "middleNames": "${prefixOne}AliasOneMiddleNameOne ${prefixOne}AliasOneMiddleNameTwo",
         "preparedLastName": "${prefixOne}AliasOneLastName",
-        "preparedDateOfBirth": "1975-04-02",
+        "dateOfBirth": "1975-04-02",
         "gender": "Male",
         "ethnicity": "White : Irish"
       },
   {
-        "preparedFirstName": "${prefixOne}AliasTwoFirstName",
+        "firstName": "${prefixOne}AliasTwoFirstName",
         "middleNames": "${prefixOne}AliasTwoMiddleNameOne ${prefixOne}AliasTwoMiddleNameTwo",
         "preparedLastName": "${prefixOne}AliasTwoLastName",
-        "preparedDateOfBirth": "1975-04-02",
+        "dateOfBirth": "1975-04-02",
         "gender": "Male",
         "ethnicity": "White : Irish"
       }
@@ -261,10 +261,10 @@ fun twoPrisoners(prisonNumberOne: String, prefixOne: String, prisonNumberTwo: St
     "croNumber": "29906/12J",
     "bookingId": "0001200924",
     "bookNumber": "38412A",
-    "preparedFirstName": "${prefixTwo}FirstName",
+    "firstName": "${prefixTwo}FirstName",
     "middleNames": "John James",
     "preparedLastName": "Larsen",
-    "preparedDateOfBirth": "1975-04-02",
+    "dateOfBirth": "1975-04-02",
     "gender": "Female",
     "ethnicity": "White: Eng./Welsh/Scot./N.Irish/British",
     "youthOffender": true,

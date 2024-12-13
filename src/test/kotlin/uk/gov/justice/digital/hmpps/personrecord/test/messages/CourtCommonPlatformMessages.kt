@@ -112,11 +112,11 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) =
                        }, 
     """.trimIndent()
   } ?: ""}   
-                    "preparedDateOfBirth": "${commonPlatformHearingSetup.dateOfBirth}",
-                    ${commonPlatformHearingSetup.firstName?.let { """ "preparedFirstName": "${commonPlatformHearingSetup.firstName}", """.trimIndent() } ?: ""}
+                    "dateOfBirth": "${commonPlatformHearingSetup.dateOfBirth}",
+                    ${commonPlatformHearingSetup.firstName?.let { """ "firstName": "${commonPlatformHearingSetup.firstName}", """.trimIndent() } ?: ""}
                     "gender": "MALE",
                     ${commonPlatformHearingSetup.middleName?.let { """ "middleName": "${commonPlatformHearingSetup.middleName}", """.trimIndent() } ?: ""}
-                    "preparedLastName": "${commonPlatformHearingSetup.lastName}",
+                    "lastName": "${commonPlatformHearingSetup.lastName}",
                     "title": "Mr",
                     "nationalityCode": "GB",
                     "nationalInsuranceNumber": "${commonPlatformHearingSetup.nationalInsuranceNumber}"
@@ -137,7 +137,7 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) =
 private fun alias(alias: CommonPlatformHearingSetupAlias) =
   """
   {
-    "preparedFirstName": "${alias.firstName}",
-    "preparedLastName": "${alias.lastName}"
+    "firstName": "${alias.firstName}",
+    "lastName": "${alias.lastName}"
   }
   """.trimIndent()
