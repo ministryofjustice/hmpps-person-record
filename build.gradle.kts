@@ -5,7 +5,7 @@ kotlin {
 }
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.9"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.1.0"
   kotlin("plugin.spring") version "2.0.21"
   kotlin("jvm") version "2.0.21"
   kotlin("plugin.jpa") version "2.0.21"
@@ -19,17 +19,17 @@ configurations {
 }
 
 dependencies {
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.0.8")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.1.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.1.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.2.1")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("jakarta.validation:jakarta.validation-api:3.1.0")
   implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
-  implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.3")
+  implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.2.0")
 
   implementation("io.swagger.core.v3:swagger-annotations:2.2.26")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
 
   constraints {
     implementation("commons-io:commons-io:2.18.0") {
@@ -53,7 +53,7 @@ dependencies {
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.0.21")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.2")
   testImplementation("org.jmock:jmock:2.13.1")
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.0.8")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.1.0")
 }
 
 java {
