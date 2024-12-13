@@ -12,7 +12,7 @@ fun allProbationCasesSingleResponse(firstCrn: String, firstPrefix: String) = """
                 "forename": "${firstPrefix}FirstName",
                 "surname": "${firstPrefix}LastName"
             },
-            "dateOfBirth": "1980-08-29",
+            "preparedDateOfBirth": "1980-08-29",
             "gender": {
                 "code": "M",
                 "description": "Male"
@@ -42,7 +42,7 @@ fun allProbationCasesResponse(firstCrn: String, firstPrefix: String, secondCrn: 
                 "forename": "${firstPrefix}FirstName",
            "middleName":"${firstPrefix}MiddleNameOne ${firstPrefix}MiddleNameTwo",     "surname": "${firstPrefix}LastName"
             },
-            "dateOfBirth": "1980-08-29",
+            "preparedDateOfBirth": "1980-08-29",
             "gender": {
                 "code": "M",
                 "description": "Male"
@@ -52,12 +52,12 @@ fun allProbationCasesResponse(firstCrn: String, firstPrefix: String, secondCrn: 
                      "middleName":    "${firstPrefix}AliasOneMiddleNameOne ${firstPrefix}AliasOneMiddleNameTwo",
                         "surname": "${firstPrefix}AliasOneLastName"
                     },
-                    "dateOfBirth": "1967-11-04"},{"name": {
+                    "preparedDateOfBirth": "1967-11-04"},{"name": {
                         "forename": "${firstPrefix}AliasTwoFirstName",
             "middleName":             "${firstPrefix}AliasTwoMiddleNameOne ${firstPrefix}AliasTwoMiddleNameTwo",
                         "surname": "${firstPrefix}AliasTwoLastName"
                     },
-                    "dateOfBirth": "1967-11-04"}],
+                    "preparedDateOfBirth": "1967-11-04"}],
             "addresses": []
         },
         {
@@ -69,7 +69,7 @@ fun allProbationCasesResponse(firstCrn: String, firstPrefix: String, secondCrn: 
                 "forename": "${secondPrefix}FirstName",
            "middleName":"${secondPrefix}MiddleNameOne ${secondPrefix}MiddleNameTwo",     "surname": "${secondPrefix}LastName"
             },
-            "dateOfBirth": "1990-05-18",
+            "preparedDateOfBirth": "1990-05-18",
             "gender": {
                 "code": "M",
                 "description": "Male"

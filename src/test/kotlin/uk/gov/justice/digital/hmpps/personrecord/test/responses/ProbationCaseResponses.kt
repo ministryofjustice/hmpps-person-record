@@ -19,7 +19,7 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
         "code": "${probationCase.title ?: ""}",
         "description": "Example"
       },
-      "dateOfBirth": "${probationCase.dateOfBirth ?: ""}",
+      "preparedDateOfBirth": "${probationCase.dateOfBirth ?: ""}",
       "gender": {
           "code": "M",
           "description": "Male"
@@ -33,7 +33,7 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
             "previousSurname": "string",
             "preferred": "string"
           },
-          "dateOfBirth": "2024-05-30"
+          "preparedDateOfBirth": "2024-05-30"
         }
       ],
       "addresses": [${probationCase.addresses.joinToString { address(it) }}],

@@ -10,10 +10,10 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     "bookingId": "0001200924",
     "bookNumber": "38412A",
     "title": "Ms",
-    "firstName": "${responseSetup.prefix}FirstName",
+    "preparedFirstName": "${responseSetup.prefix}FirstName",
     "middleNames": "${responseSetup.prefix}MiddleName1 ${responseSetup.prefix}MiddleName2",
-    "lastName": "${responseSetup.prefix}LastName",
-    "dateOfBirth": "${responseSetup.dateOfBirth}",
+    "preparedLastName": "${responseSetup.prefix}LastName",
+    "preparedDateOfBirth": "${responseSetup.dateOfBirth}",
     "gender": "Female",
     ${responseSetup.ethnicity?.let { """ "ethnicity": "${responseSetup.ethnicity}", """.trimIndent() } ?: "" }
     "youthOffender": true,
@@ -31,10 +31,10 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     "aliases": [
       {
         "title": "${responseSetup.prefix}AliasTitle",
-        "firstName": "${responseSetup.prefix}AliasFirstName",
+        "preparedFirstName": "${responseSetup.prefix}AliasFirstName",
         "middleNames": "${responseSetup.prefix}AliasMiddleName",
-        "lastName": "${responseSetup.prefix}AliasLastName",
-        "dateOfBirth": "${responseSetup.dateOfBirth}",
+        "preparedLastName": "${responseSetup.prefix}AliasLastName",
+        "preparedDateOfBirth": "${responseSetup.dateOfBirth}",
         "gender": "Male",
         "ethnicity": "White : Irish"
       }
