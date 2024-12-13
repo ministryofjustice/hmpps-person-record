@@ -26,7 +26,7 @@ dependencies {
   implementation("jakarta.validation:jakarta.validation-api:3.1.0")
   implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
-  implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.1.4")
+  implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.2.0")
 
   implementation("io.swagger.core.v3:swagger-annotations:2.2.26")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
@@ -36,7 +36,6 @@ dependencies {
       because("2.13.0 has CVEs")
     }
   }
-
 
   implementation("org.springframework.cloud:spring-cloud-dependencies:2024.0.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
