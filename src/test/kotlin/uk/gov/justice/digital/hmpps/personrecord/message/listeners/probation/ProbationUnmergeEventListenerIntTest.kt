@@ -5,7 +5,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
@@ -22,8 +21,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.message.UnmergeService.Companion.UnmergeRecordType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UNMERGE_LINK_NOT_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UNMERGE_RECORD_NOT_FOUND
@@ -36,13 +35,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
-
-  @BeforeEach
-  fun beforeEach() {
-    telemetryRepository.deleteAll()
-  }
-
-  private fun probationUrl(crn: String) = "/probation-cases/$crn"
 
   @Test
   fun `offender unmerge event is published`() {
@@ -93,7 +85,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       times = 0,
     )
     checkTelemetry(
-      TelemetryEventType.CPR_RECORD_UNMERGED,
+      CPR_RECORD_UNMERGED,
       mapOf(
         "REACTIVATED_CRN" to reactivatedCrn,
         "UNMERGED_CRN" to unmergedCrn,
@@ -149,7 +141,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
-      TelemetryEventType.CPR_RECORD_UNMERGED,
+      CPR_RECORD_UNMERGED,
       mapOf(
         "REACTIVATED_CRN" to reactivatedCrn,
         "UNMERGED_CRN" to unmergedCrn,
@@ -202,7 +194,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
-      TelemetryEventType.CPR_RECORD_UNMERGED,
+      CPR_RECORD_UNMERGED,
       mapOf(
         "REACTIVATED_CRN" to reactivatedCrn,
         "UNMERGED_CRN" to unmergedCrn,
@@ -225,7 +217,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       person = Person(
         crn = randomCRN(),
-        sourceSystemType = SourceSystemType.DELIUS,
+        sourceSystem = SourceSystemType.DELIUS,
       ),
       personKeyEntity = personKey,
     )
@@ -276,7 +268,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
-      TelemetryEventType.CPR_RECORD_UNMERGED,
+      CPR_RECORD_UNMERGED,
       mapOf(
         "REACTIVATED_CRN" to reactivatedCrn,
         "UNMERGED_CRN" to unmergedCrn,
@@ -396,7 +388,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
-      TelemetryEventType.CPR_RECORD_UNMERGED,
+      CPR_RECORD_UNMERGED,
       mapOf(
         "REACTIVATED_CRN" to reactivatedCrn,
         "UNMERGED_CRN" to unmergedCrn,
@@ -434,6 +426,14 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       UNMERGE_MESSAGE_RECEIVED,
       mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      CPR_RECORD_UNMERGED,
+      mapOf(
+        "REACTIVATED_CRN" to reactivatedCrn,
+        "UNMERGED_CRN" to unmergedCrn,
+        "SOURCE_SYSTEM" to "DELIUS",
+      ),
     )
   }
 

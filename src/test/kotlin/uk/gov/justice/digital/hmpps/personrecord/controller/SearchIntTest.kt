@@ -53,7 +53,7 @@ class SearchIntTest : WebTestBase() {
         firstName = randomName(),
         lastName = randomName(),
         prisonNumber = prisonNumber,
-        sourceSystemType = NOMIS,
+        sourceSystem = NOMIS,
       ),
       personKeyEntity = createPersonKey(),
     )
@@ -79,7 +79,7 @@ class SearchIntTest : WebTestBase() {
     createPerson(
       Person(
         defendantId = defendantId,
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = createPersonKey(),
     )
@@ -105,7 +105,7 @@ class SearchIntTest : WebTestBase() {
     createPerson(
       Person(
         defendantId = libraDefendantId,
-        sourceSystemType = LIBRA,
+        sourceSystem = LIBRA,
       ),
       personKeyEntity = createPersonKey(),
     )
@@ -189,7 +189,7 @@ class SearchIntTest : WebTestBase() {
         firstName = randomName(),
         lastName = randomName(),
         prisonNumber = prisonNumber,
-        sourceSystemType = NOMIS,
+        sourceSystem = NOMIS,
       ),
       personKeyEntity = personKeyEntity,
     )
@@ -197,7 +197,7 @@ class SearchIntTest : WebTestBase() {
     createPerson(
       Person(
         defendantId = defendantId,
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = personKeyEntity,
     )

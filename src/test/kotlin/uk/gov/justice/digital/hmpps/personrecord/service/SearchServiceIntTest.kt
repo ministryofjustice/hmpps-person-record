@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
@@ -29,11 +28,6 @@ import java.time.LocalDate
 
 class SearchServiceIntTest : IntegrationTestBase() {
 
-  @BeforeEach
-  fun beforeEach() {
-    telemetryRepository.deleteAll()
-  }
-
   @Autowired
   private lateinit var searchService: SearchService
 
@@ -45,7 +39,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       firstName = firstName,
       lastName = lastName,
       dateOfBirth = LocalDate.of(1975, 1, 1),
-      sourceSystemType = LIBRA,
+      sourceSystem = LIBRA,
     )
     createPerson(personToFind)
     createPerson(
@@ -53,7 +47,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
     createPerson(
@@ -61,7 +55,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = NOMIS,
+        sourceSystem = NOMIS,
       ),
     )
     createPerson(
@@ -69,7 +63,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = DELIUS,
+        sourceSystem = DELIUS,
       ),
     )
 
@@ -90,7 +84,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = LIBRA,
+        sourceSystem = LIBRA,
       ),
     )
     createPerson(
@@ -98,16 +92,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = COMMON_PLATFORM,
-      ),
-      personKeyEntity = createPersonKey(),
-    )
-    createPerson(
-      Person(
-        firstName = firstName,
-        lastName = lastName,
-        dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = NOMIS,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = createPersonKey(),
     )
@@ -116,7 +101,16 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = DELIUS,
+        sourceSystem = NOMIS,
+      ),
+      personKeyEntity = createPersonKey(),
+    )
+    createPerson(
+      Person(
+        firstName = firstName,
+        lastName = lastName,
+        dateOfBirth = LocalDate.of(1975, 1, 1),
+        sourceSystem = DELIUS,
       ),
       personKeyEntity = createPersonKey(),
     )
@@ -140,13 +134,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val pnc = randomPnc()
     val personToFind = Person(
       references = listOf(Reference(IdentifierType.PNC, pnc)),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.PNC, randomPnc())),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
 
@@ -162,13 +156,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
   fun `should not find candidates which only match on empty PNC`() {
     val personToFind = Person(
       references = listOf(Reference(IdentifierType.PNC, "")),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.PNC, "")),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
 
@@ -184,13 +178,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val driverLicenseNumber = randomDriverLicenseNumber()
     val personToFind = Person(
       references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, randomDriverLicenseNumber())),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
 
@@ -208,13 +202,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val personToFind = createPerson(
       Person(
         references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = createPersonKey(),
     )
@@ -233,13 +227,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val personToFind = createPerson(
       Person(
         references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
 
@@ -252,13 +246,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val nationalInsuranceNumber = randomNationalInsuranceNumber()
     val personToFind = Person(
       references = listOf(Reference(IdentifierType.NATIONAL_INSURANCE_NUMBER, nationalInsuranceNumber)),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.NATIONAL_INSURANCE_NUMBER, "RF9876543C")),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
 
@@ -275,13 +269,13 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val cro = randomCro()
     val personToFind = Person(
       references = listOf(Reference(IdentifierType.CRO, cro)),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, randomCro())),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
 
@@ -302,7 +296,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         Reference(IdentifierType.CRO, randomCro()),
         Reference(IdentifierType.CRO, randomCro()),
       ),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
     createPerson(
       Person(
@@ -310,7 +304,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
           Reference(IdentifierType.CRO, cro),
           Reference(IdentifierType.CRO, randomCro()),
         ),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
 
@@ -330,7 +324,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = "Steven",
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 2, 1),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
     createPerson(
@@ -338,7 +332,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = "Micheal",
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 2, 1),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
 
@@ -346,7 +340,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       firstName = "Stephen",
       lastName = lastName,
       dateOfBirth = LocalDate.of(1975, 2, 1),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
     stubMatchScore(matchResponse)
@@ -364,7 +358,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 2, 1),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
     createPerson(
@@ -372,7 +366,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = "Micheal",
         dateOfBirth = LocalDate.of(1975, 2, 1),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
 
@@ -380,7 +374,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       firstName = firstName,
       lastName = "Smythe",
       dateOfBirth = LocalDate.of(1975, 2, 1),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
@@ -399,7 +393,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
 
@@ -407,7 +401,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       firstName = firstName,
       lastName = "Smith",
       dateOfBirth = LocalDate.of(1975, 2, 1),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
@@ -429,7 +423,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
 
@@ -439,7 +433,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       references = listOf(Reference(IdentifierType.PNC, pnc), Reference(IdentifierType.CRO, cro)),
       addresses = listOf(Address(postcode = randomPostcode())),
       dateOfBirth = LocalDate.of(1975, 1, 1),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
@@ -460,7 +454,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = "Smythe",
         addresses = listOf(Address(postcode = "LS1 1AB")),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
     createPerson(
@@ -468,7 +462,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = "Smythe",
         addresses = listOf(Address(postcode = "PR7 3DU")),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
 
@@ -476,7 +470,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       firstName = firstName,
       lastName = "Smith",
       addresses = listOf(Address(postcode = "LS1 1AB"), Address(postcode = "LD2 3BC")),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
@@ -499,7 +493,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
           Address(postcode = "LS3 1AB"),
           Address(postcode = "LS4 1AB"),
         ),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = createPersonKey(),
     )
@@ -508,7 +502,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         firstName = firstName,
         lastName = "Smythe",
         addresses = listOf(Address(postcode = "PR7 3DU")),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = createPersonKey(),
     )
@@ -521,7 +515,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         Address(postcode = "LS5 1AB"),
         postcodeWhichWillMatch,
       ),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
 
     val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
@@ -540,7 +534,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       Person(
         lastName = "Smith",
         addresses = listOf(Address(postcode = "LS1 1AB")),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
 
@@ -548,7 +542,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       firstName = "Stephen",
       lastName = "Stevenson",
       addresses = listOf(Address(postcode = "LS1 1AB")),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
@@ -561,7 +555,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       Person(
         lastName = "Smith",
         dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
 
@@ -569,7 +563,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       firstName = "Stephen",
       lastName = "Stevenson",
       dateOfBirth = LocalDate.of(1975, 1, 1),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
@@ -584,7 +578,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       Person(
         firstName = firstName,
         lastName = lastName,
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = createPersonKey(),
     )
@@ -592,7 +586,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val searchingPerson = Person(
       firstName = firstName,
       lastName = lastName,
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
@@ -604,14 +598,14 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val cro = randomCro()
     val searchingPerson = Person(
       references = listOf(Reference(IdentifierType.CRO, cro)),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
 
     val sourcePerson = createPerson(searchingPerson, personKeyEntity = createPersonKey())
     val targetPerson = createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, randomCro())),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = createPersonKey(),
     )
@@ -629,14 +623,14 @@ class SearchServiceIntTest : IntegrationTestBase() {
       Person(
         firstName = firstName,
         addresses = listOf(Address(postcode = "LS1 1AB")),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
 
     val searchingPerson = Person(
       firstName = firstName,
       addresses = listOf(Address(postcode = "LS1 1AB")),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
@@ -648,7 +642,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val pnc = randomPnc()
     val personToFind = Person(
       references = listOf(Reference(IdentifierType.PNC, pnc)),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
     val existingPerson = createPerson(personToFind, personKeyEntity = createPersonKey())
     val excludedRecord = createPerson(personToFind, personKeyEntity = createPersonKey())
@@ -672,14 +666,14 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val pnc = randomPnc()
     val personToFind = Person(
       references = listOf(Reference(IdentifierType.PNC, pnc)),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
     createPerson(personToFind)
     createPerson(personToFind)
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.PNC, "1981/0154257C")),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
     )
 
@@ -706,14 +700,14 @@ class SearchServiceIntTest : IntegrationTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster1,
     )
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster1,
     )
@@ -722,14 +716,14 @@ class SearchServiceIntTest : IntegrationTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster2,
     )
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster2,
     )
@@ -746,7 +740,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     val searchingPerson = Person(
       references = listOf(Reference(IdentifierType.CRO, cro)),
-      sourceSystemType = COMMON_PLATFORM,
+      sourceSystem = COMMON_PLATFORM,
     )
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
@@ -769,7 +763,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val record = createPerson(
       Person(
         references = listOf(Reference(IdentifierType.PNC, randomPnc())),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = createPersonKey(),
     )

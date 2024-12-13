@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.jobs
 
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,7 +10,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.termfrequency.PncFrequencyRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -37,9 +35,7 @@ class GenerateTermFrequenciesIntTest : WebTestBase() {
       .expectStatus()
       .isOk
 
-    await.atMost(15, SECONDS) untilAsserted {
-      assertThat(pncFrequencyRepository.findAll().size).isGreaterThanOrEqualTo(100)
-    }
+    awaitAssert { assertThat(pncFrequencyRepository.findAll().size).isGreaterThanOrEqualTo(100) }
   }
 
   @Test
@@ -64,17 +60,15 @@ class GenerateTermFrequenciesIntTest : WebTestBase() {
   }
 
   private fun createPerson(pnc: String = randomPnc()) {
-    personRepository.saveAndFlush(
-      PersonEntity.from(
-        Person.from(
-          Defendant(
-            pncId = PNCIdentifier.from(pnc),
-            personDefendant = PersonDefendant(
-              personDetails = PersonDetails(
-                firstName = randomName(),
-                lastName = randomName(),
-                gender = "Male",
-              ),
+    createPerson(
+      Person.from(
+        Defendant(
+          pncId = PNCIdentifier.from(pnc),
+          personDefendant = PersonDefendant(
+            personDetails = PersonDetails(
+              firstName = randomName(),
+              lastName = randomName(),
+              gender = "Male",
             ),
           ),
         ),

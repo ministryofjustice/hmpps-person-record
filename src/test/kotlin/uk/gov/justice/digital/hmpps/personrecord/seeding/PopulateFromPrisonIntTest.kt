@@ -4,8 +4,6 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
@@ -18,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.onePrisoner
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonNumbersResponse
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.twoPrisoners
 import java.time.LocalDate
-import java.util.concurrent.TimeUnit.SECONDS
 
 @ActiveProfiles("seeding")
 class PopulateFromPrisonIntTest : WebTestBase() {
@@ -71,9 +68,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       .expectStatus()
       .isOk
 
-    await.atMost(15, SECONDS) untilNotNull {
-      personRepository.findByPrisonNumberAndSourceSystem(prisonNumberSeven)
-    }
+    awaitNotNullPerson { personRepository.findByPrisonNumberAndSourceSystem(prisonNumberSeven) }
 
     val prisoner1 = personRepository.findByPrisonNumberAndSourceSystem(prisonNumberOne)!!
     assertThat(prisoner1.firstName).isEqualTo("PrisonerOneFirstName")
@@ -209,9 +204,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       .expectStatus()
       .isOk
 
-    await.atMost(15, SECONDS) untilNotNull {
-      personRepository.findByPrisonNumberAndSourceSystem(prisonNumberSeven)
-    }
+    awaitNotNullPerson { personRepository.findByPrisonNumberAndSourceSystem(prisonNumberSeven) }
 
     assertThat(personRepository.findByPrisonNumberAndSourceSystem(prisonNumberOne)?.firstName).isEqualTo("PrisonerOneFirstName")
     assertThat(personRepository.findByPrisonNumberAndSourceSystem(prisonNumberTwo)?.firstName).isEqualTo("PrisonerTwoFirstName")
@@ -297,7 +290,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       .expectStatus()
       .isOk
 
-    val prisoner = await.atMost(15, SECONDS) untilNotNull {
+    val prisoner = awaitNotNullPerson {
       personRepository.findByPrisonNumberAndSourceSystem(prisonNumberThree)
     }
 

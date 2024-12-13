@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.cpr
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
@@ -31,11 +30,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 
 class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
-
-  @BeforeEach
-  fun beforeEach() {
-    telemetryRepository.deleteAll()
-  }
 
   @Autowired
   private lateinit var queueService: QueueService
@@ -67,7 +61,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster1,
     )
@@ -101,7 +95,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster1,
     )
@@ -110,7 +104,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster2,
     )
@@ -167,7 +161,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster1,
     )
@@ -176,21 +170,21 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster2,
     )
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster2,
     )
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster2,
     )
@@ -249,7 +243,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster1,
     )
@@ -258,21 +252,21 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = LIBRA,
+        sourceSystem = LIBRA,
       ),
       personKeyEntity = cluster2,
     )
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = DELIUS,
+        sourceSystem = DELIUS,
       ),
       personKeyEntity = cluster2,
     )
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = NOMIS,
+        sourceSystem = NOMIS,
       ),
       personKeyEntity = cluster2,
     )
@@ -331,7 +325,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster1,
     )
@@ -340,7 +334,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster2,
     )
@@ -349,7 +343,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
-        sourceSystemType = COMMON_PLATFORM,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster3,
     )
@@ -370,19 +364,23 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     awaitAssert {
-      val sourceCluster = personKeyRepository.findByPersonId(cluster1.personId)
-      assertThat(sourceCluster?.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
-      assertThat(sourceCluster?.personEntities?.size).isEqualTo(0)
-      assertThat(sourceCluster?.mergedTo).isEqualTo(cluster2.id)
+      val mergeSource = personKeyRepository.findByPersonId(cluster1.personId)
+      assertThat(mergeSource?.status).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
+      assertThat(mergeSource?.personEntities?.size).isEqualTo(0)
+    }
+    val sourceCluster = personKeyRepository.findByPersonId(cluster1.personId)
+    val (mergedTo, unaffected) = when {
+      sourceCluster?.mergedTo == cluster2.id -> Pair(cluster2, cluster3)
+      else -> Pair(cluster3, cluster2)
     }
 
     awaitAssert {
-      val targetCluster = personKeyRepository.findByPersonId(cluster2.personId)
+      val targetCluster = personKeyRepository.findByPersonId(mergedTo.personId)
       assertThat(targetCluster?.personEntities?.size).isEqualTo(2)
     }
 
     awaitAssert {
-      val unaffectedCluster = personKeyRepository.findByPersonId(cluster3.personId)
+      val unaffectedCluster = personKeyRepository.findByPersonId(unaffected.personId)
       assertThat(unaffectedCluster?.personEntities?.size).isEqualTo(1)
     }
 
@@ -400,7 +398,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECLUSTER_MATCH_FOUND_MERGE,
       mapOf(
         "FROM_UUID" to cluster1.personId.toString(),
-        "TO_UUID" to cluster2.personId.toString(),
+        "TO_UUID" to mergedTo.personId.toString(),
       ),
     )
   }

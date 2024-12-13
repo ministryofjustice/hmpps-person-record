@@ -2,13 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilCallTo
-import org.awaitility.kotlin.untilNotNull
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
@@ -27,19 +21,9 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
-import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
-import java.time.Duration
 import java.time.LocalDateTime
-import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
-
-  @BeforeEach
-  fun beforeEach() {
-    telemetryRepository.deleteAll()
-  }
-
-  private fun probationUrl(crn: String) = "/probation-cases/$crn"
 
   @Test
   fun `processes offender merge event with records with same UUID is published`() {
@@ -294,13 +278,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target, scenario = "retry", currentScenarioState = "next request will succeed")
 
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationMergeEventsQueue?.sqsClient?.countAllMessagesOnQueue(probationMergeEventsQueue!!.queueUrl)?.get()
-    } matches { it == 0 }
-
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      probationMergeEventsQueue?.sqsDlqClient?.countAllMessagesOnQueue(probationMergeEventsQueue!!.dlqUrl!!)?.get()
-    } matches { it == 0 }
+    expectNoMessagesOn(probationMergeEventsQueue)
+    expectNoMessagesOnDlq(probationMergeEventsQueue)
 
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
@@ -335,12 +314,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    probationMergeEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.queueUrl).build(),
-    ).get()
-    probationMergeEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.dlqUrl).build(),
-    ).get()
+    purgeQueueAndDlq(probationMergeEventsQueue)
 
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
@@ -374,9 +348,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
 
-    val loggedEvent = await.atMost(4, SECONDS) untilNotNull {
-      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(targetCrn)
-    }
+    val loggedEvent = awaitNotNullEventLog(targetCrn, OFFENDER_MERGED)
 
     val sourcePerson = personRepository.findByCrn(sourceCrn)
     val targetPerson = personRepository.findByCrn(targetCrn)
@@ -387,9 +359,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val processedDataDTO = targetPerson?.let { Person.from(it) }
     val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
-    assertThat(loggedEvent).isNotNull
-    assertThat(loggedEvent.eventType).isEqualTo(OFFENDER_MERGED)
-    assertThat(loggedEvent.sourceSystemId).isEqualTo(targetCrn)
     assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
     assertThat(loggedEvent.beforeData).isEqualTo(beforeData)

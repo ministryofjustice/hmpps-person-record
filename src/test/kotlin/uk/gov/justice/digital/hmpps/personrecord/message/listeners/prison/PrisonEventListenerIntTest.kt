@@ -3,14 +3,11 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilAsserted
-import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
+import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.AllConvictedOffences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.EmailAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Identifier
@@ -58,7 +55,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupIdentifier
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.concurrent.TimeUnit.SECONDS
 import java.util.stream.Stream
 
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -89,7 +85,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
 
-    await.atMost(5, SECONDS) untilAsserted {
+    awaitAssert {
       val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
       assertThat(personEntity.personKey).isNotNull()
       assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
@@ -146,7 +142,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
 
-    await.atMost(5, SECONDS) untilAsserted {
+    awaitAssert {
       val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
 
       assertThat(personEntity.nationality).isEqualTo(null)
@@ -173,7 +169,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
 
-    await.atMost(5, SECONDS) untilAsserted {
+    awaitAssert {
       val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
       assertThat(personEntity.sentenceInfo.size).isEqualTo(0)
     }
@@ -210,10 +206,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should receive the message successfully when prisoner updated event published`() {
     val prisoner = createPrisoner()
-
-    await.atMost(30, SECONDS) untilNotNull {
-      personRepository.findByPrisonNumberAndSourceSystem(prisoner.prisonNumber!!)
-    }
 
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisoner.prisonNumber))
 
@@ -265,12 +257,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
     val messageId = publishDomainEvent(PRISONER_CREATED, domainEvent)
 
-    prisonEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.queueUrl).build(),
-    ).get()
-    prisonEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.dlqUrl).build(),
-    ).get()
+    purgeQueueAndDlq(prisonEventsQueue)
     checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
 
     checkTelemetry(
@@ -327,6 +314,14 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber)
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
+    stubMatchScore(
+      MatchResponse(
+        matchProbabilities = mutableMapOf(
+          "0" to 0.9999999,
+          "1" to 0.9999991,
+        ),
+      ),
+    )
     publishDomainEvent(PRISONER_CREATED, domainEvent)
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
@@ -335,10 +330,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
     )
-    await.atMost(5, SECONDS) untilAsserted {
-      val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
-      assertThat(personEntity.currentlyManaged).isEqualTo(result)
-    }
+
+    val personEntity = awaitNotNullPerson { personRepository.findByPrisonNumberAndSourceSystem(prisonNumber) }
+    assertThat(personEntity.currentlyManaged).isEqualTo(result)
   }
 
   @Test
@@ -360,11 +354,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val processedDTO = Person.from(updatedPersonEntity)
     val processedData = objectMapper.writeValueAsString(processedDTO)
 
-    val loggedEvent = await.atMost(4, SECONDS) untilNotNull {
-      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(prisoner.prisonNumber!!)
-    }
+    val loggedEvent = awaitNotNullEventLog(prisoner.prisonNumber!!, PRISONER_UPDATED)
 
-    assertThat(loggedEvent.eventType).isEqualTo(PRISONER_UPDATED)
     assertThat(loggedEvent.sourceSystemId).isEqualTo(prisoner.prisonNumber)
     assertThat(loggedEvent.sourceSystem).isEqualTo(SourceSystemType.NOMIS.name)
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())

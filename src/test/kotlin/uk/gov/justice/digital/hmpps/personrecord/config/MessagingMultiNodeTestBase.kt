@@ -26,9 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseRes
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.HmppsTopic
-import uk.gov.justice.hmpps.sqs.countAllMessagesOnQueue
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
-import java.time.Duration
 import java.util.UUID
 
 @ExtendWith(MultiApplicationContextExtension::class)
@@ -266,11 +264,11 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
   }
 
-  fun stub500Response(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String) {
+  fun stub500Response(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String, currentScenarioState: String = STARTED) {
     wiremock.stubFor(
       WireMock.get(url)
         .inScenario(scenarioName)
-        .whenScenarioStateIs(STARTED)
+        .whenScenarioStateIs(currentScenarioState)
         .willSetStateTo(nextScenarioState)
         .willReturn(
           WireMock.aResponse()
@@ -313,53 +311,23 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   @BeforeEach
   fun beforeEachMessagingTest() {
-    courtEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(courtEventsQueue!!.dlqUrl).build(),
+    telemetryRepository.deleteAll()
+    purgeQueueAndDlq(courtEventsQueue)
+    purgeQueueAndDlq(probationEventsQueue)
+    purgeQueueAndDlq(probationMergeEventsQueue)
+    purgeQueueAndDlq(probationDeleteEventsQueue)
+    purgeQueueAndDlq(prisonEventsQueue)
+    purgeQueueAndDlq(prisonMergeEventsQueue)
+    purgeQueueAndDlq(reclusterEventsQueue)
+    expectNoMessagesOnDlq(reclusterEventsQueue)
+  }
+
+  fun purgeQueueAndDlq(hmppsQueue: HmppsQueue?) {
+    hmppsQueue!!.sqsClient.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(hmppsQueue.queueUrl).build(),
     ).get()
-    courtEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(courtEventsQueue!!.queueUrl).build(),
+    hmppsQueue.sqsDlqClient!!.purgeQueue(
+      PurgeQueueRequest.builder().queueUrl(hmppsQueue.dlqUrl).build(),
     ).get()
-    probationEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationEventsQueue!!.queueUrl).build(),
-    )
-    probationEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationEventsQueue!!.dlqUrl).build(),
-    )
-    probationMergeEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.queueUrl).build(),
-    )
-    probationMergeEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.dlqUrl).build(),
-    )
-    probationDeleteEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationDeleteEventsQueue!!.queueUrl).build(),
-    )
-    probationDeleteEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationDeleteEventsQueue!!.dlqUrl).build(),
-    )
-    prisonEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.queueUrl).build(),
-    )
-    prisonEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonEventsQueue!!.dlqUrl).build(),
-    )
-
-    prisonMergeEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonMergeEventsQueue!!.queueUrl).build(),
-    )
-    prisonMergeEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(prisonMergeEventsQueue!!.dlqUrl).build(),
-    )
-
-    reclusterEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(reclusterEventsQueue!!.queueUrl).build(),
-    )
-    reclusterEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(reclusterEventsQueue!!.dlqUrl).build(),
-    )
-
-    await.atMost(Duration.ofSeconds(2)) untilCallTo {
-      reclusterEventsQueue!!.sqsDlqClient!!.countAllMessagesOnQueue(reclusterEventsQueue!!.dlqUrl!!).get()
-    } matches { it == 0 }
   }
 }

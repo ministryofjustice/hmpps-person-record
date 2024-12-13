@@ -1,10 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilAsserted
-import org.awaitility.kotlin.untilNotNull
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
@@ -22,14 +18,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import java.time.LocalDateTime
-import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
-
-  @BeforeEach
-  fun beforeEach() {
-    telemetryRepository.deleteAll()
-  }
 
   @Test
   fun `should process offender delete with 1 record on single UUID`() {
@@ -83,7 +73,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("CRN" to crn, "UUID" to personKey.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
-    await.atMost(4, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(crn)).isNull() }
+    awaitAssert { assertThat(personRepository.findByCrn(crn)).isNull() }
 
     val updatedCluster = personKeyRepository.findByPersonId(personKey.personId)
     assertThat(updatedCluster).isNotNull()
@@ -401,13 +391,8 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
-    val loggedEvent = await.atMost(4, SECONDS) untilNotNull {
-      eventLoggingRepository.findFirstBySourceSystemIdOrderByEventTimestampDesc(crn)
-    }
+    val loggedEvent = awaitNotNullEventLog(crn, OFFENDER_GDPR_DELETION)
 
-    assertThat(loggedEvent).isNotNull
-    assertThat(loggedEvent.eventType).isEqualTo(OFFENDER_GDPR_DELETION)
-    assertThat(loggedEvent.sourceSystemId).isEqualTo(crn)
     assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
     assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
     assertThat(loggedEvent.beforeData).isEqualTo(beforeData)

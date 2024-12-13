@@ -15,8 +15,8 @@ data class PersonSearchCriteria(
   val firstName: String? = null,
   val lastName: String? = null,
   val dateOfBirth: LocalDate? = null,
-  val identifiers: List<Reference> = listOf(),
-  val postcodes: List<String> = listOf(),
+  val identifiers: Set<Reference> = setOf(),
+  val postcodes: Set<String> = setOf(),
   val sourceSystemType: SourceSystemType,
 ) {
   companion object {
@@ -27,8 +27,8 @@ data class PersonSearchCriteria(
       lastName = person.lastName,
       dateOfBirth = person.dateOfBirth,
       identifiers = person.getIdentifiersForMatching(SEARCH_IDENTIFIERS),
-      postcodes = person.addresses.mapNotNull { it.postcode },
-      sourceSystemType = person.sourceSystemType,
+      postcodes = person.getPostcodesForMatching(),
+      sourceSystemType = person.sourceSystem,
     )
 
     fun from(personEntity: PersonEntity): PersonSearchCriteria = PersonSearchCriteria(
@@ -38,8 +38,8 @@ data class PersonSearchCriteria(
       dateOfBirth = personEntity.dateOfBirth,
       identifiers = personEntity.getIdentifiersForMatching(SEARCH_IDENTIFIERS).map {
         Reference(identifierType = it.identifierType, identifierValue = it.identifierValue)
-      },
-      postcodes = personEntity.addresses.mapNotNull { it.postcode },
+      }.toSet(),
+      postcodes = personEntity.getPostcodesForMatching(),
       sourceSystemType = personEntity.sourceSystem,
     )
   }

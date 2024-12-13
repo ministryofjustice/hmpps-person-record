@@ -95,7 +95,7 @@ class UnmergeService(
         EventKeys.UNMERGED_UUID to excludedUnmergedRecord.personKey?.personId.toString(),
         unmergeEvent.unmergedSystemId.first to unmergeEvent.unmergedSystemId.second,
         unmergeEvent.reactivatedSystemId.first to unmergeEvent.reactivatedSystemId.second,
-        EventKeys.SOURCE_SYSTEM to unmergeEvent.reactivatedRecord.sourceSystemType.name,
+        EventKeys.SOURCE_SYSTEM to unmergeEvent.reactivatedRecord.sourceSystem.name,
       ),
     )
   }

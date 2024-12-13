@@ -36,15 +36,17 @@ data class Person(
   val addresses: List<Address> = emptyList(),
   val references: List<Reference> = emptyList(),
   var selfMatchScore: Double? = null,
-  val sourceSystemType: SourceSystemType,
+  val sourceSystem: SourceSystemType,
   val sentences: List<SentenceInfo> = emptyList(),
   val currentlyManaged: Boolean? = null,
 ) {
 
+  fun getPostcodesForMatching(): Set<String> = this.addresses.mapNotNull { it.postcode }.toSet()
+
   companion object {
 
     fun Person?.extractSourceSystemId(): String? {
-      return when (this?.sourceSystemType) {
+      return when (this?.sourceSystem) {
         DELIUS -> this.crn
         NOMIS -> this.prisonNumber
         COMMON_PLATFORM -> this.defendantId
@@ -91,7 +93,7 @@ data class Person(
         addresses = Address.fromOffenderAddressList(probationCase.addresses),
         contacts = contacts,
         references = references,
-        sourceSystemType = DELIUS,
+        sourceSystem = DELIUS,
         sentences = probationCase.sentences?.map { SentenceInfo.from(it) } ?: emptyList(),
       )
     }
@@ -131,7 +133,7 @@ data class Person(
         addresses = addresses,
         references = references,
         aliases = defendant.aliases?.map { Alias.from(it) } ?: emptyList(),
-        sourceSystemType = sourceSystemType,
+        sourceSystem = sourceSystemType,
       )
     }
 
@@ -148,7 +150,7 @@ data class Person(
         dateOfBirth = libraHearingEvent.dateOfBirth,
         addresses = addresses,
         references = references,
-        sourceSystemType = LIBRA,
+        sourceSystem = LIBRA,
       )
     }
 
@@ -180,7 +182,7 @@ data class Person(
         contacts = contacts,
         addresses = addresses,
         references = references,
-        sourceSystemType = NOMIS,
+        sourceSystem = NOMIS,
         nationality = prisoner.nationality,
         religion = prisoner.religion,
         sentences = prisoner.allConvictedOffences?.map { SentenceInfo.from(it) } ?: emptyList(),
@@ -207,14 +209,14 @@ data class Person(
         contacts = existingPersonEntity.contacts.map { Contact.convertEntityToContact(it) },
         addresses = existingPersonEntity.addresses.map { Address.from(it) },
         references = existingPersonEntity.references.map { Reference.from(it) },
-        sourceSystemType = existingPersonEntity.sourceSystem,
+        sourceSystem = existingPersonEntity.sourceSystem,
         sentences = existingPersonEntity.sentenceInfo.map { SentenceInfo.from(it) },
         currentlyManaged = existingPersonEntity.currentlyManaged,
       )
     }
   }
 
-  fun getIdentifiersForMatching(identifiers: List<IdentifierType>): List<Reference> {
-    return this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }
+  fun getIdentifiersForMatching(identifiers: List<IdentifierType>): Set<Reference> {
+    return this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }.toSet()
   }
 }
