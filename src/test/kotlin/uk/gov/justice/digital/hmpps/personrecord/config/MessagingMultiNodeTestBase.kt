@@ -84,7 +84,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         ),
       )
     if (topic.contains(".fifo")) {
-      messageBuilder = messageBuilder.messageGroupId(UUID.randomUUID().toString())
+      messageBuilder = messageBuilder.messageGroupId(messageType.name)
     }
 
     val response: PublishResponse? = courtEventsTopic?.snsClient?.publish(messageBuilder.build())?.get()
