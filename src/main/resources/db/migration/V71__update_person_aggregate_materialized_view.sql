@@ -3,21 +3,7 @@ BEGIN;
 
 DROP MATERIALIZED VIEW IF EXISTS personrecordservice.person_aggregate_data;
 CREATE MATERIALIZED VIEW personrecordservice.person_aggregate_data AS (
-    with person_in AS (
-        SELECT
-        *
-        FROM person
-    ),
-    alias_agg AS (
-        SELECT
-            ps.fk_person_id,
-            array_agg(ps.first_name) as first_name_alias_arr,
-            array_agg(ps.last_name) as last_name_alias_arr,
-            array_agg(ps.date_of_birth) as date_of_birth_alias_arr
-        FROM pseudonym ps
-        group by ps.fk_person_id
-    ),
-    person_collected as (
+    WITH person_collected as (
         SELECT
             p.id,
             p.title,
@@ -37,14 +23,15 @@ CREATE MATERIALIZED VIEW personrecordservice.person_aggregate_data AS (
             p.date_of_birth,
             p.sex,
             p.ethnicity,
-            a.first_name_alias_arr,
-            a.last_name_alias_arr,
-            a.date_of_birth_alias_arr,
+            array_agg(ps.first_name) as first_name_alias_arr,
+            array_agg(ps.last_name) as last_name_alias_arr,
+            array_agg(ps.date_of_birth) as date_of_birth_alias_arr,
             p.version
         FROM
-            person_in p
+            person p
         LEFT JOIN
-            alias_agg a ON p.id = a.fk_person_id
+            pseudonym ps ON p.id = ps.fk_person_id
+        group by p.id
     ),
     person_exploded AS (
         SELECT
@@ -509,7 +496,7 @@ CREATE MATERIALIZED VIEW personrecordservice.person_aggregate_data AS (
         ARRAY(SELECT DISTINCT x FROM unnest(sentence_date_arr) AS x) AS sentence_date_arr
     FROM
         joined
-);
+) WITH NO DATA;
 
 CREATE UNIQUE INDEX idx_person_aggregate_data_id ON personrecordservice.person_aggregate_data (id);
 
