@@ -12,7 +12,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     "title": "Ms",
     "firstName": "${responseSetup.prefix}FirstName",
     "middleNames": "${responseSetup.prefix}MiddleName1 ${responseSetup.prefix}MiddleName2",
-    "preparedLastName": "${responseSetup.prefix}LastName",
+    "lastName": "${responseSetup.prefix}LastName",
     "dateOfBirth": "${responseSetup.dateOfBirth}",
     "gender": "Female",
     ${responseSetup.ethnicity?.let { """ "ethnicity": "${responseSetup.ethnicity}", """.trimIndent() } ?: "" }
@@ -33,7 +33,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
         "title": "${responseSetup.prefix}AliasTitle",
         "firstName": "${responseSetup.prefix}AliasFirstName",
         "middleNames": "${responseSetup.prefix}AliasMiddleName",
-        "preparedLastName": "${responseSetup.prefix}AliasLastName",
+        "lastName": "${responseSetup.prefix}AliasLastName",
         "dateOfBirth": "${responseSetup.dateOfBirth}",
         "gender": "Male",
         "ethnicity": "White : Irish"
