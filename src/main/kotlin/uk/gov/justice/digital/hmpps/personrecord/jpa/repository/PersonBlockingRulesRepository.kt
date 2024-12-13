@@ -57,6 +57,5 @@ class PersonBlockingRulesRepository {
         this.setParameter(it.parameterName, it.reference.identifierValue)
       }
     }
-
   }
 }

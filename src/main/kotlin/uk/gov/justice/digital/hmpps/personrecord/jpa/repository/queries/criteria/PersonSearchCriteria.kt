@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 
-
 data class PersonSearchCriteria(
   val preparedId: PreparedLongStatement? = null,
   val preparedFirstName: PreparedStringStatement,
@@ -36,8 +35,8 @@ data class PersonSearchCriteria(
     private val SEARCH_IDENTIFIERS = listOf(PNC, CRO, NATIONAL_INSURANCE_NUMBER, DRIVER_LICENSE_NUMBER)
 
     fun from(person: Person): PersonSearchCriteria = PersonSearchCriteria(
-      preparedFirstName =  PreparedStringStatement(parameterName = FIRST_NAME_PARAMETER_NAME, value = person.firstName),
-      preparedLastName =  PreparedStringStatement(parameterName = LAST_NAME_PARAMETER_NAME, value = person.lastName),
+      preparedFirstName = PreparedStringStatement(parameterName = FIRST_NAME_PARAMETER_NAME, value = person.firstName),
+      preparedLastName = PreparedStringStatement(parameterName = LAST_NAME_PARAMETER_NAME, value = person.lastName),
       preparedDateOfBirth = PreparedDateStatement(parameterName = DOB_PARAMETER_NAME, value = person.dateOfBirth),
       preparedIdentifiers = buildPreparedIdentifiers(person.getIdentifiersForMatching(SEARCH_IDENTIFIERS)),
       preparedPostcodes = buildPreparedPostcodes(person.getPostcodesForMatching()),
@@ -46,12 +45,14 @@ data class PersonSearchCriteria(
 
     fun from(personEntity: PersonEntity): PersonSearchCriteria = PersonSearchCriteria(
       preparedId = PreparedLongStatement(parameterName = PERSON_ID_PARAMETER_NAME, value = personEntity.id),
-      preparedFirstName =  PreparedStringStatement(parameterName = FIRST_NAME_PARAMETER_NAME, value = personEntity.firstName),
-      preparedLastName =  PreparedStringStatement(parameterName = LAST_NAME_PARAMETER_NAME, value = personEntity.lastName),
+      preparedFirstName = PreparedStringStatement(parameterName = FIRST_NAME_PARAMETER_NAME, value = personEntity.firstName),
+      preparedLastName = PreparedStringStatement(parameterName = LAST_NAME_PARAMETER_NAME, value = personEntity.lastName),
       preparedDateOfBirth = PreparedDateStatement(parameterName = DOB_PARAMETER_NAME, value = personEntity.dateOfBirth),
-      preparedIdentifiers = buildPreparedIdentifiers(personEntity.getIdentifiersForMatching(SEARCH_IDENTIFIERS).map {
-        Reference(identifierType = it.identifierType, identifierValue = it.identifierValue)
-      }.toSet()),
+      preparedIdentifiers = buildPreparedIdentifiers(
+        personEntity.getIdentifiersForMatching(SEARCH_IDENTIFIERS).map {
+          Reference(identifierType = it.identifierType, identifierValue = it.identifierValue)
+        }.toSet(),
+      ),
       preparedPostcodes = buildPreparedPostcodes(personEntity.getPostcodesForMatching()),
       sourceSystemType = personEntity.sourceSystem,
     )

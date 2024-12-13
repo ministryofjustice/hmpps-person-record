@@ -11,7 +11,7 @@ fun onePrisoner(prisonNumber: String, prefix: String) = """
     "bookNumber": "38412A",
     "firstName": "${prefix}FirstName",
     "middleNames": "",
-    "preparedLastName": "${prefix}LastName",
+    "lastName": "${prefix}LastName",
     "dateOfBirth": "1975-04-02",
     "gender": "Female",
     "ethnicity": "White: Eng./Welsh/Scot./N.Irish/British",
@@ -31,7 +31,7 @@ fun onePrisoner(prisonNumber: String, prefix: String) = """
       {
         "firstName": "${prefix}AliasOneFirstName",
         "middleNames": "${prefix}AliasOneMiddleNameOne ${prefix}AliasOneMiddleNameTwo",
-        "preparedLastName": "${prefix}AliasOneLastName",
+        "lastName": "${prefix}AliasOneLastName",
         "dateOfBirth": "1975-04-02",
         "gender": "Male",
         "ethnicity": "White : Irish"
@@ -39,7 +39,7 @@ fun onePrisoner(prisonNumber: String, prefix: String) = """
   {
         "firstName": "${prefix}AliasTwoFirstName",
         "middleNames": "${prefix}AliasTwoMiddleNameOne ${prefix}AliasTwoMiddleNameTwo",
-        "preparedLastName": "${prefix}AliasTwoLastName",
+        "lastName": "${prefix}AliasTwoLastName",
         "dateOfBirth": "1975-04-02",
         "gender": "Male",
         "ethnicity": "White : Irish"
@@ -140,7 +140,7 @@ fun twoPrisoners(prisonNumberOne: String, prefixOne: String, prisonNumberTwo: St
     "bookNumber": "38412A",
     "firstName": "${prefixOne}FirstName",
     "middleNames": "${prefixOne}MiddleNameOne ${prefixOne}MiddleNameTwo",
-    "preparedLastName": "${prefixOne}LastName",
+    "lastName": "${prefixOne}LastName",
     "dateOfBirth": "1975-04-02",
     "gender": "Female",
     "ethnicity": "White: Eng./Welsh/Scot./N.Irish/British",
@@ -160,7 +160,7 @@ fun twoPrisoners(prisonNumberOne: String, prefixOne: String, prisonNumberTwo: St
       {
         "firstName": "${prefixOne}AliasOneFirstName",
         "middleNames": "${prefixOne}AliasOneMiddleNameOne ${prefixOne}AliasOneMiddleNameTwo",
-        "preparedLastName": "${prefixOne}AliasOneLastName",
+        "lastName": "${prefixOne}AliasOneLastName",
         "dateOfBirth": "1975-04-02",
         "gender": "Male",
         "ethnicity": "White : Irish"
@@ -168,7 +168,7 @@ fun twoPrisoners(prisonNumberOne: String, prefixOne: String, prisonNumberTwo: St
   {
         "firstName": "${prefixOne}AliasTwoFirstName",
         "middleNames": "${prefixOne}AliasTwoMiddleNameOne ${prefixOne}AliasTwoMiddleNameTwo",
-        "preparedLastName": "${prefixOne}AliasTwoLastName",
+        "lastName": "${prefixOne}AliasTwoLastName",
         "dateOfBirth": "1975-04-02",
         "gender": "Male",
         "ethnicity": "White : Irish"
@@ -263,7 +263,7 @@ fun twoPrisoners(prisonNumberOne: String, prefixOne: String, prisonNumberTwo: St
     "bookNumber": "38412A",
     "firstName": "${prefixTwo}FirstName",
     "middleNames": "John James",
-    "preparedLastName": "Larsen",
+    "lastName": "Larsen",
     "dateOfBirth": "1975-04-02",
     "gender": "Female",
     "ethnicity": "White: Eng./Welsh/Scot./N.Irish/British",

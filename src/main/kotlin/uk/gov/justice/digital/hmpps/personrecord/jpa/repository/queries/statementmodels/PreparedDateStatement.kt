@@ -4,20 +4,20 @@ import java.time.LocalDate
 
 data class PreparedDateStatement(
   val parameterName: String,
-  val value : LocalDate?,
+  val value: LocalDate?,
 ) {
 
   val day: PreparedIntStatement = PreparedIntStatement(
     parameterName = parameterName + DAY_PARAM_SUFFIX,
-    value = value?.dayOfMonth
+    value = value?.dayOfMonth,
   )
   val month: PreparedIntStatement = PreparedIntStatement(
     parameterName = parameterName + MONTH_PARAM_SUFFIX,
-    value = value?.monthValue
+    value = value?.monthValue,
   )
   val year: PreparedIntStatement = PreparedIntStatement(
     parameterName = parameterName + YEAR_PARAM_SUFFIX,
-    value = value?.year
+    value = value?.year,
   )
 
   companion object {

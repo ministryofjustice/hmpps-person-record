@@ -32,11 +32,13 @@ class PersonSearchCriteriaTest {
     )
     val searchCriteria = PersonSearchCriteria.from(person)
     assertThat(searchCriteria.preparedPostcodes.size).isEqualTo(3)
-    assertThat(searchCriteria.preparedPostcodes).isEqualTo(listOf(
-      PreparedStringStatement("postcode0", "AB1"),
-      PreparedStringStatement("postcode1", "BC2"),
-      PreparedStringStatement("postcode2", "CD3"),
-    ))
+    assertThat(searchCriteria.preparedPostcodes).isEqualTo(
+      listOf(
+        PreparedStringStatement("postcode0", "AB1"),
+        PreparedStringStatement("postcode1", "BC2"),
+        PreparedStringStatement("postcode2", "CD3"),
+      ),
+    )
   }
 
   @Test
@@ -53,11 +55,13 @@ class PersonSearchCriteriaTest {
     )
     val searchCriteria = PersonSearchCriteria.from(personEntity)
     assertThat(searchCriteria.preparedPostcodes.size).isEqualTo(3)
-    assertThat(searchCriteria.preparedPostcodes).isEqualTo(listOf(
-      PreparedStringStatement("postcode0", "AB1"),
-      PreparedStringStatement("postcode1", "BC2"),
-      PreparedStringStatement("postcode2", "CD3"),
-    ))
+    assertThat(searchCriteria.preparedPostcodes).isEqualTo(
+      listOf(
+        PreparedStringStatement("postcode0", "AB1"),
+        PreparedStringStatement("postcode1", "BC2"),
+        PreparedStringStatement("postcode2", "CD3"),
+      ),
+    )
   }
 
   @Test
