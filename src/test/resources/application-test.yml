@@ -27,10 +27,10 @@ hmpps.sqs:
   enabled: true
   provider: localstack
   queues:
-    cprcourtcaseeventsqueue:
-      queueName: cpr_court_case_events_queue.fifo
-      subscribeTopicId: courtcaseeventstopic
-      dlqName: cpr_court_case_events_queue_dlq.fifo
+    cprcourtcasesqueue:
+      queueName: cpr_court_cases_queue.fifo
+      subscribeTopicId: courtcasestopic
+      dlqName: cpr_court_cases_queue_dlq.fifo
       dlqMaxReceiveCount: 1
     cprdeliusoffendereventsqueue:
       queueName: cpr_delius_offender_events_queue
@@ -61,7 +61,7 @@ hmpps.sqs:
       queueName: cpr_recluster_events_queue
       dlqName: cpr_recluster_events_dlq
   topics:
-    courtcaseeventstopic:
+    courtcasestopic:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}.fifo
     domainevents:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}

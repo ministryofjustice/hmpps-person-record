@@ -40,11 +40,11 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   }
 
   internal val courtEventsTopic by lazy {
-    hmppsQueueService.findByTopicId("courtcaseeventstopic")
+    hmppsQueueService.findByTopicId("courtcasestopic")
   }
 
   val courtEventsQueue by lazy {
-    hmppsQueueService.findByQueueId(Queues.COURT_CASE_EVENTS_QUEUE_ID)
+    hmppsQueueService.findByQueueId(Queues.COURT_CASES_QUEUE_ID)
   }
 
   val probationEventsQueue by lazy {
