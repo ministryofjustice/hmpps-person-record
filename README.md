@@ -35,8 +35,8 @@ AWS_REGION=eu-west-2 AWS_ACCESS_KEY_ID=key AWS_SECRET_ACCESS_KEY=secret aws --en
 
 ## Working with AWS resources
 
-You can retrieve the queue URLs from the secrets like this (preprod court case events queue URL):
-`cloud-platform decode-secret -n hmpps-person-record-preprod -s sqs-cpr-court-case-events-secret | jq -r '.data.sqs_queue_url'`
+You can retrieve the queue URLs from the secrets like this (preprod court cases queue URL):
+`cloud-platform decode-secret -n hmpps-person-record-preprod -s sqs-cpr-court-cases-secret | jq -r '.data.sqs_queue_url'`
 
 We can access queues, topics and all other AWS dependencies using the [service pod provided by cloud-platform](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/cloud-platform-service-pod.html). 
 There is currently an instance running in preprod and prod - see the link above for instructions on how to get a shell on it.
