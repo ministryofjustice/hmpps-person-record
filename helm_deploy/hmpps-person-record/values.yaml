@@ -63,9 +63,9 @@ generic-service:
       CORE_PERSON_RECORD_AND_DELIUS_CLIENT_ID: "NOMIS_OAUTH_CLIENT_ID"
       CORE_PERSON_RECORD_AND_DELIUS_CLIENT_SECRET: "NOMIS_OAUTH_CLIENT_SECRET"
     sqs-cpr-court-case-events-secret:
-        HMPPS_SQS_QUEUES_CPRCOURTCASEEVENTSQUEUE_QUEUE_NAME: "sqs_queue_name"
+        HMPPS_SQS_QUEUES_CPRCOURTCASESQUEUE_QUEUE_NAME: "sqs_queue_name"
     sqs-cpr-court-case-events-dlq-secret:
-        HMPPS_SQS_QUEUES_CPRCOURTCASEEVENTSQUEUE_DLQ_NAME: "sqs_queue_name"
+        HMPPS_SQS_QUEUES_CPRCOURTCASESQUEUE_DLQ_NAME: "sqs_queue_name"
     sqs-cpr-delius-offender-events-secret:
       HMPPS_SQS_QUEUES_CPRDELIUSOFFENDEREVENTSQUEUE_QUEUE_NAME: "sqs_queue_name"
     sqs-cpr-delius-offender-events-dlq-secret:

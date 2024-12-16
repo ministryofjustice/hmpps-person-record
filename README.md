@@ -28,7 +28,7 @@ Mostly runs against dev services, uses localstack for the queues
 
 ```shell
 AWS_REGION=eu-west-2 AWS_ACCESS_KEY_ID=key AWS_SECRET_ACCESS_KEY=secret aws --endpoint-url=http://localhost:4566 sns publish \
-    --topic-arn arn:aws:sns:eu-west-2:000000000000:courtcaseeventstopic \
+    --topic-arn arn:aws:sns:eu-west-2:000000000000:courtcasestopic \
     --message-attributes file://$(pwd)/src/test/resources/examples/commonPlatformMessageAttributes.json \
     --message file://$(pwd)/src/test/resources/examples/commonPlatformMessage.json
 ```
@@ -43,7 +43,7 @@ There is currently an instance running in preprod and prod - see the link above 
 
 Then you can run AWS CLI commands on the pod like this:
 
-`aws sqs get-queue-attributes --queue-url <COURT_CASE_EVENTS_QUEUE_URL> --attribute-names ApproximateNumberOfMessages`
+`aws sqs get-queue-attributes --queue-url <COURT_CASES_QUEUE_URL> --attribute-names ApproximateNumberOfMessages`
 
 
 ### Localstack command to create FIFO topic

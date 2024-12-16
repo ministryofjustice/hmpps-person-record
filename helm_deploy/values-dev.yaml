@@ -27,7 +27,7 @@ generic-service:
 generic-prometheus-alerts:
   businessHoursOnly: true
   sqsNumberAlertQueueNames:
-    - "hmpps-person-record-development-cpr_court_case_events_dlq"
+    - "hmpps-person-record-development-cpr_court_cases_dlq.fifo"
     - "hmpps-person-record-development-cpr_delius_offender_events_dlq"
     - "hmpps-person-record-development-cpr_delius_merge_events_dlq"
     - "hmpps-person-record-development-cpr_delius_delete_events_dlq"
