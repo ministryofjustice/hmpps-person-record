@@ -78,6 +78,16 @@ tasks {
 
   test {
     exclude("**/InitialiseDatabase.class")
+
+    jvmArgs = listOf(
+      "-Xmx4096m",
+      "-XX:ParallelGCThreads=2",
+      "-XX:ConcGCThreads=2",
+      "-Djava.util.concurrent.ForkJoinPool.common.parallelism=2",
+      "-Dorg.gradle.daemon=true",
+      "-Dorg.gradle.workers.max=4",
+      "-Dkotlin.compiler.execution.strategy=daemon",
+    )
   }
 
   getByName("initialiseDatabase") {
