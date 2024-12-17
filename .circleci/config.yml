@@ -25,7 +25,7 @@ jobs:
             - gradle-{{ checksum "build.gradle.kts" }}
             - gradle-
       - run:
-          command: ./gradlew build --daemon
+          command: ./gradlew build
       - save_cache:
           paths:
             - ~/.gradle

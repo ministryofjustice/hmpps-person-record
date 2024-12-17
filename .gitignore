@@ -50,7 +50,6 @@ sonar-project.properties
 # Helm
 **/Chart.lock
 /.jpb/jpb-settings.xml
-/gradle.properties
 /volume/
 
 .trivy
