@@ -5,7 +5,7 @@ object Queues {
   const val RECLUSTER_EVENTS_QUEUE_ID = "cprreclustereventsqueue"
 
   // COURTS
-  const val COURT_CASE_EVENTS_QUEUE_ID = "cprcourtcaseeventsqueue"
+  const val COURT_CASES_QUEUE_ID = "cprcourtcasesqueue"
 
   // PRISON
   const val PRISON_EVENT_QUEUE_ID = "cprnomiseventsqueue"

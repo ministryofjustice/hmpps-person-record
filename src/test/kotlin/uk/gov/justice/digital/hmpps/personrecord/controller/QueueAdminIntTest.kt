@@ -20,7 +20,7 @@ class QueueAdminIntTest() : WebTestBase() {
   fun `should return FORBIDDEN for request to purge dead letter queue with wrong role`() {
     webTestClient
       .put()
-      .uri("/queue-admin/purge-queue/cpr_court_case_events_queue_dlq")
+      .uri("/queue-admin/purge-queue/cpr_court_cases_queue_dlq.fifo")
       .authorised(listOf("WRONG_ROLE"))
       .exchange()
       .expectStatus()
@@ -31,7 +31,7 @@ class QueueAdminIntTest() : WebTestBase() {
   fun `should return UNAUTHORISED for unauthorised request to purge dead letter queue`() {
     webTestClient
       .put()
-      .uri("/queue-admin/purge-queue/cpr_court_case_events_queue_dlq")
+      .uri("/queue-admin/purge-queue/cpr_court_cases_queue_dlq.fifo")
       .exchange()
       .expectStatus()
       .isUnauthorized
@@ -41,7 +41,7 @@ class QueueAdminIntTest() : WebTestBase() {
   fun `should return 200 for authorised request to purge dead letter queue`() {
     webTestClient
       .put()
-      .uri("/queue-admin/purge-queue/cpr_court_case_events_queue_dlq")
+      .uri("/queue-admin/purge-queue/cpr_court_cases_queue_dlq.fifo")
       .authorised()
       .exchange()
       .expectStatus()
