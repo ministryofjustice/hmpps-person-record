@@ -6,6 +6,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.statementmodels.PreparedIdentifierStatement
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.statementmodels.PreparedStringStatement
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
@@ -29,8 +31,14 @@ class PersonSearchCriteriaTest {
       sourceSystem = COMMON_PLATFORM,
     )
     val searchCriteria = PersonSearchCriteria.from(person)
-    assertThat(searchCriteria.postcodes.size).isEqualTo(3)
-    assertThat(searchCriteria.postcodes).isEqualTo(setOf("AB1 1AB", "BC2 2BC", "CD3 DC3"))
+    assertThat(searchCriteria.preparedPostcodes.size).isEqualTo(3)
+    assertThat(searchCriteria.preparedPostcodes).isEqualTo(
+      listOf(
+        PreparedStringStatement("postcode0", "AB1"),
+        PreparedStringStatement("postcode1", "BC2"),
+        PreparedStringStatement("postcode2", "CD3"),
+      ),
+    )
   }
 
   @Test
@@ -46,8 +54,14 @@ class PersonSearchCriteriaTest {
       sourceSystem = COMMON_PLATFORM,
     )
     val searchCriteria = PersonSearchCriteria.from(personEntity)
-    assertThat(searchCriteria.postcodes.size).isEqualTo(3)
-    assertThat(searchCriteria.postcodes).isEqualTo(setOf("AB1 1AB", "BC2 2BC", "CD3 DC3"))
+    assertThat(searchCriteria.preparedPostcodes.size).isEqualTo(3)
+    assertThat(searchCriteria.preparedPostcodes).isEqualTo(
+      listOf(
+        PreparedStringStatement("postcode0", "AB1"),
+        PreparedStringStatement("postcode1", "BC2"),
+        PreparedStringStatement("postcode2", "CD3"),
+      ),
+    )
   }
 
   @Test
@@ -63,12 +77,12 @@ class PersonSearchCriteriaTest {
       sourceSystem = COMMON_PLATFORM,
     )
     val searchCriteria = PersonSearchCriteria.from(person)
-    assertThat(searchCriteria.identifiers.size).isEqualTo(3)
-    assertThat(searchCriteria.identifiers).isEqualTo(
-      setOf(
-        Reference(identifierType = CRO, identifierValue = "12345"),
-        Reference(identifierType = PNC, identifierValue = "12345"),
-        Reference(identifierType = NATIONAL_INSURANCE_NUMBER, identifierValue = "12345"),
+    assertThat(searchCriteria.preparedIdentifiers.size).isEqualTo(3)
+    assertThat(searchCriteria.preparedIdentifiers).isEqualTo(
+      listOf(
+        PreparedIdentifierStatement("identifier0", reference = Reference(identifierType = CRO, identifierValue = "12345")),
+        PreparedIdentifierStatement("identifier1", reference = Reference(identifierType = PNC, identifierValue = "12345")),
+        PreparedIdentifierStatement("identifier2", reference = Reference(identifierType = NATIONAL_INSURANCE_NUMBER, identifierValue = "12345")),
       ),
     )
   }
@@ -86,12 +100,12 @@ class PersonSearchCriteriaTest {
       sourceSystem = COMMON_PLATFORM,
     )
     val searchCriteria = PersonSearchCriteria.from(person)
-    assertThat(searchCriteria.identifiers.size).isEqualTo(3)
-    assertThat(searchCriteria.identifiers).isEqualTo(
-      setOf(
-        Reference(identifierType = CRO, identifierValue = "12345"),
-        Reference(identifierType = PNC, identifierValue = "12345"),
-        Reference(identifierType = NATIONAL_INSURANCE_NUMBER, identifierValue = "12345"),
+    assertThat(searchCriteria.preparedIdentifiers.size).isEqualTo(3)
+    assertThat(searchCriteria.preparedIdentifiers).isEqualTo(
+      listOf(
+        PreparedIdentifierStatement("identifier0", reference = Reference(identifierType = CRO, identifierValue = "12345")),
+        PreparedIdentifierStatement("identifier1", reference = Reference(identifierType = PNC, identifierValue = "12345")),
+        PreparedIdentifierStatement("identifier2", reference = Reference(identifierType = NATIONAL_INSURANCE_NUMBER, identifierValue = "12345")),
       ),
     )
   }

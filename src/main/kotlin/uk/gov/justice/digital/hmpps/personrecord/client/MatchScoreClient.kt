@@ -52,12 +52,13 @@ data class MatchRecord(
   val pnc: String? = "",
 ) {
   companion object {
+
     fun from(searchCriteria: PersonSearchCriteria): MatchRecord {
       return MatchRecord(
-        firstName = searchCriteria.firstName,
-        lastname = searchCriteria.lastName,
-        dateOfBirth = searchCriteria.dateOfBirth?.toString(),
-        pnc = searchCriteria.identifiers.firstOrNull { it.identifierType == IdentifierType.PNC }?.identifierValue,
+        firstName = searchCriteria.preparedFirstName.value,
+        lastname = searchCriteria.preparedLastName.value,
+        dateOfBirth = searchCriteria.preparedDateOfBirth.value.toString(),
+        pnc = searchCriteria.preparedIdentifiers.firstOrNull { it.reference.identifierType == IdentifierType.PNC }?.reference?.identifierValue,
       )
     }
 
