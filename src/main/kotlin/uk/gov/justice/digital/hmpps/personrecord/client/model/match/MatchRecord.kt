@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import java.util.*
+import java.util.UUID
 
 data class MatchRecord(
   @JsonProperty("unique_id")
