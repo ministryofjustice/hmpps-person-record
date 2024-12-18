@@ -496,9 +496,195 @@ CREATE MATERIALIZED VIEW personrecordservice.person_aggregate_data AS (
         ARRAY(SELECT DISTINCT x FROM unnest(sentence_date_arr) AS x) AS sentence_date_arr
     FROM
         joined
-) WITH NO DATA;
-
+);
 CREATE UNIQUE INDEX idx_person_aggregate_data_id ON personrecordservice.person_aggregate_data (id);
+
+-- NEW SPLIT SQL
+
+DROP MATERIALIZED VIEW IF EXISTS personrecordservice.person_reference_agg;
+CREATE MATERIALIZED VIEW personrecordservice.person_reference_agg AS (
+    SELECT
+        p.id,
+        ARRAY(SELECT DISTINCT x FROM unnest(
+    	    array_agg(DISTINCT UPPER(identifier_value)) FILTER (
+    	        WHERE
+    	            identifier_type = 'CRO'
+    	            AND UPPER(identifier_value) NOT IN ('000000/00Z')
+    	    )) AS x
+        ) AS cro_arr,
+        ARRAY(SELECT DISTINCT x FROM unnest(
+        	array_agg(DISTINCT UPPER(identifier_value)) FILTER (
+            	WHERE
+                	identifier_type = 'PNC'
+        	)
+        ) AS x) AS pnc_arr
+    from
+    	person p
+    left join reference r
+    	on p.id = r.fk_person_id
+    group by
+        p.id
+);
+CREATE UNIQUE INDEX idx_person_reference_agg_id ON personrecordservice.person_reference_agg (id);
+
+-- Takes about 8 with 3.2 million rows
+DROP MATERIALIZED VIEW IF EXISTS personrecordservice.person_pseudonym_agg;
+CREATE MATERIALIZED VIEW personrecordservice.person_pseudonym_agg AS (
+    SELECT
+        p.id,
+        ARRAY(
+        	SELECT DISTINCT
+        	REPLACE(
+                REPLACE(
+                    REPLACE(
+                        REPLACE(
+                            REPLACE(UPPER(x), 'MIG_ERROR_', ''),
+                            'NO_SHOW_',
+                            ''
+                        ),
+                        'DUPLICATE_',
+                        ''
+                    ),
+                    '-',
+                    ' '
+                ),
+                '''',
+                ''
+            )
+            FROM unnest(
+    		    array_agg(ps.first_name) FILTER (
+    		    	WHERE
+    		            ps.first_name is not null
+    	        )
+        	) AS x
+        ) AS first_name_alias_arr,
+        ARRAY(
+        	SELECT DISTINCT
+        	REPLACE(
+                REPLACE(
+                    REPLACE(
+                        REPLACE(
+                            REPLACE(UPPER(x), 'MIG_ERROR_', ''),
+                            'NO_SHOW_',
+                            ''
+                        ),
+                        'DUPLICATE_',
+                        ''
+                    ),
+                    '-',
+                    ' '
+                ),
+                '''',
+                ''
+            )
+            FROM unnest(
+    		    array_agg(ps.last_name) FILTER (
+    		    	WHERE
+    		            ps.last_name is not null
+    	        )
+        	) AS x
+        ) AS last_name_alias_arr,
+        ARRAY(
+            SELECT DISTINCT x
+            FROM unnest(
+                array_remove(array_agg(ps.date_of_birth), NULL)
+            )
+            AS x
+        ) AS date_of_birth_alias_arr
+    FROM
+        person p
+    left join pseudonym ps
+    	on p.id = ps.fk_person_id
+    group by
+        p.id
+);
+CREATE UNIQUE INDEX idx_person_pseudonym_agg_id ON personrecordservice.person_pseudonym_agg (id);
+
+-- Takes about 50 secs with 3.2 million rows
+DROP MATERIALIZED VIEW IF EXISTS personrecordservice.person_address_agg;
+CREATE MATERIALIZED VIEW personrecordservice.person_address_agg AS (
+    with address_cleaned AS (
+        SELECT
+            fk_person_id,
+            REGEXP_REPLACE(
+                UPPER(postcode),
+                '\s',
+                '',
+                'g'
+            ) as postcode
+        FROM
+            address
+        order by
+            postcode
+    ),
+    address_with_outcode AS (
+        SELECT
+            fk_person_id,
+            postcode,
+            SUBSTRING(
+                postcode
+                FROM
+                    1 FOR LENGTH(postcode) - 3
+            ) AS postcode_outcode
+        FROM
+            address_cleaned
+        where
+            LENGTH(postcode) >= 3
+    )
+    SELECT
+        p.id,
+        ARRAY(SELECT DISTINCT x FROM unnest(
+            array_remove(
+                array_remove(
+                    array_agg(postcode) FILTER (
+                        WHERE
+                            postcode NOT IN ('NF11NF')
+                    ),
+                    null
+                ),
+                ''
+            )
+        ) AS x) AS postcode_arr,
+        ARRAY(SELECT DISTINCT x FROM unnest(
+            array_remove(
+                array_remove(
+                    array_agg(DISTINCT postcode_outcode) FILTER (
+                        WHERE
+                            postcode_outcode NOT IN ('NF1')
+                    ),
+                    NULL
+                ),
+                ''
+            )
+        ) AS x) AS postcode_outcode_arr
+    FROM
+        person p
+    left join address_with_outcode awo
+        on p.id = awo.fk_person_id
+    group by
+        p.id
+);
+CREATE UNIQUE INDEX idx_person_address_agg_id ON personrecordservice.person_address_agg (id);
+
+DROP MATERIALIZED VIEW IF EXISTS personrecordservice.person_sentence_info_agg;
+CREATE MATERIALIZED VIEW personrecordservice.person_sentence_info_agg AS (
+    SELECT
+	    p.id,
+	    ARRAY(SELECT DISTINCT x FROM unnest(
+			array_agg(sentence_date) FILTER (
+		        WHERE
+		            sentence_date NOT IN ('1970-01-01', '1990-01-01')
+		    )
+	    ) AS x)
+	    AS sentence_date_arr
+	FROM
+	    person p
+	left join sentence_info si
+		on p.id = si.fk_person_id
+	group by
+	    p.id
+);
+CREATE UNIQUE INDEX idx_person_sentence_info_agg_id ON personrecordservice.person_sentence_info_agg (id);
 
 -----------------------------------------------------
 COMMIT;
