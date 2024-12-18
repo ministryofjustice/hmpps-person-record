@@ -145,11 +145,8 @@ class IntegrationTestBase {
     personRepository.saveAndFlush(sourceRecord)
   }
 
-  internal fun stubOneHighConfidenceMatch() = stubMatchScore(
-    MatchResponse(
-      matchProbabilities = mutableMapOf("0" to 0.999999),
-    ),
-  )
+  internal fun stubOneHighConfidenceMatch() = stubXHighConfidenceMatches(1)
+
   internal fun stubOneLowConfidenceMatch() = stubMatchScore(
     MatchResponse(matchProbabilities = mutableMapOf("0" to 0.988899)),
   )
@@ -157,7 +154,7 @@ class IntegrationTestBase {
   internal fun stubXHighConfidenceMatches(x: Int) =
     stubMatchScore(
       MatchResponse(
-        matchProbabilities = (0..x - 1).associate {
+        matchProbabilities = (0..<x).associate {
           Pair("$it", 0.999999)
         }.toMutableMap(),
       ),

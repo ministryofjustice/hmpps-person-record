@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.data.domain.Example
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
@@ -318,12 +317,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
-    val probabilities = mutableMapOf<String, Double>()
-    repeat(100) { index ->
-      probabilities[index.toString()] = 0.999999
-    }
-    val matchResponse = MatchResponse(matchProbabilities = probabilities)
-    stubMatchScore(matchResponse)
+
+    stubXHighConfidenceMatches(100)
 
     publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))

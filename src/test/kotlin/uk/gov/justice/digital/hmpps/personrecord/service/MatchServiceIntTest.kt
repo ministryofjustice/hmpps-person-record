@@ -108,12 +108,7 @@ class MatchServiceIntTest : IntegrationTestBase() {
       sourceSystem = LIBRA,
     )
 
-    val probabilities = mutableMapOf<String, Double>()
-    repeat(100) { index ->
-      probabilities[index.toString()] = 0.999999
-    }
-    val matchResponse = MatchResponse(matchProbabilities = probabilities)
-    stubMatchScore(matchResponse)
+    stubXHighConfidenceMatches(100)
 
     val candidateRecords: List<PersonEntity> = generateSequence { PersonEntity.from(newRecord) }.take(200).toList()
     val highConfidenceMatches = matchService.findHighConfidenceMatches(candidateRecords, PersonSearchCriteria.from(newRecord))
