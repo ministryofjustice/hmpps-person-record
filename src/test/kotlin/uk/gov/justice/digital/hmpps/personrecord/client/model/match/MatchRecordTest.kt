@@ -14,20 +14,21 @@ class MatchRecordTest {
 
   @Test
   fun `should return empty strings when building request if is null`() {
-    val matchRecord = MatchRecord.from(PersonSearchCriteria(
-      preparedFirstName = PreparedStringStatement("firstName", value = null),
-      preparedLastName = PreparedStringStatement("lastName", value = null),
-      preparedDateOfBirth = PreparedDateStatement("dateOfBirth", value = null),
-      preparedIdentifiers = listOf(
-        PreparedIdentifierStatement("pnc", reference = Reference(identifierType = PNC, identifierValue = null))
+    val matchRecord = MatchRecord.from(
+      PersonSearchCriteria(
+        preparedFirstName = PreparedStringStatement("firstName", value = null),
+        preparedLastName = PreparedStringStatement("lastName", value = null),
+        preparedDateOfBirth = PreparedDateStatement("dateOfBirth", value = null),
+        preparedIdentifiers = listOf(
+          PreparedIdentifierStatement("pnc", reference = Reference(identifierType = PNC, identifierValue = null)),
+        ),
+        sourceSystemType = COMMON_PLATFORM,
       ),
-      sourceSystemType = COMMON_PLATFORM,
-    ))
+    )
     assertThat(matchRecord.uniqueId).isNotBlank()
     assertThat(matchRecord.firstName).isBlank()
     assertThat(matchRecord.lastname).isBlank()
     assertThat(matchRecord.pnc).isBlank()
     assertThat(matchRecord.dateOfBirth).isBlank()
   }
-
 }
