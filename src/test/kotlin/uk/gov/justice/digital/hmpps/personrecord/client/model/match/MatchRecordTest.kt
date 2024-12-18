@@ -23,7 +23,7 @@ class MatchRecordTest {
       ),
       sourceSystemType = COMMON_PLATFORM,
     ))
-    assertThat(matchRecord.uniqueId).isNotEmpty()
+    assertThat(matchRecord.uniqueId).isNotBlank()
     assertThat(matchRecord.firstName).isBlank()
     assertThat(matchRecord.lastname).isBlank()
     assertThat(matchRecord.pnc).isBlank()
