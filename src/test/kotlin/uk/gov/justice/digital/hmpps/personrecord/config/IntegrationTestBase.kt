@@ -145,6 +145,22 @@ class IntegrationTestBase {
     personRepository.saveAndFlush(sourceRecord)
   }
 
+  internal fun stubOneHighConfidenceMatch() = stubMatchScore(
+    MatchResponse(
+      matchProbabilities = mutableMapOf("0" to 0.999999),
+    ),
+  )
+
+  internal fun stubTwoHighConfidenceMatches() =
+    stubMatchScore(
+      MatchResponse(
+        matchProbabilities = mutableMapOf(
+          "0" to 0.999999,
+          "1" to 0.999999,
+        ),
+      ),
+    )
+
   internal fun stubMatchScore(matchResponse: MatchResponse, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) {
     wiremock.stubFor(
       WireMock.post("/person/match")

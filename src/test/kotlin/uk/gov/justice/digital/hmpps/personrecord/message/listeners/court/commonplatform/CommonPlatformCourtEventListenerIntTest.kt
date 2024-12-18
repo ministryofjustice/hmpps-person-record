@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishResponse
-import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
@@ -81,13 +80,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val pncNumber = PNCIdentifier.from(randomPnc())
     val defendantId = randomDefendantId()
 
-    val matchResponse = MatchResponse(
-      matchProbabilities = mutableMapOf(
-        "0" to 0.999999,
-        "1" to 0.999999,
-      ),
-    )
-    stubMatchScore(matchResponse)
+    stubOneHighConfidenceMatch()
 
     blitz(30, 6) {
       publishMessage(defendantId, pncNumber)
@@ -131,10 +124,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       personKeyEntity = personKey,
     )
 
-    val matchResponse = MatchResponse(
-      matchProbabilities = mutableMapOf("0" to 0.999999),
-    )
-    stubMatchScore(matchResponse)
+    stubOneHighConfidenceMatch()
 
     val changedLastName = randomName()
     val messageId = publishCourtMessage(

@@ -107,8 +107,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
 
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.99999999))
-    stubMatchScore(matchResponse)
+    stubOneHighConfidenceMatch()
 
     val messageId2 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
     checkTelemetry(
