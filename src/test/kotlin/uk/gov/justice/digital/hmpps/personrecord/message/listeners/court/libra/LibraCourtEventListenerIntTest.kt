@@ -1,9 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.libra
 
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
+import org.springframework.data.domain.Example
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
@@ -33,7 +32,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.concurrent.TimeUnit.SECONDS
+import kotlin.jvm.optionals.getOrNull
 
 class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -69,13 +68,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
 
-    val personEntities = await.atMost(4, SECONDS) untilNotNull {
-      personRepository.findAll()
-    }
-    val matchingPerson = personEntities.filter { it.firstName.equals(firstName) }
-    assertThat(matchingPerson.size).isEqualTo(1)
+    val person = awaitNotNullPerson { personRepository.findOne(Example.of(PersonEntity(firstName = firstName, sourceSystem = LIBRA, version = 1))).getOrNull() }
 
-    val person = matchingPerson[0]
     assertThat(person.defendantId).isNotNull()
     assertThat(person.title).isEqualTo("Mr")
     assertThat(person.lastName).isEqualTo(lastName)
@@ -170,8 +164,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val personKeyEntity = createPersonKey()
     createPerson(personFromProbation, personKeyEntity = personKeyEntity)
 
-    val highConfidenceMatchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(highConfidenceMatchResponse)
+    stubOneHighConfidenceMatch()
 
     val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = "")
     val messageId1 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
@@ -229,8 +222,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
       personKeyEntity = createPersonKey(),
     )
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.98883))
-    stubMatchScore(matchResponse)
+    stubOneLowConfidenceMatch()
 
     val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, postcode = postcode, cro = "", pncNumber = "")
     val messageId2 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
@@ -256,7 +248,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_MATCH_SCORE,
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
-        "PROBABILITY_SCORE" to "0.98883",
+        "PROBABILITY_SCORE" to "0.988899",
       ),
       times = 2,
     )
@@ -293,13 +285,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
 
-    val twoHighConfidenceMatchResponse = MatchResponse(
-      matchProbabilities = mutableMapOf(
-        "0" to 0.99999999,
-        "1" to 0.99999999,
-      ),
-    )
-    stubMatchScore(twoHighConfidenceMatchResponse)
+    stubTwoHighConfidenceMatches()
 
     publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
@@ -308,7 +294,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_MATCH_PERSON_DUPLICATE,
       mapOf(
         "SOURCE_SYSTEM" to "LIBRA",
-        "PROBABILITY_SCORE" to "0.99999999",
+        "PROBABILITY_SCORE" to "0.999999",
       ),
       times = 2,
     )

@@ -150,6 +150,9 @@ class IntegrationTestBase {
       matchProbabilities = mutableMapOf("0" to 0.999999),
     ),
   )
+  internal fun stubOneLowConfidenceMatch() = stubMatchScore(
+    MatchResponse(matchProbabilities = mutableMapOf("0" to 0.988899)),
+  )
 
   internal fun stubTwoHighConfidenceMatches() =
     stubMatchScore(
