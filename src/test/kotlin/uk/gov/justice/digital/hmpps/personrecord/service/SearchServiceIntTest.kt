@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
-import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -775,17 +774,5 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   private fun noCandidatesFound(records: List<MatchResult>) {
     assertThat(records.size).isEqualTo(0)
-  }
-
-  private fun stubMatchScore(matchResponse: MatchResponse) {
-    wiremock.stubFor(
-      WireMock.post("/person/match")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(objectMapper.writeValueAsString(matchResponse)),
-        ),
-    )
   }
 }
