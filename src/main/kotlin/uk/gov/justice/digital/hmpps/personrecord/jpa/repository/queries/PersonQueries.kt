@@ -14,7 +14,7 @@ object PersonQueries {
         globalConditions = combineBlockingRules(
           BlockingRules.hasPersonKey(),
           BlockingRules.hasNoMergeLink(),
-          BlockingRules.notSelf(searchCriteria.id),
+          BlockingRules.notSelf(personIdParameterName = searchCriteria.preparedId?.parameterName),
         ),
       ),
       searchCriteria,
@@ -37,13 +37,13 @@ object PersonQueries {
   private fun generateFindCandidatesSQL(blockingRules: BlockingRules, searchCriteria: PersonSearchCriteria): String {
     val rules: MutableList<String> = mutableListOf()
     rules.addAll(
-      searchCriteria.identifiers.map {
-        blockingRules.exactMatchOnIdentifier(it.identifierType, it.identifierValue)
+      searchCriteria.preparedIdentifiers.map {
+        blockingRules.exactMatchOnIdentifier(it.reference.identifierType, it.parameterName)
       },
     )
     rules.addAll(
-      searchCriteria.postcodes.map {
-        blockingRules.matchFirstPartPostcode(it)
+      searchCriteria.preparedPostcodes.map {
+        blockingRules.matchFirstPartPostcode(it.parameterName)
       },
     )
     rules.addAll(twoDatePartMatch(blockingRules, searchCriteria))
@@ -52,9 +52,18 @@ object PersonQueries {
 
   private fun twoDatePartMatch(blockingRules: BlockingRules, searchCriteria: PersonSearchCriteria): List<String> {
     return listOf(
-      blockingRules.yearAndDayMatch(searchCriteria.dateOfBirth),
-      blockingRules.monthAndDayMatch(searchCriteria.dateOfBirth),
-      blockingRules.yearAndMonthMatch(searchCriteria.dateOfBirth),
+      blockingRules.yearAndDayMatch(
+        yearParameterName = searchCriteria.preparedDateOfBirth.year.parameterName,
+        dayParameterName = searchCriteria.preparedDateOfBirth.day.parameterName,
+      ),
+      blockingRules.monthAndDayMatch(
+        monthParameterName = searchCriteria.preparedDateOfBirth.month.parameterName,
+        dayParameterName = searchCriteria.preparedDateOfBirth.day.parameterName,
+      ),
+      blockingRules.yearAndMonthMatch(
+        yearParameterName = searchCriteria.preparedDateOfBirth.year.parameterName,
+        monthParameterName = searchCriteria.preparedDateOfBirth.month.parameterName,
+      ),
     )
   }
 

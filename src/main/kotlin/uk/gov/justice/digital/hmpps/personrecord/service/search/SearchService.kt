@@ -57,7 +57,7 @@ class SearchService(
   fun findCandidateRecordsWithUuid(personEntity: PersonEntity): List<MatchResult> {
     val searchCriteria = PersonSearchCriteria.from(personEntity)
     val candidates = searchForRecords(searchCriteria, PersonQueries.findCandidatesWithUuid(searchCriteria))
-    return filterClustersWithExcludeMarker(candidates, searchCriteria.id)
+    return filterClustersWithExcludeMarker(candidates, searchCriteria.preparedId?.value)
   }
 
   private fun filterClustersWithExcludeMarker(candidates: List<MatchResult>, personRecordId: Long?): List<MatchResult> {
