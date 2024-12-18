@@ -19,8 +19,8 @@ import org.springframework.boot.info.BuildProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.test.context.ActiveProfiles
-import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.health.HealthInfo
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
