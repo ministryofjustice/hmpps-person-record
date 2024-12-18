@@ -311,7 +311,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   @BeforeEach
   fun beforeEachMessagingTest() {
-    telemetryRepository.deleteAll()
     purgeQueueAndDlq(courtEventsQueue)
     purgeQueueAndDlq(probationEventsQueue)
     purgeQueueAndDlq(probationMergeEventsQueue)
