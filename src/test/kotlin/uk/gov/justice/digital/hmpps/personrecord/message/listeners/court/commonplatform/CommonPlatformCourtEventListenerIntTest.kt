@@ -80,7 +80,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val pncNumber = PNCIdentifier.from(randomPnc())
     val defendantId = randomDefendantId()
 
-    stubOneHighConfidenceMatch()
+    stubTwoHighConfidenceMatches()
 
     blitz(30, 6) {
       publishMessage(defendantId, pncNumber)

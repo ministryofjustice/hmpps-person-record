@@ -121,7 +121,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       CPR_MATCH_SCORE,
       mapOf(
-        "PROBABILITY_SCORE" to "0.99999999",
+        "PROBABILITY_SCORE" to "0.999999",
         "SOURCE_SYSTEM" to LIBRA.name,
       ),
     )

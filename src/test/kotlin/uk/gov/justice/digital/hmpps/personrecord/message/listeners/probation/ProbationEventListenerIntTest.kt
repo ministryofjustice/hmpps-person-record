@@ -7,7 +7,6 @@ import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
@@ -145,8 +144,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val personKeyEntity = createPersonKey()
     createPerson(person, personKeyEntity = personKeyEntity)
 
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(matchResponse)
+    stubOneHighConfidenceMatch()
 
     val apiResponse = ApiResponseSetup(
       crn = crn,
