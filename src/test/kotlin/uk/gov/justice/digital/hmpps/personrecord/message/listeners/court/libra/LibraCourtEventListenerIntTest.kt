@@ -285,7 +285,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
 
-    stubTwoHighConfidenceMatches()
+    stubXHighConfidenceMatches(2)
 
     publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))

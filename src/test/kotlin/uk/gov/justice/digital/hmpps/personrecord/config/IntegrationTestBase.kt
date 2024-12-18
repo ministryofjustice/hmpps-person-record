@@ -154,13 +154,12 @@ class IntegrationTestBase {
     MatchResponse(matchProbabilities = mutableMapOf("0" to 0.988899)),
   )
 
-  internal fun stubTwoHighConfidenceMatches() =
+  internal fun stubXHighConfidenceMatches(x: Int) =
     stubMatchScore(
       MatchResponse(
-        matchProbabilities = mutableMapOf(
-          "0" to 0.999999,
-          "1" to 0.999999,
-        ),
+        matchProbabilities = (0..x - 1).associate {
+          Pair("$it", 0.999999)
+        }.toMutableMap(),
       ),
     )
 
