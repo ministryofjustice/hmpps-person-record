@@ -3,10 +3,10 @@ package uk.gov.justice.digital.hmpps.personrecord.service.search
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.client.MatchRecord
-import uk.gov.justice.digital.hmpps.personrecord.client.MatchRequest
-import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchRecord
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchRequest
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
