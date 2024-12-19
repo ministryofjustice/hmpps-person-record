@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
@@ -81,13 +80,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val pncNumber = PNCIdentifier.from(randomPnc())
     val defendantId = randomDefendantId()
 
-    val matchResponse = MatchResponse(
-      matchProbabilities = mutableMapOf(
-        "0" to 0.999999,
-        "1" to 0.999999,
-      ),
-    )
-    stubMatchScore(matchResponse)
+    stubXHighConfidenceMatches(2)
 
     blitz(30, 6) {
       publishMessage(defendantId, pncNumber)
@@ -131,10 +124,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       personKeyEntity = personKey,
     )
 
-    val matchResponse = MatchResponse(
-      matchProbabilities = mutableMapOf("0" to 0.999999),
-    )
-    stubMatchScore(matchResponse)
+    stubOneHighConfidenceMatch()
 
     val changedLastName = randomName()
     val messageId = publishCourtMessage(

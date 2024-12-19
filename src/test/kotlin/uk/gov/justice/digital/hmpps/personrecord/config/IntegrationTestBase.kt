@@ -145,6 +145,21 @@ class IntegrationTestBase {
     personRepository.saveAndFlush(sourceRecord)
   }
 
+  internal fun stubOneHighConfidenceMatch() = stubXHighConfidenceMatches(1)
+
+  internal fun stubOneLowConfidenceMatch() = stubMatchScore(
+    MatchResponse(matchProbabilities = mutableMapOf("0" to 0.988899)),
+  )
+
+  internal fun stubXHighConfidenceMatches(x: Int) =
+    stubMatchScore(
+      MatchResponse(
+        matchProbabilities = (0..<x).associate {
+          Pair("$it", 0.999999)
+        }.toMutableMap(),
+      ),
+    )
+
   internal fun stubMatchScore(matchResponse: MatchResponse, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) {
     wiremock.stubFor(
       WireMock.post("/person/match")

@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
-import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -67,8 +66,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(matchResponse)
+    stubOneHighConfidenceMatch()
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -115,15 +113,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       personKeyEntity = createPersonKey(),
     )
 
-    val matchResponse = MatchResponse(
-      matchProbabilities = mutableMapOf(
-        "0" to 0.9999999,
-        "1" to 0.9999999,
-        "2" to 0.9999999,
-        "3" to 0.9999999,
-      ),
-    )
-    stubMatchScore(matchResponse)
+    stubXHighConfidenceMatches(4)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(3)
@@ -144,8 +134,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(matchResponse)
+    stubOneHighConfidenceMatch()
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -166,8 +155,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(matchResponse)
+    stubOneHighConfidenceMatch()
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(0)
@@ -188,8 +176,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(matchResponse)
+    stubOneHighConfidenceMatch()
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -213,8 +200,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       personKeyEntity = createPersonKey(),
     )
 
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999, "1" to 0.9999999))
-    stubMatchScore(matchResponse)
+    stubXHighConfidenceMatches(2)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -256,8 +242,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(matchResponse)
+    stubOneHighConfidenceMatch()
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -279,8 +264,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(matchResponse)
+    stubOneHighConfidenceMatch()
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -308,8 +292,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(matchResponse)
+    stubOneHighConfidenceMatch()
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -342,8 +325,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       dateOfBirth = LocalDate.of(1975, 2, 1),
       sourceSystem = COMMON_PLATFORM,
     )
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(matchResponse)
+    stubOneHighConfidenceMatch()
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -377,8 +359,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       sourceSystem = COMMON_PLATFORM,
     )
 
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(matchResponse)
+    stubOneHighConfidenceMatch()
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -404,8 +385,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       sourceSystem = COMMON_PLATFORM,
     )
 
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(matchResponse)
+    stubOneHighConfidenceMatch()
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -436,8 +416,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       sourceSystem = COMMON_PLATFORM,
     )
 
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(matchResponse)
+    stubOneHighConfidenceMatch()
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -473,8 +452,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       sourceSystem = COMMON_PLATFORM,
     )
 
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(matchResponse)
+    stubOneHighConfidenceMatch()
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -518,8 +496,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       sourceSystem = COMMON_PLATFORM,
     )
 
-    val matchResponse = MatchResponse(matchProbabilities = mutableMapOf("0" to 0.9999999))
-    stubMatchScore(matchResponse)
+    stubOneHighConfidenceMatch()
     val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -649,13 +626,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     excludeRecord(existingPerson, excludingRecord = excludedRecord)
 
-    val matchResponse = MatchResponse(
-      matchProbabilities = mutableMapOf(
-        "0" to 0.9999999,
-        "1" to 0.9999999,
-      ),
-    )
-    stubMatchScore(matchResponse)
+    stubXHighConfidenceMatches(2)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(excludedRecord)
 
     noCandidatesFound(candidateRecords)
@@ -728,15 +699,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       personKeyEntity = cluster2,
     )
 
-    val matchResponse = MatchResponse(
-      matchProbabilities = mutableMapOf(
-        "0" to 0.9999999,
-        "1" to 0.9999999,
-        "2" to 0.9999999,
-        "3" to 0.9999999,
-      ),
-    )
-    stubMatchScore(matchResponse)
+    stubXHighConfidenceMatches(4)
 
     val searchingPerson = Person(
       references = listOf(Reference(IdentifierType.CRO, cro)),
@@ -775,17 +738,5 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   private fun noCandidatesFound(records: List<MatchResult>) {
     assertThat(records.size).isEqualTo(0)
-  }
-
-  private fun stubMatchScore(matchResponse: MatchResponse) {
-    wiremock.stubFor(
-      WireMock.post("/person/match")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(objectMapper.writeValueAsString(matchResponse)),
-        ),
-    )
   }
 }
