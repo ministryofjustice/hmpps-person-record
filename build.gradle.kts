@@ -10,7 +10,7 @@ plugins {
   kotlin("jvm") version "2.0.21"
   kotlin("plugin.jpa") version "2.0.21"
   id("io.gitlab.arturbosch.detekt") version "1.23.7"
-  id("org.jetbrains.kotlinx.kover") version "0.8.3"
+  id("org.jetbrains.kotlinx.kover") version "0.9.0"
   id("org.gradle.test-retry") version "1.6.0"
 }
 
@@ -28,7 +28,7 @@ dependencies {
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.2.0")
 
-  implementation("io.swagger.core.v3:swagger-annotations:2.2.26")
+  implementation("io.swagger.core.v3:swagger-annotations:2.2.27")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
 
   constraints {
@@ -46,7 +46,7 @@ dependencies {
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
-  testImplementation("org.wiremock:wiremock-standalone:3.9.2")
+  testImplementation("org.wiremock:wiremock-standalone:3.10.0")
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
