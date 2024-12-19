@@ -3,12 +3,12 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.common
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import software.amazon.awssdk.services.sns.model.PublishRequest
-import uk.gov.justice.digital.hmpps.personrecord.client.MatchResponse
+import software.amazon.awssdk.services.sns.model.PublishResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
@@ -33,6 +33,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
+import uk.gov.justice.hmpps.sqs.publish
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -76,7 +77,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should not push messages from Common Platform onto dead letter queue when processing fails - fires the same request so many times that some message writes will fail and be retried`() {
+  fun `FIFO queue and topic remove duplicate messages`() {
     val pncNumber = PNCIdentifier.from(randomPnc())
     val defendantId = randomDefendantId()
 
@@ -88,8 +89,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     stubMatchScore(matchResponse)
 
-    blitz(15, 4) {
-      courtEventsTopic?.snsClient?.publish(buildPublishRequest(defendantId, pncNumber))?.get()
+    blitz(30, 6) {
+      publishMessage(defendantId, pncNumber)
     }
 
     expectNoMessagesOn(courtEventsQueue)
@@ -105,7 +106,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to "COMMON_PLATFORM",
         "DEFENDANT_ID" to defendantId,
       ),
-      29,
+      0,
     )
   }
 
@@ -323,24 +324,39 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
-  private fun buildPublishRequest(
+  private fun publishMessage(
     defendantId: String,
     pnc: PNCIdentifier,
-  ): PublishRequest? = PublishRequest.builder()
-    .topicArn(courtEventsTopic?.arn)
-    .message(
+  ): PublishResponse =
+    courtEventsTopic!!.publish(
+      eventType = "commonplatform.case.received",
       commonPlatformHearing(
         listOf(
-          CommonPlatformHearingSetup(pnc = pnc.pncId, defendantId = defendantId),
-          CommonPlatformHearingSetup(pnc = pnc.pncId, defendantId = defendantId),
+          CommonPlatformHearingSetup(
+            pnc = pnc.pncId,
+            defendantId = defendantId,
+            firstName = "fn",
+            lastName = "ln",
+            cro = "",
+            nationalInsuranceNumber = "NINO",
+            hearingId = "HEARING1234",
+          ),
+          CommonPlatformHearingSetup(
+            pnc = pnc.pncId,
+            defendantId = defendantId,
+            firstName = "fn",
+            lastName = "ln",
+            cro = "",
+            nationalInsuranceNumber = "NINO",
+            hearingId = "HEARING1234",
+          ),
         ),
       ),
-    )
-    .messageAttributes(
+      attributes =
       mapOf(
         "messageType" to MessageAttributeValue.builder().dataType("String")
           .stringValue(COMMON_PLATFORM_HEARING.name).build(),
       ),
+      messageGroupId = "court-hearing-event-receiver",
     )
-    .build()
 }

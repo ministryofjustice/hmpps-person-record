@@ -29,7 +29,7 @@ class CourtEventListener(
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
-  @SqsListener(Queues.COURT_CASE_EVENTS_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
+  @SqsListener(Queues.COURT_CASES_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
   fun onMessage(rawMessage: String) = TimeoutExecutor.runWithTimeout {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     when (sqsMessage.type) {

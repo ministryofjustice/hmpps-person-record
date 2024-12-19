@@ -2,52 +2,51 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries
 
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
-import java.time.LocalDate
 
 class BlockingRules(
   private val globalConditions: String = "",
 ) {
 
-  fun exactMatchOnIdentifier(identifierType: IdentifierType, identifierValue: String?): String = """ 
+  fun exactMatchOnIdentifier(identifierType: IdentifierType, identifierParameterName: String): String = """ 
       $SELECT_EXPRESSION
       INNER JOIN personrecordservice.reference r1_0
       ON pe1_0.id = r1_0.fk_person_id
       WHERE
         r1_0.identifier_type = '${identifierType.name}'
-        AND r1_0.identifier_value = '$identifierValue'
+        AND r1_0.identifier_value = :$identifierParameterName
       $globalConditions
   """.trimIndent()
 
-  fun matchFirstPartPostcode(postcode: String): String = """
+  fun matchFirstPartPostcode(postcodeParameterName: String): String = """
       $SELECT_EXPRESSION
       INNER JOIN personrecordservice.address a1_0
       ON pe1_0.id = a1_0.fk_person_id
         $SOUNDEX_EXPRESSION
-        AND LEFT(a1_0.postcode, $POSTCODE_MATCH_SIZE) = '${postcode.take(POSTCODE_MATCH_SIZE)}'
+        AND LEFT(a1_0.postcode, $POSTCODE_MATCH_SIZE) = :$postcodeParameterName
       $globalConditions
   """.trimIndent()
 
-  fun yearAndMonthMatch(dateOfBirth: LocalDate?): String = """
+  fun yearAndMonthMatch(yearParameterName: String, monthParameterName: String): String = """
       $SELECT_EXPRESSION
       $SOUNDEX_EXPRESSION
-        AND date_part('year', pe1_0.date_of_birth) = ${dateOfBirth?.year}
-        AND date_part('month', pe1_0.date_of_birth) = ${dateOfBirth?.monthValue}
+        AND date_part('year', pe1_0.date_of_birth) = :$yearParameterName
+        AND date_part('month', pe1_0.date_of_birth) = :$monthParameterName
       $globalConditions
   """.trimIndent()
 
-  fun yearAndDayMatch(dateOfBirth: LocalDate?): String = """
+  fun yearAndDayMatch(yearParameterName: String, dayParameterName: String): String = """
       $SELECT_EXPRESSION
       $SOUNDEX_EXPRESSION
-        AND date_part('year', pe1_0.date_of_birth) = ${dateOfBirth?.year}
-        AND date_part('day', pe1_0.date_of_birth) = ${dateOfBirth?.dayOfMonth}
+        AND date_part('year', pe1_0.date_of_birth) = :$yearParameterName
+        AND date_part('day', pe1_0.date_of_birth) = :$dayParameterName
       $globalConditions
   """.trimIndent()
 
-  fun monthAndDayMatch(dateOfBirth: LocalDate?): String = """
+  fun monthAndDayMatch(monthParameterName: String, dayParameterName: String): String = """
       $SELECT_EXPRESSION
       $SOUNDEX_EXPRESSION
-        AND date_part('month', pe1_0.date_of_birth) = ${dateOfBirth?.monthValue}
-        AND date_part('day', pe1_0.date_of_birth) = ${dateOfBirth?.dayOfMonth}
+        AND date_part('month', pe1_0.date_of_birth) = :$monthParameterName
+        AND date_part('day', pe1_0.date_of_birth) = :$dayParameterName
       $globalConditions
   """.trimIndent()
 
@@ -84,9 +83,9 @@ class BlockingRules(
       AND pe1_0.fk_person_key_id IS NOT NULL
     """.trimIndent()
 
-    fun notSelf(id: Long?): String = id?.let {
+    fun notSelf(personIdParameterName: String?): String = personIdParameterName?.let {
       """
-       AND pe1_0.id != '$it'
+       AND pe1_0.id != :$personIdParameterName
       """.trimIndent()
     } ?: ""
   }

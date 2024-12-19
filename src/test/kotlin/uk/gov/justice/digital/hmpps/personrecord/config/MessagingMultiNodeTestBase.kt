@@ -40,11 +40,11 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   }
 
   internal val courtEventsTopic by lazy {
-    hmppsQueueService.findByTopicId("courtcaseeventstopic")
+    hmppsQueueService.findByTopicId("courtcasestopic")
   }
 
   val courtEventsQueue by lazy {
-    hmppsQueueService.findByQueueId(Queues.COURT_CASE_EVENTS_QUEUE_ID)
+    hmppsQueueService.findByQueueId(Queues.COURT_CASES_QUEUE_ID)
   }
 
   val probationEventsQueue by lazy {
@@ -84,7 +84,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         ),
       )
     if (topic.contains(".fifo")) {
-      messageBuilder = messageBuilder.messageGroupId(UUID.randomUUID().toString())
+      messageBuilder = messageBuilder.messageGroupId(messageType.name)
     }
 
     val response: PublishResponse? = courtEventsTopic?.snsClient?.publish(messageBuilder.build())?.get()
@@ -311,7 +311,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   @BeforeEach
   fun beforeEachMessagingTest() {
-    telemetryRepository.deleteAll()
     purgeQueueAndDlq(courtEventsQueue)
     purgeQueueAndDlq(probationEventsQueue)
     purgeQueueAndDlq(probationMergeEventsQueue)

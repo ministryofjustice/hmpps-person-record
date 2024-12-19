@@ -18,6 +18,8 @@ jobs:
       jdk_tag: "21.0"
       localstack_tag: "3.0"
       postgres_tag: "16.1"
+      java_options: "-Xmx4096m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=true -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.workers.max=1"
+      resource_class: medium+
     steps:
       - checkout
       - restore_cache:
