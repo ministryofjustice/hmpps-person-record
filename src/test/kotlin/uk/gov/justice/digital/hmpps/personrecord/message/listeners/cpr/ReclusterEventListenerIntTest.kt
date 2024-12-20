@@ -56,6 +56,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should not recluster when single record that does not match`() {
+    telemetryRepository.deleteAll()
     val cro = randomCro()
     val cluster1 = createPersonKey()
     createPerson(
