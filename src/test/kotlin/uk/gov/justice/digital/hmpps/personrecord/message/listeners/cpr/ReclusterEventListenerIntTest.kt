@@ -184,13 +184,6 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       personKeyEntity = cluster2,
     )
 
-    val matchResponse = MatchResponse(
-      matchProbabilities = mutableMapOf(
-        "0" to 0.999999,
-        "1" to 0.999999,
-        "2" to 0.999999,
-      ),
-    )
     stubXHighConfidenceMatches(3)
 
     queueService.publishReclusterMessageToQueue(cluster1.personId!!)
