@@ -12,7 +12,6 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.json.JSONObject
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.info.BuildProperties
@@ -67,11 +66,6 @@ class IntegrationTestBase {
   lateinit var eventLoggingRepository: EventLoggingRepository
 
   fun probationUrl(crn: String) = "/probation-cases/$crn"
-
-  @BeforeEach
-  fun beforeEachIntTest() {
-    telemetryRepository.deleteAll()
-  }
 
   internal fun checkTelemetry(
     event: TelemetryEventType,

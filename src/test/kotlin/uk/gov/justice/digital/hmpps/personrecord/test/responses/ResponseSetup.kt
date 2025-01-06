@@ -25,7 +25,7 @@ data class ApiResponseSetup(
   val crn: String? = null,
   val cro: String? = null,
   val pnc: String? = null,
-  val prefix: String? = null,
+  val prefix: String? = "",
   val firstName: String? = randomName(),
   val lastName: String? = randomName(),
   val nationality: String? = null,

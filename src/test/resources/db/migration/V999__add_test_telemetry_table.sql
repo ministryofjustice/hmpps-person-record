@@ -10,4 +10,6 @@ CREATE TABLE IF NOT EXISTS telemetry
     version                                 int4        NOT NULL DEFAULT 0
 );
 
+CREATE INDEX idx_telemetry_event ON telemetry(event);
+
 COMMIT;

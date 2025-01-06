@@ -56,6 +56,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should not recluster when single record that does not match`() {
+    telemetryRepository.deleteAll()
     val cro = randomCro()
     val cluster1 = createPersonKey()
     createPerson(
@@ -184,13 +185,6 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       personKeyEntity = cluster2,
     )
 
-    val matchResponse = MatchResponse(
-      matchProbabilities = mutableMapOf(
-        "0" to 0.999999,
-        "1" to 0.999999,
-        "2" to 0.999999,
-      ),
-    )
     stubXHighConfidenceMatches(3)
 
     queueService.publishReclusterMessageToQueue(cluster1.personId!!)

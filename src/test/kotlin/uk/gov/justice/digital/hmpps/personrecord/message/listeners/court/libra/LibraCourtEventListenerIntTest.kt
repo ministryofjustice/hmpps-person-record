@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.libra
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.data.domain.Example
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
@@ -34,6 +35,11 @@ import java.time.format.DateTimeFormatter
 import kotlin.jvm.optionals.getOrNull
 
 class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
+
+  @BeforeEach
+  fun beforeEach() {
+    telemetryRepository.deleteAll()
+  }
 
   @Test
   fun `should process libra messages`() {
