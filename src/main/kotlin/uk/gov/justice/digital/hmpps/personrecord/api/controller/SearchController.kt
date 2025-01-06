@@ -47,9 +47,7 @@ class SearchController(
     @PathVariable(name = "crn")
     @Parameter(description = "The identifier of the probation source system (nDelius)", required = true)
     crn: String,
-  ): List<PersonIdentifierRecord> {
-    return handlePersonRecord(personRepository.findByCrn(crn), crn)
-  }
+  ): List<PersonIdentifierRecord> = handlePersonRecord(personRepository.findByCrn(crn), crn)
 
   @Operation(description = "Search for person record and associated records with a prison number within the system")
   @GetMapping("/search/prisoner/{prisonNumber}")
@@ -71,9 +69,7 @@ class SearchController(
     @PathVariable(name = "prisonNumber")
     @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true)
     prisonNumber: String,
-  ): List<PersonIdentifierRecord> {
-    return handlePersonRecord(personRepository.findByPrisonNumberAndSourceSystem(prisonNumber), prisonNumber)
-  }
+  ): List<PersonIdentifierRecord> = handlePersonRecord(personRepository.findByPrisonNumberAndSourceSystem(prisonNumber), prisonNumber)
 
   @Operation(description = "Search for person record and associated records with a defendant identifier within the system")
   @GetMapping("/search/defendant/{defendantId}")
@@ -95,22 +91,16 @@ class SearchController(
     @PathVariable(name = "defendantId")
     @Parameter(description = "The identifier of the HMCTS (courts and tribunals) source system", required = true)
     defendantId: String,
-  ): List<PersonIdentifierRecord> {
-    return handlePersonRecord(personRepository.findByDefendantId(defendantId), defendantId)
-  }
+  ): List<PersonIdentifierRecord> = handlePersonRecord(personRepository.findByDefendantId(defendantId), defendantId)
 
   private fun handlePersonRecord(personEntity: PersonEntity?, identifier: String): List<PersonIdentifierRecord> = when {
     personEntity != PersonEntity.empty -> buildListOfLinkedRecords(personEntity)
     else -> throw PersonRecordNotFoundException(identifier)
   }
 
-  private fun buildListOfLinkedRecords(personEntity: PersonEntity): List<PersonIdentifierRecord> {
-    return personEntity.personKey?.personEntities?.mapNotNull {
-      buildIdentifierRecord(it)
-    } ?: listOfNotNull(buildIdentifierRecord(personEntity))
-  }
+  private fun buildListOfLinkedRecords(personEntity: PersonEntity): List<PersonIdentifierRecord> = personEntity.personKey?.personEntities?.mapNotNull {
+    buildIdentifierRecord(it)
+  } ?: listOfNotNull(buildIdentifierRecord(personEntity))
 
-  private fun buildIdentifierRecord(personEntity: PersonEntity): PersonIdentifierRecord? {
-    return personEntity.extractSourceSystemId()?.let { PersonIdentifierRecord(id = it, personEntity.sourceSystem.name) }
-  }
+  private fun buildIdentifierRecord(personEntity: PersonEntity): PersonIdentifierRecord? = personEntity.extractSourceSystemId()?.let { PersonIdentifierRecord(id = it, personEntity.sourceSystem.name) }
 }

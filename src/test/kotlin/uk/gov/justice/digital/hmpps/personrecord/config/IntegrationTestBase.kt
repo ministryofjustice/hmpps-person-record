@@ -87,16 +87,13 @@ class IntegrationTestBase {
     }
   }
 
-  internal fun awaitAssert(function: () -> Unit) =
-    await atMost(Duration.ofSeconds(3)) untilAsserted function
+  internal fun awaitAssert(function: () -> Unit) = await atMost (Duration.ofSeconds(3)) untilAsserted function
 
-  internal fun awaitNotNullPerson(function: () -> PersonEntity?): PersonEntity =
-    await atMost (Duration.ofSeconds(3)) untilNotNull function
+  internal fun awaitNotNullPerson(function: () -> PersonEntity?): PersonEntity = await atMost (Duration.ofSeconds(3)) untilNotNull function
 
-  internal fun awaitNotNullEventLog(sourceSystemId: String, eventType: String) =
-    await atMost (Duration.ofSeconds(3)) untilNotNull {
-      eventLoggingRepository.findFirstBySourceSystemIdAndEventTypeOrderByEventTimestampDesc(sourceSystemId, eventType)
-    }
+  internal fun awaitNotNullEventLog(sourceSystemId: String, eventType: String) = await atMost (Duration.ofSeconds(3)) untilNotNull {
+    eventLoggingRepository.findFirstBySourceSystemIdAndEventTypeOrderByEventTimestampDesc(sourceSystemId, eventType)
+  }
   internal fun createPersonKey(status: UUIDStatusType = UUIDStatusType.ACTIVE): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
     personKeyEntity.status = status
@@ -145,14 +142,13 @@ class IntegrationTestBase {
     MatchResponse(matchProbabilities = mutableMapOf("0" to 0.988899)),
   )
 
-  internal fun stubXHighConfidenceMatches(x: Int) =
-    stubMatchScore(
-      MatchResponse(
-        matchProbabilities = (0..<x).associate {
-          Pair("$it", 0.999999)
-        }.toMutableMap(),
-      ),
-    )
+  internal fun stubXHighConfidenceMatches(x: Int) = stubMatchScore(
+    MatchResponse(
+      matchProbabilities = (0..<x).associate {
+        Pair("$it", 0.999999)
+      }.toMutableMap(),
+    ),
+  )
 
   internal fun stubMatchScore(matchResponse: MatchResponse, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) {
     wiremock.stubFor(

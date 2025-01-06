@@ -42,13 +42,9 @@ data class Prisoner(
   val allConvictedOffences: List<AllConvictedOffences>? = emptyList(),
 ) {
 
-  fun getHomePhone(): String? {
-    return phoneNumbers.firstOrNull { it.type?.contains("HOME") == true }?.number
-  }
+  fun getHomePhone(): String? = phoneNumbers.firstOrNull { it.type?.contains("HOME") == true }?.number
 
-  fun getMobilePhone(): String? {
-    return phoneNumbers.firstOrNull { it.type?.contains("MOB") == true }?.number
-  }
+  fun getMobilePhone(): String? = phoneNumbers.firstOrNull { it.type?.contains("MOB") == true }?.number
 
   companion object {
     fun List<Identifier>.getType(type: String): Identifier? = this.find { it.type == type }

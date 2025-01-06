@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.controller
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 
-class QueueAdminIntTest() : WebTestBase() {
+class QueueAdminIntTest : WebTestBase() {
 
   @Test
   fun `should retry dead letter queue`() {

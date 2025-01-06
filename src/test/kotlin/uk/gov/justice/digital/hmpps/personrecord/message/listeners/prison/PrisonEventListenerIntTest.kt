@@ -403,15 +403,13 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   companion object {
     @JvmStatic
-    private fun currentlyManagedParameters(): Stream<Arguments> {
-      return Stream.of(
-        Arguments.of("Active : IN", true),
-        Arguments.of("Active: OUT", true),
-        Arguments.of("Inactive: TRN", true),
-        Arguments.of("Inactive: OUT", false),
-        Arguments.of("Inactive: IN", null),
-        Arguments.of(null, null),
-      )
-    }
+    private fun currentlyManagedParameters(): Stream<Arguments> = Stream.of(
+      Arguments.of("Active : IN", true),
+      Arguments.of("Active: OUT", true),
+      Arguments.of("Inactive: TRN", true),
+      Arguments.of("Inactive: OUT", false),
+      Arguments.of("Inactive: IN", null),
+      Arguments.of(null, null),
+    )
   }
 }

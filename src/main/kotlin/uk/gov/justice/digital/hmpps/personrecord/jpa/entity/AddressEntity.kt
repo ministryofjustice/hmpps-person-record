@@ -63,8 +63,6 @@ class AddressEntity(
       )
     }
 
-    fun fromList(addresses: List<Address>): List<AddressEntity> {
-      return addresses.mapNotNull { from(it) }
-    }
+    fun fromList(addresses: List<Address>): List<AddressEntity> = addresses.mapNotNull { from(it) }
   }
 }

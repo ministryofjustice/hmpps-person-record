@@ -5,9 +5,7 @@ data class CROIdentifier(val croId: String) {
   val valid: Boolean
     get() = croId.isNotEmpty()
 
-  override fun toString(): String {
-    return croId
-  }
+  override fun toString(): String = croId
 
   companion object {
     private const val EMPTY_CRO = ""
@@ -19,13 +17,12 @@ data class CROIdentifier(val croId: String) {
 
     private fun invalidCro(): CROIdentifier = CROIdentifier(EMPTY_CRO)
 
-    fun from(inputCroId: String? = EMPTY_CRO): CROIdentifier =
-      when {
-        inputCroId.isNullOrEmpty() -> invalidCro()
-        isSfFormat(inputCroId) -> canonicalSfFormat(inputCroId)
-        isStandardFormat(inputCroId) -> canonicalStandardFormat(inputCroId)
-        else -> invalidCro()
-      }
+    fun from(inputCroId: String? = EMPTY_CRO): CROIdentifier = when {
+      inputCroId.isNullOrEmpty() -> invalidCro()
+      isSfFormat(inputCroId) -> canonicalSfFormat(inputCroId)
+      isStandardFormat(inputCroId) -> canonicalStandardFormat(inputCroId)
+      else -> invalidCro()
+    }
 
     private fun canonicalStandardFormat(inputCroId: String): CROIdentifier {
       val checkChar = inputCroId.takeLast(1).single()
@@ -45,8 +42,7 @@ data class CROIdentifier(val croId: String) {
       }
     }
 
-    private fun correctModulus(checkChar: Char, serialNum: String, yearDigits: String): Boolean =
-      checkChar == VALID_LETTERS[(yearDigits + serialNum).toInt().mod(VALID_LETTERS.length)]
+    private fun correctModulus(checkChar: Char, serialNum: String, yearDigits: String): Boolean = checkChar == VALID_LETTERS[(yearDigits + serialNum).toInt().mod(VALID_LETTERS.length)]
 
     private fun formatStandard(checkChar: Char, serialNum: String, yearDigits: String) = "${padSerialNumber(serialNum)}/$yearDigits$checkChar"
 
@@ -58,7 +54,6 @@ data class CROIdentifier(val croId: String) {
 
     private fun isSfFormat(inputCroId: String): Boolean = inputCroId.matches(SF_CRO_REGEX)
 
-    private fun padSerialNumber(serialNumber: String): String =
-      serialNumber.padStart(SERIAL_NUM_LENGTH, '0')
+    private fun padSerialNumber(serialNumber: String): String = serialNumber.padStart(SERIAL_NUM_LENGTH, '0')
   }
 }

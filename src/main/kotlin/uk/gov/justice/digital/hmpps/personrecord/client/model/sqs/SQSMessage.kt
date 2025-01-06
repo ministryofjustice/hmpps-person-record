@@ -17,9 +17,7 @@ data class SQSMessage(
   @JsonProperty(value = "MessageAttributes")
   val messageAttributes: MessageAttributes? = null,
 ) {
-  fun getMessageType(): String? {
-    return messageAttributes?.messageType?.value
-  }
+  fun getMessageType(): String? = messageAttributes?.messageType?.value
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
