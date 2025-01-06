@@ -1,3 +1,5 @@
+import org.gradle.model.internal.core.ModelNodes.withType
+
 kotlin {
   compilerOptions {
     jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
@@ -11,7 +13,6 @@ plugins {
   kotlin("plugin.jpa") version "2.0.21"
   id("io.gitlab.arturbosch.detekt") version "1.23.7"
   id("org.jetbrains.kotlinx.kover") version "0.9.0"
-  id("org.gradle.test-retry") version "1.6.0"
 }
 
 configurations {
@@ -87,14 +88,6 @@ tasks {
   getByName("check") {
     dependsOn(":ktlintCheck", "detekt")
     finalizedBy("koverHtmlReport")
-  }
-
-  withType(Test::class) {
-    retry {
-      if (environment.get("CI") == "true") {
-        maxRetries.set(3)
-      }
-    }
   }
 
   withType<JavaCompile>().configureEach {
