@@ -14,5 +14,9 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingServiceNoOp
 class EventLoggingConfig {
 
   @Bean
-  fun eventLoggingService(eventLoggingRepository: EventLoggingRepository, telemetryClient: TelemetryClient, objectMapper: ObjectMapper): EventLoggingService = EventLoggingServiceNoOp(eventLoggingRepository, telemetryClient, objectMapper)
+  fun eventLoggingService(
+    eventLoggingRepository: EventLoggingRepository,
+    telemetryClient: TelemetryClient,
+    objectMapper: ObjectMapper,
+  ): EventLoggingService = EventLoggingServiceNoOp(eventLoggingRepository, telemetryClient, objectMapper)
 }
