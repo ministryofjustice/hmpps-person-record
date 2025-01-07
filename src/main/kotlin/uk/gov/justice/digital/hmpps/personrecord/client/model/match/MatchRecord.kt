@@ -18,22 +18,18 @@ data class MatchRecord(
 ) {
   companion object {
 
-    fun from(searchCriteria: PersonSearchCriteria): MatchRecord {
-      return MatchRecord(
-        firstName = searchCriteria.preparedFirstName.value,
-        lastname = searchCriteria.preparedLastName.value,
-        dateOfBirth = searchCriteria.preparedDateOfBirth.value?.toString(),
-        pnc = searchCriteria.preparedIdentifiers.firstOrNull { it.reference.identifierType == IdentifierType.PNC }?.reference?.identifierValue,
-      )
-    }
+    fun from(searchCriteria: PersonSearchCriteria): MatchRecord = MatchRecord(
+      firstName = searchCriteria.preparedFirstName.value,
+      lastname = searchCriteria.preparedLastName.value,
+      dateOfBirth = searchCriteria.preparedDateOfBirth.value?.toString(),
+      pnc = searchCriteria.preparedIdentifiers.firstOrNull { it.reference.identifierType == IdentifierType.PNC }?.reference?.identifierValue,
+    )
 
-    fun from(personEntity: PersonEntity): MatchRecord {
-      return MatchRecord(
-        firstName = personEntity.firstName,
-        lastname = personEntity.firstName,
-        dateOfBirth = personEntity.dateOfBirth?.toString(),
-        pnc = personEntity.references.firstOrNull { it.identifierType == IdentifierType.PNC }?.identifierValue,
-      )
-    }
+    fun from(personEntity: PersonEntity): MatchRecord = MatchRecord(
+      firstName = personEntity.firstName,
+      lastname = personEntity.firstName,
+      dateOfBirth = personEntity.dateOfBirth?.toString(),
+      pnc = personEntity.references.firstOrNull { it.identifierType == IdentifierType.PNC }?.identifierValue,
+    )
   }
 }

@@ -9,10 +9,8 @@ class ReadWriteLockService {
 
   private val lockMap = mutableMapOf<SourceSystemType, ReentrantReadWriteLock>()
 
-  private fun getLock(sourceSystem: SourceSystemType): ReentrantReadWriteLock {
-    return synchronized(lockMap) {
-      lockMap.getOrPut(sourceSystem) { ReentrantReadWriteLock() }
-    }
+  private fun getLock(sourceSystem: SourceSystemType): ReentrantReadWriteLock = synchronized(lockMap) {
+    lockMap.getOrPut(sourceSystem) { ReentrantReadWriteLock() }
   }
 
   fun <T> withWriteLock(sourceSystem: SourceSystemType, block: () -> T): T {

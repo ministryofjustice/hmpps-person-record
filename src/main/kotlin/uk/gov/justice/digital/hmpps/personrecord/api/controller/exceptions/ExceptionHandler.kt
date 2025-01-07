@@ -12,38 +12,32 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 class ExceptionHandler {
 
   @ExceptionHandler(PersonRecordNotFoundException::class)
-  fun handlePersonRecordNotFoundException(e: PersonRecordNotFoundException): ResponseEntity<ErrorResponse> {
-    return ResponseEntity
-      .status(HttpStatus.NOT_FOUND)
-      .body(
-        ErrorResponse(
-          status = HttpStatus.NOT_FOUND,
-          userMessage = "Not found: ${e.message}",
-        ),
-      )
-  }
+  fun handlePersonRecordNotFoundException(e: PersonRecordNotFoundException): ResponseEntity<ErrorResponse> = ResponseEntity
+    .status(HttpStatus.NOT_FOUND)
+    .body(
+      ErrorResponse(
+        status = HttpStatus.NOT_FOUND,
+        userMessage = "Not found: ${e.message}",
+      ),
+    )
 
   @ExceptionHandler(AccessDeniedException::class)
-  fun handleAccessDeniedException(e: AccessDeniedException): ResponseEntity<ErrorResponse?>? {
-    return ResponseEntity
-      .status(HttpStatus.FORBIDDEN)
-      .body(
-        ErrorResponse(
-          status = HttpStatus.FORBIDDEN,
-          userMessage = "Forbidden: ${e.message}",
-        ),
-      )
-  }
+  fun handleAccessDeniedException(e: AccessDeniedException): ResponseEntity<ErrorResponse?>? = ResponseEntity
+    .status(HttpStatus.FORBIDDEN)
+    .body(
+      ErrorResponse(
+        status = HttpStatus.FORBIDDEN,
+        userMessage = "Forbidden: ${e.message}",
+      ),
+    )
 
   @ExceptionHandler(AuthenticationException::class)
-  fun handleUnauthorizedException(e: AuthenticationException): ResponseEntity<ErrorResponse?>? {
-    return ResponseEntity
-      .status(HttpStatus.UNAUTHORIZED)
-      .body(
-        ErrorResponse(
-          status = HttpStatus.UNAUTHORIZED,
-          userMessage = "Unauthorized: ${e.message}",
-        ),
-      )
-  }
+  fun handleUnauthorizedException(e: AuthenticationException): ResponseEntity<ErrorResponse?>? = ResponseEntity
+    .status(HttpStatus.UNAUTHORIZED)
+    .body(
+      ErrorResponse(
+        status = HttpStatus.UNAUTHORIZED,
+        userMessage = "Unauthorized: ${e.message}",
+      ),
+    )
 }

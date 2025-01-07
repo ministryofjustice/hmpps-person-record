@@ -44,8 +44,6 @@ class SentenceInfoEntity(
       }
     }
 
-    fun fromList(sentenceInfo: List<SentenceInfo>): List<SentenceInfoEntity> {
-      return sentenceInfo.mapNotNull { from(it) }
-    }
+    fun fromList(sentenceInfo: List<SentenceInfo>): List<SentenceInfoEntity> = sentenceInfo.mapNotNull { from(it) }
   }
 }

@@ -8,14 +8,10 @@ data class Reference(
   val identifierValue: String? = null,
 ) {
   companion object {
-    fun from(identifierType: IdentifierType, identifierValue: String?): Reference {
-      return Reference(identifierType = identifierType, identifierValue = identifierValue)
-    }
-    fun from(referenceEntity: ReferenceEntity): Reference {
-      return Reference(
-        identifierType = referenceEntity.identifierType,
-        identifierValue = referenceEntity.identifierValue,
-      )
-    }
+    fun from(identifierType: IdentifierType, identifierValue: String?): Reference = Reference(identifierType = identifierType, identifierValue = identifierValue)
+    fun from(referenceEntity: ReferenceEntity): Reference = Reference(
+      identifierType = referenceEntity.identifierType,
+      identifierValue = referenceEntity.identifierValue,
+    )
   }
 }

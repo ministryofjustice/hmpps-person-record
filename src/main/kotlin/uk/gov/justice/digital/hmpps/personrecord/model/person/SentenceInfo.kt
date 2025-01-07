@@ -11,23 +11,17 @@ class SentenceInfo(
 ) {
   companion object {
 
-    fun from(sentences: AllConvictedOffences): SentenceInfo {
-      return SentenceInfo(
-        sentenceDate = sentences.sentenceStartDate,
-        primarySentence = sentences.primarySentence,
-      )
-    }
+    fun from(sentences: AllConvictedOffences): SentenceInfo = SentenceInfo(
+      sentenceDate = sentences.sentenceStartDate,
+      primarySentence = sentences.primarySentence,
+    )
 
-    fun from(sentences: Sentences): SentenceInfo {
-      return SentenceInfo(
-        sentenceDate = sentences.sentenceDate,
-      )
-    }
+    fun from(sentences: Sentences): SentenceInfo = SentenceInfo(
+      sentenceDate = sentences.sentenceDate,
+    )
 
-    fun from(sentenceInfoEntity: SentenceInfoEntity): SentenceInfo {
-      return SentenceInfo(
-        sentenceDate = sentenceInfoEntity.sentenceDate,
-      )
-    }
+    fun from(sentenceInfoEntity: SentenceInfoEntity): SentenceInfo = SentenceInfo(
+      sentenceDate = sentenceInfoEntity.sentenceDate,
+    )
   }
 }

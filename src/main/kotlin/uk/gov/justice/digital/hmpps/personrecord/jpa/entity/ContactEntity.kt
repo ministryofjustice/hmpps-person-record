@@ -43,12 +43,8 @@ class ContactEntity(
 ) {
   companion object {
 
-    private fun from(contact: Contact): ContactEntity {
-      return ContactEntity(contactType = contact.contactType, contactValue = contact.contactValue)
-    }
+    private fun from(contact: Contact): ContactEntity = ContactEntity(contactType = contact.contactType, contactValue = contact.contactValue)
 
-    fun fromList(contacts: List<Contact>): List<ContactEntity> {
-      return contacts.filterNot { it.contactValue.isNullOrEmpty() }.map { from(it) }
-    }
+    fun fromList(contacts: List<Contact>): List<ContactEntity> = contacts.filterNot { it.contactValue.isNullOrEmpty() }.map { from(it) }
   }
 }
