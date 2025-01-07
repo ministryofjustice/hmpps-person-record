@@ -140,9 +140,7 @@ class PersonEntity(
 
   fun getPostcodesForMatching(): Set<String> = this.addresses.mapNotNull { it.postcode }.toSet()
 
-  fun getIdentifiersForMatching(identifiers: List<IdentifierType>): Set<ReferenceEntity> {
-    return this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }.toSet()
-  }
+  fun getIdentifiersForMatching(identifiers: List<IdentifierType>): Set<ReferenceEntity> = this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }.toSet()
 
   fun update(person: Person) {
     this.title = person.title
@@ -206,19 +204,15 @@ class PersonEntity(
 
     val empty = null
 
-    fun PersonEntity?.extractSourceSystemId(): String? {
-      return when (this?.sourceSystem) {
-        DELIUS -> this.crn
-        NOMIS -> this.prisonNumber
-        COMMON_PLATFORM -> this.defendantId
-        LIBRA -> this.defendantId
-        else -> null
-      }
+    fun PersonEntity?.extractSourceSystemId(): String? = when (this?.sourceSystem) {
+      DELIUS -> this.crn
+      NOMIS -> this.prisonNumber
+      COMMON_PLATFORM -> this.defendantId
+      LIBRA -> this.defendantId
+      else -> null
     }
 
-    fun List<ReferenceEntity>.getType(type: IdentifierType): List<ReferenceEntity> {
-      return this.filter { it.identifierType == type }
-    }
+    fun List<ReferenceEntity>.getType(type: IdentifierType): List<ReferenceEntity> = this.filter { it.identifierType == type }
 
     fun PersonEntity?.shouldCreateOrUpdate(shouldCreate: () -> PersonEntity, shouldUpdate: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {
       this == empty -> shouldCreate()

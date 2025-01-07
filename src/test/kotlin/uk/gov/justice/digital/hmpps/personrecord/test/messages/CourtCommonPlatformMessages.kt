@@ -67,8 +67,7 @@ fun commonPlatformHearing(commonPlatformHearingSetup: List<CommonPlatformHearing
     }
 """.trimIndent()
 
-private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) =
-  """{ 
+private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) = """{ 
                 "id": "${commonPlatformHearingSetup.defendantId}",
                 "masterDefendantId": "${commonPlatformHearingSetup.defendantId}",
                 "pncId": ${commonPlatformHearingSetup.pnc?.let { """ "${commonPlatformHearingSetup.pnc}" """.trimIndent() } ?: "null" },
@@ -103,15 +102,15 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) =
                       "postcode": "CF10 1FU"
                     },
                     ${commonPlatformHearingSetup.contact?.let {
-    """
+  """
                       "contact": {
                        "home": "${commonPlatformHearingSetup.contact.home}",
                         "work": "${commonPlatformHearingSetup.contact.work}",
                         "mobile": "${commonPlatformHearingSetup.contact.mobile}",
                         "primaryEmail": "${commonPlatformHearingSetup.contact.primaryEmail}"
                        }, 
-    """.trimIndent()
-  } ?: ""}   
+  """.trimIndent()
+} ?: ""}   
                     "dateOfBirth": "${commonPlatformHearingSetup.dateOfBirth}",
                     ${commonPlatformHearingSetup.firstName?.let { """ "firstName": "${commonPlatformHearingSetup.firstName}", """.trimIndent() } ?: ""}
                     "gender": "MALE",
@@ -127,12 +126,12 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) =
                    "selfDefinedEthnicityDescription": "selfDefinedEthnicityDescription"
                 },
                 ${commonPlatformHearingSetup.aliases?.let {
-    """ "aliases": [${commonPlatformHearingSetup.aliases.joinToString(",") { alias(it) }
-    }], """.trimIndent()
-  } ?: ""}
+  """ "aliases": [${commonPlatformHearingSetup.aliases.joinToString(",") { alias(it) }
+  }], """.trimIndent()
+} ?: ""}
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               }
-  """.trimIndent()
+""".trimIndent()
 
 private fun alias(alias: CommonPlatformHearingSetupAlias) =
   """

@@ -13,7 +13,5 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
 class EventLoggingTestConfig {
 
   @Bean
-  fun eventLoggingService(eventLoggingRepository: EventLoggingRepository, telemetryClient: TelemetryClient, objectMapper: ObjectMapper): EventLoggingService {
-    return EventLoggingService(eventLoggingRepository, telemetryClient, objectMapper)
-  }
+  fun eventLoggingService(eventLoggingRepository: EventLoggingRepository, telemetryClient: TelemetryClient, objectMapper: ObjectMapper): EventLoggingService = EventLoggingService(eventLoggingRepository, telemetryClient, objectMapper)
 }

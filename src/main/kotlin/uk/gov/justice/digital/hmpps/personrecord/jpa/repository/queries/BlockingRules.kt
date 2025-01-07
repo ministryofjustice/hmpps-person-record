@@ -50,9 +50,7 @@ class BlockingRules(
       $globalConditions
   """.trimIndent()
 
-  fun union(rules: List<String>): String {
-    return rules.joinToString(UNION)
-  }
+  fun union(rules: List<String>): String = rules.joinToString(UNION)
 
   companion object {
     const val POSTCODE_MATCH_SIZE = 3

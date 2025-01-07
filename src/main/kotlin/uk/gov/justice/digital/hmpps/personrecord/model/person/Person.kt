@@ -45,29 +45,21 @@ data class Person(
 
   companion object {
 
-    fun Person?.extractSourceSystemId(): String? {
-      return when (this?.sourceSystem) {
-        DELIUS -> this.crn
-        NOMIS -> this.prisonNumber
-        COMMON_PLATFORM -> this.defendantId
-        LIBRA -> this.defendantId
-        else -> null
-      }
+    fun Person?.extractSourceSystemId(): String? = when (this?.sourceSystem) {
+      DELIUS -> this.crn
+      NOMIS -> this.prisonNumber
+      COMMON_PLATFORM -> this.defendantId
+      LIBRA -> this.defendantId
+      else -> null
     }
 
-    fun List<Reference>.getType(type: IdentifierType): List<Reference> {
-      return this.filter { it.identifierType == type }
-    }
+    fun List<Reference>.getType(type: IdentifierType): List<Reference> = this.filter { it.identifierType == type }
 
-    fun List<Reference>.toString(): String {
-      return this.joinToString { it.identifierValue.toString() }
-    }
+    fun List<Reference>.toString(): String = this.joinToString { it.identifierValue.toString() }
 
-    fun from(person: Person): PersonKeyEntity {
-      return PersonKeyEntity(
-        personId = person.personId,
-      )
-    }
+    fun from(person: Person): PersonKeyEntity = PersonKeyEntity(
+      personId = person.personId,
+    )
 
     fun from(probationCase: ProbationCase): Person {
       val contacts: List<Contact> = listOf(
@@ -190,33 +182,29 @@ data class Person(
       )
     }
 
-    fun from(existingPersonEntity: PersonEntity): Person {
-      return Person(
-        personId = existingPersonEntity.personKey?.personId,
-        firstName = existingPersonEntity.firstName,
-        middleNames = existingPersonEntity.middleNames?.split(" ") ?: emptyList(),
-        lastName = existingPersonEntity.lastName,
-        dateOfBirth = existingPersonEntity.dateOfBirth,
-        crn = existingPersonEntity.crn,
-        prisonNumber = existingPersonEntity.prisonNumber,
-        defendantId = existingPersonEntity.defendantId,
-        title = existingPersonEntity.title,
-        aliases = existingPersonEntity.pseudonyms.map { Alias.from(it) },
-        masterDefendantId = existingPersonEntity.masterDefendantId,
-        nationality = existingPersonEntity.nationality,
-        religion = existingPersonEntity.religion,
-        ethnicity = existingPersonEntity.ethnicity,
-        contacts = existingPersonEntity.contacts.map { Contact.convertEntityToContact(it) },
-        addresses = existingPersonEntity.addresses.map { Address.from(it) },
-        references = existingPersonEntity.references.map { Reference.from(it) },
-        sourceSystem = existingPersonEntity.sourceSystem,
-        sentences = existingPersonEntity.sentenceInfo.map { SentenceInfo.from(it) },
-        currentlyManaged = existingPersonEntity.currentlyManaged,
-      )
-    }
+    fun from(existingPersonEntity: PersonEntity): Person = Person(
+      personId = existingPersonEntity.personKey?.personId,
+      firstName = existingPersonEntity.firstName,
+      middleNames = existingPersonEntity.middleNames?.split(" ") ?: emptyList(),
+      lastName = existingPersonEntity.lastName,
+      dateOfBirth = existingPersonEntity.dateOfBirth,
+      crn = existingPersonEntity.crn,
+      prisonNumber = existingPersonEntity.prisonNumber,
+      defendantId = existingPersonEntity.defendantId,
+      title = existingPersonEntity.title,
+      aliases = existingPersonEntity.pseudonyms.map { Alias.from(it) },
+      masterDefendantId = existingPersonEntity.masterDefendantId,
+      nationality = existingPersonEntity.nationality,
+      religion = existingPersonEntity.religion,
+      ethnicity = existingPersonEntity.ethnicity,
+      contacts = existingPersonEntity.contacts.map { Contact.convertEntityToContact(it) },
+      addresses = existingPersonEntity.addresses.map { Address.from(it) },
+      references = existingPersonEntity.references.map { Reference.from(it) },
+      sourceSystem = existingPersonEntity.sourceSystem,
+      sentences = existingPersonEntity.sentenceInfo.map { SentenceInfo.from(it) },
+      currentlyManaged = existingPersonEntity.currentlyManaged,
+    )
   }
 
-  fun getIdentifiersForMatching(identifiers: List<IdentifierType>): Set<Reference> {
-    return this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }.toSet()
-  }
+  fun getIdentifiersForMatching(identifiers: List<IdentifierType>): Set<Reference> = this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }.toSet()
 }

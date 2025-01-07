@@ -262,12 +262,10 @@ class SearchIntTest : WebTestBase() {
     private fun searchDefendantUrl(defendantId: String) = "/search/defendant/$defendantId"
 
     @JvmStatic
-    fun searchUrls(): List<String> {
-      return listOf(
-        searchOffenderUrl(randomCRN()),
-        searchPrisonerUrl(randomPrisonNumber()),
-        searchDefendantUrl(randomDefendantId()),
-      )
-    }
+    fun searchUrls(): List<String> = listOf(
+      searchOffenderUrl(randomCRN()),
+      searchPrisonerUrl(randomPrisonNumber()),
+      searchDefendantUrl(randomDefendantId()),
+    )
   }
 }

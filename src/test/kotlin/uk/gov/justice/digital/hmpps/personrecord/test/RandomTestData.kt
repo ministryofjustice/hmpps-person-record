@@ -16,8 +16,7 @@ fun randomPnc(): String {
   throw Exception("$year/$digits$check")
 }
 
-fun randomEmail(): String =
-  randomLowerCaseString(8) + "." + randomDigit(4) + "@" + randomLowerCaseString(8) + ".co.uk"
+fun randomEmail(): String = randomLowerCaseString(8) + "." + randomDigit(4) + "@" + randomLowerCaseString(8) + ".co.uk"
 
 fun randomDate(): LocalDate = LocalDate.of((1950..LocalDate.now().year).random(), (1..12).random(), (1..28).random())
 

@@ -60,24 +60,22 @@ class PseudonymEntity(
   var version: Int = 0,
 ) {
   companion object {
-    private fun from(alias: Alias): PseudonymEntity? =
-      when {
-        isAliasPresent(alias.firstName, alias.middleNames, alias.lastName) ->
-          PseudonymEntity(
-            firstName = alias.firstName,
-            middleNames = alias.middleNames,
-            lastName = alias.lastName,
-            dateOfBirth = alias.dateOfBirth,
-            type = NameType.ALIAS,
-            title = alias.title,
-          )
-        else -> null
-      }
+    private fun from(alias: Alias): PseudonymEntity? = when {
+      isAliasPresent(alias.firstName, alias.middleNames, alias.lastName) ->
+        PseudonymEntity(
+          firstName = alias.firstName,
+          middleNames = alias.middleNames,
+          lastName = alias.lastName,
+          dateOfBirth = alias.dateOfBirth,
+          type = NameType.ALIAS,
+          title = alias.title,
+        )
+      else -> null
+    }
 
     fun fromList(aliases: List<Alias>): List<PseudonymEntity> = aliases.mapNotNull { from(it) }
 
-    private fun isAliasPresent(firstName: String?, middleNames: String?, surname: String?): Boolean =
-      sequenceOf(firstName, middleNames, surname)
-        .filterNotNull().any { it.isNotBlank() }
+    private fun isAliasPresent(firstName: String?, middleNames: String?, surname: String?): Boolean = sequenceOf(firstName, middleNames, surname)
+      .filterNotNull().any { it.isNotBlank() }
   }
 }

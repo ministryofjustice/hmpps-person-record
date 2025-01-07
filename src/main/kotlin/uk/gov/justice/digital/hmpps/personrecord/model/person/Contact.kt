@@ -8,15 +8,11 @@ class Contact(
   val contactValue: String? = null,
 ) {
   companion object {
-    fun from(contactType: ContactType, contactValue: String?): Contact {
-      return Contact(contactType = contactType, contactValue = contactValue)
-    }
-    fun convertEntityToContact(contactEntity: ContactEntity): Contact {
-      return Contact(
+    fun from(contactType: ContactType, contactValue: String?): Contact = Contact(contactType = contactType, contactValue = contactValue)
+    fun convertEntityToContact(contactEntity: ContactEntity): Contact = Contact(
 
-        contactType = contactEntity.contactType,
-        contactValue = contactEntity.contactValue,
-      )
-    }
+      contactType = contactEntity.contactType,
+      contactValue = contactEntity.contactValue,
+    )
   }
 }
