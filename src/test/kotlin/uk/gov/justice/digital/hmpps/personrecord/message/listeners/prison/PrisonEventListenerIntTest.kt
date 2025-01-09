@@ -76,7 +76,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val sentenceStartDate = randomDate()
     val primarySentence = true
 
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), prefix = prefix, dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), prefix = prefix, dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, currentlyManaged = "ACTIVE IN", identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
@@ -118,7 +118,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.contacts[1].contactValue).isEqualTo("01141234567")
       assertThat(personEntity.contacts[2].contactType).isEqualTo(MOBILE)
       assertThat(personEntity.contacts[2].contactValue).isEqualTo("01141234567")
-      assertThat(personEntity.currentlyManaged).isEqualTo(null)
+      assertThat(personEntity.currentlyManaged).isEqualTo(true)
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceStartDate)
     }
 
@@ -404,11 +404,11 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   companion object {
     @JvmStatic
     private fun currentlyManagedParameters(): Stream<Arguments> = Stream.of(
-      Arguments.of("Active : IN", true),
-      Arguments.of("Active: OUT", true),
-      Arguments.of("Inactive: TRN", true),
-      Arguments.of("Inactive: OUT", false),
-      Arguments.of("Inactive: IN", null),
+      Arguments.of("ACTIVE IN", true),
+      Arguments.of("ACTIVE OUT", true),
+      Arguments.of("INACTIVE TRN", true),
+      Arguments.of("INACTIVE OUT", false),
+      Arguments.of("INACTIVE IN", null),
       Arguments.of(null, null),
     )
   }
