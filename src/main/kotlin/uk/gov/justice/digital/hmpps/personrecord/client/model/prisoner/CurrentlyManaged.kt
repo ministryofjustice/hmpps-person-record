@@ -6,10 +6,10 @@ data class CurrentlyManaged(val status: Boolean?) {
     private const val EMPTY_STATUS = ""
 
     private enum class Status(val status: String) {
-      ACTIVE_IN("Active : IN"),
-      ACTIVE_OUT("Active: OUT"),
-      INACTIVE_TRANSFER("Inactive: TRN"),
-      INACTIVE_OUT("Inactive: OUT"),
+      ACTIVE_IN("ACTIVE IN"),
+      ACTIVE_OUT("ACTIVE OUT"),
+      INACTIVE_TRANSFER("INACTIVE TRN"),
+      INACTIVE_OUT("INACTIVE OUT"),
     }
 
     fun from(inputStatus: String? = EMPTY_STATUS): CurrentlyManaged {
