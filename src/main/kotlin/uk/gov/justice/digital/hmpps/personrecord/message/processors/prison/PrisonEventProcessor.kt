@@ -9,13 +9,13 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.format.EncodingService
-import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
+import uk.gov.justice.digital.hmpps.personrecord.service.message.TransactionalProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 
 @Component
 class PrisonEventProcessor(
   private val telemetryService: TelemetryService,
-  private val createUpdateService: CreateUpdateService,
+  private val transactionalProcessor: TransactionalProcessor,
   private val personRepository: PersonRepository,
   private val encodingService: EncodingService,
 ) {
@@ -33,7 +33,7 @@ class PrisonEventProcessor(
     encodingService.getPrisonerDetails(prisonNumber).fold(
       onSuccess = {
         it?.let {
-          createUpdateService.processMessage(Person.from(it), domainEvent.eventType) {
+          transactionalProcessor.processMessage(Person.from(it), domainEvent.eventType) {
             personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)
           }
         }
