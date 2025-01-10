@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod.POST
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClientPageParams
@@ -26,22 +27,22 @@ class UpdateFromProbation(
 ) {
 
   @RequestMapping(method = [POST], value = ["/updatefromprobation"])
-  suspend fun populate(): String {
-    populatePages()
+  suspend fun populate(@RequestParam startPage: Int = 0): String {
+    populatePages(startPage)
     return "OK"
   }
 
-  suspend fun populatePages() {
+  suspend fun populatePages(startPage: Int) {
     CoroutineScope(Dispatchers.Default).launch {
       val totalPages = corePersonRecordAndDeliusClient.getProbationCases(
         CorePersonRecordAndDeliusClientPageParams(
-          0,
+          startPage,
           pageSize,
         ),
       )?.page?.totalPages?.toInt() ?: 1
 
-      log.info("Starting DELIUS updates, total pages: $totalPages")
-      for (page in 0..<totalPages) {
+      log.info("Starting DELIUS updates, starting page $startPage, total pages: $totalPages")
+      for (page in startPage..<totalPages) {
         log.info("Processing DELIUS updates, page: $page / $totalPages")
         RetryExecutor.runWithRetry(retries, delayMillis) {
           corePersonRecordAndDeliusClient.getProbationCases(CorePersonRecordAndDeliusClientPageParams(page, pageSize))
