@@ -18,7 +18,13 @@ fun allProbationCasesSingleResponse(firstCrn: String, firstPrefix: String) = """
                 "description": "Male"
             },
             "aliases": [],
-            "addresses": []
+            "addresses": [],
+            "sentences": [
+              {
+                "date": "2021-11-04",
+                "active": true
+              }
+            ]
         }
     ],
     "page": {
