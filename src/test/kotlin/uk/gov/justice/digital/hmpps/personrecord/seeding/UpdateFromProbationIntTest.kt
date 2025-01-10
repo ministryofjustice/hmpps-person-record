@@ -78,6 +78,42 @@ class UpdateFromProbationIntTest : WebTestBase() {
     assertThat(popSeven.sentenceInfo.get(0).sentenceDate).isEqualTo(newSentenceDate)
   }
 
+  @Test
+  fun `start on page 2`() {
+    val scenarioName = "update"
+    val crnOne: String = randomCRN()
+    val crnTwo: String = randomCRN()
+    val crnThree: String = randomCRN()
+    val crnFour: String = randomCRN()
+    val crnFive: String = randomCRN()
+    val crnSix: String = randomCRN()
+    val crnSeven: String = randomCRN()
+
+    stubResponse(crnFive, "POPFive", crnSix, "POPSix", 2, scenarioName, STARTED)
+    stubSingleResponse(crnSeven, "POPSeven", 3, scenarioName)
+
+    webTestClient.post()
+      .uri("/updatefromprobation?startPage=2")
+      .exchange()
+      .expectStatus()
+      .isOk
+
+    awaitNotNullPerson { personRepository.findByCrn(crnSeven) }
+    assertThat(personRepository.findByCrn(crnOne)).isNull()
+    assertThat(personRepository.findByCrn(crnTwo)).isNull()
+    assertThat(personRepository.findByCrn(crnThree)).isNull()
+    assertThat(personRepository.findByCrn(crnFour)).isNull()
+    assertThat(personRepository.findByCrn(crnFive)!!.firstName).isEqualTo("POPFiveFirstName")
+    assertThat(personRepository.findByCrn(crnSix)!!.firstName).isEqualTo("POPSixFirstName")
+    val popSeven = personRepository.findByCrn(crnSeven)!!
+    assertThat(popSeven.firstName).isEqualTo("POPSevenFirstName")
+    assertThat(popSeven.middleNames).isEqualTo("")
+    assertThat(popSeven.references.getType(IdentifierType.CRO)).isEqualTo(emptyList<ReferenceEntity>())
+    assertThat(popSeven.pseudonyms.size).isEqualTo(0)
+    val newSentenceDate = LocalDate.of(2021, 11, 4)
+    assertThat(popSeven.sentenceInfo.get(0).sentenceDate).isEqualTo(newSentenceDate)
+  }
+
   private fun stubResponse(firstCrn: String, firstPrefix: String, secondCrn: String, secondPrefix: String, page: Int, scenarioName: String, scenarioState: String, totalPages: Int = 4) {
     wiremock.stubFor(
       WireMock.get("/all-probation-cases?size=2&page=$page&sort=id%2Casc")
