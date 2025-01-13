@@ -29,7 +29,7 @@ dependencies {
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.2.0")
 
   implementation("io.swagger.core.v3:swagger-annotations:2.2.27")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.1")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3")
 
   constraints {
     implementation("commons-io:commons-io:2.18.0") {
