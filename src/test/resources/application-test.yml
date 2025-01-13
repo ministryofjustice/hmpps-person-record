@@ -70,7 +70,7 @@ spring:
   cloud.openfeign.client.config:
     default:
       connect-timeout: 5000
-      read-timeout: 300
+      read-timeout: 200
       default-request-headers:
         Accept: application/json
   flyway:
