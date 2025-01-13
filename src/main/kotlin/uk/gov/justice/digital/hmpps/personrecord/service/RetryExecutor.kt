@@ -49,7 +49,7 @@ object RetryExecutor {
             currentDelay = min((currentDelay * EXPONENTIAL_FACTOR).toLong(), maxDelayMillis)
           }
           else -> {
-            println("Failed to retry on class" + e::class)
+            log.info("Failed to retry on class" + e::class)
             throw e
           }
         }
