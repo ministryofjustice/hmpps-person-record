@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
+import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetryHTTP
 
 private const val OK = "OK"
 
@@ -47,7 +47,7 @@ class PopulateFromPrison(
       log.info("Starting Prison seeding, total pages: $totalPages")
       for (page in 1..totalPages) {
         log.info("Processing Prison seeding, page: $page / $totalPages")
-        runWithRetry(retries, delayMillis) {
+        runWithRetryHTTP(retries, delayMillis) {
           prisonerSearchClient.getPrisonNumbers(PrisonNumbers(numbers))
         }?.forEach {
           val person = Person.from(it)
@@ -57,7 +57,7 @@ class PopulateFromPrison(
 
         // don't really like this, but it saves 1 call to getPrisonNumbers
         if (page < totalPages) {
-          runWithRetry(retries, delayMillis) {
+          runWithRetryHTTP(retries, delayMillis) {
             numbers = prisonServiceClient.getPrisonNumbers(PageParams(page, pageSize))!!.numbers
           }
         }
