@@ -36,6 +36,10 @@ jobs:
           path: build/test-results
       - store_artifacts:
           path: build/reports/tests
+          destination: junit
+      - store_artifacts:
+          path: build/reports/kover/html
+          destination: coverage
 
 workflows:
   version: 2
