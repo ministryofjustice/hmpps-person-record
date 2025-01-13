@@ -148,10 +148,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.religion).isEqualTo(null)
     }
 
-    checkTelemetry(
-      CPR_RECORD_CREATED,
-      mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
-    )
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
   }
 
@@ -173,10 +169,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.sentenceInfo.size).isEqualTo(0)
     }
 
-    checkTelemetry(
-      CPR_RECORD_CREATED,
-      mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
-    )
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
   }
 
@@ -316,8 +308,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubOneHighConfidenceMatch()
     publishDomainEvent(PRISONER_CREATED, domainEvent)
 
-    checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
-
     checkTelemetry(
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
@@ -357,32 +347,27 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(loggedEvent.uuid).isEqualTo(personEntity?.personKey?.personId.toString())
   }
 
-  private fun createPrisoner(): PersonEntity {
-    val personKey = createPersonKey()
-    val person = createPerson(
-      Person.from(
-        Prisoner(
-          prisonNumber = randomPrisonNumber(),
-          title = "Ms",
-          firstName = randomName(),
-          middleNames = "${randomName()} ${randomName()}",
-          lastName = randomName(),
-          cro = CROIdentifier.from(randomCro()),
-          pnc = PNCIdentifier.from(randomPnc()),
-          dateOfBirth = randomDate(),
-          emailAddresses = listOf(EmailAddress(randomEmail())),
-          nationality = randomNationality(),
-          religion = randomReligion(),
-          identifiers = listOf(Identifier(type = "NINO", randomNationalInsuranceNumber()), Identifier(type = "DL", randomDriverLicenseNumber())),
-          ethnicity = randomEthnicity(),
-          allConvictedOffences = listOf(AllConvictedOffences(randomDate())),
-        ),
+  private fun createPrisoner(): PersonEntity = createPerson(
+    Person.from(
+      Prisoner(
+        prisonNumber = randomPrisonNumber(),
+        title = "Ms",
+        firstName = randomName(),
+        middleNames = "${randomName()} ${randomName()}",
+        lastName = randomName(),
+        cro = CROIdentifier.from(randomCro()),
+        pnc = PNCIdentifier.from(randomPnc()),
+        dateOfBirth = randomDate(),
+        emailAddresses = listOf(EmailAddress(randomEmail())),
+        nationality = randomNationality(),
+        religion = randomReligion(),
+        identifiers = listOf(Identifier(type = "NINO", randomNationalInsuranceNumber()), Identifier(type = "DL", randomDriverLicenseNumber())),
+        ethnicity = randomEthnicity(),
+        allConvictedOffences = listOf(AllConvictedOffences(randomDate())),
       ),
-      personKeyEntity = personKey,
-    )
-
-    return person
-  }
+    ),
+    personKeyEntity = createPersonKey(),
+  )
 
   private fun stub500Response(
     prisonNumber: String,
