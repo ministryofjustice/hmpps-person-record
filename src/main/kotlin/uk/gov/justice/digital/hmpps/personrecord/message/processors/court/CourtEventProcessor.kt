@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
+import uk.gov.justice.digital.hmpps.personrecord.service.message.TransactionalProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.search.SearchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import java.util.UUID
@@ -24,7 +24,7 @@ import java.util.UUID
 @Component
 class CourtEventProcessor(
   private val objectMapper: ObjectMapper,
-  private val createUpdateService: CreateUpdateService,
+  private val transactionalProcessor: TransactionalProcessor,
   private val searchService: SearchService,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
@@ -73,7 +73,7 @@ class CourtEventProcessor(
           EventKeys.SOURCE_SYSTEM to SourceSystemType.COMMON_PLATFORM.name,
         ),
       )
-      createUpdateService.processMessage(person) {
+      transactionalProcessor.processMessage(person) {
         person.defendantId?.let {
           personRepository.findByDefendantId(it)
         }
@@ -95,7 +95,7 @@ class CourtEventProcessor(
         EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
       ),
     )
-    createUpdateService.processMessage(person) {
+    transactionalProcessor.processMessage(person) {
       val personEntity = searchService.searchBySourceSystem(person)
       person.defendantId = personEntity?.defendantId ?: UUID.randomUUID().toString()
       return@processMessage personEntity

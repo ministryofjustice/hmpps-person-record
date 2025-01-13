@@ -50,22 +50,20 @@ object PersonQueries {
     return blockingRules.union(rules)
   }
 
-  private fun twoDatePartMatch(blockingRules: BlockingRules, searchCriteria: PersonSearchCriteria): List<String> {
-    return listOf(
-      blockingRules.yearAndDayMatch(
-        yearParameterName = searchCriteria.preparedDateOfBirth.year.parameterName,
-        dayParameterName = searchCriteria.preparedDateOfBirth.day.parameterName,
-      ),
-      blockingRules.monthAndDayMatch(
-        monthParameterName = searchCriteria.preparedDateOfBirth.month.parameterName,
-        dayParameterName = searchCriteria.preparedDateOfBirth.day.parameterName,
-      ),
-      blockingRules.yearAndMonthMatch(
-        yearParameterName = searchCriteria.preparedDateOfBirth.year.parameterName,
-        monthParameterName = searchCriteria.preparedDateOfBirth.month.parameterName,
-      ),
-    )
-  }
+  private fun twoDatePartMatch(blockingRules: BlockingRules, searchCriteria: PersonSearchCriteria): List<String> = listOf(
+    blockingRules.yearAndDayMatch(
+      yearParameterName = searchCriteria.preparedDateOfBirth.year.parameterName,
+      dayParameterName = searchCriteria.preparedDateOfBirth.day.parameterName,
+    ),
+    blockingRules.monthAndDayMatch(
+      monthParameterName = searchCriteria.preparedDateOfBirth.month.parameterName,
+      dayParameterName = searchCriteria.preparedDateOfBirth.day.parameterName,
+    ),
+    blockingRules.yearAndMonthMatch(
+      yearParameterName = searchCriteria.preparedDateOfBirth.year.parameterName,
+      monthParameterName = searchCriteria.preparedDateOfBirth.month.parameterName,
+    ),
+  )
 
   private fun combineBlockingRules(vararg rules: String): String = rules.toList().joinToString(BLOCKING_RULES_SEPARATOR)
 }

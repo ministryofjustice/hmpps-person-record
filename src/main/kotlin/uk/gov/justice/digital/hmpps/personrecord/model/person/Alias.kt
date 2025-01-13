@@ -15,39 +15,32 @@ data class Alias(
 ) {
   companion object {
 
-    fun from(alias: DefendantAlias): Alias {
-      return Alias(
-        firstName = alias.firstName,
-        lastName = alias.lastName,
-        middleNames = alias.middleName,
-      )
-    }
+    fun from(alias: DefendantAlias): Alias = Alias(
+      firstName = alias.firstName,
+      lastName = alias.lastName,
+      middleNames = alias.middleName,
+    )
 
-    fun from(alias: ProbationCaseAlias): Alias {
-      return Alias(
-        firstName = alias.name.firstName,
-        lastName = alias.name.lastName,
-        middleNames = alias.name.middleNames,
-        dateOfBirth = alias.dateOfBirth,
-      )
-    }
+    fun from(alias: ProbationCaseAlias): Alias = Alias(
+      firstName = alias.name.firstName,
+      lastName = alias.name.lastName,
+      middleNames = alias.name.middleNames,
+      dateOfBirth = alias.dateOfBirth,
+    )
 
-    fun from(alias: PrisonerAlias) =
-      Alias(
-        firstName = alias.firstName,
-        middleNames = alias.middleNames,
-        lastName = alias.lastName,
-        dateOfBirth = alias.dateOfBirth,
-        title = alias.title,
-      )
-    fun from(pseudonymEntity: PseudonymEntity): Alias {
-      return Alias(
-        firstName = pseudonymEntity.firstName,
-        middleNames = pseudonymEntity.middleNames,
-        lastName = pseudonymEntity.lastName,
-        dateOfBirth = pseudonymEntity.dateOfBirth,
-        title = pseudonymEntity.title,
-      )
-    }
+    fun from(alias: PrisonerAlias) = Alias(
+      firstName = alias.firstName,
+      middleNames = alias.middleNames,
+      lastName = alias.lastName,
+      dateOfBirth = alias.dateOfBirth,
+      title = alias.title,
+    )
+    fun from(pseudonymEntity: PseudonymEntity): Alias = Alias(
+      firstName = pseudonymEntity.firstName,
+      middleNames = pseudonymEntity.middleNames,
+      lastName = pseudonymEntity.lastName,
+      dateOfBirth = pseudonymEntity.dateOfBirth,
+      title = pseudonymEntity.title,
+    )
   }
 }

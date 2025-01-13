@@ -6,7 +6,9 @@ import org.junit.jupiter.api.extension.ExtensionContext.Store.CloseableResource
 import org.springframework.boot.builder.SpringApplicationBuilder
 import uk.gov.justice.digital.hmpps.personrecord.HmppsPersonRecord
 
-class MultiApplicationContextExtension : BeforeAllCallback, CloseableResource {
+class MultiApplicationContextExtension :
+  BeforeAllCallback,
+  CloseableResource {
 
   private val instance1: SpringApplicationBuilder = SpringApplicationBuilder(HmppsPersonRecord::class.java)
     .profiles("test", "test-instance-1")

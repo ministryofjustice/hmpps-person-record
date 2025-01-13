@@ -11,9 +11,7 @@ import org.springframework.context.annotation.Profile
 class TelemetryTestConfig {
 
   @Bean
-  fun telemetryClient(telemetryRepository: TelemetryTestRepository, objectMapper: ObjectMapper): TelemetryClient {
-    return OurTelemetryClient(telemetryRepository, objectMapper)
-  }
+  fun telemetryClient(telemetryRepository: TelemetryTestRepository, objectMapper: ObjectMapper): TelemetryClient = OurTelemetryClient(telemetryRepository, objectMapper)
 
   class OurTelemetryClient(private val telemetryRepository: TelemetryTestRepository, private val objectMapper: ObjectMapper) : TelemetryClient() {
     override fun trackEvent(

@@ -1,15 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
-import kotlinx.coroutines.runBlocking
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.shouldCreateOrUpdate
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
-import uk.gov.justice.digital.hmpps.personrecord.service.ReadWriteLockService
-import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
-import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.QueueService
@@ -26,21 +22,12 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class CreateUpdateService(
   private val telemetryService: TelemetryService,
   private val personService: PersonService,
-  private val readWriteLockService: ReadWriteLockService,
   private val queueService: QueueService,
   private val eventLoggingService: EventLoggingService,
-  @Value("\${retry.delay}") private val retryDelay: Long,
 ) {
 
-  fun processMessage(person: Person, event: String? = null, callback: () -> PersonEntity?): PersonEntity = runBlocking {
-    runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
-      readWriteLockService.withWriteLock(person.sourceSystem) {
-        return@withWriteLock processPerson(person, event, callback)
-      }
-    }
-  }
-
-  private fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?): PersonEntity {
+  @Transactional
+  fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?): PersonEntity {
     val existingPersonEntitySearch: PersonEntity? = callback()
     return existingPersonEntitySearch.shouldCreateOrUpdate(
       shouldCreate = {
@@ -97,8 +84,4 @@ class CreateUpdateService(
   ).contains(event)
 
   private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
-
-  companion object {
-    private const val MAX_ATTEMPTS = 5
-  }
 }

@@ -317,36 +317,35 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   private fun publishMessage(
     defendantId: String,
     pnc: PNCIdentifier,
-  ): PublishResponse =
-    courtEventsTopic!!.publish(
-      eventType = "commonplatform.case.received",
-      commonPlatformHearing(
-        listOf(
-          CommonPlatformHearingSetup(
-            pnc = pnc.pncId,
-            defendantId = defendantId,
-            firstName = "fn",
-            lastName = "ln",
-            cro = "",
-            nationalInsuranceNumber = "NINO",
-            hearingId = "HEARING1234",
-          ),
-          CommonPlatformHearingSetup(
-            pnc = pnc.pncId,
-            defendantId = defendantId,
-            firstName = "fn",
-            lastName = "ln",
-            cro = "",
-            nationalInsuranceNumber = "NINO",
-            hearingId = "HEARING1234",
-          ),
+  ): PublishResponse = courtEventsTopic!!.publish(
+    eventType = "commonplatform.case.received",
+    commonPlatformHearing(
+      listOf(
+        CommonPlatformHearingSetup(
+          pnc = pnc.pncId,
+          defendantId = defendantId,
+          firstName = "fn",
+          lastName = "ln",
+          cro = "",
+          nationalInsuranceNumber = "NINO",
+          hearingId = "HEARING1234",
+        ),
+        CommonPlatformHearingSetup(
+          pnc = pnc.pncId,
+          defendantId = defendantId,
+          firstName = "fn",
+          lastName = "ln",
+          cro = "",
+          nationalInsuranceNumber = "NINO",
+          hearingId = "HEARING1234",
         ),
       ),
-      attributes =
-      mapOf(
-        "messageType" to MessageAttributeValue.builder().dataType("String")
-          .stringValue(COMMON_PLATFORM_HEARING.name).build(),
-      ),
-      messageGroupId = "court-hearing-event-receiver",
-    )
+    ),
+    attributes =
+    mapOf(
+      "messageType" to MessageAttributeValue.builder().dataType("String")
+        .stringValue(COMMON_PLATFORM_HEARING.name).build(),
+    ),
+    messageGroupId = "court-hearing-event-receiver",
+  )
 }
