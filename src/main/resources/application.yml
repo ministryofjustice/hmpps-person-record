@@ -108,7 +108,7 @@ populate-from-nomis:
     times: 10
 
 populate-from-probation:
-  page-size: 2000
+  page-size: 1000
   retry:
     delay: 3000
     times: 10
