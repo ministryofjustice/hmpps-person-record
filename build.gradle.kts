@@ -12,7 +12,7 @@ plugins {
   kotlin("jvm") version "2.1.0"
   kotlin("plugin.jpa") version "2.1.0"
   id("io.gitlab.arturbosch.detekt") version "1.23.7"
-  id("org.jetbrains.kotlinx.kover") version "0.9.0"
+  id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
 
 configurations {
@@ -30,7 +30,7 @@ dependencies {
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.2.0")
 
   implementation("io.swagger.core.v3:swagger-annotations:2.2.27")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.1")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3")
 
   constraints {
     implementation("commons-io:commons-io:2.18.0") {

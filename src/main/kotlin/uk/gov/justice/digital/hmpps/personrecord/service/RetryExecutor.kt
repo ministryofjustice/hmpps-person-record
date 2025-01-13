@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import feign.FeignException
 import kotlinx.coroutines.delay
+import org.hibernate.StaleObjectStateException
 import org.hibernate.exception.ConstraintViolationException
 import org.slf4j.LoggerFactory
 import org.springframework.dao.CannotAcquireLockException
@@ -47,7 +48,10 @@ object RetryExecutor {
 
             currentDelay = min((currentDelay * EXPONENTIAL_FACTOR).toLong(), maxDelayMillis)
           }
-          else -> throw e
+          else -> {
+            log.info("Failed to retry on class" + e::class)
+            throw e
+          }
         }
       }
     }
@@ -61,5 +65,6 @@ object RetryExecutor {
     JpaObjectRetrievalFailureException::class,
     DataIntegrityViolationException::class,
     ConstraintViolationException::class,
+    StaleObjectStateException::class,
   )
 }

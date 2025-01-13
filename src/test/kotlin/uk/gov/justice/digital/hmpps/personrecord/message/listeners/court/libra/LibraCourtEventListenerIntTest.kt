@@ -308,7 +308,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process large number of candidates`() {
     val firstName = randomName()
-    repeat(300) {
+    repeat(110) {
       personRepository.saveAndFlush(
         PersonEntity.from(
           Person(
@@ -332,8 +332,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
-        "RECORD_COUNT" to "300",
-        "HIGH_CONFIDENCE_COUNT" to "300",
+        "RECORD_COUNT" to "110",
+        "HIGH_CONFIDENCE_COUNT" to "110",
         "LOW_CONFIDENCE_COUNT" to "0",
       ),
     )

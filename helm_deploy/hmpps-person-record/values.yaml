@@ -34,6 +34,10 @@ generic-service:
           deny all;
           return 401;
         }
+        location /updatefromprobation {
+          deny all;
+          return 401;
+        }
         location /jobs/** {
           deny all;
           return 401;
