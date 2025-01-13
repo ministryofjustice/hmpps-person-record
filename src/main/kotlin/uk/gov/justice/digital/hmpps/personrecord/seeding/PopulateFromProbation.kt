@@ -44,7 +44,7 @@ class PopulateFromProbation(
       log.info("Starting DELIUS seeding, total pages: $totalPages")
       for (page in 0..<totalPages) {
         log.info("Processing DELIUS seeding, page: $page / $totalPages")
-        RetryExecutor.runWithRetry(retries, delayMillis) {
+        RetryExecutor.runWithRetryHTTP(retries, delayMillis) {
           corePersonRecordAndDeliusClient.getProbationCases(CorePersonRecordAndDeliusClientPageParams(page, pageSize))
         }?.cases?.forEach {
           val person = Person.from(it)

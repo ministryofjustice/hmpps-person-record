@@ -19,12 +19,10 @@ object RetryExecutor {
   private const val JITTER_MAX = 1.2
   private const val EXPONENTIAL_FACTOR = 2.0
 
-  private val retryables = listOf(feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class, FeignException.BadGateway::class)
-
-  suspend fun <T> runWithRetry(
+  private suspend fun <T> runWithRetry(
     maxAttempts: Int,
     delay: Long,
-    exceptions: List<KClass<out Exception>> = retryables,
+    exceptions: List<KClass<out Exception>>,
     maxDelayMillis: Long = 1000,
     action: suspend () -> T,
   ): T {
@@ -58,6 +56,20 @@ object RetryExecutor {
     throw lastException ?: RuntimeException("Unexpected error")
   }
 
+  suspend fun <T> runWithRetryHTTP(
+    maxAttempts: Int,
+    delay: Long,
+    maxDelayMillis: Long = 1000,
+    action: suspend () -> T,
+  ): T = runWithRetry(maxAttempts, delay, HTTP_RETRY_EXCEPTIONS, maxDelayMillis, action)
+
+  suspend fun <T> runWithRetryDatabase(
+    maxAttempts: Int,
+    delay: Long,
+    maxDelayMillis: Long = 1000,
+    action: suspend () -> T,
+  ): T = runWithRetry(maxAttempts, delay, ENTITY_RETRY_EXCEPTIONS, maxDelayMillis, action)
+
   val ENTITY_RETRY_EXCEPTIONS = listOf(
     ObjectOptimisticLockingFailureException::class,
     CannotAcquireLockException::class,
@@ -67,4 +79,6 @@ object RetryExecutor {
     ConstraintViolationException::class,
     StaleObjectStateException::class,
   )
+
+  val HTTP_RETRY_EXCEPTIONS = listOf(feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class, FeignException.BadGateway::class)
 }

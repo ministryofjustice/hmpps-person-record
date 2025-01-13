@@ -26,7 +26,7 @@ class ReclusterEventProcessor(
       CPR_RECLUSTER_MESSAGE_RECEIVED,
       mapOf(EventKeys.UUID to reclusterEvent.uuid),
     )
-    RetryExecutor.runWithRetry(MAX_ATTEMPTS, retryDelay, RetryExecutor.ENTITY_RETRY_EXCEPTIONS) {
+    RetryExecutor.runWithRetryDatabase(MAX_ATTEMPTS, retryDelay) {
       personKeyRepository.findByPersonId(personUUID)?.let {
         reclusterService.recluster(it)
       }
