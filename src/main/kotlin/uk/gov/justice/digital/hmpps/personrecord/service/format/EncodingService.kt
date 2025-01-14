@@ -20,7 +20,7 @@ class EncodingService(
 
   fun getProbationCase(crn: String): Result<ProbationCase?> = runCatching {
     runBlocking {
-      RetryExecutor.runWithRetry(MAX_RETRY_ATTEMPTS, retryDelay) {
+      RetryExecutor.runWithRetryHTTP(MAX_RETRY_ATTEMPTS, retryDelay) {
         corePersonRecordAndDeliusClient.getProbationCase(crn)
       }
     }
@@ -28,7 +28,7 @@ class EncodingService(
 
   fun getPrisonerDetails(prisonNumber: String): Result<Prisoner?> = runCatching {
     runBlocking {
-      RetryExecutor.runWithRetry(MAX_RETRY_ATTEMPTS, retryDelay) {
+      RetryExecutor.runWithRetryHTTP(MAX_RETRY_ATTEMPTS, retryDelay) {
         prisonerSearchClient.getPrisoner(prisonNumber)
       }
     }

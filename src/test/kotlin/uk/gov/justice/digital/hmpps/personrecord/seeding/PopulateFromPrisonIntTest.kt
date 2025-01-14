@@ -158,7 +158,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withFixedDelay(500),
+            .withFixedDelay(210),
         ),
     )
 

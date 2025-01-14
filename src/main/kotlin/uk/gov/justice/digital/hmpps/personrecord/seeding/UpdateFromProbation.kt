@@ -44,7 +44,7 @@ class UpdateFromProbation(
       log.info("Starting DELIUS updates, starting page $startPage, total pages: $totalPages")
       for (page in startPage..<totalPages) {
         log.info("Processing DELIUS updates, page: $page / $totalPages")
-        RetryExecutor.runWithRetry(retries, delayMillis) {
+        RetryExecutor.runWithRetryHTTP(retries, delayMillis) {
           corePersonRecordAndDeliusClient.getProbationCases(CorePersonRecordAndDeliusClientPageParams(page, pageSize))
         }?.cases?.forEach {
           val person = Person.from(it)

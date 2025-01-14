@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import feign.FeignException
 import kotlinx.coroutines.delay
+import org.hibernate.StaleObjectStateException
 import org.hibernate.exception.ConstraintViolationException
 import org.slf4j.LoggerFactory
 import org.springframework.dao.CannotAcquireLockException
@@ -18,12 +19,10 @@ object RetryExecutor {
   private const val JITTER_MAX = 1.2
   private const val EXPONENTIAL_FACTOR = 2.0
 
-  private val retryables = listOf(feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class, FeignException.BadGateway::class)
-
-  suspend fun <T> runWithRetry(
+  private suspend fun <T> runWithRetry(
     maxAttempts: Int,
     delay: Long,
-    exceptions: List<KClass<out Exception>> = retryables,
+    exceptions: List<KClass<out Exception>>,
     maxDelayMillis: Long = 1000,
     action: suspend () -> T,
   ): T {
@@ -38,7 +37,7 @@ object RetryExecutor {
         when {
           e::class in exceptions -> {
             lastException = e
-            log.debug("Retrying on error: ${e.message}")
+            log.info("Retrying on error: ${e.message}")
 
             val jitterValue = Random.nextDouble(JITTER_MIN, JITTER_MAX)
             val delayTime = (currentDelay * jitterValue).toLong()
@@ -47,12 +46,29 @@ object RetryExecutor {
 
             currentDelay = min((currentDelay * EXPONENTIAL_FACTOR).toLong(), maxDelayMillis)
           }
-          else -> throw e
+          else -> {
+            log.info("Failed to retry on class" + e::class)
+            throw e
+          }
         }
       }
     }
     throw lastException ?: RuntimeException("Unexpected error")
   }
+
+  suspend fun <T> runWithRetryHTTP(
+    maxAttempts: Int,
+    delay: Long,
+    maxDelayMillis: Long = 1000,
+    action: suspend () -> T,
+  ): T = runWithRetry(maxAttempts, delay, HTTP_RETRY_EXCEPTIONS, maxDelayMillis, action)
+
+  suspend fun <T> runWithRetryDatabase(
+    maxAttempts: Int,
+    delay: Long,
+    maxDelayMillis: Long = 1000,
+    action: suspend () -> T,
+  ): T = runWithRetry(maxAttempts, delay, ENTITY_RETRY_EXCEPTIONS, maxDelayMillis, action)
 
   val ENTITY_RETRY_EXCEPTIONS = listOf(
     ObjectOptimisticLockingFailureException::class,
@@ -61,5 +77,8 @@ object RetryExecutor {
     JpaObjectRetrievalFailureException::class,
     DataIntegrityViolationException::class,
     ConstraintViolationException::class,
+    StaleObjectStateException::class,
   )
+
+  val HTTP_RETRY_EXCEPTIONS = listOf(feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class, FeignException.BadGateway::class)
 }
