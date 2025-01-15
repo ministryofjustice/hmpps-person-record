@@ -29,7 +29,6 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
     .tags(
       listOf(
         Tag().name("Search").description("APIs for person search"),
-        Tag().name("Jobs").description("Batch job endpoints"),
       ),
     )
     .info(
