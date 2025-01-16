@@ -40,7 +40,7 @@ dependencies {
   implementation("org.springframework.cloud:spring-cloud-dependencies:2024.0.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
 
-  runtimeOnly("org.postgresql:postgresql:42.7.4")
+  runtimeOnly("org.postgresql:postgresql:42.7.5")
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
