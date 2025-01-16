@@ -39,5 +39,3 @@ generic-prometheus-alerts:
   rdsAlertsDatabases:
     cloud-platform-288cab966b34da54: "hmpps-person-record-database"
 
-cron:
-  generateTermFrequencies: "0 12 * * 1-5"
