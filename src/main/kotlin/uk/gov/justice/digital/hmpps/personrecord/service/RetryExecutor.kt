@@ -14,6 +14,10 @@ import kotlin.math.min
 import kotlin.random.Random
 import kotlin.reflect.KClass
 
+private const val HTTP_TRY_COUNT = 3
+
+private const val DB_TRY_COUNT = 5
+
 object RetryExecutor {
   private const val JITTER_MIN = 0.8
   private const val JITTER_MAX = 1.2
@@ -57,20 +61,18 @@ object RetryExecutor {
   }
 
   suspend fun <T> runWithRetryHTTP(
-    maxAttempts: Int,
     delay: Long,
     maxDelayMillis: Long = 1000,
     action: suspend () -> T,
-  ): T = runWithRetry(maxAttempts, delay, HTTP_RETRY_EXCEPTIONS, maxDelayMillis, action)
+  ): T = runWithRetry(HTTP_TRY_COUNT, delay, HTTP_RETRY_EXCEPTIONS, maxDelayMillis, action)
 
   suspend fun <T> runWithRetryDatabase(
-    maxAttempts: Int,
     delay: Long,
     maxDelayMillis: Long = 1000,
     action: suspend () -> T,
-  ): T = runWithRetry(maxAttempts, delay, ENTITY_RETRY_EXCEPTIONS, maxDelayMillis, action)
+  ): T = runWithRetry(DB_TRY_COUNT, delay, ENTITY_RETRY_EXCEPTIONS, maxDelayMillis, action)
 
-  val ENTITY_RETRY_EXCEPTIONS = listOf(
+  private val ENTITY_RETRY_EXCEPTIONS = listOf(
     ObjectOptimisticLockingFailureException::class,
     CannotAcquireLockException::class,
     JpaSystemException::class,
@@ -80,5 +82,5 @@ object RetryExecutor {
     StaleObjectStateException::class,
   )
 
-  val HTTP_RETRY_EXCEPTIONS = listOf(feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class, FeignException.BadGateway::class)
+  private val HTTP_RETRY_EXCEPTIONS = listOf(feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class, FeignException.BadGateway::class)
 }

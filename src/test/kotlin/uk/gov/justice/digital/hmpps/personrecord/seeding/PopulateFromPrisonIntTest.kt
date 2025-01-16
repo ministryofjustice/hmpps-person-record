@@ -125,7 +125,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
         .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
         .inScenario(scenarioName)
         .whenScenarioStateIs(STARTED)
-        .willSetStateTo("next request will fail")
+        .willSetStateTo("next request will time out")
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
@@ -133,21 +133,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
         ),
     )
 
-    // second call fails too
-    wiremock.stubFor(
-      WireMock.post("/prisoner-search/prisoner-numbers")
-        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
-        .inScenario(scenarioName)
-        .whenScenarioStateIs("next request will fail")
-        .willSetStateTo("next request will time out")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(503),
-        ),
-    )
-
-    // third call times out
+    // second call times out
     wiremock.stubFor(
       WireMock.post("/prisoner-search/prisoner-numbers")
         .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
@@ -162,7 +148,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
         ),
     )
 
-    // Fourth call succeeds
+    // Third call succeeds
     stubPrisonerDetails(
       prisonNumberOne,
       "PrisonerOne",

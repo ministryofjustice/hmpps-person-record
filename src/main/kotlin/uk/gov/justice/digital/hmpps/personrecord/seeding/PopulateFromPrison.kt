@@ -47,7 +47,7 @@ class PopulateFromPrison(
       log.info("Starting Prison seeding, total pages: $totalPages")
       for (page in 1..totalPages) {
         log.info("Processing Prison seeding, page: $page / $totalPages")
-        runWithRetryHTTP(retries, delayMillis) {
+        runWithRetryHTTP(delayMillis) {
           prisonerSearchClient.getPrisonNumbers(PrisonNumbers(numbers))
         }?.forEach {
           val person = Person.from(it)
@@ -57,7 +57,7 @@ class PopulateFromPrison(
 
         // don't really like this, but it saves 1 call to getPrisonNumbers
         if (page < totalPages) {
-          runWithRetryHTTP(retries, delayMillis) {
+          runWithRetryHTTP(delayMillis) {
             numbers = prisonServiceClient.getPrisonNumbers(PageParams(page, pageSize))!!.numbers
           }
         }

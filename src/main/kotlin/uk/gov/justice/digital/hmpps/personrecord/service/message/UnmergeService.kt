@@ -28,7 +28,7 @@ class UnmergeService(
 ) {
 
   fun processUnmerge(unmergeEvent: UnmergeEvent, reactivatedPersonCallback: () -> PersonEntity?, unmergedPersonCallback: () -> PersonEntity?) = runBlocking {
-    runWithRetryDatabase(MAX_ATTEMPTS, retryDelay) {
+    runWithRetryDatabase(retryDelay) {
       processUnmergingOfRecords(unmergeEvent, reactivatedPersonCallback, unmergedPersonCallback)
     }
   }
@@ -153,6 +153,5 @@ class UnmergeService(
       REACTIVATED,
       UNMERGED,
     }
-    const val MAX_ATTEMPTS: Int = 5
   }
 }

@@ -74,7 +74,6 @@ class MatchService(
   private fun getScores(matchRequest: MatchRequest): MatchResponse? = runBlocking {
     try {
       return@runBlocking RetryExecutor.runWithRetryHTTP(
-        MAX_RETRY_ATTEMPTS,
         retryDelay,
       ) { matchScoreClient.getMatchScores(matchRequest) }
     } catch (exception: Exception) {
