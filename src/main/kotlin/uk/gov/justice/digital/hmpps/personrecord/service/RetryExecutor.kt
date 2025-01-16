@@ -19,6 +19,7 @@ private const val HTTP_TRY_COUNT = 3
 private const val DB_TRY_COUNT = 5
 
 object RetryExecutor {
+  private const val MAX_DELAY_MILLIS: Long = 1000
   private const val JITTER_MIN = 0.8
   private const val JITTER_MAX = 1.2
   private const val EXPONENTIAL_FACTOR = 2.0
@@ -27,7 +28,6 @@ object RetryExecutor {
     maxAttempts: Int,
     delay: Long,
     exceptions: List<KClass<out Exception>>,
-    maxDelayMillis: Long = 1000,
     action: suspend () -> T,
   ): T {
     var currentDelay = delay
@@ -48,7 +48,7 @@ object RetryExecutor {
 
             delay(delayTime)
 
-            currentDelay = min((currentDelay * EXPONENTIAL_FACTOR).toLong(), maxDelayMillis)
+            currentDelay = min((currentDelay * EXPONENTIAL_FACTOR).toLong(), MAX_DELAY_MILLIS)
           }
           else -> {
             log.info("Failed to retry on class" + e::class)
@@ -62,15 +62,13 @@ object RetryExecutor {
 
   suspend fun <T> runWithRetryHTTP(
     delay: Long,
-    maxDelayMillis: Long = 1000,
     action: suspend () -> T,
-  ): T = runWithRetry(HTTP_TRY_COUNT, delay, HTTP_RETRY_EXCEPTIONS, maxDelayMillis, action)
+  ): T = runWithRetry(HTTP_TRY_COUNT, delay, HTTP_RETRY_EXCEPTIONS, action)
 
   suspend fun <T> runWithRetryDatabase(
     delay: Long,
-    maxDelayMillis: Long = 1000,
     action: suspend () -> T,
-  ): T = runWithRetry(DB_TRY_COUNT, delay, ENTITY_RETRY_EXCEPTIONS, maxDelayMillis, action)
+  ): T = runWithRetry(DB_TRY_COUNT, delay, ENTITY_RETRY_EXCEPTIONS, action)
 
   private val ENTITY_RETRY_EXCEPTIONS = listOf(
     ObjectOptimisticLockingFailureException::class,
