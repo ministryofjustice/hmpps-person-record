@@ -28,7 +28,7 @@ class MergeService(
 ) {
 
   fun processMerge(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) = runBlocking {
-    runWithRetryDatabase(MAX_ATTEMPTS, retryDelay) {
+    runWithRetryDatabase(retryDelay) {
       processMergingOfRecords(mergeEvent, sourcePersonCallback, targetPersonCallback)
     }
   }
@@ -162,7 +162,5 @@ class MergeService(
       TARGET,
       SOURCE,
     }
-
-    const val MAX_ATTEMPTS: Int = 5
   }
 }

@@ -25,7 +25,7 @@ class DeletionService(
 ) {
 
   fun processDelete(event: String?, personCallback: () -> PersonEntity?) = runBlocking {
-    runWithRetryDatabase(MAX_ATTEMPTS, retryDelay) {
+    runWithRetryDatabase(retryDelay) {
       personCallback()?.let {
         handleDeletion(event, it)
       }
@@ -86,9 +86,5 @@ class DeletionService(
   private fun removeLinkToRecord(personEntity: PersonEntity) {
     personEntity.personKey?.personEntities?.remove(personEntity)
     personKeyRepository.save(personEntity.personKey!!)
-  }
-
-  companion object {
-    const val MAX_ATTEMPTS: Int = 5
   }
 }

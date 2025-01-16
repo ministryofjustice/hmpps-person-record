@@ -15,8 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
 
-const val MAX_RETRY_ATTEMPTS: Int = 3
-
 @Component
 class MatchService(
   private val matchScoreClient: MatchScoreClient,
@@ -74,7 +72,6 @@ class MatchService(
   private fun getScores(matchRequest: MatchRequest): MatchResponse? = runBlocking {
     try {
       return@runBlocking RetryExecutor.runWithRetryHTTP(
-        MAX_RETRY_ATTEMPTS,
         retryDelay,
       ) { matchScoreClient.getMatchScores(matchRequest) }
     } catch (exception: Exception) {
