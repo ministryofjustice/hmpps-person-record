@@ -162,7 +162,5 @@ class MergeService(
       TARGET,
       SOURCE,
     }
-
-    const val MAX_ATTEMPTS: Int = 5
   }
 }

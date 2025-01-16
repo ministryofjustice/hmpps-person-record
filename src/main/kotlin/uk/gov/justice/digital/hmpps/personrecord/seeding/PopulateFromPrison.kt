@@ -27,7 +27,6 @@ class PopulateFromPrison(
   val prisonServiceClient: PrisonServiceClient,
   @Value("\${populate-from-nomis.page-size}") val pageSize: Int,
   @Value("\${populate-from-nomis.retry.delay}") val delayMillis: Long,
-  @Value("\${populate-from-nomis.retry.times}") val retries: Int,
   val repository: PersonRepository,
 ) {
 

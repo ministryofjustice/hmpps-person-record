@@ -87,8 +87,4 @@ class DeletionService(
     personEntity.personKey?.personEntities?.remove(personEntity)
     personKeyRepository.save(personEntity.personKey!!)
   }
-
-  companion object {
-    const val MAX_ATTEMPTS: Int = 5
-  }
 }
