@@ -14,12 +14,8 @@ class TransactionalProcessor(
 ) {
 
   fun processMessage(person: Person, event: String? = null, callback: () -> PersonEntity?): PersonEntity = runBlocking {
-    runWithRetryDatabase(MAX_ATTEMPTS, retryDelay) {
+    runWithRetryDatabase(retryDelay) {
       return@runWithRetryDatabase createUpdateService.processPerson(person, event, callback)
     }
-  }
-
-  companion object {
-    private const val MAX_ATTEMPTS = 5
   }
 }
