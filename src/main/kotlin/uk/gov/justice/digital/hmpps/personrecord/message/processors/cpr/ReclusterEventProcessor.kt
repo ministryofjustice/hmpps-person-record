@@ -26,14 +26,10 @@ class ReclusterEventProcessor(
       CPR_RECLUSTER_MESSAGE_RECEIVED,
       mapOf(EventKeys.UUID to reclusterEvent.uuid),
     )
-    RetryExecutor.runWithRetryDatabase(MAX_ATTEMPTS, retryDelay) {
+    RetryExecutor.runWithRetryDatabase(retryDelay) {
       personKeyRepository.findByPersonId(personUUID)?.let {
         reclusterService.recluster(it)
       }
     }
-  }
-
-  companion object {
-    private const val MAX_ATTEMPTS = 5
   }
 }

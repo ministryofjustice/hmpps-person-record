@@ -22,7 +22,6 @@ class UpdateFromProbation(
   val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
   @Value("\${populate-from-probation.page-size}") val pageSize: Int,
   @Value("\${populate-from-probation.retry.delay}") val delayMillis: Long,
-  @Value("\${populate-from-probation.retry.times}") val retries: Int,
   val repository: PersonRepository,
 ) {
 
@@ -44,7 +43,7 @@ class UpdateFromProbation(
       log.info("Starting DELIUS updates, starting page $startPage, total pages: $totalPages")
       for (page in startPage..<totalPages) {
         log.info("Processing DELIUS updates, page: $page / $totalPages")
-        RetryExecutor.runWithRetryHTTP(retries, delayMillis) {
+        RetryExecutor.runWithRetryHTTP(delayMillis) {
           corePersonRecordAndDeliusClient.getProbationCases(CorePersonRecordAndDeliusClientPageParams(page, pageSize))
         }?.cases?.forEach {
           val person = Person.from(it)

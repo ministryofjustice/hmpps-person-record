@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.format
 
 import kotlinx.coroutines.runBlocking
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
@@ -20,7 +19,7 @@ class EncodingService(
 
   fun getProbationCase(crn: String): Result<ProbationCase?> = runCatching {
     runBlocking {
-      RetryExecutor.runWithRetryHTTP(MAX_RETRY_ATTEMPTS, retryDelay) {
+      RetryExecutor.runWithRetryHTTP(retryDelay) {
         corePersonRecordAndDeliusClient.getProbationCase(crn)
       }
     }
@@ -28,14 +27,9 @@ class EncodingService(
 
   fun getPrisonerDetails(prisonNumber: String): Result<Prisoner?> = runCatching {
     runBlocking {
-      RetryExecutor.runWithRetryHTTP(MAX_RETRY_ATTEMPTS, retryDelay) {
+      RetryExecutor.runWithRetryHTTP(retryDelay) {
         prisonerSearchClient.getPrisoner(prisonNumber)
       }
     }
-  }
-
-  companion object {
-    private const val MAX_RETRY_ATTEMPTS: Int = 3
-    internal val log = LoggerFactory.getLogger(this::class.java)
   }
 }
