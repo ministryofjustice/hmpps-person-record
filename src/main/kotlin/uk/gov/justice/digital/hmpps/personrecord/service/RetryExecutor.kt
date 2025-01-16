@@ -14,20 +14,29 @@ import kotlin.math.min
 import kotlin.random.Random
 import kotlin.reflect.KClass
 
+private const val DB_TRY_COUNT = 5
 private const val HTTP_TRY_COUNT = 3
 
-private const val DB_TRY_COUNT = 5
+private const val EXPONENTIAL_FACTOR = 2.0
+private const val JITTER_MIN = 0.8
+private const val JITTER_MAX = 1.2
+private const val MAX_DELAY_MILLIS: Long = 1000
 
 object RetryExecutor {
-  private const val JITTER_MIN = 0.8
-  private const val JITTER_MAX = 1.2
-  private const val EXPONENTIAL_FACTOR = 2.0
 
+  suspend fun <T> runWithRetryHTTP(
+    delay: Long,
+    action: suspend () -> T,
+  ): T = runWithRetry(HTTP_TRY_COUNT, delay, HTTP_RETRY_EXCEPTIONS, action)
+
+  suspend fun <T> runWithRetryDatabase(
+    delay: Long,
+    action: suspend () -> T,
+  ): T = runWithRetry(DB_TRY_COUNT, delay, ENTITY_RETRY_EXCEPTIONS, action)
   private suspend fun <T> runWithRetry(
     maxAttempts: Int,
     delay: Long,
     exceptions: List<KClass<out Exception>>,
-    maxDelayMillis: Long = 1000,
     action: suspend () -> T,
   ): T {
     var currentDelay = delay
@@ -48,10 +57,10 @@ object RetryExecutor {
 
             delay(delayTime)
 
-            currentDelay = min((currentDelay * EXPONENTIAL_FACTOR).toLong(), maxDelayMillis)
+            currentDelay = min((currentDelay * EXPONENTIAL_FACTOR).toLong(), MAX_DELAY_MILLIS)
           }
           else -> {
-            log.info("Failed to retry on class" + e::class)
+            log.info("Failed to retry on class ${e::class}")
             throw e
           }
         }
@@ -59,18 +68,6 @@ object RetryExecutor {
     }
     throw lastException ?: RuntimeException("Unexpected error")
   }
-
-  suspend fun <T> runWithRetryHTTP(
-    delay: Long,
-    maxDelayMillis: Long = 1000,
-    action: suspend () -> T,
-  ): T = runWithRetry(HTTP_TRY_COUNT, delay, HTTP_RETRY_EXCEPTIONS, maxDelayMillis, action)
-
-  suspend fun <T> runWithRetryDatabase(
-    delay: Long,
-    maxDelayMillis: Long = 1000,
-    action: suspend () -> T,
-  ): T = runWithRetry(DB_TRY_COUNT, delay, ENTITY_RETRY_EXCEPTIONS, maxDelayMillis, action)
 
   private val ENTITY_RETRY_EXCEPTIONS = listOf(
     ObjectOptimisticLockingFailureException::class,
