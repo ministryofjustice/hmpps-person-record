@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.message
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -13,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
-import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetryDatabase
+import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
@@ -24,11 +23,11 @@ class MergeService(
   private val personRepository: PersonRepository,
   private val personKeyRepository: PersonKeyRepository,
   private val eventLoggingService: EventLoggingService,
-  @Value("\${retry.delay}") private val retryDelay: Long,
+  private val retryExecutor: RetryExecutor,
 ) {
 
   fun processMerge(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) = runBlocking {
-    runWithRetryDatabase(retryDelay) {
+    retryExecutor.runWithRetryDatabase {
       processMergingOfRecords(mergeEvent, sourcePersonCallback, targetPersonCallback)
     }
   }

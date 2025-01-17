@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.search
 
 import kotlinx.coroutines.runBlocking
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchRecord
@@ -19,8 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class MatchService(
   private val matchScoreClient: MatchScoreClient,
   private val telemetryService: TelemetryService,
-  @Value("\${retry.delay}")
-  private val retryDelay: Long = 0,
+  private val retryExecutor: RetryExecutor,
 ) {
 
   fun findHighConfidenceMatches(candidateRecords: List<PersonEntity>, searchCriteria: PersonSearchCriteria): List<MatchResult> {
@@ -71,9 +69,7 @@ class MatchService(
 
   private fun getScores(matchRequest: MatchRequest): MatchResponse? = runBlocking {
     try {
-      return@runBlocking RetryExecutor.runWithRetryHTTP(
-        retryDelay,
-      ) { matchScoreClient.getMatchScores(matchRequest) }
+      return@runBlocking retryExecutor.runWithRetryHTTP { matchScoreClient.getMatchScores(matchRequest) }
     } catch (exception: Exception) {
       telemetryService.trackEvent(
         MATCH_CALL_FAILED,
