@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 import java.time.LocalDate
 
 data class Prisoner(
-  val birthPlace: String? = null,
-  val birthCountry: String? = null,
   val nationality: String? = null,
   val secondaryNationality: String? = null,
   val religion: String? = null,
@@ -12,10 +10,10 @@ data class Prisoner(
   val sexualOrientation: String? = null,
   val interestToImmigration: Boolean? = null,
   val disability: Boolean? = null,
-  val currentlyManaged: Boolean? = null,
+  val status: String? = null,
   val sentenceStartDates: List<LocalDate> = emptyList(),
   val phoneNumbers: List<PhoneNumber> = emptyList(),
-  val emails: List<String> = emptyList(),
+  val emails: List<Email> = emptyList(),
   val offenders: List<Names> = emptyList(),
   val addresses: List<Address> = emptyList(),
 )
@@ -30,9 +28,9 @@ data class Religion(
 )
 
 data class PhoneNumber(
-  val phoneId: String? = null,
+  val phoneId: Long? = null,
   val phoneNumber: String? = null,
-  val phoneType: String? = null,
+  val phoneType: PhoneType? = null,
   val phoneExtension: String? = null,
 )
 
@@ -43,18 +41,24 @@ data class Names(
   val middleName2: String? = null,
   val lastName: String? = null,
   val dateOfBirth: LocalDate? = null,
-  val type: String? = null,
+  val birthPlace: String? = null,
+  val birthCountry: String? = null,
+  val nameType: NameType? = null,
   val sex: String? = null,
-  val ethnicity: String? = null,
-  val race: String? = null,
+  val raceCode: String? = null,
   val created: LocalDate? = null,
   val offenderId: String? = null,
   val workingName: Boolean? = null,
   val identifiers: List<Identifier> = emptyList(),
 )
 
+data class Email(
+  val id: Long? = null,
+  val emailAddress: String? = null,
+)
+
 data class Address(
-  val id: String? = null,
+  val id: Long? = null,
   val type: String? = null,
   val flat: String? = null,
   val premise: String? = null,
@@ -80,14 +84,33 @@ data class Identifier(
 data class CreateResponse(
   val addressIds: List<AddressId> = emptyList(),
   val phoneIds: List<PhoneId> = emptyList(),
+  val emailIds: List<EmailId> = emptyList(),
 )
 
 data class AddressId(
-  val nomisAddressId: String? = null,
+  val nomisAddressId: Long? = null,
   val cprAddressId: String? = null,
 )
 
 data class PhoneId(
-  val nomisPhoneId: String? = null,
+  val nomisPhoneId: Long? = null,
   val cprPhoneId: String? = null,
 )
+
+data class EmailId(
+  val nomisEmailId: Long? = null,
+  val cprEmailId: String? = null,
+)
+
+enum class NameType {
+  CURRENT,
+  ALIAS,
+  NICKNAME,
+  MAIDEN,
+}
+
+enum class PhoneType {
+  HOME,
+  MOBILE,
+  BUSINESS,
+}
