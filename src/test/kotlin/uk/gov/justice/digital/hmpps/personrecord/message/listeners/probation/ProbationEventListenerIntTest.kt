@@ -383,4 +383,19 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(loggedEvent.processedData).isEqualTo(processedData)
     assertThat(loggedEvent.uuid).isEqualTo(updatedPersonEntity.personKey?.personId.toString())
   }
+
+  @Test
+  fun `should handle multiple offender updates in a short period`() {
+    val firstName = randomName()
+    val crn = randomCRN()
+
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, firstName = firstName))
+
+    awaitNotNullPerson { personRepository.findByCrn(crn) }
+
+    val changedFirstName = randomName()
+    blitz(30, 5) { probationEventAndResponseSetup(OFFENDER_DETAILS_CHANGED, ApiResponseSetup(crn = crn, firstName = changedFirstName)) }
+
+    awaitAssert { assertThat(personRepository.findByCrn(crn)?.firstName).isEqualTo(changedFirstName) }
+  }
 }

@@ -25,15 +25,15 @@ private const val JITTER_MAX = 1.2
 private const val MAX_DELAY_MILLIS: Long = 1000
 
 @Component
-class RetryExecutor(@Value("\${retry.delay}") val delayMillis: Long) {
+class RetryExecutor(@Value("\${retry.delay}") private val delayMillis: Long) {
 
   suspend fun <T> runWithRetryHTTP(
     action: suspend () -> T,
-  ): T = runWithRetry(HTTP_TRY_COUNT, httpRetryExceptions, action)
+  ): T = runWithRetry(HTTP_TRY_COUNT, httpExceptions, action)
 
   suspend fun <T> runWithRetryDatabase(
     action: suspend () -> T,
-  ): T = runWithRetry(DB_TRY_COUNT, entityRetryExceptions, action)
+  ): T = runWithRetry(DB_TRY_COUNT, entityExceptions, action)
   private suspend fun <T> runWithRetry(
     maxAttempts: Int,
     exceptions: List<KClass<out Exception>>,
@@ -50,13 +50,12 @@ class RetryExecutor(@Value("\${retry.delay}") val delayMillis: Long) {
         when {
           e::class in exceptions -> {
             lastException = e
-            log.info("Retrying on error: ${e.message}")
 
             val jitterValue = Random.nextDouble(JITTER_MIN, JITTER_MAX)
             val delayTime = (currentDelay * jitterValue).toLong()
 
             delay(delayTime)
-
+            log.info("Retrying on error: ${e.message} with delay $delayTime")
             currentDelay = min((currentDelay * EXPONENTIAL_FACTOR).toLong(), MAX_DELAY_MILLIS)
           }
           else -> {
@@ -69,7 +68,7 @@ class RetryExecutor(@Value("\${retry.delay}") val delayMillis: Long) {
     throw lastException ?: RuntimeException("Unexpected error")
   }
 
-  private val entityRetryExceptions = listOf(
+  private val entityExceptions = listOf(
     ObjectOptimisticLockingFailureException::class,
     CannotAcquireLockException::class,
     JpaSystemException::class,
@@ -79,5 +78,5 @@ class RetryExecutor(@Value("\${retry.delay}") val delayMillis: Long) {
     StaleObjectStateException::class,
   )
 
-  private val httpRetryExceptions = listOf(feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class, FeignException.BadGateway::class)
+  private val httpExceptions = listOf(feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class, FeignException.BadGateway::class)
 }
