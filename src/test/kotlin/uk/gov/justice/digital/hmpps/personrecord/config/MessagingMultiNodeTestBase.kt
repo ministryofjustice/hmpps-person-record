@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase.Companion.BASE_SCENARIO
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
@@ -198,8 +199,8 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   ) {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
 
-    val crnType = apiResponseSetup.crn?.let { PersonIdentifier("CRN", it) }
-    val personReference = PersonReference(crnType?.let { listOf(crnType) } ?: listOf())
+    val crnType = PersonIdentifier("CRN", apiResponseSetup.crn!!)
+    val personReference = PersonReference(listOf(crnType))
 
     val domainEvent = DomainEvent(
       eventType = eventType,

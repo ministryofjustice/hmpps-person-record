@@ -46,7 +46,7 @@ fun randomPrisonNumber(): String = randomLowerCaseString(2).uppercase() + random
 
 fun randomDefendantId(): String = UUID.randomUUID().toString()
 
-fun randomCRN(): String = randomLowerCaseString(1).uppercase() + randomDigit(6)
+fun randomCrn(): String = randomLowerCaseString(1).uppercase() + randomDigit(6)
 fun randomNINumber(): String = randomLowerCaseString(2).uppercase() + randomDigit(6) + randomLowerCaseString(1).uppercase()
 
 fun randomPostcode(): String = randomLowerCaseString(2).uppercase() + randomDigit(1) + " " + randomDigit(1) + randomLowerCaseString(2).uppercase()
