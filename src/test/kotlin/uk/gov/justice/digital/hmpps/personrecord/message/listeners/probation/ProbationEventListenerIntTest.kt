@@ -122,6 +122,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.contacts[1].contactValue).isEqualTo("01234567890")
     assertThat(personEntity.contacts[2].contactType).isEqualTo(ContactType.EMAIL)
     assertThat(personEntity.contacts[2].contactValue).isEqualTo("test@gmail.com")
+    assertThat(personEntity.matchId).isNotNull()
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))

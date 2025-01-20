@@ -50,7 +50,7 @@ class UpdateFromProbation(
 
           repository.findByCrn(person.crn!!).shouldCreateOrUpdate(
             shouldCreate = {
-              val personToSave = PersonEntity.from(person)
+              val personToSave = PersonEntity.new(person)
               repository.saveAndFlush(personToSave)
             },
             shouldUpdate = {
