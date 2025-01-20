@@ -10,8 +10,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import software.amazon.awssdk.services.sns.model.PublishRequest
-import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.ProbationEvent
@@ -109,12 +107,13 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         "eventType" to MessageAttributeValue.builder().dataType("String")
           .stringValue(eventType).build(),
       ),
+      eventType,
     )
     expectNoMessagesOn(probationEventsQueue)
     expectNoMessagesOn(probationMergeEventsQueue)
     expectNoMessagesOn(prisonMergeEventsQueue)
     expectNoMessagesOn(prisonEventsQueue)
-    return response!!.messageId()
+    return response!!
   }
 
   fun publishProbationEvent(eventType: String, probationEvent: ProbationEvent) {
@@ -125,16 +124,12 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         "eventType" to MessageAttributeValue.builder().dataType("String")
           .stringValue(eventType).build(),
       ),
+      eventType,
     )
     expectNoMessagesOn(probationEventsQueue)
   }
 
-  private fun publishEvent(message: String, topic: HmppsTopic?, messageAttributes: Map<String, MessageAttributeValue>): PublishResponse? {
-    val publishRequest = PublishRequest.builder().topicArn(topic?.arn)
-      .message(message)
-      .messageAttributes(messageAttributes).build()
-    return topic?.snsClient?.publish(publishRequest)?.get()
-  }
+  private fun publishEvent(message: String, topic: HmppsTopic?, messageAttributes: Map<String, MessageAttributeValue>, eventType: String): String? = topic?.publish(event = message, eventType = eventType, attributes = messageAttributes)?.messageId()
 
   fun probationMergeEventAndResponseSetup(
     eventType: String,
