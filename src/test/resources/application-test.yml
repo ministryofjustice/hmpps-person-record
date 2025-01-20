@@ -80,12 +80,6 @@ spring:
 
 populate-from-nomis:
     page-size: 2
-    retry:
-      delay: 200
-      times: 10
 
 populate-from-probation:
   page-size: 2
-  retry:
-    delay: 200
-    times: 10

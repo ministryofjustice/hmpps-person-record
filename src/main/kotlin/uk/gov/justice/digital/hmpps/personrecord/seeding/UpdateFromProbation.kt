@@ -19,11 +19,10 @@ import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 
 @RestController
 class UpdateFromProbation(
-  val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
-  @Value("\${populate-from-probation.page-size}") val pageSize: Int,
-  @Value("\${populate-from-probation.retry.delay}") val delayMillis: Long,
-  @Value("\${populate-from-probation.retry.times}") val retries: Int,
-  val repository: PersonRepository,
+  private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
+  @Value("\${populate-from-probation.page-size}") private val pageSize: Int,
+  private val repository: PersonRepository,
+  private val retryExecutor: RetryExecutor,
 ) {
 
   @RequestMapping(method = [POST], value = ["/updatefromprobation"])
@@ -44,7 +43,7 @@ class UpdateFromProbation(
       log.info("Starting DELIUS updates, starting page $startPage, total pages: $totalPages")
       for (page in startPage..<totalPages) {
         log.info("Processing DELIUS updates, page: $page / $totalPages")
-        RetryExecutor.runWithRetryHTTP(retries, delayMillis) {
+        retryExecutor.runWithRetryHTTP {
           corePersonRecordAndDeliusClient.getProbationCases(CorePersonRecordAndDeliusClientPageParams(page, pageSize))
         }?.cases?.forEach {
           val person = Person.from(it)
