@@ -69,7 +69,7 @@ class SearchController(
     @PathVariable(name = "prisonNumber")
     @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true)
     prisonNumber: String,
-  ): List<PersonIdentifierRecord> = handlePersonRecord(personRepository.findByPrisonNumberAndSourceSystem(prisonNumber), prisonNumber)
+  ): List<PersonIdentifierRecord> = handlePersonRecord(personRepository.findByPrisonNumber(prisonNumber), prisonNumber)
 
   @Operation(description = "Search for person record and associated records with a defendant identifier within the system")
   @GetMapping("/search/defendant/{defendantId}")

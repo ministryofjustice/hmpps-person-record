@@ -85,7 +85,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
 
     awaitAssert {
-      val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
+      val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
       assertThat(personEntity.personKey).isNotNull()
       assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
       assertThat(personEntity.title).isEqualTo("Ms")
@@ -142,7 +142,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
 
     awaitAssert {
-      val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
+      val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
 
       assertThat(personEntity.nationality).isEqualTo(null)
       assertThat(personEntity.religion).isEqualTo(null)
@@ -165,7 +165,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to "NOMIS"))
 
     awaitAssert {
-      val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisonNumber)!!
+      val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
       assertThat(personEntity.sentenceInfo.size).isEqualTo(0)
     }
 
@@ -313,7 +313,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber),
     )
 
-    val personEntity = awaitNotNullPerson { personRepository.findByPrisonNumberAndSourceSystem(prisonNumber) }
+    val personEntity = awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumber) }
     assertThat(personEntity.currentlyManaged).isEqualTo(result)
   }
 
@@ -321,7 +321,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should map to EventLogging table when prisoner create and update event`() {
     val prisoner = createPrisoner()
 
-    val personEntity = personRepository.findByPrisonNumberAndSourceSystem(prisoner.prisonNumber!!)
+    val personEntity = personRepository.findByPrisonNumber(prisoner.prisonNumber!!)
     val beforeDataTO = personEntity?.let { Person.from(it) }
     val beforeData = objectMapper.writeValueAsString(beforeDataTO)
 
@@ -331,7 +331,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, personReference = null, additionalInformation = additionalInformation)
     publishDomainEvent(PRISONER_UPDATED, domainEvent)
 
-    val updatedPersonEntity = awaitNotNullPerson { personRepository.findByPrisonNumberAndSourceSystem(prisoner.prisonNumber!!) }
+    val updatedPersonEntity = awaitNotNullPerson { personRepository.findByPrisonNumber(prisoner.prisonNumber!!) }
 
     val processedDTO = Person.from(updatedPersonEntity)
     val processedData = objectMapper.writeValueAsString(processedDTO)
