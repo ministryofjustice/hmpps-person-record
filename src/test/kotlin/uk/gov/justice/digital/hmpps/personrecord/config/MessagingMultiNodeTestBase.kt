@@ -27,6 +27,7 @@ import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.HmppsTopic
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
+import uk.gov.justice.hmpps.sqs.publish
 import java.util.UUID
 
 @ExtendWith(MultiApplicationContextExtension::class)
@@ -71,24 +72,21 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId(Queues.RECLUSTER_EVENTS_QUEUE_ID)
   }
 
-  internal fun publishCourtMessage(message: String, messageType: MessageType, topic: String = courtEventsTopic?.arn!!): String {
-    var publishRequest = PublishRequest.builder()
-      .topicArn(topic)
-      .message(message)
-      .messageAttributes(
-        mapOf(
-          "messageType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(messageType.name).build(),
-          "messageId" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(UUID.randomUUID().toString()).build(),
-        ),
-      )
-      .messageGroupId(messageType.name).build()
-
-    val response: PublishResponse? = courtEventsTopic?.snsClient?.publish(publishRequest)?.get()
+  internal fun publishCourtMessage(message: String, messageType: MessageType): String {
+    val publishResponse = courtEventsTopic?.publish(
+      eventType = messageType.name,
+      event = message,
+      attributes = mapOf(
+        "messageType" to MessageAttributeValue.builder().dataType("String")
+          .stringValue(messageType.name).build(),
+        "messageId" to MessageAttributeValue.builder().dataType("String")
+          .stringValue(UUID.randomUUID().toString()).build(),
+      ),
+      messageGroupId = messageType.name,
+    )
 
     expectNoMessagesOn(courtEventsQueue)
-    return response!!.messageId()
+    return publishResponse!!.messageId()
   }
 
   fun expectNoMessagesOn(queue: HmppsQueue?) {
