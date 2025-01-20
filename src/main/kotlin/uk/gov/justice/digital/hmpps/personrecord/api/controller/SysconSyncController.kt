@@ -47,5 +47,12 @@ class SysconSyncController {
     @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true)
     prisonNumber: String,
     @RequestBody prisoner: Prisoner,
-  ): CreateResponse = CreateResponse()
+  ): CreateResponse {
+    log.info("Prisoner record received for noms number {} with a status of {}", prisonNumber, prisoner.status)
+    return CreateResponse()
+  }
+
+  private companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
 }
