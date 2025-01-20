@@ -72,7 +72,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   }
 
   internal fun publishCourtMessage(message: String, messageType: MessageType, topic: String = courtEventsTopic?.arn!!): String {
-    var messageBuilder = PublishRequest.builder()
+    var publishRequest = PublishRequest.builder()
       .topicArn(topic)
       .message(message)
       .messageAttributes(
@@ -83,11 +83,9 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
             .stringValue(UUID.randomUUID().toString()).build(),
         ),
       )
-    if (topic.contains(".fifo")) {
-      messageBuilder = messageBuilder.messageGroupId(messageType.name)
-    }
+      .messageGroupId(messageType.name).build()
 
-    val response: PublishResponse? = courtEventsTopic?.snsClient?.publish(messageBuilder.build())?.get()
+    val response: PublishResponse? = courtEventsTopic?.snsClient?.publish(publishRequest)?.get()
 
     expectNoMessagesOn(courtEventsQueue)
     return response!!.messageId()
@@ -106,9 +104,8 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   }
 
   fun publishDomainEvent(eventType: String, domainEvent: DomainEvent): String {
-    val domainEventAsString = objectMapper.writeValueAsString(domainEvent)
     val response = publishEvent(
-      domainEventAsString,
+      objectMapper.writeValueAsString(domainEvent),
       domainEventsTopic,
       mapOf(
         "eventType" to MessageAttributeValue.builder().dataType("String")
@@ -122,10 +119,9 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     return response!!.messageId()
   }
 
-  fun publishProbationEvent(eventType: String, probationEvent: ProbationEvent): String {
-    val probationEventAsString = objectMapper.writeValueAsString(probationEvent)
-    val response = publishEvent(
-      probationEventAsString,
+  fun publishProbationEvent(eventType: String, probationEvent: ProbationEvent) {
+    publishEvent(
+      objectMapper.writeValueAsString(probationEvent),
       domainEventsTopic,
       mapOf(
         "eventType" to MessageAttributeValue.builder().dataType("String")
@@ -133,7 +129,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       ),
     )
     expectNoMessagesOn(probationEventsQueue)
-    return response!!.messageId()
   }
 
   private fun publishEvent(message: String, topic: HmppsTopic?, messageAttributes: Map<String, MessageAttributeValue>): PublishResponse? {
