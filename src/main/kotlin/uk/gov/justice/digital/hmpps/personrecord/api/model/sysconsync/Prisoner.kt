@@ -88,17 +88,17 @@ data class CreateResponse(
 )
 
 data class AddressId(
-  val nomisAddressId: Long? = null,
+  val prisonAddressId: Long? = null,
   val cprAddressId: String? = null,
 )
 
 data class PhoneId(
-  val nomisPhoneId: Long? = null,
+  val prisonPhoneId: Long? = null,
   val cprPhoneId: String? = null,
 )
 
 data class EmailId(
-  val nomisEmailId: Long? = null,
+  val prisonEmailId: Long? = null,
   val cprEmailId: String? = null,
 )
 
