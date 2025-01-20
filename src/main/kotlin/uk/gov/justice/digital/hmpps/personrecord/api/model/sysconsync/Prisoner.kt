@@ -5,7 +5,7 @@ import java.time.LocalDate
 data class Prisoner(
   val nationality: String? = null,
   val secondaryNationality: String? = null,
-  val religion: String? = null,
+  val religion: List<Religion> = emptyList(),
   val prisonNumber: String? = null,
   val sexualOrientation: String? = null,
   val interestToImmigration: Boolean? = null,
@@ -18,13 +18,13 @@ data class Prisoner(
   val addresses: List<Address> = emptyList(),
 )
 
-// leaving this in right now, even though not referenced above as it likely to be needed in the very near future
 data class Religion(
   val startDate: LocalDate? = null,
   val endDate: LocalDate? = null,
   val religion: String? = null,
   val status: String? = null,
-  val userId: String? = null,
+  val createdUserId: String? = null,
+  val updatedUserId: String? = null,
 )
 
 data class PhoneNumber(
@@ -44,7 +44,7 @@ data class Names(
   val birthPlace: String? = null,
   val birthCountry: String? = null,
   val nameType: NameType? = null,
-  val sex: String? = null,
+  val sex: Sex? = null,
   val raceCode: String? = null,
   val created: LocalDate? = null,
   val offenderId: String? = null,
@@ -113,4 +113,12 @@ enum class PhoneType {
   HOME,
   MOBILE,
   BUSINESS,
+}
+
+enum class Sex {
+  MALE,
+  FEMALE,
+  NOT_KNOWN,
+  NOT_SPECIFIED,
+  REFUSED,
 }
