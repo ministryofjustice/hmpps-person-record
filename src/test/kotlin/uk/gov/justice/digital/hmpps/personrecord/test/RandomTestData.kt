@@ -37,7 +37,6 @@ fun randomEthnicity(): String = randomLowerCaseString()
 fun randomNationality(): String = randomLowerCaseString()
 fun randomReligion(): String = randomLowerCaseString()
 
-fun randomNationalInsuranceNumber(): String = UUID.randomUUID().toString()
 fun randomDriverLicenseNumber(): String = UUID.randomUUID().toString()
 
 fun randomFullAddress(): String = randomDigit(2) + " " + randomLowerCaseString(8) + ", " + randomLowerCaseString(10) + ", " + randomPostcode()
@@ -46,8 +45,8 @@ fun randomPrisonNumber(): String = randomLowerCaseString(2).uppercase() + random
 
 fun randomDefendantId(): String = UUID.randomUUID().toString()
 
-fun randomCRN(): String = randomLowerCaseString(1).uppercase() + randomDigit(6)
-fun randomNINumber(): String = randomLowerCaseString(2).uppercase() + randomDigit(6) + randomLowerCaseString(1).uppercase()
+fun randomCrn(): String = randomLowerCaseString(1).uppercase() + randomDigit(6)
+fun randomNationalInsuranceNumber(): String = randomLowerCaseString(2).uppercase() + randomDigit(6) + randomLowerCaseString(1).uppercase()
 
 fun randomPostcode(): String = randomLowerCaseString(2).uppercase() + randomDigit(1) + " " + randomDigit(1) + randomLowerCaseString(2).uppercase()
 
