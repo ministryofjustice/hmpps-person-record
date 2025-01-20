@@ -36,6 +36,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
@@ -285,7 +286,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should allow a person to be created from a prison event when an offender record already exists with the prisonNumber`() {
     val prisonNumber = randomPrisonNumber()
-    probationDomainEventAndResponseSetup(eventType = OFFENDER_ALIAS_CHANGED, ApiResponseSetup(pnc = randomPnc(), prisonNumber = prisonNumber))
+    probationDomainEventAndResponseSetup(eventType = OFFENDER_ALIAS_CHANGED, ApiResponseSetup(pnc = randomPnc(), prisonNumber = prisonNumber, crn = randomCRN()))
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
 
