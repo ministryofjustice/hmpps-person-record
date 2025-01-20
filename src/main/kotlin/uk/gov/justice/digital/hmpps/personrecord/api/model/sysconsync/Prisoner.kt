@@ -6,7 +6,6 @@ data class Prisoner(
   val nationality: String? = null,
   val secondaryNationality: String? = null,
   val religion: List<Religion> = emptyList(),
-  val prisonNumber: String? = null,
   val sexualOrientation: String? = null,
   val interestToImmigration: Boolean? = null,
   val disability: Boolean? = null,

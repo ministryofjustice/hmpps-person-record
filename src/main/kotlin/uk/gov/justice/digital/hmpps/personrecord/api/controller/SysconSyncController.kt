@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.constraints.NotBlank
-import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
@@ -48,12 +47,5 @@ class SysconSyncController {
     @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true)
     prisonNumber: String,
     @RequestBody prisoner: Prisoner,
-  ): CreateResponse {
-    log.info("Prisoner {} in body {}", prisonNumber, prisoner.prisonNumber)
-    return CreateResponse()
-  }
-
-  companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
+  ): CreateResponse = CreateResponse()
 }
