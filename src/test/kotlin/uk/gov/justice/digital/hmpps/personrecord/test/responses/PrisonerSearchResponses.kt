@@ -10,9 +10,9 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     "bookingId": "0001200924",
     "bookNumber": "38412A",
     "title": "Ms",
-    "firstName": "${responseSetup.prefix}FirstName",
+    "firstName": "${responseSetup.firstName}",
     "middleNames": "${responseSetup.prefix}MiddleName1 ${responseSetup.prefix}MiddleName2",
-    "lastName": "${responseSetup.prefix}LastName",
+    "lastName": "${responseSetup.lastName}",
     "dateOfBirth": "${responseSetup.dateOfBirth}",
     "gender": "Female",
     ${responseSetup.ethnicity?.let { """ "ethnicity": "${responseSetup.ethnicity}", """.trimIndent() } ?: "" }
@@ -31,9 +31,9 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     "aliases": [
       {
         "title": "${responseSetup.prefix}AliasTitle",
-        "firstName": "${responseSetup.prefix}AliasFirstName",
+        "firstName": "${responseSetup.lastName}",
         "middleNames": "${responseSetup.prefix}AliasMiddleName",
-        "lastName": "${responseSetup.prefix}AliasLastName",
+        "lastName": "${responseSetup.firstName}",
         "dateOfBirth": "${responseSetup.dateOfBirth}",
         "gender": "Male",
         "ethnicity": "White : Irish"
