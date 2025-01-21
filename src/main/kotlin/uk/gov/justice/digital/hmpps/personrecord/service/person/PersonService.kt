@@ -38,7 +38,7 @@ class PersonService(
   }
 
   private fun createNewPersonEntity(person: Person): PersonEntity {
-    val personEntity = PersonEntity.from(person)
+    val personEntity = PersonEntity.new(person)
     return personRepository.save(personEntity)
   }
 }
