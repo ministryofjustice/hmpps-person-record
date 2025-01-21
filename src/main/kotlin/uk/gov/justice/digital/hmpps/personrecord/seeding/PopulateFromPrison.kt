@@ -50,7 +50,7 @@ class PopulateFromPrison(
           prisonerSearchClient.getPrisonNumbers(PrisonNumbers(numbers))
         }?.forEach {
           val person = Person.from(it)
-          val personToSave = PersonEntity.from(person)
+          val personToSave = PersonEntity.new(person)
           repository.saveAndFlush(personToSave)
         }
 

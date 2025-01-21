@@ -154,15 +154,15 @@ class PersonEntity(
     this.masterDefendantId = person.masterDefendantId
     this.nationality = person.nationality
     this.religion = person.religion
-    updateChildEntities(person)
-  }
-
-  private fun updateChildEntities(person: Person) {
     pseudonyms.clear()
     addresses.clear()
     contacts.clear()
     references.clear()
     sentenceInfo.clear()
+    updateChildEntities(person)
+  }
+
+  private fun updateChildEntities(person: Person) {
     updatePersonAddresses(person)
     updatePersonContacts(person)
     updatePersonAliases(person)
@@ -219,7 +219,7 @@ class PersonEntity(
       else -> shouldUpdate(this)
     }
 
-    fun from(person: Person): PersonEntity {
+    fun new(person: Person): PersonEntity {
       val personEntity = PersonEntity(
         title = person.title,
         firstName = person.firstName,
