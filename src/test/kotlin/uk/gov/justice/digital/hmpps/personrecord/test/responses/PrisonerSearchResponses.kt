@@ -11,7 +11,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     "bookNumber": "38412A",
     "title": "Ms",
     "firstName": "${responseSetup.firstName}",
-    "middleNames": "${responseSetup.prefix}MiddleName1 ${responseSetup.prefix}MiddleName2",
+    "middleNames": "${responseSetup.middleName} ${responseSetup.middleName}",
     "lastName": "${responseSetup.lastName}",
     "dateOfBirth": "${responseSetup.dateOfBirth}",
     "gender": "Female",
@@ -28,17 +28,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     "lastPrisonId": "MDI",
     "prisonName": "HMP Leeds",
     "cellLocation": "A-1-002",
-    "aliases": [
-      {
-        "title": "${responseSetup.prefix}AliasTitle",
-        "firstName": "${responseSetup.lastName}",
-        "middleNames": "${responseSetup.prefix}AliasMiddleName",
-        "lastName": "${responseSetup.firstName}",
-        "dateOfBirth": "${responseSetup.dateOfBirth}",
-        "gender": "Male",
-        "ethnicity": "White : Irish"
-      }
-    ],
+    "aliases": [${responseSetup.aliases.joinToString { alias(it) }}],
     "alerts": [
       {
         "alertType": "H",
@@ -142,6 +132,19 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     ]
   }
 """.trimIndent()
+
+private fun alias(alias: ApiResponseSetupAlias) =
+  """
+          {
+            "title": "AliasTitle",
+            "firstName": "${alias.firstName}",
+            "middleNames": "${alias.middleName}",
+            "lastName": "${alias.lastName}",
+            "dateOfBirth": "${alias.dateOfBirth}",
+            "gender": "Male",
+            "ethnicity": "White : Irish"
+          }
+  """.trimIndent()
 
 private fun identifier(identifier: ApiResponseSetupIdentifier) =
   """

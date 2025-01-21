@@ -52,6 +52,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupIdentifier
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -63,6 +64,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should receive the message successfully when prisoner created event published`() {
     val prisonNumber = randomPrisonNumber()
     val firstName = randomName()
+    val middleName = randomName()
     val lastName = randomName()
     val pnc = randomPnc()
     val email = randomEmail()
@@ -77,8 +79,12 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val ethnicity = randomEthnicity()
     val sentenceStartDate = randomDate()
     val primarySentence = true
+    val aliasFirstName = randomName()
+    val aliasMiddleName = randomName()
+    val aliasLastName = randomName()
+    val aliasDateOfBirth = randomDate()
 
-    stubPrisonResponse(ApiResponseSetup(firstName = firstName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, currentlyManaged = "ACTIVE IN", identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
+    stubPrisonResponse(ApiResponseSetup(aliases = listOf(ApiResponseSetupAlias(aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, currentlyManaged = "ACTIVE IN", identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
@@ -92,7 +98,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
       assertThat(personEntity.title).isEqualTo("Ms")
       assertThat(personEntity.firstName).isEqualTo(firstName)
-      assertThat(personEntity.middleNames).isEqualTo("MiddleName1 " + "MiddleName2")
+      assertThat(personEntity.middleNames).isEqualTo("$middleName $middleName")
       assertThat(personEntity.lastName).isEqualTo(lastName)
       assertThat(personEntity.nationality).isEqualTo(nationality)
       assertThat(personEntity.religion).isEqualTo(religion)
@@ -103,11 +109,11 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.references.getType(IdentifierType.DRIVER_LICENSE_NUMBER).first().identifierValue).isEqualTo(driverLicenseNumber)
       assertThat(personEntity.dateOfBirth).isEqualTo(personDateOfBirth)
       assertThat(personEntity.pseudonyms.size).isEqualTo(1)
-      assertThat(personEntity.pseudonyms[0].firstName).isEqualTo(lastName)
+      assertThat(personEntity.pseudonyms[0].firstName).isEqualTo(aliasFirstName)
       assertThat(personEntity.pseudonyms[0].title).isEqualTo("AliasTitle")
-      assertThat(personEntity.pseudonyms[0].middleNames).isEqualTo("AliasMiddleName")
-      assertThat(personEntity.pseudonyms[0].lastName).isEqualTo(firstName)
-      assertThat(personEntity.pseudonyms[0].dateOfBirth).isEqualTo(personDateOfBirth)
+      assertThat(personEntity.pseudonyms[0].middleNames).isEqualTo(aliasMiddleName)
+      assertThat(personEntity.pseudonyms[0].lastName).isEqualTo(aliasLastName)
+      assertThat(personEntity.pseudonyms[0].dateOfBirth).isEqualTo(aliasDateOfBirth)
       assertThat(personEntity.addresses.size).isEqualTo(1)
       assertThat(personEntity.addresses[0].postcode).isEqualTo(postcode)
       assertThat(personEntity.addresses[0].fullAddress).isEqualTo(fullAddress)
