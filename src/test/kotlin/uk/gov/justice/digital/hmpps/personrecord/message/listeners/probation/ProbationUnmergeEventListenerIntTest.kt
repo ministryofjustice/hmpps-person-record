@@ -29,7 +29,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.UNMERGE_MESSAGE_RECEIVED
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import java.util.concurrent.TimeUnit.SECONDS
@@ -43,8 +43,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `offender unmerge event is published`() {
-    val reactivatedCrn = randomCRN()
-    val unmergedCrn = randomCRN()
+    val reactivatedCrn = randomCrn()
+    val unmergedCrn = randomCrn()
 
     val personKey = createPersonKey()
     createPerson(
@@ -106,8 +106,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should create record when unmerged record not found`() {
-    val reactivatedCrn = randomCRN()
-    val unmergedCrn = randomCRN()
+    val reactivatedCrn = randomCrn()
+    val unmergedCrn = randomCrn()
 
     createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
@@ -151,8 +151,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should create record when reactivated record not found and should create a UUID`() {
-    val reactivatedCrn = randomCRN()
-    val unmergedCrn = randomCRN()
+    val reactivatedCrn = randomCrn()
+    val unmergedCrn = randomCrn()
 
     val personKeyEntity = createPersonKey()
     createPerson(
@@ -206,13 +206,13 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should mark unmerged UUID as needs attention if it has additional records`() {
-    val reactivatedCrn = randomCRN()
-    val unmergedCrn = randomCRN()
+    val reactivatedCrn = randomCrn()
+    val unmergedCrn = randomCrn()
 
     val personKey = createPersonKey()
     createPerson(
       person = Person(
-        crn = randomCRN(),
+        crn = randomCrn(),
         sourceSystem = SourceSystemType.DELIUS,
       ),
       personKeyEntity = personKey,
@@ -274,8 +274,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should remove link between records if existed`() {
-    val reactivatedCrn = randomCRN()
-    val unmergedCrn = randomCRN()
+    val reactivatedCrn = randomCrn()
+    val unmergedCrn = randomCrn()
 
     val personKey = createPersonKey()
     createPerson(
@@ -323,8 +323,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should remove link from merged UUID and find and assign to a new one`() {
-    val reactivatedCrn = randomCRN()
-    val unmergedCrn = randomCRN()
+    val reactivatedCrn = randomCrn()
+    val unmergedCrn = randomCrn()
 
     val unmergedPersonKey = createPersonKey()
     val reactivatedPersonKey = createPersonKey()
@@ -387,8 +387,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should retry on 500 error`() {
-    val reactivatedCrn = randomCRN()
-    val unmergedCrn = randomCRN()
+    val reactivatedCrn = randomCrn()
+    val unmergedCrn = randomCrn()
     stub500Response(probationUrl(unmergedCrn), "next request will succeed", "retry")
 
     val reactivated = ApiResponseSetup(crn = reactivatedCrn)
@@ -415,8 +415,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should log when message processing fails`() {
-    val reactivatedCrn = randomCRN()
-    val unmergedCrn = randomCRN()
+    val reactivatedCrn = randomCrn()
+    val unmergedCrn = randomCrn()
     stub500Response(probationUrl(unmergedCrn), STARTED, "failure")
     stub500Response(probationUrl(unmergedCrn), STARTED, "failure")
     stub500Response(probationUrl(unmergedCrn), STARTED, "failure")
@@ -458,8 +458,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should not push 404 to dead letter queue but discard message instead`() {
-    val reactivatedCrn = randomCRN()
-    val unmergedCrn = randomCRN()
+    val reactivatedCrn = randomCrn()
+    val unmergedCrn = randomCrn()
     stub404Response(probationUrl(reactivatedCrn))
     stub404Response(probationUrl(unmergedCrn))
 
