@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.SentenceInfo
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.allProbationCasesResponse
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.allProbationCasesSingleResponse
@@ -22,13 +22,13 @@ class UpdateFromProbationIntTest : WebTestBase() {
   @Test
   fun `update from probation`() {
     val scenarioName = "update"
-    val crnOne: String = randomCRN()
-    val crnTwo: String = randomCRN()
-    val crnThree: String = randomCRN()
-    val crnFour: String = randomCRN()
-    val crnFive: String = randomCRN()
-    val crnSix: String = randomCRN()
-    val crnSeven: String = randomCRN()
+    val crnOne: String = randomCrn()
+    val crnTwo: String = randomCrn()
+    val crnThree: String = randomCrn()
+    val crnFour: String = randomCrn()
+    val crnFive: String = randomCrn()
+    val crnSix: String = randomCrn()
+    val crnSeven: String = randomCrn()
     createPerson(
       Person(
         firstName = randomName(),
@@ -81,13 +81,13 @@ class UpdateFromProbationIntTest : WebTestBase() {
   @Test
   fun `start on page 2`() {
     val scenarioName = "update"
-    val crnOne: String = randomCRN()
-    val crnTwo: String = randomCRN()
-    val crnThree: String = randomCRN()
-    val crnFour: String = randomCRN()
-    val crnFive: String = randomCRN()
-    val crnSix: String = randomCRN()
-    val crnSeven: String = randomCRN()
+    val crnOne: String = randomCrn()
+    val crnTwo: String = randomCrn()
+    val crnThree: String = randomCrn()
+    val crnFour: String = randomCrn()
+    val crnFive: String = randomCrn()
+    val crnSix: String = randomCrn()
+    val crnSeven: String = randomCrn()
 
     stubResponse(crnFive, "POPFive", crnSix, "POPSix", 2, scenarioName, STARTED)
     stubSingleResponse(crnSeven, "POPSeven", 3, scenarioName)
