@@ -199,8 +199,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should receive the message successfully when prisoner updated event published`() {
     val prisoner = createPrisoner()
 
+    val prefix = randomName() // TODO consider replacing this prefix - it is confusing if you do not supply it as firstName is always firstName etc
     val prisonNumber = prisoner.prisonNumber!!
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, prefix = prefix))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
     val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, personReference = null, additionalInformation = additionalInformation)
@@ -216,6 +217,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     awaitAssert {
       val personEntity = personRepository.findByPrisonNumber(prisonNumber = prisonNumber)!!
       assertThat(personEntity.matchId).isEqualTo(prisoner.matchId)
+      assertThat(personEntity.firstName).isEqualTo(prefix + "FirstName")
     }
 
     checkTelemetry(
