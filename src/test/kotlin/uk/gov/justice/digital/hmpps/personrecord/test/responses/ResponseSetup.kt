@@ -20,6 +20,8 @@ data class ApiResponseSetupAddress(
 
 data class ApiResponseSetupSentences(val sentenceDate: LocalDate?)
 
+data class ApiResponseSetupAlias(val firstName: String, val middleName: String, val lastName: String, val dateOfBirth: LocalDate)
+
 data class ApiResponseSetup(
   val title: String? = null,
   val crn: String? = null,
@@ -27,7 +29,9 @@ data class ApiResponseSetup(
   val pnc: String? = null,
   val prefix: String? = "",
   val firstName: String? = randomName(),
+  val middleName: String? = randomName(),
   val lastName: String? = randomName(),
+  val aliases: List<ApiResponseSetupAlias> = listOf(ApiResponseSetupAlias(firstName = randomName(), middleName = randomName(), lastName = randomName(), dateOfBirth = randomDate())),
   val nationality: String? = null,
   val religion: String? = null,
   val prisonNumber: String? = null,
