@@ -11,9 +11,9 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
           "ni": "${probationCase.nationalInsuranceNumber ?: ""}"
       },
       "name": {
-          "forename": "${probationCase.prefix ?: ""}${probationCase.firstName ?: "" }",
+          "forename": "${probationCase.firstName}",
           "middleName": "PreferredMiddleName",
-          "surname": "${probationCase.prefix ?: ""}${probationCase.lastName ?: ""}"
+          "surname": "${probationCase.lastName}"
       },
       "title": {
         "code": "${probationCase.title ?: ""}",
@@ -27,9 +27,9 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
       "aliases": [
         {
           "name": {
-            "forename": "${probationCase.prefix ?: ""}FirstName",
+            "forename": "AliasFirstName",
             "middleName": "MiddleName",
-            "surname": "${probationCase.prefix ?: ""}LastName",
+            "surname": "AliasLastName",
             "previousSurname": "string",
             "preferred": "string"
           },
