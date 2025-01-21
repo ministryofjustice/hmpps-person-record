@@ -18,7 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MERGE_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import java.time.LocalDateTime
@@ -27,8 +27,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `processes offender merge event with records with same UUID is published`() {
-    val sourceCrn = randomCRN()
-    val targetCrn = randomCRN()
+    val sourceCrn = randomCrn()
+    val targetCrn = randomCrn()
     val source = ApiResponseSetup(crn = sourceCrn)
     val target = ApiResponseSetup(crn = targetCrn)
     val personKeyEntity = createPersonKey()
@@ -64,8 +64,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `processes offender merge event with target record does not exist`() {
-    val sourceCrn = randomCRN()
-    val targetCrn = randomCRN()
+    val sourceCrn = randomCrn()
+    val targetCrn = randomCrn()
     val source = ApiResponseSetup(crn = sourceCrn)
     val target = ApiResponseSetup(crn = targetCrn)
     val personKeyEntity = createPersonKey()
@@ -93,8 +93,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `processes offender merge event with source record does not exist`() {
-    val sourceCrn = randomCRN()
-    val targetCrn = randomCRN()
+    val sourceCrn = randomCrn()
+    val targetCrn = randomCrn()
     val source = ApiResponseSetup(crn = sourceCrn)
     val target = ApiResponseSetup(crn = targetCrn)
     val personKeyEntity = createPersonKey()
@@ -132,14 +132,14 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `processes offender merge event with different UUIDs where source has multiple records`() {
-    val sourceCrn = randomCRN()
-    val targetCrn = randomCRN()
+    val sourceCrn = randomCrn()
+    val targetCrn = randomCrn()
     val source = ApiResponseSetup(crn = sourceCrn)
     val target = ApiResponseSetup(crn = targetCrn)
     val personKeyEntity1 = createPersonKey()
     val personKeyEntity2 = createPersonKey()
     createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCRN()))),
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
       personKeyEntity = personKeyEntity1,
     )
     createPerson(
@@ -181,8 +181,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `processes offender merge event with different UUIDs where source doesn't have an UUID`() {
-    val sourceCrn = randomCRN()
-    val targetCrn = randomCRN()
+    val sourceCrn = randomCrn()
+    val targetCrn = randomCrn()
     val source = ApiResponseSetup(crn = sourceCrn)
     val target = ApiResponseSetup(crn = targetCrn)
     val personKeyEntity2 = createPersonKey()
@@ -221,8 +221,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `processes offender merge event with different UUIDs where source has a single record`() {
-    val sourceCrn = randomCRN()
-    val targetCrn = randomCRN()
+    val sourceCrn = randomCrn()
+    val targetCrn = randomCrn()
     val source = ApiResponseSetup(crn = sourceCrn)
     val target = ApiResponseSetup(crn = targetCrn)
     val personKeyEntity1 = createPersonKey()
@@ -261,8 +261,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should retry on 500 error`() {
-    val sourceCrn = randomCRN()
-    val targetCrn = randomCRN()
+    val sourceCrn = randomCrn()
+    val targetCrn = randomCrn()
     stub500Response(probationUrl(targetCrn), "next request will succeed", "retry")
 
     val source = ApiResponseSetup(crn = sourceCrn)
@@ -297,8 +297,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should log when message processing fails`() {
-    val sourceCrn = randomCRN()
-    val targetCrn = randomCRN()
+    val sourceCrn = randomCrn()
+    val targetCrn = randomCrn()
     stub500Response(probationUrl(targetCrn), STARTED, "failure")
     stub500Response(probationUrl(targetCrn), STARTED, "failure")
     stub500Response(probationUrl(targetCrn), STARTED, "failure")
@@ -332,8 +332,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `processes offender merge event is mapped to EventLogging table`() {
-    val sourceCrn = randomCRN()
-    val targetCrn = randomCRN()
+    val sourceCrn = randomCrn()
+    val targetCrn = randomCrn()
     val source = ApiResponseSetup(crn = sourceCrn)
     val target = ApiResponseSetup(crn = targetCrn)
     val personKeyEntity = createPersonKey()

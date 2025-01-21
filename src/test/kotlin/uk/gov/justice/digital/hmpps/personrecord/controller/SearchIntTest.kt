@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.CO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -24,7 +24,7 @@ class SearchIntTest : WebTestBase() {
 
   @Test
   fun `should return OFFENDER person record with one record`() {
-    val crn = randomCRN()
+    val crn = randomCrn()
     createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
       personKeyEntity = createPersonKey(),
@@ -127,7 +127,7 @@ class SearchIntTest : WebTestBase() {
 
   @Test
   fun `should just return person record with a record with no UUID`() {
-    val crn = randomCRN()
+    val crn = randomCrn()
     createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
     )
@@ -149,15 +149,15 @@ class SearchIntTest : WebTestBase() {
 
   @Test
   fun `should return searching record not others`() {
-    val crn = randomCRN()
+    val crn = randomCrn()
     createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
     )
     createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCRN()))),
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
     )
     createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCRN()))),
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
     )
 
     val responseBody = webTestClient.get()
@@ -177,7 +177,7 @@ class SearchIntTest : WebTestBase() {
 
   @Test
   fun `should returns person record with multiple linked records`() {
-    val crn = randomCRN()
+    val crn = randomCrn()
     val personKeyEntity = createPersonKey()
     createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
@@ -263,7 +263,7 @@ class SearchIntTest : WebTestBase() {
 
     @JvmStatic
     fun searchUrls(): List<String> = listOf(
-      searchOffenderUrl(randomCRN()),
+      searchOffenderUrl(randomCrn()),
       searchPrisonerUrl(randomPrisonNumber()),
       searchDefendantUrl(randomDefendantId()),
     )
