@@ -212,7 +212,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_UPDATED,
       mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
     )
-    
+
     awaitAssert {
       val personEntity = personRepository.findByPrisonNumber(prisonNumber = prisonNumber)!!
       assertThat(personEntity.matchId).isEqualTo(prisoner.matchId)
