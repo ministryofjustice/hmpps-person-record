@@ -24,18 +24,7 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
           "code": "M",
           "description": "Male"
       },
-      "aliases": [
-        {
-          "name": {
-            "forename": "AliasFirstName",
-            "middleName": "MiddleName",
-            "surname": "AliasLastName",
-            "previousSurname": "previousSurname",
-            "preferred": "preferred"
-          },
-          "dateOfBirth": "2024-05-30"
-        }
-      ],
+      "aliases": [${probationCase.aliases.joinToString { alias(it) }}],
       "addresses": [${probationCase.addresses.joinToString { address(it) }}],
       "ethnicity": {
         ${probationCase.ethnicity?.let { """ "code": "${probationCase.ethnicity}" """.trimIndent() } ?: ""}
@@ -53,6 +42,19 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
     }
 """.trimIndent()
 
+private fun alias(alias: ApiResponseSetupAlias) =
+  """
+    {
+          "name": {
+            "forename": "${alias.firstName}",
+            "middleName": "${alias.middleName}",
+            "surname": "${alias.lastName}",
+            "previousSurname": "previousSurname",
+            "preferred": "preferred"
+          },
+          "dateOfBirth": "${alias.dateOfBirth}"
+        }
+  """.trimIndent()
 private fun address(address: ApiResponseSetupAddress) =
   """
     {

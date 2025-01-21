@@ -44,8 +44,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -66,6 +66,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val ethnicity = randomEthnicity()
     val nationality = randomNationality()
     val sentenceDate = randomDate()
+    val aliasFirstName = randomName()
+    val aliasMiddleName = randomName()
+    val aliasLastName = randomName()
+    val aliasDateOfBirth = randomDate()
 
     val apiResponse = ApiResponseSetup(
       crn = crn,
@@ -80,6 +84,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         ApiResponseSetupAddress(noFixedAbode = true, addressStartDate, addressEndDate, postcode = "LS1 1AB", fullAddress = "abc street"),
         ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street"),
       ),
+      aliases = listOf(ApiResponseSetupAlias(aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth)),
       ethnicity = ethnicity,
       nationality = nationality,
       sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
@@ -101,10 +106,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
     assertThat(personEntity.references.getType(IdentifierType.CRO).first().identifierValue).isEqualTo(cro)
     assertThat(personEntity.pseudonyms.size).isEqualTo(1)
-    assertThat(personEntity.pseudonyms[0].firstName).isEqualTo("AliasFirstName")
-    assertThat(personEntity.pseudonyms[0].middleNames).isEqualTo("MiddleName")
-    assertThat(personEntity.pseudonyms[0].lastName).isEqualTo("AliasLastName")
-    assertThat(personEntity.pseudonyms[0].dateOfBirth).isEqualTo(LocalDate.of(2024, 5, 30))
+    assertThat(personEntity.pseudonyms[0].firstName).isEqualTo(aliasFirstName)
+    assertThat(personEntity.pseudonyms[0].middleNames).isEqualTo(aliasMiddleName)
+    assertThat(personEntity.pseudonyms[0].lastName).isEqualTo(aliasLastName)
+    assertThat(personEntity.pseudonyms[0].dateOfBirth).isEqualTo(aliasDateOfBirth)
     assertThat(personEntity.addresses.size).isEqualTo(2)
     assertThat(personEntity.addresses[0].noFixedAbode).isEqualTo(true)
     assertThat(personEntity.addresses[0].startDate).isEqualTo(addressStartDate)
