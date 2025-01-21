@@ -57,6 +57,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val title = randomName()
     val prisonNumber = randomPrisonNumber()
     val firstName = randomName()
+    val middleName = randomName()
     val lastName = randomName()
     val pnc = randomPnc()
     val cro = randomCro()
@@ -71,6 +72,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       pnc = pnc,
       title = title,
       firstName = firstName,
+      middleName = middleName,
       lastName = lastName,
       prisonNumber = prisonNumber,
       cro = cro,
@@ -89,7 +91,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.personKey).isNotNull()
     assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
     assertThat(personEntity.firstName).isEqualTo(firstName)
-    assertThat(personEntity.middleNames).isEqualTo("PreferredMiddleName")
+    assertThat(personEntity.middleNames).isEqualTo(middleName)
     assertThat(personEntity.lastName).isEqualTo(lastName)
     assertThat(personEntity.title).isEqualTo(title)
     assertThat(personEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)

@@ -12,7 +12,7 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
       },
       "name": {
           "forename": "${probationCase.firstName}",
-          "middleName": "PreferredMiddleName",
+          "middleName": "${probationCase.middleName}",
           "surname": "${probationCase.lastName}"
       },
       "title": {
@@ -30,8 +30,8 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
             "forename": "AliasFirstName",
             "middleName": "MiddleName",
             "surname": "AliasLastName",
-            "previousSurname": "string",
-            "preferred": "string"
+            "previousSurname": "previousSurname",
+            "preferred": "preferred"
           },
           "dateOfBirth": "2024-05-30"
         }
