@@ -47,7 +47,7 @@ class PopulateFromProbation(
           corePersonRecordAndDeliusClient.getProbationCases(CorePersonRecordAndDeliusClientPageParams(page, pageSize))
         }?.cases?.forEach {
           val person = Person.from(it)
-          val personToSave = PersonEntity.from(person)
+          val personToSave = PersonEntity.new(person)
           repository.saveAndFlush(personToSave)
         }
       }

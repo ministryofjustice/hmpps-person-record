@@ -267,7 +267,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val firstName = randomName()
 
     personRepository.saveAndFlush(
-      PersonEntity.from(
+      PersonEntity.new(
         Person(
           firstName = firstName,
           lastName = "MORGAN",
@@ -278,7 +278,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     personRepository.saveAndFlush(
-      PersonEntity.from(
+      PersonEntity.new(
         Person(
           firstName = firstName,
           lastName = "MORGAN",
@@ -310,7 +310,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val firstName = randomName()
     repeat(110) {
       personRepository.saveAndFlush(
-        PersonEntity.from(
+        PersonEntity.new(
           Person(
             firstName = firstName,
             lastName = "MORGAN",
