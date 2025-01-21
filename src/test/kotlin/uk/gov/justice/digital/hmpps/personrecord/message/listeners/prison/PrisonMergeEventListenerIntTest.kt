@@ -55,7 +55,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    val sourcePerson = personRepository.findByPrisonNumberAndSourceSystem(sourcePrisonNumber)
+    val sourcePerson = personRepository.findByPrisonNumber(sourcePrisonNumber)
     assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
   }
 
@@ -165,7 +165,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    val sourcePerson = personRepository.findByPrisonNumberAndSourceSystem(sourcePrisonNumber)
+    val sourcePerson = personRepository.findByPrisonNumber(sourcePrisonNumber)
     assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
     assertThat(sourcePerson?.personKey).isNull()
 
@@ -208,7 +208,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    val sourcePerson = personRepository.findByPrisonNumberAndSourceSystem(sourcePrisonNumber)
+    val sourcePerson = personRepository.findByPrisonNumber(sourcePrisonNumber)
     assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
     assertThat(sourcePerson?.personKey).isNull()
 
@@ -250,7 +250,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    val sourcePerson = personRepository.findByPrisonNumberAndSourceSystem(sourcePrisonNumber)
+    val sourcePerson = personRepository.findByPrisonNumber(sourcePrisonNumber)
     assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
     assertThat(sourcePerson?.personKey?.mergedTo).isEqualTo(targetPerson.personKey?.id)
     assertThat(sourcePerson?.personKey?.status).isEqualTo(UUIDStatusType.MERGED)
@@ -328,8 +328,8 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val loggedEvent = awaitNotNullEventLog(targetPrisonNumber, PRISONER_MERGED)
 
-    val sourcePerson = personRepository.findByPrisonNumberAndSourceSystem(sourcePrisonNumber)
-    val targetPerson = personRepository.findByPrisonNumberAndSourceSystem(targetPrisonNumber)
+    val sourcePerson = personRepository.findByPrisonNumber(sourcePrisonNumber)
+    val targetPerson = personRepository.findByPrisonNumber(targetPrisonNumber)
 
     val beforeDataDTO = sourcePerson?.let { Person.from(it) }
     val beforeData = objectMapper.writeValueAsString(beforeDataDTO)

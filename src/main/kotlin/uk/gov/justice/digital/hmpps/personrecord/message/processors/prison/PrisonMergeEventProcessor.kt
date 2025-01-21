@@ -46,10 +46,10 @@ class PrisonMergeEventProcessor(
               event = domainEvent.eventType,
             ),
             sourcePersonCallback = {
-              personRepository.findByPrisonNumberAndSourceSystem(domainEvent.additionalInformation.sourcePrisonNumber)
+              personRepository.findByPrisonNumber(domainEvent.additionalInformation.sourcePrisonNumber)
             },
             targetPersonCallback = {
-              personRepository.findByPrisonNumberAndSourceSystem(domainEvent.additionalInformation.prisonNumber)
+              personRepository.findByPrisonNumber(domainEvent.additionalInformation.prisonNumber)
             },
           )
         }
