@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
 import kotlinx.coroutines.runBlocking
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.UnmergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -12,8 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
-import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.ENTITY_RETRY_EXCEPTIONS
-import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor.runWithRetry
+import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -25,11 +23,11 @@ class UnmergeService(
   private val personKeyRepository: PersonKeyRepository,
   private val personRepository: PersonRepository,
   private val eventLoggingService: EventLoggingService,
-  @Value("\${retry.delay}") private val retryDelay: Long,
+  private val retryExecutor: RetryExecutor,
 ) {
 
   fun processUnmerge(unmergeEvent: UnmergeEvent, reactivatedPersonCallback: () -> PersonEntity?, unmergedPersonCallback: () -> PersonEntity?) = runBlocking {
-    runWithRetry(MAX_ATTEMPTS, retryDelay, ENTITY_RETRY_EXCEPTIONS) {
+    retryExecutor.runWithRetryDatabase {
       processUnmergingOfRecords(unmergeEvent, reactivatedPersonCallback, unmergedPersonCallback)
     }
   }
@@ -154,6 +152,5 @@ class UnmergeService(
       REACTIVATED,
       UNMERGED,
     }
-    const val MAX_ATTEMPTS: Int = 5
   }
 }

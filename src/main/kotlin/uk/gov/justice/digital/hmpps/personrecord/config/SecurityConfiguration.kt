@@ -39,7 +39,6 @@ class SecurityConfiguration {
         "/populatefromprison",
         "/populatefromprobation",
         "/updatefromprobation",
-        "/jobs/generatetermfrequencies",
       )
     }
   }

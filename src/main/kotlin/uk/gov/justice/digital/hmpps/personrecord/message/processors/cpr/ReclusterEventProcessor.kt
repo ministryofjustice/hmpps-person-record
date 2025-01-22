@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.cpr
 
 import kotlinx.coroutines.runBlocking
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.Recluster
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -17,7 +16,7 @@ class ReclusterEventProcessor(
   private val telemetryService: TelemetryService,
   private val reclusterService: ReclusterService,
   private val personKeyRepository: PersonKeyRepository,
-  @Value("\${retry.delay}") private val retryDelay: Long,
+  private val retryExecutor: RetryExecutor,
 ) {
 
   fun processEvent(reclusterEvent: Recluster) = runBlocking {
@@ -26,14 +25,10 @@ class ReclusterEventProcessor(
       CPR_RECLUSTER_MESSAGE_RECEIVED,
       mapOf(EventKeys.UUID to reclusterEvent.uuid),
     )
-    RetryExecutor.runWithRetry(MAX_ATTEMPTS, retryDelay, RetryExecutor.ENTITY_RETRY_EXCEPTIONS) {
+    retryExecutor.runWithRetryDatabase {
       personKeyRepository.findByPersonId(personUUID)?.let {
         reclusterService.recluster(it)
       }
     }
-  }
-
-  companion object {
-    private const val MAX_ATTEMPTS = 5
   }
 }

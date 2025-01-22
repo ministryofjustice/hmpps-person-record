@@ -11,9 +11,9 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
           "ni": "${probationCase.nationalInsuranceNumber ?: ""}"
       },
       "name": {
-          "forename": "${probationCase.prefix ?: ""}${probationCase.firstName ?: "" }",
-          "middleName": "PreferredMiddleName",
-          "surname": "${probationCase.prefix ?: ""}${probationCase.lastName ?: ""}"
+          "forename": "${probationCase.firstName}",
+          "middleName": "${probationCase.middleName}",
+          "surname": "${probationCase.lastName}"
       },
       "title": {
         "code": "${probationCase.title ?: ""}",
@@ -24,18 +24,7 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
           "code": "M",
           "description": "Male"
       },
-      "aliases": [
-        {
-          "name": {
-            "forename": "${probationCase.prefix ?: ""}FirstName",
-            "middleName": "MiddleName",
-            "surname": "${probationCase.prefix ?: ""}LastName",
-            "previousSurname": "string",
-            "preferred": "string"
-          },
-          "dateOfBirth": "2024-05-30"
-        }
-      ],
+      "aliases": [${probationCase.aliases.joinToString { alias(it) }}],
       "addresses": [${probationCase.addresses.joinToString { address(it) }}],
       "ethnicity": {
         ${probationCase.ethnicity?.let { """ "code": "${probationCase.ethnicity}" """.trimIndent() } ?: ""}
@@ -53,6 +42,19 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
     }
 """.trimIndent()
 
+private fun alias(alias: ApiResponseSetupAlias) =
+  """
+    {
+          "name": {
+            "forename": "${alias.firstName}",
+            "middleName": "${alias.middleName}",
+            "surname": "${alias.lastName}",
+            "previousSurname": "previousSurname",
+            "preferred": "preferred"
+          },
+          "dateOfBirth": "${alias.dateOfBirth}"
+        }
+  """.trimIndent()
 private fun address(address: ApiResponseSetupAddress) =
   """
     {

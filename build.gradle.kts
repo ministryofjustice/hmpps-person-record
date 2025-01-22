@@ -29,7 +29,7 @@ dependencies {
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.2.0")
 
-  implementation("io.swagger.core.v3:swagger-annotations:2.2.27")
+  implementation("io.swagger.core.v3:swagger-annotations:2.2.28")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3")
 
   constraints {
@@ -41,7 +41,7 @@ dependencies {
   implementation("org.springframework.cloud:spring-cloud-dependencies:2024.0.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
 
-  runtimeOnly("org.postgresql:postgresql:42.7.4")
+  runtimeOnly("org.postgresql:postgresql:42.7.5")
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
 

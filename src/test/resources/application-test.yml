@@ -79,13 +79,7 @@ spring:
     url: jdbc:postgresql://localhost:5432/postgres?currentSchema=personrecordservice&user=root&password=dev&stringtype=unspecified
 
 populate-from-nomis:
-    page-size: 2
-    retry:
-      delay: 200
-      times: 10
+  page-size: 2
 
 populate-from-probation:
   page-size: 2
-  retry:
-    delay: 200
-    times: 10

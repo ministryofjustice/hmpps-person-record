@@ -10,9 +10,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Compani
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.allProbationCasesResponse
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.allProbationCasesSingleResponse
+import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.allProbationCasesResponse
+import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.allProbationCasesSingleResponse
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import java.time.LocalDate
 
 @ActiveProfiles("seeding")
@@ -21,13 +21,13 @@ class PopulateFromProbationIntTest : WebTestBase() {
   @Test
   fun `populate from probation`() {
     val scenarioName = "populate"
-    val crnOne: String = randomCRN()
-    val crnTwo: String = randomCRN()
-    val crnThree: String = randomCRN()
-    val crnFour: String = randomCRN()
-    val crnFive: String = randomCRN()
-    val crnSix: String = randomCRN()
-    val crnSeven: String = randomCRN()
+    val crnOne: String = randomCrn()
+    val crnTwo: String = randomCrn()
+    val crnThree: String = randomCrn()
+    val crnFour: String = randomCrn()
+    val crnFive: String = randomCrn()
+    val crnSix: String = randomCrn()
+    val crnSeven: String = randomCrn()
     stubResponse(crnOne, "POPOne", crnTwo, "POPTwo", 0, scenarioName, STARTED)
     stubResponse(crnThree, "POPThree", crnFour, "POPFour", 1, scenarioName, STARTED)
     stubResponse(crnFive, "POPFive", crnSix, "POPSix", 2, scenarioName, STARTED)
@@ -68,8 +68,8 @@ class PopulateFromProbationIntTest : WebTestBase() {
   @Test
   fun `populate from probation retries`() {
     val scenarioName = "retry"
-    val crnOne: String = randomCRN()
-    val crnTwo: String = randomCRN()
+    val crnOne: String = randomCrn()
+    val crnTwo: String = randomCrn()
 
     // first call fails
     wiremock.stubFor(
