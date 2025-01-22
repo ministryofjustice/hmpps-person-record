@@ -11,10 +11,10 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.SentenceInfo
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.allProbationCasesResponse
+import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.allProbationCasesSingleResponse
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.allProbationCasesResponse
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.allProbationCasesSingleResponse
 import java.time.LocalDate
 
 class UpdateFromProbationIntTest : WebTestBase() {

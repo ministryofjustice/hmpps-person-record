@@ -10,9 +10,9 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     "bookingId": "0001200924",
     "bookNumber": "38412A",
     "title": "Ms",
-    "firstName": "${responseSetup.prefix}FirstName",
-    "middleNames": "${responseSetup.prefix}MiddleName1 ${responseSetup.prefix}MiddleName2",
-    "lastName": "${responseSetup.prefix}LastName",
+    "firstName": "${responseSetup.firstName}",
+    "middleNames": "${responseSetup.middleName} ${responseSetup.middleName}",
+    "lastName": "${responseSetup.lastName}",
     "dateOfBirth": "${responseSetup.dateOfBirth}",
     "gender": "Female",
     ${responseSetup.ethnicity?.let { """ "ethnicity": "${responseSetup.ethnicity}", """.trimIndent() } ?: "" }
@@ -28,17 +28,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     "lastPrisonId": "MDI",
     "prisonName": "HMP Leeds",
     "cellLocation": "A-1-002",
-    "aliases": [
-      {
-        "title": "${responseSetup.prefix}AliasTitle",
-        "firstName": "${responseSetup.prefix}AliasFirstName",
-        "middleNames": "${responseSetup.prefix}AliasMiddleName",
-        "lastName": "${responseSetup.prefix}AliasLastName",
-        "dateOfBirth": "${responseSetup.dateOfBirth}",
-        "gender": "Male",
-        "ethnicity": "White : Irish"
-      }
-    ],
+    "aliases": [${responseSetup.aliases.joinToString { alias(it) }}],
     "alerts": [
       {
         "alertType": "H",
@@ -142,6 +132,19 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     ]
   }
 """.trimIndent()
+
+private fun alias(alias: ApiResponseSetupAlias) =
+  """
+          {
+            "title": "AliasTitle",
+            "firstName": "${alias.firstName}",
+            "middleNames": "${alias.middleName}",
+            "lastName": "${alias.lastName}",
+            "dateOfBirth": "${alias.dateOfBirth}",
+            "gender": "Male",
+            "ethnicity": "White : Irish"
+          }
+  """.trimIndent()
 
 private fun identifier(identifier: ApiResponseSetupIdentifier) =
   """

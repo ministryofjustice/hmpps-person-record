@@ -11,10 +11,10 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Compani
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.onePrisoner
+import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.prisonNumbersResponse
+import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.twoPrisoners
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.onePrisoner
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonNumbersResponse
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.twoPrisoners
 import java.time.LocalDate
 
 @ActiveProfiles("seeding")
