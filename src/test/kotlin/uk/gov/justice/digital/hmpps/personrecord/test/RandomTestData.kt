@@ -5,7 +5,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 fun randomPnc(): String {
-  val year = (1950..LocalDate.now().year).random().toString()
+  val year = randomYear().toString()
   val digits = randomDigit(7)
   val check = VALID_LETTERS[(year.takeLast(2) + digits).toInt().mod(VALID_LETTERS.length)]
   return "$year/$digits$check"
@@ -13,12 +13,11 @@ fun randomPnc(): String {
 
 fun randomEmail(): String = randomLowerCaseString(8) + "." + randomDigit(4) + "@" + randomLowerCaseString(8) + ".co.uk"
 
-fun randomDate(): LocalDate = LocalDate.of((1950..LocalDate.now().year).random(), (1..12).random(), (1..28).random())
+fun randomDate(): LocalDate = LocalDate.of(randomYear(), (1..12).random(), (1..28).random())
 
 fun randomCro(): String {
-  val year = (1950..LocalDate.now().year).random().toString().takeLast(2)
+  val year = randomYear().toString().takeLast(2)
   val digits = randomDigit(6)
-
   val check = VALID_LETTERS[(year + digits).toInt().mod(VALID_LETTERS.length)]
   return "$digits/$year$check"
 }
@@ -31,7 +30,7 @@ fun randomNationality(): String = randomLowerCaseString()
 
 fun randomReligion(): String = randomLowerCaseString()
 
-fun randomDriverLicenseNumber(): String = UUID.randomUUID().toString()
+fun randomDriverLicenseNumber(): String = randomLowerCaseString(5).uppercase() + randomDigit(6) + randomLowerCaseString(5).uppercase()
 
 fun randomFullAddress(): String = randomDigit(2) + " " + randomLowerCaseString(8) + ", " + randomLowerCaseString(10) + ", " + randomPostcode()
 
@@ -54,3 +53,5 @@ private fun randomLowerCaseString(length: Int = 7): String = (1..length).map {
 private fun randomDigit(length: Int = 7): String = (1..length).map {
   (0..9).random()
 }.joinToString("")
+
+private fun randomYear() = (1950..LocalDate.now().year).random()
