@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDate
+import java.util.UUID
 
 @Entity
 @Table(name = "person")
@@ -117,6 +118,9 @@ class PersonEntity(
   @Column
   @Enumerated(STRING)
   val sourceSystem: SourceSystemType,
+
+  @Column(name = "match_id")
+  val matchId: UUID? = null,
 
   @Version
   var version: Int = 0,
@@ -235,6 +239,7 @@ class PersonEntity(
         nationality = person.nationality,
         religion = person.religion,
         currentlyManaged = person.currentlyManaged,
+        matchId = UUID.randomUUID(),
       )
       personEntity.updateChildEntities(person)
       return personEntity

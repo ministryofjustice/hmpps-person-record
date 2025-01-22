@@ -206,18 +206,26 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should receive the message successfully when prisoner updated event published`() {
     val prisoner = createPrisoner()
 
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisoner.prisonNumber))
+    val prisonNumber = prisoner.prisonNumber!!
+    val updatedFirstName = randomName()
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, firstName = updatedFirstName))
 
-    val additionalInformation = AdditionalInformation(prisonNumber = prisoner.prisonNumber, categoriesChanged = listOf("SENTENCE"))
+    val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
     val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, personReference = null, additionalInformation = additionalInformation)
     publishDomainEvent(PRISONER_UPDATED, domainEvent)
 
-    checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisoner.prisonNumber, "EVENT_TYPE" to PRISONER_UPDATED, "SOURCE_SYSTEM" to SourceSystemType.NOMIS.name))
+    checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_UPDATED, "SOURCE_SYSTEM" to SourceSystemType.NOMIS.name))
 
     checkTelemetry(
       CPR_RECORD_UPDATED,
-      mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisoner.prisonNumber),
+      mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
     )
+
+    awaitAssert {
+      val personEntity = personRepository.findByPrisonNumber(prisonNumber = prisonNumber)!!
+      assertThat(personEntity.matchId).isEqualTo(prisoner.matchId)
+      assertThat(personEntity.firstName).isEqualTo(updatedFirstName)
+    }
 
     checkTelemetry(
       CPR_RECLUSTER_MESSAGE_RECEIVED,
