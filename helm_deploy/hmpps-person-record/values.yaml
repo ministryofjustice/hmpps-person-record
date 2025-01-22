@@ -1,4 +1,9 @@
 generic-service:
+
+  readinessProbe:
+    periodSeconds: 35
+    failureThreshold: 20
+
   nameOverride: hmpps-person-record
 
   serviceAccountName: "person-record-service"
