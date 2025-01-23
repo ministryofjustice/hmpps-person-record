@@ -226,20 +226,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
   }
 
-  private fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenario: String, currentScenarioState: String, nextScenarioState: String) {
-    wiremock.stubFor(
-      WireMock.get("/probation-cases/${probationCase.crn}")
-        .inScenario(scenario)
-        .whenScenarioStateIs(currentScenarioState)
-        .willSetStateTo(nextScenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(probationCaseResponse(probationCase))
-            .withStatus(200),
-        ),
-    )
-  }
+  private fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String, nextScenarioState: String) = stub(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
 
   fun stub404Response(url: String) {
     wiremock.stubFor(
@@ -271,9 +258,11 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     scenarioName: String? = BASE_SCENARIO,
     currentScenarioState: String? = STARTED,
     nextScenarioState: String? = STARTED,
-  ) {
+  ) = stub(scenarioName, currentScenarioState, nextScenarioState, "/prisoner/${apiResponseSetup.prisonNumber}", prisonerSearchResponse(apiResponseSetup))
+
+  private fun stub(scenarioName: String?, currentScenarioState: String?, nextScenarioState: String?, url: String, body: String) {
     wiremock.stubFor(
-      WireMock.get("/prisoner/${apiResponseSetup.prisonNumber}")
+      WireMock.get(url)
         .inScenario(scenarioName)
         .whenScenarioStateIs(currentScenarioState)
         .willSetStateTo(nextScenarioState)
@@ -281,7 +270,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withBody(prisonerSearchResponse(apiResponseSetup)),
+            .withBody(body),
         ),
     )
   }
