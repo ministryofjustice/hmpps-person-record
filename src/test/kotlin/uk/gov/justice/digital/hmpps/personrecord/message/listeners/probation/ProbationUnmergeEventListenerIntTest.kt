@@ -7,7 +7,6 @@ import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
@@ -435,12 +434,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    probationMergeEventsQueue!!.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.queueUrl).build(),
-    ).get()
-    probationMergeEventsQueue!!.sqsDlqClient!!.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(probationMergeEventsQueue!!.dlqUrl).build(),
-    ).get()
+    purgeQueueAndDlq(probationMergeEventsQueue)
 
     checkTelemetry(
       UNMERGE_MESSAGE_RECEIVED,
