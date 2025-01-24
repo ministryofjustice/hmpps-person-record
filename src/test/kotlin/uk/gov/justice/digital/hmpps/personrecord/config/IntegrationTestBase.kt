@@ -5,7 +5,6 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
-import com.microsoft.applicationinsights.TelemetryClient
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.atMost
 import org.awaitility.kotlin.await
@@ -17,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.test.context.ActiveProfiles
-import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -46,13 +44,7 @@ class IntegrationTestBase {
   lateinit var personRepository: PersonRepository
 
   @Autowired
-  lateinit var matchScoreClient: MatchScoreClient
-
-  @Autowired
   lateinit var telemetryRepository: TelemetryTestRepository
-
-  @Autowired
-  lateinit var telemetryClient: TelemetryClient
 
   @Autowired
   lateinit var eventLoggingRepository: EventLoggingRepository

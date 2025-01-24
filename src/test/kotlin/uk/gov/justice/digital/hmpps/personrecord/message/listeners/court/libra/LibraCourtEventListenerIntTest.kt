@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Compani
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQueryType
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
@@ -79,7 +79,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.title).isEqualTo("Mr")
     assertThat(person.lastName).isEqualTo(lastName)
     assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
-    assertThat(person.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
+    assertThat(person.references.getType(PNC).first().identifierValue).isEqualTo(pnc)
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
     assertThat(person.personKey).isNotNull()
@@ -265,27 +265,23 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process and send duplicate telemetry`() {
     val firstName = randomName()
-
-    personRepository.saveAndFlush(
-      PersonEntity.new(
-        Person(
-          firstName = firstName,
-          lastName = "MORGAN",
-          dateOfBirth = LocalDate.of(1975, 1, 1),
-          addresses = listOf(Address(postcode = "NT4 6YH")),
-          sourceSystem = LIBRA,
-        ),
+    createPerson(
+      Person(
+        firstName = firstName,
+        lastName = "MORGAN",
+        dateOfBirth = LocalDate.of(1975, 1, 1),
+        addresses = listOf(Address(postcode = "NT4 6YH")),
+        sourceSystem = LIBRA,
       ),
     )
-    personRepository.saveAndFlush(
-      PersonEntity.new(
-        Person(
-          firstName = firstName,
-          lastName = "MORGAN",
-          dateOfBirth = LocalDate.of(1975, 1, 1),
-          addresses = listOf(Address(postcode = "NT4 6YH")),
-          sourceSystem = LIBRA,
-        ),
+
+    createPerson(
+      Person(
+        firstName = firstName,
+        lastName = "MORGAN",
+        dateOfBirth = LocalDate.of(1975, 1, 1),
+        addresses = listOf(Address(postcode = "NT4 6YH")),
+        sourceSystem = LIBRA,
       ),
     )
     val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
@@ -309,15 +305,13 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should process large number of candidates`() {
     val firstName = randomName()
     repeat(110) {
-      personRepository.saveAndFlush(
-        PersonEntity.new(
-          Person(
-            firstName = firstName,
-            lastName = "MORGAN",
-            dateOfBirth = LocalDate.of(1975, 1, 1),
-            addresses = listOf(Address(postcode = "NT4 6YH")),
-            sourceSystem = LIBRA,
-          ),
+      createPerson(
+        Person(
+          firstName = firstName,
+          lastName = "MORGAN",
+          dateOfBirth = LocalDate.of(1975, 1, 1),
+          addresses = listOf(Address(postcode = "NT4 6YH")),
+          sourceSystem = LIBRA,
         ),
       )
     }
