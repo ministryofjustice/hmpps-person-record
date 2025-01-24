@@ -265,27 +265,23 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process and send duplicate telemetry`() {
     val firstName = randomName()
-
-    personRepository.saveAndFlush(
-      PersonEntity.new(
-        Person(
-          firstName = firstName,
-          lastName = "MORGAN",
-          dateOfBirth = LocalDate.of(1975, 1, 1),
-          addresses = listOf(Address(postcode = "NT4 6YH")),
-          sourceSystem = LIBRA,
-        ),
+    createPerson(
+      Person(
+        firstName = firstName,
+        lastName = "MORGAN",
+        dateOfBirth = LocalDate.of(1975, 1, 1),
+        addresses = listOf(Address(postcode = "NT4 6YH")),
+        sourceSystem = LIBRA,
       ),
     )
-    personRepository.saveAndFlush(
-      PersonEntity.new(
-        Person(
-          firstName = firstName,
-          lastName = "MORGAN",
-          dateOfBirth = LocalDate.of(1975, 1, 1),
-          addresses = listOf(Address(postcode = "NT4 6YH")),
-          sourceSystem = LIBRA,
-        ),
+
+    createPerson(
+      Person(
+        firstName = firstName,
+        lastName = "MORGAN",
+        dateOfBirth = LocalDate.of(1975, 1, 1),
+        addresses = listOf(Address(postcode = "NT4 6YH")),
+        sourceSystem = LIBRA,
       ),
     )
     val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
@@ -309,15 +305,13 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should process large number of candidates`() {
     val firstName = randomName()
     repeat(110) {
-      personRepository.saveAndFlush(
-        PersonEntity.new(
-          Person(
-            firstName = firstName,
-            lastName = "MORGAN",
-            dateOfBirth = LocalDate.of(1975, 1, 1),
-            addresses = listOf(Address(postcode = "NT4 6YH")),
-            sourceSystem = LIBRA,
-          ),
+      createPerson(
+        Person(
+          firstName = firstName,
+          lastName = "MORGAN",
+          dateOfBirth = LocalDate.of(1975, 1, 1),
+          addresses = listOf(Address(postcode = "NT4 6YH")),
+          sourceSystem = LIBRA,
         ),
       )
     }
