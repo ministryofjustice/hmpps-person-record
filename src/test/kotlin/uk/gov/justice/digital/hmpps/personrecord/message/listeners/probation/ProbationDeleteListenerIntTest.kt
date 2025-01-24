@@ -76,7 +76,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     awaitAssert { assertThat(personRepository.findByCrn(crn)).isNull() }
 
     val updatedCluster = personKeyRepository.findByPersonId(personKey.personId)
-    assertThat(updatedCluster).isNotNull()
     assertThat(updatedCluster?.personEntities?.size).isEqualTo(1)
     assertThat(updatedCluster?.personEntities?.first()?.crn).isNotEqualTo(crn)
   }
@@ -111,7 +110,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     awaitAssert { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
-    awaitAssert { assertThat(personRepository.findByCrn(recordACrn)).isNotNull() }
+    awaitNotNullPerson { personRepository.findByCrn(recordACrn) }
     awaitAssert { assertThat(personKeyRepository.findByPersonId(cluster.personId)).isNotNull() }
   }
 
@@ -359,7 +358,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     awaitAssert { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
 
     val updatedCluster = personKeyRepository.findByPersonId(cluster.personId)
-    assertThat(updatedCluster).isNotNull()
+
     assertThat(updatedCluster?.personEntities?.size).isEqualTo(1)
     assertThat(updatedCluster?.personEntities?.first()?.crn).isEqualTo(recordCCrn)
   }
