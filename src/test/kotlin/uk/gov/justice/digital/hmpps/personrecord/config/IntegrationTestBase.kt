@@ -5,7 +5,6 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
-import com.microsoft.applicationinsights.TelemetryClient
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.atMost
 import org.awaitility.kotlin.await
@@ -46,9 +45,6 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var telemetryRepository: TelemetryTestRepository
-
-  @Autowired
-  lateinit var telemetryClient: TelemetryClient
 
   @Autowired
   lateinit var eventLoggingRepository: EventLoggingRepository
