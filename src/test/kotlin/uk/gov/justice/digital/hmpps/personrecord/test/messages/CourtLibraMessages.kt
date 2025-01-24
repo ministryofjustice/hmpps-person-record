@@ -12,7 +12,7 @@ class LibraMessage(
   val postcode: String = randomPostcode(),
 )
 
-fun libraHearing(libraMessage: LibraMessage = LibraMessage()) = """
+fun libraHearing(libraMessage: LibraMessage) = """
 {
    "caseId":1217464,
    "caseNo":"1600032981",
