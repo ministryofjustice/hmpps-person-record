@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.test.responses
+package uk.gov.justice.digital.hmpps.personrecord.seeding.responses
 
 fun allProbationCasesSingleResponse(firstCrn: String, firstPrefix: String) = """
   {

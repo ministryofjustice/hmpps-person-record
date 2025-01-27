@@ -17,6 +17,6 @@ class SysconSyncIntTest : WebTestBase() {
       .body(Mono.just(prisoner), Prisoner::class.java)
       .authorised()
       .exchange()
-      .expectStatus().isCreated
+      .expectStatus().isOk
   }
 }

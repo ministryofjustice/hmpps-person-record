@@ -34,7 +34,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCRN
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
@@ -44,8 +44,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -53,10 +53,11 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `creates person when when new offender created event is published`() {
-    val crn = randomCRN()
+    val crn = randomCrn()
     val title = randomName()
     val prisonNumber = randomPrisonNumber()
     val firstName = randomName()
+    val middleName = randomName()
     val lastName = randomName()
     val pnc = randomPnc()
     val cro = randomCro()
@@ -65,12 +66,17 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val ethnicity = randomEthnicity()
     val nationality = randomNationality()
     val sentenceDate = randomDate()
+    val aliasFirstName = randomName()
+    val aliasMiddleName = randomName()
+    val aliasLastName = randomName()
+    val aliasDateOfBirth = randomDate()
 
     val apiResponse = ApiResponseSetup(
       crn = crn,
       pnc = pnc,
       title = title,
       firstName = firstName,
+      middleName = middleName,
       lastName = lastName,
       prisonNumber = prisonNumber,
       cro = cro,
@@ -78,6 +84,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         ApiResponseSetupAddress(noFixedAbode = true, addressStartDate, addressEndDate, postcode = "LS1 1AB", fullAddress = "abc street"),
         ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street"),
       ),
+      aliases = listOf(ApiResponseSetupAlias(aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth)),
       ethnicity = ethnicity,
       nationality = nationality,
       sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
@@ -89,7 +96,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.personKey).isNotNull()
     assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
     assertThat(personEntity.firstName).isEqualTo(firstName)
-    assertThat(personEntity.middleNames).isEqualTo("PreferredMiddleName")
+    assertThat(personEntity.middleNames).isEqualTo(middleName)
     assertThat(personEntity.lastName).isEqualTo(lastName)
     assertThat(personEntity.title).isEqualTo(title)
     assertThat(personEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
@@ -99,10 +106,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
     assertThat(personEntity.references.getType(IdentifierType.CRO).first().identifierValue).isEqualTo(cro)
     assertThat(personEntity.pseudonyms.size).isEqualTo(1)
-    assertThat(personEntity.pseudonyms[0].firstName).isEqualTo("FirstName")
-    assertThat(personEntity.pseudonyms[0].middleNames).isEqualTo("MiddleName")
-    assertThat(personEntity.pseudonyms[0].lastName).isEqualTo("LastName")
-    assertThat(personEntity.pseudonyms[0].dateOfBirth).isEqualTo(LocalDate.of(2024, 5, 30))
+    assertThat(personEntity.pseudonyms[0].firstName).isEqualTo(aliasFirstName)
+    assertThat(personEntity.pseudonyms[0].middleNames).isEqualTo(aliasMiddleName)
+    assertThat(personEntity.pseudonyms[0].lastName).isEqualTo(aliasLastName)
+    assertThat(personEntity.pseudonyms[0].dateOfBirth).isEqualTo(aliasDateOfBirth)
     assertThat(personEntity.addresses.size).isEqualTo(2)
     assertThat(personEntity.addresses[0].noFixedAbode).isEqualTo(true)
     assertThat(personEntity.addresses[0].startDate).isEqualTo(addressStartDate)
@@ -122,6 +129,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.contacts[1].contactValue).isEqualTo("01234567890")
     assertThat(personEntity.contacts[2].contactType).isEqualTo(ContactType.EMAIL)
     assertThat(personEntity.contacts[2].contactValue).isEqualTo("test@gmail.com")
+    assertThat(personEntity.matchId).isNotNull()
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
@@ -130,7 +138,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should link person to an existing NOMIS record`() {
-    val crn = randomCRN()
+    val crn = randomCrn()
     val prisonNumber = randomPrisonNumber()
     val firstName = randomName()
     val pnc = randomPnc()
@@ -183,7 +191,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should write offender without PNC if PNC is missing`() {
-    val crn = randomCRN()
+    val crn = randomCrn()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = null))
     val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
 
@@ -197,12 +205,12 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should create two offenders with same prisonNumber but different CRNs`() {
     val prisonNumber: String = randomPrisonNumber()
-    val crn = randomCRN()
+    val crn = randomCrn()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, prisonNumber = prisonNumber))
     awaitNotNullPerson { personRepository.findByCrn(crn) }
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
-    val nextCrn = randomCRN()
+    val nextCrn = randomCrn()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = nextCrn, prisonNumber = prisonNumber))
     awaitNotNullPerson { personRepository.findByCrn(nextCrn) }
 
@@ -212,7 +220,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should handle new offender details with an empty pnc`() {
-    val crn = randomCRN()
+    val crn = randomCrn()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = ""))
 
     val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
@@ -225,7 +233,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should not push 404 to dead letter queue but discard message instead`() {
-    val crn = randomCRN()
+    val crn = randomCrn()
     stub404Response(probationUrl(crn))
 
     val crnType = PersonIdentifier("CRN", crn)
@@ -240,7 +248,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should retry on 500 error`() {
-    val crn = randomCRN()
+    val crn = randomCrn()
     stub500Response(probationUrl(crn), "next request will succeed", "retry")
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = randomPnc()), scenario = "retry", currentScenarioState = "next request will succeed")
 
@@ -253,7 +261,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should log when message processing fails`() {
-    val crn = randomCRN()
+    val crn = randomCrn()
     stub500Response(probationUrl(crn), STARTED, "failure")
     stub500Response(probationUrl(crn), STARTED, "failure")
     stub500Response(probationUrl(crn), STARTED, "failure")
@@ -283,7 +291,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @ValueSource(strings = [OFFENDER_DETAILS_CHANGED, OFFENDER_ALIAS_CHANGED, OFFENDER_ADDRESS_CHANGED])
   fun `should process probation events successfully`(event: String) {
     val pnc = randomPnc()
-    val crn = randomCRN()
+    val crn = randomCrn()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc))
     val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
     assertThat(personEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
@@ -306,7 +314,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should log event to EventLogging table when new offender created`() {
-    val crn = randomCRN()
+    val crn = randomCrn()
     val title = randomName()
     val prisonNumber = randomPrisonNumber()
     val firstName = randomName()
@@ -359,7 +367,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should log event to EventLogging table when offender updated`() {
     val firstName = randomName()
-    val crn = randomCRN()
+    val crn = randomCrn()
 
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, firstName = firstName))
 

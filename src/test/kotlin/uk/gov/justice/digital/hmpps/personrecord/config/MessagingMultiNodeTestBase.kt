@@ -10,8 +10,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import software.amazon.awssdk.services.sns.model.PublishRequest
-import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.ProbationEvent
@@ -27,6 +25,7 @@ import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.HmppsTopic
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
+import uk.gov.justice.hmpps.sqs.publish
 import java.util.UUID
 
 @ExtendWith(MultiApplicationContextExtension::class)
@@ -71,26 +70,21 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId(Queues.RECLUSTER_EVENTS_QUEUE_ID)
   }
 
-  internal fun publishCourtMessage(message: String, messageType: MessageType, topic: String = courtEventsTopic?.arn!!): String {
-    var messageBuilder = PublishRequest.builder()
-      .topicArn(topic)
-      .message(message)
-      .messageAttributes(
-        mapOf(
-          "messageType" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(messageType.name).build(),
-          "messageId" to MessageAttributeValue.builder().dataType("String")
-            .stringValue(UUID.randomUUID().toString()).build(),
-        ),
-      )
-    if (topic.contains(".fifo")) {
-      messageBuilder = messageBuilder.messageGroupId(messageType.name)
-    }
-
-    val response: PublishResponse? = courtEventsTopic?.snsClient?.publish(messageBuilder.build())?.get()
+  internal fun publishCourtMessage(message: String, messageType: MessageType): String {
+    val publishResponse = courtEventsTopic?.publish(
+      eventType = messageType.name,
+      event = message,
+      attributes = mapOf(
+        "messageType" to MessageAttributeValue.builder().dataType("String")
+          .stringValue(messageType.name).build(),
+        "messageId" to MessageAttributeValue.builder().dataType("String")
+          .stringValue(UUID.randomUUID().toString()).build(),
+      ),
+      messageGroupId = messageType.name,
+    )
 
     expectNoMessagesOn(courtEventsQueue)
-    return response!!.messageId()
+    return publishResponse!!.messageId()
   }
 
   fun expectNoMessagesOn(queue: HmppsQueue?) {
@@ -106,42 +100,36 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   }
 
   fun publishDomainEvent(eventType: String, domainEvent: DomainEvent): String {
-    val domainEventAsString = objectMapper.writeValueAsString(domainEvent)
     val response = publishEvent(
-      domainEventAsString,
+      objectMapper.writeValueAsString(domainEvent),
       domainEventsTopic,
       mapOf(
         "eventType" to MessageAttributeValue.builder().dataType("String")
           .stringValue(eventType).build(),
       ),
+      eventType,
     )
     expectNoMessagesOn(probationEventsQueue)
     expectNoMessagesOn(probationMergeEventsQueue)
     expectNoMessagesOn(prisonMergeEventsQueue)
     expectNoMessagesOn(prisonEventsQueue)
-    return response!!.messageId()
+    return response!!
   }
 
-  fun publishProbationEvent(eventType: String, probationEvent: ProbationEvent): String {
-    val probationEventAsString = objectMapper.writeValueAsString(probationEvent)
-    val response = publishEvent(
-      probationEventAsString,
+  fun publishProbationEvent(eventType: String, probationEvent: ProbationEvent) {
+    publishEvent(
+      objectMapper.writeValueAsString(probationEvent),
       domainEventsTopic,
       mapOf(
         "eventType" to MessageAttributeValue.builder().dataType("String")
           .stringValue(eventType).build(),
       ),
+      eventType,
     )
     expectNoMessagesOn(probationEventsQueue)
-    return response!!.messageId()
   }
 
-  private fun publishEvent(message: String, topic: HmppsTopic?, messageAttributes: Map<String, MessageAttributeValue>): PublishResponse? {
-    val publishRequest = PublishRequest.builder().topicArn(topic?.arn)
-      .message(message)
-      .messageAttributes(messageAttributes).build()
-    return topic?.snsClient?.publish(publishRequest)?.get()
-  }
+  private fun publishEvent(message: String, topic: HmppsTopic?, messageAttributes: Map<String, MessageAttributeValue>, eventType: String): String? = topic?.publish(event = message, eventType = eventType, attributes = messageAttributes)?.messageId()
 
   fun probationMergeEventAndResponseSetup(
     eventType: String,
@@ -198,8 +186,8 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   ) {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
 
-    val crnType = apiResponseSetup.crn?.let { PersonIdentifier("CRN", it) }
-    val personReference = PersonReference(crnType?.let { listOf(crnType) } ?: listOf())
+    val crnType = PersonIdentifier("CRN", apiResponseSetup.crn!!)
+    val personReference = PersonReference(listOf(crnType))
 
     val domainEvent = DomainEvent(
       eventType = eventType,
@@ -238,20 +226,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
   }
 
-  private fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenario: String, currentScenarioState: String, nextScenarioState: String) {
-    wiremock.stubFor(
-      WireMock.get("/probation-cases/${probationCase.crn}")
-        .inScenario(scenario)
-        .whenScenarioStateIs(currentScenarioState)
-        .willSetStateTo(nextScenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(probationCaseResponse(probationCase))
-            .withStatus(200),
-        ),
-    )
-  }
+  private fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String, nextScenarioState: String) = stub(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
 
   fun stub404Response(url: String) {
     wiremock.stubFor(
@@ -283,9 +258,11 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     scenarioName: String? = BASE_SCENARIO,
     currentScenarioState: String? = STARTED,
     nextScenarioState: String? = STARTED,
-  ) {
+  ) = stub(scenarioName, currentScenarioState, nextScenarioState, "/prisoner/${apiResponseSetup.prisonNumber}", prisonerSearchResponse(apiResponseSetup))
+
+  private fun stub(scenarioName: String?, currentScenarioState: String?, nextScenarioState: String?, url: String, body: String) {
     wiremock.stubFor(
-      WireMock.get("/prisoner/${apiResponseSetup.prisonNumber}")
+      WireMock.get(url)
         .inScenario(scenarioName)
         .whenScenarioStateIs(currentScenarioState)
         .willSetStateTo(nextScenarioState)
@@ -293,7 +270,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
-            .withBody(prisonerSearchResponse(apiResponseSetup)),
+            .withBody(body),
         ),
     )
   }

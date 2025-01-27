@@ -31,7 +31,7 @@ class MatchServiceIntTest : IntegrationTestBase() {
       sourceSystem = LIBRA,
     )
     val candidateRecords: List<PersonEntity> = listOf(
-      PersonEntity.from(newRecord),
+      PersonEntity.new(newRecord),
     )
 
     stubOneHighConfidenceMatch()
@@ -54,7 +54,7 @@ class MatchServiceIntTest : IntegrationTestBase() {
       sourceSystem = LIBRA,
     )
     val candidateRecords: List<PersonEntity> = listOf(
-      PersonEntity.from(newRecord),
+      PersonEntity.new(newRecord),
     )
 
     stubOneLowConfidenceMatch()
@@ -87,8 +87,8 @@ class MatchServiceIntTest : IntegrationTestBase() {
     stubMatchScore(matchResponse)
 
     val candidateRecords: List<PersonEntity> = listOf(
-      PersonEntity.from(newRecord1),
-      PersonEntity.from(newRecord2),
+      PersonEntity.new(newRecord1),
+      PersonEntity.new(newRecord2),
     )
 
     val highConfidenceMatches = matchService.findHighConfidenceMatches(candidateRecords, PersonSearchCriteria.from(newRecord1))
@@ -110,7 +110,7 @@ class MatchServiceIntTest : IntegrationTestBase() {
 
     stubXHighConfidenceMatches(100)
 
-    val candidateRecords: List<PersonEntity> = generateSequence { PersonEntity.from(newRecord) }.take(200).toList()
+    val candidateRecords: List<PersonEntity> = generateSequence { PersonEntity.new(newRecord) }.take(200).toList()
     val highConfidenceMatches = matchService.findHighConfidenceMatches(candidateRecords, PersonSearchCriteria.from(newRecord))
 
     assertThat(wiremock.findAll(postRequestedFor(urlEqualTo("/person/match"))).size).isEqualTo(2)

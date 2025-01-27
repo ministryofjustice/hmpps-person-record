@@ -14,13 +14,11 @@ import org.awaitility.kotlin.untilNotNull
 import org.json.JSONObject
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.info.BuildProperties
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchResponse
-import uk.gov.justice.digital.hmpps.personrecord.health.HealthInfo
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -55,12 +53,6 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var telemetryClient: TelemetryClient
-
-  @Autowired
-  private lateinit var buildProperties: BuildProperties
-
-  @Autowired
-  private lateinit var healthInfo: HealthInfo
 
   @Autowired
   lateinit var eventLoggingRepository: EventLoggingRepository
@@ -101,7 +93,7 @@ class IntegrationTestBase {
   }
 
   internal fun createPerson(person: Person, personKeyEntity: PersonKeyEntity? = null): PersonEntity {
-    val personEntity = PersonEntity.from(person = person)
+    val personEntity = PersonEntity.new(person = person)
     personEntity.personKey = personKeyEntity
     return personRepository.saveAndFlush(personEntity)
   }
