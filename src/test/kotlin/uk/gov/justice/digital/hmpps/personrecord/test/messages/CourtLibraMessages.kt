@@ -4,36 +4,34 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 
-class LibraMessage(
-  val pncNumber: String? = randomPnc(),
-  val firstName: String? = "Arthur",
-  val lastName: String = randomName(),
-  val dateOfBirth: String = "01/01/1975",
-  val cro: String = "85227/65L",
-  val postcode: String = randomPostcode(),
-)
-
-fun libraHearing(libraMessage: LibraMessage) = """
+fun libraHearing(
+  pncNumber: String? = randomPnc(),
+  firstName: String? = "Arthur",
+  lastName: String = randomName(),
+  dateOfBirth: String = "01/01/1975",
+  cro: String = "85227/65L",
+  postcode: String = randomPostcode(),
+) = """
 {
    "caseId":1217464,
    "caseNo":"1600032981",
    "name":{
       "title":"Mr",
-      ${libraMessage.firstName?.let { """ "forename1": "${libraMessage.firstName}", """.trimIndent() } ?: ""}
-      "surname":"${libraMessage.lastName}"
+      ${firstName?.let { """ "forename1": "$firstName", """.trimIndent() } ?: ""}
+      "surname":"$lastName"
    },
-   "defendantName":"Mr ${libraMessage.firstName} ${libraMessage.lastName}",
+   "defendantName":"Mr $firstName $lastName",
    "defendantType":"P",
    "defendantSex":"N",
-   "defendantDob":"${libraMessage.dateOfBirth}",
+   "defendantDob":"$dateOfBirth",
    "defendantAge":"20",
    "defendantAddress":{
       "line1": "39 The Street",
       "line2": "Newtown"
-      ${libraMessage.postcode?.let { """ ,"pcode": "${libraMessage.postcode}" """.trimIndent() } ?: ""}
+      ${postcode?.let { """ ,"pcode": "$postcode" """.trimIndent() } ?: ""}
    },
-   "cro":"${libraMessage.cro}",
-   ${libraMessage.pncNumber?.let { """ "pnc": "${libraMessage.pncNumber}", """.trimIndent() } ?: ""}
+   "cro":"$cro",
+   ${pncNumber?.let { """ "pnc": "$pncNumber", """.trimIndent() } ?: ""}
    "listNo":"1st",
    "nationality1":"Angolan",
    "nationality2":"Austrian",
