@@ -39,18 +39,18 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `FIFO queue and topic remove duplicate messages`() {
     val pnc = randomPnc()
     val defendantId = randomDefendantId()
-
-    stubXHighConfidenceMatches(2)
+    val firstName = randomName()
+    val lastName = randomName()
 
     blitz(30, 6) {
-      publishCourtMessage(
+      publishCommonPlatformMessage(
         commonPlatformHearing(
           listOf(
             CommonPlatformHearingSetup(
               pnc = pnc,
               defendantId = defendantId,
-              firstName = "fn",
-              lastName = "ln",
+              firstName = firstName,
+              lastName = lastName,
               cro = "",
               nationalInsuranceNumber = "NINO",
               hearingId = "HEARING1234",
@@ -58,15 +58,15 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
             CommonPlatformHearingSetup(
               pnc = pnc,
               defendantId = defendantId,
-              firstName = "fn",
-              lastName = "ln",
+              firstName = firstName,
+              lastName = lastName,
               cro = "",
               nationalInsuranceNumber = "NINO",
               hearingId = "HEARING1234",
             ),
           ),
         ),
-        COMMON_PLATFORM_HEARING,
+
       )
     }
 
@@ -109,9 +109,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     val changedLastName = randomName()
-    val messageId = publishCourtMessage(
+    val messageId = publishCommonPlatformMessage(
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId))),
-      COMMON_PLATFORM_HEARING,
+
     )
 
     checkTelemetry(
@@ -152,7 +152,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val thirdDefendantNINumber = randomNationalInsuranceNumber()
 
-    val messageId = publishCourtMessage(
+    val messageId = publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
           CommonPlatformHearingSetup(
@@ -170,7 +170,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
           CommonPlatformHearingSetup(pnc = thirdPnc, defendantId = thirdDefendantId, nationalInsuranceNumber = thirdDefendantNINumber),
         ),
       ),
-      COMMON_PLATFORM_HEARING,
+
     )
 
     checkTelemetry(
@@ -243,9 +243,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should log Message Processing Failed telemetry event when an exception is thrown`() {
-    val messageId = publishCourtMessage(
+    val messageId = publishCommonPlatformMessage(
       "notAValidMessage",
-      COMMON_PLATFORM_HEARING,
+
     )
 
     checkTelemetry(
@@ -259,14 +259,14 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val firstDefendantId = randomDefendantId()
     val secondDefendantId = randomDefendantId()
 
-    val messageId = publishCourtMessage(
+    val messageId = publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
           CommonPlatformHearingSetup(pnc = "", defendantId = firstDefendantId),
           CommonPlatformHearingSetup(pnc = null, defendantId = secondDefendantId),
         ),
       ),
-      COMMON_PLATFORM_HEARING,
+
     )
 
     checkTelemetry(
@@ -286,13 +286,13 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should not process youth cases`() {
     val youthDefendantId = randomDefendantId()
-    val messageId = publishCourtMessage(
+    val messageId = publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
           CommonPlatformHearingSetup(defendantId = youthDefendantId, isYouth = true),
         ),
       ),
-      COMMON_PLATFORM_HEARING,
+
     )
 
     checkTelemetry(
@@ -305,13 +305,13 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process when is youth is null`() {
     val youthDefendantId = randomDefendantId()
-    val messageId = publishCourtMessage(
+    val messageId = publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
           CommonPlatformHearingSetup(defendantId = youthDefendantId, isYouth = null),
         ),
       ),
-      COMMON_PLATFORM_HEARING,
+
     )
 
     checkTelemetry(
