@@ -23,7 +23,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.LibraMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
@@ -48,8 +47,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val postcode = randomPostcode()
     val pnc = randomPnc()
     val dateOfBirth = randomDate()
-    val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode)
-    val messageId = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    val messageId = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode))
 
     checkTelemetry(
       MESSAGE_RECEIVED,
@@ -104,11 +102,10 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
       personKeyEntity = createPersonKey(),
     )
-    val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
 
     stubOneHighConfidenceMatch()
 
-    val messageId2 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    val messageId2 = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
@@ -171,8 +168,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     stubOneHighConfidenceMatch()
 
-    val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = "")
-    val messageId1 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    val messageId1 = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = ""))
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
@@ -229,8 +225,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     stubOneLowConfidenceMatch()
 
-    val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, postcode = postcode, cro = "", pncNumber = "")
-    val messageId2 = publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    val messageId2 = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, postcode = postcode, cro = "", pncNumber = ""))
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
@@ -265,10 +260,11 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process and send duplicate telemetry`() {
     val firstName = randomName()
+    val lastName = randomName()
     createPerson(
       Person(
         firstName = firstName,
-        lastName = "MORGAN",
+        lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
         addresses = listOf(Address(postcode = "NT4 6YH")),
         sourceSystem = LIBRA,
@@ -278,17 +274,16 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         firstName = firstName,
-        lastName = "MORGAN",
+        lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
         addresses = listOf(Address(postcode = "NT4 6YH")),
         sourceSystem = LIBRA,
       ),
     )
-    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
 
     stubXHighConfidenceMatches(2)
 
-    publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cro = "", pncNumber = ""))
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
 
     checkTelemetry(
@@ -304,11 +299,12 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process large number of candidates`() {
     val firstName = randomName()
+    val lastName = randomName()
     repeat(110) {
       createPerson(
         Person(
           firstName = firstName,
-          lastName = "MORGAN",
+          lastName = lastName,
           dateOfBirth = LocalDate.of(1975, 1, 1),
           addresses = listOf(Address(postcode = "NT4 6YH")),
           sourceSystem = LIBRA,
@@ -316,11 +312,9 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
     }
 
-    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
-
     stubXHighConfidenceMatches(100)
 
-    publishCourtMessage(libraHearing(libraMessage), LIBRA_COURT_CASE)
+    publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cro = "", pncNumber = ""))
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
