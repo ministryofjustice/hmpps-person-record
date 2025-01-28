@@ -47,7 +47,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val postcode = randomPostcode()
     val pnc = randomPnc()
     val dateOfBirth = randomDate()
-    val messageId = publishCourtMessage(libraHearing(firstName = firstName, lastName = lastName, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode), LIBRA_COURT_CASE)
+    val messageId = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode))
 
     checkTelemetry(
       MESSAGE_RECEIVED,
@@ -105,7 +105,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     stubOneHighConfidenceMatch()
 
-    val messageId2 = publishCourtMessage(libraHearing(firstName = firstName, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))), LIBRA_COURT_CASE)
+    val messageId2 = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
@@ -168,7 +168,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     stubOneHighConfidenceMatch()
 
-    val messageId1 = publishCourtMessage(libraHearing(firstName = firstName, lastName = lastName, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = ""), LIBRA_COURT_CASE)
+    val messageId1 = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = ""))
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
@@ -225,7 +225,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     stubOneLowConfidenceMatch()
 
-    val messageId2 = publishCourtMessage(libraHearing(firstName = firstName, lastName = lastName, postcode = postcode, cro = "", pncNumber = ""), LIBRA_COURT_CASE)
+    val messageId2 = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, postcode = postcode, cro = "", pncNumber = ""))
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
@@ -283,7 +283,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     stubXHighConfidenceMatches(2)
 
-    publishCourtMessage(libraHearing(firstName = firstName, lastName = lastName, cro = "", pncNumber = ""), LIBRA_COURT_CASE)
+    publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cro = "", pncNumber = ""))
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
 
     checkTelemetry(
@@ -314,7 +314,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     stubXHighConfidenceMatches(100)
 
-    publishCourtMessage(libraHearing(firstName = firstName, lastName = lastName, cro = "", pncNumber = ""), LIBRA_COURT_CASE)
+    publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cro = "", pncNumber = ""))
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
