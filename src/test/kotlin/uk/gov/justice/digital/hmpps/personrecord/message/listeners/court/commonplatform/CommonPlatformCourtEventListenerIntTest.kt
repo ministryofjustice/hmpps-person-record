@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
@@ -108,8 +108,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       personKeyEntity = personKey,
     )
 
-    stubOneHighConfidenceMatch()
-
     val changedLastName = randomName()
     val messageId = publishCourtMessage(
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId))),
@@ -125,7 +123,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
       assertThat(updatedPersonEntity.lastName).isEqualTo(changedLastName)
       assertThat(updatedPersonEntity.references.getType(PNC).first().identifierValue).isEqualTo(pnc)
-      assertThat(updatedPersonEntity.references.getType(IdentifierType.CRO).first().identifierValue).isEqualTo(cro)
+      assertThat(updatedPersonEntity.references.getType(CRO).first().identifierValue).isEqualTo(cro)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
     }
 
