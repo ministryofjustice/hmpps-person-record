@@ -265,10 +265,11 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process and send duplicate telemetry`() {
     val firstName = randomName()
+    val lastName = randomName()
     createPerson(
       Person(
         firstName = firstName,
-        lastName = "MORGAN",
+        lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
         addresses = listOf(Address(postcode = "NT4 6YH")),
         sourceSystem = LIBRA,
@@ -278,13 +279,13 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     createPerson(
       Person(
         firstName = firstName,
-        lastName = "MORGAN",
+        lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
         addresses = listOf(Address(postcode = "NT4 6YH")),
         sourceSystem = LIBRA,
       ),
     )
-    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
+    val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, cro = "", pncNumber = "")
 
     stubXHighConfidenceMatches(2)
 
@@ -304,11 +305,12 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process large number of candidates`() {
     val firstName = randomName()
+    val lastName = randomName()
     repeat(110) {
       createPerson(
         Person(
           firstName = firstName,
-          lastName = "MORGAN",
+          lastName = lastName,
           dateOfBirth = LocalDate.of(1975, 1, 1),
           addresses = listOf(Address(postcode = "NT4 6YH")),
           sourceSystem = LIBRA,
@@ -316,7 +318,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
     }
 
-    val libraMessage = LibraMessage(firstName = firstName, cro = "", pncNumber = "")
+    val libraMessage = LibraMessage(firstName = firstName, lastName = lastName, cro = "", pncNumber = "")
 
     stubXHighConfidenceMatches(100)
 

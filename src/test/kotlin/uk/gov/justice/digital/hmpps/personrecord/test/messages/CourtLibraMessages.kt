@@ -1,12 +1,13 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.messages
 
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 
 class LibraMessage(
   val pncNumber: String? = randomPnc(),
   val firstName: String? = "Arthur",
-  val lastName: String = "MORGAN",
+  val lastName: String = randomName(),
   val dateOfBirth: String = "01/01/1975",
   val cro: String = "85227/65L",
   val postcode: String = randomPostcode(),
