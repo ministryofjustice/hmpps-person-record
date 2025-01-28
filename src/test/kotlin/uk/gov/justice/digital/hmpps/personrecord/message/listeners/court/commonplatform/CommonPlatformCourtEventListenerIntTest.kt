@@ -2,8 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.common
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import software.amazon.awssdk.services.sns.model.PublishResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
@@ -34,19 +32,42 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
-import uk.gov.justice.hmpps.sqs.publish
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `FIFO queue and topic remove duplicate messages`() {
-    val pncNumber = PNCIdentifier.from(randomPnc())
+    val pnc = randomPnc()
     val defendantId = randomDefendantId()
 
     stubXHighConfidenceMatches(2)
 
     blitz(30, 6) {
-      publishMessage(defendantId, pncNumber)
+      publishCourtMessage(
+        commonPlatformHearing(
+          listOf(
+            CommonPlatformHearingSetup(
+              pnc = pnc,
+              defendantId = defendantId,
+              firstName = "fn",
+              lastName = "ln",
+              cro = "",
+              nationalInsuranceNumber = "NINO",
+              hearingId = "HEARING1234",
+            ),
+            CommonPlatformHearingSetup(
+              pnc = pnc,
+              defendantId = defendantId,
+              firstName = "fn",
+              lastName = "ln",
+              cro = "",
+              nationalInsuranceNumber = "NINO",
+              hearingId = "HEARING1234",
+            ),
+          ),
+        ),
+        COMMON_PLATFORM_HEARING,
+      )
     }
 
     expectNoMessagesOn(courtEventsQueue)
@@ -300,39 +321,4 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
     )
   }
-
-  private fun publishMessage(
-    defendantId: String,
-    pnc: PNCIdentifier,
-  ): PublishResponse = courtEventsTopic!!.publish(
-    eventType = "commonplatform.case.received",
-    commonPlatformHearing(
-      listOf(
-        CommonPlatformHearingSetup(
-          pnc = pnc.pncId,
-          defendantId = defendantId,
-          firstName = "fn",
-          lastName = "ln",
-          cro = "",
-          nationalInsuranceNumber = "NINO",
-          hearingId = "HEARING1234",
-        ),
-        CommonPlatformHearingSetup(
-          pnc = pnc.pncId,
-          defendantId = defendantId,
-          firstName = "fn",
-          lastName = "ln",
-          cro = "",
-          nationalInsuranceNumber = "NINO",
-          hearingId = "HEARING1234",
-        ),
-      ),
-    ),
-    attributes =
-    mapOf(
-      "messageType" to MessageAttributeValue.builder().dataType("String")
-        .stringValue(COMMON_PLATFORM_HEARING.name).build(),
-    ),
-    messageGroupId = "court-hearing-event-receiver",
-  )
 }
