@@ -102,12 +102,11 @@ class SearchIntTest : WebTestBase() {
   @Test
   fun `should return LIBRA person record with one record`() {
     val libraDefendantId = randomDefendantId()
-    createPerson(
+    createPersonWithNewKey(
       Person(
         defendantId = libraDefendantId,
         sourceSystem = LIBRA,
       ),
-      personKeyEntity = createPersonKey(),
     )
 
     val responseBody = webTestClient.get()

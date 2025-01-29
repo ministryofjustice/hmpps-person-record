@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import java.time.Duration
@@ -78,12 +79,20 @@ class IntegrationTestBase {
   internal fun awaitNotNullEventLog(sourceSystemId: String, eventType: String) = await atMost (Duration.ofSeconds(3)) untilNotNull {
     eventLoggingRepository.findFirstBySourceSystemIdAndEventTypeOrderByEventTimestampDesc(sourceSystemId, eventType)
   }
-  internal fun createPersonKey(status: UUIDStatusType = UUIDStatusType.ACTIVE): PersonKeyEntity {
+  internal fun createPersonKey(status: UUIDStatusType = ACTIVE): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
     personKeyEntity.status = status
     return personKeyRepository.saveAndFlush(personKeyEntity)
   }
 
+  internal fun createPersonWithNewKey(person: Person): PersonEntity {
+    val personKeyEntity = PersonKeyEntity.new()
+    personKeyEntity.status = ACTIVE
+    personKeyRepository.save(personKeyEntity)
+    val personEntity = PersonEntity.new(person = person)
+    personEntity.personKey = personKeyEntity
+    return personRepository.saveAndFlush(personEntity)
+  }
   internal fun createPerson(person: Person, personKeyEntity: PersonKeyEntity? = null): PersonEntity {
     val personEntity = PersonEntity.new(person = person)
     personEntity.personKey = personKeyEntity
