@@ -6,9 +6,9 @@ kotlin {
 
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "7.0.0"
-  kotlin("plugin.spring") version "2.1.0"
-  kotlin("jvm") version "2.1.0"
-  kotlin("plugin.jpa") version "2.1.0"
+  kotlin("plugin.spring") version "2.1.10"
+  kotlin("jvm") version "2.1.10"
+  kotlin("plugin.jpa") version "2.1.10"
   id("io.gitlab.arturbosch.detekt") version "1.23.7"
   id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
@@ -28,7 +28,7 @@ dependencies {
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.2.0")
 
   implementation("io.swagger.core.v3:swagger-annotations:2.2.28")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4")
 
   constraints {
     implementation("commons-io:commons-io:2.18.0") {
@@ -49,7 +49,7 @@ dependencies {
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
-  testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.1.0")
+  testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.1.10")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.2")
   testImplementation("org.jmock:jmock:2.13.1")
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.1.1")
