@@ -91,7 +91,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val postcode = randomPostcode()
     val dateOfBirth = randomDate()
     val libraDefendantId = randomDefendantId()
-    val personEntity = createPerson(
+    val personEntity = createPersonWithNewKey(
       Person(
         firstName = firstName,
         lastName = lastName,
@@ -100,7 +100,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         dateOfBirth = dateOfBirth,
         sourceSystem = LIBRA,
       ),
-      personKeyEntity = createPersonKey(),
     )
 
     stubOneHighConfidenceMatch()
@@ -214,14 +213,13 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val firstName = randomName()
     val lastName = randomName()
     val postcode = randomPostcode()
-    createPerson(
+    createPersonWithNewKey(
       Person(
         firstName = firstName,
         lastName = lastName,
         addresses = listOf(Address(postcode = postcode)),
         sourceSystem = LIBRA,
       ),
-      personKeyEntity = createPersonKey(),
     )
     stubOneLowConfidenceMatch()
 
