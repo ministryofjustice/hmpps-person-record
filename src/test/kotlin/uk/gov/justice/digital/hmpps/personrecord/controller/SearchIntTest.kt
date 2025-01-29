@@ -4,7 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.SEARCH_API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.PersonIdentifierRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
@@ -25,14 +25,13 @@ class SearchIntTest : WebTestBase() {
   @Test
   fun `should return OFFENDER person record with one record`() {
     val crn = randomCrn()
-    createPerson(
+    createPersonWithNewKey(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
-      personKeyEntity = createPersonKey(),
     )
 
     val responseBody = webTestClient.get()
       .uri(searchOffenderUrl(crn))
-      .authorised(listOf(Roles.SEARCH_API_READ_ONLY))
+      .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
@@ -48,19 +47,18 @@ class SearchIntTest : WebTestBase() {
   @Test
   fun `should return PRISONER person record with one record`() {
     val prisonNumber = randomPrisonNumber()
-    createPerson(
+    createPersonWithNewKey(
       Person(
         firstName = randomName(),
         lastName = randomName(),
         prisonNumber = prisonNumber,
         sourceSystem = NOMIS,
       ),
-      personKeyEntity = createPersonKey(),
     )
 
     val responseBody = webTestClient.get()
       .uri(searchPrisonerUrl(prisonNumber))
-      .authorised(listOf(Roles.SEARCH_API_READ_ONLY))
+      .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
@@ -76,17 +74,16 @@ class SearchIntTest : WebTestBase() {
   @Test
   fun `should return DEFENDANT person record with one record`() {
     val defendantId = randomDefendantId()
-    createPerson(
+    createPersonWithNewKey(
       Person(
         defendantId = defendantId,
         sourceSystem = COMMON_PLATFORM,
       ),
-      personKeyEntity = createPersonKey(),
     )
 
     val responseBody = webTestClient.get()
       .uri(searchDefendantUrl(defendantId))
-      .authorised(listOf(Roles.SEARCH_API_READ_ONLY))
+      .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
@@ -111,7 +108,7 @@ class SearchIntTest : WebTestBase() {
 
     val responseBody = webTestClient.get()
       .uri(searchDefendantUrl(libraDefendantId))
-      .authorised(listOf(Roles.SEARCH_API_READ_ONLY))
+      .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
@@ -133,7 +130,7 @@ class SearchIntTest : WebTestBase() {
 
     val responseBody = webTestClient.get()
       .uri(searchOffenderUrl(crn))
-      .authorised(listOf(Roles.SEARCH_API_READ_ONLY))
+      .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
@@ -161,7 +158,7 @@ class SearchIntTest : WebTestBase() {
 
     val responseBody = webTestClient.get()
       .uri(searchOffenderUrl(crn))
-      .authorised(listOf(Roles.SEARCH_API_READ_ONLY))
+      .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
@@ -203,7 +200,7 @@ class SearchIntTest : WebTestBase() {
 
     val responseBody = webTestClient.get()
       .uri(searchOffenderUrl(crn))
-      .authorised(listOf(Roles.SEARCH_API_READ_ONLY))
+      .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
@@ -246,7 +243,7 @@ class SearchIntTest : WebTestBase() {
   fun `should return NOT FOUND when empty personId`(url: String) {
     webTestClient.get()
       .uri(url)
-      .authorised(listOf(Roles.SEARCH_API_READ_ONLY))
+      .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
       .isNotFound
