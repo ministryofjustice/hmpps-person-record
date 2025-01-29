@@ -718,7 +718,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should not find its self`() {
+  fun `should not find itself`() {
     val record = createPersonWithNewKey(
       Person(
         references = listOf(Reference(PNC, randomPnc())),
