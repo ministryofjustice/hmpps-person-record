@@ -363,7 +363,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(loggedEvent.uuid).isEqualTo(personEntity?.personKey?.personId.toString())
   }
 
-  private fun createPrisoner(): PersonEntity = createPerson(
+  private fun createPrisoner(): PersonEntity = createPersonWithNewKey(
     Person.from(
       Prisoner(
         prisonNumber = randomPrisonNumber(),
@@ -382,7 +382,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         allConvictedOffences = listOf(AllConvictedOffences(randomDate())),
       ),
     ),
-    personKeyEntity = createPersonKey(),
   )
 
   private fun stub500Response(

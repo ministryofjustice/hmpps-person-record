@@ -24,8 +24,10 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLoggingRepo
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType.EXCLUDE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import java.time.Duration
@@ -78,10 +80,16 @@ class IntegrationTestBase {
   internal fun awaitNotNullEventLog(sourceSystemId: String, eventType: String) = await atMost (Duration.ofSeconds(3)) untilNotNull {
     eventLoggingRepository.findFirstBySourceSystemIdAndEventTypeOrderByEventTimestampDesc(sourceSystemId, eventType)
   }
-  internal fun createPersonKey(status: UUIDStatusType = UUIDStatusType.ACTIVE): PersonKeyEntity {
+  internal fun createPersonKey(status: UUIDStatusType = ACTIVE): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
     personKeyEntity.status = status
-    return personKeyRepository.saveAndFlush(personKeyEntity)
+    return personKeyRepository.save(personKeyEntity)
+  }
+
+  internal fun createPersonWithNewKey(person: Person): PersonEntity {
+    val personEntity = PersonEntity.new(person = person)
+    personEntity.personKey = createPersonKey()
+    return personRepository.saveAndFlush(personEntity)
   }
 
   internal fun createPerson(person: Person, personKeyEntity: PersonKeyEntity? = null): PersonEntity {
@@ -97,21 +105,21 @@ class IntegrationTestBase {
 
   internal fun mergeUuid(sourcePersonKey: PersonKeyEntity, targetPersonKeyEntity: PersonKeyEntity): PersonKeyEntity {
     sourcePersonKey.mergedTo = targetPersonKeyEntity.id
-    if (sourcePersonKey.personEntities.size == 1) sourcePersonKey.status = UUIDStatusType.MERGED
+    if (sourcePersonKey.personEntities.size == 1) sourcePersonKey.status = MERGED
     return personKeyRepository.saveAndFlush(sourcePersonKey)
   }
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
     sourceRecord.overrideMarkers.add(
       OverrideMarkerEntity(
-        markerType = OverrideMarkerType.EXCLUDE,
+        markerType = EXCLUDE,
         markerValue = excludingRecord.id,
         person = sourceRecord,
       ),
     )
     excludingRecord.overrideMarkers.add(
       OverrideMarkerEntity(
-        markerType = OverrideMarkerType.EXCLUDE,
+        markerType = EXCLUDE,
         markerValue = sourceRecord.id,
         person = sourceRecord,
       ),
