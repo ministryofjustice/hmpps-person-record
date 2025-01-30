@@ -3,15 +3,11 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.common
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
@@ -97,13 +93,12 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val personKey = createPersonKey()
     createPerson(
-      Person.from(
-        Defendant(
-          id = defendantId,
-          pncId = PNCIdentifier.from(pnc),
-          cro = CROIdentifier.from(cro),
-          personDefendant = PersonDefendant(personDetails = PersonDetails(firstName = firstName, lastName = lastName, gender = "Male")),
-        ),
+      Person(
+        defendantId = defendantId,
+        references = listOf(Reference(PNC, pnc), Reference(CRO, cro)),
+        firstName = firstName,
+        lastName = lastName,
+        sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = personKey,
     )

@@ -88,32 +88,29 @@ class SearchServiceIntTest : IntegrationTestBase() {
         sourceSystem = LIBRA,
       ),
     )
-    createPerson(
+    createPersonWithNewKey(
       Person(
         firstName = firstName,
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
         sourceSystem = COMMON_PLATFORM,
       ),
-      personKeyEntity = createPersonKey(),
     )
-    createPerson(
+    createPersonWithNewKey(
       Person(
         firstName = firstName,
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
         sourceSystem = NOMIS,
       ),
-      personKeyEntity = createPersonKey(),
     )
-    createPerson(
+    createPersonWithNewKey(
       Person(
         firstName = firstName,
         lastName = lastName,
         dateOfBirth = LocalDate.of(1975, 1, 1),
         sourceSystem = DELIUS,
       ),
-      personKeyEntity = createPersonKey(),
     )
 
     stubXHighConfidenceMatches(4)
@@ -195,12 +192,11 @@ class SearchServiceIntTest : IntegrationTestBase() {
         sourceSystem = COMMON_PLATFORM,
       ),
     )
-    createPerson(
+    createPersonWithNewKey(
       Person(
         references = listOf(Reference(DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
         sourceSystem = COMMON_PLATFORM,
       ),
-      personKeyEntity = createPersonKey(),
     )
 
     stubXHighConfidenceMatches(2)
@@ -465,7 +461,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
   @Test
   fun `should find candidate records on exact match on first 3 chars on multiple postcodes`() {
     val firstName = randomName()
-    createPerson(
+    createPersonWithNewKey(
       Person(
         firstName = firstName,
         lastName = "Smythe",
@@ -476,7 +472,6 @@ class SearchServiceIntTest : IntegrationTestBase() {
         ),
         sourceSystem = COMMON_PLATFORM,
       ),
-      personKeyEntity = createPersonKey(),
     )
     createPerson(
       Person(
@@ -554,13 +549,12 @@ class SearchServiceIntTest : IntegrationTestBase() {
   fun `should not find candidate records on matching just firstname and lastname`() {
     val firstName = randomName()
     val lastName = randomName()
-    createPerson(
+    createPersonWithNewKey(
       Person(
         firstName = firstName,
         lastName = lastName,
         sourceSystem = COMMON_PLATFORM,
       ),
-      personKeyEntity = createPersonKey(),
     )
 
     val searchingPerson = Person(
@@ -581,13 +575,12 @@ class SearchServiceIntTest : IntegrationTestBase() {
       sourceSystem = COMMON_PLATFORM,
     )
 
-    val sourcePerson = createPerson(searchingPerson, personKeyEntity = createPersonKey())
-    val targetPerson = createPerson(
+    val sourcePerson = createPersonWithNewKey(searchingPerson)
+    val targetPerson = createPersonWithNewKey(
       Person(
         references = listOf(Reference(CRO, randomCro())),
         sourceSystem = COMMON_PLATFORM,
       ),
-      personKeyEntity = createPersonKey(),
     )
     mergeRecord(sourcePerson, targetPerson)
 
@@ -624,8 +617,8 @@ class SearchServiceIntTest : IntegrationTestBase() {
       references = listOf(Reference(PNC, pnc)),
       sourceSystem = COMMON_PLATFORM,
     )
-    val existingPerson = createPerson(personToFind, personKeyEntity = createPersonKey())
-    val excludedRecord = createPerson(personToFind, personKeyEntity = createPersonKey())
+    val existingPerson = createPersonWithNewKey(personToFind)
+    val excludedRecord = createPersonWithNewKey(personToFind)
 
     excludeRecord(existingPerson, excludingRecord = excludedRecord)
 
@@ -725,13 +718,12 @@ class SearchServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should not find its self`() {
-    val record = createPerson(
+  fun `should not find itself`() {
+    val record = createPersonWithNewKey(
       Person(
         references = listOf(Reference(PNC, randomPnc())),
         sourceSystem = COMMON_PLATFORM,
       ),
-      personKeyEntity = createPersonKey(),
     )
 
     val candidateRecords = searchService.findCandidateRecordsWithUuid(record)
