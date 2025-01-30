@@ -93,10 +93,6 @@ tasks {
   }
 }
 
-ktlint {
-  version = "1.5.0"
-}
-
 configurations.matching { it.name == "detekt" }.all {
   resolutionStrategy.eachDependency {
     if (requested.group == "org.jetbrains.kotlin") {
