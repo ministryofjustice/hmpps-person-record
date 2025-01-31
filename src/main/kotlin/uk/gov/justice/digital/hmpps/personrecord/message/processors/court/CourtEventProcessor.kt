@@ -1,7 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 
+import aws.sdk.kotlin.services.s3.S3Client
+import aws.sdk.kotlin.services.s3.model.GetObjectRequest
+import aws.smithy.kotlin.runtime.content.decodeToString
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
@@ -28,6 +32,7 @@ class CourtEventProcessor(
   private val searchService: SearchService,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
+  private val s3Client: S3Client,
 ) {
 
   companion object {
@@ -45,9 +50,11 @@ class CourtEventProcessor(
   }
 
   private fun processCommonPlatformHearingEvent(sqsMessage: SQSMessage) {
-    val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(
-      sqsMessage.message,
-    )
+    val commonPlatformHearing: String = when {
+      sqsMessage.getEventType() == "commonplatform.large.case.received" -> runBlocking { getPayloadFromS3(sqsMessage) }
+      else -> sqsMessage.message
+    }
+    val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
 
     val uniqueDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
       .flatMap { it.defendants }
@@ -78,6 +85,18 @@ class CourtEventProcessor(
           personRepository.findByDefendantId(it)
         }
       }
+    }
+  }
+
+  private suspend fun getPayloadFromS3(sqsMessage: SQSMessage): String {
+    val largeMessagePayload = objectMapper.readValue<LargeMessagePayload>(sqsMessage.message)
+    val request =
+      GetObjectRequest {
+        key = largeMessagePayload.pointer.s3Key
+        bucket = largeMessagePayload.pointer.s3Bucket
+      }
+    return s3Client.getObject(request) { resp ->
+      resp.body!!.decodeToString()
     }
   }
 

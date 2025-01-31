@@ -28,6 +28,34 @@ data class CommonPlatformHearingSetupContact(
   val mobile: String = "078590345677",
   val primaryEmail: String = "email@email.com",
 )
+
+fun largeCommonPlatformMessage() = """{
+  "Type" : "Notification",
+  "MessageId" : "64b6f504-1b6f-4129-85a9-8117fbe23d5f",
+  "TopicArn" : "arn:aws:sns:eu-west-2:000000000000:court-cases-topic.fifo",
+  "Message" : "[\"software.amazon.payloadoffloading.PayloadS3Pointer\",{\"s3BucketName\":\"local-644707540a8083b7b15a77f51641f632\",\"s3Key\":\"f8331621-365a-4eab-97fd-c086cf7d6a22\"}]",
+  "Timestamp" : "2025-01-15T18:12:13.547Z",
+  "UnsubscribeURL" : "http://localhost.localstack.cloud:4566/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-west-2:000000000000:court-cases-topic.fifo:c53dda1d-9836-478a-8780-f4ec63861f70",
+  "MessageAttributes" : {
+    "eventType" : {
+      "Type" : "String",
+      "Value" : "commonplatform.large.case.received"
+    },
+    "messageType" : {
+      "Type" : "String",
+      "Value" : "COMMON_PLATFORM_HEARING"
+    },
+    "hearingEventType" : {
+      "Type" : "String",
+      "Value" : "ConfirmedOrUpdated"
+    },
+    "ExtendedPayloadSize" : {
+      "Type" : "Number",
+      "Value" : "268444"
+    }
+  },
+  "SequenceNumber" : "14920411091438665729"
+}"""
 fun commonPlatformHearing(commonPlatformHearingSetup: List<CommonPlatformHearingSetup>) = """
     {
       "hearing": {

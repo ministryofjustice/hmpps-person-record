@@ -83,3 +83,7 @@ populate-from-nomis:
 
 populate-from-probation:
   page-size: 2
+
+aws:
+  court-message-bucket-name: court-message-bucket
+  region-name: eu-west-2
