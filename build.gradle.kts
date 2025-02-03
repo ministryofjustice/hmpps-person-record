@@ -22,7 +22,7 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.2.2")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-  implementation("jakarta.validation:jakarta.validation-api:3.1.0")
+  implementation("jakarta.validation:jakarta.validation-api:3.1.1")
   implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.2.0")
@@ -46,7 +46,7 @@ dependencies {
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
-  testImplementation("org.wiremock:wiremock-standalone:3.10.0")
+  testImplementation("org.wiremock:wiremock-standalone:3.11.0")
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
