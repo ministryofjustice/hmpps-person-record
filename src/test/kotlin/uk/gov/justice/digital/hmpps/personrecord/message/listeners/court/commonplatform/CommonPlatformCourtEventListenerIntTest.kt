@@ -253,7 +253,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process large messages`() {
     val firstDefendantId = randomDefendantId()
-    val messageId = publishCommonPlatformMessage(
+    // upload message to s3 with this defendant ID
+    val messageId = publishLargeCommonPlatformMessage(
       largeCommonPlatformMessage(),
     )
 

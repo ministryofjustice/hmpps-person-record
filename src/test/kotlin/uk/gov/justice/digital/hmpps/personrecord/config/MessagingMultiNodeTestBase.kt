@@ -74,13 +74,16 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   internal fun publishLibraMessage(message: String): String = publishCourtMessage(message, LIBRA_COURT_CASE)
   internal fun publishCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING)
-  private fun publishCourtMessage(message: String, messageType: MessageType): String {
+  internal fun publishLargeCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.large.case.received")
+  private fun publishCourtMessage(message: String, messageType: MessageType, eventType: String = "commonplatform.case.received"): String {
     val publishResponse = courtEventsTopic?.publish(
       eventType = messageType.name,
       event = message,
       attributes = mapOf(
         "messageType" to MessageAttributeValue.builder().dataType("String")
           .stringValue(messageType.name).build(),
+        "eventType" to MessageAttributeValue.builder().dataType("String")
+          .stringValue(eventType).build(),
         "messageId" to MessageAttributeValue.builder().dataType("String")
           .stringValue(UUID.randomUUID().toString()).build(),
       ),

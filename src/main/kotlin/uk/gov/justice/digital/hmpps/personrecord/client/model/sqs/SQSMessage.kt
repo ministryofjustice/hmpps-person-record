@@ -22,11 +22,16 @@ data class SQSMessage(
 }
 
 data class MessageAttributes(
-  val messageType: MessageAttribute?,
-  val eventType: MessageAttribute?,
+  val eventType: SQSEventType?,
+  val messageType: SQSMessageType?,
 )
 
-data class MessageAttribute(
+data class SQSEventType(
+  @JsonProperty("Value")
+  val value: String?,
+)
+
+data class SQSMessageType(
   @JsonProperty("Value")
   val value: String?,
 )
