@@ -29,8 +29,8 @@ data class CommonPlatformHearingSetupContact(
   val primaryEmail: String = "email@email.com",
 )
 
-fun largeCommonPlatformMessage() = """
-  ["software.amazon.payloadoffloading.PayloadS3Pointer",{"s3BucketName":"local-644707540a8083b7b15a77f51641f632","s3Key":"f8331621-365a-4eab-97fd-c086cf7d6a22"}]
+fun largeCommonPlatformMessage(s3Key: String, s3BucketName: String) = """
+  ["software.amazon.payloadoffloading.PayloadS3Pointer",{"s3BucketName":"$s3BucketName","s3Key":"$s3Key"}]
 """
 fun commonPlatformHearing(commonPlatformHearingSetup: List<CommonPlatformHearingSetup>) = """
     {

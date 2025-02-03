@@ -91,12 +91,12 @@ class CourtEventProcessor(
   private suspend fun getPayloadFromS3(sqsMessage: SQSMessage): String {
     val message = objectMapper.readValue(sqsMessage.message, ArrayList::class.java)
 
-    var key = (message[1] as LinkedHashMap<String, String>).get("s3Key")
-    var bucket = (message[1] as LinkedHashMap<String, String>).get("s3BucketName")
+    var s3Key = (message[1] as LinkedHashMap<String, String>).get("s3Key")
+    var s3Bucket = (message[1] as LinkedHashMap<String, String>).get("s3BucketName")
     val request =
       GetObjectRequest {
-        key = key
-        bucket = bucket
+        key = s3Key
+        bucket = s3Bucket
       }
     return s3Client.getObject(request) { resp ->
       resp.body!!.decodeToString()

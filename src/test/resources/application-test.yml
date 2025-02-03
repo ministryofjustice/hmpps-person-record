@@ -85,5 +85,6 @@ populate-from-probation:
   page-size: 2
 
 aws:
-  court-message-bucket-name: court-message-bucket
-  region-name: eu-west-2
+  endpoint: http://localhost:4566
+  court-message-bucket-name: local-court-message-bucket
+  region: eu-west-2

@@ -59,3 +59,8 @@ hmpps.sqs:
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres?currentSchema=personrecordservice&user=root&password=dev&stringtype=unspecified
+
+aws:
+  endpoint: http://localhost:4566
+  court-message-bucket-name: local-court-message-bucket
+  region: eu-west-2
