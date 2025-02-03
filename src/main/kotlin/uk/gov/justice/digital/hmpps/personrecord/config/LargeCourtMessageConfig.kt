@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Profile
 
 @Configuration
 @Profile("!test & !local")
-class LargeCourtMessageConfig { // (@Value("\${aws.region-name}") private val regionName: String,)
+class LargeCourtMessageConfig {
 
   @Bean
   fun s3Client(): S3Client = S3Client
