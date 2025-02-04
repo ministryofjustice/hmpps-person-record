@@ -72,9 +72,12 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId(Queues.RECLUSTER_EVENTS_QUEUE_ID)
   }
 
-  internal fun publishLibraMessage(message: String): String = publishCourtMessage(message, LIBRA_COURT_CASE)
+  internal fun publishLibraMessage(message: String): String = publishCourtMessage(message, LIBRA_COURT_CASE, "libra.case.received")
+
   internal fun publishCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING)
+
   internal fun publishLargeCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.large.case.received")
+
   private fun publishCourtMessage(message: String, messageType: MessageType, eventType: String = "commonplatform.case.received"): String {
     val publishResponse = courtEventsTopic?.publish(
       eventType = messageType.name,
