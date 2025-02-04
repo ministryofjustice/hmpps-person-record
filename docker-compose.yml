@@ -20,7 +20,7 @@ services:
     ports:
       - "4566:4566"
     environment:
-      - SERVICES=sns,sqs
+      - SERVICES=sns,sqs,s3
       - DEBUG=${DEBUG- }
       - PERSISTENCE=1
       - DOCKER_HOST=unix:///var/run/docker.sock
@@ -28,6 +28,7 @@ services:
     volumes:
       - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
+      - "$PWD/src/test/resources/localstack/setup-aws.sh:/etc/localstack/init/ready.d/init-aws.sh"
 
 networks:
   hmpps:

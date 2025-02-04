@@ -72,15 +72,21 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId(Queues.RECLUSTER_EVENTS_QUEUE_ID)
   }
 
-  internal fun publishLibraMessage(message: String): String = publishCourtMessage(message, LIBRA_COURT_CASE)
-  internal fun publishCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING)
-  private fun publishCourtMessage(message: String, messageType: MessageType): String {
+  internal fun publishLibraMessage(message: String): String = publishCourtMessage(message, LIBRA_COURT_CASE, "libra.case.received")
+
+  internal fun publishCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.case.received")
+
+  internal fun publishLargeCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.large.case.received")
+
+  private fun publishCourtMessage(message: String, messageType: MessageType, eventType: String): String {
     val publishResponse = courtEventsTopic?.publish(
       eventType = messageType.name,
       event = message,
       attributes = mapOf(
         "messageType" to MessageAttributeValue.builder().dataType("String")
           .stringValue(messageType.name).build(),
+        "eventType" to MessageAttributeValue.builder().dataType("String")
+          .stringValue(eventType).build(),
         "messageId" to MessageAttributeValue.builder().dataType("String")
           .stringValue(UUID.randomUUID().toString()).build(),
       ),

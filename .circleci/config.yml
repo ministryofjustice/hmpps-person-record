@@ -20,8 +20,14 @@ jobs:
       postgres_tag: "16.1"
       java_options: "-Xmx4096m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=true -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.workers.max=1"
       resource_class: medium+
+      services: "s3,sqs,sns"
     steps:
       - checkout
+      - hmpps/install_aws_cli
+      - hmpps/wait_till_ready
+      - run:
+          name: Set up S3
+          command: src/test/resources/localstack/setup-aws.sh
       - restore_cache:
           keys:
             - gradle-{{ checksum "build.gradle.kts" }}

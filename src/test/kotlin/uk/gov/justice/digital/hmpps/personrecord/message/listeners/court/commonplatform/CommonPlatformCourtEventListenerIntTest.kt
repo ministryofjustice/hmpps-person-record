@@ -1,7 +1,14 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.commonplatform
 
+import aws.sdk.kotlin.services.s3.S3Client
+import aws.sdk.kotlin.services.s3.model.PutObjectRequest
+import aws.smithy.kotlin.runtime.content.ByteStream
+import io.netty.util.internal.PlatformDependent.putObject
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
@@ -23,13 +30,21 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupContact
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
+import java.util.UUID
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
+
+  @Autowired
+  lateinit var s3Client: S3Client
+
+  @Value("\${aws.court-message-bucket-name}")
+  val s3Bucket = ""
 
   @Test
   fun `FIFO queue and topic remove duplicate messages`() {
@@ -247,6 +262,32 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       MESSAGE_PROCESSING_FAILED,
       mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name),
     )
+  }
+
+  @Test
+  fun `should process large messages`() {
+    val defendantId = randomDefendantId()
+
+    val s3Key = UUID.randomUUID().toString()
+
+    val request =
+      PutObjectRequest {
+        bucket = s3Bucket
+        key = s3Key
+        body = ByteStream.fromString(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId))))
+      }
+    runBlocking {
+      s3Client.putObject(request)
+    }
+    val messageId = publishLargeCommonPlatformMessage(
+      largeCommonPlatformMessage(s3Key, s3Bucket),
+    )
+
+    checkTelemetry(
+      MESSAGE_RECEIVED,
+      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
+    )
+    awaitNotNullPerson { personRepository.findByDefendantId(defendantId) }
   }
 
   @Test
