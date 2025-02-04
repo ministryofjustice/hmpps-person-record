@@ -51,7 +51,7 @@ class CourtEventProcessor(
 
   private fun processCommonPlatformHearingEvent(sqsMessage: SQSMessage) {
     val commonPlatformHearing: String = when {
-      sqsMessage.getEventType() == "commonplatform.large.case.received" -> runBlocking { getPayloadFromS3(sqsMessage) }
+      isLargeMessage(sqsMessage) -> runBlocking { getPayloadFromS3(sqsMessage) }
       else -> sqsMessage.message
     }
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
@@ -88,15 +88,15 @@ class CourtEventProcessor(
     }
   }
 
+  private fun isLargeMessage(sqsMessage: SQSMessage) = sqsMessage.getEventType() == "commonplatform.large.case.received"
+
   private suspend fun getPayloadFromS3(sqsMessage: SQSMessage): String {
     val message = (objectMapper.readValue(sqsMessage.message, ArrayList::class.java)[1] as LinkedHashMap<String, String>)
 
-    val s3Key = message.get("s3Key")
-    val s3Bucket = message.get("s3BucketName")
     val request =
       GetObjectRequest {
-        key = s3Key
-        bucket = s3Bucket
+        key = message["s3Key"]
+        bucket = message["s3BucketName"]
       }
     return s3Client.getObject(request) { resp ->
       resp.body!!.decodeToString()

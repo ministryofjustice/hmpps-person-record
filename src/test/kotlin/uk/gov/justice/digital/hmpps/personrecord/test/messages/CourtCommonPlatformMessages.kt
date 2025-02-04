@@ -32,6 +32,7 @@ data class CommonPlatformHearingSetupContact(
 fun largeCommonPlatformMessage(s3Key: String, s3BucketName: String) = """
   ["software.amazon.payloadoffloading.PayloadS3Pointer",{"s3BucketName":"$s3BucketName","s3Key":"$s3Key"}]
 """
+
 fun commonPlatformHearing(commonPlatformHearingSetup: List<CommonPlatformHearingSetup>) = """
     {
       "hearing": {
