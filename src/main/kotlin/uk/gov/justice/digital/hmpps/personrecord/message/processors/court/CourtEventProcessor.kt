@@ -91,12 +91,13 @@ class CourtEventProcessor(
   private fun isLargeMessage(sqsMessage: SQSMessage) = sqsMessage.getEventType() == "commonplatform.large.case.received"
 
   private suspend fun getPayloadFromS3(sqsMessage: SQSMessage): String {
-    val message = (objectMapper.readValue(sqsMessage.message, ArrayList::class.java)[1] as LinkedHashMap<String, String>)
+    val messageBody = objectMapper.readValue(sqsMessage.message, ArrayList::class.java)
+    val message = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
 
     val request =
       GetObjectRequest {
-        key = message["s3Key"]
-        bucket = message["s3BucketName"]
+        key = message.s3Key
+        bucket = message.s3BucketName
       }
     return s3Client.getObject(request) { resp ->
       resp.body!!.decodeToString()
@@ -124,3 +125,5 @@ class CourtEventProcessor(
     }
   }
 }
+
+data class LargeMessageBody(val s3Key: String, val s3BucketName: String)
