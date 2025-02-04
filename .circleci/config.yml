@@ -20,6 +20,7 @@ jobs:
       postgres_tag: "16.1"
       java_options: "-Xmx4096m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=true -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.workers.max=1"
       resource_class: medium+
+      services: "s3,sqs,sns"
     steps:
       - checkout
       - restore_cache:
