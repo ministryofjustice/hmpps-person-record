@@ -33,7 +33,5 @@ class PopulatePersonMatchIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isOk
-
   }
-
 }

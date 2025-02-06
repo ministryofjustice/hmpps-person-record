@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchR
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 
 private const val OK = "OK"
 
@@ -23,6 +24,7 @@ private const val OK = "OK"
 class PopulatePersonMatch(
   private val personRepository: PersonRepository,
   private val personMatchClient: PersonMatchClient,
+  private val retryExecutor: RetryExecutor,
 ) {
 
   @RequestMapping(method = [RequestMethod.POST], value = ["/populatepersonmatch"])
@@ -37,7 +39,7 @@ class PopulatePersonMatch(
       val (totalPages, totalElements) = forPage { page ->
         val personMatchRecords = page.content.map { PersonMatchRecord.from(it) }
         val personMatchRequest = PersonMatchRequest(records = personMatchRecords)
-        personMatchClient.postPersonMigrate(personMatchRequest)
+        retryExecutor.runWithRetryHTTP { personMatchClient.postPersonMigrate(personMatchRequest) }
       }
       log.info("Finished populating person-match, total pages: $totalPages, total elements: $totalElements")
     }
