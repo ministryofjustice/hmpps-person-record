@@ -23,11 +23,11 @@ class EncodingService(
     }
   }
 
-  fun getPrisonerDetails(prisonNumber: String): Result<Prisoner?> = runCatching {
+  fun getPrisonerDetails(prisonNumber: String, onSuccess: (value: Prisoner?) -> Unit?, onFailure: (exception: Throwable) -> Unit?) = runCatching {
     runBlocking {
       retryExecutor.runWithRetryHTTP {
         prisonerSearchClient.getPrisoner(prisonNumber)
       }
     }
-  }
+  }.fold(onSuccess, onFailure)
 }

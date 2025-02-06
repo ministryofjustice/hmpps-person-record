@@ -12,9 +12,9 @@ class TransactionalProcessor(
   private val retryExecutor: RetryExecutor,
 ) {
 
-  fun processMessage(person: Person, event: String? = null, callback: () -> PersonEntity?): PersonEntity = runBlocking {
+  fun processMessage(person: Person, event: String? = null, callback: () -> PersonEntity?) = runBlocking {
     retryExecutor.runWithRetryDatabase {
-      return@runWithRetryDatabase createUpdateService.processPerson(person, event, callback)
+      createUpdateService.processPerson(person, event, callback)
     }
   }
 }
