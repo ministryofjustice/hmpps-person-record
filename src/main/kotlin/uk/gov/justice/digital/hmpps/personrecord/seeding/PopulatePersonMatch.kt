@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.seeding
 
+import jakarta.transaction.Transactional
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -33,6 +34,7 @@ class PopulatePersonMatch(
     return OK
   }
 
+  @Transactional
   suspend fun populatePersonMatch() {
     CoroutineScope(Dispatchers.Default).launch {
       log.info("Starting population of person-match")
