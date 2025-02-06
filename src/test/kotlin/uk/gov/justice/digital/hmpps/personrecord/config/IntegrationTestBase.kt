@@ -10,6 +10,7 @@ import org.awaitility.kotlin.atMost
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
+import org.jmock.lib.concurrent.Blitzer
 import org.json.JSONObject
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
@@ -155,6 +156,17 @@ class IntegrationTestBase {
             .withBody(objectMapper.writeValueAsString(matchResponse)),
         ),
     )
+  }
+
+  fun blitz(actionCount: Int, threadCount: Int, action: () -> Unit) {
+    val blitzer = Blitzer(actionCount, threadCount)
+    try {
+      blitzer.blitz {
+        action()
+      }
+    } finally {
+      blitzer.shutdown()
+    }
   }
 
   companion object {

@@ -285,17 +285,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
   }
 
-  fun blitz(actionCount: Int, threadCount: Int, action: () -> Unit) {
-    val blitzer = Blitzer(actionCount, threadCount)
-    try {
-      blitzer.blitz {
-        action()
-      }
-    } finally {
-      blitzer.shutdown()
-    }
-  }
-
   @BeforeEach
   fun beforeEachMessagingTest() {
     purgeQueueAndDlq(courtEventsQueue)

@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository
 
+import org.hibernate.query.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -18,4 +20,5 @@ interface PersonRepository : JpaRepository<PersonEntity, Long> {
   fun findByPrisonNumberAndSourceSystem(prisonNumber: String, sourceSystem: SourceSystemType): PersonEntity?
 
   fun findByMergedTo(mergedTo: Long): List<PersonEntity?>
+
 }
