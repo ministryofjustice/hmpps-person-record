@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.prison
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -34,27 +33,28 @@ class PrisonMergeEventProcessor(
         EventKeys.SOURCE_SYSTEM to SourceSystemType.NOMIS.name,
       ),
     )
-    val prisonNumber = domainEvent.additionalInformation!!.prisonNumber!!
+    val targetPrisonNumber = domainEvent.additionalInformation!!.prisonNumber!!
+    val sourcePrisonNumber = domainEvent.additionalInformation.sourcePrisonNumber!!
     encodingService.getPrisonerDetails(
-      prisonNumber,
-      onSuccess = withPrisoner(domainEvent.additionalInformation, domainEvent),
+      targetPrisonNumber,
+      onSuccess = withPrisoner(domainEvent, sourcePrisonNumber, targetPrisonNumber),
     )
   }
 
-  private fun withPrisoner(additionalInformation: AdditionalInformation, domainEvent: DomainEvent): (value: Prisoner?) -> Unit? = {
+  private fun withPrisoner(domainEvent: DomainEvent, sourcePrisonNumber: String, targetPrisonNumber: String): (value: Prisoner?) -> Unit? = {
     it?.let {
       mergeService.processMerge(
         MergeEvent(
-          sourceSystemId = Pair(SOURCE_PRISON_NUMBER, additionalInformation.sourcePrisonNumber!!),
-          targetSystemId = Pair(TARGET_PRISON_NUMBER, additionalInformation.prisonNumber!!),
+          sourceSystemId = Pair(SOURCE_PRISON_NUMBER, sourcePrisonNumber),
+          targetSystemId = Pair(TARGET_PRISON_NUMBER, targetPrisonNumber),
           mergedRecord = Person.from(it),
           event = domainEvent.eventType,
         ),
         sourcePersonCallback = {
-          personRepository.findByPrisonNumber(additionalInformation.sourcePrisonNumber)
+          personRepository.findByPrisonNumber(sourcePrisonNumber)
         },
         targetPersonCallback = {
-          personRepository.findByPrisonNumber(additionalInformation.prisonNumber)
+          personRepository.findByPrisonNumber(targetPrisonNumber)
         },
       )
     }
