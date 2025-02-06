@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.prison
 
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
@@ -25,10 +24,6 @@ class PrisonMergeEventProcessor(
   private val encodingService: EncodingService,
 ) {
 
-  private companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
-
   fun processEvent(domainEvent: DomainEvent) {
     telemetryService.trackEvent(
       MERGE_MESSAGE_RECEIVED,
@@ -43,13 +38,7 @@ class PrisonMergeEventProcessor(
     encodingService.getPrisonerDetails(
       prisonNumber,
       onSuccess = withPrisoner(domainEvent.additionalInformation, domainEvent),
-      onFailure = failedToRetrieve(),
     )
-  }
-
-  private fun failedToRetrieve(): (exception: Throwable) -> Unit? = {
-    log.error("Error retrieving prisoner detail: ${it.message}")
-    throw it
   }
 
   private fun withPrisoner(additionalInformation: AdditionalInformation, domainEvent: DomainEvent): (value: Prisoner?) -> Unit? = {

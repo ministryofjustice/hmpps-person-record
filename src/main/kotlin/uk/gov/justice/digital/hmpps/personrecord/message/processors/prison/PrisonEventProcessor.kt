@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.prison
 
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -20,10 +19,6 @@ class PrisonEventProcessor(
   private val encodingService: EncodingService,
 ) {
 
-  private companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
-
   fun processEvent(domainEvent: DomainEvent) {
     val prisonNumber = domainEvent.additionalInformation?.prisonNumber!!
     telemetryService.trackEvent(
@@ -32,17 +27,12 @@ class PrisonEventProcessor(
     )
     encodingService.getPrisonerDetails(
       prisonNumber,
-      {
-        it?.let {
-          transactionalProcessor.processMessage(Person.from(it), domainEvent.eventType) {
-            personRepository.findByPrisonNumber(prisonNumber)
-          }
+    ) {
+      it?.let {
+        transactionalProcessor.processMessage(Person.from(it), domainEvent.eventType) {
+          personRepository.findByPrisonNumber(prisonNumber)
         }
-      },
-      {
-        log.error("Error retrieving prisoner detail: ${it.message}")
-        throw it
-      },
-    )
+      }
+    }
   }
 }
