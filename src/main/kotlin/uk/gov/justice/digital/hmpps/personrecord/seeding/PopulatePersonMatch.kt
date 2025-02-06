@@ -10,6 +10,9 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
+import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 
@@ -18,7 +21,8 @@ private const val OK = "OK"
 @RestController
 @Profile("seeding")
 class PopulatePersonMatch(
-  private val personRepository: PersonRepository
+  private val personRepository: PersonRepository,
+  private val personMatchClient: PersonMatchClient,
 ) {
 
   @RequestMapping(method = [RequestMethod.POST], value = ["/populatepersonmatch"])
@@ -31,9 +35,11 @@ class PopulatePersonMatch(
     CoroutineScope(Dispatchers.Default).launch {
       log.info("Starting population of person-match")
       val (totalPages, totalElements) = forPage { page ->
-        println(page)
+        val personMatchRecords = page.content.map { PersonMatchRecord.from(it) }
+        val personMatchRequest = PersonMatchRequest(records = personMatchRecords)
+        personMatchClient.postPersonMigrate(personMatchRequest)
       }
-      log.info("Finished populating person match, total pages: ${totalPages}, total elements: ${totalElements}")
+      log.info("Finished populating person-match, total pages: $totalPages, total elements: $totalElements")
     }
   }
 
