@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.common
 import aws.sdk.kotlin.services.s3.S3Client
 import aws.sdk.kotlin.services.s3.model.PutObjectRequest
 import aws.smithy.kotlin.runtime.content.ByteStream
-import io.netty.util.internal.PlatformDependent.putObject
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -33,6 +32,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomHearingId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
@@ -44,7 +44,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   lateinit var s3Client: S3Client
 
   @Value("\${aws.court-message-bucket-name}")
-  val s3Bucket = ""
+  lateinit var s3Bucket: String
 
   @Test
   fun `FIFO queue and topic remove duplicate messages`() {
@@ -52,7 +52,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val defendantId = randomDefendantId()
     val firstName = randomName()
     val lastName = randomName()
-
+    val nationalInsuranceNumber = randomNationalInsuranceNumber()
+    val hearingId = randomHearingId()
     blitz(30, 6) {
       publishCommonPlatformMessage(
         commonPlatformHearing(
@@ -63,17 +64,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
               firstName = firstName,
               lastName = lastName,
               cro = "",
-              nationalInsuranceNumber = "NINO",
-              hearingId = "HEARING1234",
-            ),
-            CommonPlatformHearingSetup(
-              pnc = pnc,
-              defendantId = defendantId,
-              firstName = firstName,
-              lastName = lastName,
-              cro = "",
-              nationalInsuranceNumber = "NINO",
-              hearingId = "HEARING1234",
+              nationalInsuranceNumber = nationalInsuranceNumber,
+              hearingId = hearingId,
             ),
           ),
         ),
