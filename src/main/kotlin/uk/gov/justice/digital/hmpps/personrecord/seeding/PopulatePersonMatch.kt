@@ -46,8 +46,9 @@ class PopulatePersonMatch(
       }
       log.info(
         "Finished populating person-match, total pages: ${executionResults.totalPages}, " +
-        "total elements: ${executionResults.totalElements}, " +
-        "elapsed time: ${executionResults.elapsedTime}")
+          "total elements: ${executionResults.totalElements}, " +
+          "elapsed time: ${executionResults.elapsedTime}",
+      )
     }
   }
 
