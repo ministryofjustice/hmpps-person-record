@@ -16,6 +16,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchR
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
+import kotlin.time.Duration
+import kotlin.time.measureTime
 
 private const val OK = "OK"
 
@@ -36,29 +38,44 @@ class PopulatePersonMatch(
   suspend fun runPopulation() {
     CoroutineScope(Dispatchers.Default).launch {
       log.info("Starting population of person-match")
-      val (totalPages, totalElements) = forPage { page ->
+      val executionResults = forPage { page ->
+        log.info("Populating person match, page: ${page.pageable.pageNumber + 1}")
         val personMatchRecords = page.content.map { PersonMatchRecord.from(it) }
         val personMatchRequest = PersonMatchRequest(records = personMatchRecords)
         retryExecutor.runWithRetryHTTP { personMatchClient.postPersonMigrate(personMatchRequest) }
       }
-      log.info("Finished populating person-match, total pages: $totalPages, total elements: $totalElements")
+      log.info(
+        "Finished populating person-match, total pages: ${executionResults.totalPages}, " +
+        "total elements: ${executionResults.totalElements}, " +
+        "elapsed time: ${executionResults.elapsedTime}")
     }
   }
 
-  private inline fun forPage(page: (Page<PersonEntity>) -> Unit): Pair<Int, Long> {
+  private inline fun forPage(page: (Page<PersonEntity>) -> Unit): ExecutionResult {
     var pageNumber = 0
     var personRecords: Page<PersonEntity>
-    do {
-      log.info("Populating person match, page: $pageNumber")
-      val pageable = PageRequest.of(pageNumber, BATCH_SIZE)
+    val elapsedTime: Duration = measureTime {
+      do {
+        val pageable = PageRequest.of(pageNumber, BATCH_SIZE)
 
-      personRecords = personRepository.findAll(pageable)
-      page(personRecords)
+        personRecords = personRepository.findAll(pageable)
+        page(personRecords)
 
-      pageNumber++
-    } while (personRecords.hasNext())
-    return Pair(personRecords.totalPages, personRecords.totalElements)
+        pageNumber++
+      } while (personRecords.hasNext())
+    }
+    return ExecutionResult(
+      totalPages = personRecords.totalPages,
+      totalElements = personRecords.totalElements,
+      elapsedTime = elapsedTime,
+    )
   }
+
+  private data class ExecutionResult(
+    val totalPages: Int,
+    val totalElements: Long,
+    val elapsedTime: Duration,
+  )
 
   companion object {
     private const val BATCH_SIZE = 1000
