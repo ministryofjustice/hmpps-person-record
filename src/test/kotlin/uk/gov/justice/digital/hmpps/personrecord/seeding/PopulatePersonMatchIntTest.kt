@@ -6,8 +6,6 @@ import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.client.WireMock.verify
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.untilAsserted
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
@@ -30,7 +28,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import java.util.concurrent.TimeUnit.SECONDS
 
 @ActiveProfiles("seeding")
 class PopulatePersonMatchIntTest : WebTestBase() {
@@ -64,13 +61,15 @@ class PopulatePersonMatchIntTest : WebTestBase() {
             pnc = PNCIdentifier.from(pnc),
             cro = CROIdentifier.from(cro),
           ),
-          aliases = listOf(ProbationCaseAlias(
-            name = Name(firstName = aliasFirstName, lastName = aliasLastName),
-            dateOfBirth = aliasDateOfBirth
-          )),
+          aliases = listOf(
+            ProbationCaseAlias(
+              name = Name(firstName = aliasFirstName, lastName = aliasLastName),
+              dateOfBirth = aliasDateOfBirth,
+            ),
+          ),
           addresses = listOf(Address(postcode = postcode)),
-          sentences = listOf(Sentences(sentenceDate))
-        )
+          sentences = listOf(Sentences(sentenceDate)),
+        ),
       ),
     )
 
@@ -93,13 +92,16 @@ class PopulatePersonMatchIntTest : WebTestBase() {
       cros = listOf(cro),
       pncs = listOf(pnc),
       postcodes = listOf(postcode),
-      sentenceDates = listOf(sentenceDate.toString())
+      sentenceDates = listOf(sentenceDate.toString()),
     )
     val expectedResponse = personMatchRequest(personMatchRecord)
 
     awaitAssert {
-      wiremock.verify(1, postRequestedFor(urlEqualTo("/person/migrate"))
-        .withRequestBody(equalToJson(expectedResponse, true, false)))
+      wiremock.verify(
+        1,
+        postRequestedFor(urlEqualTo("/person/migrate"))
+          .withRequestBody(equalToJson(expectedResponse, true, false)),
+      )
     }
   }
 
