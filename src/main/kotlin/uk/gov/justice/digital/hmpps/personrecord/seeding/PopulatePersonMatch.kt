@@ -49,6 +49,7 @@ class PopulatePersonMatch(
     var pageNumber = 0
     var personRecords: Page<PersonEntity>
     do {
+      log.info("Populating person match, page: $pageNumber")
       val pageable = PageRequest.of(pageNumber, BATCH_SIZE)
 
       personRecords = personRepository.findAll(pageable)
