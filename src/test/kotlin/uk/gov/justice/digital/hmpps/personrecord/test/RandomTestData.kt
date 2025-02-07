@@ -30,7 +30,16 @@ fun randomNationality(): String = randomLowerCaseString()
 
 fun randomReligion(): String = randomLowerCaseString()
 
-fun randomDriverLicenseNumber(): String = randomLowerCaseString(5).uppercase() + randomDigit(6) + randomLowerCaseString(5).uppercase()
+fun randomDriverLicenseNumber(): String {
+  fun randomString(length: Int, source: String) = (1..length).map { source.random() }.joinToString("")
+  val surnamePart = randomLowerCaseString(5).uppercase()
+  val year = (50..99).random().toString() // Last two digits of birth year (1950-1999)
+  val month = (1..12).random().toString().padStart(2, '0')
+  val day = (1..31).random().toString().padStart(2, '0')
+  val initials = randomLowerCaseString(2).uppercase()
+  val checkDigits = randomString(2, randomDigit(2))
+  return "$surnamePart$year$month$day$initials$checkDigits"
+}
 
 fun randomFullAddress(): String = randomDigit(2) + " " + randomLowerCaseString(8) + ", " + randomLowerCaseString(10) + ", " + randomPostcode()
 

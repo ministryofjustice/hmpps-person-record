@@ -27,9 +27,9 @@ class CreateUpdateService(
 ) {
 
   @Transactional
-  fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?): PersonEntity {
+  fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) {
     val existingPersonEntitySearch: PersonEntity? = callback()
-    return existingPersonEntitySearch.shouldCreateOrUpdate(
+    existingPersonEntitySearch.shouldCreateOrUpdate(
       shouldCreate = {
         handlePersonCreation(person, event)
       },
