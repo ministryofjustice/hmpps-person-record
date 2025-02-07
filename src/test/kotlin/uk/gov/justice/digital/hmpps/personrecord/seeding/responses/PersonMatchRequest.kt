@@ -10,9 +10,15 @@ fun personMatchRequest(personMatchRecord: PersonMatchRecord): String = """
         "sourceSystem": "${personMatchRecord.sourceSystem}",
         "firstName": "${personMatchRecord.firstName}",
         "middleNames": "${personMatchRecord.middleNames}",
-        "lastName": "${personMatchRecord.middleNames}",
+        "lastName": "${personMatchRecord.lastName}",
         "dateOfBirth": "${personMatchRecord.dateOfBirth}",
-        "firstNameAliases": ["${personMatchRecord.firstNameAliases}"], TODO: SORT THIS OUT
+        "firstNameAliases": [${personMatchRecord.firstNameAliases.joinToString(", ") { "\"${it}\"" }}],
+        "lastNameAliases": [${personMatchRecord.lastNameAliases.joinToString(", ") { "\"${it}\"" }}],
+        "dateOfBirthAliases": [${personMatchRecord.dateOfBirthAliases.joinToString(", ") { "\"${it}\"" }}],
+        "postcodes": [${personMatchRecord.postcodes.joinToString(", ") { "\"${it}\"" }}],
+        "cros": [${personMatchRecord.cros.joinToString(", ") { "\"${it}\"" }}],
+        "pncs": [${personMatchRecord.pncs.joinToString(", ") { "\"${it}\"" }}],     
+        "sentenceDates": [${personMatchRecord.sentenceDates.joinToString(", ") { "\"${it}\"" }}]
       }
     ]
  }
