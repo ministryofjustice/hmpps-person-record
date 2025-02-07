@@ -14,21 +14,7 @@ For hmpps-person-record the namespaces are listed below:
 * `hmpps-person-record-preprod`
 * `hmpps-person-record-prod`
 
-## 1. Pause Message Consumption
-
-Firstly, pause message consumption by adding the profile `seeding` to the spring configuration in helm.
-This is done by adding it to the desired environment helm chart spring environment variable, which can be found at `helm_deploy/hmpps-person-record/values-<environment>.yaml`:
-
-```
-env:
-    SPRING_PROFILES_ACTIVE: "<environment>, seeding"
-```
-
-Where `<environment>` is the values of: `dev`, `preprod` or `prod`.
-
-Which the code change then needs a PR raising and releasing to the desired environment.
-
-## 2. Start Seeding Person Match
+## 1. Start Seeding Person Match
 
 Once the message consumption has stopped, you can start the seeding process.
 
@@ -51,22 +37,6 @@ curl -i -X POST http://localhost:8080/populatepersonmatch
 ```
 The process will output the number of pages and records to be processed.
 It will notify once finished with: `Finished populating person-match, total pages: <totalPages>, total elements: <totalElements>"`
-
-## 3. Resume Message Consumption
-
-Resume message consumption by removing the profile `seeding` to the spring configuration in helm.
-This is done by removing it from the desired environment helm chart spring environment variable, which can be found at `helm_deploy/hmpps-person-record/values-<environment>.yaml`:
-
-```
-env:
-    SPRING_PROFILES_ACTIVE: "<environment>"
-```
-
-Where `<environment>` is the values of: `dev`, `preprod` or `prod`.
-
-Which the code change then needs a PR raising and releasing to the desired environment.
-
-Verify message consumption has resumed.
 
 ## Troubleshooting
 

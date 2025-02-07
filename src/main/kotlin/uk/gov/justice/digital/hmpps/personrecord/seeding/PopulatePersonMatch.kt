@@ -5,7 +5,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Profile
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.web.bind.annotation.RequestMapping
@@ -21,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 private const val OK = "OK"
 
 @RestController
-@Profile("seeding")
 class PopulatePersonMatch(
   private val personRepository: PersonRepository,
   private val personMatchClient: PersonMatchClient,
@@ -30,12 +28,12 @@ class PopulatePersonMatch(
 
   @RequestMapping(method = [RequestMethod.POST], value = ["/populatepersonmatch"])
   suspend fun populate(): String {
-    populatePersonMatch()
+    runPopulation()
     return OK
   }
 
   @Transactional
-  suspend fun populatePersonMatch() {
+  suspend fun runPopulation() {
     CoroutineScope(Dispatchers.Default).launch {
       log.info("Starting population of person-match")
       val (totalPages, totalElements) = forPage { page ->
