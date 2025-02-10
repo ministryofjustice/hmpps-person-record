@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Compani
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 
 data class PersonMatchRecord(
-  @JsonProperty("matchID")
   val matchId: String,
   val sourceSystem: String? = "",
   val firstName: String? = "",
