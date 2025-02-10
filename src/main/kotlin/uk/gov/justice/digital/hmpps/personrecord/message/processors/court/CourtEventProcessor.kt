@@ -21,15 +21,13 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.TransactionalProcessor
-import uk.gov.justice.digital.hmpps.personrecord.service.search.SearchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
-import java.util.UUID
+import java.util.*
 
 @Component
 class CourtEventProcessor(
   private val objectMapper: ObjectMapper,
   private val transactionalProcessor: TransactionalProcessor,
-  private val searchService: SearchService,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   private val s3Client: S3Client,
@@ -119,7 +117,9 @@ class CourtEventProcessor(
       ),
     )
     transactionalProcessor.processMessage(person) {
-      val personEntity = searchService.searchBySourceSystem(person)
+      val personEntity = person.cId?.let {
+        personRepository.findByCId(it)
+      }
       person.defendantId = personEntity?.defendantId ?: UUID.randomUUID().toString()
       return@processMessage personEntity
     }
