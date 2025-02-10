@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.client.model.match
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 
 data class PersonMatchRecord(
@@ -32,8 +33,8 @@ data class PersonMatchRecord(
       lastNameAliases = personEntity.pseudonyms.mapNotNull { it.lastName },
       dateOfBirthAliases = personEntity.pseudonyms.mapNotNull { it.dateOfBirth }.map { it.toString() },
       postcodes = personEntity.addresses.mapNotNull { it.postcode },
-      cros = personEntity.references.filter { it.identifierType == IdentifierType.CRO }.mapNotNull { it.identifierValue },
-      pncs = personEntity.references.filter { it.identifierType == IdentifierType.PNC }.mapNotNull { it.identifierValue },
+      cros = personEntity.references.getType(IdentifierType.CRO).mapNotNull { it.identifierValue },
+      pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue },
       sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.map { it.toString() },
     )
   }
