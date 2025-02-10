@@ -1,10 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.UnmergeEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -33,33 +30,28 @@ class ProbationUnmergeEventProcessor(
         EventKeys.SOURCE_SYSTEM to DELIUS.name,
       ),
     )
+    encodingService.getProbationCase(domainEvent.additionalInformation?.unmergedCrn!!) { unmergedProbationCase ->
 
-    val (unmergedProbationCase, reactivatedProbationCase) = collectProbationCases(domainEvent)
-    unmergeService.processUnmerge(
-      UnmergeEvent(
-        event = domainEvent.eventType,
-        reactivatedRecord = Person.from(reactivatedProbationCase),
-        reactivatedSystemId = Pair(EventKeys.REACTIVATED_CRN, reactivatedProbationCase.identifiers.crn!!),
-        unmergedRecord = Person.from(unmergedProbationCase),
-        unmergedSystemId = Pair(EventKeys.UNMERGED_CRN, unmergedProbationCase.identifiers.crn!!),
-      ),
-      reactivatedPersonCallback = {
-        personRepository.findByCrn(reactivatedProbationCase.identifiers.crn)
-      },
-      unmergedPersonCallback = {
-        personRepository.findByCrn(unmergedProbationCase.identifiers.crn)
-      },
-    )
-  }
+      encodingService.getProbationCase(
+        domainEvent.additionalInformation.reactivatedCrn!!,
+      ) { reactivatedProbationCase ->
 
-  private fun collectProbationCases(domainEvent: DomainEvent): Pair<ProbationCase, ProbationCase> = runBlocking {
-    val deferredUnmergedCRNRequest = async { encodingService.getProbationCase(domainEvent.additionalInformation?.unmergedCrn!!) }
-    val deferredReactivatedCRNRequest = async { encodingService.getProbationCase(domainEvent.additionalInformation?.reactivatedCrn!!) }
-    val unmergedProbationCase = deferredUnmergedCRNRequest.await().getOrThrow()
-    val reactivatedProbationCase = deferredReactivatedCRNRequest.await().getOrThrow()
-    return@runBlocking Pair(
-      unmergedProbationCase!!,
-      reactivatedProbationCase!!,
-    )
+        unmergeService.processUnmerge(
+          UnmergeEvent(
+            event = domainEvent.eventType,
+            reactivatedRecord = Person.from(reactivatedProbationCase!!),
+            reactivatedSystemId = Pair(EventKeys.REACTIVATED_CRN, reactivatedProbationCase.identifiers.crn!!),
+            unmergedRecord = Person.from(unmergedProbationCase!!),
+            unmergedSystemId = Pair(EventKeys.UNMERGED_CRN, unmergedProbationCase.identifiers.crn!!),
+          ),
+          reactivatedPersonCallback = {
+            personRepository.findByCrn(reactivatedProbationCase.identifiers.crn)
+          },
+          unmergedPersonCallback = {
+            personRepository.findByCrn(unmergedProbationCase.identifiers.crn)
+          },
+        )
+      }
+    }
   }
 }
