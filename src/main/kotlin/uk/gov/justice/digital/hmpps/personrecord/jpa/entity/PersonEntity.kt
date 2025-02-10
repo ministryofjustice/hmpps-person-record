@@ -122,6 +122,9 @@ class PersonEntity(
   @Column(name = "match_id")
   val matchId: UUID? = null,
 
+  @Column(name = "c_id")
+  var cId: String? = null,
+
   @Version
   var version: Int = 0,
 
@@ -158,6 +161,7 @@ class PersonEntity(
     this.masterDefendantId = person.masterDefendantId
     this.nationality = person.nationality
     this.religion = person.religion
+    this.cId = person.cId
     pseudonyms.clear()
     addresses.clear()
     contacts.clear()
@@ -240,6 +244,7 @@ class PersonEntity(
         religion = person.religion,
         currentlyManaged = person.currentlyManaged,
         matchId = UUID.randomUUID(),
+        cId = person.cId,
       )
       personEntity.updateChildEntities(person)
       return personEntity

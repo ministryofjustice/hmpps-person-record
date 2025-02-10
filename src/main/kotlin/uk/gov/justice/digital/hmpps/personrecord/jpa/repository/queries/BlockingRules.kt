@@ -56,7 +56,7 @@ class BlockingRules(
     const val POSTCODE_MATCH_SIZE = 3
     const val SELECT_EXPRESSION = """
       SELECT
-        pe1_0.id,pe1_0.birth_country,pe1_0.birth_place,pe1_0.crn,pe1_0.currently_managed,pe1_0.date_of_birth,pe1_0.defendant_id,pe1_0.ethnicity,pe1_0.first_name,pe1_0.last_name,pe1_0.master_defendant_id,pe1_0.merged_to,pe1_0.middle_names,pe1_0.nationality,pe1_0.fk_person_key_id,pe1_0.prison_number,pe1_0.religion,pe1_0.sex,pe1_0.sexual_orientation,pe1_0.source_system,pe1_0.match_id,pe1_0.title,pe1_0.version
+        pe1_0.id,pe1_0.birth_country,pe1_0.birth_place,pe1_0.crn,pe1_0.currently_managed,pe1_0.date_of_birth,pe1_0.defendant_id,pe1_0.ethnicity,pe1_0.first_name,pe1_0.last_name,pe1_0.master_defendant_id,pe1_0.merged_to,pe1_0.middle_names,pe1_0.nationality,pe1_0.fk_person_key_id,pe1_0.prison_number,pe1_0.religion,pe1_0.sex,pe1_0.sexual_orientation,pe1_0.source_system,pe1_0.match_id,pe1_0.title,pe1_0.c_id,pe1_0.version
       FROM
         personrecordservice.person pe1_0 
       """

@@ -55,6 +55,8 @@ fun randomPostcode(): String = randomLowerCaseString(2).uppercase() + randomDigi
 
 fun randomHearingId(): String = UUID.randomUUID().toString()
 
+fun randomCId(): Long = randomDigit(9).toLong()
+
 private fun randomLowerCaseString(length: Int = 7): String = (1..length).map {
   ('a' + (Math.random() * 26).toInt())
 }.joinToString("")

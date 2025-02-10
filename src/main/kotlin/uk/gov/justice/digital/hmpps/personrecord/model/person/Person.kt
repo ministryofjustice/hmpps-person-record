@@ -39,6 +39,7 @@ data class Person(
   val sourceSystem: SourceSystemType,
   val sentences: List<SentenceInfo> = emptyList(),
   val currentlyManaged: Boolean? = null,
+  val cId: String? = null,
 ) {
 
   fun getPostcodesForMatching(): Set<String> = this.addresses.mapNotNull { it.postcode }.toSet()
@@ -143,6 +144,7 @@ data class Person(
         addresses = addresses,
         references = references,
         sourceSystem = LIBRA,
+        cId = libraHearingEvent.cId,
       )
     }
 

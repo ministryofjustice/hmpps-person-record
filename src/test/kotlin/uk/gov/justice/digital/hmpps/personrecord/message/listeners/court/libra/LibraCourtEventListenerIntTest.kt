@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -41,13 +42,14 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should process libra messages`() {
+  fun `should create new person from Libra message`() {
     val firstName = randomName()
     val lastName = randomName() + "'apostrophe"
     val postcode = randomPostcode()
     val pnc = randomPnc()
     val dateOfBirth = randomDate()
-    val messageId = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode))
+    val cId = randomCId()
+    val messageId = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode))
 
     checkTelemetry(
       MESSAGE_RECEIVED,
@@ -82,6 +84,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
     assertThat(person.personKey).isNotNull()
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
+    assertThat(person.cId).isEqualTo(cId.toString())
   }
 
   @Test
@@ -91,6 +94,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val postcode = randomPostcode()
     val dateOfBirth = randomDate()
     val libraDefendantId = randomDefendantId()
+    val cId = randomCId()
     val personEntity = createPersonWithNewKey(
       Person(
         firstName = firstName,
@@ -99,17 +103,18 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         addresses = listOf(Address(postcode = postcode)),
         dateOfBirth = dateOfBirth,
         sourceSystem = LIBRA,
+        cId = cId.toString(),
       ),
     )
 
     stubOneHighConfidenceMatch()
 
-    val messageId2 = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
+    val updatedMessage = publishLibraMessage(libraHearing(firstName = firstName, cId = cId, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "MESSAGE_ID" to messageId2,
+        "MESSAGE_ID" to updatedMessage,
         "SOURCE_SYSTEM" to LIBRA.name,
       ),
     )
@@ -148,6 +153,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
+    assertThat(person.cId).isEqualTo(cId.toString())
   }
 
   @Test
