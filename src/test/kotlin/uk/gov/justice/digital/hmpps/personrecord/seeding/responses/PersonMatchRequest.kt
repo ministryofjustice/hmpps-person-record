@@ -6,7 +6,7 @@ fun personMatchRequest(personMatchRecord: PersonMatchRecord): String = """
   {
     "records": [
       {
-        "matchID": "${personMatchRecord.matchId}",
+        "matchId": "${personMatchRecord.matchId}",
         "sourceSystem": "${personMatchRecord.sourceSystem}",
         "firstName": "${personMatchRecord.firstName}",
         "middleNames": "${personMatchRecord.middleNames}",
