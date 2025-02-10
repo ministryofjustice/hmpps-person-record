@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonBlockingRu
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQueries
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQuery
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.criteria.PersonSearchCriteria
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
@@ -21,11 +20,6 @@ class SearchService(
   private val matchService: MatchService,
   private val personRepository: PersonBlockingRulesRepository,
 ) {
-
-  fun searchBySourceSystem(person: Person): PersonEntity? {
-    val highConfidenceMatches: List<MatchResult> = findCandidateRecordsBySourceSystem(person)
-    return processCandidateRecords(highConfidenceMatches)
-  }
 
   fun searchByAllSourceSystemsAndHasUuid(personEntity: PersonEntity): PersonEntity? {
     val highConfidenceMatches: List<MatchResult> = findCandidateRecordsWithUuid(personEntity)
@@ -47,11 +41,6 @@ class SearchService(
       )
     }
     return matches.firstOrNull()?.candidateRecord
-  }
-
-  fun findCandidateRecordsBySourceSystem(person: Person): List<MatchResult> {
-    val searchCriteria = PersonSearchCriteria.from(person)
-    return searchForRecords(searchCriteria, PersonQueries.findCandidatesBySourceSystem(searchCriteria))
   }
 
   fun findCandidateRecordsWithUuid(personEntity: PersonEntity): List<MatchResult> {
