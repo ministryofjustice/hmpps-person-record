@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.match
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
