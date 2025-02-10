@@ -44,8 +44,8 @@ class PopulatePersonMatchIntTest : WebTestBase() {
     val dateOfBirth = randomDate()
     val pnc = randomPnc()
     val cro = randomCro()
-    val sentenceDate = randomDate()
-    val postcode = randomPostcode()
+    val sentenceDates = listOf(randomDate(), randomDate())
+    val postcodes = listOf(randomPostcode(), randomPostcode())
     val aliasFirstName = randomName()
     val aliasLastName = randomName()
     val aliasDateOfBirth = randomDate()
@@ -65,8 +65,8 @@ class PopulatePersonMatchIntTest : WebTestBase() {
               dateOfBirth = aliasDateOfBirth,
             ),
           ),
-          addresses = listOf(Address(postcode = postcode)),
-          sentences = listOf(Sentences(sentenceDate)),
+          addresses = postcodes.map { Address(postcode = it) },
+          sentences = sentenceDates.map { Sentences(it) },
         ),
       ),
     )
@@ -89,8 +89,8 @@ class PopulatePersonMatchIntTest : WebTestBase() {
       dateOfBirthAliases = listOf(aliasDateOfBirth.toString()),
       cros = listOf(cro),
       pncs = listOf(pnc),
-      postcodes = listOf(postcode),
-      sentenceDates = listOf(sentenceDate.toString()),
+      postcodes = postcodes,
+      sentenceDates = sentenceDates.map { it.toString() },
     )
     val expectedResponse = personMatchRequest(personMatchRecord)
 

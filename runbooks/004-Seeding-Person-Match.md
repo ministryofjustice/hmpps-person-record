@@ -16,8 +16,6 @@ For hmpps-person-record the namespaces are listed below:
 
 ## 1. Start Seeding Person Match
 
-Once the message consumption has stopped, you can start the seeding process.
-
 To kick off the process you must connect to the hmpps-person-record pod first, by:
 
 ```shell
@@ -27,16 +25,14 @@ kubectl exec -it deployment/hmpps-person-record -n <namespace> -- bash
 Then within the pod run, to kick off the desired process:
 
     > WARNING:
-    > You must not deploy to the environment that scheduled for reseeding once the job has started. Otherwise, it will be cancelled.
-    >
-    > In the event this occurs, verify message processing is still paused and follow from step 2 again.
+    > You must not deploy to the environment that scheduled for seeding once the job has started. Otherwise, it will be cancelled.
 
 To trigger process:
 ```shell
 curl -i -X POST http://localhost:8080/populatepersonmatch
 ```
-The process will output the number of pages and records to be processed.
-It will notify once finished with: `Finished populating person-match, total pages: <totalPages>, total elements: <totalElements>"`
+Once the process has completed it will output the number of pages and records to processed.
+It will notify once finished with: `Finished populating person-match, total pages: <totalPages>, total elements: <totalElements>, time elapsed: <time_elapsed>"`
 
 ## Troubleshooting
 

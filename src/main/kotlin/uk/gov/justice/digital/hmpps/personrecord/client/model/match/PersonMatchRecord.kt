@@ -24,9 +24,9 @@ data class PersonMatchRecord(
     fun from(personEntity: PersonEntity): PersonMatchRecord = PersonMatchRecord(
       matchId = personEntity.matchId.toString(),
       sourceSystem = personEntity.sourceSystem.name,
-      firstName = personEntity.firstName,
-      middleNames = personEntity.middleNames,
-      lastName = personEntity.lastName,
+      firstName = personEntity.firstName ?: "",
+      middleNames = personEntity.middleNames ?: "",
+      lastName = personEntity.lastName ?: "",
       dateOfBirth = personEntity.dateOfBirth?.toString() ?: "",
       firstNameAliases = personEntity.pseudonyms.mapNotNull { it.firstName },
       lastNameAliases = personEntity.pseudonyms.mapNotNull { it.lastName },
