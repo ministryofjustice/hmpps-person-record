@@ -5,7 +5,6 @@ import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
-import org.jmock.lib.concurrent.Blitzer
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -283,17 +282,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
             .withBody(body),
         ),
     )
-  }
-
-  fun blitz(actionCount: Int, threadCount: Int, action: () -> Unit) {
-    val blitzer = Blitzer(actionCount, threadCount)
-    try {
-      blitzer.blitz {
-        action()
-      }
-    } finally {
-      blitzer.shutdown()
-    }
   }
 
   @BeforeEach
