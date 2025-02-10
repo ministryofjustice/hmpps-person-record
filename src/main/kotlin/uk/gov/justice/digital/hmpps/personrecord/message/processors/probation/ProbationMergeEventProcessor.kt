@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
@@ -21,10 +20,6 @@ class ProbationMergeEventProcessor(
   private val encodingService: EncodingService,
 ) {
 
-  private companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
-
   fun processEvent(domainEvent: DomainEvent) {
     telemetryService.trackEvent(
       MERGE_MESSAGE_RECEIVED,
@@ -35,29 +30,23 @@ class ProbationMergeEventProcessor(
         EventKeys.SOURCE_SYSTEM to DELIUS.name,
       ),
     )
-    encodingService.getProbationCase(domainEvent.additionalInformation?.targetCrn!!).fold(
-      onSuccess = {
-        it?.let {
-          mergeService.processMerge(
-            MergeEvent(
-              sourceSystemId = Pair(EventKeys.SOURCE_CRN, domainEvent.additionalInformation.sourceCrn!!),
-              targetSystemId = Pair(EventKeys.TARGET_CRN, domainEvent.additionalInformation.targetCrn),
-              mergedRecord = Person.from(it),
-              event = domainEvent.eventType,
-            ),
-            sourcePersonCallback = {
-              personRepository.findByCrn(domainEvent.additionalInformation.sourceCrn)
-            },
-            targetPersonCallback = {
-              personRepository.findByCrn(domainEvent.additionalInformation.targetCrn)
-            },
-          )
-        }
-      },
-      onFailure = {
-        log.error("Error retrieving offender detail: ${it.message}")
-        throw it
-      },
-    )
+    encodingService.getProbationCase(domainEvent.additionalInformation?.targetCrn!!) {
+      it?.let {
+        mergeService.processMerge(
+          MergeEvent(
+            sourceSystemId = Pair(EventKeys.SOURCE_CRN, domainEvent.additionalInformation.sourceCrn!!),
+            targetSystemId = Pair(EventKeys.TARGET_CRN, domainEvent.additionalInformation.targetCrn),
+            mergedRecord = Person.from(it),
+            event = domainEvent.eventType,
+          ),
+          sourcePersonCallback = {
+            personRepository.findByCrn(domainEvent.additionalInformation.sourceCrn)
+          },
+          targetPersonCallback = {
+            personRepository.findByCrn(domainEvent.additionalInformation.targetCrn)
+          },
+        )
+      }
+    }
   }
 }

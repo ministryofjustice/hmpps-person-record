@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -19,27 +18,19 @@ class ProbationEventProcessor(
   private val encodingService: EncodingService,
 ) {
 
-  private companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
-
   fun processEvent(crn: String, eventType: String) {
     telemetryService.trackEvent(
       MESSAGE_RECEIVED,
       mapOf(EventKeys.CRN to crn, EventKeys.EVENT_TYPE to eventType, EventKeys.SOURCE_SYSTEM to DELIUS.name),
     )
-    encodingService.getProbationCase(crn).fold(
-      onSuccess = {
-        it?.let {
-          transactionalProcessor.processMessage(Person.from(it), eventType) {
-            personRepository.findByCrn(crn)
-          }
+    encodingService.getProbationCase(
+      crn,
+    ) {
+      it?.let {
+        transactionalProcessor.processMessage(Person.from(it), eventType) {
+          personRepository.findByCrn(crn)
         }
-      },
-      onFailure = {
-        log.error("Error retrieving new offender detail: ${it.message}")
-        throw it
-      },
-    )
+      }
+    }
   }
 }

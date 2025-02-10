@@ -393,7 +393,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val reactivated = ApiResponseSetup(crn = reactivatedCrn)
     val unmerged = ApiResponseSetup(crn = unmergedCrn)
 
-    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged, scenario = "retry", currentScenarioState = "next request will succeed")
+    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged, scenario = "retry", currentScenarioState = "next request will succeed", nextScenarioState = "next request will succeed")
 
     expectNoMessagesOn(probationMergeEventsQueue)
     expectNoMessagesOnDlq(probationMergeEventsQueue)
