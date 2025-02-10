@@ -39,7 +39,6 @@ class PersonMatchRecordTest {
       dateOfBirth = date,
       pseudonyms = mutableListOf(PseudonymEntity(type = NameType.ALIAS, dateOfBirth = date)),
       sentenceInfo = mutableListOf(SentenceInfoEntity(sentenceDate = date)),
-      matchId = UUID.randomUUID(),
       sourceSystem = DELIUS,
     )
     val personMatchRecord = PersonMatchRecord.from(personEntity)

@@ -120,7 +120,7 @@ class PersonEntity(
   val sourceSystem: SourceSystemType,
 
   @Column(name = "match_id")
-  val matchId: UUID,
+  val matchId: UUID? = null,
 
   @Version
   var version: Int = 0,

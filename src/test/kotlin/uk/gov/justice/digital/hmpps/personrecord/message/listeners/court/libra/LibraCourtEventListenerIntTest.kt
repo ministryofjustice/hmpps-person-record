@@ -31,7 +31,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.UUID
 import kotlin.jvm.optionals.getOrNull
 
 class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -72,7 +71,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
 
-    val person = awaitNotNullPerson { personRepository.findOne(Example.of(PersonEntity(firstName = firstName, sourceSystem = LIBRA, matchId = UUID.randomUUID(), version = 1))).getOrNull() }
+    val person = awaitNotNullPerson { personRepository.findOne(Example.of(PersonEntity(firstName = firstName, sourceSystem = LIBRA, version = 1))).getOrNull() }
 
     assertThat(person.defendantId).isNotNull()
     assertThat(person.title).isEqualTo("Mr")
