@@ -188,7 +188,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         "MESSAGE_ID" to messageId,
         "SOURCE_SYSTEM" to LIBRA.name,
       ),
-      times = 0
+      times = 0,
     )
   }
 }
