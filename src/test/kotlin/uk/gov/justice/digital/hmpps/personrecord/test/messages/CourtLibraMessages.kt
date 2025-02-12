@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.messages
 
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
@@ -13,6 +14,7 @@ fun libraHearing(
   cro: String = "85227/65L",
   postcode: String = randomPostcode(),
   cId: String = randomCId(),
+  defendantType: DefendantType = DefendantType.PERSON,
 ) = """
 {
    "cId": "$cId",
@@ -23,7 +25,7 @@ fun libraHearing(
       "surname":"$lastName"
    },
    "defendantName":"Mr $firstName $lastName",
-   "defendantType":"P",
+   "defendantType": "${defendantType.value}",
    "defendantSex":"N",
    "defendantDob":"$dateOfBirth",
    "defendantAge":"20",

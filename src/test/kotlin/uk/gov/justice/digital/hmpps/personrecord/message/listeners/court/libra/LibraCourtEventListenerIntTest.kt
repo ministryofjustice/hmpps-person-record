@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.libra
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
@@ -172,5 +173,22 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val personKey = personKeyRepository.findByPersonId(personKeyEntity.personId)
     assertThat(personKey?.personEntities?.size).isEqualTo(2)
+  }
+
+  @Test
+  fun `should not process organisations from libra`() {
+    val cId = randomCId()
+    val messageId = publishLibraMessage(libraHearing(cId = cId, defendantType = DefendantType.ORGANISATION))
+
+    checkTelemetry(
+      MESSAGE_RECEIVED,
+      mapOf(
+        "C_ID" to cId,
+        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
+        "MESSAGE_ID" to messageId,
+        "SOURCE_SYSTEM" to LIBRA.name,
+      ),
+      times = 0,
+    )
   }
 }
