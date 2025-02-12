@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries
 
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 
 class BlockingRules(
   private val globalConditions: String = "",
@@ -68,10 +67,6 @@ class BlockingRules(
     const val UNION = """
       UNION
     """
-
-    fun exactMatchSourceSystem(sourceSystemType: SourceSystemType): String = """
-      AND pe1_0.source_system = '${sourceSystemType.name}'
-    """.trimIndent()
 
     fun hasNoMergeLink(): String = """
       AND pe1_0.merged_to IS NULL

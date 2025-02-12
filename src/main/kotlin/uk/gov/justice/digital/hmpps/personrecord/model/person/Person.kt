@@ -172,7 +172,7 @@ data class Person(
         lastName = prisoner.lastName,
         dateOfBirth = prisoner.dateOfBirth,
         ethnicity = prisoner.ethnicity,
-        aliases = prisoner.aliases.map { Alias.from(it) } ?: emptyList(),
+        aliases = prisoner.aliases.map { Alias.from(it) },
         contacts = contacts,
         addresses = addresses,
         references = references,

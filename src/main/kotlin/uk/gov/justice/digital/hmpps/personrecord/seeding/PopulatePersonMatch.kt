@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.web.bind.annotation.RequestMapping
@@ -24,6 +25,7 @@ private const val OK = "OK"
 @RestController
 class PopulatePersonMatch(
   private val personRepository: PersonRepository,
+  @Value("\${populate-person-match.batch-size}") val batchSize: Int,
   private val personMatchClient: PersonMatchClient,
   private val retryExecutor: RetryExecutor,
 ) {
@@ -57,7 +59,7 @@ class PopulatePersonMatch(
     var personRecords: Page<PersonEntity>
     val elapsedTime: Duration = measureTime {
       do {
-        val pageable = PageRequest.of(pageNumber, BATCH_SIZE)
+        val pageable = PageRequest.of(pageNumber, batchSize)
 
         personRecords = personRepository.findAll(pageable)
         page(personRecords)
@@ -79,7 +81,6 @@ class PopulatePersonMatch(
   )
 
   companion object {
-    private const val BATCH_SIZE = 1000
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 }

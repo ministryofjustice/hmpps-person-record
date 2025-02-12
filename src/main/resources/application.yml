@@ -105,5 +105,8 @@ populate-from-nomis:
 populate-from-probation:
   page-size: 1000
 
+populate-person-match:
+  batch-size: 1000
+
 aws:
   region-name: eu-west-2
