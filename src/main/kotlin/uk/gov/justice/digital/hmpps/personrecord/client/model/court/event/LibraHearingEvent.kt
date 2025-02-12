@@ -29,4 +29,5 @@ data class LibraHearingEvent(
   @JsonDeserialize(using = PNCIdentifierDeserializer::class)
   val pnc: PNCIdentifier? = PNCIdentifier.from(),
   val cId: String? = null,
+  val defendantType: String? = null,
 )
