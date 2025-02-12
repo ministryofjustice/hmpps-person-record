@@ -4,9 +4,9 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
 
 data class PersonDefendant(
-  @NotNull
   @Valid
-  val personDetails: PersonDetails,
+  @NotNull
+  val personDetails: PersonDetails? = null,
   val driverNumber: String? = null,
   val arrestSummonsNumber: String? = null,
 )

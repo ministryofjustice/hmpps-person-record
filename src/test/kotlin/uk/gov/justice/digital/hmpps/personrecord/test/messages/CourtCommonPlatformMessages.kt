@@ -19,6 +19,7 @@ data class CommonPlatformHearingSetup(
   val nationalInsuranceNumber: String = randomNationalInsuranceNumber(),
   val hearingId: String = randomHearingId(),
   val isYouth: Boolean? = false,
+  val isPerson: Boolean = true,
 )
 
 data class CommonPlatformHearingSetupAlias(val firstName: String, val lastName: String)
@@ -96,36 +97,7 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) = 
                     "offenceCode": "ABC002"
                   }
                 ],
-                "personDefendant": {
-                  "personDetails": {
-                    "address": {
-                      "address1": "13 Wind Street",
-                      "address2": "Cardiff",
-                      "address3": "Wales",
-                      "address4": "UK",
-                      "address5": "Earth",
-                      "postcode": "CF10 1FU"
-                    },
-                    ${commonPlatformHearingSetup.contact?.let {
-  """
-                      "contact": {
-                       "home": "${commonPlatformHearingSetup.contact.home}",
-                        "work": "${commonPlatformHearingSetup.contact.work}",
-                        "mobile": "${commonPlatformHearingSetup.contact.mobile}",
-                        "primaryEmail": "${commonPlatformHearingSetup.contact.primaryEmail}"
-                       }, 
-  """.trimIndent()
-} ?: ""}   
-                    "dateOfBirth": "${commonPlatformHearingSetup.dateOfBirth}",
-                    ${commonPlatformHearingSetup.firstName?.let { """ "firstName": "${commonPlatformHearingSetup.firstName}", """.trimIndent() } ?: ""}
-                    "gender": "MALE",
-                    ${commonPlatformHearingSetup.middleName?.let { """ "middleName": "${commonPlatformHearingSetup.middleName}", """.trimIndent() } ?: ""}
-                    "lastName": "${commonPlatformHearingSetup.lastName}",
-                    "title": "Mr",
-                    "nationalityCode": "GB",
-                    "nationalInsuranceNumber": "${commonPlatformHearingSetup.nationalInsuranceNumber}"
-                  }
-                },
+                ${commonPlatformHearingSetup.isPerson.takeIf { it }?.let { personDefendant(commonPlatformHearingSetup)} ?: organisationDefendant(commonPlatformHearingSetup)}
                 "ethnicity": {
                    "observedEthnicityDescription": "observedEthnicityDescription",
                    "selfDefinedEthnicityDescription": "selfDefinedEthnicityDescription"
@@ -136,6 +108,55 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) = 
 } ?: ""}
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               }
+""".trimIndent()
+
+private fun personDefendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) = """
+  "personDefendant": {
+    "personDetails": {
+      "address": {
+        "address1": "13 Wind Street",
+        "address2": "Cardiff",
+        "address3": "Wales",
+        "address4": "UK",
+        "address5": "Earth",
+        "postcode": "CF10 1FU"
+      },
+      ${commonPlatformHearingSetup.contact?.let {
+  """
+        "contact": {
+         "home": "${commonPlatformHearingSetup.contact.home}",
+          "work": "${commonPlatformHearingSetup.contact.work}",
+          "mobile": "${commonPlatformHearingSetup.contact.mobile}",
+          "primaryEmail": "${commonPlatformHearingSetup.contact.primaryEmail}"
+         }, 
+  """.trimIndent()
+} ?: ""}   
+      "dateOfBirth": "${commonPlatformHearingSetup.dateOfBirth}",
+      ${commonPlatformHearingSetup.firstName?.let { """ "firstName": "${commonPlatformHearingSetup.firstName}", """.trimIndent() } ?: ""}
+      "gender": "MALE",
+      ${commonPlatformHearingSetup.middleName?.let { """ "middleName": "${commonPlatformHearingSetup.middleName}", """.trimIndent() } ?: ""}
+      "lastName": "${commonPlatformHearingSetup.lastName}",
+      "title": "Mr",
+      "nationalityCode": "GB",
+      "nationalInsuranceNumber": "${commonPlatformHearingSetup.nationalInsuranceNumber}"
+    }
+  },
+""".trimIndent()
+
+private fun organisationDefendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) = """
+  "legalEntityDefendant": {
+    "organisation": {
+      "name": "${commonPlatformHearingSetup.firstName} ${commonPlatformHearingSetup.lastName}",
+      "address": {
+        "address1": "13 Wind Street",
+        "address2": "Cardiff",
+        "address3": "Wales",
+        "address4": "UK",
+        "address5": "Earth",
+        "postcode": "CF10 1FU"
+      }
+    }
+  },
 """.trimIndent()
 
 private fun alias(alias: CommonPlatformHearingSetupAlias) =
