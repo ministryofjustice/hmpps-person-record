@@ -17,7 +17,7 @@ fun libraHearing(
   defendantType: DefendantType = DefendantType.PERSON,
 ) = """
 {
-   "cId": $cId,
+   "cId": "$cId",
    "caseNo":"1600032981",
    "name":{
       "title":"Mr",
