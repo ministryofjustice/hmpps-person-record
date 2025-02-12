@@ -30,7 +30,7 @@ fun libraHearing(
    "defendantAddress":{
       "line1": "39 The Street",
       "line2": "Newtown"
-      ${postcode?.let { """ ,"pcode": "$postcode" """.trimIndent() } ?: ""}
+      ${postcode.let { """ ,"pcode": "$postcode" """.trimIndent() } ?: ""}
    },
    "cro":"$cro",
    ${pncNumber?.let { """ "pnc": "$pncNumber", """.trimIndent() } ?: ""}

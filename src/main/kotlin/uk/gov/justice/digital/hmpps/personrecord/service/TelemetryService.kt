@@ -20,9 +20,8 @@ enum class EventKeys {
   // Identifiers
   CRN,
   PRISON_NUMBER,
-  PNC,
-  CRO,
   DEFENDANT_ID,
+  C_ID,
 
   // Merge
   RECORD_TYPE,
@@ -57,6 +56,7 @@ class TelemetryService(private val telemetryClient: TelemetryClient) {
     val identifierMap = mapOf(
       EventKeys.SOURCE_SYSTEM to person.sourceSystem.name,
       EventKeys.DEFENDANT_ID to person.defendantId,
+      EventKeys.C_ID to person.cId,
       EventKeys.CRN to person.crn,
       EventKeys.PRISON_NUMBER to person.prisonNumber,
     )
@@ -71,6 +71,7 @@ class TelemetryService(private val telemetryClient: TelemetryClient) {
     val identifierMap = mapOf(
       EventKeys.SOURCE_SYSTEM to personEntity.sourceSystem.name,
       EventKeys.DEFENDANT_ID to personEntity.defendantId,
+      EventKeys.C_ID to personEntity.cId,
       EventKeys.CRN to personEntity.crn,
       EventKeys.PRISON_NUMBER to personEntity.prisonNumber,
     )

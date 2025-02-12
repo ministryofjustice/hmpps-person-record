@@ -1,12 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.libra
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.data.domain.Example
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -24,19 +21,12 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.format.DateTimeFormatter
-import kotlin.jvm.optionals.getOrNull
 
 class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
-
-  @BeforeEach
-  fun beforeEach() {
-    telemetryRepository.deleteAll()
-  }
 
   @Test
   fun `should create new person from Libra message`() {
@@ -51,18 +41,18 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
+        "C_ID" to cId.toString(),
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "MESSAGE_ID" to messageId,
         "SOURCE_SYSTEM" to LIBRA.name,
       ),
     )
 
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
-    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId.toString()))
+    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId.toString()))
 
-    val person = awaitNotNullPerson { personRepository.findOne(Example.of(PersonEntity(firstName = firstName, sourceSystem = LIBRA, version = 1))).getOrNull() }
+    val person = awaitNotNullPerson { personRepository.findByCId(cId.toString()) }
 
-    assertThat(person.defendantId).isNotNull()
     assertThat(person.title).isEqualTo("Mr")
     assertThat(person.lastName).isEqualTo(lastName)
     assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
@@ -80,13 +70,11 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val lastName = randomName()
     val postcode = randomPostcode()
     val dateOfBirth = randomDate()
-    val libraDefendantId = randomDefendantId()
     val cId = randomCId()
     val personEntity = createPersonWithNewKey(
       Person(
         firstName = firstName,
         lastName = lastName,
-        defendantId = libraDefendantId,
         addresses = listOf(Address(postcode = postcode)),
         dateOfBirth = dateOfBirth,
         sourceSystem = LIBRA,
@@ -100,13 +88,14 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
+        "C_ID" to cId.toString(),
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "MESSAGE_ID" to updatedMessage,
         "SOURCE_SYSTEM" to LIBRA.name,
       ),
     )
 
-    checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
+    checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
 
     checkTelemetry(
       CPR_RECLUSTER_MESSAGE_RECEIVED,
@@ -114,7 +103,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     val person = awaitNotNullPerson {
-      personRepository.findByDefendantId(libraDefendantId)
+      personRepository.findByCId(cId.toString())
     }
 
     assertThat(person.title).isEqualTo("Mr")
@@ -128,14 +117,16 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process and create libra message and link to different source system record`() {
+    telemetryRepository.deleteAll()
     val firstName = randomName()
     val lastName = randomName()
     val dateOfBirth = randomDate()
+    val cId = randomCId()
     val personFromProbation = Person(
       firstName = firstName,
       lastName = lastName,
       dateOfBirth = dateOfBirth,
-      addresses = listOf(Address(postcode = "NT4 6YH")),
+      addresses = listOf(Address(postcode = randomPostcode())),
       sourceSystem = DELIUS,
     )
     val personKeyEntity = createPersonKey()
@@ -143,17 +134,18 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     stubOneHighConfidenceMatch()
 
-    val messageId1 = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = ""))
+    val messageId = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = ""))
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
+        "C_ID" to cId.toString(),
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "MESSAGE_ID" to messageId1,
+        "MESSAGE_ID" to messageId,
         "SOURCE_SYSTEM" to LIBRA.name,
       ),
     )
 
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA"))
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId.toString()))
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
