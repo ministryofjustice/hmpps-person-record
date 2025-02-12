@@ -15,7 +15,7 @@ fun libraHearing(
   cId: String = randomCId(),
 ) = """
 {
-   "cId": $cId,
+   "cId": "$cId",
    "caseNo":"1600032981",
    "name":{
       "title":"Mr",
