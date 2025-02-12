@@ -21,19 +21,6 @@ object PersonQueries {
     ),
   )
 
-  fun findCandidatesBySourceSystem(searchCriteria: PersonSearchCriteria): PersonQuery = PersonQuery(
-    queryName = PersonQueryType.FIND_CANDIDATES_BY_SOURCE_SYSTEM,
-    query = generateFindCandidatesSQL(
-      BlockingRules(
-        globalConditions = combineBlockingRules(
-          BlockingRules.exactMatchSourceSystem(searchCriteria.sourceSystemType),
-          BlockingRules.hasNoMergeLink(),
-        ),
-      ),
-      searchCriteria,
-    ),
-  )
-
   private fun generateFindCandidatesSQL(blockingRules: BlockingRules, searchCriteria: PersonSearchCriteria): String {
     val rules: MutableList<String> = mutableListOf()
     rules.addAll(
