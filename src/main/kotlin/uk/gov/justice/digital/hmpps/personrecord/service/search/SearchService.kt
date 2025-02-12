@@ -39,6 +39,7 @@ class SearchService(
         mapOf(
           EventKeys.SOURCE_SYSTEM to record.candidateRecord.sourceSystem.name,
           EventKeys.DEFENDANT_ID to record.candidateRecord.defendantId,
+          EventKeys.C_ID to record.candidateRecord.cId,
           EventKeys.CRN to record.candidateRecord.crn,
           EventKeys.PRISON_NUMBER to record.candidateRecord.prisonNumber,
           EventKeys.PROBABILITY_SCORE to record.probability.toString(),

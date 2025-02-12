@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.messages
 
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -11,9 +12,10 @@ fun libraHearing(
   dateOfBirth: String = "01/01/1975",
   cro: String = "85227/65L",
   postcode: String = randomPostcode(),
+  cId: Long = randomCId(),
 ) = """
 {
-   "caseId":1217464,
+   "cId": $cId,
    "caseNo":"1600032981",
    "name":{
       "title":"Mr",
@@ -28,7 +30,7 @@ fun libraHearing(
    "defendantAddress":{
       "line1": "39 The Street",
       "line2": "Newtown"
-      ${postcode?.let { """ ,"pcode": "$postcode" """.trimIndent() } ?: ""}
+      ${postcode.let { """ ,"pcode": "$postcode" """.trimIndent() } ?: ""}
    },
    "cro":"$cro",
    ${pncNumber?.let { """ "pnc": "$pncNumber", """.trimIndent() } ?: ""}

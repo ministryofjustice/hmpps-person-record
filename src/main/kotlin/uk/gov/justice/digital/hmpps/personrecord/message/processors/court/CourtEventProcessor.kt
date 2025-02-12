@@ -15,21 +15,16 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraH
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person.Companion.getType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.TransactionalProcessor
-import uk.gov.justice.digital.hmpps.personrecord.service.search.SearchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
-import java.util.UUID
 
 @Component
 class CourtEventProcessor(
   private val objectMapper: ObjectMapper,
   private val transactionalProcessor: TransactionalProcessor,
-  private val searchService: SearchService,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   private val s3Client: S3Client,
@@ -111,17 +106,16 @@ class CourtEventProcessor(
     telemetryService.trackEvent(
       MESSAGE_RECEIVED,
       mapOf(
-        EventKeys.PNC to person.references.getType(IdentifierType.PNC).toString(),
-        EventKeys.CRO to person.references.getType(IdentifierType.CRO).toString(),
+        EventKeys.C_ID to person.cId,
         EventKeys.EVENT_TYPE to LIBRA_COURT_CASE.name,
         EventKeys.MESSAGE_ID to sqsMessage.messageId,
         EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
       ),
     )
     transactionalProcessor.processMessage(person) {
-      val personEntity = searchService.searchBySourceSystem(person)
-      person.defendantId = personEntity?.defendantId ?: UUID.randomUUID().toString()
-      return@processMessage personEntity
+      person.cId?.let {
+        personRepository.findByCId(it)
+      }
     }
   }
 }
