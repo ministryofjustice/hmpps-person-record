@@ -212,7 +212,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       references = listOf(Reference(CRO, cro)),
       sourceSystem = COMMON_PLATFORM,
     )
-    val person = createPersonWithNewKey(personToFind)
+    createPersonWithNewKey(personToFind)
     createPersonWithNewKey(
       Person(
         references = listOf(Reference(CRO, randomCro())),
