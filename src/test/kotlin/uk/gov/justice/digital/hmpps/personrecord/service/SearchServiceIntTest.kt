@@ -34,49 +34,6 @@ class SearchServiceIntTest : IntegrationTestBase() {
   private lateinit var searchService: SearchService
 
   @Test
-  fun `should find candidate records only in searching source system`() {
-    val firstName = randomName()
-    val lastName = randomName()
-    val personToFind = Person(
-      firstName = firstName,
-      lastName = lastName,
-      dateOfBirth = LocalDate.of(1975, 1, 1),
-      sourceSystem = LIBRA,
-    )
-    createPerson(personToFind)
-    createPerson(
-      Person(
-        firstName = firstName,
-        lastName = lastName,
-        dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystem = COMMON_PLATFORM,
-      ),
-    )
-    createPerson(
-      Person(
-        firstName = firstName,
-        lastName = lastName,
-        dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystem = NOMIS,
-      ),
-    )
-    createPerson(
-      Person(
-        firstName = firstName,
-        lastName = lastName,
-        dateOfBirth = LocalDate.of(1975, 1, 1),
-        sourceSystem = DELIUS,
-      ),
-    )
-
-    stubOneHighConfidenceMatch()
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
-
-    assertThat(candidateRecords.size).isEqualTo(1)
-    assertThat(candidateRecords[0].candidateRecord.sourceSystem).isEqualTo(LIBRA)
-  }
-
-  @Test
   fun `should find candidate records only in searching in different source systems`() {
     val firstName = randomName()
     val lastName = randomName()
@@ -126,8 +83,8 @@ class SearchServiceIntTest : IntegrationTestBase() {
       references = listOf(Reference(PNC, pnc)),
       sourceSystem = COMMON_PLATFORM,
     )
-    createPerson(personToFind)
-    createPerson(
+    createPersonWithNewKey(personToFind)
+    createPersonWithNewKey(
       Person(
         references = listOf(Reference(PNC, randomPnc())),
         sourceSystem = COMMON_PLATFORM,
@@ -135,7 +92,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     stubOneHighConfidenceMatch()
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(createPersonWithNewKey(personToFind))
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.references.getType(PNC).first().identifierValue).isEqualTo(pnc)
@@ -147,7 +104,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       references = listOf(Reference(PNC, "")),
       sourceSystem = COMMON_PLATFORM,
     )
-    createPerson(personToFind)
+    val person = createPerson(personToFind)
     createPerson(
       Person(
         references = listOf(Reference(PNC, "")),
@@ -156,7 +113,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     stubOneHighConfidenceMatch()
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(person)
 
     assertThat(candidateRecords.size).isEqualTo(0)
   }
@@ -168,8 +125,8 @@ class SearchServiceIntTest : IntegrationTestBase() {
       references = listOf(Reference(DRIVER_LICENSE_NUMBER, driverLicenseNumber)),
       sourceSystem = COMMON_PLATFORM,
     )
-    createPerson(personToFind)
-    createPerson(
+    createPersonWithNewKey(personToFind)
+    createPersonWithNewKey(
       Person(
         references = listOf(Reference(DRIVER_LICENSE_NUMBER, randomDriverLicenseNumber())),
         sourceSystem = COMMON_PLATFORM,
@@ -177,7 +134,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     stubOneHighConfidenceMatch()
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(createPersonWithNewKey(personToFind))
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.references.getType(DRIVER_LICENSE_NUMBER).first().identifierValue).isEqualTo(driverLicenseNumber)
@@ -233,8 +190,8 @@ class SearchServiceIntTest : IntegrationTestBase() {
       references = listOf(Reference(NATIONAL_INSURANCE_NUMBER, nationalInsuranceNumber)),
       sourceSystem = COMMON_PLATFORM,
     )
-    createPerson(personToFind)
-    createPerson(
+    createPersonWithNewKey(personToFind)
+    createPersonWithNewKey(
       Person(
         references = listOf(Reference(NATIONAL_INSURANCE_NUMBER, "RF9876543C")),
         sourceSystem = COMMON_PLATFORM,
@@ -242,7 +199,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     stubOneHighConfidenceMatch()
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(createPersonWithNewKey(personToFind))
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.references.getType(NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(nationalInsuranceNumber)
@@ -255,8 +212,8 @@ class SearchServiceIntTest : IntegrationTestBase() {
       references = listOf(Reference(CRO, cro)),
       sourceSystem = COMMON_PLATFORM,
     )
-    createPerson(personToFind)
-    createPerson(
+    val person = createPersonWithNewKey(personToFind)
+    createPersonWithNewKey(
       Person(
         references = listOf(Reference(CRO, randomCro())),
         sourceSystem = COMMON_PLATFORM,
@@ -264,7 +221,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     stubOneHighConfidenceMatch()
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(createPersonWithNewKey(personToFind))
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.references.getType(CRO).first().identifierValue).isEqualTo(cro)
@@ -273,15 +230,18 @@ class SearchServiceIntTest : IntegrationTestBase() {
   @Test
   fun `should find candidate records when multiple reference exact matches on CRO`() {
     val cro = randomCro()
-    val searchingPerson = Person(
-      references = listOf(
-        Reference(CRO, cro),
-        Reference(CRO, randomCro()),
-        Reference(CRO, randomCro()),
+    val searchingPerson = createPersonWithNewKey(
+      Person(
+        references = listOf(
+          Reference(CRO, cro),
+          Reference(CRO, randomCro()),
+          Reference(CRO, randomCro()),
+        ),
+        sourceSystem = COMMON_PLATFORM,
       ),
-      sourceSystem = COMMON_PLATFORM,
     )
-    createPerson(
+
+    createPersonWithNewKey(
       Person(
         references = listOf(
           Reference(CRO, cro),
@@ -292,7 +252,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     stubOneHighConfidenceMatch()
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.references.firstOrNull { it.identifierValue == cro }?.identifierValue).isEqualTo(cro)
@@ -301,7 +261,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
   @Test
   fun `should find candidate records on soundex matches on first name`() {
     val lastName = randomName()
-    createPerson(
+    createPersonWithNewKey(
       Person(
         firstName = "Steven",
         lastName = lastName,
@@ -309,7 +269,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         sourceSystem = COMMON_PLATFORM,
       ),
     )
-    createPerson(
+    createPersonWithNewKey(
       Person(
         firstName = "Micheal",
         lastName = lastName,
@@ -318,14 +278,17 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val searchingPerson = Person(
-      firstName = "Stephen",
-      lastName = lastName,
-      dateOfBirth = LocalDate.of(1975, 2, 1),
-      sourceSystem = COMMON_PLATFORM,
+    val searchingPerson = createPersonWithNewKey(
+      Person(
+        firstName = "Stephen",
+        lastName = lastName,
+        dateOfBirth = LocalDate.of(1975, 2, 1),
+        sourceSystem = COMMON_PLATFORM,
+      ),
     )
+
     stubOneHighConfidenceMatch()
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.firstName).isEqualTo("Steven")
@@ -334,7 +297,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
   @Test
   fun `should find candidate records on soundex matches on last name`() {
     val firstName = randomName()
-    createPerson(
+    createPersonWithNewKey(
       Person(
         firstName = firstName,
         lastName = "Smith",
@@ -342,7 +305,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         sourceSystem = COMMON_PLATFORM,
       ),
     )
-    createPerson(
+    createPersonWithNewKey(
       Person(
         firstName = firstName,
         lastName = "Micheal",
@@ -351,15 +314,17 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val searchingPerson = Person(
-      firstName = firstName,
-      lastName = "Smythe",
-      dateOfBirth = LocalDate.of(1975, 2, 1),
-      sourceSystem = COMMON_PLATFORM,
+    val searchingPerson = createPersonWithNewKey(
+      Person(
+        firstName = firstName,
+        lastName = "Smythe",
+        dateOfBirth = LocalDate.of(1975, 2, 1),
+        sourceSystem = COMMON_PLATFORM,
+      ),
     )
 
     stubOneHighConfidenceMatch()
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.lastName).isEqualTo("Smith")
@@ -368,7 +333,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
   @Test
   fun `should find candidate records on exact match of at least 2 date parts of dob`() {
     val firstName = randomName()
-    createPerson(
+    createPersonWithNewKey(
       Person(
         firstName = firstName,
         lastName = "Smith",
@@ -377,15 +342,17 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val searchingPerson = Person(
-      firstName = firstName,
-      lastName = "Smith",
-      dateOfBirth = LocalDate.of(1975, 2, 1),
-      sourceSystem = COMMON_PLATFORM,
+    val searchingPerson = createPerson(
+      Person(
+        firstName = firstName,
+        lastName = "Smith",
+        dateOfBirth = LocalDate.of(1975, 2, 1),
+        sourceSystem = COMMON_PLATFORM,
+      ),
     )
 
     stubOneHighConfidenceMatch()
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.dateOfBirth).isEqualTo(LocalDate.of(1975, 1, 1))
@@ -397,7 +364,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     val lastName = randomName()
     val cro = randomCro()
     val pnc = randomPnc()
-    createPerson(
+    createPersonWithNewKey(
       Person(
         firstName = firstName,
         lastName = lastName,
@@ -406,17 +373,19 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val searchingPerson = Person(
-      firstName = firstName,
-      lastName = lastName,
-      references = listOf(Reference(PNC, pnc), Reference(CRO, cro)),
-      addresses = listOf(Address(postcode = randomPostcode())),
-      dateOfBirth = LocalDate.of(1975, 1, 1),
-      sourceSystem = COMMON_PLATFORM,
+    val searchingPerson = createPersonWithNewKey(
+      Person(
+        firstName = firstName,
+        lastName = lastName,
+        references = listOf(Reference(PNC, pnc), Reference(CRO, cro)),
+        addresses = listOf(Address(postcode = randomPostcode())),
+        dateOfBirth = LocalDate.of(1975, 1, 1),
+        sourceSystem = COMMON_PLATFORM,
+      ),
     )
 
     stubOneHighConfidenceMatch()
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.references.getType(PNC).size).isEqualTo(0)
@@ -427,7 +396,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
   @Test
   fun `should find candidate records on exact match on first 3 chars of postcode`() {
     val firstName = randomName()
-    createPerson(
+    createPersonWithNewKey(
       Person(
         firstName = firstName,
         lastName = "Smythe",
@@ -435,7 +404,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         sourceSystem = COMMON_PLATFORM,
       ),
     )
-    createPerson(
+    createPersonWithNewKey(
       Person(
         firstName = firstName,
         lastName = "Smythe",
@@ -444,15 +413,17 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val searchingPerson = Person(
-      firstName = firstName,
-      lastName = "Smith",
-      addresses = listOf(Address(postcode = "LS1 1AB"), Address(postcode = "LD2 3BC")),
-      sourceSystem = COMMON_PLATFORM,
+    val searchingPerson = createPerson(
+      Person(
+        firstName = firstName,
+        lastName = "Smith",
+        addresses = listOf(Address(postcode = "LS1 1AB"), Address(postcode = "LD2 3BC")),
+        sourceSystem = COMMON_PLATFORM,
+      ),
     )
 
     stubOneHighConfidenceMatch()
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.addresses[0].postcode).isEqualTo("LS1 1AB")
@@ -484,18 +455,20 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     val postcodeWhichWillMatch = Address(postcode = "LS2 3BC")
-    val searchingPerson = Person(
-      firstName = firstName,
-      lastName = "Smith",
-      addresses = listOf(
-        Address(postcode = "LS5 1AB"),
-        postcodeWhichWillMatch,
+    val searchingPerson = createPerson(
+      Person(
+        firstName = firstName,
+        lastName = "Smith",
+        addresses = listOf(
+          Address(postcode = "LS5 1AB"),
+          postcodeWhichWillMatch,
+        ),
+        sourceSystem = COMMON_PLATFORM,
       ),
-      sourceSystem = COMMON_PLATFORM,
     )
 
     stubOneHighConfidenceMatch()
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
     assertThat(candidateRecords[0].candidateRecord.addresses[0].postcode).isEqualTo("LS2 1AB")
@@ -513,13 +486,15 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val searchingPerson = Person(
-      firstName = "Stephen",
-      lastName = "Stevenson",
-      addresses = listOf(Address(postcode = "LS1 1AB")),
-      sourceSystem = COMMON_PLATFORM,
+    val searchingPerson = createPerson(
+      Person(
+        firstName = "Stephen",
+        lastName = "Stevenson",
+        addresses = listOf(Address(postcode = "LS1 1AB")),
+        sourceSystem = COMMON_PLATFORM,
+      ),
     )
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     noCandidatesFound(candidateRecords)
   }
@@ -534,13 +509,15 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val searchingPerson = Person(
-      firstName = "Stephen",
-      lastName = "Stevenson",
-      dateOfBirth = LocalDate.of(1975, 1, 1),
-      sourceSystem = COMMON_PLATFORM,
+    val searchingPerson = createPerson(
+      Person(
+        firstName = "Stephen",
+        lastName = "Stevenson",
+        dateOfBirth = LocalDate.of(1975, 1, 1),
+        sourceSystem = COMMON_PLATFORM,
+      ),
     )
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     noCandidatesFound(candidateRecords)
   }
@@ -557,12 +534,15 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val searchingPerson = Person(
-      firstName = firstName,
-      lastName = lastName,
-      sourceSystem = COMMON_PLATFORM,
+    val searchingPerson = createPerson(
+      Person(
+        firstName = firstName,
+        lastName = lastName,
+        sourceSystem = COMMON_PLATFORM,
+      ),
     )
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
+
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     noCandidatesFound(candidateRecords)
   }
@@ -584,7 +564,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
     mergeRecord(sourcePerson, targetPerson)
 
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(createPerson(searchingPerson))
 
     noCandidatesFound(candidateRecords)
   }
@@ -600,12 +580,15 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val searchingPerson = Person(
-      firstName = firstName,
-      addresses = listOf(Address(postcode = "LS1 1AB")),
-      sourceSystem = COMMON_PLATFORM,
+    val searchingPerson = createPerson(
+      Person(
+        firstName = firstName,
+        addresses = listOf(Address(postcode = "LS1 1AB")),
+        sourceSystem = COMMON_PLATFORM,
+      ),
     )
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
+
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     noCandidatesFound(candidateRecords)
   }
@@ -635,9 +618,9 @@ class SearchServiceIntTest : IntegrationTestBase() {
       references = listOf(Reference(PNC, pnc)),
       sourceSystem = COMMON_PLATFORM,
     )
-    createPerson(personToFind)
-    createPerson(personToFind)
-    createPerson(
+    createPersonWithNewKey(personToFind)
+    createPersonWithNewKey(personToFind)
+    createPersonWithNewKey(
       Person(
         references = listOf(Reference(PNC, "1981/0154257C")),
         sourceSystem = COMMON_PLATFORM,
@@ -651,7 +634,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
     stubMatchScore(matchResponse)
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(personToFind)
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(createPersonWithNewKey(personToFind))
 
     assertThat(candidateRecords.size).isEqualTo(2)
     assertThat(candidateRecords[0].candidateRecord.references.getType(PNC).first().identifierValue).isEqualTo(pnc)
@@ -662,6 +645,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should log correct number of clusters`() {
+    telemetryRepository.deleteAll()
     val cro = randomCro()
     val cluster1 = createPersonKey()
     createPerson(
@@ -697,11 +681,14 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     stubXHighConfidenceMatches(4)
 
-    val searchingPerson = Person(
-      references = listOf(Reference(CRO, cro)),
-      sourceSystem = COMMON_PLATFORM,
+    val searchingPerson = createPersonWithNewKey(
+      Person(
+        references = listOf(Reference(CRO, cro)),
+        sourceSystem = COMMON_PLATFORM,
+      ),
     )
-    val candidateRecords = searchService.findCandidateRecordsBySourceSystem(searchingPerson)
+
+    val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,

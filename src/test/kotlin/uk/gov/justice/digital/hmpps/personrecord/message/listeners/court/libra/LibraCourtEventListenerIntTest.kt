@@ -41,17 +41,17 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
-        "C_ID" to cId.toString(),
+        "C_ID" to cId,
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "MESSAGE_ID" to messageId,
         "SOURCE_SYSTEM" to LIBRA.name,
       ),
     )
 
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId.toString()))
-    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId.toString()))
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
+    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
 
-    val person = awaitNotNullPerson { personRepository.findByCId(cId.toString()) }
+    val person = awaitNotNullPerson { personRepository.findByCId(cId) }
 
     assertThat(person.title).isEqualTo("Mr")
     assertThat(person.lastName).isEqualTo(lastName)
@@ -61,6 +61,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
     assertThat(person.personKey).isNotNull()
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
+    assertThat(person.cId).isEqualTo(cId)
   }
 
   @Test
@@ -77,7 +78,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         addresses = listOf(Address(postcode = postcode)),
         dateOfBirth = dateOfBirth,
         sourceSystem = LIBRA,
-        cId = cId.toString(),
+        cId = cId,
       ),
     )
 
@@ -87,14 +88,14 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
-        "C_ID" to cId.toString(),
+        "C_ID" to cId,
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "MESSAGE_ID" to updatedMessage,
         "SOURCE_SYSTEM" to LIBRA.name,
       ),
     )
 
-    checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId.toString()))
+    checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
 
     checkTelemetry(
       CPR_RECLUSTER_MESSAGE_RECEIVED,
@@ -102,7 +103,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     val person = awaitNotNullPerson {
-      personRepository.findByCId(cId.toString())
+      personRepository.findByCId(cId)
     }
 
     assertThat(person.title).isEqualTo("Mr")
@@ -111,6 +112,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
+    assertThat(person.cId).isEqualTo(cId)
   }
 
   @Test
@@ -136,14 +138,14 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
-        "C_ID" to cId.toString(),
+        "C_ID" to cId,
         "EVENT_TYPE" to LIBRA_COURT_CASE.name,
         "MESSAGE_ID" to messageId,
         "SOURCE_SYSTEM" to LIBRA.name,
       ),
     )
 
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId.toString()))
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
