@@ -12,7 +12,7 @@ fun libraHearing(
   dateOfBirth: String = "01/01/1975",
   cro: String = "85227/65L",
   postcode: String = randomPostcode(),
-  cId: Long = randomCId(),
+  cId: String = randomCId(),
 ) = """
 {
    "cId": $cId,

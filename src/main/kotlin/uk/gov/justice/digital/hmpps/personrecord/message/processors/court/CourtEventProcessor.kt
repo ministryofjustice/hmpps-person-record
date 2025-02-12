@@ -21,7 +21,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.TransactionalProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 
-
 @Component
 class CourtEventProcessor(
   private val objectMapper: ObjectMapper,
@@ -114,7 +113,6 @@ class CourtEventProcessor(
       ),
     )
     transactionalProcessor.processMessage(person) {
-
       person.cId?.let {
         personRepository.findByCId(it)
       }
