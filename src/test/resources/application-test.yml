@@ -87,6 +87,9 @@ populate-from-nomis:
 populate-from-probation:
   page-size: 2
 
+populate-person-match:
+  batch-size: 10
+
 aws:
   endpoint: http://localhost:4566
   court-message-bucket-name: local-court-message-bucket

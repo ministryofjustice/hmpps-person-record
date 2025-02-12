@@ -105,8 +105,8 @@ class PopulatePersonMatchIntTest : WebTestBase() {
 
   @Test
   fun `populate person match as batch`() {
-    // Populate person data
-    blitz(2000, 10) {
+
+    blitz(20, 10) {
       createPersonWithNewKey(
         Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
       )
@@ -118,7 +118,7 @@ class PopulatePersonMatchIntTest : WebTestBase() {
       .expectStatus()
       .isOk
 
-    awaitAssert(7) {
+    awaitAssert {
       wiremock.verify(2, postRequestedFor(urlEqualTo("/person/migrate")))
     }
   }
