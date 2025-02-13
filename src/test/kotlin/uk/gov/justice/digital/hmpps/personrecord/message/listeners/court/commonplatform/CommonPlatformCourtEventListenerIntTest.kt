@@ -364,6 +364,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    assertThat(personRepository.findByDefendantId(defendantId)).isNull()
+    awaitAssert { assertThat(personRepository.findByDefendantId(defendantId)).isNull() }
   }
 }
