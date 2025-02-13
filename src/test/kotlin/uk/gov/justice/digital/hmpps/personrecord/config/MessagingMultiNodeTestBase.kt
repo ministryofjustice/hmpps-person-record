@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase.Companion.BASE_SCENARIO
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
@@ -249,19 +250,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
   }
 
-  fun stub500Response(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String, currentScenarioState: String = STARTED) {
-    wiremock.stubFor(
-      WireMock.get(url)
-        .inScenario(scenarioName)
-        .whenScenarioStateIs(currentScenarioState)
-        .willSetStateTo(nextScenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(500),
-        ),
-    )
-  }
+  fun stub500Response(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String, currentScenarioState: String = STARTED) = stub(scenarioName, currentScenarioState, nextScenarioState, url, body = "", status = 500)
 
   fun stubPrisonResponse(
     apiResponseSetup: ApiResponseSetup,
