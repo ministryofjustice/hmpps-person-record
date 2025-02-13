@@ -53,15 +53,13 @@ class CourtEventProcessor(
     }
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
 
-    val uniqueDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
+    val uniquePersonDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
       .flatMap { it.defendants }
       .filterNot { it.isYouth }
+      .filter { it.isPerson() }
       .distinctBy { it.id }
-    val defendantIDs = uniqueDefendants.joinToString(" ") { it.id.toString() }
-    log.debug("Processing Common Platform Event with ${uniqueDefendants.size} distinct defendants with defendantId $defendantIDs")
 
-    val personDefendants = uniqueDefendants.filter { it.isPerson() }
-    personDefendants.forEach { defendant ->
+    uniquePersonDefendants.forEach { defendant ->
       processCommonPlatformPerson(defendant, sqsMessage)
     }
   }
