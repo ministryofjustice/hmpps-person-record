@@ -268,6 +268,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     purgeQueueAndDlq(prisonMergeEventsQueue)
     purgeQueueAndDlq(reclusterEventsQueue)
     expectNoMessagesOnQueueOrDlq(reclusterEventsQueue)
+    stubPersonMatch()
   }
 
   fun purgeQueueAndDlq(hmppsQueue: HmppsQueue?) {

@@ -69,7 +69,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
             ),
           ),
         ),
-
       )
     }
 
@@ -112,7 +111,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val changedLastName = randomName()
     val messageId = publishCommonPlatformMessage(
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId))),
-
     )
 
     checkTelemetry(

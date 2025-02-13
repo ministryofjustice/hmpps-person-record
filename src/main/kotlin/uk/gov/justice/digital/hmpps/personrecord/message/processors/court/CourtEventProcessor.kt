@@ -100,7 +100,6 @@ class CourtEventProcessor(
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
     val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(sqsMessage.message)
-
     when {
       isLibraPerson(libraHearingEvent) -> processLibraPerson(libraHearingEvent, sqsMessage)
     }
