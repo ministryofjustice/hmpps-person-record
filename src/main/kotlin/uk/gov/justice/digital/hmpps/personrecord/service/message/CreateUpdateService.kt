@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
+import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
@@ -32,7 +33,7 @@ class CreateUpdateService(
 ) {
 
   @Transactional
-  suspend fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) {
+  fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) = runBlocking {
     val existingPersonEntitySearch: PersonEntity? = callback()
     val personEntity = existingPersonEntitySearch.shouldCreateOrUpdate(
       shouldCreate = {
@@ -42,7 +43,9 @@ class CreateUpdateService(
         handlePersonUpdate(person, it, event)
       },
     )
-    retryExecutor.runWithRetryHTTP { personMatchClient.postPerson(PersonMatchRecord.from(personEntity)) }
+    retryExecutor.runWithRetryHTTP {
+      personMatchClient.postPerson(PersonMatchRecord.from(personEntity))
+    }
   }
 
   private fun handlePersonCreation(person: Person, event: String?): PersonEntity {
