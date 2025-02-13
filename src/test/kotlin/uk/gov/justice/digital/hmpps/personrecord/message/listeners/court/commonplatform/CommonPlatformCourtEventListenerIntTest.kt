@@ -359,7 +359,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
-          CommonPlatformHearingSetup(defendantId = defendantId, isYouth = null, isPerson = false),
+          CommonPlatformHearingSetup(defendantId = defendantId, isPerson = false),
         ),
       ),
     )
