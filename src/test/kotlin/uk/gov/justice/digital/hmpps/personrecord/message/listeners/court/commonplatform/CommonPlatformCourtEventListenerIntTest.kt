@@ -347,4 +347,22 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
     )
   }
+
+  @Test
+  fun `should not process when is organisation`() {
+    val youthDefendantId = randomDefendantId()
+    val messageId = publishCommonPlatformMessage(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(defendantId = youthDefendantId, isYouth = null, isPerson = false),
+        ),
+      ),
+    )
+
+    checkTelemetry(
+      MESSAGE_RECEIVED,
+      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
+      times = 0,
+    )
+  }
 }
