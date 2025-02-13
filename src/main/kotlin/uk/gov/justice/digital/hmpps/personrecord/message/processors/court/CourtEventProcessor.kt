@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
@@ -52,34 +53,31 @@ class CourtEventProcessor(
     }
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
 
-    val uniqueDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
+    val uniquePersonDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
       .flatMap { it.defendants }
       .filterNot { it.isYouth }
-      .distinctBy {
-        it.personDefendant?.personDetails?.firstName +
-          it.personDefendant?.personDetails?.lastName +
-          it.personDefendant?.personDetails?.dateOfBirth +
-          it.pncId +
-          it.cro
-      }
-    val defendantIDs = uniqueDefendants.joinToString(" ") { it.id.toString() }
-    log.debug("Processing Common Platform Event with ${uniqueDefendants.size} distinct defendants with defendantId $defendantIDs")
+      .filter { it.isPerson() }
+      .distinctBy { it.id }
 
-    uniqueDefendants.forEach { defendant ->
-      val person = Person.from(defendant)
-      telemetryService.trackEvent(
-        MESSAGE_RECEIVED,
-        mapOf(
-          EventKeys.DEFENDANT_ID to person.defendantId,
-          EventKeys.EVENT_TYPE to COMMON_PLATFORM_HEARING.name,
-          EventKeys.MESSAGE_ID to sqsMessage.messageId,
-          EventKeys.SOURCE_SYSTEM to SourceSystemType.COMMON_PLATFORM.name,
-        ),
-      )
-      transactionalProcessor.processMessage(person) {
-        person.defendantId?.let {
-          personRepository.findByDefendantId(it)
-        }
+    uniquePersonDefendants.forEach { defendant ->
+      processCommonPlatformPerson(defendant, sqsMessage)
+    }
+  }
+
+  private fun processCommonPlatformPerson(defendant: Defendant, sqsMessage: SQSMessage) {
+    val person = Person.from(defendant)
+    telemetryService.trackEvent(
+      MESSAGE_RECEIVED,
+      mapOf(
+        EventKeys.DEFENDANT_ID to person.defendantId,
+        EventKeys.EVENT_TYPE to COMMON_PLATFORM_HEARING.name,
+        EventKeys.MESSAGE_ID to sqsMessage.messageId,
+        EventKeys.SOURCE_SYSTEM to SourceSystemType.COMMON_PLATFORM.name,
+      ),
+    )
+    transactionalProcessor.processMessage(person) {
+      person.defendantId?.let {
+        personRepository.findByDefendantId(it)
       }
     }
   }

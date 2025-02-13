@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatf
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import jakarta.annotation.Nullable
 import jakarta.validation.Valid
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifierDeserializer
@@ -19,8 +20,11 @@ data class Defendant(
   @JsonDeserialize(using = CROIdentifierDeserializer::class)
   val cro: CROIdentifier? = CROIdentifier.from(),
   @Valid
+  @Nullable
   val personDefendant: PersonDefendant? = null,
   val ethnicity: Ethnicity? = null,
   val aliases: List<DefendantAlias>? = emptyList(),
   val isYouth: Boolean = false,
-)
+) {
+  fun isPerson() = personDefendant != null
+}
