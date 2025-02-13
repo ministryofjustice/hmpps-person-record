@@ -145,19 +145,23 @@ class IntegrationTestBase {
 
   internal fun stubMatchScore(matchResponse: MatchResponse, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200) {
     stubPostRequest(
-      scenario, currentScenarioState, nextScenarioState,
+      scenario,
+      currentScenarioState,
+      nextScenarioState,
       url = "/person/match",
       status = status,
-      body = objectMapper.writeValueAsString(matchResponse)
+      body = objectMapper.writeValueAsString(matchResponse),
     )
   }
 
   internal fun stubPersonMatch(scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200, body: String = "{}") {
     stubPostRequest(
-      scenario, currentScenarioState, nextScenarioState,
+      scenario,
+      currentScenarioState,
+      nextScenarioState,
       url = "/person",
       status = status,
-      body = body
+      body = body,
     )
   }
 
