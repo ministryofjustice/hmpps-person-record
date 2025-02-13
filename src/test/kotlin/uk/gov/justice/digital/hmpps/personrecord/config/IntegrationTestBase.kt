@@ -158,6 +158,21 @@ class IntegrationTestBase {
     )
   }
 
+  internal fun stubGetRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String, status: Int = 200) {
+    wiremock.stubFor(
+      WireMock.get(url)
+        .inScenario(scenarioName)
+        .whenScenarioStateIs(currentScenarioState)
+        .willSetStateTo(nextScenarioState)
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(status)
+            .withBody(body),
+        ),
+    )
+  }
+
   fun blitz(actionCount: Int, threadCount: Int, action: () -> Unit) {
     val blitzer = Blitzer(actionCount, threadCount)
     try {

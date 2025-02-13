@@ -11,15 +11,7 @@ class HealthCheckIntTest : WebTestBase() {
 
   @Test
   fun `Health page reports ok`() {
-    wiremock.stubFor(
-      WireMock.get("/health")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody("""{"status": "UP"}"""),
-        ),
-    )
+    stubGetRequest(url = "/health", body = """{"status": "UP"}""")
 
     webTestClient.get()
       .uri("/health")
