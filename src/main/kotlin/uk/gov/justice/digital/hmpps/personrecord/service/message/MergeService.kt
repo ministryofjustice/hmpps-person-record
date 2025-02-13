@@ -4,6 +4,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -24,6 +26,7 @@ class MergeService(
   private val personKeyRepository: PersonKeyRepository,
   private val eventLoggingService: EventLoggingService,
   private val retryExecutor: RetryExecutor,
+  private val personMatchClient: PersonMatchClient,
 ) {
 
   fun processMerge(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) = runBlocking {
@@ -42,10 +45,12 @@ class MergeService(
       else -> handleMergeWithDifferentUuids(mergeEvent, sourcePersonEntity, targetPersonEntity)
     }
 
+    sourcePersonEntity?.let {
+      retryExecutor.runWithRetryHTTP { personMatchClient.deletePerson(PersonMatchRecord.from(it)) }
+    }
+
     val beforeDataDTO = sourcePersonEntity?.let { Person.from(it) }
-
     val processedDataDTO = targetPersonEntity?.let { Person.from(it) }
-
     eventLoggingService.recordEventLog(
       beforePerson = beforeDataDTO,
       processedPerson = processedDataDTO,
