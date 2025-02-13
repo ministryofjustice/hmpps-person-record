@@ -241,8 +241,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, personReference = personReference, additionalInformation = null)
     publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
-    expectNoMessagesOn(probationEventsQueue)
-    expectNoMessagesOnDlq(probationEventsQueue)
+    expectNoMessagesOnQueueOrDlq(probationEventsQueue)
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"), 1)
   }
 
@@ -252,8 +251,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     stub500Response(probationUrl(crn), "next request will succeed", "retry")
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = randomPnc()), scenario = "retry", currentScenarioState = "next request will succeed")
 
-    expectNoMessagesOn(probationEventsQueue)
-    expectNoMessagesOnDlq(probationEventsQueue)
+    expectNoMessagesOnQueueOrDlq(probationEventsQueue)
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"), 1)
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
