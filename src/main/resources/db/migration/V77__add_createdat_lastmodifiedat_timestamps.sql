@@ -2,7 +2,7 @@ BEGIN;
 -------------------------------------------------------
 
 
- ALTER TABLE person
+ALTER TABLE person
      ADD COLUMN created_at TIMESTAMP DEFAULT NULL;
 
 ALTER TABLE person
