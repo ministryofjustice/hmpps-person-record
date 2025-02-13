@@ -102,7 +102,8 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     } matches { it == 0 }
   }
 
-  fun expectNoMessagesOnDlq(queue: HmppsQueue?) {
+  fun expectNoMessagesOnQueueOrDlq(queue: HmppsQueue?) {
+    expectNoMessagesOn(queue)
     await untilCallTo {
       queue?.sqsDlqClient?.countMessagesOnQueue(queue.dlqUrl!!)?.get()
     } matches { it == 0 }
@@ -293,7 +294,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     purgeQueueAndDlq(prisonEventsQueue)
     purgeQueueAndDlq(prisonMergeEventsQueue)
     purgeQueueAndDlq(reclusterEventsQueue)
-    expectNoMessagesOnDlq(reclusterEventsQueue)
+    expectNoMessagesOnQueueOrDlq(reclusterEventsQueue)
   }
 
   fun purgeQueueAndDlq(hmppsQueue: HmppsQueue?) {
