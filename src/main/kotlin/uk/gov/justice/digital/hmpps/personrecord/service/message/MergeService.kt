@@ -63,7 +63,6 @@ class MergeService(
     }
   }
 
-
   private fun handleMergeWithSameUuids(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
     mergeRecord(mergeEvent, sourcePersonEntity, targetPersonEntity) { sourcePerson, targetPerson ->
       updateAndLinkRecords(mergeEvent, sourcePerson!!, targetPerson)
