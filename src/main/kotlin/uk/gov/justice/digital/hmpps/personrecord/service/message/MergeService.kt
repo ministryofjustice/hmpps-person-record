@@ -45,9 +45,7 @@ class MergeService(
       else -> handleMergeWithDifferentUuids(mergeEvent, sourcePersonEntity, targetPersonEntity)
     }
 
-    sourcePersonEntity?.let {
-      retryExecutor.runWithRetryHTTP { personMatchClient.deletePerson(PersonMatchRecord.from(it)) }
-    }
+    deletePersonFromPersonMatch(sourcePersonEntity)
 
     val beforeDataDTO = sourcePersonEntity?.let { Person.from(it) }
     val processedDataDTO = targetPersonEntity?.let { Person.from(it) }
@@ -58,6 +56,13 @@ class MergeService(
       eventType = mergeEvent.event,
     )
   }
+
+  private suspend fun deletePersonFromPersonMatch(sourcePersonEntity: PersonEntity?) {
+    sourcePersonEntity?.let {
+      retryExecutor.runWithRetryHTTP { personMatchClient.deletePerson(PersonMatchRecord.from(it)) }
+    }
+  }
+
 
   private fun handleMergeWithSameUuids(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
     mergeRecord(mergeEvent, sourcePersonEntity, targetPersonEntity) { sourcePerson, targetPerson ->
