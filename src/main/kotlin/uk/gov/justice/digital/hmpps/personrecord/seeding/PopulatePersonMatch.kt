@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchMigrateRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
@@ -43,8 +43,8 @@ class PopulatePersonMatch(
       val executionResults = forPage { page ->
         log.info("Populating person match, page: ${page.pageable.pageNumber + 1}")
         val personMatchRecords = page.content.map { PersonMatchRecord.from(it) }
-        val personMatchRequest = PersonMatchRequest(records = personMatchRecords)
-        retryExecutor.runWithRetryHTTP { personMatchClient.postPersonMigrate(personMatchRequest) }
+        val personMatchMigrateRequest = PersonMatchMigrateRequest(records = personMatchRecords)
+        retryExecutor.runWithRetryHTTP { personMatchClient.postPersonMigrate(personMatchMigrateRequest) }
       }
       log.info(
         "Finished populating person-match, total pages: ${executionResults.totalPages}, " +

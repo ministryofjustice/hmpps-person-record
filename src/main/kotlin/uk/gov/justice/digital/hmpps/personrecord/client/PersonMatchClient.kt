@@ -3,7 +3,8 @@ package uk.gov.justice.digital.hmpps.personrecord.client
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRequest
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchMigrateRequest
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 
 @FeignClient(
   name = "person-match",
@@ -11,6 +12,12 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchR
 )
 interface PersonMatchClient {
 
+  @PostMapping("/person")
+  fun postPerson(@RequestBody personMatchRecord: PersonMatchRecord)
+
+  @PostMapping("/person")
+  fun deletePerson(@RequestBody personMatchRecord: PersonMatchRecord)
+
   @PostMapping("/person/migrate")
-  fun postPersonMigrate(@RequestBody personMatchRequest: PersonMatchRequest)
+  fun postPersonMigrate(@RequestBody personMatchMigrateRequest: PersonMatchMigrateRequest)
 }
