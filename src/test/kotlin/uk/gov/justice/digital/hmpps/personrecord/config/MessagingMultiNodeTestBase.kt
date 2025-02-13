@@ -270,7 +270,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     nextScenarioState: String? = STARTED,
   ) = stub(scenarioName, currentScenarioState, nextScenarioState, "/prisoner/${apiResponseSetup.prisonNumber}", prisonerSearchResponse(apiResponseSetup))
 
-  private fun stub(scenarioName: String?, currentScenarioState: String?, nextScenarioState: String?, url: String, body: String) {
+  private fun stub(scenarioName: String?, currentScenarioState: String?, nextScenarioState: String?, url: String, body: String, status: Int = 200) {
     wiremock.stubFor(
       WireMock.get(url)
         .inScenario(scenarioName)
@@ -279,7 +279,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
-            .withStatus(200)
+            .withStatus(status)
             .withBody(body),
         ),
     )
