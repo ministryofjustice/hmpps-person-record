@@ -130,6 +130,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(personEntity.contacts[2].contactType).isEqualTo(ContactType.EMAIL)
     assertThat(personEntity.contacts[2].contactValue).isEqualTo("test@gmail.com")
     assertThat(personEntity.matchId).isNotNull()
+    assertThat(personEntity.lastModified).isNotNull()
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
@@ -296,6 +297,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
+    val createdLastModified = personEntity.lastModified
     val changedPnc = randomPnc()
     probationEventAndResponseSetup(event, ApiResponseSetup(crn = crn, pnc = changedPnc))
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to event, "SOURCE_SYSTEM" to "DELIUS"))
@@ -304,10 +306,14 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val updatedPersonEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
     assertThat(updatedPersonEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(changedPnc)
 
+    val updatedLastModified = updatedPersonEntity.lastModified
+
     checkTelemetry(
       CPR_RECLUSTER_MESSAGE_RECEIVED,
       mapOf("UUID" to personEntity.personKey?.personId.toString()),
     )
+
+    assertThat(updatedLastModified).isAfter(createdLastModified)
   }
 
   @Test
