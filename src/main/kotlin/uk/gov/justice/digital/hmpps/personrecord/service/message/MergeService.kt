@@ -44,7 +44,10 @@ class MergeService(
     }
 
     sourcePersonEntity?.let { deletionService.deletePersonFromPersonMatch(it) }
+    logChangeInEventLog(mergeEvent, sourcePersonEntity, targetPersonEntity)
+  }
 
+  private fun logChangeInEventLog(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity?) {
     val beforeDataDTO = sourcePersonEntity?.let { Person.from(it) }
     val processedDataDTO = targetPersonEntity?.let { Person.from(it) }
     eventLoggingService.recordEventLog(

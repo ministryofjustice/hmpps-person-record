@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
+import feign.FeignException
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -96,9 +97,5 @@ class DeletionService(
   private fun removeLinkToRecord(personEntity: PersonEntity) {
     personEntity.personKey?.personEntities?.remove(personEntity)
     personKeyRepository.save(personEntity.personKey!!)
-  }
-
-  private companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
