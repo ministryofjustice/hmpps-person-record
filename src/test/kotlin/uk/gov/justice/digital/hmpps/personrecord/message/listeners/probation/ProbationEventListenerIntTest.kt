@@ -303,7 +303,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to event, "SOURCE_SYSTEM" to "DELIUS"))
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
-
     val updatedPersonEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
     assertThat(updatedPersonEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(changedPnc)
 
@@ -315,7 +314,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     assertThat(updatedLastModified).isAfter(createdLastModified)
-
   }
 
   @Test
