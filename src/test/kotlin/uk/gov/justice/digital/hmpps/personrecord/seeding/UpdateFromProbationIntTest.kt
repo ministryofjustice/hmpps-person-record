@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.seeding
 
-import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -75,7 +74,7 @@ class UpdateFromProbationIntTest : WebTestBase() {
     assertThat(popSeven.references.getType(IdentifierType.CRO)).isEqualTo(emptyList<ReferenceEntity>())
     assertThat(popSeven.pseudonyms.size).isEqualTo(0)
     val newSentenceDate = LocalDate.of(2021, 11, 4)
-    assertThat(popSeven.sentenceInfo.get(0).sentenceDate).isEqualTo(newSentenceDate)
+    assertThat(popSeven.sentenceInfo[0].sentenceDate).isEqualTo(newSentenceDate)
   }
 
   @Test
@@ -111,7 +110,7 @@ class UpdateFromProbationIntTest : WebTestBase() {
     assertThat(popSeven.references.getType(IdentifierType.CRO)).isEqualTo(emptyList<ReferenceEntity>())
     assertThat(popSeven.pseudonyms.size).isEqualTo(0)
     val newSentenceDate = LocalDate.of(2021, 11, 4)
-    assertThat(popSeven.sentenceInfo.get(0).sentenceDate).isEqualTo(newSentenceDate)
+    assertThat(popSeven.sentenceInfo[0].sentenceDate).isEqualTo(newSentenceDate)
   }
 
   private fun stubResponse(firstCrn: String, firstPrefix: String, secondCrn: String, secondPrefix: String, page: Int, scenarioName: String, scenarioState: String, totalPages: Int = 4) = stubGetRequest(
@@ -121,17 +120,10 @@ class UpdateFromProbationIntTest : WebTestBase() {
     body = allProbationCasesResponse(firstCrn, firstPrefix, secondCrn, secondPrefix, totalPages),
   )
 
-  private fun stubSingleResponse(firstCrn: String, firstPrefix: String, page: Int, scenarioName: String) {
-    wiremock.stubFor(
-      WireMock.get("/all-probation-cases?size=2&page=$page&sort=id%2Casc")
-        .inScenario(scenarioName)
-        .whenScenarioStateIs(STARTED)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(allProbationCasesSingleResponse(firstCrn, firstPrefix))
-            .withStatus(200),
-        ),
-    )
-  }
+  private fun stubSingleResponse(firstCrn: String, firstPrefix: String, page: Int, scenarioName: String) = stubGetRequest(
+    url = "/all-probation-cases?size=2&page=$page&sort=id%2Casc",
+    scenarioName = scenarioName,
+    currentScenarioState = STARTED,
+    body = allProbationCasesSingleResponse(firstCrn, firstPrefix),
+  )
 }

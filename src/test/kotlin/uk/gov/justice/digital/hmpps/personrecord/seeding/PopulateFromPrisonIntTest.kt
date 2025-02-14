@@ -320,31 +320,19 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     )
   }
 
-  private fun stubSingleNumberPage(prisonNumberSeven: String, scenarioName: String, scenarioState: String) {
-    wiremock.stubFor(
-      WireMock.get("/api/prisoners/prisoner-numbers?size=2&page=3")
-        .inScenario(scenarioName)
-        .whenScenarioStateIs(scenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(prisonNumbersResponse(listOf(prisonNumberSeven)))
-            .withStatus(200),
-        ),
-    )
-  }
+  private fun stubSingleNumberPage(prisonNumberSeven: String, scenarioName: String, scenarioState: String) = stubGetRequest(
+    url = "/api/prisoners/prisoner-numbers?size=2&page=3",
+    scenarioName = scenarioName,
+    currentScenarioState = scenarioState,
+    nextScenarioState = scenarioState,
+    body = prisonNumbersResponse(listOf(prisonNumberSeven)),
+  )
 
-  private fun stubNumberPage(prisonNumberOne: String, prisonNumberTwo: String, page: Int, scenarioName: String, scenarioState: String) {
-    wiremock.stubFor(
-      WireMock.get("/api/prisoners/prisoner-numbers?size=2&page=$page")
-        .inScenario(scenarioName)
-        .whenScenarioStateIs(scenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(prisonNumbersResponse(listOf(prisonNumberOne, prisonNumberTwo)))
-            .withStatus(200),
-        ),
-    )
-  }
+  private fun stubNumberPage(prisonNumberOne: String, prisonNumberTwo: String, page: Int, scenarioName: String, scenarioState: String) = stubGetRequest(
+    url = "/api/prisoners/prisoner-numbers?size=2&page=$page",
+    scenarioName = scenarioName,
+    currentScenarioState = scenarioState,
+    nextScenarioState = scenarioState,
+    body = prisonNumbersResponse(listOf(prisonNumberOne, prisonNumberTwo)),
+  )
 }
