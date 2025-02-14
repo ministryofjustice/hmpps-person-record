@@ -176,6 +176,17 @@ class IntegrationTestBase {
     )
   }
 
+  fun stub404Response(url: String) {
+    wiremock.stubFor(
+      WireMock.get(url)
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(404),
+        ),
+    )
+  }
+
   internal fun stubGetRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String, status: Int = 200) {
     wiremock.stubFor(
       WireMock.get(url)
