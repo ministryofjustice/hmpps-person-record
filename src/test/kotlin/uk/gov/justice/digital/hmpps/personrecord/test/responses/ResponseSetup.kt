@@ -46,6 +46,4 @@ data class ApiResponseSetup(
   val sentenceStartDate: LocalDate? = null,
   val primarySentence: Boolean? = null,
   val currentlyManaged: String? = null,
-  val created: LocalDateTime? = null,
-  val lastModified: LocalDateTime? = null,
 )
