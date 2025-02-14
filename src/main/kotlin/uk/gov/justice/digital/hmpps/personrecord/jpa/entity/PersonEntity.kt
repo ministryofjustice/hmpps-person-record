@@ -24,7 +24,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
+
 
 @Entity
 @Table(name = "person")
@@ -132,7 +133,7 @@ class PersonEntity(
   @Version
   var version: Int = 0,
 
-) {
+  ) {
 
   fun addExcludeOverrideMarker(excludeRecord: PersonEntity) {
     this.overrideMarkers.add(
