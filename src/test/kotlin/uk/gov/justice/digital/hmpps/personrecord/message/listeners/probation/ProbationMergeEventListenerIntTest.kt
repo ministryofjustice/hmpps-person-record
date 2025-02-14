@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
@@ -24,6 +25,11 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import java.time.LocalDateTime
 
 class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
+
+  @BeforeEach
+  fun beforeEach() {
+    stubDeletePersonMatch()
+  }
 
   @Test
   fun `processes offender merge event with records with same UUID is published`() {
@@ -364,5 +370,46 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(loggedEvent.processedData).isEqualTo(processedData)
 
     assertThat(loggedEvent.uuid).isEqualTo(sourcePerson?.personKey?.personId.toString())
+  }
+
+  @Test
+  fun `should not throw error if person match returns a 404 on delete`() {
+    val sourceCrn = randomCrn()
+    val targetCrn = randomCrn()
+    val source = ApiResponseSetup(crn = sourceCrn)
+    val target = ApiResponseSetup(crn = targetCrn)
+    val personKeyEntity = createPersonKey()
+    createPerson(
+      Person.from(
+        ProbationCase(
+          name = Name(firstName = randomName(), lastName = randomName()),
+          identifiers = Identifiers(crn = sourceCrn),
+        ),
+      ),
+      personKeyEntity = personKeyEntity,
+    )
+    createPerson(
+      Person.from(
+        ProbationCase(
+          name = Name(firstName = randomName(), lastName = randomName()),
+          identifiers = Identifiers(crn = targetCrn),
+        ),
+      ),
+      personKeyEntity = personKeyEntity,
+    )
+
+    stubDeletePersonMatch(status = 404)
+    probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+
+    checkTelemetry(
+      CPR_RECORD_MERGED,
+      mapOf(
+        "TO_UUID" to personKeyEntity.personId.toString(),
+        "FROM_UUID" to personKeyEntity.personId.toString(),
+        "SOURCE_CRN" to sourceCrn,
+        "TARGET_CRN" to targetCrn,
+        "SOURCE_SYSTEM" to "DELIUS",
+      ),
+    )
   }
 }

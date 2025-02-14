@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
 import com.github.tomakehurst.wiremock.stubbing.Scenario
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
@@ -19,6 +20,11 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import java.time.LocalDateTime
 
 class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
+
+  @BeforeEach
+  fun beforeEach() {
+    stubDeletePersonMatch()
+  }
 
   private fun prisonURL(prisonNumber: String) = "/prisoner/$prisonNumber"
 

@@ -24,6 +24,7 @@ class MergeService(
   private val personKeyRepository: PersonKeyRepository,
   private val eventLoggingService: EventLoggingService,
   private val retryExecutor: RetryExecutor,
+  private val deletionService: DeletionService,
 ) {
 
   fun processMerge(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) = runBlocking {
@@ -42,10 +43,13 @@ class MergeService(
       else -> handleMergeWithDifferentUuids(mergeEvent, sourcePersonEntity, targetPersonEntity)
     }
 
+    sourcePersonEntity?.let { deletionService.deletePersonFromPersonMatch(it) }
+    logChangeInEventLog(mergeEvent, sourcePersonEntity, targetPersonEntity)
+  }
+
+  private fun logChangeInEventLog(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity?) {
     val beforeDataDTO = sourcePersonEntity?.let { Person.from(it) }
-
     val processedDataDTO = targetPersonEntity?.let { Person.from(it) }
-
     eventLoggingService.recordEventLog(
       beforePerson = beforeDataDTO,
       processedPerson = processedDataDTO,

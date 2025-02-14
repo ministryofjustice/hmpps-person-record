@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilNotNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -50,6 +51,11 @@ import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
+
+  @BeforeEach
+  fun beforeEach() {
+    stubPersonMatch()
+  }
 
   @Test
   fun `creates person when when new offender created event is published`() {

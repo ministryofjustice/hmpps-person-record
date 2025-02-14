@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.service.message
 
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -21,6 +23,7 @@ class DeletionService(
   private val personKeyRepository: PersonKeyRepository,
   private val eventLoggingService: EventLoggingService,
   private val retryExecutor: RetryExecutor,
+  private val personMatchClient: PersonMatchClient,
 ) {
 
   fun processDelete(event: String?, personCallback: () -> PersonEntity?) = runBlocking {
@@ -31,11 +34,18 @@ class DeletionService(
     }
   }
 
+  fun deletePersonFromPersonMatch(personEntity: PersonEntity) = runCatching {
+    runBlocking {
+      retryExecutor.runWithRetryHTTP { personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity)) }
+    }
+  }
+
   private fun handleDeletion(event: String?, personEntity: PersonEntity) {
     val beforeDataDTO = Person.from(personEntity)
 
     handlePersonKeyDeletion(personEntity)
     deletePersonRecord(personEntity)
+    deletePersonFromPersonMatch(personEntity)
     handleMergedRecords(event, personEntity)
 
     eventLoggingService.recordEventLog(
@@ -48,7 +58,7 @@ class DeletionService(
 
   private fun handleMergedRecords(event: String?, personEntity: PersonEntity) {
     personEntity.id?.let {
-      val mergedRecords: List<PersonEntity?> = personRepository.findByMergedTo(personEntity.id!!)
+      val mergedRecords: List<PersonEntity?> = personRepository.findByMergedTo(it)
       mergedRecords.forEach { mergedRecord ->
         processDelete(event) { mergedRecord }
       }

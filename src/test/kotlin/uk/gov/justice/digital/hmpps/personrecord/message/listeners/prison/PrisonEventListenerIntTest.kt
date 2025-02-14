@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -58,6 +59,11 @@ import java.time.LocalDateTime
 import java.util.stream.Stream
 
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
+
+  @BeforeEach
+  fun beforeEach() {
+    stubPersonMatch()
+  }
 
   @Test
   fun `should receive the message successfully when prisoner created event published`() {
@@ -207,6 +213,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val prisonNumber = prisoner.prisonNumber!!
     val updatedFirstName = randomName()
+
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, firstName = updatedFirstName))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))

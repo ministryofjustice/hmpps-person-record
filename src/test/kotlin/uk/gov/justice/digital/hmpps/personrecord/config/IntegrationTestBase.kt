@@ -143,18 +143,36 @@ class IntegrationTestBase {
     ),
   )
 
-  internal fun stubMatchScore(matchResponse: MatchResponse, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) {
-    wiremock.stubFor(
-      WireMock.post("/person/match")
-        .inScenario(scenario)
-        .whenScenarioStateIs(currentScenarioState)
-        .willSetStateTo(nextScenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(objectMapper.writeValueAsString(matchResponse)),
-        ),
+  internal fun stubMatchScore(matchResponse: MatchResponse, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200) {
+    stubPostRequest(
+      scenario,
+      currentScenarioState,
+      nextScenarioState,
+      url = "/person/match",
+      status = status,
+      body = objectMapper.writeValueAsString(matchResponse),
+    )
+  }
+
+  internal fun stubPersonMatch(scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200, body: String = "{}") {
+    stubPostRequest(
+      scenario,
+      currentScenarioState,
+      nextScenarioState,
+      url = "/person",
+      status = status,
+      body = body,
+    )
+  }
+
+  internal fun stubDeletePersonMatch(scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200, body: String = "{}") {
+    stubDeleteRequest(
+      scenario,
+      currentScenarioState,
+      nextScenarioState,
+      url = "/person",
+      status = status,
+      body = body,
     )
   }
 
@@ -172,6 +190,36 @@ class IntegrationTestBase {
   internal fun stubGetRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String, status: Int = 200) {
     wiremock.stubFor(
       WireMock.get(url)
+        .inScenario(scenarioName)
+        .whenScenarioStateIs(currentScenarioState)
+        .willSetStateTo(nextScenarioState)
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(status)
+            .withBody(body),
+        ),
+    )
+  }
+
+  internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String, status: Int = 200) {
+    wiremock.stubFor(
+      WireMock.post(url)
+        .inScenario(scenarioName)
+        .whenScenarioStateIs(currentScenarioState)
+        .willSetStateTo(nextScenarioState)
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(status)
+            .withBody(body),
+        ),
+    )
+  }
+
+  internal fun stubDeleteRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String, status: Int = 200) {
+    wiremock.stubFor(
+      WireMock.delete(url)
         .inScenario(scenarioName)
         .whenScenarioStateIs(currentScenarioState)
         .willSetStateTo(nextScenarioState)

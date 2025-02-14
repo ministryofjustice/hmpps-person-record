@@ -34,6 +34,7 @@ class RetryExecutor(@Value("\${retry.delay}") val delayMillis: Long) {
   suspend fun <T> runWithRetryDatabase(
     action: suspend () -> T,
   ): T = runWithRetry(DB_TRY_COUNT, entityRetryExceptions, action)
+
   private suspend fun <T> runWithRetry(
     maxAttempts: Int,
     exceptions: List<KClass<out Exception>>,
