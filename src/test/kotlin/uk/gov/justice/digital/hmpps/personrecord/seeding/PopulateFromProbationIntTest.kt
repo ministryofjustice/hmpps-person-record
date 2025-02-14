@@ -112,31 +112,17 @@ class PopulateFromProbationIntTest : WebTestBase() {
     assertThat(personRepository.findByCrn(crnTwo)!!.firstName).isEqualTo("POPTwoFirstName")
   }
 
-  private fun stubResponse(firstCrn: String, firstPrefix: String, secondCrn: String, secondPrefix: String, page: Int, scenarioName: String, scenarioState: String, totalPages: Int = 4) {
-    wiremock.stubFor(
-      WireMock.get("/all-probation-cases?size=2&page=$page&sort=id%2Casc")
-        .inScenario(scenarioName)
-        .whenScenarioStateIs(scenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(allProbationCasesResponse(firstCrn, firstPrefix, secondCrn, secondPrefix, totalPages))
-            .withStatus(200),
-        ),
-    )
-  }
+  private fun stubResponse(firstCrn: String, firstPrefix: String, secondCrn: String, secondPrefix: String, page: Int, scenarioName: String, scenarioState: String, totalPages: Int = 4) = stubGetRequest(
+    url = "/all-probation-cases?size=2&page=$page&sort=id%2Casc",
+    scenarioName = scenarioName,
+    currentScenarioState = scenarioState,
+    body = allProbationCasesResponse(firstCrn, firstPrefix, secondCrn, secondPrefix, totalPages),
+  )
 
-  private fun stubSingleResponse(firstCrn: String, firstPrefix: String, page: Int, scenarioName: String) {
-    wiremock.stubFor(
-      WireMock.get("/all-probation-cases?size=2&page=$page&sort=id%2Casc")
-        .inScenario(scenarioName)
-        .whenScenarioStateIs(STARTED)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(allProbationCasesSingleResponse(firstCrn, firstPrefix))
-            .withStatus(200),
-        ),
-    )
-  }
+  private fun stubSingleResponse(firstCrn: String, firstPrefix: String, page: Int, scenarioName: String) = stubGetRequest(
+    url = "/all-probation-cases?size=2&page=$page&sort=id%2Casc",
+    scenarioName = scenarioName,
+    currentScenarioState = STARTED,
+    body = allProbationCasesSingleResponse(firstCrn, firstPrefix),
+  )
 }
