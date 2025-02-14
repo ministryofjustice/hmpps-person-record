@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.config
 
-import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
@@ -237,17 +236,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   }
 
   private fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String, nextScenarioState: String) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
-
-  fun stub404Response(url: String) {
-    wiremock.stubFor(
-      WireMock.get(url)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(404),
-        ),
-    )
-  }
 
   fun stub500Response(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String, currentScenarioState: String = STARTED) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, url, body = "", status = 500)
 
