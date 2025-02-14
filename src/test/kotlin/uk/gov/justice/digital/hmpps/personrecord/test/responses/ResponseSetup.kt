@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class ApiResponseSetupIdentifier(val type: String, val value: String)
 
@@ -45,4 +46,6 @@ data class ApiResponseSetup(
   val sentenceStartDate: LocalDate? = null,
   val primarySentence: Boolean? = null,
   val currentlyManaged: String? = null,
+  val created: LocalDateTime? = null,
+  val lastModified: LocalDateTime? = null,
 )

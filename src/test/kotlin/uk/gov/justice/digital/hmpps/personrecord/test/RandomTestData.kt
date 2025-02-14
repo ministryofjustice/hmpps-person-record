@@ -2,7 +2,9 @@ package uk.gov.justice.digital.hmpps.personrecord.test
 
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier.Companion.VALID_LETTERS
 import java.time.LocalDate
-import java.util.UUID
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.util.*
 
 fun randomPnc(): String {
   val year = randomYear().toString()
@@ -14,6 +16,8 @@ fun randomPnc(): String {
 fun randomEmail(): String = randomLowerCaseString(8) + "." + randomDigit(4) + "@" + randomLowerCaseString(8) + ".co.uk"
 
 fun randomDate(): LocalDate = LocalDate.of(randomYear(), (1..12).random(), (1..28).random())
+
+fun randomDateTime(): LocalDateTime = LocalDateTime.of(randomDate(), LocalTime.of((1..23).random(), (1..60).random(), (1..60).random()))
 
 fun randomCro(): String {
   val year = randomYear().toString().takeLast(2)

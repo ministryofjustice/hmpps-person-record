@@ -23,7 +23,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDate
-import java.util.UUID
+import java.time.LocalDateTime
+import java.util.*
 
 @Entity
 @Table(name = "person")
@@ -125,6 +126,9 @@ class PersonEntity(
   @Column(name = "c_id")
   var cId: String? = null,
 
+  @Column(name = "last_modified")
+  var lastModified: LocalDateTime? = null,
+
   @Version
   var version: Int = 0,
 
@@ -162,6 +166,7 @@ class PersonEntity(
     this.nationality = person.nationality
     this.religion = person.religion
     this.cId = person.cId
+    this.lastModified = LocalDateTime.now()
     pseudonyms.clear()
     addresses.clear()
     contacts.clear()
@@ -245,6 +250,7 @@ class PersonEntity(
         currentlyManaged = person.currentlyManaged,
         matchId = UUID.randomUUID(),
         cId = person.cId,
+        lastModified = LocalDateTime.now(),
       )
       personEntity.updateChildEntities(person)
       return personEntity
