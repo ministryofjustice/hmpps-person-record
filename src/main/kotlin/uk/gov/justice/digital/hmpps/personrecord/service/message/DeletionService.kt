@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
-import feign.FeignException
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -36,11 +35,9 @@ class DeletionService(
     }
   }
 
-  fun deletePersonFromPersonMatch(personEntity: PersonEntity) = runBlocking {
-    try {
+  fun deletePersonFromPersonMatch(personEntity: PersonEntity) = runCatching {
+    runBlocking {
       retryExecutor.runWithRetryHTTP { personMatchClient.deletePerson(PersonMatchRecord.from(personEntity)) }
-    } catch (e: FeignException.NotFound) {
-      log.info("Ignoring person-match delete on: 404 Not found")
     }
   }
 
