@@ -84,6 +84,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val aliasLastName = randomName()
     val aliasDateOfBirth = randomDate()
 
+    stubPersonMatch()
     stubPrisonResponse(ApiResponseSetup(aliases = listOf(ApiResponseSetupAlias(aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, currentlyManaged = "ACTIVE IN", identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
@@ -141,6 +142,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should check nationality and religion null`() {
     val prisonNumber = randomPrisonNumber()
 
+    stubPersonMatch()
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomPnc(), email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = randomFullAddress())), dateOfBirth = randomDate(), nationality = null, religion = null))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
@@ -164,6 +166,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val prisonNumber = randomPrisonNumber()
     val sentenceStartDate = randomDate()
 
+    stubPersonMatch()
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomPnc(), sentenceStartDate = sentenceStartDate, primarySentence = false, email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = randomFullAddress())), dateOfBirth = randomDate(), nationality = null, religion = null))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
@@ -184,6 +187,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should log correct telemetry on created event but record already exists`() {
     val prisoner = createPrisoner()
 
+    stubPersonMatch()
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisoner.prisonNumber))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisoner.prisonNumber, categoriesChanged = emptyList())
@@ -208,6 +212,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val prisonNumber = prisoner.prisonNumber!!
     val updatedFirstName = randomName()
+    stubPersonMatch()
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, firstName = updatedFirstName))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
@@ -236,6 +241,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should retry on retryable error`() {
     val prisonNumber = randomPrisonNumber()
+    stubPersonMatch()
     stub500Response(prisonNumber, "next request will succeed")
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber), scenarioName = "retry", currentScenarioState = "next request will succeed")
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
@@ -280,6 +286,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should log correct telemetry on updated event but no record exists`() {
     val prisonNumber = randomPrisonNumber()
+    stubPersonMatch()
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
@@ -301,6 +308,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should allow a person to be created from a prison event when an offender record already exists with the prisonNumber`() {
     val prisonNumber = randomPrisonNumber()
+    stubPersonMatch()
     probationDomainEventAndResponseSetup(eventType = OFFENDER_ALIAS_CHANGED, ApiResponseSetup(pnc = randomPnc(), prisonNumber = prisonNumber, crn = randomCrn()))
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
@@ -317,6 +325,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @MethodSource("currentlyManagedParameters")
   fun `should map currently managed field correctly`(status: String?, result: Boolean?) {
     val prisonNumber = randomPrisonNumber()
+    stubPersonMatch()
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, currentlyManaged = status))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber)
@@ -341,6 +350,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val beforeDataTO = personEntity?.let { Person.from(it) }
     val beforeData = objectMapper.writeValueAsString(beforeDataTO)
 
+    stubPersonMatch()
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisoner.prisonNumber))
 
     val additionalInformation = AdditionalInformation(prisonNumber = prisoner.prisonNumber, categoriesChanged = listOf("SENTENCE"))

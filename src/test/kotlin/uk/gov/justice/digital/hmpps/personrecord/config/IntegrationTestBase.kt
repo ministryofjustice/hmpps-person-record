@@ -166,7 +166,7 @@ class IntegrationTestBase {
   }
 
   internal fun stubDeletePersonMatch(scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200, body: String = "{}") {
-    stubPostRequest(
+    stubDeleteRequest(
       scenario,
       currentScenarioState,
       nextScenarioState,

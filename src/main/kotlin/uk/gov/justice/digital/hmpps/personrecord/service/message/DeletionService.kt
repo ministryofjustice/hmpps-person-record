@@ -1,7 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
+import feign.FeignException
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -21,6 +25,7 @@ class DeletionService(
   private val personKeyRepository: PersonKeyRepository,
   private val eventLoggingService: EventLoggingService,
   private val retryExecutor: RetryExecutor,
+  private val personMatchClient: PersonMatchClient,
 ) {
 
   fun processDelete(event: String?, personCallback: () -> PersonEntity?) = runBlocking {
@@ -31,11 +36,20 @@ class DeletionService(
     }
   }
 
+  fun deletePersonFromPersonMatch(personEntity: PersonEntity) = runBlocking {
+    try {
+      retryExecutor.runWithRetryHTTP { personMatchClient.deletePerson(PersonMatchRecord.from(personEntity)) }
+    } catch (e: FeignException.NotFound) {
+      log.info("Ignoring person-match delete on: 404 Not found")
+    }
+  }
+
   private fun handleDeletion(event: String?, personEntity: PersonEntity) {
     val beforeDataDTO = Person.from(personEntity)
 
     handlePersonKeyDeletion(personEntity)
     deletePersonRecord(personEntity)
+    deletePersonFromPersonMatch(personEntity)
     handleMergedRecords(event, personEntity)
 
     eventLoggingService.recordEventLog(
@@ -48,7 +62,7 @@ class DeletionService(
 
   private fun handleMergedRecords(event: String?, personEntity: PersonEntity) {
     personEntity.id?.let {
-      val mergedRecords: List<PersonEntity?> = personRepository.findByMergedTo(personEntity.id!!)
+      val mergedRecords: List<PersonEntity?> = personRepository.findByMergedTo(it)
       mergedRecords.forEach { mergedRecord ->
         processDelete(event) { mergedRecord }
       }
@@ -85,5 +99,9 @@ class DeletionService(
   private fun removeLinkToRecord(personEntity: PersonEntity) {
     personEntity.personKey?.personEntities?.remove(personEntity)
     personKeyRepository.save(personEntity.personKey!!)
+  }
+
+  private companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
