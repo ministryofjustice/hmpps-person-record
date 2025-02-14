@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.message
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -36,7 +36,7 @@ class DeletionService(
 
   fun deletePersonFromPersonMatch(personEntity: PersonEntity) = runCatching {
     runBlocking {
-      retryExecutor.runWithRetryHTTP { personMatchClient.deletePerson(PersonMatchRecord.from(personEntity)) }
+      retryExecutor.runWithRetryHTTP { personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity)) }
     }
   }
 

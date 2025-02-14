@@ -4,6 +4,7 @@ import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchMigrateRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 
@@ -17,7 +18,7 @@ interface PersonMatchClient {
   fun postPerson(@RequestBody personMatchRecord: PersonMatchRecord)
 
   @DeleteMapping("/person")
-  fun deletePerson(@RequestBody personMatchRecord: PersonMatchRecord)
+  fun deletePerson(@RequestBody personMatchIdentifier: PersonMatchIdentifier)
 
   @PostMapping("/person/migrate")
   fun postPersonMigrate(@RequestBody personMatchMigrateRequest: PersonMatchMigrateRequest)
