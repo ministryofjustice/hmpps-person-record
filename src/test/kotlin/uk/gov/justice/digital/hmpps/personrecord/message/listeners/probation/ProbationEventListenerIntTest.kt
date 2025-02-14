@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilNotNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -51,6 +52,11 @@ import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
+  @BeforeEach
+  fun beforeEach() {
+    stubPersonMatch()
+  }
+
   @Test
   fun `creates person when when new offender created event is published`() {
     val crn = randomCrn()
@@ -89,7 +95,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       nationality = nationality,
       sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
     )
-    stubPersonMatch()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
 
     val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
@@ -163,7 +168,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       cro = cro,
       addresses = listOf(ApiResponseSetupAddress(postcode = "LS1 1AB", fullAddress = "abc street"), ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street")),
     )
-    stubPersonMatch()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
 
     checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
@@ -194,7 +198,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should write offender without PNC if PNC is missing`() {
     val crn = randomCrn()
-    stubPersonMatch()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = null))
     val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
 
@@ -209,7 +212,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should create two offenders with same prisonNumber but different CRNs`() {
     val prisonNumber: String = randomPrisonNumber()
     val crn = randomCrn()
-    stubPersonMatch()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, prisonNumber = prisonNumber))
     awaitNotNullPerson { personRepository.findByCrn(crn) }
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
@@ -225,7 +227,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should handle new offender details with an empty pnc`() {
     val crn = randomCrn()
-    stubPersonMatch()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = ""))
 
     val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
@@ -239,7 +240,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should not push 404 to dead letter queue but discard message instead`() {
     val crn = randomCrn()
-    stubPersonMatch()
     stub404Response(probationUrl(crn))
 
     val crnType = PersonIdentifier("CRN", crn)
@@ -254,7 +254,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should retry on 500 error`() {
     val crn = randomCrn()
-    stubPersonMatch()
     stub500Response(probationUrl(crn), "next request will succeed", "retry")
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = randomPnc()), scenario = "retry", currentScenarioState = "next request will succeed")
 
@@ -297,7 +296,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should process probation events successfully`(event: String) {
     val pnc = randomPnc()
     val crn = randomCrn()
-    stubPersonMatch()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc))
     val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
     assertThat(personEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
@@ -350,7 +348,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
     )
 
-    stubPersonMatch()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
 
     await.atMost(4, SECONDS) untilNotNull { personRepository.findByCrn(crn)?.personKey }
@@ -376,7 +373,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val firstName = randomName()
     val crn = randomCrn()
 
-    stubPersonMatch()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, firstName = firstName))
 
     val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }

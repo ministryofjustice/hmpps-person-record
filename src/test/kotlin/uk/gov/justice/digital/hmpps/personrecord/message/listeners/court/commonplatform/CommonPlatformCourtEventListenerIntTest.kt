@@ -5,6 +5,7 @@ import aws.sdk.kotlin.services.s3.model.PutObjectRequest
 import aws.smithy.kotlin.runtime.content.ByteStream
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -46,6 +47,11 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Value("\${aws.court-message-bucket-name}")
   lateinit var s3Bucket: String
 
+  @BeforeEach
+  fun beforeEach() {
+    stubPersonMatch()
+  }
+
   @Test
   fun `FIFO queue and topic remove duplicate messages`() {
     val pnc = randomPnc()
@@ -54,7 +60,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val lastName = randomName()
     val nationalInsuranceNumber = randomNationalInsuranceNumber()
     val hearingId = randomHearingId()
-    stubPersonMatch()
     blitz(30, 6) {
       publishCommonPlatformMessage(
         commonPlatformHearing(
@@ -110,7 +115,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     val changedLastName = randomName()
-    stubPersonMatch()
     val messageId = publishCommonPlatformMessage(
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId))),
     )
@@ -153,7 +157,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val thirdDefendantNINumber = randomNationalInsuranceNumber()
 
-    stubPersonMatch()
     val messageId = publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
@@ -262,7 +265,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val s3Key = UUID.randomUUID().toString()
 
-    stubPersonMatch()
     val request =
       PutObjectRequest {
         bucket = s3Bucket
@@ -288,7 +290,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val firstDefendantId = randomDefendantId()
     val secondDefendantId = randomDefendantId()
 
-    stubPersonMatch()
     val messageId = publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
@@ -335,7 +336,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process when is youth is null`() {
     val defendantId = randomDefendantId()
-    stubPersonMatch()
     val messageId = publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(

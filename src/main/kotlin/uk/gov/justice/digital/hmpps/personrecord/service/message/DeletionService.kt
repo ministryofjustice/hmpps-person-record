@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
-import feign.FeignException
 import kotlinx.coroutines.runBlocking
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
