@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.config
 
-import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
@@ -102,7 +101,8 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     } matches { it == 0 }
   }
 
-  fun expectNoMessagesOnDlq(queue: HmppsQueue?) {
+  fun expectNoMessagesOnQueueOrDlq(queue: HmppsQueue?) {
+    expectNoMessagesOn(queue)
     await untilCallTo {
       queue?.sqsDlqClient?.countMessagesOnQueue(queue.dlqUrl!!)?.get()
     } matches { it == 0 }
@@ -235,54 +235,16 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
   }
 
-  private fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String, nextScenarioState: String) = stub(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
+  private fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String, nextScenarioState: String) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
 
-  fun stub404Response(url: String) {
-    wiremock.stubFor(
-      WireMock.get(url)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(404),
-        ),
-    )
-  }
-
-  fun stub500Response(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String, currentScenarioState: String = STARTED) {
-    wiremock.stubFor(
-      WireMock.get(url)
-        .inScenario(scenarioName)
-        .whenScenarioStateIs(currentScenarioState)
-        .willSetStateTo(nextScenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(500),
-        ),
-    )
-  }
+  fun stub500Response(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String, currentScenarioState: String = STARTED) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, url, body = "", status = 500)
 
   fun stubPrisonResponse(
     apiResponseSetup: ApiResponseSetup,
     scenarioName: String? = BASE_SCENARIO,
     currentScenarioState: String? = STARTED,
     nextScenarioState: String? = STARTED,
-  ) = stub(scenarioName, currentScenarioState, nextScenarioState, "/prisoner/${apiResponseSetup.prisonNumber}", prisonerSearchResponse(apiResponseSetup))
-
-  private fun stub(scenarioName: String?, currentScenarioState: String?, nextScenarioState: String?, url: String, body: String) {
-    wiremock.stubFor(
-      WireMock.get(url)
-        .inScenario(scenarioName)
-        .whenScenarioStateIs(currentScenarioState)
-        .willSetStateTo(nextScenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(body),
-        ),
-    )
-  }
+  ) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/prisoner/${apiResponseSetup.prisonNumber}", prisonerSearchResponse(apiResponseSetup))
 
   @BeforeEach
   fun beforeEachMessagingTest() {
@@ -293,7 +255,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     purgeQueueAndDlq(prisonEventsQueue)
     purgeQueueAndDlq(prisonMergeEventsQueue)
     purgeQueueAndDlq(reclusterEventsQueue)
-    expectNoMessagesOnDlq(reclusterEventsQueue)
+    expectNoMessagesOnQueueOrDlq(reclusterEventsQueue)
   }
 
   fun purgeQueueAndDlq(hmppsQueue: HmppsQueue?) {

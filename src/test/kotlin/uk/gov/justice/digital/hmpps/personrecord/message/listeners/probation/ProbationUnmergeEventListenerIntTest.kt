@@ -395,8 +395,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged, scenario = "retry", currentScenarioState = "next request will succeed", nextScenarioState = "next request will succeed")
 
-    expectNoMessagesOn(probationMergeEventsQueue)
-    expectNoMessagesOnDlq(probationMergeEventsQueue)
+    expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
 
     checkTelemetry(
       UNMERGE_MESSAGE_RECEIVED,
@@ -468,8 +467,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    expectNoMessagesOn(probationMergeEventsQueue)
-    expectNoMessagesOnDlq(probationMergeEventsQueue)
+    expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
     checkTelemetry(
       UNMERGE_MESSAGE_RECEIVED,
       mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),

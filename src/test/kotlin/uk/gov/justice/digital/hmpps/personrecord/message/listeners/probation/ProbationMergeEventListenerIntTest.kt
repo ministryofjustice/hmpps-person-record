@@ -278,8 +278,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target, scenario = "retry", currentScenarioState = "next request will succeed")
 
-    expectNoMessagesOn(probationMergeEventsQueue)
-    expectNoMessagesOnDlq(probationMergeEventsQueue)
+    expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
 
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
