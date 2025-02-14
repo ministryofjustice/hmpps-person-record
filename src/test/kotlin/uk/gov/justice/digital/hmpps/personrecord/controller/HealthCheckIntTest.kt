@@ -1,5 +1,4 @@
 package uk.gov.justice.digital.hmpps.personrecord.controller
-import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
@@ -11,15 +10,7 @@ class HealthCheckIntTest : WebTestBase() {
 
   @Test
   fun `Health page reports ok`() {
-    wiremock.stubFor(
-      WireMock.get("/health")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody("""{"status": "UP"}"""),
-        ),
-    )
+    stubGetRequest(url = "/health", body = """{"status": "UP"}""")
 
     webTestClient.get()
       .uri("/health")
@@ -32,15 +23,7 @@ class HealthCheckIntTest : WebTestBase() {
 
   @Test
   fun `Health info reports version`() {
-    wiremock.stubFor(
-      WireMock.get("/health")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody("""{"status": "UP"}"""),
-        ),
-    )
+    stubGetRequest(url = "/health", body = """{"status": "UP"}""")
     webTestClient.get().uri("/health")
       .authorised()
       .exchange()
@@ -96,16 +79,7 @@ class HealthCheckIntTest : WebTestBase() {
 
   @Test
   fun `verify match details are returned`() {
-    wiremock.stubFor(
-      WireMock.get("/health")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody("""{"status": "UP"}"""),
-        ),
-    )
-
+    stubGetRequest(url = "/health", body = """{"status": "UP"}""")
     webTestClient.get()
       .uri("/health")
       .authorised()
@@ -117,16 +91,8 @@ class HealthCheckIntTest : WebTestBase() {
 
   @Test
   fun `when person match is down, person record should be down`() {
-    wiremock.stubFor(
-      WireMock.get("/health")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(500)
-            .withBody("""{"status": "DOWN"}"""),
-        ),
+    stubGetRequest(url = "/health", body = """{"status": "DOWN"}""", status = 500)
 
-    )
     webTestClient.get()
       .uri("/health")
       .authorised()

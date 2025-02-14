@@ -73,8 +73,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
     }
 
-    expectNoMessagesOn(courtEventsQueue)
-    expectNoMessagesOnDlq(courtEventsQueue)
+    expectNoMessagesOnQueueOrDlq(courtEventsQueue)
 
     checkTelemetry(
       CPR_RECORD_CREATED,

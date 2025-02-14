@@ -74,7 +74,7 @@ class IntegrationTestBase {
     }
   }
 
-  internal fun awaitAssert(timeout: Long = 3, function: () -> Unit) = await atMost (Duration.ofSeconds(timeout)) untilAsserted function
+  internal fun awaitAssert(function: () -> Unit) = await atMost (Duration.ofSeconds(3)) untilAsserted function
 
   internal fun awaitNotNullPerson(function: () -> PersonEntity?): PersonEntity = await atMost (Duration.ofSeconds(3)) untilNotNull function
 
@@ -154,6 +154,32 @@ class IntegrationTestBase {
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
             .withBody(objectMapper.writeValueAsString(matchResponse)),
+        ),
+    )
+  }
+
+  fun stub404Response(url: String) {
+    wiremock.stubFor(
+      WireMock.get(url)
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(404),
+        ),
+    )
+  }
+
+  internal fun stubGetRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String, status: Int = 200) {
+    wiremock.stubFor(
+      WireMock.get(url)
+        .inScenario(scenarioName)
+        .whenScenarioStateIs(currentScenarioState)
+        .willSetStateTo(nextScenarioState)
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(status)
+            .withBody(body),
         ),
     )
   }

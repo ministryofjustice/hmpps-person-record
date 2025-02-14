@@ -266,8 +266,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
     prisonMergeEventAndResponseSetup(PRISONER_MERGED, source, target, scenario = "retry", currentScenarioState = "next request will succeed")
 
-    expectNoMessagesOn(prisonMergeEventsQueue)
-    expectNoMessagesOnDlq(prisonMergeEventsQueue)
+    expectNoMessagesOnQueueOrDlq(prisonMergeEventsQueue)
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
       mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
