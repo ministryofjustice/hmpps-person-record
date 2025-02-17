@@ -26,10 +26,10 @@ dependencies {
   implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.2.0")
-  implementation("aws.sdk.kotlin:s3:1.4.20")
+  implementation("aws.sdk.kotlin:s3:1.4.22")
 
   implementation("io.swagger.core.v3:swagger-annotations:2.2.28")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
 
   constraints {
     implementation("commons-io:commons-io:2.18.0") {
