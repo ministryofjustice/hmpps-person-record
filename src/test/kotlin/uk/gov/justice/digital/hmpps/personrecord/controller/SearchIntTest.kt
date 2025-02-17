@@ -16,11 +16,16 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.CO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNationality
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPersonId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 
 class SearchIntTest : WebTestBase() {
 
@@ -253,11 +258,23 @@ class SearchIntTest : WebTestBase() {
 
   @Test
   fun `should return ok for get canonical record`() {
-    val firstName = randomName()
-    val middleNames = randomName()
-    val lastName = randomName()
     val person = createPersonWithNewKey(
-      Person.from(ProbationCase(name = Name(firstName = firstName, middleNames = middleNames, lastName = lastName), identifiers = Identifiers(crn = randomCrn()))),
+      Person(
+        firstName = randomName(),
+        lastName = randomName(),
+        middleNames = listOf(randomName()),
+        dateOfBirth = randomDate(),
+        sourceSystem = NOMIS,
+        title = randomName(),
+        crn = randomCrn(),
+        prisonNumber = randomPrisonNumber(),
+        ethnicity = randomEthnicity(),
+        nationality = randomNationality(),
+        religion = randomReligion(),
+        cId = randomCId(),
+        defendantId = randomDefendantId(),
+        masterDefendantId = randomDefendantId(),
+      ),
     )
 
     val responseBody = webTestClient.get()
@@ -270,9 +287,20 @@ class SearchIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(responseBody.firstName).isEqualTo(firstName)
-    assertThat(responseBody.middleNames).isEqualTo(middleNames)
-    assertThat(responseBody.lastName).isEqualTo(lastName)
+    assertThat(responseBody.id).isEqualTo(person.personKey?.personId.toString())
+    assertThat(responseBody.firstName).isEqualTo(person.firstName)
+    assertThat(responseBody.middleNames).isEqualTo(person.middleNames)
+    assertThat(responseBody.lastName).isEqualTo(person.lastName)
+    assertThat(responseBody.dateOfBirth).isEqualTo(person.dateOfBirth.toString())
+    assertThat(responseBody.title).isEqualTo(person.title)
+    assertThat(responseBody.crn).isEqualTo(person.crn)
+    assertThat(responseBody.prisonNumber).isEqualTo(person.prisonNumber)
+    assertThat(responseBody.ethnicity).isEqualTo(person.ethnicity)
+    assertThat(responseBody.nationality).isEqualTo(person.nationality)
+    assertThat(responseBody.religion).isEqualTo(person.religion)
+    assertThat(responseBody.cId).isEqualTo(person.cId)
+    assertThat(responseBody.defendantId).isEqualTo(person.defendantId)
+    assertThat(responseBody.masterDefendantId).isEqualTo(person.masterDefendantId)
   }
 
   @Test

@@ -35,7 +35,12 @@ class SearchController(
   @GetMapping("/search/person/{uuid}")
   fun getCanonicalRecord(
     @PathVariable(name = "uuid") uuid: UUID,
-  ): CanonicalRecord = CanonicalRecord.from(personKeyRepository.findByPersonId(uuid)!!)
+  ): CanonicalRecord {
+    val findPerson = personKeyRepository.findByPersonId(uuid)!!
+    val response = CanonicalRecord.from(findPerson)
+
+    return response
+  }
 
   @Operation(description = "Search for person record and associated records with a CRN within the system")
   @GetMapping("/search/offender/{crn}")
