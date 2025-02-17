@@ -34,7 +34,6 @@ class SearchController(
 
   @GetMapping("/search/person/{uuid}")
   fun getCanonicalRecord(
-    @NotBlank
     @PathVariable(name = "uuid") uuid: UUID,
   ): CanonicalRecord = CanonicalRecord.from(personKeyRepository.findByPersonId(uuid)!!)
 
