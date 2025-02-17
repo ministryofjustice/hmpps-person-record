@@ -272,14 +272,14 @@ class SearchIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should not return canonical record if invalid uuid`() {
+  fun `should return bad request if canonical record is invalid uuid`() {
     val randomString = "wffgfgfg2"
     webTestClient.get()
       .uri(searchForPerson(randomString))
       .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
-      .isNotFound
+      .isBadRequest
   }
 
   companion object {
