@@ -276,6 +276,99 @@ class SearchIntTest : WebTestBase() {
   }
 
   @Test
+  fun `should return latest modified from 2 records`() {
+    val personKey = createPersonKey()
+
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+      personKey,
+    )
+
+    val latestPerson = createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+      personKey,
+    )
+
+    val responseBody = webTestClient.get()
+      .uri(searchForPerson(personKey.personId.toString()))
+      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(CanonicalRecord::class.java)
+      .returnResult()
+      .responseBody!!
+
+    assertThat(responseBody.firstName).isEqualTo(latestPerson.firstName)
+    assertThat(responseBody.middleNames).isEqualTo(latestPerson.middleNames)
+    assertThat(responseBody.lastName).isEqualTo(latestPerson.lastName)
+  }
+
+  @Test
+  fun `should return latest modified with latest person set to null record`() {
+    val personKey = createPersonKey()
+
+    val person = createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+      personKey,
+    )
+
+    val latestPerson = createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+      personKey,
+    )
+
+    latestPerson.lastModified = null
+    personRepository.saveAndFlush(latestPerson)
+
+    val responseBody = webTestClient.get()
+      .uri(searchForPerson(personKey.personId.toString()))
+      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(CanonicalRecord::class.java)
+      .returnResult()
+      .responseBody!!
+
+    assertThat(responseBody.firstName).isEqualTo(person.firstName)
+    assertThat(responseBody.middleNames).isEqualTo(person.middleNames)
+    assertThat(responseBody.lastName).isEqualTo(person.lastName)
+  }
+
+  @Test
+  fun `should return record when all last modified are null`() {
+    val personKey = createPersonKey()
+
+    val person = createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+      personKey,
+    )
+
+    val latestPerson = createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+      personKey,
+    )
+
+    latestPerson.lastModified = null
+    person.lastModified = null
+    personRepository.saveAndFlush(latestPerson)
+    personRepository.saveAndFlush(person)
+
+    val responseBody = webTestClient.get()
+      .uri(searchForPerson(personKey.personId.toString()))
+      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(CanonicalRecord::class.java)
+      .returnResult()
+      .responseBody!!
+
+    assertThat(responseBody).isNotNull()
+  }
+
+  @Test
   fun `should return bad request if canonical record is invalid uuid`() {
     val randomString = "wffgfgfg2"
     webTestClient.get()
