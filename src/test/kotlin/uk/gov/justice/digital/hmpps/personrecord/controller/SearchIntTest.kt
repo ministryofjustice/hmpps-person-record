@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.SEARCH_API_READ_ONLY
+import uk.gov.justice.digital.hmpps.personrecord.api.model.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.PersonIdentifierRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
@@ -249,7 +250,29 @@ class SearchIntTest : WebTestBase() {
       .isNotFound
   }
 
+  @Test
+  fun `should return ok for get canonical record`() {
+    val person = createPersonWithNewKey(
+      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+    )
+    webTestClient.get()
+      .uri(searchForPerson(person.personKey?.personId.toString()))
+      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(CanonicalRecord::class.java)
+      .returnResult()
+      .responseBody!!
+
+    // assertThat(responseBody.size).isEqualTo(1)
+    //  assertThat(responseBody[0].id).isEqualTo(crn)
+    //  assertThat(responseBody[0].sourceSystem).isEqualTo(DELIUS.name)
+  }
+
   companion object {
+
+    private fun searchForPerson(uuid: String) = "/search/person/$uuid"
 
     private fun searchOffenderUrl(crn: String) = "/search/offender/$crn"
 

@@ -14,18 +14,29 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.PersonRecordNotFoundException
+import uk.gov.justice.digital.hmpps.personrecord.api.model.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.PersonIdentifierRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.extractSourceSystemId
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
+import java.util.UUID
 
 @Tag(name = "Search")
 @RestController
 @PreAuthorize("hasRole('${Roles.SEARCH_API_READ_ONLY}')")
 class SearchController(
   private val personRepository: PersonRepository,
+  private val personKeyRepository: PersonKeyRepository,
+
 ) {
+
+  @GetMapping("/search/person/{uuid}")
+  fun getCanonicalRecord(
+    @NotBlank
+    @PathVariable(name = "uuid") uuid: String,
+  ): CanonicalRecord = CanonicalRecord.from(personKeyRepository.findByPersonId(UUID.fromString(uuid))!!)
 
   @Operation(description = "Search for person record and associated records with a CRN within the system")
   @GetMapping("/search/offender/{crn}")
