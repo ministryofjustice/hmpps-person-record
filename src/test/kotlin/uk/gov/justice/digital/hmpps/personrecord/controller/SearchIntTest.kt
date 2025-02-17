@@ -253,10 +253,14 @@ class SearchIntTest : WebTestBase() {
 
   @Test
   fun `should return ok for get canonical record`() {
+    val firstName = randomName()
+    val middleNames = randomName()
+    val lastName = randomName()
     val person = createPersonWithNewKey(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+      Person.from(ProbationCase(name = Name(firstName = firstName, middleNames = middleNames, lastName = lastName), identifiers = Identifiers(crn = randomCrn()))),
     )
-    webTestClient.get()
+
+    val responseBody = webTestClient.get()
       .uri(searchForPerson(person.personKey?.personId.toString()))
       .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
@@ -266,9 +270,9 @@ class SearchIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    // assertThat(responseBody.size).isEqualTo(1)
-    //  assertThat(responseBody[0].id).isEqualTo(crn)
-    //  assertThat(responseBody[0].sourceSystem).isEqualTo(DELIUS.name)
+    assertThat(responseBody.firstName).isEqualTo(firstName)
+    assertThat(responseBody.middleNames).isEqualTo(middleNames)
+    assertThat(responseBody.lastName).isEqualTo(lastName)
   }
 
   @Test
