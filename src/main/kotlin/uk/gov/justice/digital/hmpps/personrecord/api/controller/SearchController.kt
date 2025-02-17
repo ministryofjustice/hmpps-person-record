@@ -8,10 +8,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.constraints.NotBlank
+import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.server.ResponseStatusException
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.PersonRecordNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.CanonicalRecord
@@ -36,7 +38,13 @@ class SearchController(
   fun getCanonicalRecord(
     @NotBlank
     @PathVariable(name = "uuid") uuid: String,
-  ): CanonicalRecord = CanonicalRecord.from(personKeyRepository.findByPersonId(UUID.fromString(uuid))!!)
+  ): CanonicalRecord {
+    try {
+      return CanonicalRecord.from(personKeyRepository.findByPersonId(UUID.fromString(uuid))!!)
+    } catch (e: IllegalArgumentException) {
+      throw ResponseStatusException(HttpStatus.NOT_FOUND)
+    }
+  }
 
   @Operation(description = "Search for person record and associated records with a CRN within the system")
   @GetMapping("/search/offender/{crn}")

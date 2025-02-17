@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NO
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPersonId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
 class SearchIntTest : WebTestBase() {
@@ -270,6 +271,17 @@ class SearchIntTest : WebTestBase() {
     //  assertThat(responseBody[0].sourceSystem).isEqualTo(DELIUS.name)
   }
 
+  @Test
+  fun `should not return canonical record if invalid uuid`() {
+    val randomString = "wffgfgfg2"
+    webTestClient.get()
+      .uri(searchForPerson(randomString))
+      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isNotFound
+  }
+
   companion object {
 
     private fun searchForPerson(uuid: String) = "/search/person/$uuid"
@@ -285,6 +297,8 @@ class SearchIntTest : WebTestBase() {
       searchOffenderUrl(randomCrn()),
       searchPrisonerUrl(randomPrisonNumber()),
       searchDefendantUrl(randomDefendantId()),
+      searchForPerson(randomPersonId()),
+
     )
   }
 }
