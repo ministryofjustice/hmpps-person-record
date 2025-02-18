@@ -298,7 +298,7 @@ class SearchIntTest : WebTestBase() {
     assertThat(responseBody.ethnicity).isEqualTo(person.ethnicity)
     assertThat(responseBody.nationality).isEqualTo(person.nationality)
     assertThat(responseBody.religion).isEqualTo(person.religion)
-    assertThat(responseBody.cId).isEqualTo(person.cId)
+    assertThat(responseBody.cid).isEqualTo(person.cId)
     assertThat(responseBody.defendantId).isEqualTo(person.defendantId)
     assertThat(responseBody.masterDefendantId).isEqualTo(person.masterDefendantId)
   }

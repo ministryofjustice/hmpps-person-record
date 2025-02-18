@@ -16,7 +16,7 @@ data class CanonicalRecord(
   val nationality: String? = "",
   val religion: String? = "",
   val ethnicity: String? = "",
-  val cId: String? = "",
+  val cid: String? = "",
 
 ) {
   companion object {
@@ -26,7 +26,7 @@ data class CanonicalRecord(
         id = personKey.personId.toString(),
         firstName = latestPerson.firstName,
         middleNames = latestPerson.middleNames,
-        cId = latestPerson.cId,
+        cid = latestPerson.cId,
         lastName = latestPerson.lastName,
         dateOfBirth = latestPerson.dateOfBirth?.toString() ?: "",
         crn = latestPerson.crn,
