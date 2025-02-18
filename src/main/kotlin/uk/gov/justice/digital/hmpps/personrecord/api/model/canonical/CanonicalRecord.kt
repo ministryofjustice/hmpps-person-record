@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.model
+package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 
@@ -17,6 +17,9 @@ data class CanonicalRecord(
   val religion: String? = "",
   val ethnicity: String? = "",
   val cid: String? = "",
+  val aliases: List<CanonicalAlias> = emptyList(),
+  val addresses: List<CanonicalAddress> = emptyList(),
+  val references: List<CanonicalReference> = emptyList(),
 
 ) {
   companion object {
@@ -37,6 +40,9 @@ data class CanonicalRecord(
         nationality = latestPerson.nationality,
         religion = latestPerson.religion,
         ethnicity = latestPerson.ethnicity,
+        aliases = CanonicalAlias.fromPseudonymEntityList(latestPerson.pseudonyms),
+        addresses = CanonicalAddress.fromAddressEntityList(latestPerson.addresses),
+        references = CanonicalReference.fromReferenceEntityList(latestPerson.references),
 
       )
     }

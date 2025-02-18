@@ -5,13 +5,18 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.SEARCH_API_READ_ONLY
-import uk.gov.justice.digital.hmpps.personrecord.api.model.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.PersonIdentifierRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
@@ -21,11 +26,15 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationality
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPersonId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
+import java.time.LocalDate
 
 class SearchIntTest : WebTestBase() {
 
@@ -258,6 +267,8 @@ class SearchIntTest : WebTestBase() {
 
   @Test
   fun `should return ok for get canonical record`() {
+    val canonicalAlias = CanonicalAlias(firstName = randomName(), lastName = randomName(), middleNames = randomName(), title = randomName())
+
     val person = createPersonWithNewKey(
       Person(
         firstName = randomName(),
@@ -274,6 +285,9 @@ class SearchIntTest : WebTestBase() {
         cId = randomCId(),
         defendantId = randomDefendantId(),
         masterDefendantId = randomDefendantId(),
+        aliases = listOf(Alias(firstName = canonicalAlias.firstName, middleNames = canonicalAlias.middleNames, lastName = canonicalAlias.lastName, dateOfBirth = randomDate(), title = canonicalAlias.title)),
+        addresses = listOf(Address(noFixedAbode = true, startDate = LocalDate.now(), endDate = LocalDate.now(), postcode = randomPostcode(), fullAddress = randomFullAddress())),
+        references = listOf(Reference(identifierType = IdentifierType.PNC, identifierValue = randomPnc())),
       ),
     )
 
@@ -301,6 +315,7 @@ class SearchIntTest : WebTestBase() {
     assertThat(responseBody.cid).isEqualTo(person.cId)
     assertThat(responseBody.defendantId).isEqualTo(person.defendantId)
     assertThat(responseBody.masterDefendantId).isEqualTo(person.masterDefendantId)
+    assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
   }
 
   @Test
