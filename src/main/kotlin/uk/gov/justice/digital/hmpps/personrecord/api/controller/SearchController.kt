@@ -51,7 +51,7 @@ class SearchController(
   )
   fun getCanonicalRecord(
     @PathVariable(name = "uuid") uuid: UUID,
-  ): CanonicalRecord = createCanonicalRecord(personKeyRepository.findByPersonId(uuid), uuid)
+  ): CanonicalRecord = buildCanonicalRecord(personKeyRepository.findByPersonId(uuid), uuid)
 
   @Operation(description = "Search for person record and associated records with a CRN within the system")
   @GetMapping("/search/offender/{crn}")
@@ -124,7 +124,7 @@ class SearchController(
     else -> throw PersonRecordNotFoundException(identifier)
   }
 
-  private fun createCanonicalRecord(personKeyEntity: PersonKeyEntity?, uuid: UUID): CanonicalRecord = when {
+  private fun buildCanonicalRecord(personKeyEntity: PersonKeyEntity?, uuid: UUID): CanonicalRecord = when {
     personKeyEntity != PersonEntity.empty -> CanonicalRecord.from(personKeyEntity)
     else -> throw PersonKeyNotFoundException(uuid)
   }
