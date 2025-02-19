@@ -8,18 +8,17 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.constraints.NotBlank
-import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.server.ResponseStatusException
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.PersonRecordNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.PersonIdentifierRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.extractSourceSystemId
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
@@ -51,10 +50,7 @@ class SearchController(
   )
   fun getCanonicalRecord(
     @PathVariable(name = "uuid") uuid: UUID,
-  ): CanonicalRecord {
-    val person = personKeyRepository.findByPersonId(uuid)
-    person?.let { return CanonicalRecord.from(it) } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
-  }
+  ): CanonicalRecord = createCanonicalRecord(personKeyRepository.findByPersonId(uuid), uuid)
 
   @Operation(description = "Search for person record and associated records with a CRN within the system")
   @GetMapping("/search/offender/{crn}")
@@ -125,6 +121,11 @@ class SearchController(
   private fun handlePersonRecord(personEntity: PersonEntity?, identifier: String): List<PersonIdentifierRecord> = when {
     personEntity != PersonEntity.empty -> buildListOfLinkedRecords(personEntity)
     else -> throw PersonRecordNotFoundException(identifier)
+  }
+
+  private fun createCanonicalRecord(personKeyEntity: PersonKeyEntity?, uuid: UUID): CanonicalRecord = when {
+    personKeyEntity != PersonEntity.empty -> CanonicalRecord.from(personKeyEntity)
+    else -> throw PersonRecordNotFoundException(uuid.toString())
   }
 
   private fun buildListOfLinkedRecords(personEntity: PersonEntity): List<PersonIdentifierRecord> = personEntity.personKey?.personEntities?.mapNotNull {
