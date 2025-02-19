@@ -348,6 +348,66 @@ class SearchIntTest : WebTestBase() {
   }
 
   @Test
+  fun `should add list of additional identifiers to the canonical record`() {
+    val personKey = createPersonKey()
+
+    val personOne = createPerson(
+      Person(
+        firstName = randomName(),
+        lastName = randomName(),
+        middleNames = listOf(randomName()),
+        dateOfBirth = randomDate(),
+        sourceSystem = NOMIS,
+        title = randomName(),
+        crn = randomCrn(),
+        prisonNumber = randomPrisonNumber(),
+        ethnicity = randomEthnicity(),
+        nationality = randomNationality(),
+        religion = randomReligion(),
+        cId = randomCId(),
+        defendantId = randomDefendantId(),
+        masterDefendantId = randomDefendantId(),
+      ),
+      personKey,
+    )
+
+    val personTwo = createPerson(
+      Person(
+        firstName = randomName(),
+        lastName = randomName(),
+        middleNames = listOf(randomName()),
+        dateOfBirth = randomDate(),
+        sourceSystem = NOMIS,
+        title = randomName(),
+        crn = randomCrn(),
+        prisonNumber = randomPrisonNumber(),
+        ethnicity = randomEthnicity(),
+        nationality = randomNationality(),
+        religion = randomReligion(),
+        cId = randomCId(),
+        defendantId = randomDefendantId(),
+        masterDefendantId = randomDefendantId(),
+      ),
+      personKey,
+    )
+
+    val responseBody = webTestClient.get()
+      .uri(searchForPerson(personKey.personId.toString()))
+      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(CanonicalRecord::class.java)
+      .returnResult()
+      .responseBody!!
+
+    assertThat(responseBody.additionalIdentifiers.crns).isEqualTo(listOf(personOne.crn, personTwo.crn))
+    assertThat(responseBody.additionalIdentifiers.defendantIds).isEqualTo(listOf(personOne.defendantId, personTwo.defendantId))
+    assertThat(responseBody.additionalIdentifiers.prisonNumbers).isEqualTo(listOf(personOne.prisonNumber, personTwo.prisonNumber))
+    assertThat(responseBody.additionalIdentifiers.cids).isEqualTo(listOf(personOne.cId, personTwo.cId))
+  }
+
+  @Test
   fun `should return latest modified with latest person set to null record`() {
     val personKey = createPersonKey()
 

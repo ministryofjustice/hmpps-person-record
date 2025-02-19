@@ -20,11 +20,13 @@ data class CanonicalRecord(
   val aliases: List<CanonicalAlias> = emptyList(),
   val addresses: List<CanonicalAddress> = emptyList(),
   val references: List<CanonicalReference> = emptyList(),
+  val additionalIdentifiers: CanonicalAdditionalIdentifiers,
 
 ) {
   companion object {
     fun from(personKey: PersonKeyEntity): CanonicalRecord {
       val latestPerson = personKey.personEntities.sortedByDescending { it.lastModified }.first()
+      val additonalIdentifiers = CanonicalAdditionalIdentifiers.from(personKey)
       return CanonicalRecord(
         id = personKey.personId.toString(),
         firstName = latestPerson.firstName,
@@ -43,6 +45,7 @@ data class CanonicalRecord(
         aliases = CanonicalAlias.fromPseudonymEntityList(latestPerson.pseudonyms),
         addresses = CanonicalAddress.fromAddressEntityList(latestPerson.addresses),
         references = CanonicalReference.fromReferenceEntityList(latestPerson.references),
+        additionalIdentifiers = additonalIdentifiers,
 
       )
     }
