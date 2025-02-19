@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.PersonKeyNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.PersonRecordNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.PersonIdentifierRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
@@ -125,7 +126,7 @@ class SearchController(
 
   private fun createCanonicalRecord(personKeyEntity: PersonKeyEntity?, uuid: UUID): CanonicalRecord = when {
     personKeyEntity != PersonEntity.empty -> CanonicalRecord.from(personKeyEntity)
-    else -> throw PersonRecordNotFoundException(uuid.toString())
+    else -> throw PersonKeyNotFoundException(uuid)
   }
 
   private fun buildListOfLinkedRecords(personEntity: PersonEntity): List<PersonIdentifierRecord> = personEntity.personKey?.personEntities?.mapNotNull {
