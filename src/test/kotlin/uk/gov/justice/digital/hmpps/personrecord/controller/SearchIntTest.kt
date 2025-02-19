@@ -6,8 +6,10 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.SEARCH_API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.PersonIdentifierRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
@@ -26,7 +28,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
-import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationality
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPersonId
@@ -34,7 +35,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
-import java.time.LocalDate
 
 class SearchIntTest : WebTestBase() {
 
@@ -267,7 +267,18 @@ class SearchIntTest : WebTestBase() {
 
   @Test
   fun `should return ok for get canonical record`() {
-    val canonicalAlias = CanonicalAlias(firstName = randomName(), lastName = randomName(), middleNames = randomName(), title = randomName())
+    val firstName = randomName()
+    val lastName = randomName()
+    val middleNames = randomName()
+    val title = randomName()
+    val pnc = randomPnc()
+    val noFixAbode = true
+    val startDate = randomDate()
+    val postcode = randomPostcode()
+
+    val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = title)
+    val canonicalReference = CanonicalReference(IdentifierType.PNC, identifierValue = pnc)
+    val canonicalAddress = CanonicalAddress(noFixedAbode = noFixAbode.toString(), startDate = startDate.toString(), postcode = postcode)
 
     val person = createPersonWithNewKey(
       Person(
@@ -285,9 +296,9 @@ class SearchIntTest : WebTestBase() {
         cId = randomCId(),
         defendantId = randomDefendantId(),
         masterDefendantId = randomDefendantId(),
-        aliases = listOf(Alias(firstName = canonicalAlias.firstName, middleNames = canonicalAlias.middleNames, lastName = canonicalAlias.lastName, dateOfBirth = randomDate(), title = canonicalAlias.title)),
-        addresses = listOf(Address(noFixedAbode = true, startDate = LocalDate.now(), endDate = LocalDate.now(), postcode = randomPostcode(), fullAddress = randomFullAddress())),
-        references = listOf(Reference(identifierType = IdentifierType.PNC, identifierValue = randomPnc())),
+        aliases = listOf(Alias(firstName = firstName, middleNames = middleNames, lastName = lastName, dateOfBirth = randomDate(), title = title)),
+        addresses = listOf(Address(noFixedAbode = noFixAbode, startDate = startDate, postcode = postcode)),
+        references = listOf(Reference(identifierType = canonicalReference.identifierType, identifierValue = pnc)),
       ),
     )
 
@@ -316,6 +327,8 @@ class SearchIntTest : WebTestBase() {
     assertThat(responseBody.defendantId).isEqualTo(person.defendantId)
     assertThat(responseBody.masterDefendantId).isEqualTo(person.masterDefendantId)
     assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
+    assertThat(responseBody.references).isEqualTo(listOf(canonicalReference))
+    assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
   }
 
   @Test
@@ -405,6 +418,42 @@ class SearchIntTest : WebTestBase() {
     assertThat(responseBody.additionalIdentifiers.defendantIds).isEqualTo(listOf(personOne.defendantId, personTwo.defendantId))
     assertThat(responseBody.additionalIdentifiers.prisonNumbers).isEqualTo(listOf(personOne.prisonNumber, personTwo.prisonNumber))
     assertThat(responseBody.additionalIdentifiers.cids).isEqualTo(listOf(personOne.cId, personTwo.cId))
+  }
+
+  @Test
+  fun `should add an empty list of additional identifiers to the canonical record when null`() {
+    val personKey = createPersonKey()
+
+    createPerson(
+      Person(
+        firstName = randomName(),
+        lastName = randomName(),
+        middleNames = listOf(randomName()),
+        dateOfBirth = randomDate(),
+        sourceSystem = NOMIS,
+        title = randomName(),
+        ethnicity = randomEthnicity(),
+        nationality = randomNationality(),
+        religion = randomReligion(),
+        masterDefendantId = randomDefendantId(),
+      ),
+      personKey,
+    )
+
+    val responseBody = webTestClient.get()
+      .uri(searchForPerson(personKey.personId.toString()))
+      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(CanonicalRecord::class.java)
+      .returnResult()
+      .responseBody!!
+
+    assertThat(responseBody.additionalIdentifiers.crns).isNotNull()
+    assertThat(responseBody.additionalIdentifiers.prisonNumbers).isNotNull()
+    assertThat(responseBody.additionalIdentifiers.defendantIds).isNotNull()
+    assertThat(responseBody.additionalIdentifiers.cids).isNotNull()
   }
 
   @Test

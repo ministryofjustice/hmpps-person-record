@@ -34,7 +34,7 @@ class SearchController(
 
 ) {
 
-  @Operation(description = "Gets the last modified record")
+  @Operation(description = "Retrieve person record by UUID")
   @GetMapping("/search/person/{uuid}")
   @ApiResponses(
     ApiResponse(responseCode = "200", description = "OK"),
