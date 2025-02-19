@@ -274,11 +274,12 @@ class SearchIntTest : WebTestBase() {
     val pnc = randomPnc()
     val noFixAbode = true
     val startDate = randomDate()
+    val endDate = randomDate()
     val postcode = randomPostcode()
 
     val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = title)
     val canonicalReference = CanonicalReference(IdentifierType.PNC, identifierValue = pnc)
-    val canonicalAddress = CanonicalAddress(noFixedAbode = noFixAbode.toString(), startDate = startDate.toString(), postcode = postcode)
+    val canonicalAddress = CanonicalAddress(noFixedAbode = noFixAbode.toString(), startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode)
 
     val person = createPersonWithNewKey(
       Person(
@@ -297,7 +298,7 @@ class SearchIntTest : WebTestBase() {
         defendantId = randomDefendantId(),
         masterDefendantId = randomDefendantId(),
         aliases = listOf(Alias(firstName = firstName, middleNames = middleNames, lastName = lastName, dateOfBirth = randomDate(), title = title)),
-        addresses = listOf(Address(noFixedAbode = noFixAbode, startDate = startDate, postcode = postcode)),
+        addresses = listOf(Address(noFixedAbode = noFixAbode, startDate = startDate, endDate = endDate, postcode = postcode)),
         references = listOf(Reference(identifierType = canonicalReference.identifierType, identifierValue = pnc)),
       ),
     )
