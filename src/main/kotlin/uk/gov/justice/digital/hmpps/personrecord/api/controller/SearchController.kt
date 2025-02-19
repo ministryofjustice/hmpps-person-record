@@ -8,10 +8,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.constraints.NotBlank
+import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.server.ResponseStatusException
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.PersonRecordNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.PersonIdentifierRecord
@@ -32,14 +34,26 @@ class SearchController(
 
 ) {
 
+  @Operation(description = "Gets the last modified record")
   @GetMapping("/search/person/{uuid}")
+  @ApiResponses(
+    ApiResponse(responseCode = "200", description = "OK"),
+    ApiResponse(
+      responseCode = "404",
+      description = "Requested resource not found.",
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+    ),
+    ApiResponse(
+      responseCode = "500",
+      description = "Unrecoverable error occurred whilst processing request.",
+      content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+    ),
+  )
   fun getCanonicalRecord(
     @PathVariable(name = "uuid") uuid: UUID,
   ): CanonicalRecord {
-    val findPerson = personKeyRepository.findByPersonId(uuid)!!
-    val response = CanonicalRecord.from(findPerson)
-
-    return response
+    val person = personKeyRepository.findByPersonId(uuid)
+    person?.let { return CanonicalRecord.from(it) } ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
   }
 
   @Operation(description = "Search for person record and associated records with a CRN within the system")
