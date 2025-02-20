@@ -31,6 +31,16 @@ class ExceptionHandler {
       ),
     )
 
+  @ExceptionHandler(PersonKeyNotFoundException::class)
+  fun handleKeyNotFoundException(e: PersonKeyNotFoundException): ResponseEntity<ErrorResponse> = ResponseEntity
+    .status(HttpStatus.NOT_FOUND)
+    .body(
+      ErrorResponse(
+        status = HttpStatus.NOT_FOUND,
+        userMessage = "Not found: ${e.message}",
+      ),
+    )
+
   @ExceptionHandler(AuthenticationException::class)
   fun handleUnauthorizedException(e: AuthenticationException): ResponseEntity<ErrorResponse?>? = ResponseEntity
     .status(HttpStatus.UNAUTHORIZED)
