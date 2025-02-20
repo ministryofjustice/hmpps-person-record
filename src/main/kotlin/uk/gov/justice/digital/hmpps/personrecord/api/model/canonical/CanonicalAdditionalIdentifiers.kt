@@ -6,7 +6,7 @@ data class CanonicalAdditionalIdentifiers(
   val crns: List<String?> = emptyList(),
   val defendantIds: List<String?> = emptyList(),
   val prisonNumbers: List<String?> = emptyList(),
-  val caseIds: List<String?> = emptyList(),
+  val cids: List<String?> = emptyList(),
 ) {
   companion object {
 
@@ -14,7 +14,7 @@ data class CanonicalAdditionalIdentifiers(
       crns = personKeyEntity.personEntities.mapNotNull { it.crn },
       defendantIds = personKeyEntity.personEntities.mapNotNull { it.defendantId },
       prisonNumbers = personKeyEntity.personEntities.mapNotNull { it.prisonNumber },
-      caseIds = personKeyEntity.personEntities.mapNotNull { it.cId },
+      cids = personKeyEntity.personEntities.mapNotNull { it.cId },
     )
   }
 }

@@ -418,7 +418,7 @@ class SearchIntTest : WebTestBase() {
     assertThat(responseBody.additionalIdentifiers.crns).isEqualTo(listOf(personOne.crn, personTwo.crn))
     assertThat(responseBody.additionalIdentifiers.defendantIds).isEqualTo(listOf(personOne.defendantId, personTwo.defendantId))
     assertThat(responseBody.additionalIdentifiers.prisonNumbers).isEqualTo(listOf(personOne.prisonNumber, personTwo.prisonNumber))
-    assertThat(responseBody.additionalIdentifiers.caseIds).isEqualTo(listOf(personOne.cId, personTwo.cId))
+    assertThat(responseBody.additionalIdentifiers.cids).isEqualTo(listOf(personOne.cId, personTwo.cId))
   }
 
   @Test
@@ -454,7 +454,7 @@ class SearchIntTest : WebTestBase() {
     assertThat(responseBody.additionalIdentifiers.crns).isNotNull()
     assertThat(responseBody.additionalIdentifiers.prisonNumbers).isNotNull()
     assertThat(responseBody.additionalIdentifiers.defendantIds).isNotNull()
-    assertThat(responseBody.additionalIdentifiers.caseIds).isNotNull()
+    assertThat(responseBody.additionalIdentifiers.cids).isNotNull()
   }
 
   @Test
