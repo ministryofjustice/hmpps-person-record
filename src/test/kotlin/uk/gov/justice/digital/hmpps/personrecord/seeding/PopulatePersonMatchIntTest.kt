@@ -121,6 +121,25 @@ class PopulatePersonMatchIntTest : WebTestBase() {
     }
   }
 
+  @Test
+  fun `populate person match can start from specific page`() {
+    blitz(30, 10) {
+      createPersonWithNewKey(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+      )
+    }
+
+    webTestClient.post()
+      .uri("/populatepersonmatch?startPage=1")
+      .exchange()
+      .expectStatus()
+      .isOk
+
+    awaitAssert {
+      wiremock.verify(2, postRequestedFor(urlEqualTo("/person/migrate")))
+    }
+  }
+
   private fun stubPersonMigrate(scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) {
     wiremock.stubFor(
       WireMock.post("/person/migrate")

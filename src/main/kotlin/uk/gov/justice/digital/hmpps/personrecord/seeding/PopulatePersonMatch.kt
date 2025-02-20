@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchMigrateRequest
@@ -31,16 +32,16 @@ class PopulatePersonMatch(
 ) {
 
   @RequestMapping(method = [RequestMethod.POST], value = ["/populatepersonmatch"])
-  suspend fun populate(): String {
-    runPopulation()
+  suspend fun populate(@RequestParam startPage: Int = 0): String {
+    runPopulation(startPage)
     return OK
   }
 
   @Transactional
-  suspend fun runPopulation() {
+  suspend fun runPopulation(startPage: Int) {
     CoroutineScope(Dispatchers.Default).launch {
-      log.info("Starting population of person-match")
-      val executionResults = forPage { page ->
+      log.info("Starting population of person-match, from page $startPage")
+      val executionResults = forPage(startPage) { page ->
         log.info("Populating person match, page: ${page.pageable.pageNumber + 1}")
         val personMatchRecords = page.content.map { PersonMatchRecord.from(it) }
         val personMatchMigrateRequest = PersonMatchMigrateRequest(records = personMatchRecords)
@@ -54,8 +55,8 @@ class PopulatePersonMatch(
     }
   }
 
-  private inline fun forPage(page: (Page<PersonEntity>) -> Unit): ExecutionResult {
-    var pageNumber = 0
+  private inline fun forPage(startPage: Int, page: (Page<PersonEntity>) -> Unit): ExecutionResult {
+    var pageNumber = startPage
     var personRecords: Page<PersonEntity>
     val elapsedTime: Duration = measureTime {
       do {
