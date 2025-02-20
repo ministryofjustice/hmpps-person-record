@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 
 data class CanonicalReference(
   val identifierType: IdentifierType,
-  val identifierValue: String? = null,
+  val identifierValue: String? = "",
 ) {
   companion object {
     fun from(referenceEntity: ReferenceEntity): CanonicalReference = CanonicalReference(
