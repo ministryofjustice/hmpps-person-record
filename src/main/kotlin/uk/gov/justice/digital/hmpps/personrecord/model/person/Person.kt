@@ -113,6 +113,8 @@ data class Person(
         Reference.from(IdentifierType.ARREST_SUMMONS_NUMBER, defendant.personDefendant?.arrestSummonsNumber),
         Reference.from(IdentifierType.PNC, defendant.pncId?.pncId),
         Reference.from(IdentifierType.CRO, defendant.cro?.croId),
+        Reference.from(IdentifierType.RAW_CRO, defendant.cro?.croId),
+        Reference.from(IdentifierType.RAW_PNC, defendant.pncId?.pncId),
       )
 
       return Person(
