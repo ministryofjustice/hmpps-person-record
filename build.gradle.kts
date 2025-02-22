@@ -9,7 +9,7 @@ plugins {
   kotlin("plugin.spring") version "2.1.10"
   kotlin("jvm") version "2.1.10"
   kotlin("plugin.jpa") version "2.1.10"
-  id("io.gitlab.arturbosch.detekt") version "1.23.7"
+  id("io.gitlab.arturbosch.detekt") version "1.23.8"
   id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
 
@@ -26,7 +26,7 @@ dependencies {
   implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.2.0")
-  implementation("aws.sdk.kotlin:s3:1.4.26")
+  implementation("aws.sdk.kotlin:s3:1.4.27")
 
   implementation("io.swagger.core.v3:swagger-annotations:2.2.28")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")
@@ -51,7 +51,7 @@ dependencies {
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.1.10")
-  testImplementation("org.awaitility:awaitility-kotlin:4.2.2")
+  testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
   testImplementation("org.jmock:jmock:2.13.1")
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.3.0")
 }
