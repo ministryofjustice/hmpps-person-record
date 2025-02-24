@@ -315,6 +315,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       personRepository.findByDefendantId(defendantIdWithInvalidPnc)
     }
     assertThat(personWithInvalidPnc.references.getType(PNC)).isEqualTo(emptyList<ReferenceEntity>())
+    assertThat(personWithInvalidPnc.references.getType(PNC).first().identifierRawValue).isEqualTo(invalidPnc)
   }
 
   @Test
