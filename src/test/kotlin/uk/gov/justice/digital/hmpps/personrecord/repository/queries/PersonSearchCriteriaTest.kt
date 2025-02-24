@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
+import java.util.*
 
 class PersonSearchCriteriaTest {
 
@@ -51,6 +52,7 @@ class PersonSearchCriteriaTest {
         AddressEntity(postcode = "BC2 2BC"),
         AddressEntity(postcode = "CD3 DC3"),
       ),
+      matchId = UUID.randomUUID(),
       sourceSystem = COMMON_PLATFORM,
     )
     val searchCriteria = PersonSearchCriteria.from(personEntity)
@@ -97,6 +99,7 @@ class PersonSearchCriteriaTest {
         ReferenceEntity(identifierType = PNC, identifierValue = "12345"),
         ReferenceEntity(identifierType = NATIONAL_INSURANCE_NUMBER, identifierValue = "12345"),
       ),
+      matchId = UUID.randomUUID(),
       sourceSystem = COMMON_PLATFORM,
     )
     val searchCriteria = PersonSearchCriteria.from(person)
