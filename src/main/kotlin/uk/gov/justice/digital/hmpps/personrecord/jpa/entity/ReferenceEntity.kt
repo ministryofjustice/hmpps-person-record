@@ -37,6 +37,9 @@ class ReferenceEntity(
   @Column(name = "identifier_value")
   val identifierValue: String? = null,
 
+  @Column(name = "identifier_raw_value")
+  val identifierRawValue: String? = null,
+
   @Version
   var version: Int = 0,
 ) {
