@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
 import java.time.LocalDate
 
-data class PNCIdentifier(val pncId: String) {
+data class PNCIdentifier(val pncId: String, val rawPncId: String?) {
 
   val valid: Boolean
     get() = pncId.isNotEmpty()
@@ -22,9 +22,9 @@ data class PNCIdentifier(val pncId: String) {
     private const val CENTURY = 100
 
     fun from(inputPncId: String? = EMPTY_PNC): PNCIdentifier = when {
-      inputPncId.isNullOrEmpty() -> PNCIdentifier(EMPTY_PNC)
+      inputPncId.isNullOrEmpty() -> PNCIdentifier(EMPTY_PNC, inputPncId)
       isExpectedFormat(inputPncId) -> toCanonicalForm(inputPncId)
-      else -> PNCIdentifier(EMPTY_PNC)
+      else -> PNCIdentifier(EMPTY_PNC, inputPncId)
     }
 
     private fun isExpectedFormat(pnc: String): Boolean = pnc.matches(PNC_REGEX)
@@ -36,8 +36,8 @@ data class PNCIdentifier(val pncId: String) {
         else -> canonicalLongForm(sanitizedPncId)
       }
       return when {
-        (canonicalPnc.valid) -> PNCIdentifier(canonicalPnc.value)
-        else -> PNCIdentifier(EMPTY_PNC)
+        (canonicalPnc.valid) -> PNCIdentifier(canonicalPnc.value, pnc)
+        else -> PNCIdentifier(EMPTY_PNC, pnc)
       }
     }
 

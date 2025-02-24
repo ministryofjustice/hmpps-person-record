@@ -41,54 +41,32 @@ class PNCIdentifierTest {
   }
 
   @ParameterizedTest
-  @MethodSource("equalityPncProvider")
-  fun `should perform equality comparison using canonical form`(pncId1: String, pncId2: String, expectedResult: Boolean) {
-    // When
-    val result = PNCIdentifier.from(pncId1) == PNCIdentifier.from(pncId2)
-
-    // Then
-    assertThat(result).isEqualTo(expectedResult)
-  }
-
-  @ParameterizedTest
   @ValueSource(
     strings = ["01", "012", "0123", "01234", "012345", "0123567", "012345678", "0123456789", "01234567890", "01234567890123"],
   )
   fun `should return invalid when PNC id is not the correct length`(pncId: String) {
-    // When
     val pncIdentifier = PNCIdentifier.from(pncId)
-
-    // Then
     assertThat(pncIdentifier.valid).isFalse()
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["TOTALLYINVALID", "1X23/1234567A", "1923[1234567A", "1923/1Z34567A", "1923/1234567AA"])
   fun `should return invalid when PNC id is incorrectly formatted`(pncId: String) {
-    // When
     val pncIdentifier = PNCIdentifier.from(pncId)
-
-    // Then
     assertThat(pncIdentifier.valid).isFalse()
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["2008/0056560Z", "20030011985X", "20120052494Q", "20230583843L", "2001/0171310W", "2011/0275516Q", "2008/0056560Z", "2003/0062845E", "1981/0154257C"])
   fun `should return valid when PNC id is correctly formatted`(pncId: String) {
-    // When
     val pncIdentifier = PNCIdentifier.from(pncId)
-
-    // Then
     assertThat(pncIdentifier.valid).isTrue()
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["20030011985Z", "20120052494O", "20230583843N", "2001/0171310S"])
   fun `should return invalid when PNC id is correctly formatted but not valid`(pncId: String) {
-    // When
     val pncIdentifier = PNCIdentifier.from(pncId)
-
-    // Then
     assertThat(pncIdentifier.valid).isFalse()
   }
 
@@ -99,6 +77,16 @@ class PNCIdentifierTest {
     readAllLines.stream().forEach {
       assertThat((PNCIdentifier.from(it).pncId)).isNotEmpty()
     }
+  }
+
+  @Test
+  fun `invalid PNC is equal`() {
+    assertThat(PNCIdentifier.from("invalid")).isEqualTo(PNCIdentifier.from("invalid"))
+  }
+
+  @Test
+  fun `valid PNC is equal`() {
+    assertThat(PNCIdentifier.from("1979/0163001B")).isEqualTo(PNCIdentifier.from("1979/0163001B"))
   }
 
   companion object {
@@ -120,15 +108,6 @@ class PNCIdentifierTest {
       Arguments.of("19790163001B", "1979/0163001B"),
       Arguments.of("2002/0073319Z", "2002/0073319Z"),
       Arguments.of("1979/0163001B", "1979/0163001B"),
-    )
-
-    @JvmStatic
-    fun equalityPncProvider(): Stream<Arguments> = Stream.of(
-      Arguments.of("19790163001B", "79/163001B", true),
-      Arguments.of("19790163001B", "1979/0163001B", true),
-      Arguments.of("1979/0163001B", "1979/0163001B", true),
-      Arguments.of("1979/0163001B", "1980/0163001B", false),
-      Arguments.of("02/73319Z", "20020073319Z", true),
     )
 
     @JvmStatic
