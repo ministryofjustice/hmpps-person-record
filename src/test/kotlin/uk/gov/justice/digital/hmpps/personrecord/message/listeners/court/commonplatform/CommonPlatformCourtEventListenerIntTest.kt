@@ -315,6 +315,36 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
+  fun `should process messages with pnc as empty null and valid`() {
+    val firstDefendantId = randomDefendantId()
+    val secondDefendantId = randomDefendantId()
+
+    val pnc = randomPnc()
+    val messageId = publishCommonPlatformMessage(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(pnc = null, defendantId = firstDefendantId),
+          CommonPlatformHearingSetup(pnc = pnc, defendantId = secondDefendantId),
+        ),
+      ),
+
+    )
+
+    checkTelemetry(
+      MESSAGE_RECEIVED,
+      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
+      times = 2,
+    )
+    val personWithEmptyPnc = awaitNotNullPerson {
+      personRepository.findByDefendantId(firstDefendantId)
+    }
+    assertThat(personWithEmptyPnc.references.getType(PNC)).isEqualTo(emptyList<ReferenceEntity>())
+
+    val personWithNullPnc = personRepository.findByDefendantId(secondDefendantId)
+    assertThat(personWithNullPnc?.references?.getType(PNC)).isEqualTo(emptyList<ReferenceEntity>())
+  }
+
+  @Test
   fun `should not process youth cases`() {
     val youthDefendantId = randomDefendantId()
     val messageId = publishCommonPlatformMessage(

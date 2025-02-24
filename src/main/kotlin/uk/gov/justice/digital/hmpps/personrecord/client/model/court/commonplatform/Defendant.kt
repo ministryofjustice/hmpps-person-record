@@ -25,6 +25,8 @@ data class Defendant(
   val ethnicity: Ethnicity? = null,
   val aliases: List<DefendantAlias>? = emptyList(),
   val isYouth: Boolean = false,
+  val rawPncId: PNCIdentifier?,
+  val rawCro: CROIdentifier?,
 ) {
   fun isPerson() = personDefendant != null
 }
