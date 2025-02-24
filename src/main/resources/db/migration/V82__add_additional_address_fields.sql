@@ -10,6 +10,6 @@ ALTER TABLE IF EXISTS address
     ADD COLUMN post_town TEXT DEFAULT NULL,
     ADD COLUMN county TEXT DEFAULT NULL,
     ADD COLUMN country TEXT DEFAULT NULL,
-    ADD COLUMN UPRN TEXT DEFAULT NULL;
+    ADD COLUMN uprn TEXT DEFAULT NULL;
 -----------------------------------------------------
 COMMIT;
