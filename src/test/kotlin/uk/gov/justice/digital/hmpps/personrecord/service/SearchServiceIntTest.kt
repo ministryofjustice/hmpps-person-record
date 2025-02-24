@@ -71,6 +71,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     stubXHighConfidenceMatches(4)
+    stubPersonMatchScore(personToFind.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(3)
