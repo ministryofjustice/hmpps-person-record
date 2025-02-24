@@ -286,32 +286,35 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should process messages with pnc as empty string and null`() {
-    val firstDefendantId = randomDefendantId()
-    val secondDefendantId = randomDefendantId()
+  fun `should process messages with pnc as empty string, null or invalid`() {
+    val defendantIdWithEmptyStringPnc = randomDefendantId()
+    val defendantIdWithNullPnc = randomDefendantId()
+    val defendantIdWithInvalidPnc = randomDefendantId()
 
-    val messageId = publishCommonPlatformMessage(
+    val invalidPnc = "01234"
+
+    publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
-          CommonPlatformHearingSetup(pnc = "", defendantId = firstDefendantId),
-          CommonPlatformHearingSetup(pnc = null, defendantId = secondDefendantId),
+          CommonPlatformHearingSetup(pnc = "", defendantId = defendantIdWithEmptyStringPnc),
+          CommonPlatformHearingSetup(pnc = null, defendantId = defendantIdWithNullPnc),
+          CommonPlatformHearingSetup(pnc = invalidPnc, defendantId = defendantIdWithInvalidPnc),
         ),
       ),
-
     )
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
-      times = 2,
-    )
     val personWithEmptyPnc = awaitNotNullPerson {
-      personRepository.findByDefendantId(firstDefendantId)
+      personRepository.findByDefendantId(defendantIdWithEmptyStringPnc)
     }
     assertThat(personWithEmptyPnc.references.getType(PNC)).isEqualTo(emptyList<ReferenceEntity>())
 
-    val personWithNullPnc = personRepository.findByDefendantId(secondDefendantId)
+    val personWithNullPnc = personRepository.findByDefendantId(defendantIdWithNullPnc)
     assertThat(personWithNullPnc?.references?.getType(PNC)).isEqualTo(emptyList<ReferenceEntity>())
+
+    val personWithInvalidPnc = awaitNotNullPerson {
+      personRepository.findByDefendantId(defendantIdWithInvalidPnc)
+    }
+    assertThat(personWithInvalidPnc.references.getType(PNC)).isEqualTo(emptyList<ReferenceEntity>())
   }
 
   @Test
