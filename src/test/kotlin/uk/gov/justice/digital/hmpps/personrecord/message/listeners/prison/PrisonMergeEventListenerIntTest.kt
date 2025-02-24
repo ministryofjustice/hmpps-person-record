@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
-import com.github.tomakehurst.wiremock.stubbing.Scenario
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -283,7 +282,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should log when message processing fails`() {
     val targetPrisonNumber = randomPrisonNumber()
     val sourcePrisonNumber = randomPrisonNumber()
-    stub500Response(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", Scenario.STARTED)
+    stub500Response(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure")
     stub500Response(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
     stub500Response(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
 
