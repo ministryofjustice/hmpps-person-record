@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.SEARCH_API_
 import uk.gov.justice.digital.hmpps.personrecord.api.model.PersonIdentifierRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
@@ -276,9 +277,11 @@ class SearchIntTest : WebTestBase() {
     val startDate = randomDate()
     val endDate = randomDate()
     val postcode = randomPostcode()
+    val nationality = randomNationality()
 
     val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = title)
     val canonicalReference = CanonicalReference(IdentifierType.PNC, identifierValue = pnc)
+    val canonicalNationality = CanonicalNationality(nationality)
     val canonicalAddress = CanonicalAddress(noFixedAbode = noFixAbode.toString(), startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode)
 
     val person = createPersonWithNewKey(
@@ -292,7 +295,7 @@ class SearchIntTest : WebTestBase() {
         crn = randomCrn(),
         prisonNumber = randomPrisonNumber(),
         ethnicity = randomEthnicity(),
-        nationality = randomNationality(),
+        nationality = nationality,
         religion = randomReligion(),
         cId = randomCId(),
         defendantId = randomDefendantId(),
@@ -300,6 +303,7 @@ class SearchIntTest : WebTestBase() {
         aliases = listOf(Alias(firstName = firstName, middleNames = middleNames, lastName = lastName, dateOfBirth = randomDate(), title = title)),
         addresses = listOf(Address(noFixedAbode = noFixAbode, startDate = startDate, endDate = endDate, postcode = postcode)),
         references = listOf(Reference(identifierType = canonicalReference.identifierType, identifierValue = pnc)),
+
       ),
     )
 
@@ -322,8 +326,7 @@ class SearchIntTest : WebTestBase() {
     assertThat(responseBody.crn).isEqualTo(person.crn)
     assertThat(responseBody.prisonNumber).isEqualTo(person.prisonNumber)
     assertThat(responseBody.ethnicity).isEqualTo(person.ethnicity)
-    assertThat(responseBody.nationality1).isEqualTo(person.nationality)
-    assertThat(responseBody.nationality2).isEqualTo("")
+    assertThat(responseBody.nationalities).isEqualTo(listOf(canonicalNationality))
     assertThat(responseBody.sex).isEqualTo(person.sex)
     assertThat(responseBody.religion).isEqualTo(person.religion)
     assertThat(responseBody.cid).isEqualTo(person.cId)
