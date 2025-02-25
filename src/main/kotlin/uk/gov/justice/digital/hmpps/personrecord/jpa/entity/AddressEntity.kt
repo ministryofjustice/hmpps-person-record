@@ -77,28 +77,23 @@ class AddressEntity(
   var version: Int = 0,
 ) {
   companion object {
-    fun from(address: Address): AddressEntity? {
-      if (address.postcode.isNullOrEmpty()) {
-        return null
-      }
-      return AddressEntity(
-        startDate = address.startDate,
-        endDate = address.endDate,
-        noFixedAbode = address.noFixedAbode,
-        postcode = address.postcode,
-        fullAddress = address.fullAddress,
-        subBuildingName = address.subBuildingName,
-        buildingName = address.buildingName,
-        buildingNumber = address.buildingNumber,
-        thoroughfareName = address.thoroughfareName,
-        dependentLocality = address.dependentLocality,
-        postTown = address.postTown,
-        county = address.county,
-        country = address.country,
-        uprn = address.uprn,
+    fun from(address: Address): AddressEntity = AddressEntity(
+      startDate = address.startDate,
+      endDate = address.endDate,
+      noFixedAbode = address.noFixedAbode,
+      postcode = address.postcode,
+      fullAddress = address.fullAddress,
+      subBuildingName = address.subBuildingName,
+      buildingName = address.buildingName,
+      buildingNumber = address.buildingNumber,
+      thoroughfareName = address.thoroughfareName,
+      dependentLocality = address.dependentLocality,
+      postTown = address.postTown,
+      county = address.county,
+      country = address.country,
+      uprn = address.uprn,
 
-      )
-    }
+    )
 
     fun fromList(addresses: List<Address>): List<AddressEntity> = addresses.mapNotNull { from(it) }
   }
