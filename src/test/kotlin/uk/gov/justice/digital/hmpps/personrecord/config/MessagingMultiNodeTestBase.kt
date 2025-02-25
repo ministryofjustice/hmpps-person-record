@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.config
 
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
@@ -235,16 +236,16 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
   }
 
-  private fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String, nextScenarioState: String) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
+  private fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String, nextScenarioState: String) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, urlEqualTo("/probation-cases/${probationCase.crn}"), probationCaseResponse(probationCase))
 
-  fun stub500Response(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String, currentScenarioState: String = STARTED) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, url, body = "", status = 500)
+  fun stub500Response(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String, currentScenarioState: String = STARTED) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, urlEqualTo(url), body = "", status = 500)
 
   fun stubPrisonResponse(
     apiResponseSetup: ApiResponseSetup,
     scenarioName: String? = BASE_SCENARIO,
     currentScenarioState: String? = STARTED,
     nextScenarioState: String? = STARTED,
-  ) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/prisoner/${apiResponseSetup.prisonNumber}", prisonerSearchResponse(apiResponseSetup))
+  ) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, urlEqualTo("/prisoner/${apiResponseSetup.prisonNumber}"), prisonerSearchResponse(apiResponseSetup))
 
   @BeforeEach
   fun beforeEachMessagingTest() {
