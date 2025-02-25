@@ -314,7 +314,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val personWithInvalidPnc = awaitNotNullPerson {
       personRepository.findByDefendantId(defendantIdWithInvalidPnc)
     }
-    assertThat(personWithInvalidPnc.references.getType(PNC)).isEqualTo(emptyList<ReferenceEntity>())
+    assertThat(personWithInvalidPnc.references.getType(PNC).first().identifierValue).isEqualTo("")
     assertThat(personWithInvalidPnc.references.getType(PNC).first().identifierRawValue).isEqualTo(invalidPnc)
   }
 

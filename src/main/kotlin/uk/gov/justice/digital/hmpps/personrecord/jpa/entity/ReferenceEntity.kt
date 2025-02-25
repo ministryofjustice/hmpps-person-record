@@ -44,8 +44,8 @@ class ReferenceEntity(
   var version: Int = 0,
 ) {
   companion object {
-    private fun from(reference: Reference): ReferenceEntity = ReferenceEntity(identifierType = reference.identifierType, identifierValue = reference.identifierValue)
+    private fun from(reference: Reference): ReferenceEntity = ReferenceEntity(identifierType = reference.identifierType, identifierValue = reference.identifierValue, identifierRawValue = reference.identifierRawValue)
 
-    fun fromList(references: List<Reference>): List<ReferenceEntity> = references.filterNot { it.identifierValue.isNullOrEmpty() }.map { from(it) }
+    fun fromList(references: List<Reference>): List<ReferenceEntity> = references.filterNot { it.identifierValue.isNullOrEmpty() && it.identifierRawValue.isNullOrEmpty() }.map { from(it) }
   }
 }
