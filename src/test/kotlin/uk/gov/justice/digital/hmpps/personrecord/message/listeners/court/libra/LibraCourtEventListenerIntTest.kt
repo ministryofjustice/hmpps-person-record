@@ -38,7 +38,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val dateOfBirth = randomDate()
     val cId = randomCId()
     stubPersonMatch()
-    stubPersonMatchScores()
     val messageId = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode))
 
     checkTelemetry(
@@ -86,7 +85,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     stubPersonMatch()
     stubOneHighConfidenceMatch()
-    stubPersonMatchScores(personEntity.matchId)
 
     val updatedMessage = publishLibraMessage(libraHearing(firstName = firstName, cId = cId, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
     checkTelemetry(
@@ -137,7 +135,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     stubPersonMatch()
     stubOneHighConfidenceMatch()
-    stubPersonMatchScores()
 
     val messageId = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = ""))
     checkTelemetry(
