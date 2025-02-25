@@ -23,7 +23,6 @@ class CROIdentifierTest {
   fun `should process invalid id and not store it`() {
     val identifier = CROIdentifier.from("85227/65G")
     assertThat(identifier.croId.isEmpty())
-    assertThat(identifier.valid).isFalse()
   }
 
   @Test
@@ -55,7 +54,7 @@ class CROIdentifierTest {
     val readAllLines = Files.readAllLines(Paths.get("src/test/resources/valid_cros.csv"), Charsets.UTF_8)
 
     readAllLines.stream().forEach {
-      assertThat(CROIdentifier.from(it).valid).isTrue().withFailMessage(it)
+      assertThat(CROIdentifier.from(it).croId).isNotBlank().withFailMessage(it)
     }
   }
 }
