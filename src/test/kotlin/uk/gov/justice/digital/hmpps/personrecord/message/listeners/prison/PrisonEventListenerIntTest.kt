@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -394,7 +395,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   private fun stub500Response(
     prisonNumber: String,
     nextScenarioState: String,
-  ) = stubGetRequest(url = "/prisoner/$prisonNumber", scenarioName = "retry", currentScenarioState = STARTED, nextScenarioState = nextScenarioState, body = "", status = 500)
+  ) = stubGetRequest(urlPattern = urlEqualTo("/prisoner/$prisonNumber"), scenarioName = "retry", currentScenarioState = STARTED, nextScenarioState = nextScenarioState, body = "", status = 500)
 
   companion object {
     @JvmStatic

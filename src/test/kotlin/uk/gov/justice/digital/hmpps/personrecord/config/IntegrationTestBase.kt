@@ -2,9 +2,11 @@ package uk.gov.justice.digital.hmpps.personrecord.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
+import com.github.tomakehurst.wiremock.matching.UrlPattern
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.atMost
@@ -151,20 +153,20 @@ class IntegrationTestBase {
       scenario,
       currentScenarioState,
       nextScenarioState,
-      url = "/person/match",
+      urlPattern = urlEqualTo("/person/match"),
       status = status,
       body = objectMapper.writeValueAsString(matchResponse),
     )
   }
 
   internal fun stubPersonMatchScores(matchId: UUID? = null, personMatchResponse: List<PersonMatchScore> = listOf(), scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200) {
-    val matchIdUrlPattern: String = matchId?.toString() ?: ".*" // Regex to match any matchId, as not known on create
+    val matchIdUrlPattern: UrlPattern = matchId?.let { urlEqualTo("/person/score/$it") } ?: urlPathMatching("/person/score/.*") // Regex to match any matchId, as not known on create
     val responseBody: List<PersonMatchScore> = personMatchResponse.isEmpty().let { listOf(PersonMatchScore(candidateMatchId = matchId.toString(), candidateMatchWeight = 1.0F, candidateMatchProbability = 1.0F)) }
     stubGetRequest(
       scenario,
       currentScenarioState,
       nextScenarioState,
-      url = "/person/score/$matchIdUrlPattern",
+      urlPattern = matchIdUrlPattern,
       status = status,
       body = objectMapper.writeValueAsString(responseBody),
     )
@@ -175,7 +177,7 @@ class IntegrationTestBase {
       scenario,
       currentScenarioState,
       nextScenarioState,
-      url = "/person",
+      urlPattern = urlEqualTo("/person"),
       status = status,
       body = body,
     )
@@ -186,7 +188,7 @@ class IntegrationTestBase {
       scenario,
       currentScenarioState,
       nextScenarioState,
-      url = "/person",
+      urlPattern = urlEqualTo("/person"),
       status = status,
       body = body,
     )
@@ -194,7 +196,7 @@ class IntegrationTestBase {
 
   fun stub404Response(url: String) {
     wiremock.stubFor(
-      WireMock.get(urlPathMatching(url))
+      WireMock.get(url)
         .willReturn(
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
@@ -203,9 +205,9 @@ class IntegrationTestBase {
     )
   }
 
-  internal fun stubGetRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String, status: Int = 200) {
+  internal fun stubGetRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, urlPattern: UrlPattern, body: String, status: Int = 200) {
     wiremock.stubFor(
-      WireMock.get(urlPathMatching(url))
+      WireMock.get(urlPattern)
         .inScenario(scenarioName)
         .whenScenarioStateIs(currentScenarioState)
         .willSetStateTo(nextScenarioState)
@@ -218,9 +220,9 @@ class IntegrationTestBase {
     )
   }
 
-  internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String, status: Int = 200) {
+  internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, urlPattern: UrlPattern, body: String, status: Int = 200) {
     wiremock.stubFor(
-      WireMock.post(urlPathMatching(url))
+      WireMock.post(urlPattern)
         .inScenario(scenarioName)
         .whenScenarioStateIs(currentScenarioState)
         .willSetStateTo(nextScenarioState)
@@ -233,9 +235,9 @@ class IntegrationTestBase {
     )
   }
 
-  internal fun stubDeleteRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String, status: Int = 200) {
+  internal fun stubDeleteRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, urlPattern: UrlPattern, body: String, status: Int = 200) {
     wiremock.stubFor(
-      WireMock.delete(urlPathMatching(url))
+      WireMock.delete(urlPattern)
         .inScenario(scenarioName)
         .whenScenarioStateIs(currentScenarioState)
         .willSetStateTo(nextScenarioState)

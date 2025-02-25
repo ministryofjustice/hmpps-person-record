@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.seeding
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -321,7 +322,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
   }
 
   private fun stubSingleNumberPage(prisonNumberSeven: String, scenarioName: String, scenarioState: String) = stubGetRequest(
-    url = "/api/prisoners/prisoner-numbers?size=2&page=3",
+    urlPattern = urlEqualTo("/api/prisoners/prisoner-numbers?size=2&page=3"),
     scenarioName = scenarioName,
     currentScenarioState = scenarioState,
     nextScenarioState = scenarioState,
@@ -329,7 +330,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
   )
 
   private fun stubNumberPage(prisonNumberOne: String, prisonNumberTwo: String, page: Int, scenarioName: String, scenarioState: String) = stubGetRequest(
-    url = "/api/prisoners/prisoner-numbers?size=2&page=$page",
+    urlPattern = urlEqualTo("/api/prisoners/prisoner-numbers?size=2&page=$page"),
     scenarioName = scenarioName,
     currentScenarioState = scenarioState,
     nextScenarioState = scenarioState,
