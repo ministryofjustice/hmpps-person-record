@@ -59,13 +59,15 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     telemetryRepository.deleteAll()
     val cro = randomCro()
     val cluster1 = createPersonKey()
-    createPerson(
+    val person = createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
         sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = cluster1,
     )
+
+    stubPersonMatchScore(person.matchId)
 
     queueService.publishReclusterMessageToQueue(cluster1.personId!!)
 
@@ -93,7 +95,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should recluster when single record matches to one other cluster`() {
     val cro = randomCro()
     val cluster1 = createPersonKey()
-    createPerson(
+    val person = createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
         sourceSystem = COMMON_PLATFORM,
@@ -111,6 +113,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     stubOneHighConfidenceMatch()
+    stubPersonMatchScore(person.matchId)
 
     queueService.publishReclusterMessageToQueue(cluster1.personId!!)
 
@@ -154,7 +157,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should recluster when single record matches to one other cluster with multiple records`() {
     val cro = randomCro()
     val cluster1 = createPersonKey()
-    createPerson(
+    val person = createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
         sourceSystem = COMMON_PLATFORM,
@@ -186,6 +189,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     stubXHighConfidenceMatches(3)
+    stubPersonMatchScore(person.matchId)
 
     queueService.publishReclusterMessageToQueue(cluster1.personId!!)
 
@@ -229,7 +233,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should recluster when single record matches to one other cluster with multiple records (only matches 1)`() {
     val cro = randomCro()
     val cluster1 = createPersonKey()
-    createPerson(
+    val person = createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
         sourceSystem = COMMON_PLATFORM,
@@ -268,6 +272,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     stubMatchScore(matchResponse)
+    stubPersonMatchScore(person.matchId)
 
     queueService.publishReclusterMessageToQueue(cluster1.personId!!)
 
@@ -311,7 +316,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should recluster when single record matches to multiple clusters`() {
     val cro = randomCro()
     val cluster1 = createPersonKey()
-    createPerson(
+    val person = createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, cro)),
         sourceSystem = COMMON_PLATFORM,
@@ -344,6 +349,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     stubMatchScore(matchResponse)
+    stubPersonMatchScore(person.matchId)
 
     queueService.publishReclusterMessageToQueue(cluster1.personId!!)
 
