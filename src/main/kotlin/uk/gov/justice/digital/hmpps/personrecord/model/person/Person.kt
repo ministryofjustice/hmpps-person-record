@@ -9,13 +9,18 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 data class Person(
   val personId: UUID? = null,
@@ -69,9 +74,9 @@ data class Person(
         Contact.from(ContactType.EMAIL, probationCase.contactDetails?.email),
       )
       val references: List<Reference> = listOf(
-        Reference.from(IdentifierType.CRO, probationCase.identifiers.cro?.croId, probationCase.identifiers.cro?.croId),
-        Reference.from(IdentifierType.PNC, probationCase.identifiers.pnc?.pncId, probationCase.identifiers.pnc?.rawPncId),
-        Reference.from(IdentifierType.NATIONAL_INSURANCE_NUMBER, probationCase.identifiers.nationalInsuranceNumber, probationCase.identifiers.nationalInsuranceNumber),
+        Reference(CRO, identifierValue = probationCase.identifiers.cro?.croId, identifierRawValue = probationCase.identifiers.cro?.croId),
+        Reference(PNC, identifierValue = probationCase.identifiers.pnc?.pncId, identifierRawValue = probationCase.identifiers.pnc?.rawPncId),
+        Reference(NATIONAL_INSURANCE_NUMBER, identifierValue = probationCase.identifiers.nationalInsuranceNumber, identifierRawValue = probationCase.identifiers.nationalInsuranceNumber),
       )
       return Person(
         title = probationCase.title?.value,
@@ -108,11 +113,11 @@ data class Person(
       }
 
       val references: List<Reference> = listOf(
-        Reference.from(IdentifierType.NATIONAL_INSURANCE_NUMBER, defendant.personDefendant?.personDetails?.nationalInsuranceNumber, defendant.personDefendant?.personDetails?.nationalInsuranceNumber),
-        Reference.from(IdentifierType.DRIVER_LICENSE_NUMBER, defendant.personDefendant?.driverNumber, defendant.personDefendant?.driverNumber),
-        Reference.from(IdentifierType.ARREST_SUMMONS_NUMBER, defendant.personDefendant?.arrestSummonsNumber, defendant.personDefendant?.arrestSummonsNumber),
-        Reference.from(IdentifierType.PNC, defendant.pncId?.pncId, defendant.pncId?.rawPncId),
-        Reference.from(IdentifierType.CRO, defendant.cro?.croId, defendant.cro?.croId),
+        Reference(NATIONAL_INSURANCE_NUMBER, identifierValue = defendant.personDefendant?.personDetails?.nationalInsuranceNumber, identifierRawValue = defendant.personDefendant?.personDetails?.nationalInsuranceNumber),
+        Reference(DRIVER_LICENSE_NUMBER, identifierValue = defendant.personDefendant?.driverNumber, identifierRawValue = defendant.personDefendant?.driverNumber),
+        Reference(ARREST_SUMMONS_NUMBER, identifierValue = defendant.personDefendant?.arrestSummonsNumber, identifierRawValue = defendant.personDefendant?.arrestSummonsNumber),
+        Reference(PNC, identifierValue = defendant.pncId?.pncId, identifierRawValue = defendant.pncId?.rawPncId),
+        Reference(CRO, identifierValue = defendant.cro?.croId, identifierRawValue = defendant.cro?.croId),
       )
 
       return Person(
@@ -133,8 +138,8 @@ data class Person(
     fun from(libraHearingEvent: LibraHearingEvent): Person {
       val addresses = listOf(Address(postcode = libraHearingEvent.defendantAddress?.postcode))
       val references = listOf(
-        Reference.from(IdentifierType.CRO, libraHearingEvent.cro?.toString(), libraHearingEvent.cro?.toString()),
-        Reference.from(IdentifierType.PNC, libraHearingEvent.pnc?.toString(), libraHearingEvent.pnc?.toString()),
+        Reference(CRO, identifierValue = libraHearingEvent.cro?.toString(), identifierRawValue = libraHearingEvent.cro?.toString()),
+        Reference(PNC, identifierValue = libraHearingEvent.pnc?.toString(), identifierRawValue = libraHearingEvent.pnc?.toString()),
       )
       return Person(
         title = libraHearingEvent.name?.title,
@@ -157,10 +162,10 @@ data class Person(
       val contacts: List<Contact> = emails + phoneNumbers
       val addresses: List<Address> = Address.fromPrisonerAddressList(prisoner.addresses)
       val references = listOf(
-        Reference.from(IdentifierType.CRO, prisoner.cro?.toString(), prisoner.cro?.toString()),
-        Reference.from(IdentifierType.PNC, prisoner.pnc?.toString(), prisoner.pnc?.rawPncId),
-        Reference.from(IdentifierType.NATIONAL_INSURANCE_NUMBER, prisoner.identifiers.getType("NINO")?.value, prisoner.identifiers.getType("NINO")?.value),
-        Reference.from(IdentifierType.DRIVER_LICENSE_NUMBER, prisoner.identifiers.getType("DL")?.value, prisoner.identifiers.getType("DL")?.value),
+        Reference(CRO, identifierValue = prisoner.cro?.toString(), identifierRawValue = prisoner.cro?.toString()),
+        Reference(PNC, identifierValue = prisoner.pnc?.toString(), identifierRawValue = prisoner.pnc?.rawPncId),
+        Reference(NATIONAL_INSURANCE_NUMBER, identifierValue = prisoner.identifiers.getType("NINO")?.value, identifierRawValue = prisoner.identifiers.getType("NINO")?.value),
+        Reference(DRIVER_LICENSE_NUMBER, identifierValue = prisoner.identifiers.getType("DL")?.value, identifierRawValue = prisoner.identifiers.getType("DL")?.value),
 
       )
 
