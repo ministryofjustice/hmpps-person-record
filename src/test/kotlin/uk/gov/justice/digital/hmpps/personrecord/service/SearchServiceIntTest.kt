@@ -71,7 +71,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     stubXHighConfidenceMatches(4)
-    stubPersonMatchScore(personToFind.matchId)
+    stubPersonMatchScores(personToFind.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(3)
@@ -94,7 +94,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     stubOneHighConfidenceMatch()
     val searchingPerson = createPersonWithNewKey(personToFind)
-    stubPersonMatchScore(searchingPerson.matchId)
+    stubPersonMatchScores(searchingPerson.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -116,7 +116,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     stubOneHighConfidenceMatch()
-    stubPersonMatchScore(person.matchId)
+    stubPersonMatchScores(person.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(person)
 
     assertThat(candidateRecords.size).isEqualTo(0)
@@ -139,7 +139,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     stubOneHighConfidenceMatch()
     val searchingPerson = createPersonWithNewKey(personToFind)
-    stubPersonMatchScore(searchingPerson.matchId)
+    stubPersonMatchScores(searchingPerson.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -163,7 +163,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     stubXHighConfidenceMatches(2)
-    stubPersonMatchScore(personToFind.matchId)
+    stubPersonMatchScores(personToFind.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -186,7 +186,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    stubPersonMatchScore(personToFind.matchId)
+    stubPersonMatchScores(personToFind.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(personToFind)
     assertThat(candidateRecords.size).isEqualTo(0)
   }
@@ -208,7 +208,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     stubOneHighConfidenceMatch()
     val searchingPerson = createPersonWithNewKey(personToFind)
-    stubPersonMatchScore(searchingPerson.matchId)
+    stubPersonMatchScores(searchingPerson.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -232,7 +232,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
 
     stubOneHighConfidenceMatch()
     val searchingPerson = createPersonWithNewKey(personToFind)
-    stubPersonMatchScore(searchingPerson.matchId)
+    stubPersonMatchScores(searchingPerson.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -264,7 +264,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     stubOneHighConfidenceMatch()
-    stubPersonMatchScore(searchingPerson.matchId)
+    stubPersonMatchScores(searchingPerson.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -301,7 +301,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     stubOneHighConfidenceMatch()
-    stubPersonMatchScore(searchingPerson.matchId)
+    stubPersonMatchScores(searchingPerson.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -338,7 +338,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     stubOneHighConfidenceMatch()
-    stubPersonMatchScore(searchingPerson.matchId)
+    stubPersonMatchScores(searchingPerson.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -367,7 +367,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     stubOneHighConfidenceMatch()
-    stubPersonMatchScore(searchingPerson.matchId)
+    stubPersonMatchScores(searchingPerson.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -401,7 +401,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     stubOneHighConfidenceMatch()
-    stubPersonMatchScore(searchingPerson.matchId)
+    stubPersonMatchScores(searchingPerson.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -440,7 +440,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     stubOneHighConfidenceMatch()
-    stubPersonMatchScore(searchingPerson.matchId)
+    stubPersonMatchScores(searchingPerson.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -486,7 +486,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
 
     stubOneHighConfidenceMatch()
-    stubPersonMatchScore(searchingPerson.matchId)
+    stubPersonMatchScores(searchingPerson.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(1)
@@ -513,7 +513,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         sourceSystem = COMMON_PLATFORM,
       ),
     )
-    stubPersonMatchScore(searchingPerson.matchId)
+    stubPersonMatchScores(searchingPerson.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     noCandidatesFound(candidateRecords)
@@ -537,7 +537,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         sourceSystem = COMMON_PLATFORM,
       ),
     )
-    stubPersonMatchScore(searchingPerson.matchId)
+    stubPersonMatchScores(searchingPerson.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     noCandidatesFound(candidateRecords)
@@ -562,7 +562,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         sourceSystem = COMMON_PLATFORM,
       ),
     )
-    stubPersonMatchScore(searchingPerson.matchId)
+    stubPersonMatchScores(searchingPerson.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     noCandidatesFound(candidateRecords)
@@ -586,7 +586,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     mergeRecord(sourcePerson, targetPerson)
 
     val searchingPersonEntity = createPerson(searchingPerson)
-    stubPersonMatchScore(searchingPersonEntity.matchId)
+    stubPersonMatchScores(searchingPersonEntity.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPersonEntity)
 
     noCandidatesFound(candidateRecords)
@@ -610,7 +610,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         sourceSystem = COMMON_PLATFORM,
       ),
     )
-    stubPersonMatchScore(searchingPerson.matchId)
+    stubPersonMatchScores(searchingPerson.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     noCandidatesFound(candidateRecords)
@@ -629,7 +629,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     excludeRecord(existingPerson, excludingRecord = excludedRecord)
 
     stubXHighConfidenceMatches(2)
-    stubPersonMatchScore(excludedRecord.matchId)
+    stubPersonMatchScores(excludedRecord.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(excludedRecord)
 
     noCandidatesFound(candidateRecords)
@@ -659,7 +659,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
     )
     stubMatchScore(matchResponse)
     val searchingPerson = createPersonWithNewKey(personToFind)
-    stubPersonMatchScore(searchingPerson.matchId)
+    stubPersonMatchScores(searchingPerson.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
     assertThat(candidateRecords.size).isEqualTo(2)
@@ -713,7 +713,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         sourceSystem = COMMON_PLATFORM,
       ),
     )
-    stubPersonMatchScore(searchingPerson.matchId)
+    stubPersonMatchScores(searchingPerson.matchId)
 
     val candidateRecords = searchService.findCandidateRecordsWithUuid(searchingPerson)
 
@@ -739,7 +739,7 @@ class SearchServiceIntTest : IntegrationTestBase() {
         sourceSystem = COMMON_PLATFORM,
       ),
     )
-    stubPersonMatchScore(record.matchId)
+    stubPersonMatchScores(record.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(record)
 
     noCandidatesFound(candidateRecords)

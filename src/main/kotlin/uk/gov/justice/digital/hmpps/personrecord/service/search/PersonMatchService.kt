@@ -1,5 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.search
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
@@ -13,7 +18,8 @@ class PersonMatchService(
   private val retryExecutor: RetryExecutor,
 ) {
 
-  fun getScores(personEntity: PersonEntity): List<PersonMatchScore> = runBlocking {
+  // Fire and forget, until consumed in CPR-585
+  fun getScores(personEntity: PersonEntity) = CoroutineScope(Dispatchers.Default).launch {
     retryExecutor.runWithRetryHTTP { personMatchClient.getPersonScores(personEntity.matchId.toString()) }
   }
 }

@@ -40,7 +40,6 @@ enum class EventKeys {
   UNMERGED_CRN,
 
   // Matching
-  MATCH_ID,
   PROBABILITY_SCORE,
   HIGH_CONFIDENCE_COUNT,
   LOW_CONFIDENCE_COUNT,

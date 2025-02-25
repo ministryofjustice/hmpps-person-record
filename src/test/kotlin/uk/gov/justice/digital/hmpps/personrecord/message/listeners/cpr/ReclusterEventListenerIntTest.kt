@@ -67,7 +67,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       personKeyEntity = cluster1,
     )
 
-    stubPersonMatchScore(person.matchId)
+    stubPersonMatchScores(person.matchId)
 
     queueService.publishReclusterMessageToQueue(cluster1.personId!!)
 
@@ -113,7 +113,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     stubOneHighConfidenceMatch()
-    stubPersonMatchScore(person.matchId)
+    stubPersonMatchScores(person.matchId)
 
     queueService.publishReclusterMessageToQueue(cluster1.personId!!)
 
@@ -189,7 +189,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     stubXHighConfidenceMatches(3)
-    stubPersonMatchScore(person.matchId)
+    stubPersonMatchScores(person.matchId)
 
     queueService.publishReclusterMessageToQueue(cluster1.personId!!)
 
@@ -272,7 +272,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     stubMatchScore(matchResponse)
-    stubPersonMatchScore(person.matchId)
+    stubPersonMatchScores(person.matchId)
 
     queueService.publishReclusterMessageToQueue(cluster1.personId!!)
 
@@ -349,7 +349,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
     stubMatchScore(matchResponse)
-    stubPersonMatchScore(person.matchId)
+    stubPersonMatchScores(person.matchId)
 
     queueService.publishReclusterMessageToQueue(cluster1.personId!!)
 
