@@ -4,9 +4,6 @@ import java.time.LocalDate
 
 data class PNCIdentifier(val pncId: String) {
 
-  val valid: Boolean
-    get() = pncId.isNotEmpty()
-
   override fun toString(): String = pncId
 
   companion object {
