@@ -27,10 +27,12 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupContact
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformMessage
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomHearingId
@@ -157,6 +159,12 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val thirdDefendantNINumber = randomNationalInsuranceNumber()
 
+    val buildingName = randomName()
+    val buildingNumber = randomBuildingNumber()
+    val thoroughfareName = randomName()
+    val dependentLocality = randomName()
+    val postTown = randomName()
+
     val messageId = publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
@@ -171,7 +179,13 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
               CommonPlatformHearingSetupAlias(firstName = "aliasFirstName2", lastName = "alisLastName2"),
             ),
           ),
-          CommonPlatformHearingSetup(pnc = secondPnc, defendantId = secondDefendantId, contact = CommonPlatformHearingSetupContact()),
+          CommonPlatformHearingSetup(
+            pnc = secondPnc,
+            defendantId = secondDefendantId,
+            contact = CommonPlatformHearingSetupContact(),
+            address =
+            CommonPlatformHearingSetupAddress(buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown),
+          ),
           CommonPlatformHearingSetup(pnc = thirdPnc, defendantId = thirdDefendantId, nationalInsuranceNumber = thirdDefendantNINumber),
         ),
       ),
@@ -232,11 +246,11 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPerson.addresses).isNotEmpty()
     assertThat(secondPerson.addresses[0].postcode).isEqualTo("CF10 1FU")
     assertThat(secondPerson.addresses[0].subBuildingName).isNull()
-    assertThat(secondPerson.addresses[0].buildingName).isEqualTo("13 Wind Street")
-    assertThat(secondPerson.addresses[0].buildingNumber).isEqualTo("Cardiff")
-    assertThat(secondPerson.addresses[0].thoroughfareName).isEqualTo("Wales")
-    assertThat(secondPerson.addresses[0].dependentLocality).isEqualTo("UK")
-    assertThat(secondPerson.addresses[0].postTown).isEqualTo("Earth")
+    assertThat(secondPerson.addresses[0].buildingName).isEqualTo(buildingName)
+    assertThat(secondPerson.addresses[0].buildingNumber).isEqualTo(buildingNumber)
+    assertThat(secondPerson.addresses[0].thoroughfareName).isEqualTo(thoroughfareName)
+    assertThat(secondPerson.addresses[0].dependentLocality).isEqualTo(dependentLocality)
+    assertThat(secondPerson.addresses[0].postTown).isEqualTo(postTown)
     assertThat(secondPerson.addresses[0].county).isNull()
     assertThat(secondPerson.addresses[0].country).isNull()
     assertThat(secondPerson.addresses[0].uprn).isNull()

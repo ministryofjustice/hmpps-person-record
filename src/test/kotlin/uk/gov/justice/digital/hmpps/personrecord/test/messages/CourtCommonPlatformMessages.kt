@@ -20,6 +20,8 @@ data class CommonPlatformHearingSetup(
   val hearingId: String = randomHearingId(),
   val isYouth: Boolean? = false,
   val isPerson: Boolean = true,
+  val address: CommonPlatformHearingSetupAddress? = null,
+
 )
 
 data class CommonPlatformHearingSetupAlias(val firstName: String, val lastName: String)
@@ -29,6 +31,8 @@ data class CommonPlatformHearingSetupContact(
   val mobile: String = "078590345677",
   val primaryEmail: String = "email@email.com",
 )
+
+data class CommonPlatformHearingSetupAddress(val buildingName: String, val buildingNumber: String, val thoroughfareName: String, val dependentLocality: String, val postTown: String)
 
 fun largeCommonPlatformMessage(s3Key: String, s3BucketName: String) = """
   ["software.amazon.payloadoffloading.PayloadS3Pointer",{"s3BucketName":"$s3BucketName","s3Key":"$s3Key"}]
@@ -114,11 +118,11 @@ private fun personDefendant(commonPlatformHearingSetup: CommonPlatformHearingSet
   "personDefendant": {
     "personDetails": {
       "address": {
-        "address1": "13 Wind Street",
-        "address2": "Cardiff",
-        "address3": "Wales",
-        "address4": "UK",
-        "address5": "Earth",
+        "address1": "${commonPlatformHearingSetup.address?.buildingName}",
+        "address2": "${commonPlatformHearingSetup.address?.buildingNumber}",
+        "address3": "${commonPlatformHearingSetup.address?.thoroughfareName}",
+        "address4": "${commonPlatformHearingSetup.address?.dependentLocality}",
+        "address5": "${commonPlatformHearingSetup.address?.postTown}",
         "postcode": "CF10 1FU"
       },
       ${commonPlatformHearingSetup.contact?.let {
