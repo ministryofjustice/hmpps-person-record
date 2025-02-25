@@ -2,9 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
 data class CROIdentifier(val croId: String) {
 
-  val valid: Boolean
-    get() = croId.isNotEmpty()
-
   override fun toString(): String = croId
 
   companion object {
