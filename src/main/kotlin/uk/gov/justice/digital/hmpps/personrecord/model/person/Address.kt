@@ -5,7 +5,7 @@ import java.time.LocalDate
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Address as OffenderAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Address as PrisonerAddress
 
-class Address(
+data class Address(
   val noFixedAbode: Boolean? = null,
   val startDate: LocalDate? = null,
   val endDate: LocalDate? = null,
