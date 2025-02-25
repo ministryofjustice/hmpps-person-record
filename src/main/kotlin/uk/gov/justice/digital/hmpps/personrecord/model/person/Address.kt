@@ -11,6 +11,16 @@ class Address(
   val endDate: LocalDate? = null,
   val postcode: String? = null,
   val fullAddress: String? = null,
+  val subBuildingName: String? = null,
+  val buildingName: String? = null,
+  val buildingNumber: String? = null,
+  val thoroughfareName: String? = null,
+  val dependentLocality: String? = null,
+  val postTown: String? = null,
+  val county: String? = null,
+  val country: String? = null,
+  val uprn: String? = null,
+
 ) {
   companion object {
     fun from(address: PrisonerAddress): Address = Address(
@@ -36,6 +46,15 @@ class Address(
       fullAddress = addressEntity.fullAddress,
       startDate = addressEntity.startDate,
       noFixedAbode = addressEntity.noFixedAbode,
+      subBuildingName = addressEntity.subBuildingName,
+      buildingName = addressEntity.buildingName,
+      buildingNumber = addressEntity.buildingNumber,
+      thoroughfareName = addressEntity.thoroughfareName,
+      dependentLocality = addressEntity.dependentLocality,
+      postTown = addressEntity.postTown,
+      county = addressEntity.county,
+      country = addressEntity.country,
+      uprn = addressEntity.uprn,
     )
   }
 }

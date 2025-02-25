@@ -103,6 +103,12 @@ data class Person(
         addresses.add(
           Address(
             postcode = defendant.personDefendant?.personDetails?.address?.postcode,
+            buildingName = defendant.personDefendant?.personDetails?.address?.address1,
+            buildingNumber = defendant.personDefendant?.personDetails?.address?.address2,
+            thoroughfareName = defendant.personDefendant?.personDetails?.address?.address3,
+            dependentLocality = defendant.personDefendant?.personDetails?.address?.address4,
+            postTown = defendant.personDefendant?.personDetails?.address?.address5,
+
           ),
         )
       }
