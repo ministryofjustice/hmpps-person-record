@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -15,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 data class Person(
   val personId: UUID? = null,
@@ -58,10 +57,6 @@ data class Person(
 
     fun List<Reference>.toString(): String = this.joinToString { it.identifierValue.toString() }
 
-    fun from(person: Person): PersonKeyEntity = PersonKeyEntity(
-      personId = person.personId,
-    )
-
     fun from(probationCase: ProbationCase): Person {
       val contacts: List<Contact> = listOf(
         Contact.from(ContactType.HOME, probationCase.contactDetails?.telephone),
@@ -69,9 +64,12 @@ data class Person(
         Contact.from(ContactType.EMAIL, probationCase.contactDetails?.email),
       )
       val references: List<Reference> = listOf(
-        Reference.from(IdentifierType.CRO, probationCase.identifiers.cro?.croId),
-        Reference.from(IdentifierType.PNC, probationCase.identifiers.pnc?.pncId),
-        Reference.from(IdentifierType.NATIONAL_INSURANCE_NUMBER, probationCase.identifiers.nationalInsuranceNumber),
+        Reference(identifierType = IdentifierType.CRO, identifierValue = probationCase.identifiers.cro?.croId),
+        Reference(identifierType = IdentifierType.PNC, identifierValue = probationCase.identifiers.pnc?.pncId),
+        Reference(
+          identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+          identifierValue = probationCase.identifiers.nationalInsuranceNumber,
+        ),
       )
       return Person(
         title = probationCase.title?.value,
@@ -114,11 +112,20 @@ data class Person(
       }
 
       val references: List<Reference> = listOf(
-        Reference.from(IdentifierType.NATIONAL_INSURANCE_NUMBER, defendant.personDefendant?.personDetails?.nationalInsuranceNumber),
-        Reference.from(IdentifierType.DRIVER_LICENSE_NUMBER, defendant.personDefendant?.driverNumber),
-        Reference.from(IdentifierType.ARREST_SUMMONS_NUMBER, defendant.personDefendant?.arrestSummonsNumber),
-        Reference.from(IdentifierType.PNC, defendant.pncId?.pncId),
-        Reference.from(IdentifierType.CRO, defendant.cro?.croId),
+        Reference(
+          identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+          identifierValue = defendant.personDefendant?.personDetails?.nationalInsuranceNumber,
+        ),
+        Reference(
+          identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
+          identifierValue = defendant.personDefendant?.driverNumber,
+        ),
+        Reference(
+          identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
+          identifierValue = defendant.personDefendant?.arrestSummonsNumber,
+        ),
+        Reference(identifierType = IdentifierType.PNC, identifierValue = defendant.pncId?.pncId),
+        Reference(identifierType = IdentifierType.CRO, identifierValue = defendant.cro?.croId),
       )
 
       return Person(
@@ -139,8 +146,8 @@ data class Person(
     fun from(libraHearingEvent: LibraHearingEvent): Person {
       val addresses = listOf(Address(postcode = libraHearingEvent.defendantAddress?.postcode))
       val references = listOf(
-        Reference.from(IdentifierType.CRO, libraHearingEvent.cro?.toString()),
-        Reference.from(IdentifierType.PNC, libraHearingEvent.pnc?.toString()),
+        Reference(identifierType = IdentifierType.CRO, identifierValue = libraHearingEvent.cro?.toString()),
+        Reference(identifierType = IdentifierType.PNC, identifierValue = libraHearingEvent.pnc?.toString()),
       )
       return Person(
         title = libraHearingEvent.name?.title,
@@ -163,10 +170,16 @@ data class Person(
       val contacts: List<Contact> = emails + phoneNumbers
       val addresses: List<Address> = Address.fromPrisonerAddressList(prisoner.addresses)
       val references = listOf(
-        Reference.from(IdentifierType.CRO, prisoner.cro?.toString()),
-        Reference.from(IdentifierType.PNC, prisoner.pnc?.toString()),
-        Reference.from(IdentifierType.NATIONAL_INSURANCE_NUMBER, prisoner.identifiers.getType("NINO")?.value),
-        Reference.from(IdentifierType.DRIVER_LICENSE_NUMBER, prisoner.identifiers.getType("DL")?.value),
+        Reference(identifierType = IdentifierType.CRO, identifierValue = prisoner.cro?.toString()),
+        Reference(identifierType = IdentifierType.PNC, identifierValue = prisoner.pnc?.toString()),
+        Reference(
+          identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+          identifierValue = prisoner.identifiers.getType("NINO")?.value,
+        ),
+        Reference(
+          identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
+          identifierValue = prisoner.identifiers.getType("DL")?.value,
+        ),
 
       )
 
