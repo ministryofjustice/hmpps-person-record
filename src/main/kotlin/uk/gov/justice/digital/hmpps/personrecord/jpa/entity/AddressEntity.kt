@@ -46,22 +46,54 @@ class AddressEntity(
   @Column(name = "address_type")
   val type: String? = null,
 
+  @Column(name = "sub_building_name")
+  val subBuildingName: String? = null,
+
+  @Column(name = "building_name")
+  val buildingName: String? = null,
+
+  @Column(name = "building_number")
+  val buildingNumber: String? = null,
+
+  @Column(name = "thoroughfare_name")
+  val thoroughfareName: String? = null,
+
+  @Column(name = "dependent_locality")
+  val dependentLocality: String? = null,
+
+  @Column(name = "post_town")
+  val postTown: String? = null,
+
+  @Column(name = "county")
+  val county: String? = null,
+
+  @Column(name = "country")
+  val country: String? = null,
+
+  @Column(name = "uprn")
+  val uprn: String? = null,
+
   @Version
   var version: Int = 0,
 ) {
   companion object {
-    fun from(address: Address): AddressEntity? {
-      if (address.postcode.isNullOrEmpty()) {
-        return null
-      }
-      return AddressEntity(
-        startDate = address.startDate,
-        endDate = address.endDate,
-        noFixedAbode = address.noFixedAbode,
-        postcode = address.postcode,
-        fullAddress = address.fullAddress,
-      )
-    }
+    fun from(address: Address): AddressEntity = AddressEntity(
+      startDate = address.startDate,
+      endDate = address.endDate,
+      noFixedAbode = address.noFixedAbode,
+      postcode = address.postcode,
+      fullAddress = address.fullAddress,
+      subBuildingName = address.subBuildingName,
+      buildingName = address.buildingName,
+      buildingNumber = address.buildingNumber,
+      thoroughfareName = address.thoroughfareName,
+      dependentLocality = address.dependentLocality,
+      postTown = address.postTown,
+      county = address.county,
+      country = address.country,
+      uprn = address.uprn,
+
+    )
 
     fun fromList(addresses: List<Address>): List<AddressEntity> = addresses.mapNotNull { from(it) }
   }
