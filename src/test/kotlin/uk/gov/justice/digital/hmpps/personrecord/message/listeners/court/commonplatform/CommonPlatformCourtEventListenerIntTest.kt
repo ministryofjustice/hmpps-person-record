@@ -39,6 +39,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomHearingId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.util.UUID
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -164,6 +165,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val thoroughfareName = randomName()
     val dependentLocality = randomName()
     val postTown = randomName()
+    val postcode = randomPostcode()
 
     val messageId = publishCommonPlatformMessage(
       commonPlatformHearing(
@@ -184,7 +186,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
             defendantId = secondDefendantId,
             contact = CommonPlatformHearingSetupContact(),
             address =
-            CommonPlatformHearingSetupAddress(buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown),
+            CommonPlatformHearingSetupAddress(buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown, postcode = postcode),
           ),
           CommonPlatformHearingSetup(pnc = thirdPnc, defendantId = thirdDefendantId, nationalInsuranceNumber = thirdDefendantNINumber),
         ),
@@ -244,7 +246,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     assertThat(secondPerson.pseudonyms).isEmpty()
     assertThat(secondPerson.addresses).isNotEmpty()
-    assertThat(secondPerson.addresses[0].postcode).isEqualTo("CF10 1FU")
+    assertThat(secondPerson.addresses[0].postcode).isEqualTo(postcode)
     assertThat(secondPerson.addresses[0].subBuildingName).isNull()
     assertThat(secondPerson.addresses[0].buildingName).isEqualTo(buildingName)
     assertThat(secondPerson.addresses[0].buildingNumber).isEqualTo(buildingNumber)

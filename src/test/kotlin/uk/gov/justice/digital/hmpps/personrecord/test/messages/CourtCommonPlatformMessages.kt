@@ -32,7 +32,7 @@ data class CommonPlatformHearingSetupContact(
   val primaryEmail: String = "email@email.com",
 )
 
-data class CommonPlatformHearingSetupAddress(val buildingName: String, val buildingNumber: String, val thoroughfareName: String, val dependentLocality: String, val postTown: String)
+data class CommonPlatformHearingSetupAddress(val buildingName: String, val buildingNumber: String, val thoroughfareName: String, val dependentLocality: String, val postTown: String, val postcode: String)
 
 fun largeCommonPlatformMessage(s3Key: String, s3BucketName: String) = """
   ["software.amazon.payloadoffloading.PayloadS3Pointer",{"s3BucketName":"$s3BucketName","s3Key":"$s3Key"}]
@@ -123,7 +123,7 @@ private fun personDefendant(commonPlatformHearingSetup: CommonPlatformHearingSet
         "address3": "${commonPlatformHearingSetup.address?.thoroughfareName}",
         "address4": "${commonPlatformHearingSetup.address?.dependentLocality}",
         "address5": "${commonPlatformHearingSetup.address?.postTown}",
-        "postcode": "CF10 1FU"
+        "postcode": "${commonPlatformHearingSetup.address?.postcode}"
       },
       ${commonPlatformHearingSetup.contact?.let {
   """
