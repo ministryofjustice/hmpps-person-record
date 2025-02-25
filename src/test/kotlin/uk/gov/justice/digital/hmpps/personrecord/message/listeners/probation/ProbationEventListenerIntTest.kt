@@ -153,7 +153,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val cro = randomCro()
     val person = Person(
       prisonNumber = prisonNumber,
-      references = listOf(Reference.from(IdentifierType.PNC, pnc), Reference.from(IdentifierType.CRO, cro)),
+      references = listOf(
+        Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
+        Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
+      ),
       addresses = listOf(Address(postcode = "LS1 1AB")),
       sourceSystem = NOMIS,
     )
