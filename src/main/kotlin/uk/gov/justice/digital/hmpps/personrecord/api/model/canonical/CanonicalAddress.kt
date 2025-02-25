@@ -7,6 +7,15 @@ data class CanonicalAddress(
   val startDate: String? = "",
   val endDate: String? = "",
   val postcode: String? = "",
+  val subBuildingName: String? = "",
+  val buildingName: String? = "",
+  val buildingNumber: String? = "",
+  val thoroughfareName: String? = "",
+  val dependentLocality: String? = "",
+  val postTown: String? = "",
+  val county: String? = "",
+  val country: String? = "",
+  val uprn: String? = "",
 ) {
   companion object {
 
@@ -15,6 +24,11 @@ data class CanonicalAddress(
       startDate = addressEntity.startDate?.toString(),
       endDate = addressEntity.endDate?.toString(),
       noFixedAbode = addressEntity.noFixedAbode.toString(),
+      buildingName = addressEntity.buildingName,
+      buildingNumber = addressEntity.buildingNumber,
+      thoroughfareName = addressEntity.thoroughfareName,
+      dependentLocality = addressEntity.dependentLocality,
+      postTown = addressEntity.postTown,
     )
     fun fromAddressEntityList(addressEntity: List<AddressEntity>): List<CanonicalAddress> = addressEntity.map { from(it) }
   }
