@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.CO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -279,10 +280,16 @@ class SearchIntTest : WebTestBase() {
     val postcode = randomPostcode()
     val nationality = randomNationality()
 
+    val buildingName = randomName()
+    val buildingNumber = randomBuildingNumber()
+    val thoroughfareName = randomName()
+    val dependentLocality = randomName()
+    val postTown = randomName()
+
     val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = title)
     val canonicalReference = CanonicalReference(IdentifierType.PNC, identifierValue = pnc)
     val canonicalNationality = CanonicalNationality(nationality)
-    val canonicalAddress = CanonicalAddress(noFixedAbode = noFixAbode.toString(), startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode)
+    val canonicalAddress = CanonicalAddress(noFixedAbode = noFixAbode.toString(), startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
 
     val person = createPersonWithNewKey(
       Person(
@@ -301,7 +308,7 @@ class SearchIntTest : WebTestBase() {
         defendantId = randomDefendantId(),
         masterDefendantId = randomDefendantId(),
         aliases = listOf(Alias(firstName = firstName, middleNames = middleNames, lastName = lastName, dateOfBirth = randomDate(), title = title)),
-        addresses = listOf(Address(noFixedAbode = noFixAbode, startDate = startDate, endDate = endDate, postcode = postcode)),
+        addresses = listOf(Address(noFixedAbode = noFixAbode, startDate = startDate, endDate = endDate, postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)),
         references = listOf(Reference(identifierType = canonicalReference.identifierType, identifierValue = pnc)),
 
       ),
