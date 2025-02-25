@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
-data class CROIdentifier(val croId: String) {
+data class CROIdentifier(val croId: String, val rawCroId: String?) {
 
   override fun toString(): String = croId
 
@@ -12,21 +12,21 @@ data class CROIdentifier(val croId: String) {
     private val SF_CRO_REGEX = Regex("^SF\\d{2}/\\d{1,$SERIAL_NUM_LENGTH}[A-Z]\$")
     private val CRO_REGEX = Regex("^\\d{1,$SERIAL_NUM_LENGTH}/\\d{2}[A-Z]\$")
 
-    private fun invalidCro(): CROIdentifier = CROIdentifier(EMPTY_CRO)
+    private fun invalidCro(inputCroId: String?): CROIdentifier = CROIdentifier(EMPTY_CRO, inputCroId)
 
     fun from(inputCroId: String? = EMPTY_CRO): CROIdentifier = when {
-      inputCroId.isNullOrEmpty() -> invalidCro()
+      inputCroId.isNullOrEmpty() -> invalidCro(inputCroId)
       isSfFormat(inputCroId) -> canonicalSfFormat(inputCroId)
       isStandardFormat(inputCroId) -> canonicalStandardFormat(inputCroId)
-      else -> invalidCro()
+      else -> invalidCro(inputCroId)
     }
 
     private fun canonicalStandardFormat(inputCroId: String): CROIdentifier {
       val checkChar = inputCroId.takeLast(1).single()
       val (serialNum, yearDigits) = inputCroId.dropLast(1).split(SLASH) // splits into [NNNNNN, YY and drops D]
       return when {
-        correctModulus(checkChar, padSerialNumber(serialNum), yearDigits) -> CROIdentifier(formatStandard(checkChar, serialNum, yearDigits))
-        else -> invalidCro()
+        correctModulus(checkChar, padSerialNumber(serialNum), yearDigits) -> CROIdentifier(formatStandard(checkChar, serialNum, yearDigits), inputCroId)
+        else -> invalidCro(inputCroId)
       }
     }
 
@@ -34,8 +34,8 @@ data class CROIdentifier(val croId: String) {
       val checkChar = inputCroId.takeLast(1).single()
       val (yearDigits, serialNum) = inputCroId.drop(2).dropLast(1).split(SLASH) // splits into [YY, NNNNNN and drops D]
       return when {
-        correctModulus(checkChar, serialNum, yearDigits) -> CROIdentifier(formatSF(checkChar, serialNum, yearDigits))
-        else -> invalidCro()
+        correctModulus(checkChar, serialNum, yearDigits) -> CROIdentifier(formatSF(checkChar, serialNum, yearDigits), inputCroId)
+        else -> invalidCro(inputCroId)
       }
     }
 
