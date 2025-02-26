@@ -324,7 +324,7 @@ class SearchIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(responseBody.id).isEqualTo(person.personKey?.personId.toString())
+    assertThat(responseBody.personUUID).isEqualTo(person.personKey?.personId.toString())
     assertThat(responseBody.firstName).isEqualTo(person.firstName)
     assertThat(responseBody.middleNames).isEqualTo(person.middleNames)
     assertThat(responseBody.lastName).isEqualTo(person.lastName)
