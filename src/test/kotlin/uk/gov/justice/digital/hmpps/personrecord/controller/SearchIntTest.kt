@@ -330,14 +330,10 @@ class SearchIntTest : WebTestBase() {
     assertThat(responseBody.lastName).isEqualTo(person.lastName)
     assertThat(responseBody.dateOfBirth).isEqualTo(person.dateOfBirth.toString())
     assertThat(responseBody.title).isEqualTo(person.title)
-    assertThat(responseBody.crn).isEqualTo(person.crn)
-    assertThat(responseBody.prisonNumber).isEqualTo(person.prisonNumber)
     assertThat(responseBody.ethnicity).isEqualTo(person.ethnicity)
     assertThat(responseBody.nationalities).isEqualTo(listOf(canonicalNationality))
     assertThat(responseBody.sex).isEqualTo(person.sex)
     assertThat(responseBody.religion).isEqualTo(person.religion)
-    assertThat(responseBody.cid).isEqualTo(person.cId)
-    assertThat(responseBody.defendantId).isEqualTo(person.defendantId)
     assertThat(responseBody.masterDefendantId).isEqualTo(person.masterDefendantId)
     assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
     assertThat(responseBody.references).isEqualTo(listOf(canonicalReference))
@@ -427,10 +423,10 @@ class SearchIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(responseBody.additionalIdentifiers.crns).isEqualTo(listOf(personOne.crn, personTwo.crn))
-    assertThat(responseBody.additionalIdentifiers.defendantIds).isEqualTo(listOf(personOne.defendantId, personTwo.defendantId))
-    assertThat(responseBody.additionalIdentifiers.prisonNumbers).isEqualTo(listOf(personOne.prisonNumber, personTwo.prisonNumber))
-    assertThat(responseBody.additionalIdentifiers.cids).isEqualTo(listOf(personOne.cId, personTwo.cId))
+    assertThat(responseBody.identifiers.crns).isEqualTo(listOf(personOne.crn, personTwo.crn))
+    assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(personOne.defendantId, personTwo.defendantId))
+    assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(personOne.prisonNumber, personTwo.prisonNumber))
+    assertThat(responseBody.identifiers.cids).isEqualTo(listOf(personOne.cId, personTwo.cId))
   }
 
   @Test
@@ -463,10 +459,10 @@ class SearchIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(responseBody.additionalIdentifiers.crns).isNotNull()
-    assertThat(responseBody.additionalIdentifiers.prisonNumbers).isNotNull()
-    assertThat(responseBody.additionalIdentifiers.defendantIds).isNotNull()
-    assertThat(responseBody.additionalIdentifiers.cids).isNotNull()
+    assertThat(responseBody.identifiers.crns).isNotNull()
+    assertThat(responseBody.identifiers.prisonNumbers).isNotNull()
+    assertThat(responseBody.identifiers.defendantIds).isNotNull()
+    assertThat(responseBody.identifiers.cids).isNotNull()
   }
 
   @Test
