@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 
 data class CanonicalRecord(
-  val personUUID: String? = "",
+  val cprUUID: String? = "",
   val firstName: String? = "",
   val middleNames: String? = "",
   val lastName: String? = "",
@@ -30,7 +30,7 @@ data class CanonicalRecord(
       val latestPerson = personKey.personEntities.sortedByDescending { it.lastModified }.first()
       val additonalIdentifiers = CanonicalIdentifiers.from(personKey)
       return CanonicalRecord(
-        personUUID = personKey.personId.toString(),
+        cprUUID = personKey.personId.toString(),
         firstName = latestPerson.firstName,
         middleNames = latestPerson.middleNames,
         lastName = latestPerson.lastName,
