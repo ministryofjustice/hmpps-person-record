@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 
-data class Identifiers(
+data class CanonicalIdentifiers(
   val crns: List<String?> = emptyList(),
   val defendantIds: List<String?> = emptyList(),
   val prisonNumbers: List<String?> = emptyList(),
@@ -10,7 +10,7 @@ data class Identifiers(
 ) {
   companion object {
 
-    fun from(personKeyEntity: PersonKeyEntity): Identifiers = Identifiers(
+    fun from(personKeyEntity: PersonKeyEntity): CanonicalIdentifiers = CanonicalIdentifiers(
       crns = personKeyEntity.personEntities.mapNotNull { it.crn },
       defendantIds = personKeyEntity.personEntities.mapNotNull { it.defendantId },
       prisonNumbers = personKeyEntity.personEntities.mapNotNull { it.prisonNumber },

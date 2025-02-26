@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
+import io.swagger.v3.oas.annotations.media.ArraySchema
+import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 
 data class CanonicalRecord(
@@ -14,16 +16,19 @@ data class CanonicalRecord(
   val religion: String? = "",
   val ethnicity: String? = "",
   val aliases: List<CanonicalAlias> = emptyList(),
-  val nationalities: List<CanonicalNationality> = emptyList(),
+  @ArraySchema(
+    schema = Schema(description = "List of nationality codes", example = "[{\"nationalityCode\": \"UK\"}, {\"nationalityCode\": \"IE\"}]"),
+  )
+  var nationalities: List<CanonicalNationality> = emptyList(),
   val addresses: List<CanonicalAddress> = emptyList(),
   val references: List<CanonicalReference> = emptyList(),
-  val identifiers: Identifiers,
+  val identifiers: CanonicalIdentifiers,
 
 ) {
   companion object {
     fun from(personKey: PersonKeyEntity): CanonicalRecord {
       val latestPerson = personKey.personEntities.sortedByDescending { it.lastModified }.first()
-      val additonalIdentifiers = Identifiers.from(personKey)
+      val additonalIdentifiers = CanonicalIdentifiers.from(personKey)
       return CanonicalRecord(
         id = personKey.personId.toString(),
         firstName = latestPerson.firstName,
@@ -38,7 +43,7 @@ data class CanonicalRecord(
         aliases = CanonicalAlias.fromPseudonymEntityList(latestPerson.pseudonyms),
         addresses = CanonicalAddress.fromAddressEntityList(latestPerson.addresses),
         references = CanonicalReference.fromReferenceEntityList(latestPerson.references),
-        nationalities = listOf(CanonicalNationality.from(latestPerson)),
+        nationalities = CanonicalNationality.from(latestPerson) ?: emptyList(),
         identifiers = additonalIdentifiers,
 
       )

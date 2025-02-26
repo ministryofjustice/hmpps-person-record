@@ -288,7 +288,7 @@ class SearchIntTest : WebTestBase() {
 
     val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = title)
     val canonicalReference = CanonicalReference(IdentifierType.PNC, identifierValue = pnc)
-    val canonicalNationality = CanonicalNationality(nationality)
+    val canonicalNationality = listOf(CanonicalNationality(nationalityCode = nationality))
     val canonicalAddress = CanonicalAddress(noFixedAbode = noFixAbode.toString(), startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
 
     val person = createPersonWithNewKey(
@@ -331,7 +331,7 @@ class SearchIntTest : WebTestBase() {
     assertThat(responseBody.dateOfBirth).isEqualTo(person.dateOfBirth.toString())
     assertThat(responseBody.title).isEqualTo(person.title)
     assertThat(responseBody.ethnicity).isEqualTo(person.ethnicity)
-    assertThat(responseBody.nationalities).isEqualTo(listOf(canonicalNationality))
+    assertThat(responseBody.nationalities).isEqualTo(canonicalNationality)
     assertThat(responseBody.sex).isEqualTo(person.sex)
     assertThat(responseBody.religion).isEqualTo(person.religion)
     assertThat(responseBody.masterDefendantId).isEqualTo(person.masterDefendantId)
