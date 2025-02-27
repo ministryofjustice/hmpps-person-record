@@ -2,6 +2,11 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.CRN
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.C_ID
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.DEFENDANT_ID
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.PRISON_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 
 data class CanonicalRecord(
@@ -26,8 +31,7 @@ data class CanonicalRecord(
   )
   var nationalities: List<CanonicalNationality> = emptyList(),
   val addresses: List<CanonicalAddress> = emptyList(),
-  val references: List<CanonicalReference> = emptyList(),
-  val identifiers: CanonicalIdentifiers,
+  val identifiers: List<CanonicalIdentifier> = emptyList(),
 
 ) {
   companion object {
@@ -46,11 +50,17 @@ data class CanonicalRecord(
         ethnicity = latestPerson.ethnicity,
         aliases = CanonicalAlias.fromPseudonymEntityList(latestPerson.pseudonyms),
         addresses = CanonicalAddress.fromAddressEntityList(latestPerson.addresses),
-        references = CanonicalReference.fromReferenceEntityList(latestPerson.references),
+        identifiers = getCanonicalIdentifiers(latestPerson) + CanonicalIdentifier.fromReferenceEntityList(latestPerson.references),
         nationalities = CanonicalNationality.from(latestPerson),
-        identifiers = CanonicalIdentifiers.from(personKey),
 
       )
     }
+
+    private fun getCanonicalIdentifiers(personEntity: PersonEntity): MutableList<CanonicalIdentifier> = listOf(
+      CanonicalIdentifier(CRN, personEntity.crn),
+      CanonicalIdentifier(DEFENDANT_ID, personEntity.defendantId),
+      CanonicalIdentifier(PRISON_NUMBER, personEntity.prisonNumber),
+      CanonicalIdentifier(C_ID, personEntity.cId),
+    ).toMutableList()
   }
 }
