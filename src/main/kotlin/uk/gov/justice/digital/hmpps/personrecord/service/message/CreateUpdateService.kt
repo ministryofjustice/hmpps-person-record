@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -43,6 +46,10 @@ class CreateUpdateService(
         handlePersonUpdate(person, it, event)
       },
     )
+    sendUpdateToPersonMatch(personEntity)
+  }
+
+  private fun sendUpdateToPersonMatch(personEntity: PersonEntity) = CoroutineScope(Dispatchers.Default).launch {
     retryExecutor.runWithRetryHTTP {
       personMatchClient.postPerson(PersonMatchRecord.from(personEntity))
     }
