@@ -33,7 +33,6 @@ data class CanonicalRecord(
   companion object {
     fun from(personKey: PersonKeyEntity): CanonicalRecord {
       val latestPerson = personKey.personEntities.sortedByDescending { it.lastModified }.first()
-      val identifiers = CanonicalIdentifiers.from(personKey)
       return CanonicalRecord(
         cprUUID = personKey.personId.toString(),
         firstName = latestPerson.firstName,
@@ -48,8 +47,8 @@ data class CanonicalRecord(
         aliases = CanonicalAlias.fromPseudonymEntityList(latestPerson.pseudonyms),
         addresses = CanonicalAddress.fromAddressEntityList(latestPerson.addresses),
         references = CanonicalReference.fromReferenceEntityList(latestPerson.references),
-        nationalities = CanonicalNationality.from(latestPerson) ?: emptyList(),
-        identifiers = identifiers,
+        nationalities = CanonicalNationality.from(latestPerson),
+        identifiers = CanonicalIdentifiers.from(personKey),
 
       )
     }
