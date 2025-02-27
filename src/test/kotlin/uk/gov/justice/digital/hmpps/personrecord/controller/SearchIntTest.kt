@@ -12,6 +12,9 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAl
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.CRN
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.C_ID
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.DEFENDANT_ID
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.PRISON_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
@@ -481,8 +484,13 @@ class SearchIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-//    val expectedIdentifiers = listOf(CanonicalIdentifier(CRN,))
-//    assertThat(responseBody.identifiers).containsExactlyInAnyOrderElementsOf(expectedIdentifiers)
+    val expectedIdentifiers = listOf(
+      CanonicalIdentifier(CRN, emptyList()),
+      CanonicalIdentifier(C_ID, emptyList()),
+      CanonicalIdentifier(DEFENDANT_ID, emptyList()),
+      CanonicalIdentifier(PRISON_NUMBER, emptyList()),
+    )
+    assertThat(responseBody.identifiers).containsExactlyInAnyOrderElementsOf(expectedIdentifiers)
   }
 
   @Test

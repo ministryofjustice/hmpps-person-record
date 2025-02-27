@@ -57,10 +57,10 @@ data class CanonicalRecord(
     }
 
     private fun getCanonicalIdentifiers(personEntity: PersonEntity): MutableList<CanonicalIdentifier> = listOf(
-      CanonicalIdentifier(CRN, listOf(personEntity.crn)),
-      CanonicalIdentifier(DEFENDANT_ID, listOf(personEntity.defendantId)),
-      CanonicalIdentifier(PRISON_NUMBER, listOf(personEntity.prisonNumber)),
-      CanonicalIdentifier(C_ID, listOf(personEntity.cId)),
+      CanonicalIdentifier(CRN, personEntity.crn?.let { listOf(it) } ?: emptyList()),
+      CanonicalIdentifier(DEFENDANT_ID, personEntity.defendantId?.let { listOf(it) } ?: emptyList()),
+      CanonicalIdentifier(PRISON_NUMBER, personEntity.prisonNumber?.let { listOf(it) } ?: emptyList()),
+      CanonicalIdentifier(C_ID, personEntity.cId?.let { listOf(it) } ?: emptyList()),
     ).toMutableList()
   }
 }
