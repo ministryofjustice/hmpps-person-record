@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAd
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.CRN
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
@@ -334,12 +335,12 @@ class SearchIntTest : WebTestBase() {
 
     val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = title)
     val canonicalIdentifiers = listOf(
-      CanonicalIdentifier(CanonicalIdentifierType.CRO, cro),
-      CanonicalIdentifier(CanonicalIdentifierType.PNC, pnc),
-      CanonicalIdentifier(CanonicalIdentifierType.CRN, crn1),
-      CanonicalIdentifier(CanonicalIdentifierType.DEFENDANT_ID, defendantId),
-      CanonicalIdentifier(CanonicalIdentifierType.PRISON_NUMBER, prisonNumber),
-      CanonicalIdentifier(CanonicalIdentifierType.C_ID, cid),
+      CanonicalIdentifier(CanonicalIdentifierType.CRO, listOf(cro)),
+      CanonicalIdentifier(CanonicalIdentifierType.PNC, listOf(pnc)),
+      CanonicalIdentifier(CRN, listOf(crn1)),
+      CanonicalIdentifier(CanonicalIdentifierType.DEFENDANT_ID, listOf(defendantId)),
+      CanonicalIdentifier(CanonicalIdentifierType.PRISON_NUMBER, listOf(prisonNumber)),
+      CanonicalIdentifier(CanonicalIdentifierType.C_ID, listOf(cid)),
     )
 
     val canonicalNationality = listOf(CanonicalNationality(nationalityCode = nationality))
@@ -480,10 +481,8 @@ class SearchIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-//    assertThat(responseBody.identifiers.crns).isNotNull()
-//    assertThat(responseBody.identifiers.prisonNumbers).isNotNull()
-//    assertThat(responseBody.identifiers.defendantIds).isNotNull()
-//    assertThat(responseBody.identifiers.cids).isNotNull()
+//    val expectedIdentifiers = listOf(CanonicalIdentifier(CRN,))
+//    assertThat(responseBody.identifiers).containsExactlyInAnyOrderElementsOf(expectedIdentifiers)
   }
 
   @Test
