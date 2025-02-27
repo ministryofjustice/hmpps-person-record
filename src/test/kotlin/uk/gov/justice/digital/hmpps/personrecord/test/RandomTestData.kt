@@ -21,6 +21,7 @@ fun randomCro(): String {
   val check = VALID_LETTERS[(year + digits).toInt().mod(VALID_LETTERS.length)]
   return "$digits/$year$check"
 }
+fun randomBuildingNumber(): String = randomDigit(3)
 
 fun randomName(): String = randomLowerCaseString()
 
