@@ -448,10 +448,14 @@ class SearchIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-//    assertThat(responseBody.identifiers.crns).isEqualTo(listOf(personOne.crn, personTwo.crn))
-//    assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(personOne.defendantId, personTwo.defendantId))
-//    assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(personOne.prisonNumber, personTwo.prisonNumber))
-//    assertThat(responseBody.identifiers.cids).isEqualTo(listOf(personOne.cId, personTwo.cId))
+    assertThat(responseBody.identifiers).isEqualTo(
+      listOf(
+        CanonicalIdentifier(CRN, listOf(personOne.crn, personTwo.crn)),
+        CanonicalIdentifier(DEFENDANT_ID, listOf(personOne.defendantId, personTwo.defendantId)),
+        CanonicalIdentifier(PRISON_NUMBER, listOf(personOne.prisonNumber, personTwo.prisonNumber)),
+        CanonicalIdentifier(C_ID, listOf(personOne.cId, personTwo.cId)),
+      ),
+    )
   }
 
   @Test

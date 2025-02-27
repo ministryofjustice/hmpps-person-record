@@ -50,17 +50,17 @@ data class CanonicalRecord(
         ethnicity = latestPerson.ethnicity,
         aliases = CanonicalAlias.fromPseudonymEntityList(latestPerson.pseudonyms),
         addresses = CanonicalAddress.fromAddressEntityList(latestPerson.addresses),
-        identifiers = getCanonicalIdentifiers(latestPerson) + CanonicalIdentifier.fromReferenceEntityList(latestPerson.references),
+        identifiers = getCanonicalIdentifiers(personKey.personEntities) + CanonicalIdentifier.fromReferenceEntityList(latestPerson.references),
         nationalities = CanonicalNationality.from(latestPerson),
 
       )
     }
 
-    private fun getCanonicalIdentifiers(personEntity: PersonEntity): MutableList<CanonicalIdentifier> = listOf(
-      CanonicalIdentifier(CRN, personEntity.crn?.let { listOf(it) } ?: emptyList()),
-      CanonicalIdentifier(DEFENDANT_ID, personEntity.defendantId?.let { listOf(it) } ?: emptyList()),
-      CanonicalIdentifier(PRISON_NUMBER, personEntity.prisonNumber?.let { listOf(it) } ?: emptyList()),
-      CanonicalIdentifier(C_ID, personEntity.cId?.let { listOf(it) } ?: emptyList()),
+    private fun getCanonicalIdentifiers(personEntities: List<PersonEntity>): MutableList<CanonicalIdentifier> = listOf(
+      CanonicalIdentifier(CRN, personEntities.mapNotNull { it.crn }),
+      CanonicalIdentifier(DEFENDANT_ID, personEntities.mapNotNull { it.defendantId }),
+      CanonicalIdentifier(PRISON_NUMBER, personEntities.mapNotNull { it.prisonNumber }),
+      CanonicalIdentifier(C_ID, personEntities.mapNotNull { it.cId }),
     ).toMutableList()
   }
 }
