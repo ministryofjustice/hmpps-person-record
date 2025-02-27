@@ -17,7 +17,12 @@ data class CanonicalRecord(
   val ethnicity: String? = "",
   val aliases: List<CanonicalAlias> = emptyList(),
   @ArraySchema(
-    schema = Schema(description = "List of nationality codes", example = "[{\"nationalityCode\": \"UK\"}, {\"nationalityCode\": \"IE\"}]"),
+    schema = Schema(
+      description = "List of nationality codes",
+      example = """
+                {"nationalityCode": "UK"},            
+            """,
+    ),
   )
   var nationalities: List<CanonicalNationality> = emptyList(),
   val addresses: List<CanonicalAddress> = emptyList(),
@@ -28,7 +33,7 @@ data class CanonicalRecord(
   companion object {
     fun from(personKey: PersonKeyEntity): CanonicalRecord {
       val latestPerson = personKey.personEntities.sortedByDescending { it.lastModified }.first()
-      val additonalIdentifiers = CanonicalIdentifiers.from(personKey)
+      val identifiers = CanonicalIdentifiers.from(personKey)
       return CanonicalRecord(
         cprUUID = personKey.personId.toString(),
         firstName = latestPerson.firstName,
@@ -44,7 +49,7 @@ data class CanonicalRecord(
         addresses = CanonicalAddress.fromAddressEntityList(latestPerson.addresses),
         references = CanonicalReference.fromReferenceEntityList(latestPerson.references),
         nationalities = CanonicalNationality.from(latestPerson) ?: emptyList(),
-        identifiers = additonalIdentifiers,
+        identifiers = identifiers,
 
       )
     }
