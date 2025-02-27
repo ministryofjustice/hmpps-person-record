@@ -2,6 +2,11 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.CRN
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.C_ID
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.DEFENDANT_ID
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.PRISON_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 
 data class CanonicalRecord(
@@ -17,18 +22,21 @@ data class CanonicalRecord(
   val ethnicity: String? = "",
   val aliases: List<CanonicalAlias> = emptyList(),
   @ArraySchema(
-    schema = Schema(description = "List of nationality codes", example = "[{\"nationalityCode\": \"UK\"}, {\"nationalityCode\": \"IE\"}]"),
+    schema = Schema(
+      description = "List of nationality codes",
+      example = """
+                {"nationalityCode": "UK"},            
+            """,
+    ),
   )
   var nationalities: List<CanonicalNationality> = emptyList(),
   val addresses: List<CanonicalAddress> = emptyList(),
-  val references: List<CanonicalReference> = emptyList(),
-  val identifiers: CanonicalIdentifiers,
+  val identifiers: List<CanonicalIdentifier> = emptyList(),
 
 ) {
   companion object {
     fun from(personKey: PersonKeyEntity): CanonicalRecord {
       val latestPerson = personKey.personEntities.sortedByDescending { it.lastModified }.first()
-      val additonalIdentifiers = CanonicalIdentifiers.from(personKey)
       return CanonicalRecord(
         cprUUID = personKey.personId.toString(),
         firstName = latestPerson.firstName,
@@ -42,11 +50,17 @@ data class CanonicalRecord(
         ethnicity = latestPerson.ethnicity,
         aliases = CanonicalAlias.fromPseudonymEntityList(latestPerson.pseudonyms),
         addresses = CanonicalAddress.fromAddressEntityList(latestPerson.addresses),
-        references = CanonicalReference.fromReferenceEntityList(latestPerson.references),
-        nationalities = CanonicalNationality.from(latestPerson) ?: emptyList(),
-        identifiers = additonalIdentifiers,
+        identifiers = getCanonicalIdentifiers(personKey.personEntities) + CanonicalIdentifier.fromReferenceEntityList(latestPerson.references),
+        nationalities = CanonicalNationality.from(latestPerson),
 
       )
     }
+
+    private fun getCanonicalIdentifiers(personEntities: List<PersonEntity>): MutableList<CanonicalIdentifier> = listOf(
+      CanonicalIdentifier(CRN, personEntities.mapNotNull { it.crn }),
+      CanonicalIdentifier(DEFENDANT_ID, personEntities.mapNotNull { it.defendantId }),
+      CanonicalIdentifier(PRISON_NUMBER, personEntities.mapNotNull { it.prisonNumber }),
+      CanonicalIdentifier(C_ID, personEntities.mapNotNull { it.cId }),
+    ).toMutableList()
   }
 }
