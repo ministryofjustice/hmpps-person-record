@@ -9,7 +9,7 @@ data class CanonicalIdentifier(
   val identifierValue: List<String?> = emptyList(),
 ) {
   companion object {
-    fun from(referenceEntity: ReferenceEntity): CanonicalIdentifier = CanonicalIdentifier(
+    private fun from(referenceEntity: ReferenceEntity): CanonicalIdentifier = CanonicalIdentifier(
       identifierType = CanonicalIdentifierType.extractIdentifierType(referenceEntity.identifierType),
       identifierValue = listOf(referenceEntity.identifierValue),
     )
