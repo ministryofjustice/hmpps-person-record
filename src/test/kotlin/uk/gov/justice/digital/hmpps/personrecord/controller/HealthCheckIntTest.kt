@@ -1,5 +1,4 @@
 package uk.gov.justice.digital.hmpps.personrecord.controller
-import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
@@ -11,7 +10,7 @@ class HealthCheckIntTest : WebTestBase() {
 
   @Test
   fun `Health page reports ok`() {
-    stubGetRequest(urlPattern = urlEqualTo("/health"), body = """{"status": "UP"}""")
+    stubGetRequest(url = "/health", body = """{"status": "UP"}""")
 
     webTestClient.get()
       .uri("/health")
@@ -24,7 +23,7 @@ class HealthCheckIntTest : WebTestBase() {
 
   @Test
   fun `Health info reports version`() {
-    stubGetRequest(urlPattern = urlEqualTo("/health"), body = """{"status": "UP"}""")
+    stubGetRequest(url = "/health", body = """{"status": "UP"}""")
     webTestClient.get().uri("/health")
       .authorised()
       .exchange()
@@ -80,7 +79,7 @@ class HealthCheckIntTest : WebTestBase() {
 
   @Test
   fun `verify match details are returned`() {
-    stubGetRequest(urlPattern = urlEqualTo("/health"), body = """{"status": "UP"}""")
+    stubGetRequest(url = "/health", body = """{"status": "UP"}""")
     webTestClient.get()
       .uri("/health")
       .authorised()
@@ -92,7 +91,7 @@ class HealthCheckIntTest : WebTestBase() {
 
   @Test
   fun `when person match is down, person record should be down`() {
-    stubGetRequest(urlPattern = urlEqualTo("/health"), body = """{"status": "DOWN"}""", status = 500)
+    stubGetRequest(url = "/health", body = """{"status": "DOWN"}""", status = 500)
 
     webTestClient.get()
       .uri("/health")
