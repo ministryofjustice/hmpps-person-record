@@ -10,6 +10,6 @@ data class CanonicalNationality(
 ) {
   companion object {
 
-    fun from(personEntity: PersonEntity): List<CanonicalNationality>? = personEntity.nationality?.let { listOf(CanonicalNationality(it)) }
+    fun from(personEntity: PersonEntity): List<CanonicalNationality> = personEntity.nationality?.let { listOf(CanonicalNationality(it)) } ?: emptyList()
   }
 }
