@@ -8,9 +8,15 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.SEARCH_API_
 import uk.gov.justice.digital.hmpps.personrecord.api.model.PersonIdentifierRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.CRN
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.C_ID
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.DEFENDANT_ID
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.PRISON_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReference
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
@@ -27,6 +33,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NO
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
@@ -286,10 +293,11 @@ class SearchIntTest : WebTestBase() {
     val dependentLocality = randomName()
     val postTown = randomName()
 
-    val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = title)
-    val canonicalReference = CanonicalReference(IdentifierType.PNC, identifierValue = pnc)
-    val canonicalNationality = listOf(CanonicalNationality(nationalityCode = nationality))
-    val canonicalAddress = CanonicalAddress(noFixedAbode = noFixAbode.toString(), startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
+    val cro = randomCro()
+    val crn = randomCrn()
+    val defendantId = randomDefendantId()
+    val prisonNumber = randomPrisonNumber()
+    val cid = randomCId()
 
     val person = createPersonWithNewKey(
       Person(
@@ -299,17 +307,20 @@ class SearchIntTest : WebTestBase() {
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
         title = randomName(),
-        crn = randomCrn(),
-        prisonNumber = randomPrisonNumber(),
+        crn = crn,
+        prisonNumber = prisonNumber,
         ethnicity = randomEthnicity(),
         nationality = nationality,
         religion = randomReligion(),
-        cId = randomCId(),
-        defendantId = randomDefendantId(),
+        cId = cid,
+        defendantId = defendantId,
         masterDefendantId = randomDefendantId(),
         aliases = listOf(Alias(firstName = firstName, middleNames = middleNames, lastName = lastName, dateOfBirth = randomDate(), title = title)),
         addresses = listOf(Address(noFixedAbode = noFixAbode, startDate = startDate, endDate = endDate, postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)),
-        references = listOf(Reference(identifierType = canonicalReference.identifierType, identifierValue = pnc)),
+        references = listOf(
+          Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
+          Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
+        ),
 
       ),
     )
@@ -324,6 +335,19 @@ class SearchIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
+    val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = title)
+    val canonicalIdentifiers = listOf(
+      CanonicalIdentifier(CRO, listOf(cro)),
+      CanonicalIdentifier(PNC, listOf(pnc)),
+      CanonicalIdentifier(CRN, listOf(crn)),
+      CanonicalIdentifier(DEFENDANT_ID, listOf(defendantId)),
+      CanonicalIdentifier(PRISON_NUMBER, listOf(prisonNumber)),
+      CanonicalIdentifier(C_ID, listOf(cid)),
+    )
+
+    val canonicalNationality = listOf(CanonicalNationality(nationalityCode = nationality))
+    val canonicalAddress = CanonicalAddress(noFixedAbode = noFixAbode.toString(), startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
+
     assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personId.toString())
     assertThat(responseBody.firstName).isEqualTo(person.firstName)
     assertThat(responseBody.middleNames).isEqualTo(person.middleNames)
@@ -336,7 +360,7 @@ class SearchIntTest : WebTestBase() {
     assertThat(responseBody.religion).isEqualTo(person.religion)
     assertThat(responseBody.masterDefendantId).isEqualTo(person.masterDefendantId)
     assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
-    assertThat(responseBody.references).isEqualTo(listOf(canonicalReference))
+    assertThat(responseBody.identifiers).containsExactlyInAnyOrderElementsOf(canonicalIdentifiers)
     assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
   }
 
@@ -423,10 +447,14 @@ class SearchIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(responseBody.identifiers.crns).isEqualTo(listOf(personOne.crn, personTwo.crn))
-    assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(personOne.defendantId, personTwo.defendantId))
-    assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(personOne.prisonNumber, personTwo.prisonNumber))
-    assertThat(responseBody.identifiers.cids).isEqualTo(listOf(personOne.cId, personTwo.cId))
+    assertThat(responseBody.identifiers).isEqualTo(
+      listOf(
+        CanonicalIdentifier(CRN, listOf(personOne.crn, personTwo.crn)),
+        CanonicalIdentifier(DEFENDANT_ID, listOf(personOne.defendantId, personTwo.defendantId)),
+        CanonicalIdentifier(PRISON_NUMBER, listOf(personOne.prisonNumber, personTwo.prisonNumber)),
+        CanonicalIdentifier(C_ID, listOf(personOne.cId, personTwo.cId)),
+      ),
+    )
   }
 
   @Test
@@ -459,10 +487,13 @@ class SearchIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(responseBody.identifiers.crns).isNotNull()
-    assertThat(responseBody.identifiers.prisonNumbers).isNotNull()
-    assertThat(responseBody.identifiers.defendantIds).isNotNull()
-    assertThat(responseBody.identifiers.cids).isNotNull()
+    val expectedIdentifiers = listOf(
+      CanonicalIdentifier(CRN, emptyList()),
+      CanonicalIdentifier(C_ID, emptyList()),
+      CanonicalIdentifier(DEFENDANT_ID, emptyList()),
+      CanonicalIdentifier(PRISON_NUMBER, emptyList()),
+    )
+    assertThat(responseBody.identifiers).containsExactlyInAnyOrderElementsOf(expectedIdentifiers)
   }
 
   @Test
@@ -531,7 +562,7 @@ class SearchIntTest : WebTestBase() {
 
   @Test
   fun `should return bad request if canonical record is invalid uuid`() {
-    val randomString = "wffgfgfg2"
+    val randomString = randomName()
     webTestClient.get()
       .uri(searchForPerson(randomString))
       .authorised(listOf(SEARCH_API_READ_ONLY))
