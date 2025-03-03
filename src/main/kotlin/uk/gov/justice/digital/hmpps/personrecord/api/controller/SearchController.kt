@@ -40,7 +40,7 @@ class SearchController(
   @ApiResponses(
     ApiResponse(responseCode = "200", description = "OK"),
     ApiResponse(
-      responseCode = "400",
+      responseCode = "404",
       description = "Requested resource not found.",
       content = [
         Content(
@@ -50,7 +50,7 @@ class SearchController(
             ExampleObject(
               value = """
             {
-            "status": 400,
+            "status": 404,
             "errorCode": "RESOURCE_NOT_FOUND",
             "userMessage": "Requested resource not found.",
             "developerMessage": "No person record found for UUID.",
