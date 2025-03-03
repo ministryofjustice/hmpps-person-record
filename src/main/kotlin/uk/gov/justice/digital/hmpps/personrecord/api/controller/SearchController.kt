@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
@@ -39,14 +40,50 @@ class SearchController(
   @ApiResponses(
     ApiResponse(responseCode = "200", description = "OK"),
     ApiResponse(
-      responseCode = "404",
+      responseCode = "400",
       description = "Requested resource not found.",
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = ErrorResponse::class),
+          examples = [
+            ExampleObject(
+              value = """
+            {
+            "status": 400,
+            "errorCode": "RESOURCE_NOT_FOUND",
+            "userMessage": "Requested resource not found.",
+            "developerMessage": "No person record found for UUID.",
+            "moreInfo": "https://docs.myapi.com/errors/404"
+            }
+          """,
+            ),
+          ],
+        ),
+      ],
     ),
     ApiResponse(
       responseCode = "500",
       description = "Unrecoverable error occurred whilst processing request.",
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = ErrorResponse::class),
+          examples = [
+            ExampleObject(
+              value = """
+            {
+            "status": 500,
+            "errorCode": "INTERNAL_SERVER_ERROR",
+            "userMessage": "Unrecoverable error occurred whilst processing request.",
+            "developerMessage": "Server Error",
+            "moreInfo": "https://docs.myapi.com/errors/500"
+            }
+          """,
+            ),
+          ],
+        ),
+      ],
     ),
   )
   fun getCanonicalRecord(
