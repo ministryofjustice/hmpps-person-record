@@ -34,6 +34,7 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
     .info(
       Info().title("HMPPS Core Person Record")
         .version(version)
+        .description(this.javaClass.getResource("/documentation/service-description.html")!!.readText())
         .contact(Contact().name("HMPPS Digital Studio").email("feedback@digital.justice.gov.uk"))
         .contact(Contact().name("HMPPS Person Record").email("hmpps-person-record@digital.justice.gov.uk")),
     )

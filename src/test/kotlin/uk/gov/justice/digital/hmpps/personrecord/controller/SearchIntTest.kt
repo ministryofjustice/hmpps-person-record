@@ -314,7 +314,6 @@ class SearchIntTest : WebTestBase() {
         religion = randomReligion(),
         cId = cid,
         defendantId = defendantId,
-        masterDefendantId = randomDefendantId(),
         aliases = listOf(Alias(firstName = firstName, middleNames = middleNames, lastName = lastName, dateOfBirth = randomDate(), title = title)),
         addresses = listOf(Address(noFixedAbode = noFixAbode, startDate = startDate, endDate = endDate, postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)),
         references = listOf(
@@ -358,7 +357,6 @@ class SearchIntTest : WebTestBase() {
     assertThat(responseBody.nationalities).isEqualTo(canonicalNationality)
     assertThat(responseBody.sex).isEqualTo(person.sex)
     assertThat(responseBody.religion).isEqualTo(person.religion)
-    assertThat(responseBody.masterDefendantId).isEqualTo(person.masterDefendantId)
     assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
     assertThat(responseBody.identifiers).containsExactlyInAnyOrderElementsOf(canonicalIdentifiers)
     assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
