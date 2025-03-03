@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.seeding
 
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -113,14 +114,14 @@ class PopulateFromProbationIntTest : WebTestBase() {
   }
 
   private fun stubResponse(firstCrn: String, firstPrefix: String, secondCrn: String, secondPrefix: String, page: Int, scenarioName: String, scenarioState: String, totalPages: Int = 4) = stubGetRequest(
-    url = "/all-probation-cases?size=2&page=$page&sort=id%2Casc",
+    urlPattern = urlEqualTo("/all-probation-cases?size=2&page=$page&sort=id%2Casc"),
     scenarioName = scenarioName,
     currentScenarioState = scenarioState,
     body = allProbationCasesResponse(firstCrn, firstPrefix, secondCrn, secondPrefix, totalPages),
   )
 
   private fun stubSingleResponse(firstCrn: String, firstPrefix: String, page: Int, scenarioName: String) = stubGetRequest(
-    url = "/all-probation-cases?size=2&page=$page&sort=id%2Casc",
+    urlPattern = urlEqualTo("/all-probation-cases?size=2&page=$page&sort=id%2Casc"),
     scenarioName = scenarioName,
     currentScenarioState = STARTED,
     body = allProbationCasesSingleResponse(firstCrn, firstPrefix),

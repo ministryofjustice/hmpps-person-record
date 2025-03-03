@@ -53,6 +53,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @BeforeEach
   fun beforeEach() {
     stubPersonMatch()
+    stubPersonMatchScores()
   }
 
   @Test

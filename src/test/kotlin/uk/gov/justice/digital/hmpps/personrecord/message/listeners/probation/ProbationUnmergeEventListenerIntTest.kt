@@ -40,6 +40,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubPersonMatch()
     stubDeletePersonMatch()
     stubOneHighConfidenceMatch()
+    stubPersonMatchScores()
   }
 
   @Test
