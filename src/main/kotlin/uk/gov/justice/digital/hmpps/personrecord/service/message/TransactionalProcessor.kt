@@ -14,7 +14,7 @@ class TransactionalProcessor(
 
   fun processMessage(person: Person, event: String? = null, callback: () -> PersonEntity?) = runBlocking {
     retryExecutor.runWithRetryDatabase {
-      createUpdateService.processPerson(person, event, callback)
+      return@runWithRetryDatabase createUpdateService.processPerson(person, event, callback)
     }
   }
 }

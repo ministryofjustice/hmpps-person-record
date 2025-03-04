@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -41,7 +42,7 @@ class PrisonMergeEventProcessor(
     )
   }
 
-  private fun withPrisoner(domainEvent: DomainEvent, sourcePrisonNumber: String, targetPrisonNumber: String): (value: Prisoner?) -> Unit? = {
+  private fun withPrisoner(domainEvent: DomainEvent, sourcePrisonNumber: String, targetPrisonNumber: String): (Prisoner?) -> PersonEntity? = {
     it?.let {
       mergeService.processMerge(
         MergeEvent(
