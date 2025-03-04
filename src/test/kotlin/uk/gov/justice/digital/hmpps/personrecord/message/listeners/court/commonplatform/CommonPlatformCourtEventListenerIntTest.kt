@@ -3,13 +3,19 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.common
 import aws.sdk.kotlin.services.s3.S3Client
 import aws.sdk.kotlin.services.s3.model.PutObjectRequest
 import aws.smithy.kotlin.runtime.content.ByteStream
+import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.matches
+import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
@@ -40,9 +46,14 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.util.UUID
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
+
+  val enrichedCourtEventsQueue by lazy {
+    hmppsQueueService.findByQueueId("cprenrichedcourtcasesqueue")
+  }
 
   @Autowired
   lateinit var s3Client: S3Client
@@ -393,5 +404,41 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     awaitAssert { assertThat(personRepository.findByDefendantId(defendantId)).isNull() }
+  }
+
+  @Test
+  fun `should republish court message and add cprUUID to each defendant`() {
+    purgeQueueAndDlq(enrichedCourtEventsQueue!!)
+    val firstDefendantId = randomDefendantId()
+    val secondDefendantId = randomDefendantId()
+    val thirdDefendantId = randomDefendantId()
+
+    val commonPlatformMessage = listOf(
+      CommonPlatformHearingSetup(defendantId = firstDefendantId),
+      CommonPlatformHearingSetup(defendantId = secondDefendantId),
+      CommonPlatformHearingSetup(defendantId = thirdDefendantId),
+
+    )
+    publishCommonPlatformMessage(
+      commonPlatformHearing(
+        commonPlatformMessage,
+      ),
+    )
+
+    await untilCallTo {
+      enrichedCourtEventsQueue?.sqsClient?.countMessagesOnQueue(enrichedCourtEventsQueue?.queueUrl!!)?.get()
+    } matches { it == 1 }
+
+    val messageResponse = enrichedCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(enrichedCourtEventsQueue?.queueUrl).build())?.get()
+
+    val body = messageResponse?.messages()?.get(0)?.body()!!
+
+    val readValue = objectMapper.readValue<CommonPlatformHearingEvent>(body)
+    readValue.hearing.prosecutionCases.forEach {
+      it.defendants.forEach {
+        assertThat(it.cprUUID).isNotNull()
+      }
+    }
+    // Json{ ignoreUnknownKeys = true }.decodeFromString<>(body)
   }
 }

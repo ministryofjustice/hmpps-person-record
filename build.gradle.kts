@@ -9,6 +9,7 @@ plugins {
   kotlin("plugin.spring") version "2.1.10"
   kotlin("jvm") version "2.1.10"
   kotlin("plugin.jpa") version "2.1.10"
+
   id("io.gitlab.arturbosch.detekt") version "1.23.8"
   id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
@@ -27,6 +28,7 @@ dependencies {
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.2.0")
   implementation("aws.sdk.kotlin:s3:1.4.32")
+  implementation("com.jayway.jsonpath:json-path:2.9.0")
 
   implementation("io.swagger.core.v3:swagger-annotations:2.2.28")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5")

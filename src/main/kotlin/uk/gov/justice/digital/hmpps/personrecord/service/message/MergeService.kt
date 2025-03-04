@@ -33,7 +33,7 @@ class MergeService(
     }
   }
 
-  private suspend fun processMergingOfRecords(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) {
+  private suspend fun processMergingOfRecords(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?): PersonEntity? {
     val (sourcePersonEntity, targetPersonEntity) = collectPeople(sourcePersonCallback, targetPersonCallback)
 
     when {
@@ -44,7 +44,9 @@ class MergeService(
     }
 
     sourcePersonEntity?.let { deletionService.deletePersonFromPersonMatch(it) }
+
     logChangeInEventLog(mergeEvent, sourcePersonEntity, targetPersonEntity)
+    return targetPersonEntity
   }
 
   private fun logChangeInEventLog(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity?) {

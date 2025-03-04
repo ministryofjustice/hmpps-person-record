@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliu
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 
 @Component
@@ -16,7 +17,7 @@ class EncodingService(
   private val retryExecutor: RetryExecutor,
 ) {
 
-  fun getProbationCase(crn: String, onSuccess: (value: ProbationCase?) -> Unit?) = runCatching {
+  fun getProbationCase(crn: String, onSuccess: (value: ProbationCase?) -> Any?) = runCatching {
     runBlocking {
       retryExecutor.runWithRetryHTTP {
         corePersonRecordAndDeliusClient.getProbationCase(crn)
@@ -24,7 +25,7 @@ class EncodingService(
     }
   }.fold(onSuccess, failedToRetrieveProbationCase())
 
-  fun getPrisonerDetails(prisonNumber: String, onSuccess: (value: Prisoner?) -> Unit?) = runCatching {
+  fun getPrisonerDetails(prisonNumber: String, onSuccess: (value: Prisoner?) -> PersonEntity?) = runCatching {
     runBlocking {
       retryExecutor.runWithRetryHTTP {
         prisonerSearchClient.getPrisoner(prisonNumber)
