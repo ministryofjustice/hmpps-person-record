@@ -20,11 +20,11 @@ data class CanonicalAddress(
   val buildingNumber: String? = "",
   @Schema(description = "Person address thoroughfareName", example = "Petty France")
   val thoroughfareName: String? = "",
-  @Schema(description = "Person address dependentLocality", example = "Town One")
+  @Schema(description = "Person address dependentLocality", example = "Westminster")
   val dependentLocality: String? = "",
-  @Schema(description = "Person address postTown", example = "PostTown")
+  @Schema(description = "Person address postTown", example = "London")
   val postTown: String? = "",
-  @Schema(description = "Person address county", example = "West Midlands")
+  @Schema(description = "Person address county", example = "Greater London")
   val county: String? = "",
   @Schema(description = "Person address country", example = "United Kingdom")
   val country: String? = "",
