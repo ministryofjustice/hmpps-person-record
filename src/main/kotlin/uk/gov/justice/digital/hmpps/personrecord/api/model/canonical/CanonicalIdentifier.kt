@@ -5,7 +5,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 
 @Schema(description = "Possible identifier types")
 data class CanonicalIdentifier(
+  @Schema(description = "Person Identifier type", example = "CRN")
   val identifierType: CanonicalIdentifierType,
+  @Schema(description = "Person Identifier value", example = "B123456")
   val identifierValue: List<String?> = emptyList(),
 ) {
   companion object {
