@@ -10,15 +10,15 @@ data class CanonicalAddress(
   val startDate: String? = "",
   @Schema(description = "Person address end date", example = "04/04/2023")
   val endDate: String? = "",
-  @Schema(description = "Person address postcode", example = "B10 1EJ")
+  @Schema(description = "Person address postcode", example = "SW1H 9AJ")
   val postcode: String? = "",
   @Schema(description = "Person address sub building name", example = "Sub building 2")
   val subBuildingName: String? = "",
   @Schema(description = "Person address building Name", example = "Main Building")
   val buildingName: String? = "",
-  @Schema(description = "Person address building number", example = "5")
+  @Schema(description = "Person address building number", example = "102")
   val buildingNumber: String? = "",
-  @Schema(description = "Person address thoroughfareName", example = "One Street")
+  @Schema(description = "Person address thoroughfareName", example = "Petty France")
   val thoroughfareName: String? = "",
   @Schema(description = "Person address dependentLocality", example = "Town One")
   val dependentLocality: String? = "",
