@@ -436,9 +436,12 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val readValue = objectMapper.readValue<CommonPlatformHearingEvent>(body)
     readValue.hearing.prosecutionCases.forEach {
       it.defendants.forEach {
-        assertThat(it.cprUUID).isNotNull()
+        assertThat(it.cprUUID).isNotNull() // use jsonpath for this assertion
       }
     }
-    // Json{ ignoreUnknownKeys = true }.decodeFromString<>(body)
+    // tests for LIBRA cases
+    // tests for when CP cases do not have prosecutionCases
+    // add organisations to output
+    // preserve message attributes
   }
 }
