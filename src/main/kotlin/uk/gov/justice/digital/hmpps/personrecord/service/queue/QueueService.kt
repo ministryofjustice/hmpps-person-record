@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.queue
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.jayway.jsonpath.JsonPath
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.json
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest
@@ -24,16 +26,18 @@ class QueueService(
     val queue = hmppsQueueService.findByQueueId("cprenrichedcourtcasesqueue")
       ?: throw MissingQueueException("Could not find queue cprenrichedcourtcasesqueue")
 
-    json
-//    commonPlatformHearingEvent.hearing.prosecutionCases.forEach {
-//      it.defendants.forEach { def ->
-//        def.cprUUID = processedDefendants.find { it.defendantId == def.id }?.personKey?.personId.toString()
-//      }
-//    }
+    val json = JsonPath.parse(sqsMessage.message)
+
+// needs to cope with non-prosecution cases
+    processedDefendants.forEach { def ->
+      val defendantId = def.defendantId
+      json.put("$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]", "cprUUID", def.personKey!!.personId.toString())
+    }
 
     val messageBuilder = SendMessageRequest.builder()
       .queueUrl(queue.queueUrl)
-      .messageBody(objectMapper.writeValueAsString(commonPlatformHearingEvent))
+      .messageBody(json.jsonString())
+    // .messageAttributes(sqsMessage.messageAttributes)
 
     queue.sqsClient.sendMessage(messageBuilder.build())
   }
