@@ -45,7 +45,9 @@ data class CanonicalRecord(
 ) {
   companion object {
     fun from(personKey: PersonKeyEntity): CanonicalRecord {
-      val latestPerson = personKey.personEntities.sortedByDescending { it.lastModified }.first()
+      val personList = personKey.personEntities.sortedByDescending { it.lastModified }
+
+      val latestPerson = personList.first()
       return CanonicalRecord(
         cprUUID = personKey.personId.toString(),
         firstName = latestPerson.firstName,
@@ -60,7 +62,6 @@ data class CanonicalRecord(
         addresses = CanonicalAddress.fromAddressEntityList(latestPerson.addresses),
         identifiers = getCanonicalIdentifiers(personKey.personEntities) + CanonicalIdentifier.fromReferenceEntityList(latestPerson.references),
         nationalities = CanonicalNationality.from(latestPerson),
-
       )
     }
 
