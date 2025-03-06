@@ -115,7 +115,7 @@ class SearchController(
   }
 
   private fun buildCanonicalRecord(personKeyEntity: PersonKeyEntity?, uuid: UUID): CanonicalRecord = when {
-    personKeyEntity != PersonEntity.empty -> CanonicalRecord.from(personKeyEntity)
+    personKeyEntity?.personEntities?.isNotEmpty() == true -> CanonicalRecord.from(personKeyEntity)
     else -> throw PersonKeyNotFoundException(uuid)
   }
 
