@@ -48,7 +48,7 @@ data class CanonicalRecord(
     fun from(personKey: PersonKeyEntity): CanonicalRecord {
       val personList = personKey.personEntities.sortedByDescending { it.lastModified }
 
-      when(personList.isNullOrEmpty()) {
+      when (personList.isNullOrEmpty()) {
         true -> throw personKey.personId?.let { PersonKeyNotFoundException(it) }!!
         else -> {
           val latestPerson = personList.first()

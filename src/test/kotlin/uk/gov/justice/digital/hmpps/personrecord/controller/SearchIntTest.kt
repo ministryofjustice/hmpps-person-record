@@ -577,8 +577,34 @@ class SearchIntTest : WebTestBase() {
       .uri(searchForPerson(randomUUId))
       .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
-      .expectBody().jsonPath("userMessage")
+      .expectStatus()
+      .isNotFound
+      .expectBody()
+      .jsonPath("userMessage")
       .isEqualTo(expectedErrorMessage)
+  }
+
+  @Test
+  fun `should return Access Denied 403 when role is wrong`() {
+    val expectedErrorMessage = "Forbidden: Access Denied"
+    webTestClient.get()
+      .uri(searchForPerson("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"))
+      .authorised(listOf("UNSUPPORTED-ROLE"))
+      .exchange()
+      .expectStatus()
+      .isForbidden
+      .expectBody()
+      .jsonPath("userMessage")
+      .isEqualTo(expectedErrorMessage)
+  }
+
+  @Test
+  fun `should return UNAUTHORIZED 401 when role is not set`() {
+    webTestClient.get()
+      .uri(searchForPerson("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"))
+      .exchange()
+      .expectStatus()
+      .isUnauthorized
   }
 
   companion object {
