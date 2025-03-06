@@ -570,7 +570,7 @@ class SearchIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should return bad request with userMessage to show that the UUID is not found`() {
+  fun `should return not found 404 with userMessage to show that the UUID is not found`() {
     val randomUUId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
     val expectedErrorMessage = "Not found: $randomUUId"
     webTestClient.get()
