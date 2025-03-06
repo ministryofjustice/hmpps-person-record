@@ -46,6 +46,7 @@ class CreateUpdateService(
     retryExecutor.runWithRetryHTTP {
       personMatchClient.postPerson(PersonMatchRecord.from(personEntity))
     }
+    return@runBlocking personEntity
   }
 
   private fun handlePersonCreation(person: Person, event: String?): PersonEntity {

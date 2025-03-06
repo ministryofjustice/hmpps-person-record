@@ -1,11 +1,15 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.queue
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.jayway.jsonpath.JsonPath
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.json
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.Recluster
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.type.RECLUSTER_EVENT
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingQueueException
@@ -18,6 +22,25 @@ class QueueService(
   private val hmppsQueueService: HmppsQueueService,
 ) {
 
+  fun publishCourtMessage(processedDefendants: List<PersonEntity>, sqsMessage: SQSMessage) {
+    val queue = hmppsQueueService.findByQueueId("cprenrichedcourtcasesqueue")
+      ?: throw MissingQueueException("Could not find queue cprenrichedcourtcasesqueue")
+
+    val json = JsonPath.parse(sqsMessage.message)
+
+// needs to cope with non-prosecution cases
+    processedDefendants.forEach { def ->
+      val defendantId = def.defendantId
+      json.put("$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]", "cprUUID", def.personKey!!.personId.toString())
+    }
+
+    val messageBuilder = SendMessageRequest.builder()
+      .queueUrl(queue.queueUrl)
+      .messageBody(json.jsonString())
+    // .messageAttributes(sqsMessage.messageAttributes)
+
+    queue.sqsClient.sendMessage(messageBuilder.build())
+  }
   fun publishReclusterMessageToQueue(uuid: UUID) {
     val queue = findByQueueIdOrThrow(Queues.RECLUSTER_EVENTS_QUEUE_ID)
     val message = objectMapper.writeValueAsString(
