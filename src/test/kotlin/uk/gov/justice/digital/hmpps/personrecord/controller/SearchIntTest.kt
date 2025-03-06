@@ -569,6 +569,18 @@ class SearchIntTest : WebTestBase() {
       .isBadRequest
   }
 
+  @Test
+  fun `should return bad request with userMessage to show that the UUID is not found`() {
+    val randomUUId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+    val expectedErrorMessage = "Not found: $randomUUId"
+    webTestClient.get()
+      .uri(searchForPerson(randomUUId))
+      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .exchange()
+      .expectBody().jsonPath("userMessage")
+      .isEqualTo(expectedErrorMessage)
+  }
+
   companion object {
 
     private fun searchForPerson(uuid: String) = "/search/person/$uuid"

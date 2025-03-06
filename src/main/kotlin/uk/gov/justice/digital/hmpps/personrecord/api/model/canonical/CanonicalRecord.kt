@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.PersonKeyNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.CRN
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.C_ID
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifierType.DEFENDANT_ID
@@ -45,23 +46,29 @@ data class CanonicalRecord(
 ) {
   companion object {
     fun from(personKey: PersonKeyEntity): CanonicalRecord {
-      val latestPerson = personKey.personEntities.sortedByDescending { it.lastModified }.first()
-      return CanonicalRecord(
-        cprUUID = personKey.personId.toString(),
-        firstName = latestPerson.firstName,
-        middleNames = latestPerson.middleNames,
-        lastName = latestPerson.lastName,
-        dateOfBirth = latestPerson.dateOfBirth?.toString() ?: "",
-        title = latestPerson.title,
-        sex = latestPerson.sex,
-        religion = latestPerson.religion,
-        ethnicity = latestPerson.ethnicity,
-        aliases = CanonicalAlias.fromPseudonymEntityList(latestPerson.pseudonyms),
-        addresses = CanonicalAddress.fromAddressEntityList(latestPerson.addresses),
-        identifiers = getCanonicalIdentifiers(personKey.personEntities) + CanonicalIdentifier.fromReferenceEntityList(latestPerson.references),
-        nationalities = CanonicalNationality.from(latestPerson),
+      val personList = personKey.personEntities.sortedByDescending { it.lastModified }
 
-      )
+      when(personList.isNullOrEmpty()) {
+        true -> throw personKey.personId?.let { PersonKeyNotFoundException(it) }!!
+        else -> {
+          val latestPerson = personList.first()
+          return CanonicalRecord(
+            cprUUID = personKey.personId.toString(),
+            firstName = latestPerson.firstName,
+            middleNames = latestPerson.middleNames,
+            lastName = latestPerson.lastName,
+            dateOfBirth = latestPerson.dateOfBirth?.toString() ?: "",
+            title = latestPerson.title,
+            sex = latestPerson.sex,
+            religion = latestPerson.religion,
+            ethnicity = latestPerson.ethnicity,
+            aliases = CanonicalAlias.fromPseudonymEntityList(latestPerson.pseudonyms),
+            addresses = CanonicalAddress.fromAddressEntityList(latestPerson.addresses),
+            identifiers = getCanonicalIdentifiers(personKey.personEntities) + CanonicalIdentifier.fromReferenceEntityList(latestPerson.references),
+            nationalities = CanonicalNationality.from(latestPerson),
+          )
+        }
+      }
     }
 
     private fun getCanonicalIdentifiers(personEntities: List<PersonEntity>): MutableList<CanonicalIdentifier> = listOf(
