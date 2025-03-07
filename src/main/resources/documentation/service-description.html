@@ -1,0 +1,36 @@
+<div>
+  <h2 id="overview">Overview</h2>
+  <p>This service provides a number of endpoints for searching for a person record within Core Person Record. This may be a Person from Nomis , Delius Or HMCTS source systems.</p>
+  <h2 id="data-provided">Data provided</h2>
+  <p>The vast majority of the data is sourced from the CPR Record which gets the data from Nomis, Delius & HMCTS source systems.</p>
+  <div>The data returned for each person record is essentially data that has been retrieved from Nomis, Delius or HMCTS. This includes the
+    following:
+    <ul>
+      <li>Identifiers from any of the following source systems : Nomis, Delius & HMCTS</li>
+      <li>Source System itself, so whether it from Nomis, Delius or HMCTS source system.</li>
+    </ul>
+    See the schema definition for the API for full details.
+  </div>
+  <h2 id="role-restrictions">Role restrictions</h2>
+  <p>
+    Role restrictions in this service are applied by a `@PreAuthorize` annotation at either resource or service level.
+    Furthermore the annotation can be applied at individual method level or class level.
+  </p>
+  <p>
+    Each endpoint in this API documentation should normally include what restrictions are applied. If there is any doubt
+    then it is worth looking at the github repository
+    <a href = "https://github.com/ministryofjustice/hmpps-person-record/blob/main/src/main/kotlin/uk/gov/justice/digital/hmpps/personrecord/api/controller/SearchController.kt"> here</a> and looking at the endpoint in question.
+  </p>
+
+  The following roles are currently in use in this service:
+  <ul>
+    <li>
+      ROLE_CORE_PERSON_RECORD_API__SEARCH__RO. This role grants access to all of the search endpoints.
+    </li>
+  </ul>
+  <h2 id="types-of-endpoints">Types of endpoints</h2>
+  <h3>Retrieve person record by UUID</h3>
+  <p>
+   Search for a person representation using a UUID, this will give back a person record with data including Identifiers associated with that UUID.
+  </p>
+</div>

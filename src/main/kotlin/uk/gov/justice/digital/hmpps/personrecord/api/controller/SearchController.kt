@@ -38,16 +38,6 @@ class SearchController(
   @GetMapping("/search/person/{uuid}")
   @ApiResponses(
     ApiResponse(responseCode = "200", description = "OK"),
-    ApiResponse(
-      responseCode = "404",
-      description = "Requested resource not found.",
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-    ),
-    ApiResponse(
-      responseCode = "500",
-      description = "Unrecoverable error occurred whilst processing request.",
-      content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-    ),
   )
   fun getCanonicalRecord(
     @PathVariable(name = "uuid") uuid: UUID,
@@ -125,7 +115,7 @@ class SearchController(
   }
 
   private fun buildCanonicalRecord(personKeyEntity: PersonKeyEntity?, uuid: UUID): CanonicalRecord = when {
-    personKeyEntity != PersonEntity.empty -> CanonicalRecord.from(personKeyEntity)
+    personKeyEntity?.personEntities?.isNotEmpty() == true -> CanonicalRecord.from(personKeyEntity)
     else -> throw PersonKeyNotFoundException(uuid)
   }
 
