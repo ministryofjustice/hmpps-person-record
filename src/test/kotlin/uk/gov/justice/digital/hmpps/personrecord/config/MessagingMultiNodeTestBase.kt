@@ -244,7 +244,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     scenarioName: String? = BASE_SCENARIO,
     currentScenarioState: String? = STARTED,
     nextScenarioState: String? = STARTED,
-  ) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, url = "/prisoner/${apiResponseSetup.prisonNumber}", prisonerSearchResponse(apiResponseSetup))
+  ) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/prisoner/${apiResponseSetup.prisonNumber}", prisonerSearchResponse(apiResponseSetup))
 
   @BeforeEach
   fun beforeEachMessagingTest() {

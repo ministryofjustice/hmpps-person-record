@@ -188,7 +188,7 @@ class IntegrationTestBase {
       scenario,
       currentScenarioState,
       nextScenarioState,
-      urlPattern = urlEqualTo("/person"),
+      "/person",
       status = status,
       body = body,
     )
@@ -239,9 +239,9 @@ class IntegrationTestBase {
     )
   }
 
-  internal fun stubDeleteRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, urlPattern: UrlPattern, body: String, status: Int = 200) {
+  internal fun stubDeleteRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String, status: Int = 200) {
     wiremock.stubFor(
-      WireMock.delete(urlPattern)
+      WireMock.delete(url)
         .inScenario(scenarioName)
         .whenScenarioStateIs(currentScenarioState)
         .willSetStateTo(nextScenarioState)
