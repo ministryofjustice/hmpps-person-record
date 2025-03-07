@@ -20,7 +20,6 @@ class UpdateFromProbationIntTest : WebTestBase() {
 
   @Test
   fun `update from probation`() {
-    val scenarioName = "update"
     val crnOne: String = randomCrn()
     val crnTwo: String = randomCrn()
     val crnThree: String = randomCrn()
@@ -38,10 +37,10 @@ class UpdateFromProbationIntTest : WebTestBase() {
         crn = crnSeven,
       ),
     )
-    stubResponse(crnOne, "POPOne", crnTwo, "POPTwo", 0, scenarioName, STARTED)
-    stubResponse(crnThree, "POPThree", crnFour, "POPFour", 1, scenarioName, STARTED)
-    stubResponse(crnFive, "POPFive", crnSix, "POPSix", 2, scenarioName, STARTED)
-    stubSingleResponse(crnSeven, "POPSeven", 3, scenarioName)
+    stubResponse(crnOne, "POPOne", crnTwo, "POPTwo", 0)
+    stubResponse(crnThree, "POPThree", crnFour, "POPFour", 1)
+    stubResponse(crnFive, "POPFive", crnSix, "POPSix", 2)
+    stubSingleResponse(crnSeven, "POPSeven", 3)
 
     webTestClient.post()
       .uri("/updatefromprobation")
@@ -79,7 +78,6 @@ class UpdateFromProbationIntTest : WebTestBase() {
 
   @Test
   fun `start on page 2`() {
-    val scenarioName = "update"
     val crnOne: String = randomCrn()
     val crnTwo: String = randomCrn()
     val crnThree: String = randomCrn()
@@ -88,8 +86,8 @@ class UpdateFromProbationIntTest : WebTestBase() {
     val crnSix: String = randomCrn()
     val crnSeven: String = randomCrn()
 
-    stubResponse(crnFive, "POPFive", crnSix, "POPSix", 2, scenarioName, STARTED)
-    stubSingleResponse(crnSeven, "POPSeven", 3, scenarioName)
+    stubResponse(crnFive, "POPFive", crnSix, "POPSix", 2)
+    stubSingleResponse(crnSeven, "POPSeven", 3)
 
     webTestClient.post()
       .uri("/updatefromprobation?startPage=2")
@@ -113,16 +111,16 @@ class UpdateFromProbationIntTest : WebTestBase() {
     assertThat(popSeven.sentenceInfo[0].sentenceDate).isEqualTo(newSentenceDate)
   }
 
-  private fun stubResponse(firstCrn: String, firstPrefix: String, secondCrn: String, secondPrefix: String, page: Int, scenarioName: String, scenarioState: String, totalPages: Int = 4) = stubGetRequest(
+  private fun stubResponse(firstCrn: String, firstPrefix: String, secondCrn: String, secondPrefix: String, page: Int) = stubGetRequest(
     url = "/all-probation-cases?size=2&page=$page&sort=id%2Casc",
-    scenarioName = scenarioName,
-    currentScenarioState = scenarioState,
-    body = allProbationCasesResponse(firstCrn, firstPrefix, secondCrn, secondPrefix, totalPages),
+    scenarioName = "update",
+    currentScenarioState = STARTED,
+    body = allProbationCasesResponse(firstCrn, firstPrefix, secondCrn, secondPrefix, 4),
   )
 
-  private fun stubSingleResponse(firstCrn: String, firstPrefix: String, page: Int, scenarioName: String) = stubGetRequest(
+  private fun stubSingleResponse(firstCrn: String, firstPrefix: String, page: Int) = stubGetRequest(
     url = "/all-probation-cases?size=2&page=$page&sort=id%2Casc",
-    scenarioName = scenarioName,
+    scenarioName = "update",
     currentScenarioState = STARTED,
     body = allProbationCasesSingleResponse(firstCrn, firstPrefix),
   )
