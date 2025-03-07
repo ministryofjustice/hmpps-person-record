@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.seeding
 
-import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
@@ -113,15 +112,11 @@ class UpdateFromProbationIntTest : WebTestBase() {
 
   private fun stubResponse(firstCrn: String, firstPrefix: String, secondCrn: String, secondPrefix: String, page: Int) = stubGetRequest(
     url = "/all-probation-cases?size=2&page=$page&sort=id%2Casc",
-    scenarioName = "update",
-    currentScenarioState = STARTED,
     body = allProbationCasesResponse(firstCrn, firstPrefix, secondCrn, secondPrefix, 4),
   )
 
   private fun stubSingleResponse(firstCrn: String, firstPrefix: String, page: Int) = stubGetRequest(
     url = "/all-probation-cases?size=2&page=$page&sort=id%2Casc",
-    scenarioName = "update",
-    currentScenarioState = STARTED,
     body = allProbationCasesSingleResponse(firstCrn, firstPrefix),
   )
 }
