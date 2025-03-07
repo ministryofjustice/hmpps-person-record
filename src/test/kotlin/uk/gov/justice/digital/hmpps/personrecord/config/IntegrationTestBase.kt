@@ -153,7 +153,7 @@ class IntegrationTestBase {
       scenario,
       currentScenarioState,
       nextScenarioState,
-      urlPattern = urlEqualTo("/person/match"),
+      url = "/person/match",
       status = status,
       body = objectMapper.writeValueAsString(matchResponse),
     )
@@ -177,7 +177,7 @@ class IntegrationTestBase {
       scenario,
       currentScenarioState,
       nextScenarioState,
-      urlPattern = urlEqualTo("/person"),
+      url = "/person",
       status = status,
       body = body,
     )
@@ -224,9 +224,9 @@ class IntegrationTestBase {
     )
   }
 
-  internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, urlPattern: UrlPattern, body: String, status: Int = 200) {
+  internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String, status: Int = 200) {
     wiremock.stubFor(
-      WireMock.post(urlPattern)
+      WireMock.post(url)
         .inScenario(scenarioName)
         .whenScenarioStateIs(currentScenarioState)
         .willSetStateTo(nextScenarioState)
