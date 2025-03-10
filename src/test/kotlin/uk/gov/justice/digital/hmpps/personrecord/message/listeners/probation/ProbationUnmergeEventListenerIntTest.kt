@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
-import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
@@ -418,12 +417,12 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should log when message processing fails`() {
     val reactivatedCrn = randomCrn()
     val unmergedCrn = randomCrn()
-    stub500Response(probationUrl(unmergedCrn), STARTED, "failure")
-    stub500Response(probationUrl(unmergedCrn), STARTED, "failure")
-    stub500Response(probationUrl(unmergedCrn), STARTED, "failure")
-    stub500Response(probationUrl(reactivatedCrn), STARTED, "failure")
-    stub500Response(probationUrl(reactivatedCrn), STARTED, "failure")
-    stub500Response(probationUrl(reactivatedCrn), STARTED, "failure")
+    stub500Response(probationUrl(unmergedCrn), "next request will fail", "failure")
+    stub500Response(probationUrl(unmergedCrn), "next request will fail", "failure", "next request will fail")
+    stub500Response(probationUrl(unmergedCrn), "next request will fail", "failure", "next request will fail")
+    stub500Response(probationUrl(reactivatedCrn), "next request will fail", "failure", "next request will fail")
+    stub500Response(probationUrl(reactivatedCrn), "next request will fail", "failure", "next request will fail")
+    stub500Response(probationUrl(reactivatedCrn), "next request will fail", "failure", "next request will fail")
 
     val messageId = publishDomainEvent(
       OFFENDER_UNMERGED,
