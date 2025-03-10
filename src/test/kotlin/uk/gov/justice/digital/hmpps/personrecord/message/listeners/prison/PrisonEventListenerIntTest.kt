@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
-import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -243,7 +242,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should retry on retryable error`() {
     val prisonNumber = randomPrisonNumber()
-    stub500Response(prisonNumber, "next request will succeed")
+    stub500Response("/prisoner/$prisonNumber", nextScenarioState = "next request will succeed", scenarioName = "retry")
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber), scenarioName = "retry", currentScenarioState = "next request will succeed")
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
@@ -264,9 +263,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should create message processing failed telemetry event when exception thrown`() {
     val prisonNumber = randomPrisonNumber()
-    stub500Response(prisonNumber, STARTED)
-    stub500Response(prisonNumber, STARTED)
-    stub500Response(prisonNumber, STARTED)
+    stub500Response("/prisoner/$prisonNumber", currentScenarioState = "next request will fail", nextScenarioState = "next request will fail", scenarioName = "processing fail")
+    stub500Response("/prisoner/$prisonNumber", "next request will fail", scenarioName = "processing fail")
+    stub500Response("/prisoner/$prisonNumber", "next request will fail", scenarioName = "processing fail")
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
     val messageId = publishDomainEvent(PRISONER_CREATED, domainEvent)
@@ -390,11 +389,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     ),
   )
-
-  private fun stub500Response(
-    prisonNumber: String,
-    nextScenarioState: String,
-  ) = stubGetRequest(url = "/prisoner/$prisonNumber", scenarioName = "retry", currentScenarioState = STARTED, nextScenarioState = nextScenarioState, body = "", status = 500)
 
   companion object {
     @JvmStatic

@@ -183,14 +183,10 @@ class IntegrationTestBase {
     )
   }
 
-  internal fun stubDeletePersonMatch(scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200, body: String = "{}") {
+  internal fun stubDeletePersonMatch(status: Int = 200) {
     stubDeleteRequest(
-      scenario,
-      currentScenarioState,
-      nextScenarioState,
-      "/person",
+      url = "/person",
       status = status,
-      body = body,
     )
   }
 
@@ -239,7 +235,7 @@ class IntegrationTestBase {
     )
   }
 
-  internal fun stubDeleteRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String, status: Int = 200) {
+  internal fun stubDeleteRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String = "{}", status: Int = 200) {
     wiremock.stubFor(
       WireMock.delete(url)
         .inScenario(scenarioName)
