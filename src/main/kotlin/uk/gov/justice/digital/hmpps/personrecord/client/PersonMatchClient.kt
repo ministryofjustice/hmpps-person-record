@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchStatus
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchMigrateRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
@@ -28,4 +29,7 @@ interface PersonMatchClient {
 
   @PostMapping("/person/migrate")
   fun postPersonMigrate(@RequestBody personMatchMigrateRequest: PersonMatchMigrateRequest)
+
+  @GetMapping("/health")
+  fun getHealth(): MatchStatus?
 }
