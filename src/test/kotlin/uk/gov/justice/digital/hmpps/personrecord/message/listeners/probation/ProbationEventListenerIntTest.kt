@@ -55,7 +55,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @BeforeEach
   fun beforeEach() {
     stubPersonMatch()
-    stubPersonMatchScores()
   }
 
   @Test

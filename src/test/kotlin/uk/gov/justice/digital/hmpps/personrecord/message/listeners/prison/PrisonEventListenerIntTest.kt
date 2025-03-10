@@ -63,7 +63,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @BeforeEach
   fun beforeEach() {
     stubPersonMatch()
-    stubPersonMatchScores()
   }
 
   @Test
