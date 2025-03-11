@@ -405,4 +405,18 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(loggedEvent.processedData).isEqualTo(processedData)
     assertThat(loggedEvent.uuid).isEqualTo(updatedPersonEntity.personKey?.personId.toString())
   }
+
+  @Test
+  fun `should retry on 404 to person match call`() {
+    val crn = randomCrn()
+    stubPersonMatchScores(status = 404, nextScenarioState = "next request will succeed")
+    stubPersonMatchScores(status = 200, currentScenarioState = "next request will succeed")
+
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn))
+
+    expectNoMessagesOnQueueOrDlq(probationEventsQueue)
+
+    checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"), 1)
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+  }
 }

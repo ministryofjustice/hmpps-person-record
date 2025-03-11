@@ -21,7 +21,7 @@ class PersonMatchService(
   fun getScores(personEntity: PersonEntity) {
     if (callPersonMatch) {
       CoroutineScope(Dispatchers.Default).launch {
-        retryExecutor.runWithRetryHTTP { personMatchClient.getPersonScores(personEntity.matchId.toString()) }
+        retryExecutor.runWithRetryHTTPWith404s { personMatchClient.getPersonScores(personEntity.matchId.toString()) }
       }
     }
   }

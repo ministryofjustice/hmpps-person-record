@@ -31,6 +31,10 @@ class RetryExecutor(@Value("\${retry.delay}") val delayMillis: Long) {
     action: suspend () -> T,
   ): T = runWithRetry(HTTP_TRY_COUNT, httpRetryExceptions, action)
 
+  suspend fun <T> runWithRetryHTTPWith404s(
+    action: suspend () -> T,
+  ): T = runWithRetry(HTTP_TRY_COUNT, httpRetryExceptions + httpRetryException404, action)
+
   suspend fun <T> runWithRetryDatabase(
     action: suspend () -> T,
   ): T = runWithRetry(DB_TRY_COUNT, entityRetryExceptions, action)
@@ -81,4 +85,5 @@ class RetryExecutor(@Value("\${retry.delay}") val delayMillis: Long) {
   )
 
   private val httpRetryExceptions = listOf(feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class, FeignException.BadGateway::class)
+  private val httpRetryException404 = listOf(FeignException.NotFound::class)
 }
