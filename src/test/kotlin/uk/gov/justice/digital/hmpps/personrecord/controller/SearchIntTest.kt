@@ -342,12 +342,12 @@ class SearchIntTest : WebTestBase() {
     assertThat(responseBody.sex).isEqualTo(person.sex)
     assertThat(responseBody.religion).isEqualTo(person.religion)
     assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
-    assertThat(responseBody.identifiers.cros).containsExactlyInAnyOrderElementsOf(listOf(cro))
-    assertThat(responseBody.identifiers.pncs).containsExactlyInAnyOrderElementsOf(listOf(pnc))
-    assertThat(responseBody.identifiers.crns).containsExactlyInAnyOrderElementsOf(listOf(crn))
-    assertThat(responseBody.identifiers.defendantIds).containsExactlyInAnyOrderElementsOf(listOf(defendantId))
-    assertThat(responseBody.identifiers.prisonNumbers).containsExactlyInAnyOrderElementsOf(listOf(prisonNumber))
-    assertThat(responseBody.identifiers.cids).containsExactlyInAnyOrderElementsOf(listOf(cid))
+    assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
+    assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
+    assertThat(responseBody.identifiers.crns).isEqualTo(listOf(crn))
+    assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(defendantId))
+    assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
+    assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
     assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
   }
 
@@ -470,10 +470,10 @@ class SearchIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(responseBody.identifiers.crns).containsExactlyInAnyOrderElementsOf(emptyList())
-    assertThat(responseBody.identifiers.cids).containsExactlyInAnyOrderElementsOf(emptyList())
-    assertThat(responseBody.identifiers.defendantIds).containsExactlyInAnyOrderElementsOf(emptyList())
-    assertThat(responseBody.identifiers.prisonNumbers).containsExactlyInAnyOrderElementsOf(emptyList())
+    assertThat(responseBody.identifiers.crns).isEmpty()
+    assertThat(responseBody.identifiers.cids).isEmpty()
+    assertThat(responseBody.identifiers.defendantIds).isEmpty()
+    assertThat(responseBody.identifiers.prisonNumbers).isEmpty()
   }
 
   @Test

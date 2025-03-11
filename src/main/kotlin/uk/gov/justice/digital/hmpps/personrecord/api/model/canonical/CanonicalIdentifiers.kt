@@ -1,29 +1,75 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
+import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 
 data class CanonicalIdentifiers(
-  @Schema(description = "List of CRNs", example = "['B123456']")
-  val crns: List<String>,
-  @Schema(description = "List of prisoner numbers", example = "['B123456']")
-  val prisonNumbers: List<String>,
-  @Schema(description = "List of defendant IDs", example = "['B123456']")
-  val defendantIds: List<String>,
-  @Schema(description = "List of C_IDs", example = "['B123456']")
-  val cids: List<String>,
-  @Schema(description = "List of PNCs", example = "['B123456']")
-  val pncs: List<String>,
-  @Schema(description = "List of CROs", example = "['B123456']")
-  val cros: List<String>,
-  @Schema(description = "List of national insurance numbers", example = "['B123456']")
-  val nationalInsuranceNumbers: List<String>,
-  @Schema(description = "List of driver License numbers", example = "['B123456']")
-  val driverLicenseNumbers: List<String>,
-  @Schema(description = "List of arrest summon numbers", example = "['B123456']")
-  val arrestSummonsNumbers: List<String>,
+  @ArraySchema(
+    schema = Schema(
+      description = "List of CRNs",
+      example = "B123435",
+    ),
+  )
+  val crns: List<String> = emptyList(),
+  @ArraySchema(
+    schema = Schema(
+      description = "List of prison numbers",
+      example = "B123435",
+    ),
+  )
+  val prisonNumbers: List<String> = emptyList(),
+  @ArraySchema(
+    schema = Schema(
+      description = "List of defendant IDs",
+      example = "B123435",
+    ),
+  )
+  val defendantIds: List<String> = emptyList(),
+  @ArraySchema(
+    schema = Schema(
+      description = "List of C_IDs",
+      example = "B123435",
+    ),
+  )
+  val cids: List<String> = emptyList(),
+  @ArraySchema(
+    schema = Schema(
+      description = "List of PNCs",
+      example = "B123435",
+    ),
+  )
+  val pncs: List<String> = emptyList(),
+  @ArraySchema(
+    schema = Schema(
+      description = "List of CROs",
+      example = "B123435",
+    ),
+  )
+  val cros: List<String> = emptyList(),
+  @ArraySchema(
+    schema = Schema(
+      description = "List of national insurance numbers",
+      example = "B123435",
+    ),
+  )
+  val nationalInsuranceNumbers: List<String> = emptyList(),
+  @ArraySchema(
+    schema = Schema(
+      description = "List of driver license numbers",
+      example = "QQ123456B",
+    ),
+  )
+  val driverLicenseNumbers: List<String> = emptyList(),
+  @ArraySchema(
+    schema = Schema(
+      description = "List of arrest summons numbers",
+      example = "SMITH840325J912",
+    ),
+  )
+  val arrestSummonsNumbers: List<String> = emptyList(),
 ) {
   companion object {
 

@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
-import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 
@@ -25,16 +24,7 @@ data class CanonicalRecord(
   val ethnicity: String? = "",
   @Schema(description = "List of person aliases")
   val aliases: List<CanonicalAlias> = emptyList(),
-  @ArraySchema(
-    schema = Schema(
-      description = "List of nationality codes",
-      example = """
-        {
-          "nationalityCode": "UK",
-        }            
-      """,
-    ),
-  )
+  @Schema(description = "List of person nationalities")
   var nationalities: List<CanonicalNationality> = emptyList(),
   @Schema(description = "List of person addresses")
   val addresses: List<CanonicalAddress> = emptyList(),
