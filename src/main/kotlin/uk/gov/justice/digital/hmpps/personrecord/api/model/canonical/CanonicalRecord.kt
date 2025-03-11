@@ -50,16 +50,16 @@ data class CanonicalRecord(
       val latestPerson = personList.first()
       return CanonicalRecord(
         cprUUID = personKey.personId.toString(),
-        firstName = latestPerson.firstName,
-        middleNames = latestPerson.middleNames,
-        lastName = latestPerson.lastName,
+        firstName = latestPerson.firstName ?: "",
+        middleNames = latestPerson.middleNames ?: "",
+        lastName = latestPerson.lastName ?: "",
         dateOfBirth = latestPerson.dateOfBirth?.toString() ?: "",
-        title = latestPerson.title,
-        sex = latestPerson.sex,
-        religion = latestPerson.religion,
-        ethnicity = latestPerson.ethnicity,
-        aliases = CanonicalAlias.fromPseudonymEntityList(latestPerson.pseudonyms),
-        addresses = CanonicalAddress.fromAddressEntityList(latestPerson.addresses),
+        title = latestPerson.title ?: "",
+        sex = latestPerson.sex ?: "",
+        religion = latestPerson.religion ?: "",
+        ethnicity = latestPerson.ethnicity ?: "",
+        aliases = getAliases(latestPerson),
+        addresses = getAddresses(latestPerson),
         identifiers = getCanonicalIdentifiers(personKey.personEntities) + CanonicalIdentifier.fromReferenceEntityList(latestPerson.references),
         nationalities = CanonicalNationality.from(latestPerson),
       )
@@ -71,5 +71,9 @@ data class CanonicalRecord(
       CanonicalIdentifier(PRISON_NUMBER, personEntities.mapNotNull { it.prisonNumber }),
       CanonicalIdentifier(C_ID, personEntities.mapNotNull { it.cId }),
     ).toMutableList()
+
+    private fun getAliases(person: PersonEntity?): List<CanonicalAlias> = person?.pseudonyms?.let { CanonicalAlias.fromPseudonymEntityList(it) } ?: emptyList()
+
+    private fun getAddresses(person: PersonEntity?): List<CanonicalAddress> = person?.addresses?.let { CanonicalAddress.fromAddressEntityList(it) } ?: emptyList()
   }
 }

@@ -363,6 +363,63 @@ class SearchIntTest : WebTestBase() {
   }
 
   @Test
+  fun `should return empty string when values are null for get canonical record`() {
+    val cro = randomCro()
+    val crn = randomCrn()
+    val defendantId = randomDefendantId()
+    val prisonNumber = randomPrisonNumber()
+    val cid = randomCId()
+    val pnc = randomPnc()
+
+    val person = createPersonWithNewKey(
+      Person(
+        sourceSystem = NOMIS,
+        crn = crn,
+        cId = cid,
+        defendantId = defendantId,
+        prisonNumber = prisonNumber,
+        references = listOf(
+          Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
+          Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
+        ),
+      ),
+    )
+
+    val responseBody = webTestClient.get()
+      .uri(searchForPerson(person.personKey?.personId.toString()))
+      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(CanonicalRecord::class.java)
+      .returnResult()
+      .responseBody!!
+
+    val canonicalIdentifiers = listOf(
+      CanonicalIdentifier(CRO, listOf(cro)),
+      CanonicalIdentifier(PNC, listOf(pnc)),
+      CanonicalIdentifier(CRN, listOf(crn)),
+      CanonicalIdentifier(DEFENDANT_ID, listOf(defendantId)),
+      CanonicalIdentifier(PRISON_NUMBER, listOf(prisonNumber)),
+      CanonicalIdentifier(C_ID, listOf(cid)),
+    )
+
+    assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personId.toString())
+    assertThat(responseBody.firstName).isEqualTo("")
+    assertThat(responseBody.middleNames).isEqualTo("")
+    assertThat(responseBody.lastName).isEqualTo("")
+    assertThat(responseBody.dateOfBirth).isEqualTo("")
+    assertThat(responseBody.title).isEqualTo("")
+    assertThat(responseBody.ethnicity).isEqualTo("")
+    assertThat(responseBody.sex).isEqualTo("")
+    assertThat(responseBody.religion).isEqualTo("")
+    assertThat(responseBody.nationalities).isEmpty()
+    assertThat(responseBody.aliases).isEmpty()
+    assertThat(responseBody.identifiers).containsExactlyInAnyOrderElementsOf(canonicalIdentifiers)
+    assertThat(responseBody.addresses).isEmpty()
+  }
+
+  @Test
   fun `should return latest modified from 2 records`() {
     val personKey = createPersonKey()
 
