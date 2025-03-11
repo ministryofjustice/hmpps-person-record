@@ -78,7 +78,7 @@ class HealthCheckIntTest : WebTestBase() {
   }
 
   @Test
-  fun `verify match details are returned`() {
+  fun `verify match score details are returned`() {
     stubGetRequest(url = "/health", body = """{"status": "UP"}""")
     webTestClient.get()
       .uri("/health")
@@ -100,6 +100,18 @@ class HealthCheckIntTest : WebTestBase() {
       .expectStatus()
       .is5xxServerError
       .expectBody()
-      .jsonPath("components.healthInfo.details.PersonMatchScoreStatus.status").isEqualTo("DOWN")
+      .jsonPath("components.healthInfo.status").isEqualTo("DOWN")
+  }
+
+  @Test
+  fun `verify match details are returned`() {
+    stubGetRequest(url = "/health", body = """{"status": "UP"}""")
+    webTestClient.get()
+      .uri("/health")
+      .authorised()
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody().jsonPath("components.healthInfo.details.PersonMatchStatus.status").isEqualTo("UP")
   }
 }
