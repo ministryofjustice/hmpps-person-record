@@ -17,56 +17,56 @@ data class CanonicalIdentifiers(
   @ArraySchema(
     schema = Schema(
       description = "List of prison numbers",
-      example = "B123435",
+      example = "A1234BC",
     ),
   )
   val prisonNumbers: List<String> = emptyList(),
   @ArraySchema(
     schema = Schema(
       description = "List of defendant IDs",
-      example = "B123435",
+      example = "46caa4e5-ae06-4226-9cb6-682cb26cf025",
     ),
   )
   val defendantIds: List<String> = emptyList(),
   @ArraySchema(
     schema = Schema(
       description = "List of C_IDs",
-      example = "B123435",
+      example = "1234567",
     ),
   )
   val cids: List<String> = emptyList(),
   @ArraySchema(
     schema = Schema(
       description = "List of PNCs",
-      example = "B123435",
+      example = "2000/1234567A",
     ),
   )
   val pncs: List<String> = emptyList(),
   @ArraySchema(
     schema = Schema(
       description = "List of CROs",
-      example = "B123435",
+      example = "123456/00A",
     ),
   )
   val cros: List<String> = emptyList(),
   @ArraySchema(
     schema = Schema(
       description = "List of national insurance numbers",
-      example = "B123435",
+      example = "QQ123456B",
     ),
   )
   val nationalInsuranceNumbers: List<String> = emptyList(),
   @ArraySchema(
     schema = Schema(
       description = "List of driver license numbers",
-      example = "QQ123456B",
+      example = "SMITH840325J912",
     ),
   )
   val driverLicenseNumbers: List<String> = emptyList(),
   @ArraySchema(
     schema = Schema(
       description = "List of arrest summons numbers",
-      example = "SMITH840325J912",
+      example = "",
     ),
   )
   val arrestSummonsNumbers: List<String> = emptyList(),
