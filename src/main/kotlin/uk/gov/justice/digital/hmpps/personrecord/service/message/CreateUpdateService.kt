@@ -1,15 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
-import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.shouldCreateOrUpdate
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
-import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.QueueService
@@ -28,14 +24,12 @@ class CreateUpdateService(
   private val personService: PersonService,
   private val queueService: QueueService,
   private val eventLoggingService: EventLoggingService,
-  private val personMatchClient: PersonMatchClient,
-  private val retryExecutor: RetryExecutor,
 ) {
 
   @Transactional
-  fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) = runBlocking {
+  fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) {
     val existingPersonEntitySearch: PersonEntity? = callback()
-    val personEntity = existingPersonEntitySearch.shouldCreateOrUpdate(
+    existingPersonEntitySearch.shouldCreateOrUpdate(
       shouldCreate = {
         handlePersonCreation(person, event)
       },
@@ -43,9 +37,6 @@ class CreateUpdateService(
         handlePersonUpdate(person, it, event)
       },
     )
-    retryExecutor.runWithRetryHTTP {
-      personMatchClient.postPerson(PersonMatchRecord.from(personEntity))
-    }
   }
 
   private fun handlePersonCreation(person: Person, event: String?): PersonEntity {
