@@ -5,7 +5,6 @@ import aws.sdk.kotlin.services.s3.model.PutObjectRequest
 import aws.smithy.kotlin.runtime.content.ByteStream
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -50,14 +49,10 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Value("\${aws.court-message-bucket-name}")
   lateinit var s3Bucket: String
 
-  @BeforeEach
-  fun beforeEach() {
-    stubPersonMatch()
-    stubPersonMatchScores()
-  }
-
   @Test
   fun `FIFO queue and topic remove duplicate messages`() {
+    stubPersonMatchScores()
+    stubPersonMatch()
     val pnc = randomPnc()
     val defendantId = randomDefendantId()
     val firstName = randomName()
@@ -100,6 +95,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should update an existing person record from common platform message`() {
+    stubPersonMatchScores()
+    stubPersonMatch()
     val defendantId = randomDefendantId()
     val pnc = randomPnc()
     val cro = randomCro()
@@ -149,6 +146,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should create new people with additional fields from common platform message`() {
+    stubPersonMatchScores()
+    stubPersonMatch()
     val firstPnc = randomPnc()
     val firstName = randomName()
     val lastName = randomName()
@@ -287,6 +286,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process large messages`() {
+    stubPersonMatchScores()
+    stubPersonMatch()
     val defendantId = randomDefendantId()
 
     val s3Key = UUID.randomUUID().toString()
@@ -313,6 +314,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process messages with pnc as empty string and null`() {
+    stubPersonMatchScores()
+    stubPersonMatch()
     val firstDefendantId = randomDefendantId()
     val secondDefendantId = randomDefendantId()
 
@@ -361,6 +364,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process when is youth is null`() {
+    stubPersonMatchScores()
+    stubPersonMatch()
     val defendantId = randomDefendantId()
     val messageId = publishCommonPlatformMessage(
       commonPlatformHearing(
