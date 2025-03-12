@@ -325,7 +325,7 @@ class SearchIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(searchForPerson(person.personKey?.personId.toString()))
+      .uri(canonicalAPIUrl(person.personKey?.personId.toString()))
       .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -377,7 +377,7 @@ class SearchIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(searchForPerson(personKey.personId.toString()))
+      .uri(canonicalAPIUrl(personKey.personId.toString()))
       .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -436,7 +436,7 @@ class SearchIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(searchForPerson(personKey.personId.toString()))
+      .uri(canonicalAPIUrl(personKey.personId.toString()))
       .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -476,7 +476,7 @@ class SearchIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(searchForPerson(personKey.personId.toString()))
+      .uri(canonicalAPIUrl(personKey.personId.toString()))
       .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -512,7 +512,7 @@ class SearchIntTest : WebTestBase() {
     personRepository.saveAndFlush(latestPerson)
 
     val responseBody = webTestClient.get()
-      .uri(searchForPerson(personKey.personId.toString()))
+      .uri(canonicalAPIUrl(personKey.personId.toString()))
       .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -546,7 +546,7 @@ class SearchIntTest : WebTestBase() {
     personRepository.saveAndFlush(person)
 
     val responseBody = webTestClient.get()
-      .uri(searchForPerson(personKey.personId.toString()))
+      .uri(canonicalAPIUrl(personKey.personId.toString()))
       .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -562,7 +562,7 @@ class SearchIntTest : WebTestBase() {
   fun `should return bad request if canonical record is invalid uuid`() {
     val randomString = randomName()
     webTestClient.get()
-      .uri(searchForPerson(randomString))
+      .uri(canonicalAPIUrl(randomString))
       .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -574,7 +574,7 @@ class SearchIntTest : WebTestBase() {
     val randomUUId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
     val expectedErrorMessage = "Not found: $randomUUId"
     webTestClient.get()
-      .uri(searchForPerson(randomUUId))
+      .uri(canonicalAPIUrl(randomUUId))
       .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -588,7 +588,7 @@ class SearchIntTest : WebTestBase() {
   fun `should return Access Denied 403 when role is wrong`() {
     val expectedErrorMessage = "Forbidden: Access Denied"
     webTestClient.get()
-      .uri(searchForPerson("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"))
+      .uri(canonicalAPIUrl("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"))
       .authorised(listOf("UNSUPPORTED-ROLE"))
       .exchange()
       .expectStatus()
@@ -601,7 +601,7 @@ class SearchIntTest : WebTestBase() {
   @Test
   fun `should return UNAUTHORIZED 401 when role is not set`() {
     webTestClient.get()
-      .uri(searchForPerson("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"))
+      .uri(canonicalAPIUrl("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"))
       .exchange()
       .expectStatus()
       .isUnauthorized
@@ -609,7 +609,7 @@ class SearchIntTest : WebTestBase() {
 
   companion object {
 
-    private fun searchForPerson(uuid: String) = "/search/person/$uuid"
+    private fun canonicalAPIUrl(uuid: String) = "/person/$uuid"
 
     private fun searchOffenderUrl(crn: String) = "/search/offender/$crn"
 
@@ -622,7 +622,7 @@ class SearchIntTest : WebTestBase() {
       searchOffenderUrl(randomCrn()),
       searchPrisonerUrl(randomPrisonNumber()),
       searchDefendantUrl(randomDefendantId()),
-      searchForPerson(randomPersonId()),
+      canonicalAPIUrl(randomPersonId()),
 
     )
   }
