@@ -149,6 +149,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `should link new probation record to an existing prison record`() {
+      telemetryRepository.deleteAll()
       val crn = randomCrn()
       val prisonNumber = randomPrisonNumber()
       val firstName = randomName()
