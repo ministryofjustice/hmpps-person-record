@@ -18,7 +18,9 @@ fun personMatchRequest(personMatchRecord: PersonMatchRecord): String = """
         "postcodes": [${personMatchRecord.postcodes.joinToString(", ") { "\"${it}\"" }}],
         "cros": [${personMatchRecord.cros.joinToString(", ") { "\"${it}\"" }}],
         "pncs": [${personMatchRecord.pncs.joinToString(", ") { "\"${it}\"" }}],     
-        "sentenceDates": [${personMatchRecord.sentenceDates.joinToString(", ") { "\"${it}\"" }}]
+        "sentenceDates": [${personMatchRecord.sentenceDates.joinToString(", ") { "\"${it}\"" }}],
+        "crn": "${personMatchRecord.crn}",
+        "prisonNumber": "${personMatchRecord.prisonNumber}"
       }
     ]
  }
