@@ -31,7 +31,7 @@ data class CanonicalIdentifiers(
   @ArraySchema(
     schema = Schema(
       description = "List of C_IDs",
-      example = "1234567",
+      example = "\"1234567\"",
     ),
   )
   val cids: List<String> = emptyList(),
