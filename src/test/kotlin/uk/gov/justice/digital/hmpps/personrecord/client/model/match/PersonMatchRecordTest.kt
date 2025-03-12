@@ -30,6 +30,8 @@ class PersonMatchRecordTest {
     assertThat(personMatchRecord.cros).isEmpty()
     assertThat(personMatchRecord.pncs).isEmpty()
     assertThat(personMatchRecord.sentenceDates).isEmpty()
+    assertThat(personMatchRecord.crn).isEmpty()
+    assertThat(personMatchRecord.prisonNumber).isEmpty()
   }
 
   @Test

@@ -88,6 +88,8 @@ class PopulatePersonMatchIntTest : WebTestBase() {
       pncs = listOf(pnc),
       postcodes = postcodes,
       sentenceDates = sentenceDates.map { it.toString() },
+      crn = person.crn,
+      prisonNumber = "",
     )
     val expectedResponse = personMatchRequest(personMatchRecord)
 
