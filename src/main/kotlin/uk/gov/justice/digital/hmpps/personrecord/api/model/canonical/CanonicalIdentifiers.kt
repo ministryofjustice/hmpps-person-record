@@ -3,7 +3,13 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.ARREST_SUMMONS_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 
 data class CanonicalIdentifiers(
   @ArraySchema(
@@ -72,17 +78,21 @@ data class CanonicalIdentifiers(
 ) {
   companion object {
 
-    fun from(personEntities: List<PersonEntity>): CanonicalIdentifiers = CanonicalIdentifiers(
+    fun from(personEntities: List<PersonEntity>): CanonicalIdentifiers {
+      val referenceEntities = personEntities.map { it.references }.flatten()
+      return CanonicalIdentifiers(
+        crns = personEntities.mapNotNull { it.crn },
+        prisonNumbers = personEntities.mapNotNull { it.prisonNumber },
+        defendantIds = personEntities.mapNotNull { it.defendantId },
+        cids = personEntities.mapNotNull { it.cId },
+        cros = referenceEntities.findByIdentifierType(CRO),
+        pncs = referenceEntities.findByIdentifierType(PNC),
+        nationalInsuranceNumbers = referenceEntities.findByIdentifierType(NATIONAL_INSURANCE_NUMBER),
+        arrestSummonsNumbers = referenceEntities.findByIdentifierType(ARREST_SUMMONS_NUMBER),
+        driverLicenseNumbers = referenceEntities.findByIdentifierType(DRIVER_LICENSE_NUMBER),
+      )
+    }
 
-      crns = personEntities.mapNotNull { it.crn },
-      prisonNumbers = personEntities.mapNotNull { it.prisonNumber },
-      defendantIds = personEntities.mapNotNull { it.defendantId },
-      cids = personEntities.mapNotNull { it.cId },
-      cros = personEntities.map { it.references }.flatten().filter { it.identifierType == IdentifierType.CRO }.mapNotNull { it.identifierValue },
-      pncs = personEntities.map { it.references }.flatten().filter { it.identifierType == IdentifierType.PNC }.mapNotNull { it.identifierValue },
-      nationalInsuranceNumbers = personEntities.map { it.references }.flatten().filter { it.identifierType == IdentifierType.NATIONAL_INSURANCE_NUMBER }.mapNotNull { it.identifierValue },
-      arrestSummonsNumbers = personEntities.map { it.references }.flatten().filter { it.identifierType == IdentifierType.ARREST_SUMMONS_NUMBER }.mapNotNull { it.identifierValue },
-      driverLicenseNumbers = personEntities.map { it.references }.flatten().filter { it.identifierType == IdentifierType.DRIVER_LICENSE_NUMBER }.mapNotNull { it.identifierValue },
-    )
+    private fun List<ReferenceEntity>.findByIdentifierType(identifierType: IdentifierType): List<String> = this.filter { it.identifierType == identifierType }.mapNotNull { it.identifierValue }
   }
 }
