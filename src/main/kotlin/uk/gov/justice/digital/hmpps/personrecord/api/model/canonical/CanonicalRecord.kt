@@ -13,7 +13,7 @@ data class CanonicalRecord(
   val middleNames: String? = "",
   @Schema(description = "Person last name", example = "Doe")
   val lastName: String? = "",
-  @Schema(description = "Person date of birth", example = "01/01/1990")
+  @Schema(description = "Person date of birth", example = "1990-08-21")
   val dateOfBirth: String? = "",
   @Schema(description = "Person title", example = "Mr")
   val title: String? = "",
