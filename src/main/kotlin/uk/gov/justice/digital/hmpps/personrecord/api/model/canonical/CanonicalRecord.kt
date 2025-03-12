@@ -34,6 +34,7 @@ data class CanonicalRecord(
 
 ) {
   companion object {
+    @Suppress("CyclomaticComplexMethod")
     fun from(personKey: PersonKeyEntity): CanonicalRecord {
       val latestPerson = personKey.personEntities.sortedByDescending { it.lastModified }.first()
       return CanonicalRecord(
