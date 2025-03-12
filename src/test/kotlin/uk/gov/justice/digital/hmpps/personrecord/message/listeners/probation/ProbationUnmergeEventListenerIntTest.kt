@@ -5,6 +5,7 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
@@ -34,383 +35,404 @@ import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
-  @BeforeEach
-  fun beforeEach() {
-    stubPersonMatch()
-    stubDeletePersonMatch()
-    stubOneHighConfidenceMatch()
-    stubPersonMatchScores()
-  }
-
-  @Test
-  fun `offender unmerge event is published`() {
-    val reactivatedCrn = randomCrn()
-    val unmergedCrn = randomCrn()
-
-    val personKey = createPersonKey()
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
-      personKeyEntity = personKey,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
-      personKeyEntity = personKey,
-    )
-
-    val reactivated = ApiResponseSetup(crn = reactivatedCrn)
-    val unmerged = ApiResponseSetup(crn = unmergedCrn)
-
-    probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
-
-    await.atMost(4, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
-
-    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
-
-    checkTelemetry(
-      UNMERGE_MESSAGE_RECEIVED,
-      mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_UPDATED,
-      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_UPDATED,
-      mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_UUID_CREATED,
-      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_UUID_CREATED,
-      mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-      times = 0,
-    )
-    checkTelemetry(
-      CPR_RECORD_UNMERGED,
-      mapOf(
-        "REACTIVATED_CRN" to reactivatedCrn,
-        "UNMERGED_CRN" to unmergedCrn,
-        "UNMERGED_UUID" to personKey.personId.toString(),
-        "SOURCE_SYSTEM" to "DELIUS",
-      ),
-    )
-
-    val unmergedPerson = awaitNotNullPerson { personRepository.findByCrn(unmergedCrn) }
-    val reactivatedPerson = awaitNotNullPerson { personRepository.findByCrn(reactivatedCrn) }
-    assertThat(unmergedPerson.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
-    assertThat(unmergedPerson.personKey?.personEntities?.size).isEqualTo(1)
-    assertThat(reactivatedPerson.personKey?.personEntities?.size).isEqualTo(1)
-    assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(personKey.personId)
-  }
-
-  @Test
-  fun `should create record when unmerged record not found`() {
-    val reactivatedCrn = randomCrn()
-    val unmergedCrn = randomCrn()
-
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
-      personKeyEntity = createPersonKey(),
-    )
-
-    val reactivated = ApiResponseSetup(crn = reactivatedCrn)
-    val unmerged = ApiResponseSetup(crn = unmergedCrn)
-
-    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
-
-    checkTelemetry(
-      UNMERGE_MESSAGE_RECEIVED,
-      mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_UNMERGE_RECORD_NOT_FOUND,
-      mapOf("CRN" to unmergedCrn, "RECORD_TYPE" to UnmergeRecordType.UNMERGED.name, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_CREATED,
-      mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_UPDATED,
-      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_UUID_CREATED,
-      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_UNMERGED,
-      mapOf(
-        "REACTIVATED_CRN" to reactivatedCrn,
-        "UNMERGED_CRN" to unmergedCrn,
-        "SOURCE_SYSTEM" to "DELIUS",
-      ),
-    )
-  }
-
-  @Test
-  fun `should create record when reactivated record not found and should create a UUID`() {
-    val reactivatedCrn = randomCrn()
-    val unmergedCrn = randomCrn()
-
-    val personKeyEntity = createPersonKey()
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
-      personKeyEntity = personKeyEntity,
-    )
-
-    val reactivated = ApiResponseSetup(crn = reactivatedCrn)
-    val unmerged = ApiResponseSetup(crn = unmergedCrn)
-
-    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
-
-    checkTelemetry(
-      UNMERGE_MESSAGE_RECEIVED,
-      mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_UNMERGE_RECORD_NOT_FOUND,
-      mapOf("RECORD_TYPE" to UnmergeRecordType.REACTIVATED.name, "CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_CREATED,
-      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_UPDATED,
-      mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_UNMERGE_LINK_NOT_FOUND,
-      mapOf("REACTIVATED_CRN" to reactivatedCrn, "RECORD_TYPE" to UnmergeRecordType.REACTIVATED.name, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_UUID_CREATED,
-      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_UNMERGED,
-      mapOf(
-        "REACTIVATED_CRN" to reactivatedCrn,
-        "UNMERGED_CRN" to unmergedCrn,
-        "UNMERGED_UUID" to personKeyEntity.personId.toString(),
-        "SOURCE_SYSTEM" to "DELIUS",
-      ),
-    )
-
-    val reactivatedPerson = awaitNotNullPerson { personRepository.findByCrn(reactivatedCrn) }
-    assertThat(reactivatedPerson.personKey).isNotNull()
-    assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(personKeyEntity.personId)
-  }
-
-  @Test
-  fun `should mark unmerged UUID as needs attention if it has additional records`() {
-    val reactivatedCrn = randomCrn()
-    val unmergedCrn = randomCrn()
-
-    val personKey = createPersonKey()
-    createPerson(
-      person = Person(
-        crn = randomCrn(),
-        sourceSystem = SourceSystemType.DELIUS,
-      ),
-      personKeyEntity = personKey,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
-      personKeyEntity = personKey,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
-      personKeyEntity = personKey,
-    )
-
-    val reactivated = ApiResponseSetup(crn = reactivatedCrn)
-    val unmerged = ApiResponseSetup(crn = unmergedCrn)
-
-    probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
-
-    await.atMost(4, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
-
-    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
-
-    checkTelemetry(
-      UNMERGE_MESSAGE_RECEIVED,
-      mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_UPDATED,
-      mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_UPDATED,
-      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_UNMERGE_LINK_NOT_FOUND,
-      mapOf("REACTIVATED_CRN" to reactivatedCrn, "RECORD_TYPE" to UnmergeRecordType.REACTIVATED.name, "SOURCE_SYSTEM" to "DELIUS"),
-      times = 0,
-    )
-    checkTelemetry(
-      CPR_UUID_CREATED,
-      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_UNMERGED,
-      mapOf(
-        "REACTIVATED_CRN" to reactivatedCrn,
-        "UNMERGED_CRN" to unmergedCrn,
-        "UNMERGED_UUID" to personKey.personId.toString(),
-        "SOURCE_SYSTEM" to "DELIUS",
-      ),
-    )
-
-    awaitAssert {
-      val personEntity = personRepository.findByCrn(unmergedCrn)
-      assertThat(personEntity?.personKey?.status).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
+  @Nested
+  inner class SuccessfulProcessing {
+    @BeforeEach
+    fun beforeEach() {
+      stubPersonMatch()
+      stubPersonMatchScores()
     }
-  }
 
-  @Test
-  fun `should remove link between records if existed`() {
-    val reactivatedCrn = randomCrn()
-    val unmergedCrn = randomCrn()
+    @Test
+    fun `should create record when reactivated record not found and should create a UUID`() {
+      val reactivatedCrn = randomCrn()
+      val unmergedCrn = randomCrn()
 
-    val personKey = createPersonKey()
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
-      personKeyEntity = personKey,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
-      personKeyEntity = personKey,
-    )
+      val personKeyEntity = createPersonKey()
+      createPerson(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
+        personKeyEntity = personKeyEntity,
+      )
 
-    val reactivated = ApiResponseSetup(crn = reactivatedCrn)
-    val unmerged = ApiResponseSetup(crn = unmergedCrn)
+      val reactivated = ApiResponseSetup(crn = reactivatedCrn)
+      val unmerged = ApiResponseSetup(crn = unmergedCrn)
 
-    probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
-    awaitAssert { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
-    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
-    checkTelemetry(
-      UNMERGE_MESSAGE_RECEIVED,
-      mapOf(
-        "REACTIVATED_CRN" to reactivatedCrn,
-        "UNMERGED_CRN" to unmergedCrn,
-        "EVENT_TYPE" to OFFENDER_UNMERGED,
-        "SOURCE_SYSTEM" to "DELIUS",
-      ),
-    )
-    checkTelemetry(
-      CPR_RECORD_UPDATED,
-      mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_UPDATED,
-      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_UNMERGE_LINK_NOT_FOUND,
-      mapOf("REACTIVATED_CRN" to reactivatedCrn, "RECORD_TYPE" to UnmergeRecordType.REACTIVATED.name, "SOURCE_SYSTEM" to "DELIUS"),
-      times = 0,
-    )
+      checkTelemetry(
+        UNMERGE_MESSAGE_RECEIVED,
+        mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_UNMERGE_RECORD_NOT_FOUND,
+        mapOf("RECORD_TYPE" to UnmergeRecordType.REACTIVATED.name, "CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_CREATED,
+        mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_UPDATED,
+        mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_UNMERGE_LINK_NOT_FOUND,
+        mapOf("REACTIVATED_CRN" to reactivatedCrn, "RECORD_TYPE" to UnmergeRecordType.REACTIVATED.name, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_UUID_CREATED,
+        mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_UNMERGED,
+        mapOf(
+          "REACTIVATED_CRN" to reactivatedCrn,
+          "UNMERGED_CRN" to unmergedCrn,
+          "UNMERGED_UUID" to personKeyEntity.personId.toString(),
+          "SOURCE_SYSTEM" to "DELIUS",
+        ),
+      )
 
-    val reactivatedPerson = awaitNotNullPerson { personRepository.findByCrn(reactivatedCrn) }
-    assertThat(reactivatedPerson.mergedTo).isNull()
-  }
+      val reactivatedPerson = awaitNotNullPerson { personRepository.findByCrn(reactivatedCrn) }
+      assertThat(reactivatedPerson.personKey).isNotNull()
+      assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(personKeyEntity.personId)
+    }
 
-  @Test
-  fun `should remove link from merged UUID and find and assign to a new one`() {
-    val reactivatedCrn = randomCrn()
-    val unmergedCrn = randomCrn()
+    @Test
+    fun `should retry on 500 error`() {
+      val reactivatedCrn = randomCrn()
+      val unmergedCrn = randomCrn()
 
-    val unmergedPersonKey = createPersonKey()
-    val reactivatedPersonKey = createPersonKey()
+      val unmergedPersonKey = createPersonKey()
+      val reactivatedPersonKey = createPersonKey()
 
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
-      personKeyEntity = unmergedPersonKey,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
-      personKeyEntity = reactivatedPersonKey,
-    )
+      createPerson(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
+        personKeyEntity = unmergedPersonKey,
+      )
+      createPerson(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
+        personKeyEntity = reactivatedPersonKey,
+      )
+      stub500Response(probationUrl(unmergedCrn), "next request will succeed", "retry")
 
-    val reactivated = ApiResponseSetup(crn = reactivatedCrn)
-    val unmerged = ApiResponseSetup(crn = unmergedCrn)
+      val reactivated = ApiResponseSetup(crn = reactivatedCrn)
+      val unmerged = ApiResponseSetup(crn = unmergedCrn)
 
-    probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
-    awaitAssert { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
-    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged, scenario = "retry", currentScenarioState = "next request will succeed", nextScenarioState = "next request will succeed")
 
-    checkTelemetry(
-      UNMERGE_MESSAGE_RECEIVED,
-      mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_UPDATED,
-      mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_UPDATED,
-      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_UNMERGE_LINK_NOT_FOUND,
-      mapOf("REACTIVATED_CRN" to reactivatedCrn, "RECORD_TYPE" to UnmergeRecordType.REACTIVATED.name, "SOURCE_SYSTEM" to "DELIUS"),
-      times = 0,
-    )
-    checkTelemetry(
-      CPR_UUID_CREATED,
-      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_UNMERGED,
-      mapOf(
-        "REACTIVATED_CRN" to reactivatedCrn,
-        "UNMERGED_CRN" to unmergedCrn,
-        "UNMERGED_UUID" to unmergedPersonKey.personId.toString(),
-        "SOURCE_SYSTEM" to "DELIUS",
-      ),
-    )
+      expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
 
-    val reactivatedMergedPersonKey = await.atMost(4, SECONDS) untilNotNull { personKeyRepository.findByPersonId(reactivatedPersonKey.personId) }
-    assertThat(reactivatedMergedPersonKey.personEntities.size).isEqualTo(0)
-    assertThat(reactivatedMergedPersonKey.status).isEqualTo(UUIDStatusType.MERGED)
+      checkTelemetry(
+        UNMERGE_MESSAGE_RECEIVED,
+        mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_UNMERGED,
+        mapOf(
+          "REACTIVATED_CRN" to reactivatedCrn,
+          "UNMERGED_CRN" to unmergedCrn,
+          "SOURCE_SYSTEM" to "DELIUS",
+        ),
+      )
+    }
 
-    val reactivatedPerson = awaitNotNullPerson { personRepository.findByCrn(reactivatedCrn) }
-    assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(reactivatedPersonKey.personId)
-    assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(unmergedPersonKey.personId)
-  }
+    @Test
+    fun `should create record when unmerged record not found`() {
+      val reactivatedCrn = randomCrn()
+      val unmergedCrn = randomCrn()
 
-  @Test
-  fun `should retry on 500 error`() {
-    val reactivatedCrn = randomCrn()
-    val unmergedCrn = randomCrn()
-    stub500Response(probationUrl(unmergedCrn), "next request will succeed", "retry")
+      createPerson(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
+        personKeyEntity = createPersonKey(),
+      )
 
-    val reactivated = ApiResponseSetup(crn = reactivatedCrn)
-    val unmerged = ApiResponseSetup(crn = unmergedCrn)
+      val reactivated = ApiResponseSetup(crn = reactivatedCrn)
+      val unmerged = ApiResponseSetup(crn = unmergedCrn)
 
-    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged, scenario = "retry", currentScenarioState = "next request will succeed", nextScenarioState = "next request will succeed")
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
-    expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
+      checkTelemetry(
+        UNMERGE_MESSAGE_RECEIVED,
+        mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_UNMERGE_RECORD_NOT_FOUND,
+        mapOf("CRN" to unmergedCrn, "RECORD_TYPE" to UnmergeRecordType.UNMERGED.name, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_CREATED,
+        mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_UPDATED,
+        mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_UUID_CREATED,
+        mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_UNMERGED,
+        mapOf(
+          "REACTIVATED_CRN" to reactivatedCrn,
+          "UNMERGED_CRN" to unmergedCrn,
+          "SOURCE_SYSTEM" to "DELIUS",
+        ),
+      )
+    }
 
-    checkTelemetry(
-      UNMERGE_MESSAGE_RECEIVED,
-      mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_UNMERGED,
-      mapOf(
-        "REACTIVATED_CRN" to reactivatedCrn,
-        "UNMERGED_CRN" to unmergedCrn,
-        "SOURCE_SYSTEM" to "DELIUS",
-      ),
-    )
+    @Nested
+    inner class DeletesARecord {
+      @BeforeEach
+      fun beforeEach() {
+        stubDeletePersonMatch()
+      }
+
+      @Test
+      fun `offender unmerge event is published`() {
+        val reactivatedCrn = randomCrn()
+        val unmergedCrn = randomCrn()
+
+        val personKey = createPersonKey()
+        createPerson(
+          Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
+          personKeyEntity = personKey,
+        )
+        createPerson(
+          Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
+          personKeyEntity = personKey,
+        )
+
+        val reactivated = ApiResponseSetup(crn = reactivatedCrn)
+        val unmerged = ApiResponseSetup(crn = unmergedCrn)
+
+        probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
+
+        await.atMost(4, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
+
+        probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
+
+        checkTelemetry(
+          UNMERGE_MESSAGE_RECEIVED,
+          mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
+        )
+        checkTelemetry(
+          CPR_RECORD_UPDATED,
+          mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+        )
+        checkTelemetry(
+          CPR_RECORD_UPDATED,
+          mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+        )
+        checkTelemetry(
+          CPR_UUID_CREATED,
+          mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+        )
+        checkTelemetry(
+          CPR_UUID_CREATED,
+          mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+          times = 0,
+        )
+        checkTelemetry(
+          CPR_RECORD_UNMERGED,
+          mapOf(
+            "REACTIVATED_CRN" to reactivatedCrn,
+            "UNMERGED_CRN" to unmergedCrn,
+            "UNMERGED_UUID" to personKey.personId.toString(),
+            "SOURCE_SYSTEM" to "DELIUS",
+          ),
+        )
+
+        val unmergedPerson = awaitNotNullPerson { personRepository.findByCrn(unmergedCrn) }
+        val reactivatedPerson = awaitNotNullPerson { personRepository.findByCrn(reactivatedCrn) }
+        assertThat(unmergedPerson.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
+        assertThat(unmergedPerson.personKey?.personEntities?.size).isEqualTo(1)
+        assertThat(reactivatedPerson.personKey?.personEntities?.size).isEqualTo(1)
+        assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(personKey.personId)
+      }
+
+      @Test
+      fun `should mark unmerged UUID as needs attention if it has additional records`() {
+        val reactivatedCrn = randomCrn()
+        val unmergedCrn = randomCrn()
+
+        val personKey = createPersonKey()
+        createPerson(
+          person = Person(
+            crn = randomCrn(),
+            sourceSystem = SourceSystemType.DELIUS,
+          ),
+          personKeyEntity = personKey,
+        )
+        createPerson(
+          Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
+          personKeyEntity = personKey,
+        )
+        createPerson(
+          Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
+          personKeyEntity = personKey,
+        )
+
+        val reactivated = ApiResponseSetup(crn = reactivatedCrn)
+        val unmerged = ApiResponseSetup(crn = unmergedCrn)
+
+        probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
+
+        await.atMost(4, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
+
+        probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
+
+        checkTelemetry(
+          UNMERGE_MESSAGE_RECEIVED,
+          mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
+        )
+        checkTelemetry(
+          CPR_RECORD_UPDATED,
+          mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+        )
+        checkTelemetry(
+          CPR_RECORD_UPDATED,
+          mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+        )
+        checkTelemetry(
+          CPR_UNMERGE_LINK_NOT_FOUND,
+          mapOf("REACTIVATED_CRN" to reactivatedCrn, "RECORD_TYPE" to UnmergeRecordType.REACTIVATED.name, "SOURCE_SYSTEM" to "DELIUS"),
+          times = 0,
+        )
+        checkTelemetry(
+          CPR_UUID_CREATED,
+          mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+        )
+        checkTelemetry(
+          CPR_RECORD_UNMERGED,
+          mapOf(
+            "REACTIVATED_CRN" to reactivatedCrn,
+            "UNMERGED_CRN" to unmergedCrn,
+            "UNMERGED_UUID" to personKey.personId.toString(),
+            "SOURCE_SYSTEM" to "DELIUS",
+          ),
+        )
+
+        awaitAssert {
+          val personEntity = personRepository.findByCrn(unmergedCrn)
+          assertThat(personEntity?.personKey?.status).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
+        }
+      }
+
+      @Test
+      fun `should remove link between records if existed`() {
+        val reactivatedCrn = randomCrn()
+        val unmergedCrn = randomCrn()
+
+        val personKey = createPersonKey()
+        createPerson(
+          Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
+          personKeyEntity = personKey,
+        )
+        createPerson(
+          Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
+          personKeyEntity = personKey,
+        )
+
+        val reactivated = ApiResponseSetup(crn = reactivatedCrn)
+        val unmerged = ApiResponseSetup(crn = unmergedCrn)
+
+        probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
+        awaitAssert { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
+        probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
+
+        checkTelemetry(
+          UNMERGE_MESSAGE_RECEIVED,
+          mapOf(
+            "REACTIVATED_CRN" to reactivatedCrn,
+            "UNMERGED_CRN" to unmergedCrn,
+            "EVENT_TYPE" to OFFENDER_UNMERGED,
+            "SOURCE_SYSTEM" to "DELIUS",
+          ),
+        )
+        checkTelemetry(
+          CPR_RECORD_UPDATED,
+          mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+        )
+        checkTelemetry(
+          CPR_RECORD_UPDATED,
+          mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+        )
+        checkTelemetry(
+          CPR_UNMERGE_LINK_NOT_FOUND,
+          mapOf("REACTIVATED_CRN" to reactivatedCrn, "RECORD_TYPE" to UnmergeRecordType.REACTIVATED.name, "SOURCE_SYSTEM" to "DELIUS"),
+          times = 0,
+        )
+
+        val reactivatedPerson = awaitNotNullPerson { personRepository.findByCrn(reactivatedCrn) }
+        assertThat(reactivatedPerson.mergedTo).isNull()
+      }
+
+      @Test
+      fun `should remove link from merged UUID and find and assign to a new one`() {
+        val reactivatedCrn = randomCrn()
+        val unmergedCrn = randomCrn()
+
+        val unmergedPersonKey = createPersonKey()
+        val reactivatedPersonKey = createPersonKey()
+
+        createPerson(
+          Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
+          personKeyEntity = unmergedPersonKey,
+        )
+        createPerson(
+          Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
+          personKeyEntity = reactivatedPersonKey,
+        )
+
+        val reactivated = ApiResponseSetup(crn = reactivatedCrn)
+        val unmerged = ApiResponseSetup(crn = unmergedCrn)
+
+        probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivated, unmerged)
+        awaitAssert { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
+        probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
+
+        checkTelemetry(
+          UNMERGE_MESSAGE_RECEIVED,
+          mapOf("REACTIVATED_CRN" to reactivatedCrn, "UNMERGED_CRN" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
+        )
+        checkTelemetry(
+          CPR_RECORD_UPDATED,
+          mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+        )
+        checkTelemetry(
+          CPR_RECORD_UPDATED,
+          mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+        )
+        checkTelemetry(
+          CPR_UNMERGE_LINK_NOT_FOUND,
+          mapOf("REACTIVATED_CRN" to reactivatedCrn, "RECORD_TYPE" to UnmergeRecordType.REACTIVATED.name, "SOURCE_SYSTEM" to "DELIUS"),
+          times = 0,
+        )
+        checkTelemetry(
+          CPR_UUID_CREATED,
+          mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+        )
+        checkTelemetry(
+          CPR_RECORD_UNMERGED,
+          mapOf(
+            "REACTIVATED_CRN" to reactivatedCrn,
+            "UNMERGED_CRN" to unmergedCrn,
+            "UNMERGED_UUID" to unmergedPersonKey.personId.toString(),
+            "SOURCE_SYSTEM" to "DELIUS",
+          ),
+        )
+
+        val reactivatedMergedPersonKey = await.atMost(4, SECONDS) untilNotNull { personKeyRepository.findByPersonId(reactivatedPersonKey.personId) }
+        assertThat(reactivatedMergedPersonKey.personEntities.size).isEqualTo(0)
+        assertThat(reactivatedMergedPersonKey.status).isEqualTo(UUIDStatusType.MERGED)
+
+        val reactivatedPerson = awaitNotNullPerson { personRepository.findByCrn(reactivatedCrn) }
+        assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(reactivatedPersonKey.personId)
+        assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(unmergedPersonKey.personId)
+      }
+    }
   }
 
   @Test
@@ -420,9 +442,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     stub500Response(probationUrl(unmergedCrn), "next request will fail", "failure")
     stub500Response(probationUrl(unmergedCrn), "next request will fail", "failure", "next request will fail")
     stub500Response(probationUrl(unmergedCrn), "next request will fail", "failure", "next request will fail")
-    stub500Response(probationUrl(reactivatedCrn), "next request will fail", "failure", "next request will fail")
-    stub500Response(probationUrl(reactivatedCrn), "next request will fail", "failure", "next request will fail")
-    stub500Response(probationUrl(reactivatedCrn), "next request will fail", "failure", "next request will fail")
 
     val messageId = publishDomainEvent(
       OFFENDER_UNMERGED,
@@ -455,7 +474,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should not push 404 to dead letter queue but discard message instead`() {
     val reactivatedCrn = randomCrn()
     val unmergedCrn = randomCrn()
-    stub404Response(probationUrl(reactivatedCrn))
     stub404Response(probationUrl(unmergedCrn))
 
     publishDomainEvent(

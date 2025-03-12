@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
@@ -26,278 +27,320 @@ import java.time.LocalDateTime
 
 class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
-  @BeforeEach
-  fun beforeEach() {
-    stubDeletePersonMatch()
-  }
+  @Nested
+  inner class SuccessfulProcessing {
+    @BeforeEach
+    fun beforeEach() {
+      stubDeletePersonMatch()
+    }
 
-  @Test
-  fun `processes offender merge event with records with same UUID is published`() {
-    val sourceCrn = randomCrn()
-    val targetCrn = randomCrn()
-    val source = ApiResponseSetup(crn = sourceCrn)
-    val target = ApiResponseSetup(crn = targetCrn)
-    val personKeyEntity = createPersonKey()
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
-      personKeyEntity = personKeyEntity,
-    )
-    val targetPerson = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
-      personKeyEntity = personKeyEntity,
-    )
+    @Test
+    fun `processes offender merge event with records with same UUID is published`() {
+      val sourceCrn = randomCrn()
+      val targetCrn = randomCrn()
+      val source = ApiResponseSetup(crn = sourceCrn)
+      val target = ApiResponseSetup(crn = targetCrn)
+      val personKeyEntity = createPersonKey()
+      createPerson(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
+        personKeyEntity = personKeyEntity,
+      )
+      val targetPerson = createPerson(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
+        personKeyEntity = personKeyEntity,
+      )
 
-    probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
 
-    checkTelemetry(
-      MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_MERGED,
-      mapOf(
-        "TO_UUID" to personKeyEntity.personId.toString(),
-        "FROM_UUID" to personKeyEntity.personId.toString(),
-        "SOURCE_CRN" to sourceCrn,
-        "TARGET_CRN" to targetCrn,
-        "SOURCE_SYSTEM" to "DELIUS",
-      ),
-    )
+      checkTelemetry(
+        MERGE_MESSAGE_RECEIVED,
+        mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_MERGED,
+        mapOf(
+          "TO_UUID" to personKeyEntity.personId.toString(),
+          "FROM_UUID" to personKeyEntity.personId.toString(),
+          "SOURCE_CRN" to sourceCrn,
+          "TARGET_CRN" to targetCrn,
+          "SOURCE_SYSTEM" to "DELIUS",
+        ),
+      )
 
-    val sourcePerson = personRepository.findByCrn(sourceCrn)
-    assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
-  }
+      val sourcePerson = personRepository.findByCrn(sourceCrn)
+      assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
+    }
 
-  @Test
-  fun `processes offender merge event with target record does not exist`() {
-    val sourceCrn = randomCrn()
-    val targetCrn = randomCrn()
-    val source = ApiResponseSetup(crn = sourceCrn)
-    val target = ApiResponseSetup(crn = targetCrn)
-    val personKeyEntity = createPersonKey()
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
-      personKeyEntity = personKeyEntity,
-    )
+    @Test
+    fun `processes offender merge event with target record does not exist`() {
+      val sourceCrn = randomCrn()
+      val targetCrn = randomCrn()
+      val source = ApiResponseSetup(crn = sourceCrn)
+      val target = ApiResponseSetup(crn = targetCrn)
+      val personKeyEntity = createPersonKey()
+      createPerson(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
+        personKeyEntity = personKeyEntity,
+      )
 
-    probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
 
-    checkTelemetry(
-      MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_MERGE_RECORD_NOT_FOUND,
-      mapOf(
-        "RECORD_TYPE" to "TARGET",
-        "SOURCE_CRN" to sourceCrn,
-        "TARGET_CRN" to targetCrn,
-        "SOURCE_SYSTEM" to "DELIUS",
-      ),
-    )
-  }
+      checkTelemetry(
+        MERGE_MESSAGE_RECEIVED,
+        mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_MERGE_RECORD_NOT_FOUND,
+        mapOf(
+          "RECORD_TYPE" to "TARGET",
+          "SOURCE_CRN" to sourceCrn,
+          "TARGET_CRN" to targetCrn,
+          "SOURCE_SYSTEM" to "DELIUS",
+        ),
+      )
+    }
 
-  @Test
-  fun `processes offender merge event with source record does not exist`() {
-    val sourceCrn = randomCrn()
-    val targetCrn = randomCrn()
-    val source = ApiResponseSetup(crn = sourceCrn)
-    val target = ApiResponseSetup(crn = targetCrn)
-    val personKeyEntity = createPersonKey()
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
-      personKeyEntity = personKeyEntity,
-    )
+    @Test
+    fun `processes offender merge event with different UUIDs where source has multiple records`() {
+      val sourceCrn = randomCrn()
+      val targetCrn = randomCrn()
+      val source = ApiResponseSetup(crn = sourceCrn)
+      val target = ApiResponseSetup(crn = targetCrn)
+      val personKeyEntity1 = createPersonKey()
+      val personKeyEntity2 = createPersonKey()
+      createPerson(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+        personKeyEntity = personKeyEntity1,
+      )
+      createPerson(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
+        personKeyEntity = personKeyEntity1,
+      )
+      val targetPerson = createPerson(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
+        personKeyEntity = personKeyEntity2,
+      )
 
-    probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
 
-    checkTelemetry(
-      MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_MERGE_RECORD_NOT_FOUND,
-      mapOf(
-        "RECORD_TYPE" to "SOURCE",
-        "SOURCE_CRN" to sourceCrn,
-        "TARGET_CRN" to targetCrn,
-        "SOURCE_SYSTEM" to "DELIUS",
-      ),
-    )
-    checkTelemetry(
-      CPR_RECORD_MERGED,
-      mapOf(
-        "TO_UUID" to personKeyEntity.personId.toString(),
-        "FROM_UUID" to null,
-        "SOURCE_CRN" to sourceCrn,
-        "TARGET_CRN" to targetCrn,
-        "SOURCE_SYSTEM" to "DELIUS",
-      ),
-    )
-  }
+      checkTelemetry(
+        MERGE_MESSAGE_RECEIVED,
+        mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_MERGED,
+        mapOf(
+          "TO_UUID" to personKeyEntity2.personId.toString(),
+          "FROM_UUID" to personKeyEntity1.personId.toString(),
+          "SOURCE_CRN" to sourceCrn,
+          "TARGET_CRN" to targetCrn,
+          "SOURCE_SYSTEM" to "DELIUS",
+        ),
+      )
 
-  @Test
-  fun `processes offender merge event with different UUIDs where source has multiple records`() {
-    val sourceCrn = randomCrn()
-    val targetCrn = randomCrn()
-    val source = ApiResponseSetup(crn = sourceCrn)
-    val target = ApiResponseSetup(crn = targetCrn)
-    val personKeyEntity1 = createPersonKey()
-    val personKeyEntity2 = createPersonKey()
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKeyEntity = personKeyEntity1,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
-      personKeyEntity = personKeyEntity1,
-    )
-    val targetPerson = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
-      personKeyEntity = personKeyEntity2,
-    )
+      val sourcePerson = personRepository.findByCrn(sourceCrn)
+      assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
+      assertThat(sourcePerson?.personKey).isNull()
 
-    probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+      val sourceCluster = personKeyRepository.findByPersonId(personKeyEntity1.personId)
+      assertThat(sourceCluster?.personEntities?.size).isEqualTo(1)
 
-    checkTelemetry(
-      MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_MERGED,
-      mapOf(
-        "TO_UUID" to personKeyEntity2.personId.toString(),
-        "FROM_UUID" to personKeyEntity1.personId.toString(),
-        "SOURCE_CRN" to sourceCrn,
-        "TARGET_CRN" to targetCrn,
-        "SOURCE_SYSTEM" to "DELIUS",
-      ),
-    )
+      val targetCluster = personKeyRepository.findByPersonId(personKeyEntity2.personId)
+      assertThat(targetCluster?.personEntities?.size).isEqualTo(1)
+    }
 
-    val sourcePerson = personRepository.findByCrn(sourceCrn)
-    assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
-    assertThat(sourcePerson?.personKey).isNull()
+    @Test
+    fun `processes offender merge event with different UUIDs where source doesn't have an UUID`() {
+      val sourceCrn = randomCrn()
+      val targetCrn = randomCrn()
+      val source = ApiResponseSetup(crn = sourceCrn)
+      val target = ApiResponseSetup(crn = targetCrn)
+      val personKeyEntity2 = createPersonKey()
+      createPerson(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
+      )
+      val targetPerson = createPerson(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
+        personKeyEntity = personKeyEntity2,
+      )
 
-    val sourceCluster = personKeyRepository.findByPersonId(personKeyEntity1.personId)
-    assertThat(sourceCluster?.personEntities?.size).isEqualTo(1)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
 
-    val targetCluster = personKeyRepository.findByPersonId(personKeyEntity2.personId)
-    assertThat(targetCluster?.personEntities?.size).isEqualTo(1)
-  }
+      checkTelemetry(
+        MERGE_MESSAGE_RECEIVED,
+        mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_MERGED,
+        mapOf(
+          "TO_UUID" to personKeyEntity2.personId.toString(),
+          "FROM_UUID" to null,
+          "SOURCE_CRN" to sourceCrn,
+          "TARGET_CRN" to targetCrn,
+          "SOURCE_SYSTEM" to "DELIUS",
+        ),
+      )
 
-  @Test
-  fun `processes offender merge event with different UUIDs where source doesn't have an UUID`() {
-    val sourceCrn = randomCrn()
-    val targetCrn = randomCrn()
-    val source = ApiResponseSetup(crn = sourceCrn)
-    val target = ApiResponseSetup(crn = targetCrn)
-    val personKeyEntity2 = createPersonKey()
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
-    )
-    val targetPerson = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
-      personKeyEntity = personKeyEntity2,
-    )
+      val sourcePerson = personRepository.findByCrn(sourceCrn)
+      assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
+      assertThat(sourcePerson?.personKey).isNull()
 
-    probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+      val targetCluster = personKeyRepository.findByPersonId(personKeyEntity2.personId)
+      assertThat(targetCluster?.personEntities?.size).isEqualTo(1)
+    }
 
-    checkTelemetry(
-      MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_MERGED,
-      mapOf(
-        "TO_UUID" to personKeyEntity2.personId.toString(),
-        "FROM_UUID" to null,
-        "SOURCE_CRN" to sourceCrn,
-        "TARGET_CRN" to targetCrn,
-        "SOURCE_SYSTEM" to "DELIUS",
-      ),
-    )
+    @Test
+    fun `processes offender merge event with different UUIDs where source has a single record`() {
+      val sourceCrn = randomCrn()
+      val targetCrn = randomCrn()
+      val source = ApiResponseSetup(crn = sourceCrn)
+      val target = ApiResponseSetup(crn = targetCrn)
+      val personKeyEntity1 = createPersonKey()
+      val personKeyEntity2 = createPersonKey()
+      createPerson(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
+        personKeyEntity = personKeyEntity1,
+      )
+      val targetPerson = createPerson(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
+        personKeyEntity = personKeyEntity2,
+      )
 
-    val sourcePerson = personRepository.findByCrn(sourceCrn)
-    assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
-    assertThat(sourcePerson?.personKey).isNull()
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
 
-    val targetCluster = personKeyRepository.findByPersonId(personKeyEntity2.personId)
-    assertThat(targetCluster?.personEntities?.size).isEqualTo(1)
-  }
+      checkTelemetry(
+        MERGE_MESSAGE_RECEIVED,
+        mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_MERGED,
+        mapOf(
+          "TO_UUID" to personKeyEntity2.personId.toString(),
+          "FROM_UUID" to personKeyEntity1.personId.toString(),
+          "SOURCE_CRN" to sourceCrn,
+          "TARGET_CRN" to targetCrn,
+          "SOURCE_SYSTEM" to "DELIUS",
+        ),
+      )
 
-  @Test
-  fun `processes offender merge event with different UUIDs where source has a single record`() {
-    val sourceCrn = randomCrn()
-    val targetCrn = randomCrn()
-    val source = ApiResponseSetup(crn = sourceCrn)
-    val target = ApiResponseSetup(crn = targetCrn)
-    val personKeyEntity1 = createPersonKey()
-    val personKeyEntity2 = createPersonKey()
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
-      personKeyEntity = personKeyEntity1,
-    )
-    val targetPerson = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
-      personKeyEntity = personKeyEntity2,
-    )
+      val sourcePerson = personRepository.findByCrn(sourceCrn)
+      assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
+      assertThat(sourcePerson?.personKey?.mergedTo).isEqualTo(targetPerson.personKey?.id)
+      assertThat(sourcePerson?.personKey?.status).isEqualTo(UUIDStatusType.MERGED)
+    }
 
-    probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+    @Test
+    fun `should retry on 500 error`() {
+      val sourceCrn = randomCrn()
+      val targetCrn = randomCrn()
+      stub500Response(probationUrl(targetCrn), "next request will succeed", "retry")
 
-    checkTelemetry(
-      MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_MERGED,
-      mapOf(
-        "TO_UUID" to personKeyEntity2.personId.toString(),
-        "FROM_UUID" to personKeyEntity1.personId.toString(),
-        "SOURCE_CRN" to sourceCrn,
-        "TARGET_CRN" to targetCrn,
-        "SOURCE_SYSTEM" to "DELIUS",
-      ),
-    )
+      val source = ApiResponseSetup(crn = sourceCrn)
+      val target = ApiResponseSetup(crn = targetCrn)
+      val personKeyEntity = createPersonKey()
+      createPerson(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
+        personKeyEntity = personKeyEntity,
+      )
+      createPerson(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
+        personKeyEntity = personKeyEntity,
+      )
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target, scenario = "retry", currentScenarioState = "next request will succeed")
 
-    val sourcePerson = personRepository.findByCrn(sourceCrn)
-    assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
-    assertThat(sourcePerson?.personKey?.mergedTo).isEqualTo(targetPerson.personKey?.id)
-    assertThat(sourcePerson?.personKey?.status).isEqualTo(UUIDStatusType.MERGED)
-  }
+      expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
 
-  @Test
-  fun `should retry on 500 error`() {
-    val sourceCrn = randomCrn()
-    val targetCrn = randomCrn()
-    stub500Response(probationUrl(targetCrn), "next request will succeed", "retry")
+      checkTelemetry(
+        MERGE_MESSAGE_RECEIVED,
+        mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_MERGED,
+        mapOf(
+          "TO_UUID" to personKeyEntity.personId.toString(),
+          "FROM_UUID" to personKeyEntity.personId.toString(),
+          "SOURCE_SYSTEM" to "DELIUS",
+        ),
+      )
+    }
 
-    val source = ApiResponseSetup(crn = sourceCrn)
-    val target = ApiResponseSetup(crn = targetCrn)
-    val personKeyEntity = createPersonKey()
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
-      personKeyEntity = personKeyEntity,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
-      personKeyEntity = personKeyEntity,
-    )
-    probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target, scenario = "retry", currentScenarioState = "next request will succeed")
+    @Test
+    fun `processes offender merge event is mapped to EventLogging table`() {
+      val sourceCrn = randomCrn()
+      val targetCrn = randomCrn()
+      val source = ApiResponseSetup(crn = sourceCrn)
+      val target = ApiResponseSetup(crn = targetCrn)
+      val personKeyEntity = createPersonKey()
+      createPerson(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
+        personKeyEntity = personKeyEntity,
+      )
+      createPerson(
+        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
+        personKeyEntity = personKeyEntity,
+      )
 
-    expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
 
-    checkTelemetry(
-      MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_MERGED,
-      mapOf(
-        "TO_UUID" to personKeyEntity.personId.toString(),
-        "FROM_UUID" to personKeyEntity.personId.toString(),
-        "SOURCE_SYSTEM" to "DELIUS",
-      ),
-    )
+      val loggedEvent = awaitNotNullEventLog(targetCrn, OFFENDER_MERGED)
+
+      val sourcePerson = personRepository.findByCrn(sourceCrn)
+      val targetPerson = personRepository.findByCrn(targetCrn)
+
+      val beforeDataDTO = sourcePerson?.let { Person.from(it) }
+      val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
+
+      val processedDataDTO = targetPerson?.let { Person.from(it) }
+      val processedData = objectMapper.writeValueAsString(processedDataDTO)
+
+      assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
+      assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
+      assertThat(loggedEvent.beforeData).isEqualTo(beforeData)
+      assertThat(loggedEvent.processedData).isEqualTo(processedData)
+
+      assertThat(loggedEvent.uuid).isEqualTo(sourcePerson?.personKey?.personId.toString())
+    }
+
+    @Test
+    fun `should not throw error if person match returns a 404 on delete`() {
+      val sourceCrn = randomCrn()
+      val targetCrn = randomCrn()
+      val source = ApiResponseSetup(crn = sourceCrn)
+      val target = ApiResponseSetup(crn = targetCrn)
+      val personKeyEntity = createPersonKey()
+      createPerson(
+        Person.from(
+          ProbationCase(
+            name = Name(firstName = randomName(), lastName = randomName()),
+            identifiers = Identifiers(crn = sourceCrn),
+          ),
+        ),
+        personKeyEntity = personKeyEntity,
+      )
+      createPerson(
+        Person.from(
+          ProbationCase(
+            name = Name(firstName = randomName(), lastName = randomName()),
+            identifiers = Identifiers(crn = targetCrn),
+          ),
+        ),
+        personKeyEntity = personKeyEntity,
+      )
+
+      stubDeletePersonMatch(status = 404)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+
+      checkTelemetry(
+        CPR_RECORD_MERGED,
+        mapOf(
+          "TO_UUID" to personKeyEntity.personId.toString(),
+          "FROM_UUID" to personKeyEntity.personId.toString(),
+          "SOURCE_CRN" to sourceCrn,
+          "TARGET_CRN" to targetCrn,
+          "SOURCE_SYSTEM" to "DELIUS",
+        ),
+      )
+    }
   }
 
   @Test
@@ -336,16 +379,12 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `processes offender merge event is mapped to EventLogging table`() {
+  fun `processes offender merge event with source record does not exist`() {
     val sourceCrn = randomCrn()
     val targetCrn = randomCrn()
     val source = ApiResponseSetup(crn = sourceCrn)
     val target = ApiResponseSetup(crn = targetCrn)
     val personKeyEntity = createPersonKey()
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
-      personKeyEntity = personKeyEntity,
-    )
     createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
       personKeyEntity = personKeyEntity,
@@ -353,59 +392,24 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
 
-    val loggedEvent = awaitNotNullEventLog(targetCrn, OFFENDER_MERGED)
-
-    val sourcePerson = personRepository.findByCrn(sourceCrn)
-    val targetPerson = personRepository.findByCrn(targetCrn)
-
-    val beforeDataDTO = sourcePerson?.let { Person.from(it) }
-    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
-
-    val processedDataDTO = targetPerson?.let { Person.from(it) }
-    val processedData = objectMapper.writeValueAsString(processedDataDTO)
-
-    assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
-    assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
-    assertThat(loggedEvent.beforeData).isEqualTo(beforeData)
-    assertThat(loggedEvent.processedData).isEqualTo(processedData)
-
-    assertThat(loggedEvent.uuid).isEqualTo(sourcePerson?.personKey?.personId.toString())
-  }
-
-  @Test
-  fun `should not throw error if person match returns a 404 on delete`() {
-    val sourceCrn = randomCrn()
-    val targetCrn = randomCrn()
-    val source = ApiResponseSetup(crn = sourceCrn)
-    val target = ApiResponseSetup(crn = targetCrn)
-    val personKeyEntity = createPersonKey()
-    createPerson(
-      Person.from(
-        ProbationCase(
-          name = Name(firstName = randomName(), lastName = randomName()),
-          identifiers = Identifiers(crn = sourceCrn),
-        ),
-      ),
-      personKeyEntity = personKeyEntity,
+    checkTelemetry(
+      MERGE_MESSAGE_RECEIVED,
+      mapOf("SOURCE_CRN" to sourceCrn, "TARGET_CRN" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
     )
-    createPerson(
-      Person.from(
-        ProbationCase(
-          name = Name(firstName = randomName(), lastName = randomName()),
-          identifiers = Identifiers(crn = targetCrn),
-        ),
+    checkTelemetry(
+      CPR_MERGE_RECORD_NOT_FOUND,
+      mapOf(
+        "RECORD_TYPE" to "SOURCE",
+        "SOURCE_CRN" to sourceCrn,
+        "TARGET_CRN" to targetCrn,
+        "SOURCE_SYSTEM" to "DELIUS",
       ),
-      personKeyEntity = personKeyEntity,
     )
-
-    stubDeletePersonMatch(status = 404)
-    probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
-
     checkTelemetry(
       CPR_RECORD_MERGED,
       mapOf(
         "TO_UUID" to personKeyEntity.personId.toString(),
-        "FROM_UUID" to personKeyEntity.personId.toString(),
+        "FROM_UUID" to null,
         "SOURCE_CRN" to sourceCrn,
         "TARGET_CRN" to targetCrn,
         "SOURCE_SYSTEM" to "DELIUS",
