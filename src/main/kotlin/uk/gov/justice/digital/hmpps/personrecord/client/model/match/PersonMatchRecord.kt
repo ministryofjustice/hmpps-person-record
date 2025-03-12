@@ -38,7 +38,7 @@ data class PersonMatchRecord(
       pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue },
       sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.map { it.toString() },
       crn = personEntity.crn ?: "",
-      prisonNumber = personEntity.prisonNumber?: "",
+      prisonNumber = personEntity.prisonNumber ?: "",
     )
   }
 }
