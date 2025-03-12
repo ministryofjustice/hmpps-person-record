@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
-import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilNotNull
@@ -43,6 +42,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationality
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
@@ -148,23 +148,24 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should link person to an existing NOMIS record`() {
+    fun `should link new probation record to an existing prison record`() {
       val crn = randomCrn()
       val prisonNumber = randomPrisonNumber()
       val firstName = randomName()
       val pnc = randomPnc()
       val cro = randomCro()
-      val person = Person(
+      val postcode = randomPostcode()
+      val existingPrisoner = Person(
         prisonNumber = prisonNumber,
         references = listOf(
           Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
           Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
         ),
-        addresses = listOf(Address(postcode = "LS1 1AB")),
+        addresses = listOf(Address(postcode = postcode)),
         sourceSystem = NOMIS,
       )
       val personKeyEntity = createPersonKey()
-      createPerson(person, personKeyEntity = personKeyEntity)
+      createPerson(existingPrisoner, personKeyEntity = personKeyEntity)
 
       stubOneHighConfidenceMatch()
 
@@ -174,7 +175,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         firstName = firstName,
         prisonNumber = prisonNumber,
         cro = cro,
-        addresses = listOf(ApiResponseSetupAddress(postcode = "LS1 1AB", fullAddress = "abc street"), ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street")),
+        addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = "abc street"), ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = "abc street")),
       )
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
 
@@ -385,9 +386,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should log when message processing fails`() {
     val crn = randomCrn()
-    stub500Response(probationUrl(crn), STARTED, "failure")
-    stub500Response(probationUrl(crn), STARTED, "failure")
-    stub500Response(probationUrl(crn), STARTED, "failure")
+    stub500Response(probationUrl(crn), nextScenarioState = "request will fail", "failure")
+    stub500Response(probationUrl(crn), currentScenarioState = "request will fail", nextScenarioState = "request will fail", scenarioName = "failure")
+    stub500Response(probationUrl(crn), currentScenarioState = "request will fail", nextScenarioState = "request will fail", scenarioName = "failure")
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
 
