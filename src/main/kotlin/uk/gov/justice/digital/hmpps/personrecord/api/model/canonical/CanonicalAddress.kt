@@ -6,9 +6,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 data class CanonicalAddress(
   @Schema(description = "Person no fixed abode", example = "True")
   val noFixedAbode: String? = "",
-  @Schema(description = "Person address start date", example = "02/02/2020")
+  @Schema(description = "Person address start date", example = "2020-02-26")
   val startDate: String? = "",
-  @Schema(description = "Person address end date", example = "04/04/2023")
+  @Schema(description = "Person address end date", example = "2023-07-15")
   val endDate: String? = "",
   @Schema(description = "Person address postcode", example = "SW1H 9AJ")
   val postcode: String? = "",
