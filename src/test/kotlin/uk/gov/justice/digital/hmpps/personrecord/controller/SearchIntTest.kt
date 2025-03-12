@@ -384,6 +384,9 @@ class SearchIntTest : WebTestBase() {
   fun `should add list of additional identifiers to the canonical record`() {
     val personKey = createPersonKey()
 
+    val personOneCro = randomCro()
+    val personTwoCro = randomCro()
+
     val personOne = createPerson(
       Person(
         firstName = randomName(),
@@ -400,6 +403,9 @@ class SearchIntTest : WebTestBase() {
         cId = randomCId(),
         defendantId = randomDefendantId(),
         masterDefendantId = randomDefendantId(),
+        references = listOf(
+          Reference(identifierType = IdentifierType.CRO, identifierValue = personOneCro),
+        ),
       ),
       personKey,
     )
@@ -420,6 +426,9 @@ class SearchIntTest : WebTestBase() {
         cId = randomCId(),
         defendantId = randomDefendantId(),
         masterDefendantId = randomDefendantId(),
+        references = listOf(
+          Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
+        ),
       ),
       personKey,
     )
@@ -434,6 +443,7 @@ class SearchIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
+    assertThat(responseBody.identifiers.cros).containsExactlyInAnyOrderElementsOf(listOf(personOneCro, personTwoCro))
     assertThat(responseBody.identifiers.crns).containsExactlyInAnyOrderElementsOf(listOf(personOne.crn, personTwo.crn))
     assertThat(responseBody.identifiers.defendantIds).containsExactlyInAnyOrderElementsOf(listOf(personOne.defendantId, personTwo.defendantId))
     assertThat(responseBody.identifiers.prisonNumbers).containsExactlyInAnyOrderElementsOf(listOf(personOne.prisonNumber, personTwo.prisonNumber))
