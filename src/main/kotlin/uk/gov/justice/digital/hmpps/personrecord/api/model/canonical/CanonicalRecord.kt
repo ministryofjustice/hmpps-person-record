@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 
 data class CanonicalRecord(
@@ -47,17 +48,10 @@ data class CanonicalRecord(
         ethnicity = latestPerson.ethnicity ?: "",
         aliases = getAliases(latestPerson),
         addresses = getAddresses(latestPerson),
-        identifiers = getCanonicalIdentifiers(personKey.personEntities) + CanonicalIdentifier.fromReferenceEntityList(latestPerson.references),
+        identifiers = CanonicalIdentifiers.from(personKey.personEntities),
         nationalities = CanonicalNationality.from(latestPerson),
       )
     }
-
-    private fun getCanonicalIdentifiers(personEntities: List<PersonEntity>): MutableList<CanonicalIdentifier> = listOf(
-      CanonicalIdentifier(CRN, personEntities.mapNotNull { it.crn }),
-      CanonicalIdentifier(DEFENDANT_ID, personEntities.mapNotNull { it.defendantId }),
-      CanonicalIdentifier(PRISON_NUMBER, personEntities.mapNotNull { it.prisonNumber }),
-      CanonicalIdentifier(C_ID, personEntities.mapNotNull { it.cId }),
-    ).toMutableList()
 
     private fun getAliases(person: PersonEntity?): List<CanonicalAlias> = person?.pseudonyms?.let { CanonicalAlias.fromPseudonymEntityList(it) } ?: emptyList()
 
