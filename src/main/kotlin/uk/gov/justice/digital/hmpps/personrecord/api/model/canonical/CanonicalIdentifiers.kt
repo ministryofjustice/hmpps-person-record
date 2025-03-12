@@ -66,7 +66,7 @@ data class CanonicalIdentifiers(
   @ArraySchema(
     schema = Schema(
       description = "List of arrest summons numbers",
-      example = "",
+      example = "0700000000000002536Y",
     ),
   )
   val arrestSummonsNumbers: List<String> = emptyList(),
