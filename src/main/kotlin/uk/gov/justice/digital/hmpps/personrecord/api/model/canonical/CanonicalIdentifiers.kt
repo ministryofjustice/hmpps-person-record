@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 
 data class CanonicalIdentifiers(
@@ -74,27 +72,17 @@ data class CanonicalIdentifiers(
 ) {
   companion object {
 
-    fun from(latestPerson: PersonEntity, personEntities: List<PersonEntity>): CanonicalIdentifiers {
-      val references: List<MutableList<ReferenceEntity>> = personEntities.mapNotNull { it.references }
-      val flattern: List<ReferenceEntity> = references.flatten()
-      val getidentifiertype: List<ReferenceEntity> = flattern.filter { it.identifierType == IdentifierType.CRO }
-      val getidentifiervalue = getidentifiertype.mapNotNull { it.identifierValue }
+    fun from(personEntities: List<PersonEntity>): CanonicalIdentifiers = CanonicalIdentifiers(
 
-      return CanonicalIdentifiers(
-
-        crns = personEntities.mapNotNull { it.crn },
-        prisonNumbers = personEntities.mapNotNull { it.prisonNumber },
-        defendantIds = personEntities.mapNotNull { it.defendantId },
-        cids = personEntities.mapNotNull { it.cId },
-        cros = getidentifiervalue,
-        pncs = latestPerson.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue },
-        nationalInsuranceNumbers = latestPerson.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER)
-          .mapNotNull { it.identifierValue },
-        arrestSummonsNumbers = latestPerson.references.getType(IdentifierType.ARREST_SUMMONS_NUMBER)
-          .mapNotNull { it.identifierValue },
-        driverLicenseNumbers = latestPerson.references.getType(IdentifierType.DRIVER_LICENSE_NUMBER)
-          .mapNotNull { it.identifierValue },
-      )
-    }
+      crns = personEntities.mapNotNull { it.crn },
+      prisonNumbers = personEntities.mapNotNull { it.prisonNumber },
+      defendantIds = personEntities.mapNotNull { it.defendantId },
+      cids = personEntities.mapNotNull { it.cId },
+      cros = personEntities.map { it.references }.flatten().filter { it.identifierType == IdentifierType.CRO }.mapNotNull { it.identifierValue },
+      pncs = personEntities.map { it.references }.flatten().filter { it.identifierType == IdentifierType.PNC }.mapNotNull { it.identifierValue },
+      nationalInsuranceNumbers = personEntities.map { it.references }.flatten().filter { it.identifierType == IdentifierType.NATIONAL_INSURANCE_NUMBER }.mapNotNull { it.identifierValue },
+      arrestSummonsNumbers = personEntities.map { it.references }.flatten().filter { it.identifierType == IdentifierType.ARREST_SUMMONS_NUMBER }.mapNotNull { it.identifierValue },
+      driverLicenseNumbers = personEntities.map { it.references }.flatten().filter { it.identifierType == IdentifierType.DRIVER_LICENSE_NUMBER }.mapNotNull { it.identifierValue },
+    )
   }
 }

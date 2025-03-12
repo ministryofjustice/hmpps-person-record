@@ -47,7 +47,7 @@ data class CanonicalRecord(
         ethnicity = latestPerson.ethnicity,
         aliases = CanonicalAlias.fromPseudonymEntityList(latestPerson.pseudonyms),
         addresses = CanonicalAddress.fromAddressEntityList(latestPerson.addresses),
-        identifiers = CanonicalIdentifiers.from(latestPerson, personKey.personEntities),
+        identifiers = CanonicalIdentifiers.from(personKey.personEntities),
         nationalities = CanonicalNationality.from(latestPerson),
       )
     }

@@ -23,14 +23,17 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.CO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationality
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPersonId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
@@ -387,6 +390,21 @@ class SearchIntTest : WebTestBase() {
     val personOneCro = randomCro()
     val personTwoCro = randomCro()
 
+    val personOneCrn = randomCrn()
+    val personTwoCrn = randomCrn()
+
+    val personOnePnc = randomPnc()
+    val personTwoPnc = randomPnc()
+
+    val personOneNationalInsuranceNumber = randomNationalInsuranceNumber()
+    val personTwoNationalInsuranceNumber = randomNationalInsuranceNumber()
+
+    val personOneArrestSummonNumber = randomArrestSummonNumber()
+    val personTwoArrestSummonNumber = randomArrestSummonNumber()
+
+    val personOneDriversLicenseNumber = randomDriverLicenseNumber()
+    val personTwoDriversLicenseNumber = randomDriverLicenseNumber()
+
     val personOne = createPerson(
       Person(
         firstName = randomName(),
@@ -395,7 +413,7 @@ class SearchIntTest : WebTestBase() {
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
         title = randomName(),
-        crn = randomCrn(),
+        crn = personOneCrn,
         prisonNumber = randomPrisonNumber(),
         ethnicity = randomEthnicity(),
         nationality = randomNationality(),
@@ -405,6 +423,10 @@ class SearchIntTest : WebTestBase() {
         masterDefendantId = randomDefendantId(),
         references = listOf(
           Reference(identifierType = IdentifierType.CRO, identifierValue = personOneCro),
+          Reference(identifierType = IdentifierType.PNC, identifierValue = personOnePnc),
+          Reference(identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER, identifierValue = personOneNationalInsuranceNumber),
+          Reference(identifierType = IdentifierType.ARREST_SUMMONS_NUMBER, identifierValue = personOneArrestSummonNumber),
+          Reference(identifierType = IdentifierType.DRIVER_LICENSE_NUMBER, identifierValue = personOneDriversLicenseNumber),
         ),
       ),
       personKey,
@@ -418,7 +440,7 @@ class SearchIntTest : WebTestBase() {
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
         title = randomName(),
-        crn = randomCrn(),
+        crn = personTwoCrn,
         prisonNumber = randomPrisonNumber(),
         ethnicity = randomEthnicity(),
         nationality = randomNationality(),
@@ -428,6 +450,10 @@ class SearchIntTest : WebTestBase() {
         masterDefendantId = randomDefendantId(),
         references = listOf(
           Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
+          Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
+          Reference(identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER, identifierValue = personTwoNationalInsuranceNumber),
+          Reference(identifierType = IdentifierType.ARREST_SUMMONS_NUMBER, identifierValue = personTwoArrestSummonNumber),
+          Reference(identifierType = IdentifierType.DRIVER_LICENSE_NUMBER, identifierValue = personTwoDriversLicenseNumber),
         ),
       ),
       personKey,
@@ -444,6 +470,10 @@ class SearchIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(responseBody.identifiers.cros).containsExactlyInAnyOrderElementsOf(listOf(personOneCro, personTwoCro))
+    assertThat(responseBody.identifiers.pncs).containsExactlyInAnyOrderElementsOf(listOf(personOnePnc, personTwoPnc))
+    assertThat(responseBody.identifiers.nationalInsuranceNumbers).containsExactlyInAnyOrderElementsOf(listOf(personOneNationalInsuranceNumber, personTwoNationalInsuranceNumber))
+    assertThat(responseBody.identifiers.arrestSummonsNumbers).containsExactlyInAnyOrderElementsOf(listOf(personOneArrestSummonNumber, personTwoArrestSummonNumber))
+    assertThat(responseBody.identifiers.driverLicenseNumbers).containsExactlyInAnyOrderElementsOf(listOf(personOneDriversLicenseNumber, personTwoDriversLicenseNumber))
     assertThat(responseBody.identifiers.crns).containsExactlyInAnyOrderElementsOf(listOf(personOne.crn, personTwo.crn))
     assertThat(responseBody.identifiers.defendantIds).containsExactlyInAnyOrderElementsOf(listOf(personOne.defendantId, personTwo.defendantId))
     assertThat(responseBody.identifiers.prisonNumbers).containsExactlyInAnyOrderElementsOf(listOf(personOne.prisonNumber, personTwo.prisonNumber))
