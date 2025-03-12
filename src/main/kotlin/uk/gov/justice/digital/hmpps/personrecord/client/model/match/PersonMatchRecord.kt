@@ -18,7 +18,10 @@ data class PersonMatchRecord(
   val cros: List<String> = listOf(),
   val pncs: List<String> = listOf(),
   val sentenceDates: List<String> = listOf(),
+  val crn: String? = "",
+  val prisonNumber: String? = "",
 ) {
+
   companion object {
     fun from(personEntity: PersonEntity): PersonMatchRecord = PersonMatchRecord(
       matchId = personEntity.matchId.toString(),
@@ -34,6 +37,8 @@ data class PersonMatchRecord(
       cros = personEntity.references.getType(IdentifierType.CRO).mapNotNull { it.identifierValue },
       pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue },
       sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.map { it.toString() },
+      crn = personEntity.crn ?: "",
+      prisonNumber = personEntity.prisonNumber?: "",
     )
   }
 }
