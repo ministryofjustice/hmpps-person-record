@@ -2,19 +2,27 @@ package uk.gov.justice.digital.hmpps.personrecord.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.client.WireMock.urlMatching
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
+import com.github.tomakehurst.wiremock.http.RequestMethod
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.matching.UrlPattern
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.awaitility.kotlin.atMost
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
 import org.json.JSONObject
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -56,6 +64,25 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var eventLoggingRepository: EventLoggingRepository
+
+  @AfterEach
+  fun after() {
+    wiremock.stubMappings.forEach {
+      when (it.request.method) {
+        RequestMethod.GET -> {
+          if (it.request.url != null) {
+            wiremock.verify(getRequestedFor(urlEqualTo(it.request.url)))
+          } else {
+            wiremock.verify(getRequestedFor(urlMatching(it.request.urlPathPattern)))
+          }
+        }
+        RequestMethod.POST -> wiremock.verify(postRequestedFor(urlEqualTo(it.request.url)))
+        RequestMethod.DELETE -> wiremock.verify(deleteRequestedFor(urlEqualTo(it.request.url)))
+        RequestMethod.PUT -> wiremock.verify(putRequestedFor(urlEqualTo(it.request.url)))
+        else -> fail()
+      }
+    }
+  }
 
   fun probationUrl(crn: String) = "/probation-cases/$crn"
 
