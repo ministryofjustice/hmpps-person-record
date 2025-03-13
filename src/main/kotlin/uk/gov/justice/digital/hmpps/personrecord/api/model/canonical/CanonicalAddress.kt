@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 
 data class CanonicalAddress(
-  @Schema(description = "Person no fixed abode", example = "True")
+  @Schema(description = "Person no fixed abode", example = "\"true\"")
   val noFixedAbode: String? = "",
   @Schema(description = "Person address start date", example = "2020-02-26")
   val startDate: String? = "",

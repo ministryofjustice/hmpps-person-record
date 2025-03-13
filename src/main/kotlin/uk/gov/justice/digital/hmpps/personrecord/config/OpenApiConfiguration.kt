@@ -11,6 +11,7 @@ import io.swagger.v3.oas.models.tags.Tag
 import org.springframework.boot.info.BuildProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 
 @Configuration
 class OpenApiConfiguration(buildProperties: BuildProperties) {
@@ -40,8 +41,12 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
     )
     .components(
       Components().addSecuritySchemes(
-        "bearer-jwt",
-        SecurityScheme().addBearerJwtRequirement("ROLE_CORE_PERSON_RECORD_API__SEARCH__RO"),
+        "search-api-role",
+        SecurityScheme().addBearerJwtRequirement(Roles.SEARCH_API_READ_ONLY),
+
+      ).addSecuritySchemes(
+        "api-role",
+        SecurityScheme().addBearerJwtRequirement(Roles.API_READ_ONLY),
       ),
     )
     .addSecurityItem(SecurityRequirement().addList("bearer-jwt", listOf("read")))
