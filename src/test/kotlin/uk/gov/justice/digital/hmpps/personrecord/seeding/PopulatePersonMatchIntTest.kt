@@ -140,5 +140,5 @@ class PopulatePersonMatchIntTest : WebTestBase() {
     }
   }
 
-  private fun stubPersonMigrate() = stubPostRequest(url = "/person/migrate", body = "")
+  private fun stubPersonMigrate() = stubPostRequest(url = "/person/migrate", responseBody = "")
 }

@@ -115,7 +115,6 @@ class SearchServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    stubOneHighConfidenceMatch()
     stubPersonMatchScores(person.matchId)
     val candidateRecords = searchService.findCandidateRecordsWithUuid(person)
 

@@ -1,21 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.config
 
-import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
-import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
-import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
-import com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor
-import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
-import com.github.tomakehurst.wiremock.client.WireMock.urlMatching
-import com.github.tomakehurst.wiremock.http.RequestMethod
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
-import org.assertj.core.api.Assertions.fail
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
@@ -29,8 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.HmppsTopic
@@ -243,36 +231,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         ),
       ),
     )
-  }
-
-  private fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String, nextScenarioState: String) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
-
-  fun stub500Response(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String? = BASE_SCENARIO, currentScenarioState: String = STARTED) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, url, body = "", status = 500)
-
-  fun stubPrisonResponse(
-    apiResponseSetup: ApiResponseSetup,
-    scenarioName: String? = BASE_SCENARIO,
-    currentScenarioState: String? = STARTED,
-    nextScenarioState: String? = STARTED,
-  ) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/prisoner/${apiResponseSetup.prisonNumber}", prisonerSearchResponse(apiResponseSetup))
-
-  @AfterEach
-  fun after() {
-    wiremock.stubMappings.forEach {
-      when (it.request.method) {
-        RequestMethod.GET -> {
-          if (it.request.url != null) {
-            wiremock.verify(getRequestedFor(urlEqualTo(it.request.url)))
-          } else {
-            wiremock.verify(getRequestedFor(urlMatching(it.request.urlPathPattern)))
-          }
-        }
-        RequestMethod.POST -> wiremock.verify(postRequestedFor(urlEqualTo(it.request.url)))
-        RequestMethod.DELETE -> wiremock.verify(deleteRequestedFor(urlEqualTo(it.request.url)))
-        RequestMethod.PUT -> wiremock.verify(putRequestedFor(urlEqualTo(it.request.url)))
-        else -> fail()
-      }
-    }
   }
 
   @BeforeEach

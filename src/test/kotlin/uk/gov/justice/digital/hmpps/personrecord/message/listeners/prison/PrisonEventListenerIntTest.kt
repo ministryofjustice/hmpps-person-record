@@ -63,9 +63,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should create message processing failed telemetry event when exception thrown`() {
     val prisonNumber = randomPrisonNumber()
-    stub500Response("/prisoner/$prisonNumber", currentScenarioState = "next request will fail", nextScenarioState = "next request will fail", scenarioName = "processing fail")
-    stub500Response("/prisoner/$prisonNumber", "next request will fail", scenarioName = "processing fail")
-    stub500Response("/prisoner/$prisonNumber", "next request will fail", scenarioName = "processing fail")
+    stub5xxResponse("/prisoner/$prisonNumber", currentScenarioState = "next request will fail", nextScenarioState = "next request will fail", scenarioName = "processing fail")
+    stub5xxResponse("/prisoner/$prisonNumber", "next request will fail", scenarioName = "processing fail")
+    stub5xxResponse("/prisoner/$prisonNumber", "next request will fail", scenarioName = "processing fail")
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
     val messageId = publishDomainEvent(PRISONER_CREATED, domainEvent)
@@ -290,7 +290,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     @Test
     fun `should retry on retryable error`() {
       val prisonNumber = randomPrisonNumber()
-      stub500Response("/prisoner/$prisonNumber", nextScenarioState = "next request will succeed", scenarioName = "retry")
+      stub5xxResponse("/prisoner/$prisonNumber", nextScenarioState = "next request will succeed", scenarioName = "retry")
       stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber), scenarioName = "retry", currentScenarioState = "next request will succeed")
       val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
       val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
