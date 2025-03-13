@@ -1,6 +1,6 @@
 <div>
   <h2 id="overview">Overview</h2>
-  <p>This service provides a number of endpoints for searching for a person record within Core Person Record. This may be a Person from Nomis , Delius Or HMCTS source systems.</p>
+  <p>This service provides an endpoint to retrieve a person by UUID.</p>
   <h2 id="data-provided">Data provided</h2>
   <p>The vast majority of the data is sourced from the CPR Record which gets the data from Nomis, Delius & HMCTS source systems.</p>
   <div>The data returned for each person record is essentially data that has been retrieved from Nomis, Delius or HMCTS. This includes the
@@ -23,14 +23,16 @@
   </p>
 
   The following roles are currently in use in this service:
-  <ul>
+  <ol>
     <li>
-      ROLE_CORE_PERSON_RECORD_API__SEARCH__RO. This role grants access to all of the search endpoints.
+      ROLE_CORE_PERSON_RECORD_API__SEARCH__RO: Grants access to all of the search endpoints
     </li>
-  </ul>
+    <li>
+      ROLE_CORE_PERSON_RECORD_API__RO: Grants access to the Retrieve person record by UUID</li>
+  </ol>
   <h2 id="types-of-endpoints">Types of endpoints</h2>
   <h3>Retrieve person record by UUID</h3>
   <p>
-   Search for a person representation using a UUID, this will give back a person record with data including Identifiers associated with that UUID.
+   This will give back a person record with data including Identifiers associated with that UUID.
   </p>
 </div>

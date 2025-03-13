@@ -21,8 +21,10 @@ import java.util.UUID
 class APIController(
   private val personKeyRepository: PersonKeyRepository,
 ) {
-
-  @Operation(description = "Retrieve person record by UUID")
+  @Operation(
+    description = "Retrieve person record by UUID. Role required is **${Roles.API_READ_ONLY}**",
+    security = [io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "api-role")],
+  )
   @GetMapping("/person/{uuid}")
   @ApiResponses(
     ApiResponse(responseCode = "200", description = "OK"),
