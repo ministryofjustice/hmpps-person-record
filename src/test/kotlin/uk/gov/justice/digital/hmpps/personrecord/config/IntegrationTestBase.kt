@@ -2,19 +2,30 @@ package uk.gov.justice.digital.hmpps.personrecord.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.client.WireMock.urlMatching
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
+import com.github.tomakehurst.wiremock.http.RequestMethod.DELETE
+import com.github.tomakehurst.wiremock.http.RequestMethod.GET
+import com.github.tomakehurst.wiremock.http.RequestMethod.POST
+import com.github.tomakehurst.wiremock.http.RequestMethod.PUT
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.matching.UrlPattern
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.fail
 import org.awaitility.kotlin.atMost
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.jmock.lib.concurrent.Blitzer
 import org.json.JSONObject
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -35,6 +46,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import java.time.Duration
 import java.util.UUID
 
@@ -56,6 +70,25 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var eventLoggingRepository: EventLoggingRepository
+
+  @AfterEach
+  fun after() {
+    wiremock.stubMappings.forEach {
+      when (it.request.method) {
+        GET -> {
+          if (it.request.url != null) {
+            wiremock.verify(getRequestedFor(urlEqualTo(it.request.url)))
+          } else {
+            wiremock.verify(getRequestedFor(urlMatching(it.request.urlPathPattern)))
+          }
+        }
+        POST -> wiremock.verify(postRequestedFor(urlEqualTo(it.request.url)))
+        DELETE -> wiremock.verify(deleteRequestedFor(urlEqualTo(it.request.url)))
+        PUT -> wiremock.verify(putRequestedFor(urlEqualTo(it.request.url)))
+        else -> fail()
+      }
+    }
+  }
 
   fun probationUrl(crn: String) = "/probation-cases/$crn"
 
@@ -155,7 +188,7 @@ class IntegrationTestBase {
       nextScenarioState,
       url = "/person/match",
       status = status,
-      body = objectMapper.writeValueAsString(matchResponse),
+      responseBody = objectMapper.writeValueAsString(matchResponse),
     )
   }
 
@@ -179,7 +212,7 @@ class IntegrationTestBase {
       nextScenarioState,
       url = "/person",
       status = status,
-      body = body,
+      responseBody = body,
     )
   }
 
@@ -201,6 +234,19 @@ class IntegrationTestBase {
     )
   }
 
+  fun stubGetRequestWithTimeout(url: String, currentScenarioState: String, nextScenarioState: String) = wiremock.stubFor(
+    WireMock.get(url)
+      .inScenario(BASE_SCENARIO)
+      .whenScenarioStateIs(currentScenarioState)
+      .willSetStateTo(nextScenarioState)
+      .willReturn(
+        WireMock.aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withStatus(200)
+          .withFixedDelay(210),
+      ),
+  )
+
   internal fun stubGetRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String, status: Int = 200) {
     stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, urlEqualTo(url), body, status)
   }
@@ -220,7 +266,7 @@ class IntegrationTestBase {
     )
   }
 
-  internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String, status: Int = 200) {
+  internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, responseBody: String, status: Int = 200) {
     wiremock.stubFor(
       WireMock.post(url)
         .inScenario(scenarioName)
@@ -230,7 +276,7 @@ class IntegrationTestBase {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(status)
-            .withBody(body),
+            .withBody(responseBody),
         ),
     )
   }
@@ -249,6 +295,17 @@ class IntegrationTestBase {
         ),
     )
   }
+
+  fun stub5xxResponse(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String? = BASE_SCENARIO, currentScenarioState: String = STARTED, status: Int = 500) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, url, body = "", status = status)
+
+  fun stubPrisonResponse(
+    apiResponseSetup: ApiResponseSetup,
+    scenarioName: String? = BASE_SCENARIO,
+    currentScenarioState: String? = STARTED,
+    nextScenarioState: String? = STARTED,
+  ) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/prisoner/${apiResponseSetup.prisonNumber}", prisonerSearchResponse(apiResponseSetup))
+
+  fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String, nextScenarioState: String) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
 
   fun blitz(actionCount: Int, threadCount: Int, action: () -> Unit) {
     val blitzer = Blitzer(actionCount, threadCount)

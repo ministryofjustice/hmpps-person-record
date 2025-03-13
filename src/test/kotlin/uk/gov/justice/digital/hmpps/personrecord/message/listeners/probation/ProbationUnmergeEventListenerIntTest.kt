@@ -114,7 +114,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
         personKeyEntity = reactivatedPersonKey,
       )
-      stub500Response(probationUrl(unmergedCrn), "next request will succeed", "retry")
+      stub5xxResponse(probationUrl(unmergedCrn), "next request will succeed", "retry")
 
       val reactivated = ApiResponseSetup(crn = reactivatedCrn)
       val unmerged = ApiResponseSetup(crn = unmergedCrn)
@@ -439,9 +439,9 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should log when message processing fails`() {
     val reactivatedCrn = randomCrn()
     val unmergedCrn = randomCrn()
-    stub500Response(probationUrl(unmergedCrn), "next request will fail", "failure")
-    stub500Response(probationUrl(unmergedCrn), "next request will fail", "failure", "next request will fail")
-    stub500Response(probationUrl(unmergedCrn), "next request will fail", "failure", "next request will fail")
+    stub5xxResponse(probationUrl(unmergedCrn), "next request will fail", "failure")
+    stub5xxResponse(probationUrl(unmergedCrn), "next request will fail", "failure", "next request will fail")
+    stub5xxResponse(probationUrl(unmergedCrn), "next request will fail", "failure", "next request will fail")
 
     val messageId = publishDomainEvent(
       OFFENDER_UNMERGED,
