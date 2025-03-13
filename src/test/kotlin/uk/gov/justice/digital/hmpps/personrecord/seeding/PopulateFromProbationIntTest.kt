@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.seeding
 
-import com.github.tomakehurst.wiremock.client.WireMock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
@@ -72,19 +71,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
 
     stub5xxResponse("/all-probation-cases?size=2&page=0&sort=id%2Casc", nextScenarioState = "next request will time out", scenarioName = scenarioName, status = 503)
 
-    // second call times out
-    wiremock.stubFor(
-      WireMock.get("/all-probation-cases?size=2&page=0&sort=id%2Casc")
-        .inScenario(scenarioName)
-        .whenScenarioStateIs("next request will time out")
-        .willSetStateTo("next request will succeed")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withFixedDelay(210),
-        ),
-    )
+    stubGetRequestWithTimeout("/all-probation-cases?size=2&page=0&sort=id%2Casc", "next request will time out", "next request will succeed")
 
     stubResponse(crnOne, "POPOne", crnTwo, "POPTwo", 0, scenarioName, 1)
 

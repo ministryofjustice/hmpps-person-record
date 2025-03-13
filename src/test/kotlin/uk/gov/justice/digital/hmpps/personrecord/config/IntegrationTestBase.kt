@@ -188,7 +188,7 @@ class IntegrationTestBase {
       nextScenarioState,
       url = "/person/match",
       status = status,
-      body = objectMapper.writeValueAsString(matchResponse),
+      responseBody = objectMapper.writeValueAsString(matchResponse),
     )
   }
 
@@ -212,7 +212,7 @@ class IntegrationTestBase {
       nextScenarioState,
       url = "/person",
       status = status,
-      body = body,
+      responseBody = body,
     )
   }
 
@@ -234,6 +234,19 @@ class IntegrationTestBase {
     )
   }
 
+  fun stubGetRequestWithTimeout(url: String, currentScenarioState: String, nextScenarioState: String) = wiremock.stubFor(
+    WireMock.get(url)
+      .inScenario(BASE_SCENARIO)
+      .whenScenarioStateIs(currentScenarioState)
+      .willSetStateTo(nextScenarioState)
+      .willReturn(
+        WireMock.aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withStatus(200)
+          .withFixedDelay(210),
+      ),
+  )
+
   internal fun stubGetRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String, status: Int = 200) {
     stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, urlEqualTo(url), body, status)
   }
@@ -253,7 +266,7 @@ class IntegrationTestBase {
     )
   }
 
-  internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String, status: Int = 200) {
+  internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, responseBody: String, status: Int = 200) {
     wiremock.stubFor(
       WireMock.post(url)
         .inScenario(scenarioName)
@@ -263,7 +276,7 @@ class IntegrationTestBase {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(status)
-            .withBody(body),
+            .withBody(responseBody),
         ),
     )
   }
