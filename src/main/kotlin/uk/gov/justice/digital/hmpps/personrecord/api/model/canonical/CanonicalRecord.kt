@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 
 data class CanonicalRecord(
@@ -12,7 +13,7 @@ data class CanonicalRecord(
   val middleNames: String? = "",
   @Schema(description = "Person last name", example = "Doe")
   val lastName: String? = "",
-  @Schema(description = "Person date of birth", example = "01/01/1990")
+  @Schema(description = "Person date of birth", example = "1990-08-21")
   val dateOfBirth: String? = "",
   @Schema(description = "Person title", example = "Mr")
   val title: String? = "",
@@ -33,23 +34,28 @@ data class CanonicalRecord(
 
 ) {
   companion object {
+    @Suppress("CyclomaticComplexMethod")
     fun from(personKey: PersonKeyEntity): CanonicalRecord {
       val latestPerson = personKey.personEntities.sortedByDescending { it.lastModified }.first()
       return CanonicalRecord(
         cprUUID = personKey.personId.toString(),
-        firstName = latestPerson.firstName,
-        middleNames = latestPerson.middleNames,
-        lastName = latestPerson.lastName,
+        firstName = latestPerson.firstName ?: "",
+        middleNames = latestPerson.middleNames ?: "",
+        lastName = latestPerson.lastName ?: "",
         dateOfBirth = latestPerson.dateOfBirth?.toString() ?: "",
-        title = latestPerson.title,
-        sex = latestPerson.sex,
-        religion = latestPerson.religion,
-        ethnicity = latestPerson.ethnicity,
-        aliases = CanonicalAlias.fromPseudonymEntityList(latestPerson.pseudonyms),
-        addresses = CanonicalAddress.fromAddressEntityList(latestPerson.addresses),
+        title = latestPerson.title ?: "",
+        sex = latestPerson.sex ?: "",
+        religion = latestPerson.religion ?: "",
+        ethnicity = latestPerson.ethnicity ?: "",
+        aliases = getAliases(latestPerson),
+        addresses = getAddresses(latestPerson),
         identifiers = CanonicalIdentifiers.from(personKey.personEntities),
         nationalities = CanonicalNationality.from(latestPerson),
       )
     }
+
+    private fun getAliases(person: PersonEntity?): List<CanonicalAlias> = person?.pseudonyms?.let { CanonicalAlias.fromPseudonymEntityList(it) } ?: emptyList()
+
+    private fun getAddresses(person: PersonEntity?): List<CanonicalAddress> = person?.addresses?.let { CanonicalAddress.fromAddressEntityList(it) } ?: emptyList()
   }
 }

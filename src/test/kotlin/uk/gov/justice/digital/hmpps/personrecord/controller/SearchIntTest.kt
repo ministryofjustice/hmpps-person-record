@@ -342,7 +342,7 @@ class SearchIntTest : WebTestBase() {
     assertThat(responseBody.title).isEqualTo(person.title)
     assertThat(responseBody.ethnicity).isEqualTo(person.ethnicity)
     assertThat(responseBody.nationalities).isEqualTo(canonicalNationality)
-    assertThat(responseBody.sex).isEqualTo(person.sex)
+    assertThat(responseBody.sex).isEqualTo("")
     assertThat(responseBody.religion).isEqualTo(person.religion)
     assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
     assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
@@ -352,6 +352,52 @@ class SearchIntTest : WebTestBase() {
     assertThat(responseBody.identifiers.prisonNumbers).isEqualTo(listOf(prisonNumber))
     assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
     assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
+  }
+
+  @Test
+  fun `should return empty string when values are null for get canonical record`() {
+    val crn = randomCrn()
+
+    val person = createPersonWithNewKey(
+      Person(
+        sourceSystem = NOMIS,
+        crn = crn,
+      ),
+    )
+
+    val responseBody = webTestClient.get()
+      .uri(searchForPerson(person.personKey?.personId.toString()))
+      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(CanonicalRecord::class.java)
+      .returnResult()
+      .responseBody!!
+
+    assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personId.toString())
+    assertThat(responseBody.firstName).isEqualTo("")
+    assertThat(responseBody.middleNames).isEqualTo("")
+    assertThat(responseBody.lastName).isEqualTo("")
+    assertThat(responseBody.dateOfBirth).isEqualTo("")
+    assertThat(responseBody.title).isEqualTo("")
+    assertThat(responseBody.ethnicity).isEqualTo("")
+    assertThat(responseBody.sex).isEqualTo("")
+    assertThat(responseBody.religion).isEqualTo("")
+    assertThat(responseBody.nationalities).isEmpty()
+    assertThat(responseBody.aliases).isEmpty()
+    assertThat(responseBody.addresses).isEmpty()
+    assertThat(responseBody.identifiers.crns).isEqualTo(listOf(crn))
+    assertThat(responseBody.identifiers.defendantIds).isEmpty()
+    assertThat(responseBody.identifiers.prisonNumbers).isEmpty()
+    assertThat(responseBody.identifiers.cids).isEmpty()
+    assertThat(responseBody.identifiers.pncs).isEmpty()
+    assertThat(responseBody.identifiers.cros).isEmpty()
+    assertThat(responseBody.identifiers.nationalInsuranceNumbers).isEmpty()
+    assertThat(responseBody.identifiers.driverLicenseNumbers).isEmpty()
+    assertThat(responseBody.identifiers.arrestSummonsNumbers).isEmpty()
+    assertThat(responseBody.identifiers.crns).isEqualTo(listOf(crn))
+    assertThat(responseBody.identifiers.crns).isEqualTo(listOf(crn))
   }
 
   @Test
