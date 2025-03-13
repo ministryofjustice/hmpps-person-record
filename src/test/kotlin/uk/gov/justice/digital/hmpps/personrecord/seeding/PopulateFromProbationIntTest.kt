@@ -28,9 +28,9 @@ class PopulateFromProbationIntTest : WebTestBase() {
     val crnFive: String = randomCrn()
     val crnSix: String = randomCrn()
     val crnSeven: String = randomCrn()
-    stubResponse(crnOne, "POPOne", crnTwo, "POPTwo", 0, scenarioName, STARTED)
-    stubResponse(crnThree, "POPThree", crnFour, "POPFour", 1, scenarioName, STARTED)
-    stubResponse(crnFive, "POPFive", crnSix, "POPSix", 2, scenarioName, STARTED)
+    stubResponse(crnOne, "POPOne", crnTwo, "POPTwo", 0, scenarioName)
+    stubResponse(crnThree, "POPThree", crnFour, "POPFour", 1, scenarioName)
+    stubResponse(crnFive, "POPFive", crnSix, "POPSix", 2, scenarioName)
     stubSingleResponse(crnSeven, "POPSeven", 3, scenarioName)
 
     webTestClient.post()
@@ -98,7 +98,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
         ),
     )
 
-    stubResponse(crnOne, "POPOne", crnTwo, "POPTwo", 0, scenarioName, STARTED, 1)
+    stubResponse(crnOne, "POPOne", crnTwo, "POPTwo", 0, scenarioName, 1)
 
     webTestClient.post()
       .uri("/populatefromprobation")
@@ -112,17 +112,23 @@ class PopulateFromProbationIntTest : WebTestBase() {
     assertThat(personRepository.findByCrn(crnTwo)!!.firstName).isEqualTo("POPTwoFirstName")
   }
 
-  private fun stubResponse(firstCrn: String, firstPrefix: String, secondCrn: String, secondPrefix: String, page: Int, scenarioName: String, scenarioState: String, totalPages: Int = 4) = stubGetRequest(
+  private fun stubResponse(
+    firstCrn: String,
+    firstPrefix: String,
+    secondCrn: String,
+    secondPrefix: String,
+    page: Int,
+    scenarioName: String,
+    totalPages: Int = 4,
+  ) = stubGetRequest(
     url = "/all-probation-cases?size=2&page=$page&sort=id%2Casc",
     scenarioName = scenarioName,
-    currentScenarioState = scenarioState,
     body = allProbationCasesResponse(firstCrn, firstPrefix, secondCrn, secondPrefix, totalPages),
   )
 
   private fun stubSingleResponse(firstCrn: String, firstPrefix: String, page: Int, scenarioName: String) = stubGetRequest(
     url = "/all-probation-cases?size=2&page=$page&sort=id%2Casc",
     scenarioName = scenarioName,
-    currentScenarioState = STARTED,
     body = allProbationCasesSingleResponse(firstCrn, firstPrefix),
   )
 }
