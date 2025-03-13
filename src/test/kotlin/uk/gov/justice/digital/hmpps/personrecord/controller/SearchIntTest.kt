@@ -366,7 +366,7 @@ class SearchIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(searchForPerson(person.personKey?.personId.toString()))
+      .uri(canonicalAPIUrl(person.personKey?.personId.toString()))
       .authorised(listOf(SEARCH_API_READ_ONLY))
       .exchange()
       .expectStatus()
