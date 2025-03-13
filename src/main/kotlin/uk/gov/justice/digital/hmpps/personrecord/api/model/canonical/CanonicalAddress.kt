@@ -34,15 +34,15 @@ data class CanonicalAddress(
   companion object {
 
     fun from(addressEntity: AddressEntity): CanonicalAddress = CanonicalAddress(
-      postcode = addressEntity.postcode,
-      startDate = addressEntity.startDate?.toString(),
-      endDate = addressEntity.endDate?.toString(),
-      noFixedAbode = addressEntity.noFixedAbode.toString(),
-      buildingName = addressEntity.buildingName,
-      buildingNumber = addressEntity.buildingNumber,
-      thoroughfareName = addressEntity.thoroughfareName,
-      dependentLocality = addressEntity.dependentLocality,
-      postTown = addressEntity.postTown,
+      postcode = addressEntity.postcode ?: "",
+      startDate = addressEntity.startDate?.toString() ?: "",
+      endDate = addressEntity.endDate?.toString() ?: "",
+      noFixedAbode = addressEntity.noFixedAbode?.toString() ?: "",
+      buildingName = addressEntity.buildingName ?: "",
+      buildingNumber = addressEntity.buildingNumber ?: "",
+      thoroughfareName = addressEntity.thoroughfareName ?: "",
+      dependentLocality = addressEntity.dependentLocality ?: "",
+      postTown = addressEntity.postTown ?: "",
     )
     fun fromAddressEntityList(addressEntity: List<AddressEntity>): List<CanonicalAddress> = addressEntity.map { from(it) }
   }
