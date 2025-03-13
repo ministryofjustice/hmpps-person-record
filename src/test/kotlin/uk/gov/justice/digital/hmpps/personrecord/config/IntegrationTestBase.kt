@@ -283,7 +283,7 @@ class IntegrationTestBase {
     )
   }
 
-  fun stub500Response(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String? = BASE_SCENARIO, currentScenarioState: String = STARTED) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, url, body = "", status = 500)
+  fun stub5xxResponse(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String? = BASE_SCENARIO, currentScenarioState: String = STARTED, status: Int = 500) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, url, body = "", status = status)
 
   fun stubPrisonResponse(
     apiResponseSetup: ApiResponseSetup,

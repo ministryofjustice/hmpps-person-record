@@ -250,7 +250,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     @Test
     fun `should retry on 500 error`() {
       val crn = randomCrn()
-      stub500Response(probationUrl(crn), "next request will succeed", "retry")
+      stub5xxResponse(probationUrl(crn), "next request will succeed", "retry")
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = randomPnc()), scenario = "retry", currentScenarioState = "next request will succeed")
 
       expectNoMessagesOnQueueOrDlq(probationEventsQueue)
@@ -387,9 +387,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should log when message processing fails`() {
     val crn = randomCrn()
-    stub500Response(probationUrl(crn), nextScenarioState = "request will fail", "failure")
-    stub500Response(probationUrl(crn), currentScenarioState = "request will fail", nextScenarioState = "request will fail", scenarioName = "failure")
-    stub500Response(probationUrl(crn), currentScenarioState = "request will fail", nextScenarioState = "request will fail", scenarioName = "failure")
+    stub5xxResponse(probationUrl(crn), nextScenarioState = "request will fail", "failure")
+    stub5xxResponse(probationUrl(crn), currentScenarioState = "request will fail", nextScenarioState = "request will fail", scenarioName = "failure")
+    stub5xxResponse(probationUrl(crn), currentScenarioState = "request will fail", nextScenarioState = "request will fail", scenarioName = "failure")
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
 

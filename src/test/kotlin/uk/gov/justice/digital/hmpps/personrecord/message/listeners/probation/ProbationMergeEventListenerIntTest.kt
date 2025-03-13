@@ -232,7 +232,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `should retry on 500 error`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
-      stub500Response(probationUrl(targetCrn), "next request will succeed", "retry")
+      stub5xxResponse(probationUrl(targetCrn), "next request will succeed", "retry")
 
       val source = ApiResponseSetup(crn = sourceCrn)
       val target = ApiResponseSetup(crn = targetCrn)
@@ -346,9 +346,9 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should log when message processing fails`() {
     val sourceCrn = randomCrn()
     val targetCrn = randomCrn()
-    stub500Response(probationUrl(targetCrn), nextScenarioState = "next request will fail", "failure")
-    stub500Response(probationUrl(targetCrn), nextScenarioState = "next request will fail", currentScenarioState = "next request will fail", scenarioName = "failure")
-    stub500Response(probationUrl(targetCrn), nextScenarioState = "next request will fail", currentScenarioState = "next request will fail", scenarioName = "failure")
+    stub5xxResponse(probationUrl(targetCrn), nextScenarioState = "next request will fail", "failure")
+    stub5xxResponse(probationUrl(targetCrn), nextScenarioState = "next request will fail", currentScenarioState = "next request will fail", scenarioName = "failure")
+    stub5xxResponse(probationUrl(targetCrn), nextScenarioState = "next request will fail", currentScenarioState = "next request will fail", scenarioName = "failure")
 
     val messageId = publishDomainEvent(
       OFFENDER_MERGED,

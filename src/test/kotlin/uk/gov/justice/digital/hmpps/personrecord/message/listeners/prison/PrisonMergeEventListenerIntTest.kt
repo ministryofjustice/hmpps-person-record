@@ -27,9 +27,9 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should log when message processing fails`() {
     val targetPrisonNumber = randomPrisonNumber()
     val sourcePrisonNumber = randomPrisonNumber()
-    stub500Response(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure")
-    stub500Response(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
-    stub500Response(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
+    stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure")
+    stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
+    stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
 
     val additionalInformation =
       AdditionalInformation(prisonNumber = targetPrisonNumber, sourcePrisonNumber = sourcePrisonNumber)
@@ -312,7 +312,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
         personKeyEntity = personKeyEntity2,
       )
-      stub500Response(prisonURL(targetPrisonNumber), "next request will succeed", "retry")
+      stub5xxResponse(prisonURL(targetPrisonNumber), "next request will succeed", "retry")
 
       val source = ApiResponseSetup(prisonNumber = sourcePrisonNumber)
       val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
