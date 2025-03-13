@@ -167,6 +167,38 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
+  fun `should return empty string when values are null for get canonical record aliases`() {
+    val crn = randomCrn()
+
+    val aliasFirstName = randomName()
+
+    val canonicalAlias = CanonicalAlias(firstName = aliasFirstName)
+
+    val person = createPersonWithNewKey(
+      Person(
+        sourceSystem = NOMIS,
+        crn = crn,
+        aliases = listOf(Alias(firstName = aliasFirstName)),
+      ),
+    )
+
+    val responseBody = webTestClient.get()
+      .uri(canonicalAPIUrl(person.personKey?.personId.toString()))
+      .authorised(listOf(API_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(CanonicalRecord::class.java)
+      .returnResult()
+      .responseBody!!
+
+    assertThat(responseBody.aliases.first().firstName).isEqualTo(canonicalAlias.firstName)
+    assertThat(responseBody.aliases.first().lastName).isEqualTo("")
+    assertThat(responseBody.aliases.first().middleNames).isEqualTo("")
+    assertThat(responseBody.aliases.first().title).isEqualTo("")
+  }
+
+  @Test
   fun `should return latest modified from 2 records`() {
     val personKey = createPersonKey()
 
