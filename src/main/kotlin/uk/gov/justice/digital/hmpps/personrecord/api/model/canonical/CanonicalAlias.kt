@@ -16,10 +16,10 @@ data class CanonicalAlias(
   companion object {
 
     fun from(pseudonymEntity: PseudonymEntity): CanonicalAlias = CanonicalAlias(
-      firstName = pseudonymEntity.firstName,
-      middleNames = pseudonymEntity.middleNames,
-      lastName = pseudonymEntity.lastName,
-      title = pseudonymEntity.title,
+      firstName = pseudonymEntity.firstName ?: "",
+      middleNames = pseudonymEntity.middleNames ?: "",
+      lastName = pseudonymEntity.lastName ?: "",
+      title = pseudonymEntity.title ?: "",
     )
     fun fromPseudonymEntityList(pseudonymEntity: List<PseudonymEntity>): List<CanonicalAlias> = pseudonymEntity.map { from(it) }
   }

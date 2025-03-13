@@ -167,6 +167,74 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
+  fun `should return empty string when values are null for get canonical record aliases`() {
+    val crn = randomCrn()
+
+    val aliasFirstName = randomName()
+
+    val person = createPersonWithNewKey(
+      Person(
+        sourceSystem = NOMIS,
+        crn = crn,
+        aliases = listOf(Alias(firstName = aliasFirstName)),
+      ),
+    )
+
+    val responseBody = webTestClient.get()
+      .uri(canonicalAPIUrl(person.personKey?.personId.toString()))
+      .authorised(listOf(API_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(CanonicalRecord::class.java)
+      .returnResult()
+      .responseBody!!
+
+    assertThat(responseBody.aliases.first().firstName).isEqualTo(aliasFirstName)
+    assertThat(responseBody.aliases.first().lastName).isEqualTo("")
+    assertThat(responseBody.aliases.first().middleNames).isEqualTo("")
+    assertThat(responseBody.aliases.first().title).isEqualTo("")
+  }
+
+  @Test
+  fun `should return empty string when values are null for get canonical record addresses`() {
+    val crn = randomCrn()
+
+    val postcode = randomPostcode()
+
+    val person = createPersonWithNewKey(
+      Person(
+        sourceSystem = NOMIS,
+        crn = crn,
+        addresses = listOf(Address(postcode = postcode)),
+      ),
+    )
+
+    val responseBody = webTestClient.get()
+      .uri(canonicalAPIUrl(person.personKey?.personId.toString()))
+      .authorised(listOf(API_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(CanonicalRecord::class.java)
+      .returnResult()
+      .responseBody!!
+
+    assertThat(responseBody.addresses.first().postcode).isEqualTo(postcode)
+    assertThat(responseBody.addresses.first().startDate).isEqualTo("")
+    assertThat(responseBody.addresses.first().endDate).isEqualTo("")
+    assertThat(responseBody.addresses.first().noFixedAbode).isEqualTo("")
+    assertThat(responseBody.addresses.first().buildingName).isEqualTo("")
+    assertThat(responseBody.addresses.first().buildingNumber).isEqualTo("")
+    assertThat(responseBody.addresses.first().thoroughfareName).isEqualTo("")
+    assertThat(responseBody.addresses.first().dependentLocality).isEqualTo("")
+    assertThat(responseBody.addresses.first().postTown).isEqualTo("")
+    assertThat(responseBody.addresses.first().county).isEqualTo("")
+    assertThat(responseBody.addresses.first().country).isEqualTo("")
+    assertThat(responseBody.addresses.first().uprn).isEqualTo("")
+  }
+
+  @Test
   fun `should return latest modified from 2 records`() {
     val personKey = createPersonKey()
 
