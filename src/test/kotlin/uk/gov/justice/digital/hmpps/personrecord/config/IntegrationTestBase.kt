@@ -10,7 +10,10 @@ import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.client.WireMock.urlMatching
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
-import com.github.tomakehurst.wiremock.http.RequestMethod
+import com.github.tomakehurst.wiremock.http.RequestMethod.DELETE
+import com.github.tomakehurst.wiremock.http.RequestMethod.GET
+import com.github.tomakehurst.wiremock.http.RequestMethod.POST
+import com.github.tomakehurst.wiremock.http.RequestMethod.PUT
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
 import com.github.tomakehurst.wiremock.matching.UrlPattern
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
@@ -43,6 +46,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import java.time.Duration
 import java.util.UUID
 
@@ -69,16 +75,16 @@ class IntegrationTestBase {
   fun after() {
     wiremock.stubMappings.forEach {
       when (it.request.method) {
-        RequestMethod.GET -> {
+        GET -> {
           if (it.request.url != null) {
             wiremock.verify(getRequestedFor(urlEqualTo(it.request.url)))
           } else {
             wiremock.verify(getRequestedFor(urlMatching(it.request.urlPathPattern)))
           }
         }
-        RequestMethod.POST -> wiremock.verify(postRequestedFor(urlEqualTo(it.request.url)))
-        RequestMethod.DELETE -> wiremock.verify(deleteRequestedFor(urlEqualTo(it.request.url)))
-        RequestMethod.PUT -> wiremock.verify(putRequestedFor(urlEqualTo(it.request.url)))
+        POST -> wiremock.verify(postRequestedFor(urlEqualTo(it.request.url)))
+        DELETE -> wiremock.verify(deleteRequestedFor(urlEqualTo(it.request.url)))
+        PUT -> wiremock.verify(putRequestedFor(urlEqualTo(it.request.url)))
         else -> fail()
       }
     }
@@ -276,6 +282,17 @@ class IntegrationTestBase {
         ),
     )
   }
+
+  fun stub500Response(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String? = BASE_SCENARIO, currentScenarioState: String = STARTED) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, url, body = "", status = 500)
+
+  fun stubPrisonResponse(
+    apiResponseSetup: ApiResponseSetup,
+    scenarioName: String? = BASE_SCENARIO,
+    currentScenarioState: String? = STARTED,
+    nextScenarioState: String? = STARTED,
+  ) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/prisoner/${apiResponseSetup.prisonNumber}", prisonerSearchResponse(apiResponseSetup))
+
+  fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String, nextScenarioState: String) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
 
   fun blitz(actionCount: Int, threadCount: Int, action: () -> Unit) {
     val blitzer = Blitzer(actionCount, threadCount)

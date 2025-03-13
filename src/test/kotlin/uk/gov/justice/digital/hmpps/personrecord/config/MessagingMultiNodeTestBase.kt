@@ -19,8 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.HmppsTopic
@@ -234,17 +232,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       ),
     )
   }
-
-  private fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String, nextScenarioState: String) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
-
-  fun stub500Response(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String? = BASE_SCENARIO, currentScenarioState: String = STARTED) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, url, body = "", status = 500)
-
-  fun stubPrisonResponse(
-    apiResponseSetup: ApiResponseSetup,
-    scenarioName: String? = BASE_SCENARIO,
-    currentScenarioState: String? = STARTED,
-    nextScenarioState: String? = STARTED,
-  ) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/prisoner/${apiResponseSetup.prisonNumber}", prisonerSearchResponse(apiResponseSetup))
 
   @BeforeEach
   fun beforeEachMessagingTest() {
