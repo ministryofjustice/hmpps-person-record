@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.controller
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.SEARCH_API_READ_ONLY
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
@@ -88,7 +88,7 @@ class CanonicalApiIntTest : WebTestBase() {
 
     val responseBody = webTestClient.get()
       .uri(canonicalAPIUrl(person.personKey?.personId.toString()))
-      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
@@ -133,7 +133,7 @@ class CanonicalApiIntTest : WebTestBase() {
 
     val responseBody = webTestClient.get()
       .uri(canonicalAPIUrl(person.personKey?.personId.toString()))
-      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
@@ -182,7 +182,7 @@ class CanonicalApiIntTest : WebTestBase() {
 
     val responseBody = webTestClient.get()
       .uri(canonicalAPIUrl(personKey.personId.toString()))
-      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
@@ -273,7 +273,7 @@ class CanonicalApiIntTest : WebTestBase() {
 
     val responseBody = webTestClient.get()
       .uri(canonicalAPIUrl(personKey.personId.toString()))
-      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
@@ -314,7 +314,7 @@ class CanonicalApiIntTest : WebTestBase() {
 
     val responseBody = webTestClient.get()
       .uri(canonicalAPIUrl(personKey.personId.toString()))
-      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
@@ -347,7 +347,7 @@ class CanonicalApiIntTest : WebTestBase() {
 
     val responseBody = webTestClient.get()
       .uri(canonicalAPIUrl(personKey.personId.toString()))
-      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
@@ -381,7 +381,7 @@ class CanonicalApiIntTest : WebTestBase() {
 
     val responseBody = webTestClient.get()
       .uri(canonicalAPIUrl(personKey.personId.toString()))
-      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
@@ -397,7 +397,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val randomString = randomName()
     webTestClient.get()
       .uri(canonicalAPIUrl(randomString))
-      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
       .isBadRequest
@@ -409,7 +409,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val expectedErrorMessage = "Not found: $randomUUId"
     webTestClient.get()
       .uri(canonicalAPIUrl(randomUUId))
-      .authorised(listOf(SEARCH_API_READ_ONLY))
+      .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
       .isNotFound

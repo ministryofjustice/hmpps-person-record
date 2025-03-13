@@ -17,7 +17,7 @@ import java.util.UUID
 
 @Tag(name = "Canonical API")
 @RestController
-@PreAuthorize("hasRole('${Roles.SEARCH_API_READ_ONLY}')")
+@PreAuthorize("hasRole('${Roles.API_READ_ONLY}')")
 class APIController(
   private val personKeyRepository: PersonKeyRepository,
 ) {
