@@ -30,7 +30,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     val prisonNumberFive: String = randomPrisonNumber()
     val prisonNumberSix: String = randomPrisonNumber()
     val prisonNumberSeven: String = randomPrisonNumber()
-    stubNumberPage(prisonNumberOne, prisonNumberTwo, 0, scenarioName, STARTED)
+    stubNumberPage(prisonNumberOne, prisonNumberTwo, 0, scenarioName)
 
     stubPrisonerDetails(
       prisonNumberOne,
@@ -40,7 +40,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       scenarioName,
       STARTED,
     )
-    stubNumberPage(prisonNumberThree, prisonNumberFour, 1, scenarioName, STARTED)
+    stubNumberPage(prisonNumberThree, prisonNumberFour, 1, scenarioName)
     stubPrisonerDetails(
       prisonNumberThree,
       "PrisonerThree",
@@ -49,7 +49,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       scenarioName,
       STARTED,
     )
-    stubNumberPage(prisonNumberFive, prisonNumberSix, 2, scenarioName, STARTED)
+    stubNumberPage(prisonNumberFive, prisonNumberSix, 2, scenarioName)
     stubPrisonerDetails(
       prisonNumberFive,
       "PrisonerFive",
@@ -276,7 +276,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     body = prisonNumbersResponse(listOf(prisonNumberSeven)),
   )
 
-  private fun stubNumberPage(prisonNumberOne: String, prisonNumberTwo: String, page: Int, scenarioName: String, scenarioState: String) = stubGetRequest(
+  private fun stubNumberPage(prisonNumberOne: String, prisonNumberTwo: String, page: Int, scenarioName: String, scenarioState: String? = STARTED) = stubGetRequest(
     url = "/api/prisoners/prisoner-numbers?size=2&page=$page",
     scenarioName = scenarioName,
     currentScenarioState = scenarioState,
