@@ -38,7 +38,6 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       prisonNumberTwo,
       "PrisonerTwo",
       scenarioName,
-      STARTED,
     )
     stubNumberPage(prisonNumberThree, prisonNumberFour, 1, scenarioName)
     stubPrisonerDetails(
@@ -47,7 +46,6 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       prisonNumberFour,
       "PrisonerFour",
       scenarioName,
-      STARTED,
     )
     stubNumberPage(prisonNumberFive, prisonNumberSix, 2, scenarioName)
     stubPrisonerDetails(
@@ -56,7 +54,6 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       prisonNumberSix,
       "PrisonerSix",
       scenarioName,
-      STARTED,
     )
 
     stubSingleNumberPage(prisonNumberSeven, scenarioName, STARTED)
@@ -249,7 +246,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     secondNumber: String,
     secondPrefix: String,
     scenarioName: String,
-    scenarioState: String,
+    scenarioState: String? = STARTED,
     nextScenarioState: String? = scenarioState,
   ) = stubPostRequest(
     url = "/prisoner-search/prisoner-numbers",
