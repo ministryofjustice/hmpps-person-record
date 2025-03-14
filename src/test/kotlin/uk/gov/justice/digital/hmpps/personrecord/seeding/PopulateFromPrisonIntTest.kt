@@ -208,17 +208,8 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     val prisonNumberTwo: String = randomPrisonNumber()
     val prisonNumberThree: String = randomPrisonNumber()
 
-    wiremock.stubFor(
-      WireMock.get("/api/prisoners/prisoner-numbers?size=2&page=0")
-        .inScenario("retry getPrisonNumbers")
-        .whenScenarioStateIs(STARTED)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(prisonNumbersResponse(listOf(prisonNumberOne, prisonNumberTwo), 2))
-            .withStatus(200),
-        ),
-    )
+    stubGetRequest(url = "/api/prisoners/prisoner-numbers?size=2&page=0", scenarioName = "retry getPrisonNumbers", body = prisonNumbersResponse(listOf(prisonNumberOne, prisonNumberTwo), 2))
+
     wiremock.stubFor(
       WireMock.post("/prisoner-search/prisoner-numbers")
         .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
@@ -244,19 +235,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
             .withStatus(503),
         ),
     )
-    // second call succeeds
-    wiremock.stubFor(
-      WireMock.get("/api/prisoners/prisoner-numbers?size=2&page=1")
-        .inScenario("retry getPrisonNumbers")
-        .whenScenarioStateIs("next request will succeed")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(prisonNumbersResponse(listOf(prisonNumberThree), 2))
-            .withStatus(200),
-
-        ),
-    )
+    stubGetRequest(url = "/api/prisoners/prisoner-numbers?size=2&page=1", scenarioName = "retry getPrisonNumbers", currentScenarioState = "next request will succeed", nextScenarioState = "next request will succeed", body = prisonNumbersResponse(listOf(prisonNumberThree), 2))
 
     wiremock.stubFor(
       WireMock.post("/prisoner-search/prisoner-numbers")
