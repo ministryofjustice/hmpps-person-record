@@ -43,7 +43,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val middleNames = randomName()
     val title = randomName()
     val pnc = randomPnc()
-    val noFixAbode = true
+    val noFixedAbode = true
     val startDate = randomDate()
     val endDate = randomDate()
     val postcode = randomPostcode()
@@ -77,7 +77,7 @@ class CanonicalApiIntTest : WebTestBase() {
         cId = cid,
         defendantId = defendantId,
         aliases = listOf(Alias(firstName = firstName, middleNames = middleNames, lastName = lastName, dateOfBirth = randomDate(), title = title)),
-        addresses = listOf(Address(noFixedAbode = noFixAbode, startDate = startDate, endDate = endDate, postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)),
+        addresses = listOf(Address(noFixedAbode = noFixedAbode, startDate = startDate, endDate = endDate, postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)),
         references = listOf(
           Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
           Reference(identifierType = IdentifierType.CRO, identifierValue = cro),
@@ -98,7 +98,7 @@ class CanonicalApiIntTest : WebTestBase() {
 
     val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = title)
     val canonicalNationality = listOf(CanonicalNationality(nationalityCode = nationality))
-    val canonicalAddress = CanonicalAddress(noFixedAbode = noFixAbode.toString(), startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
+    val canonicalAddress = CanonicalAddress(noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
 
     assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personId.toString())
     assertThat(responseBody.firstName).isEqualTo(person.firstName)
@@ -223,7 +223,7 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.addresses.first().postcode).isEqualTo(postcode)
     assertThat(responseBody.addresses.first().startDate).isEqualTo("")
     assertThat(responseBody.addresses.first().endDate).isEqualTo("")
-    assertThat(responseBody.addresses.first().noFixedAbode).isEqualTo("")
+    assertThat(responseBody.addresses.first().noFixedAbode).isNull()
     assertThat(responseBody.addresses.first().buildingName).isEqualTo("")
     assertThat(responseBody.addresses.first().buildingNumber).isEqualTo("")
     assertThat(responseBody.addresses.first().thoroughfareName).isEqualTo("")
