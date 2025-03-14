@@ -229,9 +229,9 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.addresses.first().thoroughfareName).isNull()
     assertThat(responseBody.addresses.first().dependentLocality).isNull()
     assertThat(responseBody.addresses.first().postTown).isNull()
-    assertThat(responseBody.addresses.first().county).isEqualTo("")
-    assertThat(responseBody.addresses.first().country).isEqualTo("")
-    assertThat(responseBody.addresses.first().uprn).isEqualTo("")
+    assertThat(responseBody.addresses.first().county).isNull()
+    assertThat(responseBody.addresses.first().country).isNull()
+    assertThat(responseBody.addresses.first().uprn).isNull()
   }
 
   @Test
