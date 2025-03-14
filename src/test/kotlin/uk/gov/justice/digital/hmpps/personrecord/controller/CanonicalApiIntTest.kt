@@ -108,7 +108,7 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.title).isEqualTo(person.title)
     assertThat(responseBody.ethnicity).isEqualTo(person.ethnicity)
     assertThat(responseBody.nationalities).isEqualTo(canonicalNationality)
-    assertThat(responseBody.sex).isEqualTo("")
+    assertThat(responseBody.sex).isNull()
     assertThat(responseBody.religion).isEqualTo(person.religion)
     assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
     assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
@@ -121,7 +121,7 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should return empty string when values are null for get canonical record`() {
+  fun `should return null when values are null or empty for get canonical record`() {
     val crn = randomCrn()
 
     val person = createPersonWithNewKey(
@@ -142,14 +142,14 @@ class CanonicalApiIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personId.toString())
-    assertThat(responseBody.firstName).isEqualTo("")
-    assertThat(responseBody.middleNames).isEqualTo("")
-    assertThat(responseBody.lastName).isEqualTo("")
-    assertThat(responseBody.dateOfBirth).isEqualTo("")
-    assertThat(responseBody.title).isEqualTo("")
-    assertThat(responseBody.ethnicity).isEqualTo("")
-    assertThat(responseBody.sex).isEqualTo("")
-    assertThat(responseBody.religion).isEqualTo("")
+    assertThat(responseBody.firstName).isNull()
+    assertThat(responseBody.middleNames).isNull()
+    assertThat(responseBody.lastName).isNull()
+    assertThat(responseBody.dateOfBirth).isNull()
+    assertThat(responseBody.title).isNull()
+    assertThat(responseBody.ethnicity).isNull()
+    assertThat(responseBody.sex).isNull()
+    assertThat(responseBody.religion).isNull()
     assertThat(responseBody.nationalities).isEmpty()
     assertThat(responseBody.aliases).isEmpty()
     assertThat(responseBody.addresses).isEmpty()
@@ -167,7 +167,7 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should return empty string when values are null for get canonical record aliases`() {
+  fun `should return  when values are null or empty  for get canonical record aliases`() {
     val crn = randomCrn()
 
     val aliasFirstName = randomName()
@@ -191,13 +191,13 @@ class CanonicalApiIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(responseBody.aliases.first().firstName).isEqualTo(aliasFirstName)
-    assertThat(responseBody.aliases.first().lastName).isEqualTo("")
-    assertThat(responseBody.aliases.first().middleNames).isEqualTo("")
-    assertThat(responseBody.aliases.first().title).isEqualTo("")
+    assertThat(responseBody.aliases.first().lastName).isNull()
+    assertThat(responseBody.aliases.first().middleNames).isNull()
+    assertThat(responseBody.aliases.first().title).isNull()
   }
 
   @Test
-  fun `should return empty string when values are null for get canonical record addresses`() {
+  fun `should return  when values are null or empty for get canonical record addresses`() {
     val crn = randomCrn()
 
     val postcode = randomPostcode()
@@ -221,17 +221,17 @@ class CanonicalApiIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(responseBody.addresses.first().postcode).isEqualTo(postcode)
-    assertThat(responseBody.addresses.first().startDate).isEqualTo("")
-    assertThat(responseBody.addresses.first().endDate).isEqualTo("")
+    assertThat(responseBody.addresses.first().startDate).isNull()
+    assertThat(responseBody.addresses.first().endDate).isNull()
     assertThat(responseBody.addresses.first().noFixedAbode).isNull()
-    assertThat(responseBody.addresses.first().buildingName).isEqualTo("")
-    assertThat(responseBody.addresses.first().buildingNumber).isEqualTo("")
-    assertThat(responseBody.addresses.first().thoroughfareName).isEqualTo("")
-    assertThat(responseBody.addresses.first().dependentLocality).isEqualTo("")
-    assertThat(responseBody.addresses.first().postTown).isEqualTo("")
-    assertThat(responseBody.addresses.first().county).isEqualTo("")
-    assertThat(responseBody.addresses.first().country).isEqualTo("")
-    assertThat(responseBody.addresses.first().uprn).isEqualTo("")
+    assertThat(responseBody.addresses.first().buildingName).isNull()
+    assertThat(responseBody.addresses.first().buildingNumber).isNull()
+    assertThat(responseBody.addresses.first().thoroughfareName).isNull()
+    assertThat(responseBody.addresses.first().dependentLocality).isNull()
+    assertThat(responseBody.addresses.first().postTown).isNull()
+    assertThat(responseBody.addresses.first().county).isNull()
+    assertThat(responseBody.addresses.first().country).isNull()
+    assertThat(responseBody.addresses.first().uprn).isNull()
   }
 
   @Test
