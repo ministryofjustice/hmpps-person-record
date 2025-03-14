@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 
 data class CanonicalNationality(
   @Schema(description = "Nationality code", example = "UK")
-  val nationalityCode: String? = "",
+  val nationalityCode: String? = null,
 
 ) {
   companion object {
