@@ -268,20 +268,13 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     responseBody = twoPrisoners(firstNumber, firstPrefix, secondNumber, secondPrefix),
   )
 
-  private fun stubSinglePrisonerDetail(prisonNumberSeven: String, scenarioName: String, scenarioState: String) {
-    wiremock.stubFor(
-      WireMock.post("/prisoner-search/prisoner-numbers")
-        .inScenario(scenarioName)
-        .whenScenarioStateIs(scenarioState)
-        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberSeven"]}"""))
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(onePrisoner(prisonNumberSeven, "PrisonerSeven")),
-        ),
-    )
-  }
+  private fun stubSinglePrisonerDetail(prisonNumberSeven: String, scenarioName: String, scenarioState: String) = stubPostRequest(
+    url = "/prisoner-search/prisoner-numbers",
+    scenarioName = scenarioName,
+    currentScenarioState = scenarioState,
+    requestBody = """{"prisonerNumbers": ["$prisonNumberSeven"]}""",
+    responseBody = onePrisoner(prisonNumberSeven, "PrisonerSeven"),
+  )
 
   private fun stubSingleNumberPage(prisonNumberSeven: String, scenarioName: String, scenarioState: String) = stubGetRequest(
     url = "/api/prisoners/prisoner-numbers?size=2&page=3",
