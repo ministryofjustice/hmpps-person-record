@@ -36,7 +36,7 @@ data class CanonicalAddress(
     @Suppress("CyclomaticComplexMethod")
     fun from(addressEntity: AddressEntity): CanonicalAddress = CanonicalAddress(
       postcode = addressEntity.postcode ?: "",
-      startDate = addressEntity.startDate?.toString() ?: "",
+      startDate = addressEntity.startDate?.toString(),
       endDate = addressEntity.endDate?.toString() ?: "",
       noFixedAbode = addressEntity.noFixedAbode,
       buildingName = addressEntity.buildingName ?: "",

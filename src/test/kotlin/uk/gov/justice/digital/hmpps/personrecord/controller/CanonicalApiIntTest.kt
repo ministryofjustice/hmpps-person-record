@@ -121,7 +121,7 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should return empty string when values are null for get canonical record`() {
+  fun `should return null when values are null or empty for get canonical record`() {
     val crn = randomCrn()
 
     val person = createPersonWithNewKey(
@@ -167,7 +167,7 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should return empty string when values are null for get canonical record aliases`() {
+  fun `should return  when values are null or empty  for get canonical record aliases`() {
     val crn = randomCrn()
 
     val aliasFirstName = randomName()
@@ -197,7 +197,7 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should return empty string when values are null for get canonical record addresses`() {
+  fun `should return  when values are null or empty for get canonical record addresses`() {
     val crn = randomCrn()
 
     val postcode = randomPostcode()
@@ -221,7 +221,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(responseBody.addresses.first().postcode).isEqualTo(postcode)
-    assertThat(responseBody.addresses.first().startDate).isEqualTo("")
+    assertThat(responseBody.addresses.first().startDate).isNull()
     assertThat(responseBody.addresses.first().endDate).isEqualTo("")
     assertThat(responseBody.addresses.first().noFixedAbode).isNull()
     assertThat(responseBody.addresses.first().buildingName).isEqualTo("")
