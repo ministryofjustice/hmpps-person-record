@@ -223,18 +223,8 @@ class PopulateFromPrisonIntTest : WebTestBase() {
         ),
     )
 
-    // first call fails
-    wiremock.stubFor(
-      WireMock.get("/api/prisoners/prisoner-numbers?size=2&page=1")
-        .inScenario("retry getPrisonNumbers")
-        .whenScenarioStateIs(STARTED)
-        .willSetStateTo("next request will succeed")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(503),
-        ),
-    )
+    stub5xxResponse(url = "/api/prisoners/prisoner-numbers?size=2&page=1", scenarioName = "retry getPrisonNumbers", currentScenarioState = STARTED, nextScenarioState = "next request will succeed", status = 503)
+
     stubGetRequest(url = "/api/prisoners/prisoner-numbers?size=2&page=1", scenarioName = "retry getPrisonNumbers", currentScenarioState = "next request will succeed", nextScenarioState = "next request will succeed", body = prisonNumbersResponse(listOf(prisonNumberThree), 2))
 
     wiremock.stubFor(
