@@ -108,7 +108,7 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.title).isEqualTo(person.title)
     assertThat(responseBody.ethnicity).isEqualTo(person.ethnicity)
     assertThat(responseBody.nationalities).isEqualTo(canonicalNationality)
-    assertThat(responseBody.sex).isEqualTo("")
+    assertThat(responseBody.sex).isNull()
     assertThat(responseBody.religion).isEqualTo(person.religion)
     assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
     assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
@@ -142,14 +142,14 @@ class CanonicalApiIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personId.toString())
-    assertThat(responseBody.firstName).isEqualTo("")
-    assertThat(responseBody.middleNames).isEqualTo("")
-    assertThat(responseBody.lastName).isEqualTo("")
-    assertThat(responseBody.dateOfBirth).isEqualTo("")
-    assertThat(responseBody.title).isEqualTo("")
-    assertThat(responseBody.ethnicity).isEqualTo("")
-    assertThat(responseBody.sex).isEqualTo("")
-    assertThat(responseBody.religion).isEqualTo("")
+    assertThat(responseBody.firstName).isNull()
+    assertThat(responseBody.middleNames).isNull()
+    assertThat(responseBody.lastName).isNull()
+    assertThat(responseBody.dateOfBirth).isNull()
+    assertThat(responseBody.title).isNull()
+    assertThat(responseBody.ethnicity).isNull()
+    assertThat(responseBody.sex).isNull()
+    assertThat(responseBody.religion).isNull()
     assertThat(responseBody.nationalities).isEmpty()
     assertThat(responseBody.aliases).isEmpty()
     assertThat(responseBody.addresses).isEmpty()
@@ -191,9 +191,9 @@ class CanonicalApiIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(responseBody.aliases.first().firstName).isEqualTo(aliasFirstName)
-    assertThat(responseBody.aliases.first().lastName).isEqualTo("")
-    assertThat(responseBody.aliases.first().middleNames).isEqualTo("")
-    assertThat(responseBody.aliases.first().title).isEqualTo("")
+    assertThat(responseBody.aliases.first().lastName).isNull()
+    assertThat(responseBody.aliases.first().middleNames).isNull()
+    assertThat(responseBody.aliases.first().title).isNull()
   }
 
   @Test

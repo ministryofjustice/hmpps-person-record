@@ -6,23 +6,23 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 
 data class CanonicalRecord(
   @Schema(description = "Person CPR uuid", example = "f91ef118-a51f-4874-9409-c0538b4ca6fd")
-  val cprUUID: String? = "",
+  val cprUUID: String? = null,
   @Schema(description = "Person first name", example = "John")
-  val firstName: String? = "",
+  val firstName: String? = null,
   @Schema(description = "Person middle names", example = "Morgan")
-  val middleNames: String? = "",
+  val middleNames: String? = null,
   @Schema(description = "Person last name", example = "Doe")
-  val lastName: String? = "",
+  val lastName: String? = null,
   @Schema(description = "Person date of birth", example = "1990-08-21")
-  val dateOfBirth: String? = "",
+  val dateOfBirth: String? = null,
   @Schema(description = "Person title", example = "Mr")
-  val title: String? = "",
+  val title: String? = null,
   @Schema(description = "Person sex", example = "Male")
-  val sex: String? = "",
+  val sex: String? = null,
   @Schema(description = "Person religion", example = "Christian")
-  val religion: String? = "",
+  val religion: String? = null,
   @Schema(description = "Person ethnicity", example = "British")
-  val ethnicity: String? = "",
+  val ethnicity: String? = null,
   @Schema(description = "List of person aliases")
   val aliases: List<CanonicalAlias> = emptyList(),
   @Schema(description = "List of person nationalities")
@@ -34,19 +34,18 @@ data class CanonicalRecord(
 
 ) {
   companion object {
-    @Suppress("CyclomaticComplexMethod")
     fun from(personKey: PersonKeyEntity): CanonicalRecord {
       val latestPerson = personKey.personEntities.sortedByDescending { it.lastModified }.first()
       return CanonicalRecord(
         cprUUID = personKey.personId.toString(),
-        firstName = latestPerson.firstName ?: "",
-        middleNames = latestPerson.middleNames ?: "",
-        lastName = latestPerson.lastName ?: "",
-        dateOfBirth = latestPerson.dateOfBirth?.toString() ?: "",
-        title = latestPerson.title ?: "",
-        sex = latestPerson.sex ?: "",
-        religion = latestPerson.religion ?: "",
-        ethnicity = latestPerson.ethnicity ?: "",
+        firstName = latestPerson.firstName,
+        middleNames = latestPerson.middleNames.takeIf { it?.isNotEmpty()!! },
+        lastName = latestPerson.lastName,
+        dateOfBirth = latestPerson.dateOfBirth?.toString(),
+        title = latestPerson.title,
+        sex = latestPerson.sex,
+        religion = latestPerson.religion,
+        ethnicity = latestPerson.ethnicity,
         aliases = getAliases(latestPerson),
         addresses = getAddresses(latestPerson),
         identifiers = CanonicalIdentifiers.from(personKey.personEntities),
