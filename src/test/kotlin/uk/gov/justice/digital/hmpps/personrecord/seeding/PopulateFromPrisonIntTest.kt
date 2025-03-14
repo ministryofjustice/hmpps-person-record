@@ -30,7 +30,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     val prisonNumberFive: String = randomPrisonNumber()
     val prisonNumberSix: String = randomPrisonNumber()
     val prisonNumberSeven: String = randomPrisonNumber()
-    stubNumberPage(prisonNumberOne, prisonNumberTwo, 0, scenarioName, STARTED)
+    stubNumberPage(prisonNumberOne, prisonNumberTwo, 0, scenarioName)
 
     stubPrisonerDetails(
       prisonNumberOne,
@@ -38,25 +38,22 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       prisonNumberTwo,
       "PrisonerTwo",
       scenarioName,
-      STARTED,
     )
-    stubNumberPage(prisonNumberThree, prisonNumberFour, 1, scenarioName, STARTED)
+    stubNumberPage(prisonNumberThree, prisonNumberFour, 1, scenarioName)
     stubPrisonerDetails(
       prisonNumberThree,
       "PrisonerThree",
       prisonNumberFour,
       "PrisonerFour",
       scenarioName,
-      STARTED,
     )
-    stubNumberPage(prisonNumberFive, prisonNumberSix, 2, scenarioName, STARTED)
+    stubNumberPage(prisonNumberFive, prisonNumberSix, 2, scenarioName)
     stubPrisonerDetails(
       prisonNumberFive,
       "PrisonerFive",
       prisonNumberSix,
       "PrisonerSix",
       scenarioName,
-      STARTED,
     )
 
     stubSingleNumberPage(prisonNumberSeven, scenarioName, STARTED)
@@ -208,68 +205,28 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     val prisonNumberTwo: String = randomPrisonNumber()
     val prisonNumberThree: String = randomPrisonNumber()
 
-    wiremock.stubFor(
-      WireMock.get("/api/prisoners/prisoner-numbers?size=2&page=0")
-        .inScenario("retry getPrisonNumbers")
-        .whenScenarioStateIs(STARTED)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(prisonNumbersResponse(listOf(prisonNumberOne, prisonNumberTwo), 2))
-            .withStatus(200),
-        ),
-    )
-    wiremock.stubFor(
-      WireMock.post("/prisoner-search/prisoner-numbers")
-        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
-        .inScenario("retry getPrisonNumbers")
-        .whenScenarioStateIs(STARTED)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(twoPrisoners(prisonNumberOne, "prisonNumberOne", prisonNumberTwo, "prisonNumberTwo")),
-        ),
+    stubGetRequest(url = "/api/prisoners/prisoner-numbers?size=2&page=0", scenarioName = "retry getPrisonNumbers", body = prisonNumbersResponse(listOf(prisonNumberOne, prisonNumberTwo), 2))
+
+    stubPostRequest(
+      url = "/prisoner-search/prisoner-numbers",
+      requestBody = """{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}""",
+      scenarioName = "retry getPrisonNumbers",
+      currentScenarioState = STARTED,
+      responseBody = twoPrisoners(prisonNumberOne, "prisonNumberOne", prisonNumberTwo, "prisonNumberTwo"),
     )
 
-    // first call fails
-    wiremock.stubFor(
-      WireMock.get("/api/prisoners/prisoner-numbers?size=2&page=1")
-        .inScenario("retry getPrisonNumbers")
-        .whenScenarioStateIs(STARTED)
-        .willSetStateTo("next request will succeed")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(503),
-        ),
-    )
-    // second call succeeds
-    wiremock.stubFor(
-      WireMock.get("/api/prisoners/prisoner-numbers?size=2&page=1")
-        .inScenario("retry getPrisonNumbers")
-        .whenScenarioStateIs("next request will succeed")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(prisonNumbersResponse(listOf(prisonNumberThree), 2))
-            .withStatus(200),
+    stub5xxResponse(url = "/api/prisoners/prisoner-numbers?size=2&page=1", scenarioName = "retry getPrisonNumbers", currentScenarioState = STARTED, nextScenarioState = "next request will succeed", status = 503)
 
-        ),
+    stubGetRequest(url = "/api/prisoners/prisoner-numbers?size=2&page=1", scenarioName = "retry getPrisonNumbers", currentScenarioState = "next request will succeed", nextScenarioState = "next request will succeed", body = prisonNumbersResponse(listOf(prisonNumberThree), 2))
+
+    stubPostRequest(
+      url = "/prisoner-search/prisoner-numbers",
+      requestBody = """{"prisonerNumbers": ["$prisonNumberThree"]}""",
+      scenarioName = "retry getPrisonNumbers",
+      currentScenarioState = "next request will succeed",
+      responseBody = onePrisoner(prisonNumberThree, "PrisonerThree"),
     )
 
-    wiremock.stubFor(
-      WireMock.post("/prisoner-search/prisoner-numbers")
-        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberThree"]}"""))
-        .inScenario("retry getPrisonNumbers")
-        .whenScenarioStateIs("next request will succeed")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(onePrisoner(prisonNumberThree, "PrisonerThree")),
-        ),
-    )
     webTestClient.post()
       .uri("/populatefromprison")
       .exchange()
@@ -289,36 +246,24 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     secondNumber: String,
     secondPrefix: String,
     scenarioName: String,
-    scenarioState: String,
-  ) {
-    wiremock.stubFor(
-      WireMock.post("/prisoner-search/prisoner-numbers")
-        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$firstNumber","$secondNumber"]}"""))
-        .inScenario(scenarioName)
-        .whenScenarioStateIs(scenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(twoPrisoners(firstNumber, firstPrefix, secondNumber, secondPrefix)),
-        ),
-    )
-  }
+    scenarioState: String? = STARTED,
+    nextScenarioState: String? = scenarioState,
+  ) = stubPostRequest(
+    url = "/prisoner-search/prisoner-numbers",
+    requestBody = """{"prisonerNumbers": ["$firstNumber","$secondNumber"]}""",
+    scenarioName = scenarioName,
+    currentScenarioState = scenarioState,
+    nextScenarioState = nextScenarioState,
+    responseBody = twoPrisoners(firstNumber, firstPrefix, secondNumber, secondPrefix),
+  )
 
-  private fun stubSinglePrisonerDetail(prisonNumberSeven: String, scenarioName: String, scenarioState: String) {
-    wiremock.stubFor(
-      WireMock.post("/prisoner-search/prisoner-numbers")
-        .inScenario(scenarioName)
-        .whenScenarioStateIs(scenarioState)
-        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberSeven"]}"""))
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(onePrisoner(prisonNumberSeven, "PrisonerSeven")),
-        ),
-    )
-  }
+  private fun stubSinglePrisonerDetail(prisonNumberSeven: String, scenarioName: String, scenarioState: String) = stubPostRequest(
+    url = "/prisoner-search/prisoner-numbers",
+    scenarioName = scenarioName,
+    currentScenarioState = scenarioState,
+    requestBody = """{"prisonerNumbers": ["$prisonNumberSeven"]}""",
+    responseBody = onePrisoner(prisonNumberSeven, "PrisonerSeven"),
+  )
 
   private fun stubSingleNumberPage(prisonNumberSeven: String, scenarioName: String, scenarioState: String) = stubGetRequest(
     url = "/api/prisoners/prisoner-numbers?size=2&page=3",
@@ -328,7 +273,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     body = prisonNumbersResponse(listOf(prisonNumberSeven)),
   )
 
-  private fun stubNumberPage(prisonNumberOne: String, prisonNumberTwo: String, page: Int, scenarioName: String, scenarioState: String) = stubGetRequest(
+  private fun stubNumberPage(prisonNumberOne: String, prisonNumberTwo: String, page: Int, scenarioName: String, scenarioState: String? = STARTED) = stubGetRequest(
     url = "/api/prisoners/prisoner-numbers?size=2&page=$page",
     scenarioName = scenarioName,
     currentScenarioState = scenarioState,
