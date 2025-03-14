@@ -210,17 +210,12 @@ class PopulateFromPrisonIntTest : WebTestBase() {
 
     stubGetRequest(url = "/api/prisoners/prisoner-numbers?size=2&page=0", scenarioName = "retry getPrisonNumbers", body = prisonNumbersResponse(listOf(prisonNumberOne, prisonNumberTwo), 2))
 
-    wiremock.stubFor(
-      WireMock.post("/prisoner-search/prisoner-numbers")
-        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
-        .inScenario("retry getPrisonNumbers")
-        .whenScenarioStateIs(STARTED)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(twoPrisoners(prisonNumberOne, "prisonNumberOne", prisonNumberTwo, "prisonNumberTwo")),
-        ),
+    stubPostRequest(
+      url = "/prisoner-search/prisoner-numbers",
+      requestBody = """{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}""",
+      scenarioName = "retry getPrisonNumbers",
+      currentScenarioState = STARTED,
+      responseBody = twoPrisoners(prisonNumberOne, "prisonNumberOne", prisonNumberTwo, "prisonNumberTwo"),
     )
 
     stub5xxResponse(url = "/api/prisoners/prisoner-numbers?size=2&page=1", scenarioName = "retry getPrisonNumbers", currentScenarioState = STARTED, nextScenarioState = "next request will succeed", status = 503)
@@ -259,12 +254,13 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     secondPrefix: String,
     scenarioName: String,
     scenarioState: String,
+    nextScenarioState: String? = scenarioState,
   ) = stubPostRequest(
     url = "/prisoner-search/prisoner-numbers",
     requestBody = """{"prisonerNumbers": ["$firstNumber","$secondNumber"]}""",
     scenarioName = scenarioName,
     currentScenarioState = scenarioState,
-    nextScenarioState = scenarioState,
+    nextScenarioState = nextScenarioState,
     responseBody = twoPrisoners(firstNumber, firstPrefix, secondNumber, secondPrefix),
   )
 
