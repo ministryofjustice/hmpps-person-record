@@ -222,18 +222,14 @@ class PopulateFromPrisonIntTest : WebTestBase() {
 
     stubGetRequest(url = "/api/prisoners/prisoner-numbers?size=2&page=1", scenarioName = "retry getPrisonNumbers", currentScenarioState = "next request will succeed", nextScenarioState = "next request will succeed", body = prisonNumbersResponse(listOf(prisonNumberThree), 2))
 
-    wiremock.stubFor(
-      WireMock.post("/prisoner-search/prisoner-numbers")
-        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberThree"]}"""))
-        .inScenario("retry getPrisonNumbers")
-        .whenScenarioStateIs("next request will succeed")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withBody(onePrisoner(prisonNumberThree, "PrisonerThree")),
-        ),
+    stubPostRequest(
+      url = "/prisoner-search/prisoner-numbers",
+      requestBody = """{"prisonerNumbers": ["$prisonNumberThree"]}""",
+      scenarioName = "retry getPrisonNumbers",
+      currentScenarioState = "next request will succeed",
+      responseBody = onePrisoner(prisonNumberThree, "PrisonerThree"),
     )
+
     webTestClient.post()
       .uri("/populatefromprison")
       .exchange()
