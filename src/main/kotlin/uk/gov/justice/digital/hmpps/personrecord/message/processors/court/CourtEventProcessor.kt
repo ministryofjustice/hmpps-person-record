@@ -47,10 +47,7 @@ class CourtEventProcessor(
   }
 
   private fun processCommonPlatformHearingEvent(sqsMessage: SQSMessage) {
-    val commonPlatformHearing: String = when {
-      isLargeMessage(sqsMessage) -> runBlocking { getPayloadFromS3(sqsMessage) }
-      else -> sqsMessage.message
-    }
+    val commonPlatformHearing: String = sqsMessage.message
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
 
     val uniquePersonDefendants = commonPlatformHearingEvent.hearing.prosecutionCases

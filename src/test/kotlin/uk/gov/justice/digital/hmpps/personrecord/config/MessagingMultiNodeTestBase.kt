@@ -8,7 +8,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
+import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
@@ -72,7 +74,40 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   internal fun publishCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.case.received")
 
-  internal fun publishLargeCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.large.case.received")
+  internal fun publishLargeCommonPlatformMessage(message: String): String {
+    val publishResponse = courtEventsTopic?.snsClient?.publish(
+        PublishRequest.builder().topicArn(courtEventsTopic!!.arn)
+          .messageDeduplicationId("dedube")
+          .message(message)
+          .messageGroupId(COMMON_PLATFORM_HEARING.name)
+          .messageAttributes(
+            mapOf(
+          "messageType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(COMMON_PLATFORM_HEARING.name).build(),
+          "eventType" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(COMMON_PLATFORM_HEARING.name).build(),
+          "messageId" to MessageAttributeValue.builder().dataType("String")
+            .stringValue(UUID.randomUUID().toString()).build(),
+        ))
+          .build()
+    )
+
+//    val publishResponse = courtEventsTopic?.publish(
+//        eventType = COMMON_PLATFORM_HEARING.name,
+//        event = message,
+//        attributes = mapOf(
+//          "messageType" to MessageAttributeValue.builder().dataType("String")
+//            .stringValue(COMMON_PLATFORM_HEARING.name).build(),
+//          "eventType" to MessageAttributeValue.builder().dataType("String")
+//            .stringValue("commonplatform.large.case.received").build(),
+//          "messageId" to MessageAttributeValue.builder().dataType("String")
+//            .stringValue(UUID.randomUUID().toString()).build(),
+//        ),
+//        messageGroupId = COMMON_PLATFORM_HEARING.name,
+//      )
+    expectNoMessagesOn(courtEventsQueue)
+    return publishResponse!!.get().messageId()
+  }
 
   private fun publishCourtMessage(message: String, messageType: MessageType, eventType: String): String {
     val publishResponse = courtEventsTopic?.publish(
