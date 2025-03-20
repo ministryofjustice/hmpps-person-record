@@ -95,10 +95,10 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       )
       .build()
 
-    val publishResponse = courtEventsQueue?.sqsClient?.sendMessage(request)
+    val publishResponse = courtEventsQueue?.sqsClient?.sendMessage(request)?.get()
 
     expectNoMessagesOn(courtEventsQueue)
-    return publishResponse!!.get().messageId()
+    return publishResponse!!.messageId()
   }
 
   private fun publishCourtMessage(message: String, messageType: MessageType, eventType: String): String {

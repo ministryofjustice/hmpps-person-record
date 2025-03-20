@@ -1,8 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 
-import aws.sdk.kotlin.services.s3.S3Client
-import aws.sdk.kotlin.services.s3.model.GetObjectRequest
-import aws.smithy.kotlin.runtime.content.decodeToString
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
@@ -28,7 +25,6 @@ class CourtEventProcessor(
   private val transactionalProcessor: TransactionalProcessor,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
-  private val s3Client: S3Client,
 ) {
 
   companion object {
@@ -78,22 +74,6 @@ class CourtEventProcessor(
     }
   }
 
-  private fun isLargeMessage(sqsMessage: SQSMessage) = sqsMessage.getEventType() == "commonplatform.large.case.received"
-
-  private suspend fun getPayloadFromS3(sqsMessage: SQSMessage): String {
-    val messageBody = objectMapper.readValue(sqsMessage.message, ArrayList::class.java)
-    val message = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
-
-    val request =
-      GetObjectRequest {
-        key = message.s3Key
-        bucket = message.s3BucketName
-      }
-    return s3Client.getObject(request) { resp ->
-      resp.body!!.decodeToString()
-    }
-  }
-
   private fun processLibraEvent(sqsMessage: SQSMessage) {
     val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(sqsMessage.message)
     when {
@@ -121,5 +101,3 @@ class CourtEventProcessor(
 
   private fun isLibraPerson(libraHearingEvent: LibraHearingEvent) = libraHearingEvent.defendantType == DefendantType.PERSON.value
 }
-
-data class LargeMessageBody(val s3Key: String, val s3BucketName: String)
