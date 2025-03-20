@@ -22,5 +22,4 @@ interface PersonRepository : JpaRepository<PersonEntity, Long> {
   fun findByMergedTo(mergedTo: Long): List<PersonEntity?>
 
   fun findByMatchId(matchId: String): PersonEntity?
-
 }

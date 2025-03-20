@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
-import java.util.*
+import java.util.UUID
 
 @Component
 class PersonMatchService(
@@ -21,7 +21,7 @@ class PersonMatchService(
   private val personRepository: PersonRepository,
 ) {
 
-  fun findHighestConfidencePersonRecord(personEntity: PersonEntity): PersonEntity? = runBlocking{
+  fun findHighestConfidencePersonRecord(personEntity: PersonEntity): PersonEntity? = runBlocking {
     val personScores = handleCollectingPersonScores(personEntity)
     val highConfidenceMatches = filterAboveThreshold(personScores)
     val highConfidencePersonRecords = collectPersonRecordsByMatchId(highConfidenceMatches)
@@ -32,7 +32,7 @@ class PersonMatchService(
   private fun collectPersonRecordsByMatchId(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.map {
     PersonMatchResult(
       probability = it.candidateMatchProbability,
-      personEntity = personRepository.findByMatchId(it.candidateMatchId)!!
+      personEntity = personRepository.findByMatchId(it.candidateMatchId)!!,
     )
   }
 
@@ -57,7 +57,7 @@ class PersonMatchService(
           mapOf(EventKeys.MATCH_ID to personEntity.matchId.toString()),
         )
         throw exception
-      }
+      },
     )
   }
 
