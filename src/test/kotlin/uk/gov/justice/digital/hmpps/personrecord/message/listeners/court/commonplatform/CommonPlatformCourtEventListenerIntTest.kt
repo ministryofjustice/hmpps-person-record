@@ -30,7 +30,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupContact
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
@@ -301,9 +300,28 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     runBlocking {
       s3Client.putObject(request)
     }
-    val messageId = publishLargeCommonPlatformMessage(
-      largeCommonPlatformMessage(s3Key, s3Bucket),
+    val largeMessage = commonPlatformHearing(
+      listOf(
+        CommonPlatformHearingSetup(pnc = "", defendantId = randomDefendantId()),
+        CommonPlatformHearingSetup(pnc = null, defendantId = randomDefendantId()),
+        CommonPlatformHearingSetup(pnc = null, defendantId = randomDefendantId()),
+        CommonPlatformHearingSetup(pnc = null, defendantId = randomDefendantId()),
+        CommonPlatformHearingSetup(pnc = null, defendantId = randomDefendantId()),
+        CommonPlatformHearingSetup(pnc = null, defendantId = randomDefendantId()),
+        CommonPlatformHearingSetup(pnc = null, defendantId = randomDefendantId()),
+        CommonPlatformHearingSetup(pnc = null, defendantId = randomDefendantId()),
+        CommonPlatformHearingSetup(pnc = null, defendantId = randomDefendantId()),
+        CommonPlatformHearingSetup(pnc = null, defendantId = randomDefendantId()),
+        CommonPlatformHearingSetup(pnc = null, defendantId = randomDefendantId()),
+        CommonPlatformHearingSetup(pnc = null, defendantId = randomDefendantId()),
+        CommonPlatformHearingSetup(pnc = null, defendantId = randomDefendantId()),
+        CommonPlatformHearingSetup(pnc = null, defendantId = randomDefendantId()),
+        CommonPlatformHearingSetup(pnc = null, defendantId = randomDefendantId()),
+        CommonPlatformHearingSetup(pnc = null, defendantId = randomDefendantId()),
+        CommonPlatformHearingSetup(pnc = null, defendantId = randomDefendantId()),
+      ),
     )
+    val messageId = publishLargeCommonPlatformMessage(largeMessage)
 
     checkTelemetry(
       MESSAGE_RECEIVED,

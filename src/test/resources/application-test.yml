@@ -35,7 +35,7 @@ hmpps.sqs:
       subscribeTopicId: courtcasestopic
       dlqName: cpr_court_cases_queue_dlq.fifo
       dlqMaxReceiveCount: 1
-      buckerName: bucket-name
+      bucketName: bucket-name
     cprdeliusoffendereventsqueue:
       queueName: cpr_delius_offender_events_queue
       dlqName: cpr_delius_offender_events_queue_dlq
