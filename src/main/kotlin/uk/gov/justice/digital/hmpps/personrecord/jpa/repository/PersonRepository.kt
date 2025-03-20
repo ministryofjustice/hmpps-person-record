@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import java.util.UUID
 
 @Repository
 interface PersonRepository : JpaRepository<PersonEntity, Long> {
@@ -21,5 +22,5 @@ interface PersonRepository : JpaRepository<PersonEntity, Long> {
 
   fun findByMergedTo(mergedTo: Long): List<PersonEntity?>
 
-  fun findByMatchId(matchId: String): PersonEntity?
+  fun findByMatchId(matchId: UUID): PersonEntity?
 }
