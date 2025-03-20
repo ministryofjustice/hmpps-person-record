@@ -9,10 +9,12 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.ProbationEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
@@ -72,7 +74,32 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   internal fun publishCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.case.received")
 
-  internal fun publishLargeCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.large.case.received")
+  internal fun publishLargeCommonPlatformMessage(message: String): String {
+    val request = SendMessageRequest.builder()
+      .queueUrl(courtEventsQueue?.queueUrl)
+      .messageDeduplicationId("dedube")
+      .messageBody(message)
+      .messageGroupId(COMMON_PLATFORM_HEARING.name)
+      .messageAttributes(
+        mapOf<String, software.amazon.awssdk.services.sqs.model.MessageAttributeValue>(
+          "messageType" to software.amazon.awssdk.services.sqs.model.MessageAttributeValue.builder()
+            .dataType("String")
+            .stringValue(NOTIFICATION).build(),
+          "eventType" to software.amazon.awssdk.services.sqs.model.MessageAttributeValue.builder()
+            .dataType("String")
+            .stringValue("commonplatform.case.received").build(),
+          "messageId" to software.amazon.awssdk.services.sqs.model.MessageAttributeValue.builder()
+            .dataType("String")
+            .stringValue(UUID.randomUUID().toString()).build(),
+        ),
+      )
+      .build()
+
+    val publishResponse = courtEventsQueue?.sqsClient?.sendMessage(request)?.get()
+
+    expectNoMessagesOn(courtEventsQueue)
+    return publishResponse!!.messageId()
+  }
 
   private fun publishCourtMessage(message: String, messageType: MessageType, eventType: String): String {
     val publishResponse = courtEventsTopic?.publish(
