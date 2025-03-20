@@ -168,6 +168,33 @@ class IntegrationTestBase {
     personRepository.saveAndFlush(sourceRecord)
   }
 
+  internal fun stubOnePersonMatchHighConfidenceMatch(matchId: UUID? = null, matchedRecord: UUID) = stubXPersonMatchHighConfidenceMatches(
+    matchId = matchId,
+    results = listOf(matchedRecord),
+  )
+
+  internal fun stubOnePersonMatchLowConfidenceMatch(matchId: UUID? = null, matchedRecord: UUID) = stubPersonMatchScores(
+    matchId = matchId,
+    personMatchResponse = listOf(
+      PersonMatchScore(
+        candidateMatchId = matchedRecord.toString(),
+        candidateMatchWeight = 1.0F,
+        candidateMatchProbability = 0.988899F,
+      ),
+    ),
+  )
+
+  internal fun stubXPersonMatchHighConfidenceMatches(matchId: UUID? = null, results: List<UUID>) = stubPersonMatchScores(
+    matchId = matchId,
+    personMatchResponse = List(results.size) { index ->
+      PersonMatchScore(
+        candidateMatchId = results[index].toString(),
+        candidateMatchWeight = 1.0F,
+        candidateMatchProbability = 0.999999F,
+      )
+    },
+  )
+
   internal fun stubOneHighConfidenceMatch() = stubXHighConfidenceMatches(1)
 
   internal fun stubOneLowConfidenceMatch() = stubMatchScore(
@@ -195,14 +222,13 @@ class IntegrationTestBase {
 
   internal fun stubPersonMatchScores(matchId: UUID? = null, personMatchResponse: List<PersonMatchScore> = listOf(), scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200) {
     val matchIdUrlPattern: UrlPattern = matchId?.let { urlEqualTo("/person/score/$it") } ?: urlPathMatching("/person/score/.*") // Regex to match any matchId, as not known on create
-    val responseBody: List<PersonMatchScore> = listOf(PersonMatchScore(candidateMatchId = matchId.toString(), candidateMatchWeight = 1.0F, candidateMatchProbability = 1.0F))
     stubGetRequest(
       scenario,
       currentScenarioState,
       nextScenarioState,
       urlPattern = matchIdUrlPattern,
       status = status,
-      body = objectMapper.writeValueAsString(responseBody),
+      body = objectMapper.writeValueAsString(personMatchResponse),
     )
   }
 
