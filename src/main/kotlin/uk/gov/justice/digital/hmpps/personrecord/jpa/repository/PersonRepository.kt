@@ -20,4 +20,7 @@ interface PersonRepository : JpaRepository<PersonEntity, Long> {
   fun findByPrisonNumberAndSourceSystem(prisonNumber: String, sourceSystem: SourceSystemType): PersonEntity?
 
   fun findByMergedTo(mergedTo: Long): List<PersonEntity?>
+
+  fun findByMatchId(matchId: String): PersonEntity?
+
 }
