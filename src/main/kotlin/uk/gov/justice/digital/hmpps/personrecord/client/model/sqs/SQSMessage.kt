@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotBlank
 data class SQSMessage(
   @NotBlank
   @JsonProperty("Type")
-  val type: String? = null,
+  val type: String,
   @NotBlank
   @JsonProperty("Message")
   val message: String,
