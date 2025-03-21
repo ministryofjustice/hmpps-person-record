@@ -1,10 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.commonplatform
 
-import aws.sdk.kotlin.services.s3.S3Client
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
@@ -36,12 +33,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
-
-  @Autowired
-  lateinit var s3Client: S3Client
-
-  @Value("\${aws.court-message-bucket-name}")
-  lateinit var s3Bucket: String
 
   @Test
   fun `FIFO queue and topic remove duplicate messages`() {
