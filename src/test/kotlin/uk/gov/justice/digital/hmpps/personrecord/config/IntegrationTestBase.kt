@@ -161,11 +161,10 @@ class IntegrationTestBase {
       OverrideMarkerEntity(
         markerType = EXCLUDE,
         markerValue = sourceRecord.id,
-        person = sourceRecord,
+        person = excludingRecord,
       ),
     )
-    personRepository.saveAndFlush(excludingRecord)
-    personRepository.saveAndFlush(sourceRecord)
+    personRepository.saveAllAndFlush(listOf(sourceRecord, excludingRecord))
   }
 
   internal fun stubOnePersonMatchHighConfidenceMatch(matchId: UUID? = null, matchedRecord: UUID) = stubXPersonMatchHighConfidenceMatches(

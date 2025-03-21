@@ -7,10 +7,14 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchS
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQueries
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
 import java.util.UUID
 
@@ -24,11 +28,15 @@ class PersonMatchService(
 
   fun findHighestConfidencePersonRecord(personEntity: PersonEntity): PersonEntity? = runBlocking {
     val personScores = handleCollectingPersonScores(personEntity)
-    val highConfidenceMatches = filterAboveThreshold(personScores)
-    val highConfidencePersonRecords = collectPersonRecordsByMatchId(highConfidenceMatches)
+      .filterAboveThreshold()
+      .logCandidateScores()
+    val highConfidencePersonRecords = collectPersonRecordsByMatchId(personScores)
       .filterUUIDExists()
       .filterClustersWithExcludeMarker(personEntity.id)
-    return@runBlocking highConfidencePersonRecords.toList().maxByOrNull { it.probability }?.personEntity
+      .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
+      .sortedByDescending { it.probability }
+      .logHighConfidenceDuplicates()
+    return@runBlocking highConfidencePersonRecords.firstOrNull()?.personEntity
   }
 
   private fun collectPersonRecordsByMatchId(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.map {
@@ -37,8 +45,6 @@ class PersonMatchService(
       personEntity = personRepository.findByMatchId(UUID.fromString(it.candidateMatchId))!!,
     )
   }
-
-  private fun filterAboveThreshold(personScores: List<PersonMatchScore>): List<PersonMatchScore> = personScores.filter { candidate -> isAboveThreshold(candidate.candidateMatchProbability) }
 
   private fun handleCollectingPersonScores(personEntity: PersonEntity): List<PersonMatchScore> = runBlocking {
     getPersonScores(personEntity).fold(
@@ -51,6 +57,21 @@ class PersonMatchService(
         throw exception
       },
     )
+  }
+
+  private fun List<PersonMatchScore>.filterAboveThreshold(): List<PersonMatchScore> = this.filter { candidate -> isAboveThreshold(candidate.candidateMatchProbability) }
+
+  private fun List<PersonMatchScore>.logCandidateScores(): List<PersonMatchScore> {
+    this.forEach { candidate ->
+      telemetryService.trackEvent(
+        CPR_MATCH_SCORE,
+        mapOf(
+          EventKeys.PROBABILITY_SCORE to candidate.candidateMatchProbability.toString(),
+          EventKeys.MATCH_ID to candidate.candidateMatchId
+        ),
+      )
+    }
+    return this
   }
 
   private suspend fun getPersonScores(personEntity: PersonEntity): Result<List<PersonMatchScore>> = kotlin.runCatching {
@@ -69,6 +90,39 @@ class PersonMatchService(
       }
     }.map { it.key }
     return this.filter { candidate -> excludedClusters.contains(candidate.personEntity.personKey?.personId).not() }
+  }
+
+  private fun List<PersonMatchResult>.logCandidateSearchSummary(personEntity: PersonEntity, totalNumberOfScores: Int): List<PersonMatchResult> {
+    telemetryService.trackEvent(
+      CPR_CANDIDATE_RECORD_SEARCH,
+      mapOf(
+        EventKeys.SOURCE_SYSTEM to personEntity.sourceSystem.name,
+        EventKeys.RECORD_COUNT to totalNumberOfScores.toString(),
+        EventKeys.UUID_COUNT to this.groupBy { match -> match.personEntity.personKey?.let { it.personId.toString() } }.size.toString(),
+        EventKeys.HIGH_CONFIDENCE_COUNT to this.count().toString(),
+        EventKeys.LOW_CONFIDENCE_COUNT to (totalNumberOfScores - this.count()).toString(),
+      ),
+    )
+    return this
+  }
+
+  private fun List<PersonMatchResult>.logHighConfidenceDuplicates(): List<PersonMatchResult> {
+    this.takeIf { this.size > 1 }?.forEach { candidate ->
+      telemetryService.trackEvent(
+        CPR_MATCH_PERSON_DUPLICATE,
+        mapOf(
+          EventKeys.SOURCE_SYSTEM to candidate.personEntity.sourceSystem.name,
+          EventKeys.MATCH_ID to candidate.personEntity.matchId.toString(),
+          EventKeys.DEFENDANT_ID to candidate.personEntity.defendantId,
+          EventKeys.C_ID to candidate.personEntity.cId,
+          EventKeys.CRN to candidate.personEntity.crn,
+          EventKeys.PRISON_NUMBER to candidate.personEntity.prisonNumber,
+          EventKeys.PROBABILITY_SCORE to candidate.probability.toString(),
+          EventKeys.UUID to candidate.personEntity.personKey?.let { it.personId.toString() },
+        ),
+      )
+    }
+    return this
   }
 
   private companion object {
