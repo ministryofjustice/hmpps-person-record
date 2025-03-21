@@ -65,5 +65,4 @@ spring:
 
 aws:
   endpoint: http://localhost:4566
-  court-message-bucket-name: local-court-message-bucket
   region: eu-west-2
