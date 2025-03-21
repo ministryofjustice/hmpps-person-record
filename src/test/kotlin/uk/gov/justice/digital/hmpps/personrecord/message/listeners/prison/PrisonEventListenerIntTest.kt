@@ -86,7 +86,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   @ParameterizedTest
   @MethodSource("currentlyManagedParameters")
   fun `should map currently managed field correctly`(status: String?, result: Boolean?) {
-    stubPersonMatch()
+    stubPersonMatchUpsert()
     stubPersonMatchScores()
     val prisonNumber = randomPrisonNumber()
     stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, currentlyManaged = status))
@@ -110,7 +110,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @BeforeEach
     fun beforeEach() {
-      stubPersonMatch()
+      stubPersonMatchUpsert()
     }
 
     @Test

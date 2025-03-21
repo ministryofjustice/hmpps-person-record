@@ -96,6 +96,11 @@ class PersonMatchService(
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
         EventKeys.SOURCE_SYSTEM to personEntity.sourceSystem.name,
+        EventKeys.MATCH_ID to personEntity.matchId.toString(),
+        EventKeys.DEFENDANT_ID to personEntity.defendantId,
+        EventKeys.C_ID to personEntity.cId,
+        EventKeys.CRN to personEntity.crn,
+        EventKeys.PRISON_NUMBER to personEntity.prisonNumber,
         EventKeys.RECORD_COUNT to totalNumberOfScores.toString(),
         EventKeys.UUID_COUNT to this.groupBy { match -> match.personEntity.personKey?.let { it.personId.toString() } }.size.toString(),
         EventKeys.HIGH_CONFIDENCE_COUNT to this.count().toString(),

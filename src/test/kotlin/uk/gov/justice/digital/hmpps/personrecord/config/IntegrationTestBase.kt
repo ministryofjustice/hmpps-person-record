@@ -234,7 +234,7 @@ class IntegrationTestBase {
     )
   }
 
-  internal fun stubPersonMatch(scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200, body: String = "{}") {
+  internal fun stubPersonMatchUpsert(scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200, body: String = "{}") {
     stubPostRequest(
       scenario,
       currentScenarioState,
