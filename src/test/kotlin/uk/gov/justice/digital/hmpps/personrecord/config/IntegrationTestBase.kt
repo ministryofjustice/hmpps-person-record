@@ -120,6 +120,7 @@ class IntegrationTestBase {
   internal fun awaitNotNullEventLog(sourceSystemId: String, eventType: String) = await atMost (Duration.ofSeconds(3)) untilNotNull {
     eventLoggingRepository.findFirstBySourceSystemIdAndEventTypeOrderByEventTimestampDesc(sourceSystemId, eventType)
   }
+
   internal fun createPersonKey(status: UUIDStatusType = ACTIVE): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
     personKeyEntity.status = status
@@ -166,6 +167,8 @@ class IntegrationTestBase {
     )
     personRepository.saveAllAndFlush(listOf(sourceRecord, excludingRecord))
   }
+
+  internal fun stubNoMatchesPersonMatch(matchId: UUID? = null) = stubPersonMatchScores(matchId = matchId, personMatchResponse = emptyList())
 
   internal fun stubOnePersonMatchHighConfidenceMatch(matchId: UUID? = null, matchedRecord: UUID) = stubXPersonMatchHighConfidenceMatches(
     matchId = matchId,

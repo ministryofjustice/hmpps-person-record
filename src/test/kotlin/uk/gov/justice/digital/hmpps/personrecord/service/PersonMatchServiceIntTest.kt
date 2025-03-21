@@ -107,10 +107,13 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       excludeRecord(searchingRecord, excludingRecord = excludedRecord)
 
-      stubXPersonMatchHighConfidenceMatches(matchId = searchingRecord.matchId, results = listOf(
-        excludedRecord.matchId,
-        matchRecordOnSameCluster.matchId,
-      ))
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = searchingRecord.matchId,
+        results = listOf(
+          excludedRecord.matchId,
+          matchRecordOnSameCluster.matchId,
+        ),
+      )
 
       val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
 
@@ -122,7 +125,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       val searchingRecord = createPersonWithNewKey(createExamplePerson())
 
       val highScoringRecordOne = createPersonWithNewKey(createExamplePerson())
-      val highScoringRecordTwo= createPersonWithNewKey(createExamplePerson())
+      val highScoringRecordTwo = createPersonWithNewKey(createExamplePerson())
 
       stubPersonMatchScores(
         matchId = searchingRecord.matchId,
@@ -161,18 +164,18 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       val cluster1 = createPersonKey()
       val cluster1Records = listOf(
         createPerson(createExamplePerson(), personKeyEntity = cluster1),
-        createPerson(createExamplePerson(), personKeyEntity = cluster1)
+        createPerson(createExamplePerson(), personKeyEntity = cluster1),
       )
 
       val cluster2 = createPersonKey()
       val cluster2Records = listOf(
         createPerson(createExamplePerson(), personKeyEntity = cluster2),
-        createPerson(createExamplePerson(), personKeyEntity = cluster2)
+        createPerson(createExamplePerson(), personKeyEntity = cluster2),
       )
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = searchingRecord.matchId,
-        results = cluster1Records.map { it.matchId } + cluster2Records.map { it.matchId }
+        results = cluster1Records.map { it.matchId } + cluster2Records.map { it.matchId },
       )
 
       val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
@@ -196,11 +199,11 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       val searchingRecord = createPersonWithNewKey(createExamplePerson())
 
       val highScoringRecordOne = createPersonWithNewKey(createExamplePerson())
-      val highScoringRecordTwo= createPersonWithNewKey(createExamplePerson())
+      val highScoringRecordTwo = createPersonWithNewKey(createExamplePerson())
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = searchingRecord.matchId,
-        results = listOf(highScoringRecordOne.matchId, highScoringRecordTwo.matchId)
+        results = listOf(highScoringRecordOne.matchId, highScoringRecordTwo.matchId),
       )
 
       val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
@@ -228,11 +231,11 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       val searchingRecord = createPersonWithNewKey(createExamplePerson())
 
       val highScoringRecordOne = createPersonWithNewKey(createExamplePerson())
-      val highScoringRecordTwo= createPersonWithNewKey(createExamplePerson())
+      val highScoringRecordTwo = createPersonWithNewKey(createExamplePerson())
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = searchingRecord.matchId,
-        results = listOf(highScoringRecordOne.matchId, highScoringRecordTwo.matchId)
+        results = listOf(highScoringRecordOne.matchId, highScoringRecordTwo.matchId),
       )
 
       val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
@@ -250,7 +253,6 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         ),
       )
     }
-
   }
 
   private fun noCandidateFound(highConfidenceMatch: PersonEntity?) {

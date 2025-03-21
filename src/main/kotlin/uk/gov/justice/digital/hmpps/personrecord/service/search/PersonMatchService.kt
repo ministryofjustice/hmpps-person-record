@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchS
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.queries.PersonQueries
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
@@ -67,7 +66,7 @@ class PersonMatchService(
         CPR_MATCH_SCORE,
         mapOf(
           EventKeys.PROBABILITY_SCORE to candidate.candidateMatchProbability.toString(),
-          EventKeys.MATCH_ID to candidate.candidateMatchId
+          EventKeys.MATCH_ID to candidate.candidateMatchId,
         ),
       )
     }
