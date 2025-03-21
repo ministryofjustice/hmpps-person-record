@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.seeding
 
+import io.swagger.v3.oas.annotations.Hidden
 import jakarta.transaction.Transactional
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +32,7 @@ class PopulatePersonMatch(
   private val retryExecutor: RetryExecutor,
 ) {
 
+  @Hidden
   @RequestMapping(method = [RequestMethod.POST], value = ["/populatepersonmatch"])
   suspend fun populate(@RequestParam startPage: Int = 0): String {
     runPopulation(startPage)
