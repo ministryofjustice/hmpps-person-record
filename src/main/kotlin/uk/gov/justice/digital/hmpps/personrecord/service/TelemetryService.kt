@@ -22,6 +22,7 @@ enum class EventKeys {
   PRISON_NUMBER,
   DEFENDANT_ID,
   C_ID,
+  MATCH_ID,
 
   // Merge
   RECORD_TYPE,

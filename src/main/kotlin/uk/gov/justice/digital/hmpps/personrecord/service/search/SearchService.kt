@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class SearchService(
   private val telemetryService: TelemetryService,
   private val matchService: MatchService,
-  private val personMatchService: PersonMatchService,
   private val personRepository: PersonBlockingRulesRepository,
 ) {
 
@@ -47,7 +46,6 @@ class SearchService(
 
   fun findCandidateRecordsWithUuid(personEntity: PersonEntity): List<MatchResult> {
     val searchCriteria = PersonSearchCriteria.from(personEntity)
-    personMatchService.getScores(personEntity)
     val candidates = searchForRecords(searchCriteria, PersonQueries.findCandidatesWithUuid(searchCriteria))
     return filterClustersWithExcludeMarker(candidates, searchCriteria.preparedId?.value)
   }

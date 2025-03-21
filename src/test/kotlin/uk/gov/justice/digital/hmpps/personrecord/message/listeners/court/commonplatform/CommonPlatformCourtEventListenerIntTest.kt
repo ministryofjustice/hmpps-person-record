@@ -51,8 +51,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `FIFO queue and topic remove duplicate messages`() {
-    stubPersonMatchScores()
-    stubPersonMatch()
+    stubPersonMatchUpsert()
+    stubNoMatchesPersonMatch()
     val pnc = randomPnc()
     val defendantId = randomDefendantId()
     val firstName = randomName()
@@ -95,8 +95,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should update an existing person record from common platform message`() {
-    stubPersonMatchScores()
-    stubPersonMatch()
+    stubPersonMatchUpsert()
     val defendantId = randomDefendantId()
     val pnc = randomPnc()
     val cro = randomCro()
@@ -147,7 +146,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should create new people with additional fields from common platform message`() {
     stubPersonMatchScores()
-    stubPersonMatch()
+    stubPersonMatchUpsert()
     val firstPnc = randomPnc()
     val firstName = randomName()
     val lastName = randomName()
@@ -287,7 +286,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process large messages`() {
     stubPersonMatchScores()
-    stubPersonMatch()
+    stubPersonMatchUpsert()
     val defendantId = randomDefendantId()
 
     val s3Key = UUID.randomUUID().toString()
@@ -315,7 +314,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process messages with pnc as empty string and null`() {
     stubPersonMatchScores()
-    stubPersonMatch()
+    stubPersonMatchUpsert()
     val firstDefendantId = randomDefendantId()
     val secondDefendantId = randomDefendantId()
 
@@ -365,7 +364,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should process when is youth is null`() {
     stubPersonMatchScores()
-    stubPersonMatch()
+    stubPersonMatchUpsert()
     val defendantId = randomDefendantId()
     val messageId = publishCommonPlatformMessage(
       commonPlatformHearing(
