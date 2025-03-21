@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.seeding
 
+import io.swagger.v3.oas.annotations.Hidden
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,6 +26,7 @@ class PopulateFromProbation(
   private val retryExecutor: RetryExecutor,
 ) {
 
+  @Hidden
   @RequestMapping(method = [POST], value = ["/populatefromprobation"])
   suspend fun populate(): String {
     populatePages()

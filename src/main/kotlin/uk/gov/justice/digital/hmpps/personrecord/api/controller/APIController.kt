@@ -15,7 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import java.util.UUID
 
-@Tag(name = "Canonical API")
+@Tag(name = "HMPPS Person API")
 @RestController
 @PreAuthorize("hasRole('${Roles.API_READ_ONLY}')")
 class APIController(

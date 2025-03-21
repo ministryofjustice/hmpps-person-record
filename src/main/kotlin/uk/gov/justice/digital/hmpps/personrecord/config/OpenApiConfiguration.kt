@@ -8,6 +8,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
 import io.swagger.v3.oas.models.servers.Server
 import io.swagger.v3.oas.models.tags.Tag
+import org.springdoc.core.models.GroupedOpenApi
 import org.springframework.boot.info.BuildProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -50,6 +51,12 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
       ),
     )
     .addSecurityItem(SecurityRequirement().addList("bearer-jwt", listOf("read")))
+
+  @Bean
+  fun hiddenApi(): GroupedOpenApi = GroupedOpenApi.builder()
+    .group("hidden")
+    .pathsToExclude("/queue-admin/**")
+    .build()
 }
 
 private fun SecurityScheme.addBearerJwtRequirement(role: String): SecurityScheme = type(SecurityScheme.Type.HTTP)

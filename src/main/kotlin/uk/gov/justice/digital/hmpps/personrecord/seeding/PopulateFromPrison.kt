@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.seeding
 
+import io.swagger.v3.oas.annotations.Hidden
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,6 +31,7 @@ class PopulateFromPrison(
   private val retryExecutor: RetryExecutor,
 ) {
 
+  @Hidden
   @RequestMapping(method = [RequestMethod.POST], value = ["/populatefromprison"])
   suspend fun populate(): String {
     populatePages()
