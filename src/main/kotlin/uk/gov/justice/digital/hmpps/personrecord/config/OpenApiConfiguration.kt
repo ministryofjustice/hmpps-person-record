@@ -53,13 +53,10 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
     .addSecurityItem(SecurityRequirement().addList("bearer-jwt", listOf("read")))
 
   @Bean
-  fun hiddenApi(): GroupedOpenApi {
-    return GroupedOpenApi.builder()
-      .group("hidden")
-      .pathsToExclude("/queue-admin/**")
-      .build()
-  }
-
+  fun hiddenApi(): GroupedOpenApi = GroupedOpenApi.builder()
+    .group("hidden")
+    .pathsToExclude("/queue-admin/**")
+    .build()
 }
 
 private fun SecurityScheme.addBearerJwtRequirement(role: String): SecurityScheme = type(SecurityScheme.Type.HTTP)
