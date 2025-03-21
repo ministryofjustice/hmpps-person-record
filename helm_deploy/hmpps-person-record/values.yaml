@@ -95,7 +95,8 @@ generic-service:
     sqs-cpr-recluster-events-dlq-secret:
       HMPPS_SQS_QUEUES_CPRRECLUSTEREVENTSQUEUE_DLQ_NAME: "sqs_queue_name"
     large-court-cases-s3-bucket:
-      HMPPS_SQS_QUEUES_CPRCOURTCASESQUEUE_BUCKET_NAME: "bucket_name"
+      AWS_COURT_MESSAGE_BUCKET_NAME: "bucket_name"
+
     hmpps-person-record-rds-instance-output:
       DATABASE_NAME: "database_name"
       DATABASE_USERNAME: "database_username"
