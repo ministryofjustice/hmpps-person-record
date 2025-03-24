@@ -27,22 +27,23 @@ class PersonMatchService(
 
   fun findHighestConfidencePersonRecord(personEntity: PersonEntity): PersonEntity? = runBlocking {
     val personScores = handleCollectingPersonScores(personEntity)
-      .filterAboveThreshold()
+      .removeLowQualityMatches()
       .logCandidateScores()
-    val highConfidencePersonRecords = collectPersonRecordsByMatchId(personScores)
-      .filterUUIDExists()
-      .filterClustersWithExcludeMarker(personEntity.id)
+    val highConfidencePersonRecords = getPersonRecords(personScores)
+      .allowMatchesWithUUID()
+      .removeMatchesWhereClusterHasExcludeMarker(personEntity.id)
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
-      .sortedByDescending { it.probability }
       .logHighConfidenceDuplicates()
     return@runBlocking highConfidencePersonRecords.firstOrNull()?.personEntity
   }
 
-  private fun collectPersonRecordsByMatchId(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.map {
-    PersonMatchResult(
-      probability = it.candidateMatchProbability,
-      personEntity = personRepository.findByMatchId(UUID.fromString(it.candidateMatchId))!!,
-    )
+  private fun getPersonRecords(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.sortedByDescending { it.candidateMatchProbability }.mapNotNull {
+    personRepository.findByMatchId(UUID.fromString(it.candidateMatchId))?.let { person ->
+      PersonMatchResult(
+        probability = it.candidateMatchProbability,
+        personEntity = person,
+      )
+    }
   }
 
   private fun handleCollectingPersonScores(personEntity: PersonEntity): List<PersonMatchScore> = runBlocking {
@@ -58,7 +59,7 @@ class PersonMatchService(
     )
   }
 
-  private fun List<PersonMatchScore>.filterAboveThreshold(): List<PersonMatchScore> = this.filter { candidate -> isAboveThreshold(candidate.candidateMatchProbability) }
+  private fun List<PersonMatchScore>.removeLowQualityMatches(): List<PersonMatchScore> = this.filter { candidate -> isAboveThreshold(candidate.candidateMatchProbability) }
 
   private fun List<PersonMatchScore>.logCandidateScores(): List<PersonMatchScore> {
     this.forEach { candidate ->
@@ -79,9 +80,9 @@ class PersonMatchService(
 
   private fun isAboveThreshold(score: Float): Boolean = score >= THRESHOLD_SCORE
 
-  private fun List<PersonMatchResult>.filterUUIDExists(): List<PersonMatchResult> = this.filter { it.personEntity.personKey != PersonKeyEntity.empty }
+  private fun List<PersonMatchResult>.allowMatchesWithUUID(): List<PersonMatchResult> = this.filter { it.personEntity.personKey != PersonKeyEntity.empty }
 
-  private fun List<PersonMatchResult>.filterClustersWithExcludeMarker(personRecordId: Long?): List<PersonMatchResult> {
+  private fun List<PersonMatchResult>.removeMatchesWhereClusterHasExcludeMarker(personRecordId: Long?): List<PersonMatchResult> {
     val clusters: Map<UUID, List<PersonMatchResult>> = this.groupBy { it.personEntity.personKey?.personId!! }
     val excludedClusters: List<UUID> = clusters.filter { (_, records) ->
       records.any { record ->
@@ -97,7 +98,7 @@ class PersonMatchService(
       personEntity,
       mapOf(
         EventKeys.RECORD_COUNT to totalNumberOfScores.toString(),
-        EventKeys.UUID_COUNT to this.groupBy { match -> match.personEntity.personKey?.let { it.personId.toString() } }.size.toString(),
+        EventKeys.UUID_COUNT to this.groupBy { match -> match.personEntity.personKey?.personId?.toString() }.size.toString(),
         EventKeys.HIGH_CONFIDENCE_COUNT to this.count().toString(),
         EventKeys.LOW_CONFIDENCE_COUNT to (totalNumberOfScores - this.count()).toString(),
       ),
@@ -112,7 +113,7 @@ class PersonMatchService(
         personEntity = candidate.personEntity,
         mapOf(
           EventKeys.PROBABILITY_SCORE to candidate.probability.toString(),
-          EventKeys.UUID to candidate.personEntity.personKey?.let { it.personId.toString() },
+          EventKeys.UUID to candidate.personEntity.personKey?.personId?.toString(),
         ),
       )
     }
