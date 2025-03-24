@@ -29,7 +29,7 @@ class PersonMatchService(
     val personScores = handleCollectingPersonScores(personEntity)
       .removeLowQualityMatches()
       .logCandidateScores()
-    val highConfidencePersonRecords = collectPersonRecordsByMatchId(personScores)
+    val highConfidencePersonRecords = getPersonRecords(personScores)
       .allowMatchesWithUUID()
       .removeMatchesWhereClusterHasExcludeMarker(personEntity.id)
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
@@ -37,7 +37,7 @@ class PersonMatchService(
     return@runBlocking highConfidencePersonRecords.firstOrNull()?.personEntity
   }
 
-  private fun collectPersonRecordsByMatchId(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.sortedByDescending { it.candidateMatchProbability }.mapNotNull {
+  private fun getPersonRecords(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.sortedByDescending { it.candidateMatchProbability }.mapNotNull {
     personRepository.findByMatchId(UUID.fromString(it.candidateMatchId))?.let { person ->
       PersonMatchResult(
         probability = it.candidateMatchProbability,
@@ -98,7 +98,7 @@ class PersonMatchService(
       personEntity,
       mapOf(
         EventKeys.RECORD_COUNT to totalNumberOfScores.toString(),
-        EventKeys.UUID_COUNT to this.groupBy { match -> match.personEntity.personKey?.let { it.personId.toString() } }.size.toString(),
+        EventKeys.UUID_COUNT to this.groupBy { match -> match.personEntity.personKey?.personId?.toString() }.size.toString(),
         EventKeys.HIGH_CONFIDENCE_COUNT to this.count().toString(),
         EventKeys.LOW_CONFIDENCE_COUNT to (totalNumberOfScores - this.count()).toString(),
       ),
