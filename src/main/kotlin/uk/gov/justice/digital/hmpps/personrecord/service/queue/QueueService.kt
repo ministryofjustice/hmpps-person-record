@@ -6,6 +6,7 @@ import software.amazon.awssdk.services.sqs.model.MessageAttributeValue
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.Recluster
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.type.RECLUSTER_EVENT
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingQueueException
@@ -18,10 +19,13 @@ class QueueService(
   private val hmppsQueueService: HmppsQueueService,
 ) {
 
-  fun publishReclusterMessageToQueue(uuid: UUID) {
+  fun publishReclusterMessageToQueue(personEntity: PersonEntity) {
     val queue = findByQueueIdOrThrow(Queues.RECLUSTER_EVENTS_QUEUE_ID)
     val message = objectMapper.writeValueAsString(
-      Recluster(uuid = uuid.toString()),
+      Recluster(
+        uuid = personEntity.personKey?.personId,
+        changedRecordId = personEntity.id,
+      ),
     )
     val messageBuilder = SendMessageRequest.builder()
       .queueUrl(queue.queueUrl)
