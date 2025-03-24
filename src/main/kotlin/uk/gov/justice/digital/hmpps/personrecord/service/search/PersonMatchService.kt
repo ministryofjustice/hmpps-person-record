@@ -92,15 +92,11 @@ class PersonMatchService(
   }
 
   private fun List<PersonMatchResult>.logCandidateSearchSummary(personEntity: PersonEntity, totalNumberOfScores: Int): List<PersonMatchResult> {
-    telemetryService.trackEvent(
+    telemetryService.trackPersonEvent(
       CPR_CANDIDATE_RECORD_SEARCH,
+      personEntity,
       mapOf(
         EventKeys.SOURCE_SYSTEM to personEntity.sourceSystem.name,
-        EventKeys.MATCH_ID to personEntity.matchId.toString(),
-        EventKeys.DEFENDANT_ID to personEntity.defendantId,
-        EventKeys.C_ID to personEntity.cId,
-        EventKeys.CRN to personEntity.crn,
-        EventKeys.PRISON_NUMBER to personEntity.prisonNumber,
         EventKeys.RECORD_COUNT to totalNumberOfScores.toString(),
         EventKeys.UUID_COUNT to this.groupBy { match -> match.personEntity.personKey?.let { it.personId.toString() } }.size.toString(),
         EventKeys.HIGH_CONFIDENCE_COUNT to this.count().toString(),
@@ -112,15 +108,11 @@ class PersonMatchService(
 
   private fun List<PersonMatchResult>.logHighConfidenceDuplicates(): List<PersonMatchResult> {
     this.takeIf { this.size > 1 }?.forEach { candidate ->
-      telemetryService.trackEvent(
+      telemetryService.trackPersonEvent(
         CPR_MATCH_PERSON_DUPLICATE,
+        personEntity = candidate.personEntity,
         mapOf(
           EventKeys.SOURCE_SYSTEM to candidate.personEntity.sourceSystem.name,
-          EventKeys.MATCH_ID to candidate.personEntity.matchId.toString(),
-          EventKeys.DEFENDANT_ID to candidate.personEntity.defendantId,
-          EventKeys.C_ID to candidate.personEntity.cId,
-          EventKeys.CRN to candidate.personEntity.crn,
-          EventKeys.PRISON_NUMBER to candidate.personEntity.prisonNumber,
           EventKeys.PROBABILITY_SCORE to candidate.probability.toString(),
           EventKeys.UUID to candidate.personEntity.personKey?.let { it.personId.toString() },
         ),
