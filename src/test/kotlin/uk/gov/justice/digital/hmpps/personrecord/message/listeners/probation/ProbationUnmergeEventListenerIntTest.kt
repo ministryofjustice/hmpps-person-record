@@ -39,7 +39,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   inner class SuccessfulProcessing {
     @BeforeEach
     fun beforeEach() {
-      stubPersonMatch()
+      stubPersonMatchUpsert()
       stubPersonMatchScores()
     }
 

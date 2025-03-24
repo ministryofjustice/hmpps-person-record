@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
@@ -49,6 +50,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
 import java.time.LocalDateTime
+import java.util.UUID
 import java.util.concurrent.TimeUnit.SECONDS
 
 class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -57,7 +59,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   inner class SuccessfulProcessing {
     @BeforeEach
     fun beforeEach() {
-      stubPersonMatch()
+      stubPersonMatchUpsert()
       stubPersonMatchScores()
     }
 
@@ -149,7 +151,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `should link new probation record to an existing prison record`() {
-      telemetryRepository.deleteAll()
       val crn = randomCrn()
       val prisonNumber = randomPrisonNumber()
       val firstName = randomName()
@@ -166,9 +167,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         sourceSystem = NOMIS,
       )
       val personKeyEntity = createPersonKey()
-      createPerson(existingPrisoner, personKeyEntity = personKeyEntity)
+      val existingPerson = createPerson(existingPrisoner, personKeyEntity = personKeyEntity)
 
-      stubOneHighConfidenceMatch()
+      stubOnePersonMatchHighConfidenceMatch(matchedRecord = existingPerson.matchId)
 
       val apiResponse = ApiResponseSetup(
         crn = crn,
@@ -187,6 +188,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
           "SOURCE_SYSTEM" to DELIUS.name,
           "RECORD_COUNT" to "1",
           "UUID_COUNT" to "1",
+          "CRN" to crn,
           "HIGH_CONFIDENCE_COUNT" to "1",
           "LOW_CONFIDENCE_COUNT" to "0",
         ),
@@ -368,6 +370,17 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(loggedEvent.processedData).isEqualTo(processedData)
       assertThat(loggedEvent.uuid).isEqualTo(updatedPersonEntity.personKey?.personId.toString())
     }
+  }
+
+  @Test
+  fun `person match returns a match ID which does not exist in hmpps-person-record and a new UUID is created`() {
+    val crn = randomCrn()
+    stubPersonMatchUpsert()
+    val matchIdWhichExistsInPersonMatchButNotInCPR = UUID.randomUUID().toString()
+    val highConfidenceMatchWhichDoesNotExistInCPR = PersonMatchScore(matchIdWhichExistsInPersonMatchButNotInCPR, 0.99999F, 0.9999F)
+    stubPersonMatchScores(personMatchResponse = listOf(highConfidenceMatchWhichDoesNotExistInCPR))
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn))
+    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
   }
 
   @Test

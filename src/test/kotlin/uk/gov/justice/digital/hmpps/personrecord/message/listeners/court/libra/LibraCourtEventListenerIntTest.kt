@@ -37,7 +37,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val pnc = randomPnc()
     val dateOfBirth = randomDate()
     val cId = randomCId()
-    stubPersonMatch()
+    stubPersonMatchUpsert()
     stubPersonMatchScores()
     val messageId = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode))
 
@@ -84,8 +84,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    stubPersonMatch()
-    stubPersonMatchScores(personEntity.matchId)
+    stubPersonMatchUpsert()
 
     val updatedMessage = publishLibraMessage(libraHearing(firstName = firstName, cId = cId, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
     checkTelemetry(
@@ -119,7 +118,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process and create libra message and link to different source system record`() {
-    telemetryRepository.deleteAll()
     val firstName = randomName()
     val lastName = randomName()
     val dateOfBirth = randomDate()
@@ -132,11 +130,10 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       sourceSystem = DELIUS,
     )
     val personKeyEntity = createPersonKey()
-    createPerson(personFromProbation, personKeyEntity = personKeyEntity)
+    val existingPerson = createPerson(personFromProbation, personKeyEntity = personKeyEntity)
 
-    stubPersonMatch()
-    stubOneHighConfidenceMatch()
-    stubPersonMatchScores()
+    stubPersonMatchUpsert()
+    stubOnePersonMatchHighConfidenceMatch(matchedRecord = existingPerson.matchId)
 
     val messageId = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = ""))
     checkTelemetry(
@@ -157,6 +154,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         "RECORD_COUNT" to "1",
         "HIGH_CONFIDENCE_COUNT" to "1",
         "LOW_CONFIDENCE_COUNT" to "0",
+        "C_ID" to cId,
       ),
     )
     checkTelemetry(
