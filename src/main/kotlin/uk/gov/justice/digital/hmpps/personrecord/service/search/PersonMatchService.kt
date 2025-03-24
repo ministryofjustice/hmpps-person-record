@@ -38,11 +38,13 @@ class PersonMatchService(
     return@runBlocking highConfidencePersonRecords.firstOrNull()?.personEntity
   }
 
-  private fun collectPersonRecordsByMatchId(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.map {
-    PersonMatchResult(
-      probability = it.candidateMatchProbability,
-      personEntity = personRepository.findByMatchId(UUID.fromString(it.candidateMatchId))!!,
-    )
+  private fun collectPersonRecordsByMatchId(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.mapNotNull {
+    personRepository.findByMatchId(UUID.fromString(it.candidateMatchId))?.let { person ->
+      PersonMatchResult(
+        probability = it.candidateMatchProbability,
+        personEntity = person,
+      )
+    }
   }
 
   private fun handleCollectingPersonScores(personEntity: PersonEntity): List<PersonMatchScore> = runBlocking {
