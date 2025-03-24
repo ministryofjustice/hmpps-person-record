@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.Recluster
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.type.RECLUSTER_EVENT
+import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingQueueException
 import java.util.UUID
@@ -19,8 +20,9 @@ class QueueService(
   private val hmppsQueueService: HmppsQueueService,
 ) {
 
+  private val reclusterQueue: HmppsQueue = findByQueueIdOrThrow(Queues.RECLUSTER_EVENTS_QUEUE_ID)
+
   fun publishReclusterMessageToQueue(personEntity: PersonEntity) {
-    val queue = findByQueueIdOrThrow(Queues.RECLUSTER_EVENTS_QUEUE_ID)
     val message = objectMapper.writeValueAsString(
       Recluster(
         uuid = personEntity.personKey?.personId,
@@ -28,7 +30,7 @@ class QueueService(
       ),
     )
     val messageBuilder = SendMessageRequest.builder()
-      .queueUrl(queue.queueUrl)
+      .queueUrl(reclusterQueue.queueUrl)
       .messageBody(message)
       .messageAttributes(
         mapOf(
@@ -38,7 +40,7 @@ class QueueService(
         ),
       )
 
-    queue.sqsClient.sendMessage(messageBuilder.build())
+    reclusterQueue.sqsClient.sendMessage(messageBuilder.build())
   }
 
   private fun sqsAttribute(key: String, value: String): Pair<String, MessageAttributeValue> = key to SQSMessageAttribute.builder().dataType("String")
