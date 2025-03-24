@@ -57,7 +57,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   inner class SuccessfulProcessing {
     @BeforeEach
     fun beforeEach() {
-      stubPersonMatch()
+      stubPersonMatchUpsert()
       stubPersonMatchScores()
     }
 
@@ -149,7 +149,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `should link new probation record to an existing prison record`() {
-      telemetryRepository.deleteAll()
       val crn = randomCrn()
       val prisonNumber = randomPrisonNumber()
       val firstName = randomName()
@@ -166,9 +165,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         sourceSystem = NOMIS,
       )
       val personKeyEntity = createPersonKey()
-      createPerson(existingPrisoner, personKeyEntity = personKeyEntity)
+      val existingPerson = createPerson(existingPrisoner, personKeyEntity = personKeyEntity)
 
-      stubOneHighConfidenceMatch()
+      stubOnePersonMatchHighConfidenceMatch(matchedRecord = existingPerson.matchId)
 
       val apiResponse = ApiResponseSetup(
         crn = crn,
@@ -187,6 +186,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
           "SOURCE_SYSTEM" to DELIUS.name,
           "RECORD_COUNT" to "1",
           "UUID_COUNT" to "1",
+          "CRN" to crn,
           "HIGH_CONFIDENCE_COUNT" to "1",
           "LOW_CONFIDENCE_COUNT" to "0",
         ),
