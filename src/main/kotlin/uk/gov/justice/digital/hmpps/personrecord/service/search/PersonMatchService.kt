@@ -27,11 +27,11 @@ class PersonMatchService(
 
   fun findHighestConfidencePersonRecord(personEntity: PersonEntity): PersonEntity? = runBlocking {
     val personScores = handleCollectingPersonScores(personEntity)
-      .filterAboveThreshold()
+      .removeLowQualityMatches()
       .logCandidateScores()
     val highConfidencePersonRecords = collectPersonRecordsByMatchId(personScores)
-      .removeRecordsWithNoUUID()
-      .removeClustersWithExcludeMarker(personEntity.id)
+      .allowMatchesWithUUID()
+      .removeMatchesWhereClusterHasExcludeMarker(personEntity.id)
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
       .sortedByDescending { it.probability }
       .logHighConfidenceDuplicates()
@@ -60,7 +60,7 @@ class PersonMatchService(
     )
   }
 
-  private fun List<PersonMatchScore>.filterAboveThreshold(): List<PersonMatchScore> = this.filter { candidate -> isAboveThreshold(candidate.candidateMatchProbability) }
+  private fun List<PersonMatchScore>.removeLowQualityMatches(): List<PersonMatchScore> = this.filter { candidate -> isAboveThreshold(candidate.candidateMatchProbability) }
 
   private fun List<PersonMatchScore>.logCandidateScores(): List<PersonMatchScore> {
     this.forEach { candidate ->
@@ -81,9 +81,9 @@ class PersonMatchService(
 
   private fun isAboveThreshold(score: Float): Boolean = score >= THRESHOLD_SCORE
 
-  private fun List<PersonMatchResult>.removeRecordsWithNoUUID(): List<PersonMatchResult> = this.filter { it.personEntity.personKey != PersonKeyEntity.empty }
+  private fun List<PersonMatchResult>.allowMatchesWithUUID(): List<PersonMatchResult> = this.filter { it.personEntity.personKey != PersonKeyEntity.empty }
 
-  private fun List<PersonMatchResult>.removeClustersWithExcludeMarker(personRecordId: Long?): List<PersonMatchResult> {
+  private fun List<PersonMatchResult>.removeMatchesWhereClusterHasExcludeMarker(personRecordId: Long?): List<PersonMatchResult> {
     val clusters: Map<UUID, List<PersonMatchResult>> = this.groupBy { it.personEntity.personKey?.personId!! }
     val excludedClusters: List<UUID> = clusters.filter { (_, records) ->
       records.any { record ->
