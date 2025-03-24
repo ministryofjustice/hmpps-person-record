@@ -96,7 +96,6 @@ class PersonMatchService(
       CPR_CANDIDATE_RECORD_SEARCH,
       personEntity,
       mapOf(
-        EventKeys.SOURCE_SYSTEM to personEntity.sourceSystem.name,
         EventKeys.RECORD_COUNT to totalNumberOfScores.toString(),
         EventKeys.UUID_COUNT to this.groupBy { match -> match.personEntity.personKey?.let { it.personId.toString() } }.size.toString(),
         EventKeys.HIGH_CONFIDENCE_COUNT to this.count().toString(),
@@ -112,7 +111,6 @@ class PersonMatchService(
         CPR_MATCH_PERSON_DUPLICATE,
         personEntity = candidate.personEntity,
         mapOf(
-          EventKeys.SOURCE_SYSTEM to candidate.personEntity.sourceSystem.name,
           EventKeys.PROBABILITY_SCORE to candidate.probability.toString(),
           EventKeys.UUID to candidate.personEntity.personKey?.let { it.personId.toString() },
         ),
