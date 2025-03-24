@@ -25,7 +25,9 @@ class PersonMatchService(
   private val personRepository: PersonRepository,
 ) {
 
-  fun findHighestConfidencePersonRecord(personEntity: PersonEntity): PersonEntity? = runBlocking {
+  fun findHighestConfidencePersonRecord(personEntity: PersonEntity) = findHighestConfidencePersonRecordsByProbabilityDesc(personEntity).firstOrNull()?.personEntity
+
+  fun findHighestConfidencePersonRecordsByProbabilityDesc(personEntity: PersonEntity): List<PersonMatchResult> = runBlocking {
     val personScores = handleCollectingPersonScores(personEntity)
       .filterAboveThreshold()
       .logCandidateScores()
@@ -35,7 +37,7 @@ class PersonMatchService(
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
       .sortedByDescending { it.probability }
       .logHighConfidenceDuplicates()
-    return@runBlocking highConfidencePersonRecords.firstOrNull()?.personEntity
+    return@runBlocking highConfidencePersonRecords
   }
 
   private fun collectPersonRecordsByMatchId(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.map {
