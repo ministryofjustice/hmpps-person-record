@@ -33,12 +33,11 @@ class PersonMatchService(
       .allowMatchesWithUUID()
       .removeMatchesWhereClusterHasExcludeMarker(personEntity.id)
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
-      .sortedByDescending { it.probability }
       .logHighConfidenceDuplicates()
     return@runBlocking highConfidencePersonRecords.firstOrNull()?.personEntity
   }
 
-  private fun collectPersonRecordsByMatchId(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.mapNotNull {
+  private fun collectPersonRecordsByMatchId(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.sortedByDescending { it.candidateMatchProbability }.mapNotNull {
     personRepository.findByMatchId(UUID.fromString(it.candidateMatchId))?.let { person ->
       PersonMatchResult(
         probability = it.candidateMatchProbability,
@@ -114,7 +113,7 @@ class PersonMatchService(
         personEntity = candidate.personEntity,
         mapOf(
           EventKeys.PROBABILITY_SCORE to candidate.probability.toString(),
-          EventKeys.UUID to candidate.personEntity.personKey?.let { it.personId.toString() },
+          EventKeys.UUID to candidate.personEntity.personKey?.personId?.toString(),
         ),
       )
     }
