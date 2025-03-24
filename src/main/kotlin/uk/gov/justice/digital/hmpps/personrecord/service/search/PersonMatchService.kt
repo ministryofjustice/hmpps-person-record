@@ -30,8 +30,8 @@ class PersonMatchService(
       .filterAboveThreshold()
       .logCandidateScores()
     val highConfidencePersonRecords = collectPersonRecordsByMatchId(personScores)
-      .filterUUIDExists()
-      .filterClustersWithExcludeMarker(personEntity.id)
+      .removeRecordsWithNoUUID()
+      .removeClustersWithExcludeMarker(personEntity.id)
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
       .sortedByDescending { it.probability }
       .logHighConfidenceDuplicates()
@@ -81,9 +81,9 @@ class PersonMatchService(
 
   private fun isAboveThreshold(score: Float): Boolean = score >= THRESHOLD_SCORE
 
-  private fun List<PersonMatchResult>.filterUUIDExists(): List<PersonMatchResult> = this.filter { it.personEntity.personKey != PersonKeyEntity.empty }
+  private fun List<PersonMatchResult>.removeRecordsWithNoUUID(): List<PersonMatchResult> = this.filter { it.personEntity.personKey != PersonKeyEntity.empty }
 
-  private fun List<PersonMatchResult>.filterClustersWithExcludeMarker(personRecordId: Long?): List<PersonMatchResult> {
+  private fun List<PersonMatchResult>.removeClustersWithExcludeMarker(personRecordId: Long?): List<PersonMatchResult> {
     val clusters: Map<UUID, List<PersonMatchResult>> = this.groupBy { it.personEntity.personKey?.personId!! }
     val excludedClusters: List<UUID> = clusters.filter { (_, records) ->
       records.any { record ->
