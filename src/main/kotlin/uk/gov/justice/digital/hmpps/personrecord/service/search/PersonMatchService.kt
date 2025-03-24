@@ -77,7 +77,7 @@ class PersonMatchService(
     retryExecutor.runWithRetryHTTP { personMatchClient.getPersonScores(personEntity.matchId.toString()) }
   }
 
-  private fun isAboveThreshold(score: Float): Boolean = score > THRESHOLD_SCORE
+  private fun isAboveThreshold(score: Float): Boolean = score >= THRESHOLD_SCORE
 
   private fun List<PersonMatchResult>.filterUUIDExists(): List<PersonMatchResult> = this.filter { it.personEntity.personKey != PersonKeyEntity.empty }
 
