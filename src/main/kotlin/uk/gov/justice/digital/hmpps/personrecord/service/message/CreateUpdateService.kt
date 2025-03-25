@@ -22,7 +22,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class CreateUpdateService(
   private val telemetryService: TelemetryService,
   private val personService: PersonService,
-  private val queueService: QueueService,
+  private val reclusterService: ReclusterService,
   private val eventLoggingService: EventLoggingService,
 ) {
 
@@ -72,7 +72,8 @@ class CreateUpdateService(
       uuid = existingPersonEntity.personKey?.personId?.toString(),
       eventType = event,
     )
-    queueService.publishReclusterMessageToQueue(updatedPerson)
+
+    updatedPerson.personKey?.let { reclusterService.recluster(it) }
     return updatedPerson
   }
 
