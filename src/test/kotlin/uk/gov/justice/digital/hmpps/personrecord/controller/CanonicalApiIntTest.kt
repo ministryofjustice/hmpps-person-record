@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -34,7 +33,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class CanonicalApiIntTest : WebTestBase() {
 
@@ -464,18 +462,11 @@ class CanonicalApiIntTest : WebTestBase() {
 
   @Test
   fun `should return merged to record`() {
-    stubDeletePersonMatch()
-
     val sourceCrn = randomCrn()
     val targetCrn = randomCrn()
 
     val sourcePersonFirstName = randomName()
     val targetPersonFirstName = randomName()
-
-    // unsure why we are doing setup for source
-    val source = ApiResponseSetup(crn = sourceCrn)
-
-    val target = ApiResponseSetup(crn = targetCrn, firstName = targetPersonFirstName)
 
     val sourcePersonKey = createPersonKey()
     val targetPersonKey = createPersonKey()
@@ -489,12 +480,7 @@ class CanonicalApiIntTest : WebTestBase() {
       personKeyEntity = targetPersonKey,
     )
 
-    probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
-
-    awaitAssert {
-      val sourceCluster = personKeyRepository.findByPersonId(sourcePersonKey.personId)
-      assertThat(sourceCluster?.mergedTo).isNotNull()
-    }
+    mergeUuid(sourcePersonKey, targetPersonKey)
 
     val responseBody = webTestClient.get()
       .uri(canonicalAPIUrl(sourcePersonKey.personId.toString()))
@@ -512,8 +498,6 @@ class CanonicalApiIntTest : WebTestBase() {
 
   @Test
   fun `should return the top node of a merged to record`() {
-    stubDeletePersonMatch()
-
     val sourceCrn = randomCrn()
     val targetCrn = randomCrn()
     val newTargetCrn = randomCrn()
@@ -521,11 +505,6 @@ class CanonicalApiIntTest : WebTestBase() {
     val sourcePersonFirstName = randomName()
     val targetPersonFirstName = randomName()
     val newTargetPersonFirstName = randomName()
-
-    // unsure why we are doing setup for source
-    val source = ApiResponseSetup(crn = sourceCrn)
-    val target = ApiResponseSetup(crn = targetCrn, firstName = targetPersonFirstName)
-    val newTarget = ApiResponseSetup(crn = newTargetCrn, firstName = newTargetPersonFirstName)
 
     val sourcePersonKey = createPersonKey()
     val targetPersonKey = createPersonKey()
@@ -543,14 +522,9 @@ class CanonicalApiIntTest : WebTestBase() {
       Person.from(ProbationCase(name = Name(firstName = newTargetPersonFirstName), identifiers = Identifiers(crn = newTargetCrn))),
       personKeyEntity = newTargetPersonKey,
     )
-    probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
 
-    probationMergeEventAndResponseSetup(OFFENDER_MERGED, target, newTarget)
-
-    awaitAssert {
-      val targetCluster = personKeyRepository.findByPersonId(targetPersonKey.personId)
-      assertThat(targetCluster?.mergedTo).isNotNull()
-    }
+    mergeUuid(sourcePersonKey, targetPersonKey)
+    mergeUuid(targetPersonKey, newTargetPersonKey)
 
     val responseBody = webTestClient.get()
       .uri(canonicalAPIUrl(sourcePersonKey.personId.toString()))

@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 import java.time.Duration
 
-abstract class WebTestBase : MessagingMultiNodeTestBase() {
+abstract class WebTestBase : IntegrationTestBase() {
 
   @Autowired
   lateinit var webTestClient: WebTestClient
