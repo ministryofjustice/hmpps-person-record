@@ -507,6 +507,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(responseBody.firstName).isEqualTo(targetPersonFirstName)
+    assertThat(responseBody.cprUUID).isEqualTo(targetPersonKey.personId.toString())
   }
 
   @Test
@@ -562,6 +563,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(responseBody.firstName).isEqualTo(newTargetPersonFirstName)
+    assertThat(responseBody.cprUUID).isEqualTo(newTargetPersonKey.personId.toString())
   }
 
   @Test
