@@ -42,10 +42,6 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
     )
     .components(
       Components().addSecuritySchemes(
-        "search-api-role",
-        SecurityScheme().addBearerJwtRequirement(Roles.SEARCH_API_READ_ONLY),
-
-      ).addSecuritySchemes(
         "api-role",
         SecurityScheme().addBearerJwtRequirement(Roles.API_READ_ONLY),
       ),
