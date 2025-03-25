@@ -33,23 +33,11 @@ class APIController(
   fun getCanonicalRecord(
     @PathVariable(name = "uuid") uuid: UUID,
   ): CanonicalRecord {
-    val personKeyEntity = personKeyRepository.findByPersonId(uuid)
-
-    val actualPerson = getMergedToPersonKeyEntity(personKeyEntity)
-    return buildCanonicalRecord(actualPerson, uuid)
+    val personKeyEntity = getCorrectPersonKeyEntity(personKeyRepository.findByPersonId(uuid))
+    return buildCanonicalRecord(personKeyEntity, uuid)
   }
 
-  private fun getMergedToPersonKeyEntity(personKeyEntity: PersonKeyEntity?): PersonKeyEntity? {
-    when {
-      personKeyEntity?.mergedTo != null -> {
-        val mergedToPersonKeyEntity = personKeyRepository.findByIdOrNull(personKeyEntity.mergedTo!!)
-        return getMergedToPersonKeyEntity(mergedToPersonKeyEntity)
-      }
-      else -> return personKeyEntity
-    }
-  }
-
-// use mergedTo and status to determine whether UUID has been merged
+  private fun getCorrectPersonKeyEntity(personKeyEntity: PersonKeyEntity?): PersonKeyEntity? = personKeyEntity?.mergedTo?.let { return getCorrectPersonKeyEntity(personKeyRepository.findByIdOrNull(it)) } ?: personKeyEntity
 
   private fun buildCanonicalRecord(personKeyEntity: PersonKeyEntity?, uuid: UUID): CanonicalRecord = when {
     personKeyEntity?.personEntities?.isNotEmpty() == true -> CanonicalRecord.from(personKeyEntity)
