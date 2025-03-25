@@ -22,9 +22,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class CreateUpdateService(
   private val telemetryService: TelemetryService,
   private val personService: PersonService,
-  private val queueService: QueueService,
-  private val eventLoggingService: EventLoggingService,
   private val reclusterService: ReclusterService,
+  private val eventLoggingService: EventLoggingService,
 ) {
 
   @Transactional

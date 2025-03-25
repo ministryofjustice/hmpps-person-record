@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.message.ReclusterService
-import uk.gov.justice.digital.hmpps.personrecord.service.queue.QueueService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MATCH_FOUND_MERGE
@@ -33,7 +32,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Autowired
-  private lateinit var reclusterServivce: ReclusterService
+  private lateinit var reclusterService: ReclusterService
 
   @Test
   fun `should log event if cluster needs attention`() {
@@ -43,7 +42,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       personKeyEntity = personKeyEntity,
     )
 
-    reclusterServivce.recluster(personKeyEntity)
+    reclusterService.recluster(personKeyEntity)
 
     checkTelemetry(
       CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION,
@@ -63,7 +62,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
       personKeyEntity = createPersonKey(),
     )
 
-    reclusterServivce.recluster(person.personKey!!)
+    reclusterService.recluster(person.personKey!!)
 
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
@@ -106,7 +105,7 @@ class ReclusterEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     stubOneHighConfidenceMatch()
 
-    reclusterServivce.recluster(cluster1)
+    reclusterService.recluster(cluster1)
 
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
