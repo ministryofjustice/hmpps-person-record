@@ -20,13 +20,12 @@ class ReclusterEventProcessor(
 ) {
 
   fun processEvent(reclusterEvent: Recluster) = runBlocking {
-    val personUUID = UUID.fromString(reclusterEvent.uuid)
     telemetryService.trackEvent(
       CPR_RECLUSTER_MESSAGE_RECEIVED,
-      mapOf(EventKeys.UUID to reclusterEvent.uuid),
+      mapOf(EventKeys.UUID to reclusterEvent.uuid.toString()),
     )
     retryExecutor.runWithRetryDatabase {
-      personKeyRepository.findByPersonId(personUUID)?.let {
+      personKeyRepository.findByPersonId(reclusterEvent.uuid)?.let {
         reclusterService.recluster(it)
       }
     }
