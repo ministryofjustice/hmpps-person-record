@@ -140,7 +140,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   fun probationMergeEventAndResponseSetup(
     eventType: String,
-    source: ApiResponseSetup,
+    sourceCrn: String,
     target: ApiResponseSetup,
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
@@ -153,7 +153,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       DomainEvent(
         eventType = eventType,
         additionalInformation = AdditionalInformation(
-          sourceCrn = source.crn,
+          sourceCrn = sourceCrn,
           targetCrn = target.crn,
         ),
       ),
