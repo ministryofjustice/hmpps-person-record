@@ -463,7 +463,7 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should return empty fields for merged from record`() {
+  fun `should return merged to record`() {
     stubDeletePersonMatch()
 
     val sourceCrn = randomCrn()
@@ -507,6 +507,61 @@ class CanonicalApiIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(responseBody.firstName).isEqualTo(targetPersonFirstName)
+  }
+
+  @Test
+  fun `should return the top node of a merged to record`() {
+    stubDeletePersonMatch()
+
+    val sourceCrn = randomCrn()
+    val targetCrn = randomCrn()
+    val newTargetCrn = randomCrn()
+
+    val sourcePersonFirstName = randomName()
+    val targetPersonFirstName = randomName()
+    val newTargetPersonFirstName = randomName()
+
+    // unsure why we are doing setup for source
+    val source = ApiResponseSetup(crn = sourceCrn)
+    val target = ApiResponseSetup(crn = targetCrn, firstName = targetPersonFirstName)
+    val newTarget = ApiResponseSetup(crn = newTargetCrn, firstName = newTargetPersonFirstName)
+
+    val sourcePersonKey = createPersonKey()
+    val targetPersonKey = createPersonKey()
+    val newTargetPersonKey = createPersonKey()
+
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = sourcePersonFirstName), identifiers = Identifiers(crn = sourceCrn))),
+      personKeyEntity = sourcePersonKey,
+    )
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = targetPersonFirstName), identifiers = Identifiers(crn = targetCrn))),
+      personKeyEntity = targetPersonKey,
+    )
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = newTargetPersonFirstName), identifiers = Identifiers(crn = newTargetCrn))),
+      personKeyEntity = newTargetPersonKey,
+    )
+    probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+
+    probationMergeEventAndResponseSetup(OFFENDER_MERGED, target, newTarget)
+
+    awaitAssert {
+      val targetCluster = personKeyRepository.findByPersonId(targetPersonKey.personId)
+      assertThat(targetCluster?.mergedTo).isNotNull()
+    }
+
+    val responseBody = webTestClient.get()
+      .uri(canonicalAPIUrl(sourcePersonKey.personId.toString()))
+      .authorised(listOf(API_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(CanonicalRecord::class.java)
+      .returnResult()
+      .responseBody!!
+
+    assertThat(responseBody.firstName).isEqualTo(newTargetPersonFirstName)
   }
 
   @Test
