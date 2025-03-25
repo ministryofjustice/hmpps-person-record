@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -33,6 +34,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class CanonicalApiIntTest : WebTestBase() {
 
@@ -458,6 +460,53 @@ class CanonicalApiIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(responseBody).isNotNull()
+  }
+
+  @Test
+  fun `should return empty fields for merged from record`() {
+    stubDeletePersonMatch()
+
+    val sourceCrn = randomCrn()
+    val targetCrn = randomCrn()
+
+    val sourcePersonFirstName = randomName()
+    val targetPersonFirstName = randomName()
+
+    // unsure why we are doing setup for source
+    val source = ApiResponseSetup(crn = sourceCrn)
+
+    val target = ApiResponseSetup(crn = targetCrn, firstName = targetPersonFirstName)
+
+    val sourcePersonKey = createPersonKey()
+    val targetPersonKey = createPersonKey()
+
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = sourcePersonFirstName), identifiers = Identifiers(crn = sourceCrn))),
+      personKeyEntity = sourcePersonKey,
+    )
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = targetPersonFirstName), identifiers = Identifiers(crn = targetCrn))),
+      personKeyEntity = targetPersonKey,
+    )
+
+    probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+
+    awaitAssert {
+      val sourceCluster = personKeyRepository.findByPersonId(sourcePersonKey.personId)
+      assertThat(sourceCluster?.mergedTo).isNotNull()
+    }
+
+    val responseBody = webTestClient.get()
+      .uri(canonicalAPIUrl(sourcePersonKey.personId.toString()))
+      .authorised(listOf(API_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(CanonicalRecord::class.java)
+      .returnResult()
+      .responseBody!!
+
+    assertThat(responseBody.firstName).isEqualTo(targetPersonFirstName)
   }
 
   @Test

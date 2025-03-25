@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -31,7 +32,20 @@ class APIController(
   )
   fun getCanonicalRecord(
     @PathVariable(name = "uuid") uuid: UUID,
-  ): CanonicalRecord = buildCanonicalRecord(personKeyRepository.findByPersonId(uuid), uuid)
+  ): CanonicalRecord {
+    val personKeyEntity = personKeyRepository.findByPersonId(uuid)
+
+    when {
+      personKeyEntity?.mergedTo != null -> {
+        val mergedToPersonEntity = personKeyRepository.findByIdOrNull(personKeyEntity.mergedTo!!)
+        return buildCanonicalRecord(mergedToPersonEntity, uuid)
+      }
+    }
+    return buildCanonicalRecord(personKeyEntity, uuid)
+  }
+
+// use mergedTo and status to determine whether UUID has been merged
+
   private fun buildCanonicalRecord(personKeyEntity: PersonKeyEntity?, uuid: UUID): CanonicalRecord = when {
     personKeyEntity?.personEntities?.isNotEmpty() == true -> CanonicalRecord.from(personKeyEntity)
     else -> throw PersonKeyNotFoundException(uuid)
