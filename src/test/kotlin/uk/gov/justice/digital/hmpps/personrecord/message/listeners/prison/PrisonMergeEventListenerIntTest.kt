@@ -61,7 +61,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `processes prisoner merge event when source record does not exist`() {
     val targetPrisonNumber = randomPrisonNumber()
     val sourcePrisonNumber = randomPrisonNumber()
-    val source = ApiResponseSetup(prisonNumber = sourcePrisonNumber)
     val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
     val personKeyEntity = createPersonKey()
     createPerson(
@@ -69,7 +68,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       personKeyEntity = personKeyEntity,
     )
 
-    prisonMergeEventAndResponseSetup(PRISONER_MERGED, source = source, target = target)
+    prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
 
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,
@@ -107,7 +106,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `processes prisoner merge event with records with same UUID is published`() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
-      val source = ApiResponseSetup(prisonNumber = sourcePrisonNumber)
+      ApiResponseSetup(prisonNumber = sourcePrisonNumber)
       val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
       val personKeyEntity = createPersonKey()
       createPerson(
@@ -119,7 +118,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         personKeyEntity = personKeyEntity,
       )
 
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, source = source, target = target)
+      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
 
       checkTelemetry(
         MERGE_MESSAGE_RECEIVED,
@@ -144,7 +143,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `processes prisoner merge event when target record does not exist`() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
-      val source = ApiResponseSetup(prisonNumber = sourcePrisonNumber)
+      ApiResponseSetup(prisonNumber = sourcePrisonNumber)
       val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
       val personKeyEntity = createPersonKey()
       createPerson(
@@ -152,7 +151,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         personKeyEntity = personKeyEntity,
       )
 
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, source = source, target = target)
+      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
 
       checkTelemetry(
         MERGE_MESSAGE_RECEIVED,
@@ -173,7 +172,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `processes prisoner merge event with different UUIDs where source has multiple records`() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
-      val source = ApiResponseSetup(prisonNumber = sourcePrisonNumber)
+      ApiResponseSetup(prisonNumber = sourcePrisonNumber)
       val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
       val personKeyEntity1 = createPersonKey()
       val personKeyEntity2 = createPersonKey()
@@ -190,7 +189,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         personKeyEntity = personKeyEntity2,
       )
 
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, source = source, target = target)
+      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
 
       checkTelemetry(
         MERGE_MESSAGE_RECEIVED,
@@ -222,7 +221,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `processes prisoner merge event with different UUIDs where source doesn't have an UUID`() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
-      val source = ApiResponseSetup(prisonNumber = sourcePrisonNumber)
+      ApiResponseSetup(prisonNumber = sourcePrisonNumber)
       val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
       val personKeyEntity2 = createPersonKey()
       createPerson(
@@ -233,7 +232,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         personKeyEntity = personKeyEntity2,
       )
 
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, source = source, target = target)
+      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
 
       checkTelemetry(
         MERGE_MESSAGE_RECEIVED,
@@ -262,7 +261,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `processes prisoner merge event with different UUIDs where source has a single record`() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
-      val source = ApiResponseSetup(prisonNumber = sourcePrisonNumber)
+      ApiResponseSetup(prisonNumber = sourcePrisonNumber)
       val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
       val personKeyEntity1 = createPersonKey()
       val personKeyEntity2 = createPersonKey()
@@ -275,7 +274,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         personKeyEntity = personKeyEntity2,
       )
 
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, source = source, target = target)
+      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
 
       checkTelemetry(
         MERGE_MESSAGE_RECEIVED,
@@ -314,9 +313,9 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
       stub5xxResponse(prisonURL(targetPrisonNumber), "next request will succeed", "retry")
 
-      val source = ApiResponseSetup(prisonNumber = sourcePrisonNumber)
+      ApiResponseSetup(prisonNumber = sourcePrisonNumber)
       val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, source, target, scenario = "retry", currentScenarioState = "next request will succeed")
+      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, target, scenario = "retry", currentScenarioState = "next request will succeed")
 
       expectNoMessagesOnQueueOrDlq(prisonMergeEventsQueue)
       checkTelemetry(
@@ -339,7 +338,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `processes prisoner merge event maps to EventLogging table`() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
-      val source = ApiResponseSetup(prisonNumber = sourcePrisonNumber)
+      ApiResponseSetup(prisonNumber = sourcePrisonNumber)
       val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
       val personKeyEntity = createPersonKey()
       createPerson(
@@ -351,7 +350,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         personKeyEntity = personKeyEntity,
       )
 
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, source = source, target = target)
+      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
 
       val loggedEvent = awaitNotNullEventLog(targetPrisonNumber, PRISONER_MERGED)
 
