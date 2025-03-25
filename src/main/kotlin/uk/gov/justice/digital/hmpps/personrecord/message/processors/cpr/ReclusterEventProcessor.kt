@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MESSAGE_RECEIVED
-import java.util.UUID
 
 @Component
 class ReclusterEventProcessor(
@@ -25,8 +24,9 @@ class ReclusterEventProcessor(
       mapOf(EventKeys.UUID to reclusterEvent.uuid.toString()),
     )
     retryExecutor.runWithRetryDatabase {
-      personKeyRepository.findByPersonId(reclusterEvent.uuid)?.let {
-        reclusterService.recluster(it)
+      personKeyRepository.findByPersonId(reclusterEvent.uuid)?.let { cluster ->
+        val changedRecord = cluster.personEntities.first { it.id == reclusterEvent.changedRecordId }
+        reclusterService.recluster(cluster = cluster, changedRecord = changedRecord)
       }
     }
   }
