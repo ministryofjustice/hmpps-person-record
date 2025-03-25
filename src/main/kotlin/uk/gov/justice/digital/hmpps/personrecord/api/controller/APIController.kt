@@ -37,7 +37,7 @@ class APIController(
     return buildCanonicalRecord(personKeyEntity, uuid)
   }
 
-  private fun getCorrectPersonKeyEntity(personKeyEntity: PersonKeyEntity?): PersonKeyEntity? = personKeyEntity?.mergedTo?.let { return getCorrectPersonKeyEntity(personKeyRepository.findByIdOrNull(it)) } ?: personKeyEntity
+  private fun getCorrectPersonKeyEntity(personKeyEntity: PersonKeyEntity?): PersonKeyEntity? = personKeyEntity?.mergedTo?.let { getCorrectPersonKeyEntity(personKeyRepository.findByIdOrNull(it)) } ?: personKeyEntity
 
   private fun buildCanonicalRecord(personKeyEntity: PersonKeyEntity?, uuid: UUID): CanonicalRecord = when {
     personKeyEntity?.personEntities?.isNotEmpty() == true -> CanonicalRecord.from(personKeyEntity)
