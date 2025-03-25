@@ -462,9 +462,6 @@ class CanonicalApiIntTest : WebTestBase() {
 
   @Test
   fun `should return merged to record`() {
-    val sourceCrn = randomCrn()
-    val targetCrn = randomCrn()
-
     val sourcePersonFirstName = randomName()
     val targetPersonFirstName = randomName()
 
@@ -472,11 +469,11 @@ class CanonicalApiIntTest : WebTestBase() {
     val targetPersonKey = createPersonKey()
 
     createPerson(
-      Person.from(ProbationCase(name = Name(firstName = sourcePersonFirstName), identifiers = Identifiers(crn = sourceCrn))),
+      Person.from(ProbationCase(name = Name(firstName = sourcePersonFirstName), identifiers = Identifiers())),
       personKeyEntity = sourcePersonKey,
     )
     createPerson(
-      Person.from(ProbationCase(name = Name(firstName = targetPersonFirstName), identifiers = Identifiers(crn = targetCrn))),
+      Person.from(ProbationCase(name = Name(firstName = targetPersonFirstName), identifiers = Identifiers())),
       personKeyEntity = targetPersonKey,
     )
 
@@ -498,10 +495,6 @@ class CanonicalApiIntTest : WebTestBase() {
 
   @Test
   fun `should return the top node of a merged to record`() {
-    val sourceCrn = randomCrn()
-    val targetCrn = randomCrn()
-    val newTargetCrn = randomCrn()
-
     val sourcePersonFirstName = randomName()
     val targetPersonFirstName = randomName()
     val newTargetPersonFirstName = randomName()
@@ -511,15 +504,15 @@ class CanonicalApiIntTest : WebTestBase() {
     val newTargetPersonKey = createPersonKey()
 
     createPerson(
-      Person.from(ProbationCase(name = Name(firstName = sourcePersonFirstName), identifiers = Identifiers(crn = sourceCrn))),
+      Person.from(ProbationCase(name = Name(firstName = sourcePersonFirstName), identifiers = Identifiers())),
       personKeyEntity = sourcePersonKey,
     )
     createPerson(
-      Person.from(ProbationCase(name = Name(firstName = targetPersonFirstName), identifiers = Identifiers(crn = targetCrn))),
+      Person.from(ProbationCase(name = Name(firstName = targetPersonFirstName), identifiers = Identifiers())),
       personKeyEntity = targetPersonKey,
     )
     createPerson(
-      Person.from(ProbationCase(name = Name(firstName = newTargetPersonFirstName), identifiers = Identifiers(crn = newTargetCrn))),
+      Person.from(ProbationCase(name = Name(firstName = newTargetPersonFirstName), identifiers = Identifiers())),
       personKeyEntity = newTargetPersonKey,
     )
 
