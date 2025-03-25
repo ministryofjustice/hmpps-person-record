@@ -72,7 +72,7 @@ class CreateUpdateService(
       uuid = existingPersonEntity.personKey?.personId?.toString(),
       eventType = event,
     )
-    updatedPerson.personKey?.personId?.let { queueService.publishReclusterMessageToQueue(it) }
+    queueService.publishReclusterMessageToQueue(updatedPerson)
     return updatedPerson
   }
 
