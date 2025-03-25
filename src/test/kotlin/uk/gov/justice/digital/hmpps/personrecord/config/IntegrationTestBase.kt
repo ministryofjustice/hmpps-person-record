@@ -136,6 +136,7 @@ class IntegrationTestBase {
   internal fun createPerson(person: Person, personKeyEntity: PersonKeyEntity? = null): PersonEntity {
     val personEntity = PersonEntity.new(person = person)
     personEntity.personKey = personKeyEntity
+    personKeyEntity?.personEntities?.add(personEntity)
     return personRepository.saveAndFlush(personEntity)
   }
 

@@ -24,6 +24,7 @@ class CreateUpdateService(
   private val personService: PersonService,
   private val queueService: QueueService,
   private val eventLoggingService: EventLoggingService,
+  private val reclusterService: ReclusterService,
 ) {
 
   @Transactional
@@ -72,7 +73,8 @@ class CreateUpdateService(
       uuid = existingPersonEntity.personKey?.personId?.toString(),
       eventType = event,
     )
-    updatedPerson.personKey?.personId?.let { queueService.publishReclusterMessageToQueue(it) }
+
+    updatedPerson.personKey?.let { reclusterService.recluster(it) }
     return updatedPerson
   }
 
