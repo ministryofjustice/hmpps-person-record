@@ -10,7 +10,7 @@ class SysconSyncIntTest : WebTestBase() {
 
   @Test
   fun `can send PUT`() {
-    val prisoner: Prisoner = Prisoner()
+    val prisoner = Prisoner()
     webTestClient
       .put()
       .uri("/syscon-sync/" + randomPrisonNumber())
