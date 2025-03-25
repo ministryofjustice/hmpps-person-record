@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 
 data class CanonicalRecord(
-  @Schema(description = "Person CPR uuid. If the record has been merged, this will be the CPR uuid of the record it has been merged to", example = "f91ef118-a51f-4874-9409-c0538b4ca6fd")
+  @Schema(description = "Person CPR uuid. **If the record has been merged, this will be the CPR uuid of the record it has been merged to**", example = "f91ef118-a51f-4874-9409-c0538b4ca6fd")
   val cprUUID: String? = null,
   @Schema(description = "Person first name", example = "John")
   val firstName: String? = null,
