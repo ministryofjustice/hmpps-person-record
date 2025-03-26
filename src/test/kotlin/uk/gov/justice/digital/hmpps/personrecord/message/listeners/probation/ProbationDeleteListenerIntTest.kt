@@ -168,14 +168,12 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val recordBCrn = randomCrn()
     val domainEvent = buildDomainEvent(recordACrn)
 
-    // First Record Cluster (1 Record)
     val clusterA = createPersonKey()
     var mergedTo = createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordACrn))),
       personKeyEntity = clusterA,
     )
 
-    // First Record Cluster (1 Record)
     val clusterB = createPersonKey()
     var mergedFrom = createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordBCrn))),
@@ -225,7 +223,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     // First Record Cluster (1 Record)
     val clusterA = createPersonKey()
-    var recordA = createPerson(
+    val recordA = createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordACrn))),
       personKeyEntity = clusterA,
     )
