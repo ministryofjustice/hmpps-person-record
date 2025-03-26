@@ -56,9 +56,9 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       scenarioName,
     )
 
-    stubSingleNumberPage(prisonNumberSeven, scenarioName, STARTED)
+    stubNumberPage(prisonNumberSeven, scenarioName = scenarioName, page = 3)
 
-    stubSinglePrisonerDetail(prisonNumberSeven, scenarioName, STARTED)
+    stubSinglePrisonerDetail(prisonNumberSeven, scenarioName)
     webTestClient.post()
       .uri("/populatefromprison")
       .exchange()
@@ -114,14 +114,13 @@ class PopulateFromPrisonIntTest : WebTestBase() {
 
     val scenarioName = "retry get prisoners"
 
-    stubNumberPage(prisonNumberOne, prisonNumberTwo, 0, scenarioName, STARTED)
+    stubNumberPage(prisonNumberOne, prisonNumberTwo, 0, scenarioName)
 
     // first call fails
     wiremock.stubFor(
       WireMock.post("/prisoner-search/prisoner-numbers")
         .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
         .inScenario(scenarioName)
-        .whenScenarioStateIs(STARTED)
         .willSetStateTo("next request will time out")
         .willReturn(
           WireMock.aResponse()
@@ -177,7 +176,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       "next request will succeed",
     )
 
-    stubSingleNumberPage(prisonNumberSeven, scenarioName, "next request will succeed")
+    stubNumberPage(prisonNumberSeven, scenarioName = scenarioName, page = 3, scenarioState = "next request will succeed")
 
     stubSinglePrisonerDetail(prisonNumberSeven, scenarioName, "next request will succeed")
 
@@ -211,11 +210,10 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       url = "/prisoner-search/prisoner-numbers",
       requestBody = """{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}""",
       scenarioName = "retry getPrisonNumbers",
-      currentScenarioState = STARTED,
       responseBody = twoPrisoners(prisonNumberOne, "prisonNumberOne", prisonNumberTwo, "prisonNumberTwo"),
     )
 
-    stub5xxResponse(url = "/api/prisoners/prisoner-numbers?size=2&page=1", scenarioName = "retry getPrisonNumbers", currentScenarioState = STARTED, nextScenarioState = "next request will succeed", status = 503)
+    stub5xxResponse(url = "/api/prisoners/prisoner-numbers?size=2&page=1", scenarioName = "retry getPrisonNumbers", nextScenarioState = "next request will succeed", status = 503)
 
     stubGetRequest(url = "/api/prisoners/prisoner-numbers?size=2&page=1", scenarioName = "retry getPrisonNumbers", currentScenarioState = "next request will succeed", nextScenarioState = "next request will succeed", body = prisonNumbersResponse(listOf(prisonNumberThree), 2))
 
@@ -257,7 +255,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     responseBody = twoPrisoners(firstNumber, firstPrefix, secondNumber, secondPrefix),
   )
 
-  private fun stubSinglePrisonerDetail(prisonNumberSeven: String, scenarioName: String, scenarioState: String) = stubPostRequest(
+  private fun stubSinglePrisonerDetail(prisonNumberSeven: String, scenarioName: String, scenarioState: String? = STARTED) = stubPostRequest(
     url = "/prisoner-search/prisoner-numbers",
     scenarioName = scenarioName,
     currentScenarioState = scenarioState,
@@ -265,15 +263,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     responseBody = onePrisoner(prisonNumberSeven, "PrisonerSeven"),
   )
 
-  private fun stubSingleNumberPage(prisonNumberSeven: String, scenarioName: String, scenarioState: String) = stubGetRequest(
-    url = "/api/prisoners/prisoner-numbers?size=2&page=3",
-    scenarioName = scenarioName,
-    currentScenarioState = scenarioState,
-    nextScenarioState = scenarioState,
-    body = prisonNumbersResponse(listOf(prisonNumberSeven)),
-  )
-
-  private fun stubNumberPage(prisonNumberOne: String, prisonNumberTwo: String, page: Int, scenarioName: String, scenarioState: String? = STARTED) = stubGetRequest(
+  private fun stubNumberPage(prisonNumberOne: String, prisonNumberTwo: String? = null, page: Int, scenarioName: String, scenarioState: String? = STARTED) = stubGetRequest(
     url = "/api/prisoners/prisoner-numbers?size=2&page=$page",
     scenarioName = scenarioName,
     currentScenarioState = scenarioState,
