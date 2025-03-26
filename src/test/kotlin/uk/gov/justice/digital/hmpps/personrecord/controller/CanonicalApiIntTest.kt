@@ -461,6 +461,79 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
+  fun `should return merged to record`() {
+    val sourcePersonFirstName = randomName()
+    val targetPersonFirstName = randomName()
+
+    val sourcePersonKey = createPersonKey()
+    val targetPersonKey = createPersonKey()
+
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = sourcePersonFirstName), identifiers = Identifiers())),
+      personKeyEntity = sourcePersonKey,
+    )
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = targetPersonFirstName), identifiers = Identifiers())),
+      personKeyEntity = targetPersonKey,
+    )
+
+    mergeUuid(sourcePersonKey, targetPersonKey)
+
+    val responseBody = webTestClient.get()
+      .uri(canonicalAPIUrl(sourcePersonKey.personId.toString()))
+      .authorised(listOf(API_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(CanonicalRecord::class.java)
+      .returnResult()
+      .responseBody!!
+
+    assertThat(responseBody.firstName).isEqualTo(targetPersonFirstName)
+    assertThat(responseBody.cprUUID).isEqualTo(targetPersonKey.personId.toString())
+  }
+
+  @Test
+  fun `should return the top node of a merged to record`() {
+    val sourcePersonFirstName = randomName()
+    val targetPersonFirstName = randomName()
+    val newTargetPersonFirstName = randomName()
+
+    val sourcePersonKey = createPersonKey()
+    val targetPersonKey = createPersonKey()
+    val newTargetPersonKey = createPersonKey()
+
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = sourcePersonFirstName), identifiers = Identifiers())),
+      personKeyEntity = sourcePersonKey,
+    )
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = targetPersonFirstName), identifiers = Identifiers())),
+      personKeyEntity = targetPersonKey,
+    )
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = newTargetPersonFirstName), identifiers = Identifiers())),
+      personKeyEntity = newTargetPersonKey,
+    )
+
+    mergeUuid(sourcePersonKey, targetPersonKey)
+    mergeUuid(targetPersonKey, newTargetPersonKey)
+
+    val responseBody = webTestClient.get()
+      .uri(canonicalAPIUrl(sourcePersonKey.personId.toString()))
+      .authorised(listOf(API_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(CanonicalRecord::class.java)
+      .returnResult()
+      .responseBody!!
+
+    assertThat(responseBody.firstName).isEqualTo(newTargetPersonFirstName)
+    assertThat(responseBody.cprUUID).isEqualTo(newTargetPersonKey.personId.toString())
+  }
+
+  @Test
   fun `should return bad request if canonical record is invalid uuid`() {
     val randomString = randomName()
     webTestClient.get()

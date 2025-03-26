@@ -37,7 +37,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `processes offender merge event with records with same UUID is published`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
-      val source = ApiResponseSetup(crn = sourceCrn)
       val target = ApiResponseSetup(crn = targetCrn)
       val personKeyEntity = createPersonKey()
       createPerson(
@@ -49,7 +48,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         personKeyEntity = personKeyEntity,
       )
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, target)
 
       checkTelemetry(
         MERGE_MESSAGE_RECEIVED,
@@ -74,7 +73,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `processes offender merge event with target record does not exist`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
-      val source = ApiResponseSetup(crn = sourceCrn)
       val target = ApiResponseSetup(crn = targetCrn)
       val personKeyEntity = createPersonKey()
       createPerson(
@@ -82,7 +80,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         personKeyEntity = personKeyEntity,
       )
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, target)
 
       checkTelemetry(
         MERGE_MESSAGE_RECEIVED,
@@ -103,7 +101,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `processes offender merge event with different UUIDs where source has multiple records`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
-      val source = ApiResponseSetup(crn = sourceCrn)
       val target = ApiResponseSetup(crn = targetCrn)
       val personKeyEntity1 = createPersonKey()
       val personKeyEntity2 = createPersonKey()
@@ -120,7 +117,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         personKeyEntity = personKeyEntity2,
       )
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, target)
 
       checkTelemetry(
         MERGE_MESSAGE_RECEIVED,
@@ -152,7 +149,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `processes offender merge event with different UUIDs where source doesn't have an UUID`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
-      val source = ApiResponseSetup(crn = sourceCrn)
       val target = ApiResponseSetup(crn = targetCrn)
       val personKeyEntity2 = createPersonKey()
       createPerson(
@@ -163,7 +159,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         personKeyEntity = personKeyEntity2,
       )
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, target)
 
       checkTelemetry(
         MERGE_MESSAGE_RECEIVED,
@@ -192,7 +188,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `processes offender merge event with different UUIDs where source has a single record`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
-      val source = ApiResponseSetup(crn = sourceCrn)
       val target = ApiResponseSetup(crn = targetCrn)
       val personKeyEntity1 = createPersonKey()
       val personKeyEntity2 = createPersonKey()
@@ -205,7 +200,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         personKeyEntity = personKeyEntity2,
       )
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, target)
 
       checkTelemetry(
         MERGE_MESSAGE_RECEIVED,
@@ -234,7 +229,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val targetCrn = randomCrn()
       stub5xxResponse(probationUrl(targetCrn), "next request will succeed", "retry")
 
-      val source = ApiResponseSetup(crn = sourceCrn)
       val target = ApiResponseSetup(crn = targetCrn)
       val personKeyEntity = createPersonKey()
       createPerson(
@@ -245,7 +239,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
         personKeyEntity = personKeyEntity,
       )
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target, scenario = "retry", currentScenarioState = "next request will succeed")
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, target, scenario = "retry", currentScenarioState = "next request will succeed")
 
       expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
 
@@ -267,7 +261,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `processes offender merge event is mapped to EventLogging table`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
-      val source = ApiResponseSetup(crn = sourceCrn)
       val target = ApiResponseSetup(crn = targetCrn)
       val personKeyEntity = createPersonKey()
       createPerson(
@@ -279,7 +272,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         personKeyEntity = personKeyEntity,
       )
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, target)
 
       val loggedEvent = awaitNotNullEventLog(targetCrn, OFFENDER_MERGED)
 
@@ -304,7 +297,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `should not throw error if person match returns a 404 on delete`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
-      val source = ApiResponseSetup(crn = sourceCrn)
       val target = ApiResponseSetup(crn = targetCrn)
       val personKeyEntity = createPersonKey()
       createPerson(
@@ -327,7 +319,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
 
       stubDeletePersonMatch(status = 404)
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, target)
 
       checkTelemetry(
         CPR_RECORD_MERGED,
@@ -381,7 +373,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `processes offender merge event with source record does not exist`() {
     val sourceCrn = randomCrn()
     val targetCrn = randomCrn()
-    val source = ApiResponseSetup(crn = sourceCrn)
     val target = ApiResponseSetup(crn = targetCrn)
     val personKeyEntity = createPersonKey()
     createPerson(
@@ -389,7 +380,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       personKeyEntity = personKeyEntity,
     )
 
-    probationMergeEventAndResponseSetup(OFFENDER_MERGED, source, target)
+    probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, target)
 
     checkTelemetry(
       MERGE_MESSAGE_RECEIVED,

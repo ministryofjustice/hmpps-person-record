@@ -4,12 +4,13 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.PersonKeyNotFoundException
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CanonicalRecordNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -31,9 +32,15 @@ class APIController(
   )
   fun getCanonicalRecord(
     @PathVariable(name = "uuid") uuid: UUID,
-  ): CanonicalRecord = buildCanonicalRecord(personKeyRepository.findByPersonId(uuid), uuid)
+  ): CanonicalRecord {
+    val personKeyEntity = getCorrectPersonKeyEntity(personKeyRepository.findByPersonId(uuid))
+    return buildCanonicalRecord(personKeyEntity, uuid)
+  }
+
+  private fun getCorrectPersonKeyEntity(personKeyEntity: PersonKeyEntity?): PersonKeyEntity? = personKeyEntity?.mergedTo?.let { getCorrectPersonKeyEntity(personKeyRepository.findByIdOrNull(it)) } ?: personKeyEntity
+
   private fun buildCanonicalRecord(personKeyEntity: PersonKeyEntity?, uuid: UUID): CanonicalRecord = when {
     personKeyEntity?.personEntities?.isNotEmpty() == true -> CanonicalRecord.from(personKeyEntity)
-    else -> throw PersonKeyNotFoundException(uuid)
+    else -> throw CanonicalRecordNotFoundException(uuid)
   }
 }
