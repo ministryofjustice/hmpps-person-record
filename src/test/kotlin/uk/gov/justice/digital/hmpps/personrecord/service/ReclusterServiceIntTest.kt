@@ -57,11 +57,12 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should not recluster when single record that does not match`() {
-    val person = createPersonWithNewKey(
+    val person = createPerson(
       Person(
         references = listOf(Reference(IdentifierType.CRO, randomCro())),
         sourceSystem = COMMON_PLATFORM,
       ),
+      personKeyEntity = createPersonKey(),
     )
 
     reclusterService.recluster(person.personKey!!)
