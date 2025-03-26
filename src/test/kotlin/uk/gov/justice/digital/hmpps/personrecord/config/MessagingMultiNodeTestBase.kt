@@ -64,10 +64,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId(Queues.PRISON_MERGE_EVENT_QUEUE_ID)
   }
 
-  val reclusterEventsQueue by lazy {
-    hmppsQueueService.findByQueueId(Queues.RECLUSTER_EVENTS_QUEUE_ID)
-  }
-
   internal fun publishLibraMessage(message: String): String = publishCourtMessage(message, LIBRA_COURT_CASE, "libra.case.received")
 
   internal fun publishCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.case.received")
@@ -241,8 +237,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     purgeQueueAndDlq(probationDeleteEventsQueue)
     purgeQueueAndDlq(prisonEventsQueue)
     purgeQueueAndDlq(prisonMergeEventsQueue)
-    purgeQueueAndDlq(reclusterEventsQueue)
-    expectNoMessagesOnQueueOrDlq(reclusterEventsQueue)
   }
 
   fun purgeQueueAndDlq(hmppsQueue: HmppsQueue?) {
