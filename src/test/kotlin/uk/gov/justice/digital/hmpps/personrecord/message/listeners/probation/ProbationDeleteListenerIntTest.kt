@@ -168,22 +168,20 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val recordBCrn = randomCrn()
     val domainEvent = buildDomainEvent(recordACrn)
 
-    // First Record Cluster (1 Record)
     val clusterA = createPersonKey()
-    val mergedTo = createPerson(
+    var mergedTo = createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordACrn))),
       personKeyEntity = clusterA,
     )
 
-    // First Record Cluster (1 Record)
     val clusterB = createPersonKey()
-    val mergedFrom = createPerson(
+    var mergedFrom = createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordBCrn))),
       personKeyEntity = clusterB,
     )
 
-    mergeRecord(mergedFrom, mergedTo)
-    mergeUuid(clusterB, clusterA)
+    mergedFrom = mergeRecord(mergedFrom, mergedTo)
+    mergeUuid(mergedFrom.personKey!!, mergedTo.personKey!!)
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
     checkTelemetry(
@@ -215,6 +213,8 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process offender delete with 3 records which have merged on different UUIDs`() {
+    telemetryRepository.deleteAll()
+
     // Merged Record Chain: C -> B -> A
     val recordACrn = randomCrn()
     val recordBCrn = randomCrn()
@@ -230,17 +230,17 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     // Second Record Cluster (2 Records - C merged to B)
     val clusterB = createPersonKey()
-    val recordB = createPerson(
+    var recordB = createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordBCrn))),
       personKeyEntity = clusterB,
     )
-    val recordC = createPerson(
+    var recordC = createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordCCrn))),
     )
 
-    mergeRecord(recordC, recordB)
-    mergeRecord(recordB, recordA)
-    mergeUuid(clusterB, clusterA)
+    recordC = mergeRecord(recordC, recordB)
+    recordB = mergeRecord(recordB, recordA)
+    mergeUuid(recordB.personKey!!, recordA.personKey!!)
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
     checkTelemetry(

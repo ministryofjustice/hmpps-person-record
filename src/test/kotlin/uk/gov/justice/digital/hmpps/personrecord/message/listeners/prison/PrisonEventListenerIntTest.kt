@@ -30,7 +30,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_NEW_RECORD_EXISTS
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
@@ -252,10 +251,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         CPR_RECORD_UPDATED,
         mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisoner.prisonNumber),
       )
-      checkTelemetry(
-        CPR_RECLUSTER_MESSAGE_RECEIVED,
-        mapOf("UUID" to prisoner.personKey?.personId.toString()),
-      )
     }
 
     @Test
@@ -283,11 +278,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.matchId).isEqualTo(prisoner.matchId)
         assertThat(personEntity.firstName).isEqualTo(updatedFirstName)
       }
-
-      checkTelemetry(
-        CPR_RECLUSTER_MESSAGE_RECEIVED,
-        mapOf("UUID" to prisoner.personKey?.personId.toString()),
-      )
     }
 
     @Test

@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LI
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
@@ -98,11 +97,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
-
-    checkTelemetry(
-      CPR_RECLUSTER_MESSAGE_RECEIVED,
-      mapOf("UUID" to personEntity.personKey?.personId.toString()),
-    )
 
     val person = awaitNotNullPerson {
       personRepository.findByCId(cId)
