@@ -56,7 +56,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       scenarioName,
     )
 
-    stubSingleNumberPage(prisonNumberSeven, scenarioName)
+    stubNumberPage(prisonNumberSeven, scenarioName = scenarioName, page = 3)
 
     stubSinglePrisonerDetail(prisonNumberSeven, scenarioName)
     webTestClient.post()
@@ -176,7 +176,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       "next request will succeed",
     )
 
-    stubSingleNumberPage(prisonNumberSeven, scenarioName, "next request will succeed")
+    stubNumberPage(prisonNumberSeven, scenarioName = scenarioName, page = 3, scenarioState = "next request will succeed")
 
     stubSinglePrisonerDetail(prisonNumberSeven, scenarioName, "next request will succeed")
 
@@ -263,15 +263,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     responseBody = onePrisoner(prisonNumberSeven, "PrisonerSeven"),
   )
 
-  private fun stubSingleNumberPage(prisonNumberSeven: String, scenarioName: String, scenarioState: String? = STARTED) = stubGetRequest(
-    url = "/api/prisoners/prisoner-numbers?size=2&page=3",
-    scenarioName = scenarioName,
-    currentScenarioState = scenarioState,
-    nextScenarioState = scenarioState,
-    body = prisonNumbersResponse(listOf(prisonNumberSeven)),
-  )
-
-  private fun stubNumberPage(prisonNumberOne: String, prisonNumberTwo: String, page: Int, scenarioName: String, scenarioState: String? = STARTED) = stubGetRequest(
+  private fun stubNumberPage(prisonNumberOne: String, prisonNumberTwo: String? = null, page: Int, scenarioName: String, scenarioState: String? = STARTED) = stubGetRequest(
     url = "/api/prisoners/prisoner-numbers?size=2&page=$page",
     scenarioName = scenarioName,
     currentScenarioState = scenarioState,
