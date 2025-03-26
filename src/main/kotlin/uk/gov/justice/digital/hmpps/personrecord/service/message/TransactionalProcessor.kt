@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 @Component
 class TransactionalProcessor(
   private val createUpdateService: CreateUpdateService,
-  // private val retryExecutor: RetryExecutor,
 ) {
 
   @Retryable(
