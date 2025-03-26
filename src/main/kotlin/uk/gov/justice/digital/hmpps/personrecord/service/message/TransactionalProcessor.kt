@@ -8,6 +8,7 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException
 import org.springframework.orm.jpa.JpaSystemException
+import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -19,6 +20,7 @@ class TransactionalProcessor(
 ) {
 
   @Retryable(
+    backoff = Backoff(delay = 1000L),
     retryFor = [
       ObjectOptimisticLockingFailureException::class,
       CannotAcquireLockException::class,
