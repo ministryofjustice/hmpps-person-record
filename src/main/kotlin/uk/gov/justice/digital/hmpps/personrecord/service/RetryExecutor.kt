@@ -16,7 +16,7 @@ import kotlin.math.min
 import kotlin.random.Random
 import kotlin.reflect.KClass
 
-private const val DB_TRY_COUNT = 5
+private const val DB_TRY_COUNT = 1
 private const val HTTP_TRY_COUNT = 3
 
 private const val EXPONENTIAL_FACTOR = 2.0
