@@ -37,14 +37,14 @@ class APIController(
     return buildCanonicalRecord(personKeyEntity, uuid)
   }
 
-  private fun getCorrectPersonKeyEntity(personKeyEntity: PersonKeyEntity?, existingMergeChain: MutableSet<UUID?>): PersonKeyEntity? {
-    if (existingMergeChain.contains(personKeyEntity?.personId)) {
+  private fun getCorrectPersonKeyEntity(personKeyEntity: PersonKeyEntity?, existingMergeChain: MutableSet<UUID?>): PersonKeyEntity? = personKeyEntity?.mergedTo?.let {
+    if (existingMergeChain.contains(personKeyEntity.personId)) {
       throw IllegalStateException("Circular merge reference")
     }
-    existingMergeChain.add(personKeyEntity?.personId)
-    return personKeyEntity?.mergedTo?.let { getCorrectPersonKeyEntity(personKeyRepository.findByIdOrNull(it), existingMergeChain) }
-      ?: personKeyEntity
+    existingMergeChain.add(personKeyEntity.personId)
+    getCorrectPersonKeyEntity(personKeyRepository.findByIdOrNull(it), existingMergeChain)
   }
+    ?: personKeyEntity
 
   private fun buildCanonicalRecord(personKeyEntity: PersonKeyEntity?, uuid: UUID): CanonicalRecord = when {
     personKeyEntity?.personEntities?.isNotEmpty() == true -> CanonicalRecord.from(personKeyEntity)
