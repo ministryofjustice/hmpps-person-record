@@ -75,12 +75,6 @@ tasks {
   register("initialiseDatabase", Test::class) {
     include("**/InitialiseDatabase.class")
   }
-  register("ReclusterServiceIntTest", Test::class) {
-    include(
-      "**/ReclusterServiceIntTest.class",
-      "**/**DisabledIntTest.class",
-    )
-  }
 
   test {
     exclude("**/InitialiseDatabase.class")

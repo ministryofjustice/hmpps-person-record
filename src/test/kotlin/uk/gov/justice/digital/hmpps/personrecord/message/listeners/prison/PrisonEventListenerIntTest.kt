@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -58,7 +57,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.stream.Stream
 
-@Disabled
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test

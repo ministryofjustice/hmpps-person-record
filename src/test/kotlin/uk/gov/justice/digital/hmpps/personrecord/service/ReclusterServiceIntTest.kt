@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
@@ -56,7 +55,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
-  @Disabled
   @Test
   fun `should not recluster when single record that does not match`() {
     val defendantId = randomDefendantId()
@@ -225,7 +223,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
     }
   }
 
-  @Disabled
   @Test
   fun `should recluster when single record matches to one other cluster with multiple records (only matches 1)`() {
     val cro = randomCro()
@@ -308,7 +305,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
     }
   }
 
-  @Disabled
   @Test
   fun `should recluster when single record matches to multiple clusters`() {
     val cro = randomCro()
@@ -395,7 +391,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
-  @Disabled()
   @Test
   fun `should verify multiple records in cluster match to each other`() {
     val personKeyEntity = createPersonKey()
@@ -439,7 +434,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
-  @Disabled("causing failure on test should verify multiple records in cluster do not match to each other")
   @Test
   fun `should verify multiple records in cluster do not match to each other`() {
     val personKeyEntity = createPersonKey()
