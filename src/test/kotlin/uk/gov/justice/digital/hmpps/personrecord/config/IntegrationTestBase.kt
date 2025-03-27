@@ -97,6 +97,7 @@ class IntegrationTestBase {
     event: TelemetryEventType,
     expected: Map<String, String?>,
     times: Int = 1,
+    timeout: Long = 3,
   ) {
     awaitAssert(function = {
       val allEvents = telemetryRepository.findAllByEvent(event.eventName)
@@ -110,7 +111,7 @@ class IntegrationTestBase {
         }.all { it }
       }
       assertThat(matchingEvents?.size).`as`("Missing data $event $expected and actual data $allEvents").isEqualTo(times)
-    }, 15)
+    }, timeout)
   }
 
   private fun awaitAssert(function: () -> Unit, timeout: Long) = await atMost (Duration.ofSeconds(timeout)) untilAsserted function

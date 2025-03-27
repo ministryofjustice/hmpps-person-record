@@ -26,7 +26,7 @@ class CreateUpdateService(
   private val eventLoggingService: EventLoggingService,
 ) {
 
-  @Transactional(isolation = Isolation.SERIALIZABLE)
+  @Transactional(isolation = Isolation.REPEATABLE_READ)
   fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) {
     val existingPersonEntitySearch: PersonEntity? = callback()
     existingPersonEntitySearch.shouldCreateOrUpdate(
