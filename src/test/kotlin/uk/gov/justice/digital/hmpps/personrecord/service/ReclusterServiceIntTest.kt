@@ -60,6 +60,38 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       )
     }
 
+    @Test
+    fun `should do nothing when match return same items from cluster with large amount of records`() {
+      val personA = createPerson(createRandomPersonDetails())
+      val personB = createPerson(createRandomPersonDetails())
+      val personC = createPerson(createRandomPersonDetails())
+      val personD = createPerson(createRandomPersonDetails())
+      val personE = createPerson(createRandomPersonDetails())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+        .addPerson(personD)
+        .addPerson(personE)
+
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = personA.matchId,
+        results = listOf(
+          personB.matchId,
+          personC.matchId,
+          personD.matchId,
+          personE.matchId,
+        )
+      )
+
+      reclusterService.recluster(cluster, changedRecord = personA)
+
+      checkTelemetry(
+        CPR_RECLUSTER_NO_CHANGE,
+        mapOf("UUID" to cluster.personId.toString()),
+      )
+    }
+
   }
 
   @Nested
@@ -129,6 +161,32 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         mapOf("UUID" to cluster.personId.toString()),
       )
       clusterIsSetToNeedAttention(cluster)
+    }
+
+    @Test
+    fun `should mark as need attention when matches less records in cluster and contains matches from another cluster`() {
+      val personA = createPerson(createRandomPersonDetails())
+      val personB = createPerson(createRandomPersonDetails())
+      val personC = createPerson(createRandomPersonDetails())
+      val clusterA = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      val personD = createPerson(createRandomPersonDetails())
+      createPersonKey()
+        .addPerson(personD)
+
+      stubOnePersonMatchHighConfidenceMatch(matchId = personA.matchId, matchedRecord = personD.matchId)
+
+
+      reclusterService.recluster(clusterA, changedRecord = personA)
+
+      checkTelemetry(
+        CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
+        mapOf("UUID" to clusterA.personId.toString()),
+      )
+      clusterIsSetToNeedAttention(clusterA)
     }
 
   }
