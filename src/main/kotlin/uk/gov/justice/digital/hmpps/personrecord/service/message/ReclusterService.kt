@@ -20,16 +20,25 @@ class ReclusterService(
 ) {
 
   fun recluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
-    val otherRecordsInCluster = cluster.personEntities.filterNot { it.id == changedRecord.id  }
-    val matches: List<PersonMatchResult> = personMatchService.findHighestConfidencePersonRecordsByProbabilityDesc(changedRecord)
-    val matchedRecords: List<PersonEntity> = matches.map { it.personEntity }
+    val existingRecordsInCluster = cluster.personEntities.filterNot { it.id == changedRecord.id  }
+    val matchesToChangeRecord: List<PersonMatchResult> = personMatchService.findHighestConfidencePersonRecordsByProbabilityDesc(changedRecord)
+    val matchedRecords: List<PersonEntity> = matchesToChangeRecord.map { it.personEntity }
     when {
-      doesNotMatchRecordsInCluster(matchedRecords, otherRecordsInCluster) -> setClusterAsNeedsAttention(cluster)
+      recordsDontMatch(matchedRecords, existingRecordsInCluster) -> handleDiscrepancyOfMatchesToExistingRecords(matchedRecords, existingRecordsInCluster, cluster)
       else -> telemetryService.trackEvent(CPR_RECLUSTER_NO_CHANGE, mapOf(EventKeys.UUID to cluster.personId.toString()),)
     }
   }
 
-  private fun doesNotMatchRecordsInCluster(matchedRecords: List<PersonEntity>, otherRecordsInCluster: List<PersonEntity>): Boolean = matchedRecords.containsAll(otherRecordsInCluster)
+  private fun handleDiscrepancyOfMatchesToExistingRecords(matchedRecords: List<PersonEntity>, existingRecordsInCluster: List<PersonEntity>, cluster: PersonKeyEntity) {
+    when {
+      hasLessMatchedRecordsInExistingCluster(matchedRecords, existingRecordsInCluster) -> setClusterAsNeedsAttention(cluster)
+      else -> return // TODO: CPR-617 Handle more high quality matches
+    }
+  }
+
+  private fun recordsDontMatch(matchedRecords: List<PersonEntity>, existingRecordsInCluster: List<PersonEntity>): Boolean = matchedRecords.map { it.id }.toSet() != existingRecordsInCluster.map { it.id }.toSet()
+
+  private fun hasLessMatchedRecordsInExistingCluster(matchedRecords: List<PersonEntity>, existingRecordsInCluster: List<PersonEntity>): Boolean = matchedRecords.size < existingRecordsInCluster.size
 
   private fun setClusterAsNeedsAttention(cluster: PersonKeyEntity) {
     cluster.status = UUIDStatusType.NEEDS_ATTENTION

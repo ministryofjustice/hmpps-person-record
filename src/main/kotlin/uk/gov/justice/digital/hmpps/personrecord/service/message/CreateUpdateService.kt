@@ -72,7 +72,7 @@ class CreateUpdateService(
       eventType = event,
     )
 
-    updatedPerson.personKey?.let { reclusterService.recluster(it) }
+    updatedPerson.personKey?.let { reclusterService.recluster(it, changedRecord = updatedPerson) }
     return updatedPerson
   }
 
