@@ -20,13 +20,13 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.message.TransactionalProcessor
+import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 
 @Component
 class CourtEventProcessor(
   private val objectMapper: ObjectMapper,
-  private val transactionalProcessor: TransactionalProcessor,
+  private val createUpdateService: CreateUpdateService,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   private val s3Client: S3Client,
@@ -75,7 +75,7 @@ class CourtEventProcessor(
         EventKeys.SOURCE_SYSTEM to SourceSystemType.COMMON_PLATFORM.name,
       ),
     )
-    transactionalProcessor.processMessage(person) {
+    createUpdateService.processPerson(person, null) {
       person.defendantId?.let {
         personRepository.findByDefendantId(it)
       }
@@ -116,7 +116,7 @@ class CourtEventProcessor(
         EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
       ),
     )
-    transactionalProcessor.processMessage(person) {
+    createUpdateService.processPerson(person, null) {
       person.cId?.let {
         personRepository.findByCId(it)
       }
