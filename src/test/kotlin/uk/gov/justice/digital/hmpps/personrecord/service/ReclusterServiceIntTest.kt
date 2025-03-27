@@ -25,8 +25,11 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_NO_CHANGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_NO_MATCH_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 
 class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
@@ -42,12 +45,19 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should log event if cluster needs attention`() {
     val personKeyEntity = createPersonKey(status = NEEDS_ATTENTION)
+    val defendantId = randomDefendantId()
     createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+      Person(
+        defendantId = defendantId,
+        references = listOf(),
+        sourceSystem = COMMON_PLATFORM,
+      ),
       personKeyEntity = personKeyEntity,
     )
-
-    reclusterService.recluster(personKeyEntity)
+    stubPersonMatchUpsert()
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId))),
+    )
 
     checkTelemetry(
       CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION,
@@ -57,15 +67,19 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should not recluster when single record that does not match`() {
+    val defendantId = randomDefendantId()
     val person = createPerson(
       Person(
-        references = listOf(Reference(IdentifierType.CRO, randomCro())),
+        defendantId = defendantId,
+        references = listOf(),
         sourceSystem = COMMON_PLATFORM,
       ),
       personKeyEntity = createPersonKey(),
     )
-
-    reclusterService.recluster(person.personKey!!)
+    stubPersonMatchUpsert()
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId))),
+    )
 
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
@@ -86,9 +100,11 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should recluster when single record matches to one other cluster`() {
     val cro = randomCro()
+    val defendantId = randomDefendantId()
     val cluster1 = createPersonKey()
     createPerson(
       Person(
+        defendantId = defendantId,
         references = listOf(Reference(IdentifierType.CRO, cro)),
         sourceSystem = COMMON_PLATFORM,
       ),
@@ -106,7 +122,10 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
     stubOneHighConfidenceMatch()
 
-    reclusterService.recluster(cluster1)
+    stubPersonMatchUpsert()
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = cro))),
+    )
 
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
