@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.message.ReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_NO_CHANGE
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -22,6 +23,24 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
   @Autowired
   private lateinit var reclusterService: ReclusterService
+
+  @Nested
+  inner class ClusterAlreadySetAsNeedsAttention {
+
+    @Test
+    fun `should do nothing when cluster already set as needs attention`() {
+      val personA = createPerson(createRandomPersonDetails())
+      val cluster = createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION)
+        .addPerson(personA)
+
+      reclusterService.recluster(cluster, changedRecord = personA)
+
+      checkTelemetry(
+        TelemetryEventType.CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION,
+        mapOf("UUID" to cluster.personId.toString()),
+      )
+    }
+  }
 
   @Nested
   inner class NoChangeToCluster {
@@ -81,7 +100,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
           personC.matchId,
           personD.matchId,
           personE.matchId,
-        )
+        ),
       )
 
       reclusterService.recluster(cluster, changedRecord = personA)
@@ -91,7 +110,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         mapOf("UUID" to cluster.personId.toString()),
       )
     }
-
   }
 
   @Nested
@@ -179,7 +197,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubOnePersonMatchHighConfidenceMatch(matchId = personA.matchId, matchedRecord = personD.matchId)
 
-
       reclusterService.recluster(clusterA, changedRecord = personA)
 
       checkTelemetry(
@@ -188,11 +205,9 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       )
       clusterIsSetToNeedAttention(clusterA)
     }
-
   }
 
   private fun clusterIsSetToNeedAttention(cluster: PersonKeyEntity) = awaitAssert { assertThat(personKeyRepository.findByPersonId(cluster.personId)?.status).isEqualTo(UUIDStatusType.NEEDS_ATTENTION) }
 
   private fun createRandomPersonDetails(): Person = Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn())))
-
 }
