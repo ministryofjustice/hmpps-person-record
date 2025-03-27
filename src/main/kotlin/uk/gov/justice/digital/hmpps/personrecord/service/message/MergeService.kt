@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
-import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
@@ -23,14 +22,11 @@ class MergeService(
   private val personRepository: PersonRepository,
   private val personKeyRepository: PersonKeyRepository,
   private val eventLoggingService: EventLoggingService,
-  private val retryExecutor: RetryExecutor,
   private val deletionService: DeletionService,
 ) {
 
   fun processMerge(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) = runBlocking {
-    retryExecutor.runWithRetryDatabase {
-      processMergingOfRecords(mergeEvent, sourcePersonCallback, targetPersonCallback)
-    }
+    processMergingOfRecords(mergeEvent, sourcePersonCallback, targetPersonCallback)
   }
 
   private suspend fun processMergingOfRecords(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) {

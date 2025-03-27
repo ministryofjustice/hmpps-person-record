@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
-import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -23,13 +22,10 @@ class UnmergeService(
   private val personKeyRepository: PersonKeyRepository,
   private val personRepository: PersonRepository,
   private val eventLoggingService: EventLoggingService,
-  private val retryExecutor: RetryExecutor,
 ) {
 
   fun processUnmerge(unmergeEvent: UnmergeEvent, reactivatedPersonCallback: () -> PersonEntity?, unmergedPersonCallback: () -> PersonEntity?) = runBlocking {
-    retryExecutor.runWithRetryDatabase {
-      processUnmergingOfRecords(unmergeEvent, reactivatedPersonCallback, unmergedPersonCallback)
-    }
+    processUnmergingOfRecords(unmergeEvent, reactivatedPersonCallback, unmergedPersonCallback)
   }
 
   private fun processUnmergingOfRecords(unmergeEvent: UnmergeEvent, reactivatedPersonCallback: () -> PersonEntity?, unmergedPersonCallback: () -> PersonEntity?) {

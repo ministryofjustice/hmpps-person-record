@@ -27,10 +27,8 @@ class DeletionService(
 ) {
 
   fun processDelete(event: String?, personCallback: () -> PersonEntity?) = runBlocking {
-    retryExecutor.runWithRetryDatabase {
-      personCallback()?.let {
-        handleDeletion(event, it)
-      }
+    personCallback()?.let {
+      handleDeletion(event, it)
     }
   }
 

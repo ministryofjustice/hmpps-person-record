@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.shouldCreateOrUpdate
@@ -25,7 +26,7 @@ class CreateUpdateService(
   private val eventLoggingService: EventLoggingService,
 ) {
 
-  @Transactional
+  @Transactional(isolation = Isolation.SERIALIZABLE)
   fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) {
     val existingPersonEntitySearch: PersonEntity? = callback()
     existingPersonEntitySearch.shouldCreateOrUpdate(
