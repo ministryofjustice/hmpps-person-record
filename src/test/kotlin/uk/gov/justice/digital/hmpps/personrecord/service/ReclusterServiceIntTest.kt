@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -34,7 +34,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+  @DisabledIfEnvironmentVariable(named = "CI", matches = "true")
   fun `should log event if cluster needs attention`() {
     val personKeyEntity = createPersonKey(status = NEEDS_ATTENTION)
     val defendantId = randomDefendantId()
@@ -58,7 +58,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+  @DisabledIfEnvironmentVariable(named = "CI", matches = "true")
   fun `should not recluster when single record that does not match`() {
     val defendantId = randomDefendantId()
     val person = createPerson(
@@ -91,7 +91,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+  @DisabledIfEnvironmentVariable(named = "CI", matches = "true")
   fun `should recluster when single record matches to one other cluster`() {
     val cro = randomCro()
     val defendantId = randomDefendantId()
@@ -153,7 +153,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+  @DisabledIfEnvironmentVariable(named = "CI", matches = "true")
   fun `should recluster when single record matches to one other cluster with multiple records`() {
     val cro = randomCro()
     val defendantId = randomDefendantId()
@@ -228,7 +228,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+  @DisabledIfEnvironmentVariable(named = "CI", matches = "true")
   fun `should recluster when single record matches to one other cluster with multiple records (only matches 1)`() {
     val cro = randomCro()
     val defendantId = randomDefendantId()
@@ -311,7 +311,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+  @DisabledIfEnvironmentVariable(named = "CI", matches = "true")
   fun `should recluster when single record matches to multiple clusters`() {
     val cro = randomCro()
     val defendantId = randomDefendantId()
@@ -398,7 +398,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+  @DisabledIfEnvironmentVariable(named = "CI", matches = "true")
   fun `should verify multiple records in cluster match to each other`() {
     val personKeyEntity = createPersonKey()
     val defendantId = randomDefendantId()
@@ -442,7 +442,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+  @DisabledIfEnvironmentVariable(named = "CI", matches = "true")
   fun `should verify multiple records in cluster do not match to each other`() {
     val personKeyEntity = createPersonKey()
     val defendantId = randomDefendantId()
