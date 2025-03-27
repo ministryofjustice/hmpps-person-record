@@ -35,8 +35,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -272,12 +270,12 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(
         CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "CRN" to crn),
+        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
       )
       checkTelemetry(
         CPR_RECORD_UPDATED,
         mapOf(
-          "SOURCE_SYSTEM" to "COMMON_PLATFORM",
+          "SOURCE_SYSTEM" to "DELIUS",
           "CRN" to crn,
         ),
         29,
