@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.message
 
 import jakarta.persistence.OptimisticLockException
 import kotlinx.coroutines.runBlocking
+import org.springframework.dao.CannotAcquireLockException
 import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
@@ -34,6 +35,7 @@ class CreateUpdateService(
     backoff = Backoff(random = true, delay = 1000, maxDelay = 2000, multiplier = 1.5),
     retryFor = [
       OptimisticLockException::class,
+      CannotAcquireLockException::class, // Needed for tests to pass
     ],
   )
   @Transactional(isolation = Isolation.REPEATABLE_READ)
