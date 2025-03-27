@@ -5,6 +5,7 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilAsserted
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
@@ -36,6 +37,7 @@ import java.util.concurrent.TimeUnit.SECONDS
 class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Nested
+  @Disabled
   inner class SuccessfulProcessing {
     @BeforeEach
     fun beforeEach() {

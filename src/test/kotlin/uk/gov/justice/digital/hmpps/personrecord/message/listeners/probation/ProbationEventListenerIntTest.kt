@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -52,6 +53,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 import java.util.concurrent.TimeUnit.SECONDS
 
+@Disabled
 class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Nested

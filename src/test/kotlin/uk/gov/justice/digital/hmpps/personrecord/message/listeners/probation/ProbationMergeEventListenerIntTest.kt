@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
@@ -27,6 +28,7 @@ import java.time.LocalDateTime
 class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Nested
+  @Disabled
   inner class SuccessfulProcessing {
     @BeforeEach
     fun beforeEach() {

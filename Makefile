@@ -4,6 +4,9 @@ JAVA_OPTS := "-Xmx4096m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.
 test: start-containers format
 	export _JAVA_OPTIONS=${JAVA_OPTS} && ./gradlew check
 
+recluster-test: start-containers format
+	export _JAVA_OPTIONS=${JAVA_OPTS} && ./gradlew ReclusterServiceIntTest
+
 format:
 	./gradlew ktlintFormat
 
