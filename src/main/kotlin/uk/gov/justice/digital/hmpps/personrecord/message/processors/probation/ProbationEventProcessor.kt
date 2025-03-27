@@ -7,13 +7,13 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.format.EncodingService
-import uk.gov.justice.digital.hmpps.personrecord.service.message.TransactionalProcessor
+import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 
 @Component
 class ProbationEventProcessor(
   private val telemetryService: TelemetryService,
-  private val transactionalProcessor: TransactionalProcessor,
+  private val createUpdateService: CreateUpdateService,
   private val personRepository: PersonRepository,
   private val encodingService: EncodingService,
 ) {
@@ -27,7 +27,7 @@ class ProbationEventProcessor(
       crn,
     ) {
       it?.let {
-        transactionalProcessor.processMessage(Person.from(it), eventType) {
+        createUpdateService.processPerson(Person.from(it), eventType) {
           personRepository.findByCrn(crn)
         }
       }
