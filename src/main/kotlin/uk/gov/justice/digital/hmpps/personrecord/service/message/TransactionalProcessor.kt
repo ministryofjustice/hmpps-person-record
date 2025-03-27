@@ -20,7 +20,7 @@ class TransactionalProcessor(
 ) {
 
   @Retryable(
-    backoff = Backoff(delay = 1000L),
+    backoff = Backoff(random = true, delay = 1000, maxDelay = 2000, multiplier = 1.5),
     retryFor = [
       ObjectOptimisticLockingFailureException::class,
       CannotAcquireLockException::class,
