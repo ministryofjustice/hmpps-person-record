@@ -7,7 +7,6 @@ import org.springframework.context.ApplicationContext
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.CourtEventListener
-import uk.gov.justice.digital.hmpps.personrecord.message.listeners.cpr.ReclusterEventListener
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison.PrisonEventListener
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison.PrisonMergeEventListener
 import uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation.ProbationDeletionEventListener
@@ -60,13 +59,6 @@ class ListenersDisabledIntTest : IntegrationTestBase() {
   fun `should not have PrisonMargeEventListener bean when seeding profile is active`() {
     assertFailsWith<NoSuchBeanDefinitionException>(
       block = { applicationContext.getBean(PrisonMergeEventListener::class.java) },
-    )
-  }
-
-  @Test
-  fun `should not have ReclusterEventListener bean when seeding profile is active`() {
-    assertFailsWith<NoSuchBeanDefinitionException>(
-      block = { applicationContext.getBean(ReclusterEventListener::class.java) },
     )
   }
 }

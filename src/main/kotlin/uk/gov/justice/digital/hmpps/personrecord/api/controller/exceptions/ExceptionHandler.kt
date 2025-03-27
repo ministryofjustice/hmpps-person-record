@@ -31,8 +31,8 @@ class ExceptionHandler {
       ),
     )
 
-  @ExceptionHandler(PersonKeyNotFoundException::class)
-  fun handleKeyNotFoundException(e: PersonKeyNotFoundException): ResponseEntity<ErrorResponse> = ResponseEntity
+  @ExceptionHandler(CanonicalRecordNotFoundException::class)
+  fun handleKeyNotFoundException(e: CanonicalRecordNotFoundException): ResponseEntity<ErrorResponse> = ResponseEntity
     .status(HttpStatus.NOT_FOUND)
     .body(
       ErrorResponse(

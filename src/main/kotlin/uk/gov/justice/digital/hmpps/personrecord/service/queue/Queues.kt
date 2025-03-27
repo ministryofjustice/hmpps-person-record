@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.queue
 
 object Queues {
-  // CPR
-  const val RECLUSTER_EVENTS_QUEUE_ID = "cprreclustereventsqueue"
 
   // COURTS
   const val COURT_CASES_QUEUE_ID = "cprcourtcasesqueue"

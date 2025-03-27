@@ -136,17 +136,22 @@ class IntegrationTestBase {
   internal fun createPerson(person: Person, personKeyEntity: PersonKeyEntity? = null): PersonEntity {
     val personEntity = PersonEntity.new(person = person)
     personEntity.personKey = personKeyEntity
+    personKeyEntity?.personEntities?.add(personEntity)
     return personRepository.saveAndFlush(personEntity)
   }
 
-  internal fun mergeRecord(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
+  internal fun mergeRecord(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity): PersonEntity {
     sourcePersonEntity.mergedTo = targetPersonEntity.id
-    personRepository.saveAndFlush(sourcePersonEntity)
+    return personRepository.saveAndFlush(sourcePersonEntity)
   }
 
   internal fun mergeUuid(sourcePersonKey: PersonKeyEntity, targetPersonKeyEntity: PersonKeyEntity): PersonKeyEntity {
     sourcePersonKey.mergedTo = targetPersonKeyEntity.id
-    if (sourcePersonKey.personEntities.size == 1) sourcePersonKey.status = MERGED
+
+    if (sourcePersonKey.personEntities.size == 1) {
+      sourcePersonKey.status = MERGED
+    }
+
     return personKeyRepository.saveAndFlush(sourcePersonKey)
   }
 

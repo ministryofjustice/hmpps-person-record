@@ -64,10 +64,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId(Queues.PRISON_MERGE_EVENT_QUEUE_ID)
   }
 
-  val reclusterEventsQueue by lazy {
-    hmppsQueueService.findByQueueId(Queues.RECLUSTER_EVENTS_QUEUE_ID)
-  }
-
   internal fun publishLibraMessage(message: String): String = publishCourtMessage(message, LIBRA_COURT_CASE, "libra.case.received")
 
   internal fun publishCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.case.received")
@@ -140,7 +136,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   fun probationMergeEventAndResponseSetup(
     eventType: String,
-    source: ApiResponseSetup,
+    sourceCrn: String,
     target: ApiResponseSetup,
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
@@ -153,7 +149,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       DomainEvent(
         eventType = eventType,
         additionalInformation = AdditionalInformation(
-          sourceCrn = source.crn,
+          sourceCrn = sourceCrn,
           targetCrn = target.crn,
         ),
       ),
@@ -213,7 +209,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   fun prisonMergeEventAndResponseSetup(
     eventType: String,
-    source: ApiResponseSetup,
+    sourcePrisonNumber: String,
     target: ApiResponseSetup,
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
@@ -227,7 +223,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         eventType = eventType,
         additionalInformation = AdditionalInformation(
           prisonNumber = target.prisonNumber,
-          sourcePrisonNumber = source.prisonNumber,
+          sourcePrisonNumber = sourcePrisonNumber,
         ),
       ),
     )
@@ -241,8 +237,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     purgeQueueAndDlq(probationDeleteEventsQueue)
     purgeQueueAndDlq(prisonEventsQueue)
     purgeQueueAndDlq(prisonMergeEventsQueue)
-    purgeQueueAndDlq(reclusterEventsQueue)
-    expectNoMessagesOnQueueOrDlq(reclusterEventsQueue)
   }
 
   fun purgeQueueAndDlq(hmppsQueue: HmppsQueue?) {

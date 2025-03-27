@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
-import uk.gov.justice.digital.hmpps.personrecord.service.queue.QueueService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
@@ -22,7 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class CreateUpdateService(
   private val telemetryService: TelemetryService,
   private val personService: PersonService,
-  private val queueService: QueueService,
+  private val reclusterService: ReclusterService,
   private val eventLoggingService: EventLoggingService,
 ) {
 
@@ -72,7 +71,8 @@ class CreateUpdateService(
       uuid = existingPersonEntity.personKey?.personId?.toString(),
       eventType = event,
     )
-    queueService.publishReclusterMessageToQueue(updatedPerson)
+
+    updatedPerson.personKey?.let { reclusterService.recluster(it) }
     return updatedPerson
   }
 
