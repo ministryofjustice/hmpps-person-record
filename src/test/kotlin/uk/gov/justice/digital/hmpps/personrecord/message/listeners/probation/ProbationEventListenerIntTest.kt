@@ -260,6 +260,30 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
     }
 
+    @Test
+    fun `test multiple requests to probation single record process successfully`() {
+      val pnc = randomPnc()
+      val crn = randomCrn()
+      blitz(30, 6) {
+        probationEventAndResponseSetup(OFFENDER_DETAILS_CHANGED, ApiResponseSetup(crn = crn, pnc = pnc))
+      }
+
+      expectNoMessagesOnQueueOrDlq(probationEventsQueue)
+      checkTelemetry(
+        CPR_RECORD_CREATED,
+        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
+      )
+      checkTelemetry(
+        CPR_RECORD_UPDATED,
+        mapOf(
+          "SOURCE_SYSTEM" to "DELIUS",
+          "CRN" to crn,
+        ),
+        29,
+        timeout = 15,
+      )
+    }
+
     @ParameterizedTest
     @ValueSource(strings = [OFFENDER_DETAILS_CHANGED, OFFENDER_ALIAS_CHANGED, OFFENDER_ADDRESS_CHANGED])
     fun `should process probation events successfully`(event: String) {
