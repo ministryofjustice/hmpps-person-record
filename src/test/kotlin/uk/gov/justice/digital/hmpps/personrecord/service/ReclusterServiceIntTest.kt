@@ -48,7 +48,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         TelemetryEventType.CPR_RECORD_CREATED,
         mapOf("C_ID" to cId),
       )
-      
+
       awaitAssert { assertThat(personKeyRepository.findByPersonId(personA.personKey?.personId)?.personEntities?.size).isEqualTo(2) }
     }
 
