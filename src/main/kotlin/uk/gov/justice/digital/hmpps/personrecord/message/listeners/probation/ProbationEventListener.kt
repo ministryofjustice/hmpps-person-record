@@ -18,6 +18,9 @@ import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_DELETED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 
@@ -38,7 +41,7 @@ class ProbationEventListener(
     when (sqsMessage.type) {
       NOTIFICATION -> {
         when (sqsMessage.messageAttributes?.eventType?.value) {
-          NEW_OFFENDER_CREATED, OFFENDER_PERSONAL_DETAILS_UPDATED -> handleDomainEvent(sqsMessage)
+          NEW_OFFENDER_CREATED, OFFENDER_PERSONAL_DETAILS_UPDATED, OFFENDER_ADDRESS_CREATED, OFFENDER_ADDRESS_UPDATED, OFFENDER_ADDRESS_DELETED -> handleDomainEvent(sqsMessage)
           else -> handleProbationEvent(sqsMessage)
         }
       }
