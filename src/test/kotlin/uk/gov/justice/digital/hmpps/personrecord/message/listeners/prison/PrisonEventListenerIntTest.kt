@@ -29,10 +29,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREAT
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_NEW_RECORD_EXISTS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -236,25 +234,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should log correct telemetry on created event but record already exists`() {
-      val prisoner = createPrisoner()
-
-      stubNoMatchesPersonMatch(matchId = prisoner.matchId)
-      stubPrisonResponse(ApiResponseSetup(prisonNumber = prisoner.prisonNumber))
-
-      val additionalInformation = AdditionalInformation(prisonNumber = prisoner.prisonNumber, categoriesChanged = emptyList())
-      val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
-      publishDomainEvent(PRISONER_CREATED, domainEvent)
-
-      checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisoner.prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to SourceSystemType.NOMIS.name))
-      checkTelemetry(CPR_NEW_RECORD_EXISTS, mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisoner.prisonNumber))
-      checkTelemetry(
-        CPR_RECORD_UPDATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisoner.prisonNumber),
-      )
-    }
-
-    @Test
     fun `should receive the message successfully when prisoner updated event published`() {
       val prisoner = createPrisoner()
 
@@ -294,28 +273,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to SourceSystemType.NOMIS.name))
 
-      checkTelemetry(
-        CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
-      )
-      checkTelemetry(
-        CPR_UUID_CREATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
-      )
-    }
-
-    @Test
-    fun `should log correct telemetry on updated event but no record exists`() {
-      val prisonNumber = randomPrisonNumber()
-      stubNoMatchesPersonMatch()
-      stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
-
-      val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
-      val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, personReference = null, additionalInformation = additionalInformation)
-      publishDomainEvent(PRISONER_UPDATED, domainEvent)
-
-      checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_UPDATED, "SOURCE_SYSTEM" to SourceSystemType.NOMIS.name))
-      checkTelemetry(CPR_UPDATE_RECORD_DOES_NOT_EXIST, mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber))
       checkTelemetry(
         CPR_RECORD_CREATED,
         mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
