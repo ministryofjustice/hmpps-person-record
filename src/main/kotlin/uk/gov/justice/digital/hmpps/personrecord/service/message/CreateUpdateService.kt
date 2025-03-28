@@ -1,5 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
+import jakarta.persistence.OptimisticLockException
+import kotlinx.coroutines.runBlocking
+import org.springframework.dao.CannotAcquireLockException
+import org.springframework.retry.annotation.Backoff
+import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
@@ -26,17 +31,26 @@ class CreateUpdateService(
   private val eventLoggingService: EventLoggingService,
 ) {
 
+  @Retryable(
+    backoff = Backoff(random = true, delay = 1000, maxDelay = 2000, multiplier = 1.5),
+    retryFor = [
+      OptimisticLockException::class,
+      CannotAcquireLockException::class, // Needed for tests to pass
+    ],
+  )
   @Transactional(isolation = Isolation.REPEATABLE_READ)
   fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) {
-    val existingPersonEntitySearch: PersonEntity? = callback()
-    existingPersonEntitySearch.shouldCreateOrUpdate(
-      shouldCreate = {
-        handlePersonCreation(person, event)
-      },
-      shouldUpdate = {
-        handlePersonUpdate(person, it, event)
-      },
-    )
+    runBlocking {
+      val existingPersonEntitySearch: PersonEntity? = callback()
+      existingPersonEntitySearch.shouldCreateOrUpdate(
+        shouldCreate = {
+          handlePersonCreation(person, event)
+        },
+        shouldUpdate = {
+          handlePersonUpdate(person, it, event)
+        },
+      )
+    }
   }
 
   private fun handlePersonCreation(person: Person, event: String?): PersonEntity {
