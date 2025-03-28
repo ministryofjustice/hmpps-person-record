@@ -196,6 +196,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personD)
 
       stubOnePersonMatchHighConfidenceMatch(matchId = personA.matchId, matchedRecord = personD.matchId)
+      stubIsClusterValid()
 
       reclusterService.recluster(clusterA, changedRecord = personA)
 

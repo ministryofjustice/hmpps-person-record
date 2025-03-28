@@ -34,6 +34,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDO
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -246,6 +247,16 @@ class IntegrationTestBase {
       status = status,
       body = objectMapper.writeValueAsString(personMatchResponse),
     )
+  }
+
+  internal fun stubIsClusterValid(isClusterValidResponse: IsClusterValidResponse = IsClusterValidResponse(isClusterValid = true, clusters = listOf())) {
+    stubGetRequest(
+      BASE_SCENARIO,
+      STARTED,
+      STARTED,
+      url = "/is-cluster-valid",
+      status = 200,
+      body = objectMapper.writeValueAsString(isClusterValidResponse))
   }
 
   internal fun stubPersonMatchUpsert(scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200, body: String = "{}") {
