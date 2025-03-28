@@ -54,7 +54,7 @@ spring:
   datasource:
     url: jdbc:postgresql://${database.endpoint:localhost:5432}/${database.name:postgres}?currentSchema=${database.schema.name}&user=${database.username:root}&password=${database.password:dev}&stringtype=unspecified&sslmode=verify-full
     hikari:
-      maximum-pool-size: 100
+      maximum-pool-size: 50
   jpa:
     open-in-view: false
 
