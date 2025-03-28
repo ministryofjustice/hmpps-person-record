@@ -33,6 +33,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -219,6 +220,17 @@ class IntegrationTestBase {
       urlPattern = matchIdUrlPattern,
       status = status,
       body = objectMapper.writeValueAsString(personMatchResponse),
+    )
+  }
+
+  internal fun stubIsClusterValid(isClusterValidResponse: IsClusterValidResponse = IsClusterValidResponse(isClusterValid = true, clusters = listOf())) {
+    stubPostRequest(
+      BASE_SCENARIO,
+      STARTED,
+      STARTED,
+      url = "/is-cluster-valid",
+      status = 200,
+      responseBody = objectMapper.writeValueAsString(isClusterValidResponse)
     )
   }
 

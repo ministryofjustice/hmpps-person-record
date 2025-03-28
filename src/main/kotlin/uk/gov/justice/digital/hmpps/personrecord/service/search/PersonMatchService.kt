@@ -1,9 +1,12 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.search
 
 import kotlinx.coroutines.runBlocking
+import org.apache.catalina.Cluster
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidRequest
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -15,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.IS_CLUSTER_VALID_CALL_FAILED
 import java.util.UUID
 
 @Component
@@ -37,6 +41,19 @@ class PersonMatchService(
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
       .logHighConfidenceDuplicates()
     return@runBlocking highConfidencePersonRecords
+  }
+
+  fun getIsClusterValid(cluster: PersonKeyEntity): IsClusterValidResponse = runBlocking {
+    checkClusterIsValid(cluster).fold(
+      onSuccess = { it },
+      onFailure = { exception ->
+        telemetryService.trackEvent(
+          IS_CLUSTER_VALID_CALL_FAILED,
+          mapOf(EventKeys.UUID to cluster.personId.toString())
+        )
+        throw exception
+      }
+    )
   }
 
   private fun getPersonRecords(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.sortedByDescending { it.candidateMatchProbability }.mapNotNull {
@@ -120,6 +137,11 @@ class PersonMatchService(
       )
     }
     return this
+  }
+
+  private suspend fun checkClusterIsValid(cluster: PersonKeyEntity): Result<IsClusterValidResponse> = runCatching {
+    val request = IsClusterValidRequest.from(cluster)
+    retryExecutor.runWithRetryHTTP { personMatchClient.isClusterValid(request) }
   }
 
   private companion object {

@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
+import org.apache.catalina.Cluster
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -42,7 +43,10 @@ class ReclusterService(
 
   private fun handleDiscrepancyOfMatchesToExistingRecords(matchedRecords: List<PersonEntity>, existingRecordsInCluster: List<PersonEntity>, cluster: PersonKeyEntity) {
     when {
-      hasLessMatchedRecordsInExistingCluster(matchedRecords, existingRecordsInCluster) -> setClusterAsNeedsAttention(cluster)
+      hasLessMatchedRecordsInExistingCluster(matchedRecords, existingRecordsInCluster) -> {
+        personMatchService.getIsClusterValid(cluster) // TODO: ???
+        setClusterAsNeedsAttention(cluster)
+      }
       else -> return // CPR-617 Handle more high quality matches
     }
   }
