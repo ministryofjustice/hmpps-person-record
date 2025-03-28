@@ -27,7 +27,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DETAILS_CHANGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -253,7 +253,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val crn = randomCrn()
       stub5xxResponse(probationUrl(crn), "next request will succeed", "retry")
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = randomPnc()), scenario = "retry", currentScenarioState = "next request will succeed")
-
       expectNoMessagesOnQueueOrDlq(probationEventsQueue)
 
       checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"), 1)
@@ -265,7 +264,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val pnc = randomPnc()
       val crn = randomCrn()
       blitz(30, 6) {
-        probationEventAndResponseSetup(OFFENDER_DETAILS_CHANGED, ApiResponseSetup(crn = crn, pnc = pnc))
+        probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, pnc = pnc))
       }
 
       expectNoMessagesOnQueueOrDlq(probationEventsQueue)
@@ -285,8 +284,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = [OFFENDER_DETAILS_CHANGED, OFFENDER_ALIAS_CHANGED, OFFENDER_ADDRESS_CHANGED])
-    fun `should process probation events successfully`(event: String) {
+    @ValueSource(strings = [OFFENDER_ALIAS_CHANGED, OFFENDER_ADDRESS_CHANGED])
+    fun `should process offender events successfully`(event: String) {
       val pnc = randomPnc()
       val crn = randomCrn()
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc))
@@ -373,14 +372,14 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
 
       val changedFirstName = randomName()
-      probationEventAndResponseSetup(OFFENDER_DETAILS_CHANGED, ApiResponseSetup(crn = crn, firstName = changedFirstName))
+      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, firstName = changedFirstName))
 
       awaitAssert { assertThat(personRepository.findByCrn(crn)?.firstName).isEqualTo(changedFirstName) }
       val updatedPersonEntity = personRepository.findByCrn(crn)!!
       val processedDataDTO = Person.from(updatedPersonEntity)
       val processedData = objectMapper.writeValueAsString(processedDataDTO)
 
-      val loggedEvent = awaitNotNullEventLog(crn, OFFENDER_DETAILS_CHANGED)
+      val loggedEvent = awaitNotNullEventLog(crn, OFFENDER_PERSONAL_DETAILS_UPDATED)
 
       assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
       assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
