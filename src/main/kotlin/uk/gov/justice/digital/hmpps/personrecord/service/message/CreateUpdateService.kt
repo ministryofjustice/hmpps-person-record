@@ -12,20 +12,10 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.shouldCreateOrUpdate
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
-import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CHANGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DETAILS_CHANGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_NEW_RECORD_EXISTS
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UPDATE_RECORD_DOES_NOT_EXIST
 
 @Component
 class CreateUpdateService(
-  private val telemetryService: TelemetryService,
   private val personService: PersonService,
   private val reclusterService: ReclusterService,
   private val eventLoggingService: EventLoggingService,
@@ -54,9 +44,6 @@ class CreateUpdateService(
   }
 
   private fun handlePersonCreation(person: Person, event: String?): PersonEntity {
-    if (isUpdateEvent(event)) {
-      telemetryService.trackPersonEvent(CPR_UPDATE_RECORD_DOES_NOT_EXIST, person)
-    }
     val personEntity: PersonEntity = personService.createPersonEntity(person)
     personService.linkRecordToPersonKey(personEntity)
 
@@ -73,9 +60,6 @@ class CreateUpdateService(
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?): PersonEntity {
-    if (isCreateEvent(event)) {
-      telemetryService.trackPersonEvent(CPR_NEW_RECORD_EXISTS, person)
-    }
     val beforeDataDTO = Person.from(existingPersonEntity)
     val updatedPerson = personService.updatePersonEntity(person, existingPersonEntity)
     val processedDataDTO = Person.from(updatedPerson)
@@ -90,13 +74,4 @@ class CreateUpdateService(
     updatedPerson.personKey?.let { reclusterService.recluster(it, changedRecord = updatedPerson) }
     return updatedPerson
   }
-
-  private fun isUpdateEvent(event: String?) = listOf(
-    PRISONER_UPDATED,
-    OFFENDER_DETAILS_CHANGED,
-    OFFENDER_ALIAS_CHANGED,
-    OFFENDER_ADDRESS_CHANGED,
-  ).contains(event)
-
-  private fun isCreateEvent(event: String?) = listOf(PRISONER_CREATED, NEW_OFFENDER_CREATED).contains(event)
 }

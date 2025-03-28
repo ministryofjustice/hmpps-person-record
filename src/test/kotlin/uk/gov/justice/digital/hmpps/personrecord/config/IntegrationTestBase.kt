@@ -32,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.test.context.ActiveProfiles
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -210,31 +209,6 @@ class IntegrationTestBase {
       )
     },
   )
-
-  internal fun stubOneHighConfidenceMatch() = stubXHighConfidenceMatches(1)
-
-  internal fun stubOneLowConfidenceMatch() = stubMatchScore(
-    MatchResponse(matchProbabilities = mutableMapOf("0" to 0.988899)),
-  )
-
-  internal fun stubXHighConfidenceMatches(x: Int) = stubMatchScore(
-    MatchResponse(
-      matchProbabilities = (0..<x).associate {
-        Pair("$it", 0.999999)
-      }.toMutableMap(),
-    ),
-  )
-
-  internal fun stubMatchScore(matchResponse: MatchResponse, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200) {
-    stubPostRequest(
-      scenario,
-      currentScenarioState,
-      nextScenarioState,
-      url = "/person/match",
-      status = status,
-      responseBody = objectMapper.writeValueAsString(matchResponse),
-    )
-  }
 
   internal fun stubPersonMatchScores(matchId: UUID? = null, personMatchResponse: List<PersonMatchScore> = listOf(), scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200) {
     val matchIdUrlPattern: UrlPattern = matchId?.let { urlEqualTo("/person/score/$it") } ?: urlPathMatching("/person/score/.*") // Regex to match any matchId, as not known on create
