@@ -534,6 +534,38 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
+  fun `should return 500 error when records are merged in a loop`() {
+    val record1 = createPersonKey()
+    val record2 = createPersonKey()
+    val record3 = createPersonKey()
+
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName()), identifiers = Identifiers())),
+      personKeyEntity = record1,
+    )
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName()), identifiers = Identifiers())),
+      personKeyEntity = record2,
+    )
+    createPerson(
+      Person.from(ProbationCase(name = Name(firstName = randomName()), identifiers = Identifiers())),
+      personKeyEntity = record3,
+    )
+
+    // merge UUIDS 1 -> 2 -> 3 -> 1
+    mergeUuid(record1, record2)
+    mergeUuid(record2, record3)
+    mergeUuid(record3, record1)
+
+    webTestClient.get()
+      .uri(canonicalAPIUrl(record1.personId.toString()))
+      .authorised(listOf(API_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .is5xxServerError
+  }
+
+  @Test
   fun `should return bad request if canonical record is invalid uuid`() {
     val randomString = randomName()
     webTestClient.get()
