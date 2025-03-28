@@ -224,13 +224,14 @@ class IntegrationTestBase {
   }
 
   internal fun stubIsClusterValid(isClusterValidResponse: IsClusterValidResponse = IsClusterValidResponse(isClusterValid = true, clusters = listOf())) {
-    stubGetRequest(
+    stubPostRequest(
       BASE_SCENARIO,
       STARTED,
       STARTED,
       url = "/is-cluster-valid",
       status = 200,
-      body = objectMapper.writeValueAsString(isClusterValidResponse))
+      responseBody = objectMapper.writeValueAsString(isClusterValidResponse)
+    )
   }
 
   internal fun stubPersonMatchUpsert(scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200, body: String = "{}") {

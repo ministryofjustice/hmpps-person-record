@@ -23,7 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 )
 interface PersonMatchClient {
 
-  @GetMapping("/is-cluster-valid")
+  @PostMapping("/is-cluster-valid")
   fun isClusterValid(@RequestBody requestBody: IsClusterValidRequest): IsClusterValidResponse
 
   @GetMapping("/person/score/{matchId}")
