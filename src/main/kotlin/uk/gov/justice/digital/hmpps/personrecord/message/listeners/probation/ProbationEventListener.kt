@@ -38,8 +38,7 @@ class ProbationEventListener(
     when (sqsMessage.type) {
       NOTIFICATION -> {
         when (sqsMessage.messageAttributes?.eventType?.value) {
-          NEW_OFFENDER_CREATED -> handleDomainEvent(sqsMessage)
-          OFFENDER_PERSONAL_DETAILS_UPDATED -> handleDomainEvent(sqsMessage)
+          NEW_OFFENDER_CREATED, OFFENDER_PERSONAL_DETAILS_UPDATED -> handleDomainEvent(sqsMessage)
           else -> handleProbationEvent(sqsMessage)
         }
       }
