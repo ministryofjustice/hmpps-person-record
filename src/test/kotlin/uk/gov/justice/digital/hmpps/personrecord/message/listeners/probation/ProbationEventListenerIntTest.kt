@@ -28,6 +28,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREAT
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DETAILS_CHANGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -253,7 +254,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val crn = randomCrn()
       stub5xxResponse(probationUrl(crn), "next request will succeed", "retry")
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = randomPnc()), scenario = "retry", currentScenarioState = "next request will succeed")
-
       expectNoMessagesOnQueueOrDlq(probationEventsQueue)
 
       checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"), 1)
@@ -265,7 +265,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val pnc = randomPnc()
       val crn = randomCrn()
       blitz(30, 6) {
-        probationEventAndResponseSetup(OFFENDER_DETAILS_CHANGED, ApiResponseSetup(crn = crn, pnc = pnc))
+        probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, pnc = pnc))
       }
 
       expectNoMessagesOnQueueOrDlq(probationEventsQueue)

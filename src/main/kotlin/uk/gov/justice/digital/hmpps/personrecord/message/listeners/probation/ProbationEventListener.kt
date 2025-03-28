@@ -7,7 +7,7 @@ import io.awspring.cloud.sqs.annotation.SqsListener
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.ProbationEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 
 @Component
@@ -38,6 +39,7 @@ class ProbationEventListener(
       NOTIFICATION -> {
         when (sqsMessage.messageAttributes?.eventType?.value) {
           NEW_OFFENDER_CREATED -> handleDomainEvent(sqsMessage)
+          OFFENDER_PERSONAL_DETAILS_UPDATED -> handleDomainEvent(sqsMessage)
           else -> handleProbationEvent(sqsMessage)
         }
       }
