@@ -16,8 +16,14 @@ import uk.gov.justice.digital.hmpps.personrecord.service.message.ReclusterServic
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_NO_CHANGE
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import java.time.format.DateTimeFormatter
 
 class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
@@ -26,6 +32,25 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
   @Nested
   inner class ClusterAlreadySetAsNeedsAttention {
+
+    @Test
+    fun `should add a created record to a cluster if it is set to need attention`() {
+      val personA = createPerson(createRandomPersonDetails())
+      createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION)
+        .addPerson(personA)
+
+      stubPersonMatchUpsert()
+      stubOnePersonMatchHighConfidenceMatch(matchedRecord = personA.matchId)
+      val cId = randomCId()
+      publishLibraMessage(libraHearing(firstName = randomName(), lastName = randomName(), cId = cId, dateOfBirth = randomDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = randomPnc(), postcode = randomPostcode()))
+
+      checkTelemetry(
+        TelemetryEventType.CPR_RECORD_CREATED,
+        mapOf("C_ID" to cId),
+      )
+      
+      awaitAssert { assertThat(personKeyRepository.findByPersonId(personA.personKey?.personId)?.personEntities?.size).isEqualTo(2) }
+    }
 
     @Test
     fun `should do nothing when cluster already set as needs attention`() {
