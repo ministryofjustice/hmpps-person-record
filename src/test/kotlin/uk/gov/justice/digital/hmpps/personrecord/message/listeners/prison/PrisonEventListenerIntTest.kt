@@ -239,6 +239,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `should log correct telemetry on created event but record already exists`() {
       val prisoner = createPrisoner()
 
+      stubNoMatchesPersonMatch(matchId = prisoner.matchId)
       stubPrisonResponse(ApiResponseSetup(prisonNumber = prisoner.prisonNumber))
 
       val additionalInformation = AdditionalInformation(prisonNumber = prisoner.prisonNumber, categoriesChanged = emptyList())
@@ -260,6 +261,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val prisonNumber = prisoner.prisonNumber!!
       val updatedFirstName = randomName()
 
+      stubNoMatchesPersonMatch(matchId = prisoner.matchId)
       stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, firstName = updatedFirstName))
 
       val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
@@ -348,6 +350,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val beforeDataTO = personEntity?.let { Person.from(it) }
       val beforeData = objectMapper.writeValueAsString(beforeDataTO)
 
+      stubNoMatchesPersonMatch(matchId = prisoner.matchId)
       stubPrisonResponse(ApiResponseSetup(prisonNumber = prisoner.prisonNumber))
 
       val additionalInformation = AdditionalInformation(prisonNumber = prisoner.prisonNumber, categoriesChanged = listOf("SENTENCE"))
