@@ -6,7 +6,6 @@ import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.boot.actuate.health.Status
 import org.springframework.boot.info.BuildProperties
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.client.MatchScoreClient
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 
 /**
@@ -14,18 +13,16 @@ import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
  */
 
 @Component
-class HealthInfo(buildProperties: BuildProperties, val matchScoreClient: MatchScoreClient, val matchClient: PersonMatchClient) : HealthIndicator {
+class HealthInfo(buildProperties: BuildProperties, val matchClient: PersonMatchClient) : HealthIndicator {
   private val version: String = buildProperties.version
 
   override fun health(): Health {
     return try {
-      val matchScoreHealthStatus = matchScoreClient.getMatchHealth()
       val matchHealthStatus = matchClient.getHealth()
       val builder = Health.Builder().withDetail("version", version)
         .withDetail("PersonMatchStatus", Status(matchHealthStatus?.status))
-        .withDetail("PersonMatchScoreStatus", Status(matchScoreHealthStatus?.status))
 
-      return when (matchScoreHealthStatus?.status == Status.UP.toString() && matchHealthStatus?.status == Status.UP.toString()) {
+      return when (matchHealthStatus?.status == Status.UP.toString()) {
         true -> builder.up().build()
         else -> builder.down().build()
       }

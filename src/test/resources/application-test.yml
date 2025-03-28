@@ -77,6 +77,8 @@ spring:
     out-of-order: true
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres?currentSchema=personrecordservice&user=root&password=dev&stringtype=unspecified
+    hikari:
+      maximum-pool-size: 20
 
 populate-from-nomis:
   page-size: 2

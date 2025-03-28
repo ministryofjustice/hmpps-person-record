@@ -78,18 +78,6 @@ class HealthCheckIntTest : WebTestBase() {
   }
 
   @Test
-  fun `verify match score details are returned`() {
-    stubGetRequest(url = "/health", body = """{"status": "UP"}""")
-    webTestClient.get()
-      .uri("/health")
-      .authorised()
-      .exchange()
-      .expectStatus()
-      .isOk
-      .expectBody().jsonPath("components.healthInfo.details.PersonMatchScoreStatus.status").isEqualTo("UP")
-  }
-
-  @Test
   fun `when person match is down, person record should be down`() {
     stubGetRequest(url = "/health", body = """{"status": "DOWN"}""", status = 500)
 
