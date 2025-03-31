@@ -50,21 +50,21 @@ class ReclusterService(
 
   private fun handleLessMatchRecords(matchedRecords: List<PersonEntity>, cluster: PersonKeyEntity) {
     when {
-      matchedRecords.isEmpty()-> setClusterAsNeedsAttention(cluster)
+      matchedRecords.isEmpty() -> setClusterAsNeedsAttention(cluster)
       else -> personMatchService.examineIsClusterValid(cluster).result(
         isValid = { logNoChangeToCluster(cluster) },
         isNotValid = {
           // Need to evaluate what to log out here if anything / event log
           setClusterAsNeedsAttention(cluster)
-        }
+        },
       )
     }
   }
 
   private fun recordsDontMatch(matchedRecords: List<PersonEntity>, existingRecordsInCluster: List<PersonEntity>): Boolean = matchedRecords.map { it.id }.toSet() != existingRecordsInCluster.map { it.id }.toSet()
 
-  private fun hasLessMatchedRecordsInExistingCluster(matchedRecords: List<PersonEntity>, existingRecordsInCluster: List<PersonEntity>): Boolean =
-    existingRecordsInCluster.map { it.id }.toSet().subtract(matchedRecords.map { it.id }.toSet()).isNotEmpty()
+  private fun hasLessMatchedRecordsInExistingCluster(matchedRecords: List<PersonEntity>, existingRecordsInCluster: List<PersonEntity>): Boolean
+    = existingRecordsInCluster.map { it.id }.toSet().subtract(matchedRecords.map { it.id }.toSet()).isNotEmpty()
 
   private fun setClusterAsNeedsAttention(cluster: PersonKeyEntity) {
     cluster.status = UUIDStatusType.NEEDS_ATTENTION

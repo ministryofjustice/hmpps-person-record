@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
-
 
 class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
@@ -231,7 +229,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       )
       clusterA.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
     }
-
   }
 
   @Nested
@@ -290,7 +287,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       )
       cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
     }
-
   }
 
   private fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.personEntities?.size).isEqualTo(size) }

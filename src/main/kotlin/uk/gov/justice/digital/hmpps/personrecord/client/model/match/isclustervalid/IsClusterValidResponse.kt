@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid
 
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
-
 data class IsClusterValidResponse(
   val isClusterValid: Boolean,
   val clusters: List<List<String>>,
@@ -14,6 +12,5 @@ data class IsClusterValidResponse(
         else -> isNotValid(this.clusters)
       }
     }
-
   }
 }
