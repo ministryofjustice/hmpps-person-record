@@ -140,6 +140,11 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
             candidateMatchWeight = 1.0F,
             candidateMatchProbability = 0.9999999F,
           ),
+          PersonMatchScore(
+            candidateMatchId = highScoringRecordTwo.matchId.toString(),
+            candidateMatchWeight = 1.0F,
+            candidateMatchProbability = 0.9998686F,
+          ),
         ),
       )
 
@@ -173,9 +178,29 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         createPerson(createExamplePerson(), personKeyEntity = cluster2),
       )
 
-      stubXPersonMatchHighConfidenceMatches(
+      val cluster3 = createPersonKey()
+      val cluster3Records = listOf(
+        createPerson(createExamplePerson(), personKeyEntity = cluster3),
+        createPerson(createExamplePerson(), personKeyEntity = cluster3),
+      )
+
+      val highScoringResults = (cluster1Records + cluster2Records).map {
+        PersonMatchScore(
+          candidateMatchId = it.matchId.toString(),
+          candidateMatchWeight = 1.0F,
+          candidateMatchProbability = 0.9999F,
+        )
+      }
+      val lowScoringResults = cluster3Records.map {
+        PersonMatchScore(
+          candidateMatchId = it.matchId.toString(),
+          candidateMatchWeight = 1.0F,
+          candidateMatchProbability = 0.5677F,
+        )
+      }
+      stubPersonMatchScores(
         matchId = searchingRecord.matchId,
-        results = cluster1Records.map { it.matchId } + cluster2Records.map { it.matchId },
+        personMatchResponse = highScoringResults + lowScoringResults,
       )
 
       val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
@@ -186,10 +211,10 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         CPR_CANDIDATE_RECORD_SEARCH,
         mapOf(
           "SOURCE_SYSTEM" to LIBRA.name,
-          "RECORD_COUNT" to "4",
+          "RECORD_COUNT" to "6",
           "UUID_COUNT" to "2",
           "HIGH_CONFIDENCE_COUNT" to "4",
-          "LOW_CONFIDENCE_COUNT" to "0",
+          "LOW_CONFIDENCE_COUNT" to "2",
         ),
       )
     }
