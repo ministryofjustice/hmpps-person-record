@@ -117,17 +117,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     stubNumberPage(prisonNumberOne, prisonNumberTwo, 0, scenarioName)
 
     // first call fails
-    wiremock.stubFor(
-      WireMock.post("/prisoner-search/prisoner-numbers")
-        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
-        .inScenario(scenarioName)
-        .willSetStateTo("next request will time out")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(500),
-        ),
-    )
+    stubPostRequest(url = "/prisoner-search/prisoner-numbers", scenarioName = scenarioName, nextScenarioState = "next request will time out", status = 500, requestBody = """{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}""", responseBody = "{}")
 
     // second call times out
     wiremock.stubFor(
