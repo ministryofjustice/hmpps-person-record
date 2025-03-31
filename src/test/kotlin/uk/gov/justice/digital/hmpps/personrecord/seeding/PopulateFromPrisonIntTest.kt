@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.seeding
 
-import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
@@ -163,18 +161,14 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     )
 
     // second call times out
-    wiremock.stubFor(
-      WireMock.post("/prisoner-search/prisoner-numbers")
-        .withRequestBody(equalToJson("""{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}"""))
-        .inScenario(scenarioName)
-        .whenScenarioStateIs("next request will time out")
-        .willSetStateTo("next request will succeed")
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withFixedDelay(210),
-        ),
+    stubPostRequest(
+      url = "/prisoner-search/prisoner-numbers",
+      requestBody = """{"prisonerNumbers": ["$prisonNumberOne","$prisonNumberTwo"]}""",
+      scenarioName = scenarioName,
+      currentScenarioState = "next request will time out",
+      nextScenarioState = "next request will succeed",
+      responseBody = "{}",
+      fixedDelay = 210,
     )
 
     // Third call succeeds
