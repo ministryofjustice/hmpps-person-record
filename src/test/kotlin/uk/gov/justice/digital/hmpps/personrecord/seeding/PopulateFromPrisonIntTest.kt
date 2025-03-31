@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.seeding
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
-import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
@@ -30,7 +29,11 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     val prisonNumberFive: String = randomPrisonNumber()
     val prisonNumberSix: String = randomPrisonNumber()
     val prisonNumberSeven: String = randomPrisonNumber()
-    stubNumberPage(prisonNumberOne, prisonNumberTwo, 0, scenarioName)
+    stubGetRequest(
+      url = "/api/prisoners/prisoner-numbers?size=2&page=${0}",
+      scenarioName = scenarioName,
+      body = prisonNumbersResponse(listOf<String?>(prisonNumberOne, prisonNumberTwo)),
+    )
 
     stubPostRequest(
       url = "/prisoner-search/prisoner-numbers",
@@ -43,7 +46,11 @@ class PopulateFromPrisonIntTest : WebTestBase() {
         "PrisonerTwo",
       ),
     )
-    stubNumberPage(prisonNumberThree, prisonNumberFour, 1, scenarioName)
+    stubGetRequest(
+      url = "/api/prisoners/prisoner-numbers?size=2&page=${1}",
+      scenarioName = scenarioName,
+      body = prisonNumbersResponse(listOf<String?>(prisonNumberThree, prisonNumberFour)),
+    )
     stubPostRequest(
       url = "/prisoner-search/prisoner-numbers",
       requestBody = """{"prisonerNumbers": ["$prisonNumberThree","$prisonNumberFour"]}""",
@@ -55,7 +62,11 @@ class PopulateFromPrisonIntTest : WebTestBase() {
         "PrisonerFour",
       ),
     )
-    stubNumberPage(prisonNumberFive, prisonNumberSix, 2, scenarioName)
+    stubGetRequest(
+      url = "/api/prisoners/prisoner-numbers?size=2&page=${2}",
+      scenarioName = scenarioName,
+      body = prisonNumbersResponse(listOf<String?>(prisonNumberFive, prisonNumberSix)),
+    )
     stubPostRequest(
       url = "/prisoner-search/prisoner-numbers",
       requestBody = """{"prisonerNumbers": ["$prisonNumberFive","$prisonNumberSix"]}""",
@@ -68,9 +79,18 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       ),
     )
 
-    stubNumberPage(prisonNumberSeven, scenarioName = scenarioName, page = 3)
+    stubGetRequest(
+      url = "/api/prisoners/prisoner-numbers?size=2&page=${3}",
+      scenarioName = scenarioName,
+      body = prisonNumbersResponse(listOf(prisonNumberSeven, null)),
+    )
 
-    stubSinglePrisonerDetail(prisonNumberSeven, scenarioName)
+    stubPostRequest(
+      url = "/prisoner-search/prisoner-numbers",
+      scenarioName = scenarioName,
+      requestBody = """{"prisonerNumbers": ["$prisonNumberSeven"]}""",
+      responseBody = onePrisoner(prisonNumberSeven, "PrisonerSeven"),
+    )
     webTestClient.post()
       .uri("/populatefromprison")
       .exchange()
@@ -126,7 +146,11 @@ class PopulateFromPrisonIntTest : WebTestBase() {
 
     val scenarioName = "retry get prisoners"
 
-    stubNumberPage(prisonNumberOne, prisonNumberTwo, 0, scenarioName)
+    stubGetRequest(
+      url = "/api/prisoners/prisoner-numbers?size=2&page=${0}",
+      scenarioName = scenarioName,
+      body = prisonNumbersResponse(listOf<String?>(prisonNumberOne, prisonNumberTwo)),
+    )
 
     // first call fails
     stubPostRequest(
@@ -168,7 +192,13 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       ),
     )
 
-    stubNumberPage(prisonNumberThree, prisonNumberFour, 1, scenarioName, "next request will succeed")
+    stubGetRequest(
+      url = "/api/prisoners/prisoner-numbers?size=2&page=${1}",
+      scenarioName = scenarioName,
+      currentScenarioState = "next request will succeed",
+      nextScenarioState = "next request will succeed",
+      body = prisonNumbersResponse(listOf<String?>(prisonNumberThree, prisonNumberFour)),
+    )
 
     stubPostRequest(
       url = "/prisoner-search/prisoner-numbers",
@@ -184,7 +214,13 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       ),
     )
 
-    stubNumberPage(prisonNumberFive, prisonNumberSix, 2, scenarioName, "next request will succeed")
+    stubGetRequest(
+      url = "/api/prisoners/prisoner-numbers?size=2&page=${2}",
+      scenarioName = scenarioName,
+      currentScenarioState = "next request will succeed",
+      nextScenarioState = "next request will succeed",
+      body = prisonNumbersResponse(listOf<String?>(prisonNumberFive, prisonNumberSix)),
+    )
 
     stubPostRequest(
       url = "/prisoner-search/prisoner-numbers",
@@ -200,14 +236,26 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       ),
     )
 
-    stubNumberPage(
-      prisonNumberSeven,
+    stubGetRequest(
+      url = "/api/prisoners/prisoner-numbers?size=2&page=${3}",
       scenarioName = scenarioName,
-      page = 3,
-      scenarioState = "next request will succeed",
+      currentScenarioState = "next request will succeed",
+      nextScenarioState = "next request will succeed",
+      body = prisonNumbersResponse(
+        listOf(
+          prisonNumberSeven,
+          null,
+        ),
+      ),
     )
 
-    stubSinglePrisonerDetail(prisonNumberSeven, scenarioName, "next request will succeed")
+    stubPostRequest(
+      url = "/prisoner-search/prisoner-numbers",
+      scenarioName = scenarioName,
+      currentScenarioState = "next request will succeed",
+      requestBody = """{"prisonerNumbers": ["$prisonNumberSeven"]}""",
+      responseBody = onePrisoner(prisonNumberSeven, "PrisonerSeven"),
+    )
 
     webTestClient.post()
       .uri("/populatefromprison")
@@ -281,30 +329,4 @@ class PopulateFromPrisonIntTest : WebTestBase() {
 
     assertThat(prisoner.firstName).isEqualTo("PrisonerThreeFirstName")
   }
-
-  private fun stubSinglePrisonerDetail(
-    prisonNumberSeven: String,
-    scenarioName: String,
-    scenarioState: String? = STARTED,
-  ) = stubPostRequest(
-    url = "/prisoner-search/prisoner-numbers",
-    scenarioName = scenarioName,
-    currentScenarioState = scenarioState,
-    requestBody = """{"prisonerNumbers": ["$prisonNumberSeven"]}""",
-    responseBody = onePrisoner(prisonNumberSeven, "PrisonerSeven"),
-  )
-
-  private fun stubNumberPage(
-    prisonNumberOne: String,
-    prisonNumberTwo: String? = null,
-    page: Int,
-    scenarioName: String,
-    scenarioState: String? = STARTED,
-  ) = stubGetRequest(
-    url = "/api/prisoners/prisoner-numbers?size=2&page=$page",
-    scenarioName = scenarioName,
-    currentScenarioState = scenarioState,
-    nextScenarioState = scenarioState,
-    body = prisonNumbersResponse(listOf(prisonNumberOne, prisonNumberTwo)),
-  )
 }
