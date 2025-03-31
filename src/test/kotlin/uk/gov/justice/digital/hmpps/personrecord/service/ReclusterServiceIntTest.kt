@@ -48,7 +48,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       )
 
       cluster.assertClusterIsOfSize(2)
-      cluster.assertClusterIsSetToNeedAttention()
+      cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
     }
 
     @Test
@@ -142,12 +142,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Nested
-  inner class FewerHighConfidenceMatchesThanInExistingCluster {
-
-    @BeforeEach
-    fun beforeEach() {
-      telemetryRepository.deleteAll()
-    }
+  inner class FewerHighConfidenceMatchesThanInExistingClusterAndClusterNotValid {
 
     @Test
     fun `should mark as need attention when only matches one in cluster with multiple records`() {
@@ -159,8 +154,8 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personB)
         .addPerson(personC)
 
+      stubClusterIsNotValid()
       stubOnePersonMatchHighConfidenceMatch(matchId = personA.matchId, matchedRecord = personB.matchId)
-      stubIsClusterValid()
 
       reclusterService.recluster(cluster, changedRecord = personA)
 
@@ -168,11 +163,11 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
         mapOf("UUID" to cluster.personId.toString()),
       )
-      cluster.assertClusterIsSetToNeedAttention()
+      cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
     }
 
     @Test
-    fun `should mark as need attention when matches no record in cluster with 2 records`() {
+    fun `should mark as need attention when matches no record in cluster with 2 records and cluster not valid`() {
       val personA = createPerson(createRandomProbationPersonDetails())
       val personB = createPerson(createRandomProbationPersonDetails())
       val cluster = createPersonKey()
@@ -180,7 +175,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personB)
 
       stubNoMatchesPersonMatch(matchId = personA.matchId)
-      stubIsClusterValid()
 
       reclusterService.recluster(cluster, changedRecord = personA)
 
@@ -188,7 +182,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
         mapOf("UUID" to cluster.personId.toString()),
       )
-      cluster.assertClusterIsSetToNeedAttention()
+      cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
     }
 
     @Test
@@ -202,7 +196,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personC)
 
       stubNoMatchesPersonMatch(matchId = personA.matchId)
-      stubIsClusterValid()
 
       reclusterService.recluster(cluster, changedRecord = personA)
 
@@ -210,7 +203,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
         mapOf("UUID" to cluster.personId.toString()),
       )
-      cluster.assertClusterIsSetToNeedAttention()
+      cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
     }
 
     @Test
@@ -227,8 +220,8 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       createPersonKey()
         .addPerson(personD)
 
+      stubClusterIsNotValid()
       stubOnePersonMatchHighConfidenceMatch(matchId = personA.matchId, matchedRecord = personD.matchId)
-      stubIsClusterValid()
 
       reclusterService.recluster(clusterA, changedRecord = personA)
 
@@ -236,13 +229,73 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
         mapOf("UUID" to clusterA.personId.toString()),
       )
-      clusterA.assertClusterIsSetToNeedAttention()
+      clusterA.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
     }
+
+  }
+
+  @Nested
+  inner class FewerHighConfidenceMatchesThanInExistingClusterAndClusterIsValid {
+
+    @Test
+    fun `should not mark as need attention when matches only one record in cluster with multiple records but is still a valid cluster`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      stubClusterIsValid()
+      stubOnePersonMatchHighConfidenceMatch(matchId = personA.matchId, matchedRecord = personB.matchId)
+
+      reclusterService.recluster(cluster, changedRecord = personA)
+
+      checkTelemetry(
+        CPR_RECLUSTER_NO_CHANGE,
+        mapOf("UUID" to cluster.personId.toString()),
+      )
+      cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
+    }
+
+    @Test
+    fun `should not mark as need attention when matches only one record in cluster with multiple records and links to other cluster but is still a valid cluster`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      val personD = createPerson(createRandomProbationPersonDetails())
+      createPersonKey()
+        .addPerson(personD)
+
+      stubClusterIsValid()
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = personA.matchId,
+        results = listOf(
+          personB.matchId,
+          personD.matchId,
+        ),
+      )
+
+      reclusterService.recluster(cluster, changedRecord = personA)
+
+      checkTelemetry(
+        CPR_RECLUSTER_NO_CHANGE,
+        mapOf("UUID" to cluster.personId.toString()),
+      )
+      cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
+    }
+
   }
 
   private fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.personEntities?.size).isEqualTo(size) }
 
-  private fun PersonKeyEntity.assertClusterIsSetToNeedAttention() = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.status).isEqualTo(UUIDStatusType.NEEDS_ATTENTION) }
+  private fun PersonKeyEntity.assertClusterStatus(status: UUIDStatusType) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.status).isEqualTo(status) }
 
   private fun createRandomProbationPersonDetails(): Person = Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn())))
 }
