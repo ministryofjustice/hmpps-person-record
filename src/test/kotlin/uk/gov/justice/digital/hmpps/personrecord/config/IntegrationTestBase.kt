@@ -230,7 +230,7 @@ class IntegrationTestBase {
       STARTED,
       url = "/is-cluster-valid",
       status = 200,
-      responseBody = objectMapper.writeValueAsString(isClusterValidResponse)
+      responseBody = objectMapper.writeValueAsString(isClusterValidResponse),
     )
   }
 

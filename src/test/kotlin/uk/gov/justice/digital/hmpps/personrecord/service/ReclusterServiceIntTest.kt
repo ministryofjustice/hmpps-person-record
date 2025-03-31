@@ -36,7 +36,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
     @Test
     fun `should add a created record to a cluster if it is set to need attention`() {
       val personA = createPerson(createRandomPersonDetails())
-      createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION)
+      val cluster = createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION)
         .addPerson(personA)
 
       stubPersonMatchUpsert()
@@ -49,7 +49,8 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         mapOf("C_ID" to cId),
       )
 
-      awaitAssert { assertThat(personKeyRepository.findByPersonId(personA.personKey?.personId)?.personEntities?.size).isEqualTo(2) }
+      cluster.assertClusterIsOfSize(2)
+      cluster.assertClusterIsSetToNeedAttention()
     }
 
     @Test
@@ -164,7 +165,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
         mapOf("UUID" to cluster.personId.toString()),
       )
-      clusterIsSetToNeedAttention(cluster)
+      cluster.assertClusterIsSetToNeedAttention()
     }
 
     @Test
@@ -184,7 +185,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
         mapOf("UUID" to cluster.personId.toString()),
       )
-      clusterIsSetToNeedAttention(cluster)
+      cluster.assertClusterIsSetToNeedAttention()
     }
 
     @Test
@@ -206,7 +207,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
         mapOf("UUID" to cluster.personId.toString()),
       )
-      clusterIsSetToNeedAttention(cluster)
+      cluster.assertClusterIsSetToNeedAttention()
     }
 
     @Test
@@ -232,11 +233,13 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
         mapOf("UUID" to clusterA.personId.toString()),
       )
-      clusterIsSetToNeedAttention(clusterA)
+      clusterA.assertClusterIsSetToNeedAttention()
     }
   }
 
-  private fun clusterIsSetToNeedAttention(cluster: PersonKeyEntity) = awaitAssert { assertThat(personKeyRepository.findByPersonId(cluster.personId)?.status).isEqualTo(UUIDStatusType.NEEDS_ATTENTION) }
+  private fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.personEntities?.size).isEqualTo(size) }
+
+  private fun PersonKeyEntity.assertClusterIsSetToNeedAttention() = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.status).isEqualTo(UUIDStatusType.NEEDS_ATTENTION) }
 
   private fun createRandomPersonDetails(): Person = Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn())))
 }

@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.search
 
 import kotlinx.coroutines.runBlocking
-import org.apache.catalina.Cluster
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
@@ -17,8 +16,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.IS_CLUSTER_VALID_CALL_FAILED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
 import java.util.UUID
 
 @Component
@@ -49,10 +48,10 @@ class PersonMatchService(
       onFailure = { exception ->
         telemetryService.trackEvent(
           IS_CLUSTER_VALID_CALL_FAILED,
-          mapOf(EventKeys.UUID to cluster.personId.toString())
+          mapOf(EventKeys.UUID to cluster.personId.toString()),
         )
         throw exception
-      }
+      },
     )
   }
 

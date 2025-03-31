@@ -6,8 +6,6 @@ data class IsClusterValidRequest(
   val matchIds: List<String>,
 ) {
   companion object {
-    fun from(cluster: PersonKeyEntity): IsClusterValidRequest {
-      return IsClusterValidRequest(matchIds = cluster.personEntities.map { it.matchId.toString() })
-    }
+    fun from(cluster: PersonKeyEntity): IsClusterValidRequest = IsClusterValidRequest(matchIds = cluster.personEntities.map { it.matchId.toString() })
   }
 }
