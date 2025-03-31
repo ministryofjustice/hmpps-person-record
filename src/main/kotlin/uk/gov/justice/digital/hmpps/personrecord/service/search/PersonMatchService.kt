@@ -32,13 +32,15 @@ class PersonMatchService(
 
   fun findHighestConfidencePersonRecordsByProbabilityDesc(personEntity: PersonEntity): List<PersonMatchResult> = runBlocking {
     val personScores = handleCollectingPersonScores(personEntity)
+    val highConfidenceRecords = personScores
       .removeLowQualityMatches()
       .logCandidateScores()
-    val highConfidencePersonRecords = getPersonRecords(personScores)
+    val highConfidencePersonRecords = getPersonRecords(highConfidenceRecords)
       .allowMatchesWithUUID()
       .removeMatchesWhereClusterHasExcludeMarker(personEntity.id)
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
       .logHighConfidenceDuplicates()
+      .sortedByDescending { it.probability }
     return@runBlocking highConfidencePersonRecords
   }
 
