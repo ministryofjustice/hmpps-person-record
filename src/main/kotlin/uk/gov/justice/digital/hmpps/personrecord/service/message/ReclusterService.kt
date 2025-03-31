@@ -43,7 +43,7 @@ class ReclusterService(
   private fun handleDiscrepancyOfMatchesToExistingRecords(matchedRecords: List<PersonEntity>, existingRecordsInCluster: List<PersonEntity>, cluster: PersonKeyEntity) {
     when {
       hasLessMatchedRecordsInExistingCluster(matchedRecords, existingRecordsInCluster) -> {
-        personMatchService.getIsClusterValid(cluster) // TODO: ???
+        personMatchService.examineIsClusterValid(cluster)
         setClusterAsNeedsAttention(cluster)
       }
       else -> return // CPR-617 Handle more high quality matches

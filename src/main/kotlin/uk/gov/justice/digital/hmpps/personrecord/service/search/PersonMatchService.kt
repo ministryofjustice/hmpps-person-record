@@ -44,7 +44,7 @@ class PersonMatchService(
     return@runBlocking highConfidencePersonRecords
   }
 
-  fun getIsClusterValid(cluster: PersonKeyEntity): IsClusterValidResponse = runBlocking {
+  fun examineIsClusterValid(cluster: PersonKeyEntity): IsClusterValidResponse = runBlocking {
     checkClusterIsValid(cluster).fold(
       onSuccess = { it },
       onFailure = { exception ->
