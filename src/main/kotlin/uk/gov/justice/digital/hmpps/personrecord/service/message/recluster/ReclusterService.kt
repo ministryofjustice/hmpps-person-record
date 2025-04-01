@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.service.message
+package uk.gov.justice.digital.hmpps.personrecord.service.message.recluster
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse.Companion.result
@@ -35,15 +35,16 @@ class ReclusterService(
     val existingRecordsInCluster = cluster.personEntities.filterNot { it.id == changedRecord.id }
     val matchesToChangeRecord: List<PersonMatchResult> = personMatchService.findHighestConfidencePersonRecordsByProbabilityDesc(changedRecord)
     val matchedRecords: List<PersonEntity> = matchesToChangeRecord.map { it.personEntity }
+    val reclusterRelationship = ClusterRelationship(matchedRecords, existingRecordsInCluster)
     when {
-      recordsDontMatch(matchedRecords, existingRecordsInCluster) -> handleDiscrepancyOfMatchesToExistingRecords(matchedRecords, existingRecordsInCluster, cluster)
+      reclusterRelationship.isDistinct() -> handleDiscrepancyOfMatchesToExistingRecords(reclusterRelationship, cluster)
       else -> logNoChangeToCluster(cluster)
     }
   }
 
-  private fun handleDiscrepancyOfMatchesToExistingRecords(matchedRecords: List<PersonEntity>, existingRecordsInCluster: List<PersonEntity>, cluster: PersonKeyEntity) {
+  private fun handleDiscrepancyOfMatchesToExistingRecords(clusterRelationship: ClusterRelationship, cluster: PersonKeyEntity) {
     when {
-      hasLessMatchedRecordsInExistingCluster(matchedRecords, existingRecordsInCluster) -> handleLessMatchRecords(matchedRecords, cluster)
+      clusterRelationship.recordsInClusterNotMatched().isNotEmpty() -> handleLessMatchRecords(clusterRelationship.matchedRecords, cluster)
       else -> return // CPR-617 Handle more high quality matches
     }
   }
@@ -61,11 +62,6 @@ class ReclusterService(
     }
   }
 
-  private fun recordsDontMatch(matchedRecords: List<PersonEntity>, existingRecordsInCluster: List<PersonEntity>): Boolean = matchedRecords.map { it.id }.toSet() != existingRecordsInCluster.map { it.id }.toSet()
-
-  private fun hasLessMatchedRecordsInExistingCluster(matchedRecords: List<PersonEntity>, existingRecordsInCluster: List<PersonEntity>): Boolean
-    = existingRecordsInCluster.map { it.id }.toSet().subtract(matchedRecords.map { it.id }.toSet()).isNotEmpty()
-
   private fun setClusterAsNeedsAttention(cluster: PersonKeyEntity) {
     cluster.status = UUIDStatusType.NEEDS_ATTENTION
     personKeyRepository.save(cluster)
@@ -75,9 +71,7 @@ class ReclusterService(
     )
   }
 
-  private fun logNoChangeToCluster(cluster: PersonKeyEntity) {
-    telemetryService.trackEvent(CPR_RECLUSTER_NO_CHANGE, mapOf(EventKeys.UUID to cluster.personId.toString()))
-  }
+  private fun logNoChangeToCluster(cluster: PersonKeyEntity) = telemetryService.trackEvent(CPR_RECLUSTER_NO_CHANGE, mapOf(EventKeys.UUID to cluster.personId.toString()))
 
   private fun clusterNeedsAttention(personKeyEntity: PersonKeyEntity?) = personKeyEntity?.status == UUIDStatusType.NEEDS_ATTENTION
 }
