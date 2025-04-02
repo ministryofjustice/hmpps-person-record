@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.Reclu
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_NO_CHANGE
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
@@ -82,10 +81,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       reclusterService.recluster(cluster, changedRecord = personA)
 
-      checkTelemetry(
-        CPR_RECLUSTER_NO_CHANGE,
-        mapOf("UUID" to cluster.personId.toString()),
-      )
+      cluster.assertClusterNotChanged(size = 1)
     }
 
     @Test
@@ -100,10 +96,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       reclusterService.recluster(cluster, changedRecord = personA)
 
-      checkTelemetry(
-        CPR_RECLUSTER_NO_CHANGE,
-        mapOf("UUID" to cluster.personId.toString()),
-      )
+      cluster.assertClusterNotChanged(size = 2)
     }
 
     @Test
@@ -132,10 +125,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       reclusterService.recluster(cluster, changedRecord = personA)
 
-      checkTelemetry(
-        CPR_RECLUSTER_NO_CHANGE,
-        mapOf("UUID" to cluster.personId.toString()),
-      )
+      cluster.assertClusterNotChanged(size = 5)
     }
   }
 
@@ -249,11 +239,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       reclusterService.recluster(cluster, changedRecord = personA)
 
-      checkTelemetry(
-        CPR_RECLUSTER_NO_CHANGE,
-        mapOf("UUID" to cluster.personId.toString()),
-      )
-      cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster.assertClusterNotChanged(size = 3)
     }
 
     @Test
@@ -281,12 +267,13 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       reclusterService.recluster(cluster, changedRecord = personA)
 
-      checkTelemetry(
-        CPR_RECLUSTER_NO_CHANGE,
-        mapOf("UUID" to cluster.personId.toString()),
-      )
-      cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster.assertClusterNotChanged(size = 3)
     }
+  }
+
+  private fun PersonKeyEntity.assertClusterNotChanged(size: Int) {
+    assertClusterStatus(UUIDStatusType.ACTIVE)
+    assertClusterIsOfSize(size)
   }
 
   private fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.personEntities?.size).isEqualTo(size) }

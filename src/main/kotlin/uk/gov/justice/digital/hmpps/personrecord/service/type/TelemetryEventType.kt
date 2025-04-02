@@ -22,7 +22,6 @@ enum class TelemetryEventType(val eventName: String) {
   CPR_UUID_DELETED("CprUUIDHardDeleted"),
   CPR_RECLUSTER_MESSAGE_RECEIVED("CprReclusterMessageReceived"),
   CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION("CprUuidReclusterNeedsAttention"),
-  CPR_RECLUSTER_NO_CHANGE("CprReclusterNoChange"),
   CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED("CprReclusterClusterRecordsNotLinked"),
   CPR_RECLUSTER_NO_MATCH_FOUND("CprReclusterNoMatchFound"),
   CPR_RECLUSTER_MATCH_FOUND_MERGE("CprReclusterMatchFoundMergeRecluster"),

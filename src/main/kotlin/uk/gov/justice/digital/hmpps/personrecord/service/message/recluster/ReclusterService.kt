@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResul
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_NO_CHANGE
 
 @Component
 class ReclusterService(
@@ -38,7 +37,6 @@ class ReclusterService(
     val reclusterRelationship = ClusterRelationship(matchedRecords, existingRecordsInCluster)
     when {
       reclusterRelationship.isDifferent() -> handleDiscrepancyOfMatchesToExistingRecords(reclusterRelationship, cluster)
-      else -> logNoChangeToCluster(cluster)
     }
   }
 
@@ -53,7 +51,7 @@ class ReclusterService(
     when {
       matchedRecords.isEmpty() -> setClusterAsNeedsAttention(cluster)
       else -> personMatchService.examineIsClusterValid(cluster).result(
-        isValid = { logNoChangeToCluster(cluster) },
+        isValid = { }, // Will need to check if extra records to merge here
         isNotValid = {
           // Need to evaluate what to log out here if anything / event log
           setClusterAsNeedsAttention(cluster)
@@ -70,8 +68,6 @@ class ReclusterService(
       mapOf(EventKeys.UUID to cluster.personId.toString()),
     )
   }
-
-  private fun logNoChangeToCluster(cluster: PersonKeyEntity) = telemetryService.trackEvent(CPR_RECLUSTER_NO_CHANGE, mapOf(EventKeys.UUID to cluster.personId.toString()))
 
   private fun clusterNeedsAttention(personKeyEntity: PersonKeyEntity?) = personKeyEntity?.status == UUIDStatusType.NEEDS_ATTENTION
 }
