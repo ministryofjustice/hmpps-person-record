@@ -34,9 +34,9 @@ class ReclusterService(
     val existingRecordsInCluster = cluster.personEntities.filterNot { it.id == changedRecord.id }
     val matchesToChangeRecord: List<PersonMatchResult> = personMatchService.findHighestConfidencePersonRecordsByProbabilityDesc(changedRecord)
     val matchedRecords: List<PersonEntity> = matchesToChangeRecord.map { it.personEntity }
-    val reclusterRelationship = ClusterRelationship(matchedRecords, existingRecordsInCluster)
+    val clusterRelationship = ClusterRelationship(matchedRecords, existingRecordsInCluster)
     when {
-      reclusterRelationship.isDifferent() -> handleDiscrepancyOfMatchesToExistingRecords(reclusterRelationship, cluster)
+      clusterRelationship.isDifferent() -> handleDiscrepancyOfMatchesToExistingRecords(clusterRelationship, cluster)
     }
   }
 

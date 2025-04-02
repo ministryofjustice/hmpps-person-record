@@ -49,7 +49,7 @@ class PersonMatchService(
     )
   }
 
-  private fun getPersonRecords(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.sortedByDescending { it.candidateMatchProbability }.mapNotNull {
+  private fun getPersonRecords(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.mapNotNull {
     personRepository.findByMatchId(UUID.fromString(it.candidateMatchId))?.let { person ->
       PersonMatchResult(
         probability = it.candidateMatchProbability,
@@ -127,8 +127,7 @@ class PersonMatchService(
   }
 
   private suspend fun checkClusterIsValid(cluster: PersonKeyEntity): Result<IsClusterValidResponse> = runCatching {
-    val request = IsClusterValidRequest.from(cluster)
-    retryExecutor.runWithRetryHTTP { personMatchClient.isClusterValid(request) }
+    retryExecutor.runWithRetryHTTP { personMatchClient.isClusterValid(IsClusterValidRequest.from(cluster)) }
   }
 
   private companion object {

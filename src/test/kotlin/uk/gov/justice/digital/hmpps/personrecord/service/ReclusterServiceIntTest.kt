@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -37,7 +37,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       stubOnePersonMatchHighConfidenceMatch(matchedRecord = personA.matchId)
 
       val newPersonCrn = randomCrn()
-      probationEventAndResponseSetup(OFFENDER_ALIAS_CHANGED, ApiResponseSetup(crn = newPersonCrn))
+      probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup(crn = newPersonCrn))
 
       checkTelemetry(
         TelemetryEventType.CPR_RECORD_CREATED,
@@ -55,7 +55,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personA)
 
       stubPersonMatchUpsert()
-      probationEventAndResponseSetup(OFFENDER_ALIAS_CHANGED, ApiResponseSetup(crn = personA.crn))
+      probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup(crn = personA.crn))
 
       checkTelemetry(
         TelemetryEventType.CPR_RECORD_UPDATED,

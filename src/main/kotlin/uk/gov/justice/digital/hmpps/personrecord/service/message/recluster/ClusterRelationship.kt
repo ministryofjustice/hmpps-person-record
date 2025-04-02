@@ -2,9 +2,9 @@ package uk.gov.justice.digital.hmpps.personrecord.service.message.recluster
 
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 
-data class ClusterRelationship(
+class ClusterRelationship(
   val matchedRecords: List<PersonEntity>,
-  val existingRecordsInCluster: List<PersonEntity>,
+  existingRecordsInCluster: List<PersonEntity>,
 ) {
 
   private val matchedRecordsSet = matchedRecords.map { it.id }.toSet()
