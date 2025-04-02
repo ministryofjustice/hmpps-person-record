@@ -10,7 +10,8 @@ data class ClusterRelationship(
   private val matchedRecordsSet = matchedRecords.map { it.id }.toSet()
   private val existingRecordsSet = existingRecordsInCluster.map { it.id }.toSet()
 
-  fun isDistinct(): Boolean = matchedRecordsSet != existingRecordsSet
+  fun isDifferent(): Boolean = matchedRecordsSet != existingRecordsSet
 
-  fun recordsInClusterNotMatched() = existingRecordsSet.subtract(matchedRecordsSet)
+  fun clusterIsSmaller() = existingRecordsSet.subtract(matchedRecordsSet).isNotEmpty()
+
 }

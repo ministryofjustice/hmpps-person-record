@@ -37,19 +37,19 @@ class ReclusterService(
     val matchedRecords: List<PersonEntity> = matchesToChangeRecord.map { it.personEntity }
     val reclusterRelationship = ClusterRelationship(matchedRecords, existingRecordsInCluster)
     when {
-      reclusterRelationship.isDistinct() -> handleDiscrepancyOfMatchesToExistingRecords(reclusterRelationship, cluster)
+      reclusterRelationship.isDifferent() -> handleDiscrepancyOfMatchesToExistingRecords(reclusterRelationship, cluster)
       else -> logNoChangeToCluster(cluster)
     }
   }
 
   private fun handleDiscrepancyOfMatchesToExistingRecords(clusterRelationship: ClusterRelationship, cluster: PersonKeyEntity) {
     when {
-      clusterRelationship.recordsInClusterNotMatched().isNotEmpty() -> handleLessMatchRecords(clusterRelationship.matchedRecords, cluster)
+      clusterRelationship.clusterIsSmaller() -> handleUnmatchedRecords(clusterRelationship.matchedRecords, cluster)
       else -> return // CPR-617 Handle more high quality matches
     }
   }
 
-  private fun handleLessMatchRecords(matchedRecords: List<PersonEntity>, cluster: PersonKeyEntity) {
+  private fun handleUnmatchedRecords(matchedRecords: List<PersonEntity>, cluster: PersonKeyEntity) {
     when {
       matchedRecords.isEmpty() -> setClusterAsNeedsAttention(cluster)
       else -> personMatchService.examineIsClusterValid(cluster).result(
