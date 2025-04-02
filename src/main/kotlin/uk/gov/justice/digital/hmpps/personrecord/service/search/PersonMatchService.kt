@@ -16,8 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.IS_CLUSTER_VALID_CALL_FAILED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
 import java.util.UUID
 
 @Component
@@ -47,13 +45,7 @@ class PersonMatchService(
   fun examineIsClusterValid(cluster: PersonKeyEntity): IsClusterValidResponse = runBlocking {
     checkClusterIsValid(cluster).fold(
       onSuccess = { it },
-      onFailure = { exception ->
-        telemetryService.trackEvent(
-          IS_CLUSTER_VALID_CALL_FAILED,
-          mapOf(EventKeys.UUID to cluster.personId.toString()),
-        )
-        throw exception
-      },
+      onFailure = { throw it },
     )
   }
 
@@ -69,13 +61,7 @@ class PersonMatchService(
   private fun handleCollectingPersonScores(personEntity: PersonEntity): List<PersonMatchScore> = runBlocking {
     getPersonScores(personEntity).fold(
       onSuccess = { it },
-      onFailure = { exception ->
-        telemetryService.trackEvent(
-          MATCH_CALL_FAILED,
-          mapOf(EventKeys.MATCH_ID to personEntity.matchId.toString()),
-        )
-        throw exception
-      },
+      onFailure = { throw it },
     )
   }
 

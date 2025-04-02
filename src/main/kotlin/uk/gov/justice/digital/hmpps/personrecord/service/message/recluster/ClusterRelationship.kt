@@ -13,5 +13,4 @@ data class ClusterRelationship(
   fun isDifferent(): Boolean = matchedRecordsSet != existingRecordsSet
 
   fun clusterIsSmaller() = existingRecordsSet.subtract(matchedRecordsSet).isNotEmpty()
-
 }

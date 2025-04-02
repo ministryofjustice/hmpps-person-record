@@ -4,7 +4,6 @@ enum class TelemetryEventType(val eventName: String) {
   MESSAGE_RECEIVED("CprDomainEventReceived"),
   MERGE_MESSAGE_RECEIVED("CprMergeEventReceived"),
   UNMERGE_MESSAGE_RECEIVED("CprUnmergeEventReceived"),
-  MATCH_CALL_FAILED("CprMatchCallFailed"),
   MESSAGE_PROCESSING_FAILED("CprMessageProcessingFailed"),
   CPR_RECORD_CREATED("CprRecordCreated"),
   CPR_RECORD_UPDATED("CprRecordUpdated"),
@@ -25,5 +24,4 @@ enum class TelemetryEventType(val eventName: String) {
   CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED("CprReclusterClusterRecordsNotLinked"),
   CPR_RECLUSTER_NO_MATCH_FOUND("CprReclusterNoMatchFound"),
   CPR_RECLUSTER_MATCH_FOUND_MERGE("CprReclusterMatchFoundMergeRecluster"),
-  IS_CLUSTER_VALID_CALL_FAILED("CprIsCLusterValidCallFailed"),
 }
