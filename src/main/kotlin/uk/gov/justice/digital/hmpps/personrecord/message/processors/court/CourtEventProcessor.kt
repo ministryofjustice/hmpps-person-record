@@ -8,6 +8,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
@@ -22,6 +23,9 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
+import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.MissingTopicException
+import uk.gov.justice.hmpps.sqs.publish
 
 @Component
 class CourtEventProcessor(
@@ -30,7 +34,12 @@ class CourtEventProcessor(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   private val s3Client: S3Client,
+  private val hmppsQueueService: HmppsQueueService,
 ) {
+
+  private val topic =
+    hmppsQueueService.findByTopicId("cprcourtcasestopic")
+      ?: throw MissingTopicException("Could not find topic ")
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -51,6 +60,8 @@ class CourtEventProcessor(
       isLargeMessage(sqsMessage) -> runBlocking { getPayloadFromS3(sqsMessage) }
       else -> sqsMessage.message
     }
+    publishMessage(sqsMessage)
+
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
 
     val uniquePersonDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
@@ -62,6 +73,24 @@ class CourtEventProcessor(
     uniquePersonDefendants.forEach { defendant ->
       processCommonPlatformPerson(defendant, sqsMessage)
     }
+  }
+
+  private fun publishMessage(sqsMessage: SQSMessage): String? {
+    val messageTypeValue =
+      MessageAttributeValue.builder()
+        .dataType("String")
+        .stringValue("COMMON_PLATFORM_HEARING")
+        .build()
+
+    val hearingEventTypeValue =
+      MessageAttributeValue.builder()
+        .dataType("String")
+        .stringValue("change to incoming value")
+        .build()
+
+    val publishResult = topic.publish(eventType = "commonplatform.case.received", event = objectMapper.writeValueAsString(sqsMessage.message), attributes = mapOf("messageType" to messageTypeValue, "hearingEventType" to hearingEventTypeValue))
+
+    return publishResult.messageId()
   }
 
   private fun processCommonPlatformPerson(defendant: Defendant, sqsMessage: SQSMessage) {
