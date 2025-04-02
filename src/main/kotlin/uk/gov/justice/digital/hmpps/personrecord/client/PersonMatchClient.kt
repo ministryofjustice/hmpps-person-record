@@ -11,12 +11,17 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchI
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchMigrateRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidRequest
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 
 @FeignClient(
   name = "person-match",
   url = "\${person-match.base-url}",
 )
 interface PersonMatchClient {
+
+  @PostMapping("/is-cluster-valid")
+  fun isClusterValid(@RequestBody requestBody: IsClusterValidRequest): IsClusterValidResponse
 
   @GetMapping("/person/score/{matchId}")
   fun getPersonScores(@PathVariable matchId: String): List<PersonMatchScore>
