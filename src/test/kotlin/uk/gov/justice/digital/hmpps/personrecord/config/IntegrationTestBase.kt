@@ -314,7 +314,7 @@ class IntegrationTestBase {
     )
   }
 
-  internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, responseBody: String, status: Int = 200, requestBody: String) {
+  internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, responseBody: String, status: Int = 200, requestBody: String, fixedDelay: Int = 0) {
     wiremock.stubFor(
       WireMock.post(url)
         .withRequestBody(equalToJson(requestBody))
@@ -325,7 +325,8 @@ class IntegrationTestBase {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(status)
-            .withBody(responseBody),
+            .withBody(responseBody)
+            .withFixedDelay(fixedDelay),
         ),
     )
   }
