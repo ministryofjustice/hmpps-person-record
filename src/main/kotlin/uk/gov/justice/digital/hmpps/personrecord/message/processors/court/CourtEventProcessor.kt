@@ -88,7 +88,11 @@ class CourtEventProcessor(
         .stringValue("change to incoming value")
         .build()
 
-    val publishResult = topic.publish(eventType = "commonplatform.case.received", event = objectMapper.writeValueAsString(sqsMessage.message), attributes = mapOf("messageType" to messageTypeValue, "hearingEventType" to hearingEventTypeValue))
+    val publishResult = topic.publish(
+      eventType = "commonplatform.case.received",
+      event = objectMapper.writeValueAsString(sqsMessage.message),
+      attributes = mapOf("messageType" to messageTypeValue, "hearingEventType" to hearingEventTypeValue),
+    )
 
     return publishResult.messageId()
   }
