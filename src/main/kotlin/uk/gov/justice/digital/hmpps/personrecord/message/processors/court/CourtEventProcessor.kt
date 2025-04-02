@@ -1,14 +1,18 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 
-import aws.sdk.kotlin.services.s3.S3Client
-import aws.sdk.kotlin.services.s3.model.GetObjectRequest
-import aws.smithy.kotlin.runtime.content.decodeToString
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import software.amazon.awssdk.core.async.AsyncResponseTransformer
+import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
+import software.amazon.awssdk.services.sns.model.PublishRequest
+import software.amazon.sns.AmazonSNSExtendedAsyncClient
+import software.amazon.sns.SNSExtendedAsyncClientConfiguration
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
@@ -33,15 +37,16 @@ class CourtEventProcessor(
   private val createUpdateService: CreateUpdateService,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
-  private val s3Client: S3Client,
+  private val s3AsyncClient: S3AsyncClient,
   private val hmppsQueueService: HmppsQueueService,
+  @Value("\${aws.cpr-court-message-bucket-name}") private val bucketName: String,
 ) {
-
   private val topic =
     hmppsQueueService.findByTopicId("cprcourtcasestopic")
       ?: throw MissingTopicException("Could not find topic ")
 
   companion object {
+    const val MAX_MESSAGE_SIZE = 262144
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
@@ -60,7 +65,14 @@ class CourtEventProcessor(
       isLargeMessage(sqsMessage) -> runBlocking { getPayloadFromS3(sqsMessage) }
       else -> sqsMessage.message
     }
-    publishMessage(sqsMessage)
+    // TODO feature flag
+    if (messageLargerThanThreshold(commonPlatformHearing)) {
+      runBlocking {
+        publishLargeMessage(sqsMessage)
+      }
+    } else {
+      publishMessage(sqsMessage) // TODO large messages
+    }
 
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
 
@@ -73,6 +85,26 @@ class CourtEventProcessor(
     uniquePersonDefendants.forEach { defendant ->
       processCommonPlatformPerson(defendant, sqsMessage)
     }
+  }
+
+  suspend fun publishLargeMessage(sqsMessage: SQSMessage) {
+    val snsExtendedAsyncClientConfiguration: SNSExtendedAsyncClientConfiguration = SNSExtendedAsyncClientConfiguration()
+      .withPayloadSupportEnabled(s3AsyncClient, bucketName)
+
+    val snsExtendedClient = AmazonSNSExtendedAsyncClient(
+      topic.snsClient,
+      snsExtendedAsyncClientConfiguration,
+    )
+    snsExtendedClient.publish(
+      PublishRequest.builder().topicArn(topic.arn).messageAttributes(
+        mapOf(
+          "messageType" to MessageAttributeValue.builder().dataType("String").stringValue("COMMON_PLATFORM_HEARING").build(),
+          "hearingEventType" to MessageAttributeValue.builder().dataType("String").stringValue("TODO fix me").build(),
+          "eventType" to MessageAttributeValue.builder().dataType("String").stringValue("commonplatform.large.case.received").build(),
+        ),
+      ).message(objectMapper.writeValueAsString(sqsMessage))
+        .build(),
+    )
   }
 
   private fun publishMessage(sqsMessage: SQSMessage): String? {
@@ -117,21 +149,21 @@ class CourtEventProcessor(
 
   private fun isLargeMessage(sqsMessage: SQSMessage) = sqsMessage.getEventType() == "commonplatform.large.case.received"
 
+  fun messageLargerThanThreshold(message: String): Boolean = message.toByteArray().size >= MAX_MESSAGE_SIZE
+
   private suspend fun getPayloadFromS3(sqsMessage: SQSMessage): String {
     val messageBody = objectMapper.readValue(sqsMessage.message, ArrayList::class.java)
     val message = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
 
-    val request =
-      GetObjectRequest {
-        key = message.s3Key
-        bucket = message.s3BucketName
-      }
-    return s3Client.getObject(request) { resp ->
-      resp.body!!.decodeToString()
-    }
+    val request = GetObjectRequest.builder().key(message.s3Key).bucket(message.s3BucketName).build()
+    return s3AsyncClient.getObject(
+      request,
+      AsyncResponseTransformer.toBytes(),
+    ).join().asUtf8String()
   }
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
+    // TODO republish to topic
     val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(sqsMessage.message)
     when {
       isLibraPerson(libraHearingEvent) -> processLibraPerson(libraHearingEvent, sqsMessage)

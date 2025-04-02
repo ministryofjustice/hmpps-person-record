@@ -1,8 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.commonplatform
 
-import aws.sdk.kotlin.services.s3.S3Client
-import aws.sdk.kotlin.services.s3.model.PutObjectRequest
-import aws.smithy.kotlin.runtime.content.ByteStream
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -12,12 +9,18 @@ import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import software.amazon.awssdk.core.async.AsyncRequestBody
+import software.amazon.awssdk.core.async.AsyncResponseTransformer
+import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.s3.model.GetObjectRequest
+import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.court.LargeMessageBody
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
@@ -45,12 +48,13 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNum
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
+import java.nio.charset.Charset
 import java.util.UUID
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Autowired
-  lateinit var s3Client: S3Client
+  lateinit var s3AsyncClient: S3AsyncClient
 
   @Value("\${aws.court-message-bucket-name}")
   lateinit var s3Bucket: String
@@ -295,13 +299,10 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val s3Key = UUID.randomUUID().toString()
 
     val request =
-      PutObjectRequest {
-        bucket = s3Bucket
-        key = s3Key
-        body = ByteStream.fromString(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId))))
-      }
+      PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
+
     runBlocking {
-      s3Client.putObject(request)
+      s3AsyncClient.putObject(request, AsyncRequestBody.fromString(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId)))))
     }
     val messageId = publishLargeCommonPlatformMessage(
       largeCommonPlatformMessage(s3Key, s3Bucket),
@@ -407,7 +408,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should publish incoming event to court topic`() {
     val defendantId = randomDefendantId()
 
-    val messageId = publishCommonPlatformMessage(
+    publishCommonPlatformMessage(
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId))),
     )
 
@@ -422,5 +423,57 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val commonPlatformHearing: String = sqsMessage?.message!!
 
     assertThat(commonPlatformHearing.contains(defendantId)).isEqualTo(true)
+  }
+
+  // TODO a test for when enriching the message with UUIDs makes it larger than 256KB
+
+  @Test
+  fun `should publish incoming large message to court topic`() {
+    val defendantId = randomDefendantId()
+    val s3Key = UUID.randomUUID().toString()
+
+    val incomingMessageFromS3 =
+
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(defendantId = defendantId), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()), CommonPlatformHearingSetup(defendantId = randomDefendantId()),
+        ),
+      ).toByteArray(Charset.forName("UTF8"))
+
+    assertThat(incomingMessageFromS3.size).isGreaterThan(262144)
+    val request =
+      PutObjectRequest.builder().bucket(s3Bucket).key(s3Key)
+        .build()
+
+    runBlocking {
+      s3AsyncClient.putObject(request, AsyncRequestBody.fromBytes(incomingMessageFromS3))
+    }
+    publishLargeCommonPlatformMessage(
+      largeCommonPlatformMessage(s3Key, s3Bucket),
+
+    )
+
+    await untilCallTo {
+      testOnlyCourtEventsQueue?.sqsClient?.countMessagesOnQueue(testOnlyCourtEventsQueue?.queueUrl!!)?.get()
+    } matches { it == 1 }
+
+    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
+
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
+
+    val messageBody = objectMapper.readValue(sqsMessage?.message, ArrayList::class.java)
+    val message = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
+
+    val getRequest =
+      GetObjectRequest.builder().key(message.s3Key).bucket(message.s3BucketName).build()
+
+    val body = runBlocking {
+      s3AsyncClient.getObject(
+        getRequest,
+        AsyncResponseTransformer.toBytes(),
+      ).join().asUtf8String()
+    }
+    // TODO assert event type is correct
+    assertThat(body.contains(defendantId)).isEqualTo(true)
   }
 }
