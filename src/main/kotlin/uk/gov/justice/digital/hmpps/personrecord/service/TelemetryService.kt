@@ -12,9 +12,7 @@ enum class EventKeys {
   EVENT_TYPE,
   RECORD_COUNT,
   UUID_COUNT,
-  SEARCH_VERSION,
   UUID,
-  QUERY,
   CLUSTER_SIZE,
 
   // Identifiers
@@ -44,6 +42,9 @@ enum class EventKeys {
   PROBABILITY_SCORE,
   HIGH_CONFIDENCE_COUNT,
   LOW_CONFIDENCE_COUNT,
+
+  // Reclustering
+  CLUSTER_COMPOSITION,
 }
 
 @Component

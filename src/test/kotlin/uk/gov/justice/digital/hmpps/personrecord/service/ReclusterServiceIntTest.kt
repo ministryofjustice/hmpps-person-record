@@ -214,7 +214,9 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
-        mapOf("UUID" to cluster.personId.toString()),
+        mapOf(
+          "UUID" to cluster.personId.toString(),
+        ),
       )
       cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
     }
@@ -235,7 +237,9 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
-        mapOf("UUID" to cluster.personId.toString()),
+        mapOf(
+          "UUID" to cluster.personId.toString(),
+        ),
       )
       cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
     }
