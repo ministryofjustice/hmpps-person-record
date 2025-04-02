@@ -407,6 +407,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should publish incoming event to court topic`() {
     val defendantId = randomDefendantId()
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
 
     publishCommonPlatformMessage(
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId))),
@@ -423,6 +425,11 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val commonPlatformHearing: String = sqsMessage?.message!!
 
     assertThat(commonPlatformHearing.contains(defendantId)).isEqualTo(true)
+
+    checkTelemetry(
+      CPR_RECORD_CREATED,
+      mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
+    )
   }
 
   // TODO a test for when enriching the message with UUIDs makes it larger than 256KB
