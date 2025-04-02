@@ -7,13 +7,10 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 enum class EventKeys {
+  // Message
   MESSAGE_ID,
   SOURCE_SYSTEM,
   EVENT_TYPE,
-  RECORD_COUNT,
-  UUID_COUNT,
-  UUID,
-  CLUSTER_SIZE,
 
   // Identifiers
   CRN,
@@ -43,8 +40,12 @@ enum class EventKeys {
   HIGH_CONFIDENCE_COUNT,
   LOW_CONFIDENCE_COUNT,
 
-  // Reclustering
+  // Cluster
   CLUSTER_COMPOSITION,
+  RECORD_COUNT,
+  UUID_COUNT,
+  UUID,
+  CLUSTER_SIZE,
 }
 
 @Component

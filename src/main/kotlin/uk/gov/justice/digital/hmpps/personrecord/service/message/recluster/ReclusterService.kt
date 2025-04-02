@@ -1,9 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message.recluster
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse.Companion.result
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -18,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class ReclusterService(
   private val personMatchService: PersonMatchService,
   private val personKeyRepository: PersonKeyRepository,
-  private val objectMapper: ObjectMapper,
   private val telemetryService: TelemetryService,
 ) {
 
@@ -33,51 +30,36 @@ class ReclusterService(
   }
 
   private fun handleRecluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
-    val existingRecordsInCluster = cluster.personEntities.filterNot { it.id == changedRecord.id }
     val matchesToChangeRecord: List<PersonMatchResult> = personMatchService.findHighestConfidencePersonRecordsByProbabilityDesc(changedRecord)
-    val matchedRecords: List<PersonEntity> = matchesToChangeRecord.map { it.personEntity }
-    val clusterRelationship = ClusterRelationship(matchedRecords, existingRecordsInCluster)
+    val clusterDetails = ClusterDetails(cluster, changedRecord, matchesToChangeRecord)
     when {
-      clusterRelationship.isDifferent() -> handleDiscrepancyOfMatchesToExistingRecords(clusterRelationship, cluster, changedRecord)
+      clusterDetails.relationship.isDifferent() -> handleDiscrepancyOfMatchesToExistingRecords(clusterDetails)
     }
   }
 
-  private fun handleDiscrepancyOfMatchesToExistingRecords(clusterRelationship: ClusterRelationship, cluster: PersonKeyEntity, changedRecord: PersonEntity) {
+  private fun handleDiscrepancyOfMatchesToExistingRecords(clusterDetails: ClusterDetails) {
     when {
-      clusterRelationship.clusterIsSmaller() -> handleUnmatchedRecords(clusterRelationship.matchedRecords, cluster, changedRecord)
+      clusterDetails.relationship.isSmaller() -> handleUnmatchedRecords(clusterDetails)
       else -> return // CPR-617 Handle more high quality matches
     }
   }
 
-  private fun handleUnmatchedRecords(matchedRecords: List<PersonEntity>, cluster: PersonKeyEntity, changedRecord: PersonEntity) {
+  private fun handleUnmatchedRecords(clusterDetails: ClusterDetails) {
     when {
-      matchedRecords.isEmpty() -> handleSingleRecordDoesNotMatchAnyRecordInCluster(cluster, changedRecord)
-      else -> personMatchService.examineIsClusterValid(cluster).result(
+      clusterDetails.matchedRecords.isEmpty() -> handleInvalidClusterComposition(clusterDetails.cluster)
+      else -> personMatchService.examineIsClusterValid(clusterDetails.cluster).result(
         isValid = { }, // Will need to check if extra records to merge here
-        isNotValid = { clusterComposition ->
-          handleInvalidClusterComposition(cluster, clusterComposition)
+        isNotValid = {
+          handleInvalidClusterComposition(clusterDetails.cluster)
         },
       )
     }
   }
 
-  private fun handleSingleRecordDoesNotMatchAnyRecordInCluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
-    handleInvalidClusterComposition(
-      cluster,
-      clusterComposition = listOf(
-        ValidCluster(records = listOf(changedRecord.matchId.toString())),
-        ValidCluster(records = cluster.personEntities.filterNot { it.id == changedRecord.id }.map { it.matchId.toString() }),
-      ),
-    )
-  }
-
-  private fun handleInvalidClusterComposition(cluster: PersonKeyEntity, clusterComposition: List<ValidCluster>) {
+  private fun handleInvalidClusterComposition(cluster: PersonKeyEntity) {
     telemetryService.trackEvent(
       TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
-      mapOf(
-        EventKeys.UUID to cluster.personId.toString(),
-        EventKeys.CLUSTER_COMPOSITION to objectMapper.writeValueAsString(clusterComposition),
-      ),
+      mapOf(EventKeys.UUID to cluster.personId.toString()),
     )
     setClusterAsNeedsAttention(cluster)
   }
