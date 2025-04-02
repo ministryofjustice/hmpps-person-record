@@ -127,10 +127,56 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       cluster.assertClusterNotChanged(size = 5)
     }
+
+    @Test
+    fun `should do nothing when matches only one record in cluster with multiple records but is still a valid cluster`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      stubClusterIsValid()
+      stubOnePersonMatchHighConfidenceMatch(matchId = personA.matchId, matchedRecord = personB.matchId)
+
+      reclusterService.recluster(cluster, changedRecord = personA)
+
+      cluster.assertClusterNotChanged(size = 3)
+    }
+
+    @Test
+    fun `should do nothing when matches only one record in cluster with multiple records and links to other cluster but is still a valid cluster`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      val personD = createPerson(createRandomProbationPersonDetails())
+      createPersonKey()
+        .addPerson(personD)
+
+      stubClusterIsValid()
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = personA.matchId,
+        results = listOf(
+          personB.matchId,
+          personD.matchId,
+        ),
+      )
+
+      reclusterService.recluster(cluster, changedRecord = personA)
+
+      cluster.assertClusterNotChanged(size = 3)
+    }
   }
 
   @Nested
-  inner class FewerHighConfidenceMatchesThanInExistingClusterAndClusterNotValid {
+  inner class ShouldMarkAsNeedsAttention {
 
     @Test
     fun `should mark as need attention when only matches one in cluster with multiple records`() {
@@ -218,56 +264,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         mapOf("UUID" to clusterA.personId.toString()),
       )
       clusterA.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
-    }
-  }
-
-  @Nested
-  inner class FewerHighConfidenceMatchesThanInExistingClusterAndClusterIsValid {
-
-    @Test
-    fun `should not mark as need attention when matches only one record in cluster with multiple records but is still a valid cluster`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-        .addPerson(personC)
-
-      stubClusterIsValid()
-      stubOnePersonMatchHighConfidenceMatch(matchId = personA.matchId, matchedRecord = personB.matchId)
-
-      reclusterService.recluster(cluster, changedRecord = personA)
-
-      cluster.assertClusterNotChanged(size = 3)
-    }
-
-    @Test
-    fun `should not mark as need attention when matches only one record in cluster with multiple records and links to other cluster but is still a valid cluster`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-        .addPerson(personC)
-
-      val personD = createPerson(createRandomProbationPersonDetails())
-      createPersonKey()
-        .addPerson(personD)
-
-      stubClusterIsValid()
-      stubXPersonMatchHighConfidenceMatches(
-        matchId = personA.matchId,
-        results = listOf(
-          personB.matchId,
-          personD.matchId,
-        ),
-      )
-
-      reclusterService.recluster(cluster, changedRecord = personA)
-
-      cluster.assertClusterNotChanged(size = 3)
     }
   }
 
