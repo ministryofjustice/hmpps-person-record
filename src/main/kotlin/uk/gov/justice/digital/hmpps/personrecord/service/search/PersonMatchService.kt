@@ -4,6 +4,7 @@ import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -14,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MATCH_CALL_FAILED
 import java.util.UUID
 
 @Component
@@ -41,6 +41,13 @@ class PersonMatchService(
     return@runBlocking highConfidencePersonRecords
   }
 
+  fun examineIsClusterValid(cluster: PersonKeyEntity): IsClusterValidResponse = runBlocking {
+    checkClusterIsValid(cluster).fold(
+      onSuccess = { it },
+      onFailure = { throw it },
+    )
+  }
+
   private fun getPersonRecords(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.mapNotNull {
     personRepository.findByMatchId(UUID.fromString(it.candidateMatchId))?.let { person ->
       PersonMatchResult(
@@ -53,13 +60,7 @@ class PersonMatchService(
   private fun handleCollectingPersonScores(personEntity: PersonEntity): List<PersonMatchScore> = runBlocking {
     getPersonScores(personEntity).fold(
       onSuccess = { it },
-      onFailure = { exception ->
-        telemetryService.trackEvent(
-          MATCH_CALL_FAILED,
-          mapOf(EventKeys.MATCH_ID to personEntity.matchId.toString()),
-        )
-        throw exception
-      },
+      onFailure = { throw it },
     )
   }
 
@@ -123,6 +124,12 @@ class PersonMatchService(
     }
     return this
   }
+
+  private suspend fun checkClusterIsValid(cluster: PersonKeyEntity): Result<IsClusterValidResponse> = runCatching {
+    retryExecutor.runWithRetryHTTP { personMatchClient.isClusterValid(cluster.getRecordsMatchIds()) }
+  }
+
+  private fun PersonKeyEntity.getRecordsMatchIds(): List<String> = this.personEntities.map { it.matchId.toString() }
 
   private companion object {
     const val THRESHOLD_SCORE = 0.999

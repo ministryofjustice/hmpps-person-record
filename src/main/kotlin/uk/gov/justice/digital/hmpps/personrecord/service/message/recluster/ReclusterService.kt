@@ -1,6 +1,7 @@
-package uk.gov.justice.digital.hmpps.personrecord.service.message
+package uk.gov.justice.digital.hmpps.personrecord.service.message.recluster
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse.Companion.result
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -10,8 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_NO_CHANGE
 
 @Component
 class ReclusterService(
@@ -31,33 +30,43 @@ class ReclusterService(
   }
 
   private fun handleRecluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
-    val existingRecordsInCluster = cluster.personEntities.filterNot { it.id == changedRecord.id }
     val matchesToChangeRecord: List<PersonMatchResult> = personMatchService.findHighestConfidencePersonRecordsByProbabilityDesc(changedRecord)
-    val matchedRecords: List<PersonEntity> = matchesToChangeRecord.map { it.personEntity }
+    val clusterDetails = ClusterDetails(cluster, changedRecord, matchesToChangeRecord)
     when {
-      recordsDontMatch(matchedRecords, existingRecordsInCluster) -> handleDiscrepancyOfMatchesToExistingRecords(matchedRecords, existingRecordsInCluster, cluster)
-      else -> telemetryService.trackEvent(CPR_RECLUSTER_NO_CHANGE, mapOf(EventKeys.UUID to cluster.personId.toString()))
+      clusterDetails.relationship.isDifferent() -> handleDiscrepancyOfMatchesToExistingRecords(clusterDetails)
     }
   }
 
-  private fun handleDiscrepancyOfMatchesToExistingRecords(matchedRecords: List<PersonEntity>, existingRecordsInCluster: List<PersonEntity>, cluster: PersonKeyEntity) {
+  private fun handleDiscrepancyOfMatchesToExistingRecords(clusterDetails: ClusterDetails) {
     when {
-      hasLessMatchedRecordsInExistingCluster(matchedRecords, existingRecordsInCluster) -> setClusterAsNeedsAttention(cluster)
+      clusterDetails.relationship.isSmaller() -> handleUnmatchedRecords(clusterDetails)
       else -> return // CPR-617 Handle more high quality matches
     }
   }
 
-  private fun recordsDontMatch(matchedRecords: List<PersonEntity>, existingRecordsInCluster: List<PersonEntity>): Boolean = matchedRecords.map { it.id }.toSet() != existingRecordsInCluster.map { it.id }.toSet()
+  private fun handleUnmatchedRecords(clusterDetails: ClusterDetails) {
+    when {
+      clusterDetails.matchedRecords.isEmpty() -> handleInvalidClusterComposition(clusterDetails.cluster)
+      else -> personMatchService.examineIsClusterValid(clusterDetails.cluster).result(
+        isValid = { }, // Will need to check if extra records to merge here
+        isNotValid = {
+          handleInvalidClusterComposition(clusterDetails.cluster)
+        },
+      )
+    }
+  }
 
-  private fun hasLessMatchedRecordsInExistingCluster(matchedRecords: List<PersonEntity>, existingRecordsInCluster: List<PersonEntity>): Boolean = matchedRecords.size < existingRecordsInCluster.size
+  private fun handleInvalidClusterComposition(cluster: PersonKeyEntity) {
+    telemetryService.trackEvent(
+      TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
+      mapOf(EventKeys.UUID to cluster.personId.toString()),
+    )
+    setClusterAsNeedsAttention(cluster)
+  }
 
   private fun setClusterAsNeedsAttention(cluster: PersonKeyEntity) {
     cluster.status = UUIDStatusType.NEEDS_ATTENTION
     personKeyRepository.save(cluster)
-    telemetryService.trackEvent(
-      CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
-      mapOf(EventKeys.UUID to cluster.personId.toString()),
-    )
   }
 
   private fun clusterNeedsAttention(personKeyEntity: PersonKeyEntity?) = personKeyEntity?.status == UUIDStatusType.NEEDS_ATTENTION
