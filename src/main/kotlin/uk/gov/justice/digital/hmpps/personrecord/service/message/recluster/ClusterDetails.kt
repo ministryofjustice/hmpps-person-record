@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResul
 
 class ClusterDetails(
   val cluster: PersonKeyEntity,
-  val changedRecord: PersonEntity,
+  private val changedRecord: PersonEntity,
   matchesToChangeRecord: List<PersonMatchResult>,
 ) {
 

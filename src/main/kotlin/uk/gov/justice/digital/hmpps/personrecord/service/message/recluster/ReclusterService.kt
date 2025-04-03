@@ -48,11 +48,10 @@ class ReclusterService(
   }
 
   private fun handleMergeClusters(clusterDetails: ClusterDetails) {
-    val matchedRecordsClusters: List<PersonKeyEntity> =
-      clusterDetails.matchedRecords.groupBy { it.personKey!! }.map { it.key }.distinctBy { it.id }
-    val returnedClustersFromMatcherScore =
-      matchedRecordsClusters.filterNot { it.id == clusterDetails.changedRecord.personKey?.id }
-    returnedClustersFromMatcherScore.forEach {
+    val matchedRecordsClusters: List<PersonKeyEntity> = clusterDetails.matchedRecords
+      .collectDistinctClusters()
+      .removeUpdatedCluster(cluster = clusterDetails.cluster)
+    matchedRecordsClusters.forEach {
       mergeClusters(it, clusterDetails.cluster)
     }
   }
@@ -92,6 +91,10 @@ class ReclusterService(
     cluster.status = UUIDStatusType.NEEDS_ATTENTION
     personKeyRepository.save(cluster)
   }
+
+  private fun List<PersonKeyEntity>.removeUpdatedCluster(cluster: PersonKeyEntity) = this.filterNot { it.id == cluster.id }
+
+  private fun List<PersonEntity>.collectDistinctClusters(): List<PersonKeyEntity> = this.groupBy { it.personKey!! }.map { it.key }.distinctBy { it.id }
 
   private fun clusterNeedsAttention(personKeyEntity: PersonKeyEntity?) = personKeyEntity?.status == UUIDStatusType.NEEDS_ATTENTION
 }
