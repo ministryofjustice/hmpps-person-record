@@ -11,18 +11,20 @@ class ClusterDetails(
 ) {
 
   val matchedRecords: List<PersonEntity> = matchesToChangeRecord.map { it.personEntity }
-  private val existingRecordsInCluster = cluster.personEntities.filterNot { it.id == changedRecord.id }
+  private val existingRecordsInCluster: List<PersonEntity> = cluster.personEntities.filterNot { it.id == changedRecord.id }
 
   val relationship = ClusterRelationship(matchedRecords, existingRecordsInCluster)
-}
 
-class ClusterRelationship(
-  matchedRecords: List<PersonEntity>,
-  existingRecordsInCluster: List<PersonEntity>,
-) {
-  private val matchedRecordsSet = matchedRecords.map { it.id }.toSet()
-  private val existingRecordsSet = existingRecordsInCluster.map { it.id }.toSet()
+  inner class ClusterRelationship(
+    matchedRecords: List<PersonEntity>,
+    existingRecordsInCluster: List<PersonEntity>,
+  ) {
+    private val matchedRecordsSet = matchedRecords.asIdSet()
+    private val existingRecordsSet = existingRecordsInCluster.asIdSet()
 
-  fun isDifferent(): Boolean = matchedRecordsSet != existingRecordsSet
-  fun isSmaller() = existingRecordsSet.subtract(matchedRecordsSet).isNotEmpty()
+    fun isDifferent(): Boolean = matchedRecordsSet != existingRecordsSet
+    fun isSmaller(): Boolean = existingRecordsSet.subtract(matchedRecordsSet).isNotEmpty()
+
+    private fun List<PersonEntity>.asIdSet(): Set<Long?> = this.map { it.id }.toSet()
+  }
 }
