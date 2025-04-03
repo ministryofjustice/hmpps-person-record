@@ -306,6 +306,36 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
       cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
     }
+
+    @Test
+    fun `should merge active clusters when only one record from the matched cluster is returned from the match score`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val personD = createPerson(createRandomProbationPersonDetails())
+      val cluster2 = createPersonKey()
+        .addPerson(personC)
+        .addPerson(personD)
+
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = personA.matchId,
+        results = listOf(
+          personB.matchId,
+          personC.matchId,
+        ),
+      )
+
+      reclusterService.recluster(cluster1, changedRecord = personA)
+
+      cluster1.assertClusterIsOfSize(4)
+      cluster2.assertClusterIsOfSize(0)
+      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+    }
   }
 
   private fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.personEntities?.size).isEqualTo(size) }
