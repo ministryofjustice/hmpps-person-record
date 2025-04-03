@@ -236,7 +236,6 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         ),
       )
     }
-
   }
 
   private fun noCandidateFound(highConfidenceMatch: PersonEntity?) {
