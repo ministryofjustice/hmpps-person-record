@@ -1,13 +1,13 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 
-import aws.sdk.kotlin.services.s3.S3Client
-import aws.sdk.kotlin.services.s3.model.GetObjectRequest
-import aws.smithy.kotlin.runtime.content.decodeToString
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import software.amazon.awssdk.core.async.AsyncResponseTransformer
+import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
@@ -29,7 +29,7 @@ class CourtEventProcessor(
   private val createUpdateService: CreateUpdateService,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
-  private val s3Client: S3Client,
+  private val s3AsyncClient: S3AsyncClient,
 ) {
 
   companion object {
@@ -88,14 +88,11 @@ class CourtEventProcessor(
     val messageBody = objectMapper.readValue(sqsMessage.message, ArrayList::class.java)
     val message = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
 
-    val request =
-      GetObjectRequest {
-        key = message.s3Key
-        bucket = message.s3BucketName
-      }
-    return s3Client.getObject(request) { resp ->
-      resp.body!!.decodeToString()
-    }
+    val request = GetObjectRequest.builder().key(message.s3Key).bucket(message.s3BucketName).build()
+    return s3AsyncClient.getObject(
+      request,
+      AsyncResponseTransformer.toBytes(),
+    ).join().asUtf8String()
   }
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
