@@ -472,6 +472,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val messageBody = objectMapper.readValue(sqsMessage?.message, ArrayList::class.java)
     val message = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
     assertThat(sqsMessage?.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.large.case.received"))
+    assertThat(sqsMessage?.messageAttributes?.hearingEventType).isEqualTo(MessageAttribute("ConfirmedOrUpdated"))
     val getRequest =
       GetObjectRequest.builder().key(message.s3Key).bucket(message.s3BucketName).build()
 

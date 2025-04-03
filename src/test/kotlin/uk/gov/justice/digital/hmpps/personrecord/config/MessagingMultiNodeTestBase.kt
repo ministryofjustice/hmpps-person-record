@@ -68,24 +68,34 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId(Queues.PRISON_MERGE_EVENT_QUEUE_ID)
   }
 
-  internal fun publishLibraMessage(message: String): String = publishCourtMessage(message, LIBRA_COURT_CASE, "libra.case.received")
+  internal fun publishLibraMessage(message: String): String = publishCourtMessage(message, LIBRA_COURT_CASE, "libra.case.received", null)
 
-  internal fun publishCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.case.received")
+  internal fun publishCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.case.received", "ConfirmedOrUpdated")
 
-  internal fun publishLargeCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.large.case.received")
+  internal fun publishLargeCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.large.case.received", "ConfirmedOrUpdated")
 
-  private fun publishCourtMessage(message: String, messageType: MessageType, eventType: String): String {
+  private fun publishCourtMessage(message: String, messageType: MessageType, eventType: String, hearingEventType: String?): String {
+    val attributes = mutableMapOf(
+      "messageType" to MessageAttributeValue.builder().dataType("String")
+        .stringValue(messageType.name).build(),
+      "eventType" to MessageAttributeValue.builder().dataType("String")
+        .stringValue(eventType).build(),
+      "messageId" to MessageAttributeValue.builder().dataType("String")
+        .stringValue(UUID.randomUUID().toString()).build(),
+    )
+    hearingEventType?.let {
+      // Only present on COMMON PLATFORM cases
+      val hearingEventTypeValue =
+        MessageAttributeValue.builder()
+          .dataType("String")
+          .stringValue(hearingEventType)
+          .build()
+      attributes.put("hearingEventType", hearingEventTypeValue)
+    }
     val publishResponse = courtEventsTopic?.publish(
       eventType = messageType.name,
       event = message,
-      attributes = mapOf(
-        "messageType" to MessageAttributeValue.builder().dataType("String")
-          .stringValue(messageType.name).build(),
-        "eventType" to MessageAttributeValue.builder().dataType("String")
-          .stringValue(eventType).build(),
-        "messageId" to MessageAttributeValue.builder().dataType("String")
-          .stringValue(UUID.randomUUID().toString()).build(),
-      ),
+      attributes = attributes,
       messageGroupId = messageType.name,
     )
 

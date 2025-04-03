@@ -72,7 +72,7 @@ class CourtEventProcessor(
 
     if (messageLargerThanThreshold(commonPlatformHearing)) {
       runBlocking {
-        publishLargeMessage(commonPlatformHearing)
+        publishLargeMessage(commonPlatformHearing, sqsMessage)
       }
     } else {
       publishMessage(sqsMessage)
@@ -91,7 +91,7 @@ class CourtEventProcessor(
     }
   }
 
-  suspend fun publishLargeMessage(commonPlatformHearing: String) {
+  suspend fun publishLargeMessage(commonPlatformHearing: String, sqsMessage: SQSMessage) {
     if (publishToCourtTopic) {
       val snsExtendedAsyncClientConfiguration: SNSExtendedAsyncClientConfiguration =
         SNSExtendedAsyncClientConfiguration()
@@ -106,7 +106,7 @@ class CourtEventProcessor(
           mapOf(
             "messageType" to MessageAttributeValue.builder().dataType("String").stringValue("COMMON_PLATFORM_HEARING")
               .build(),
-            "hearingEventType" to MessageAttributeValue.builder().dataType("String").stringValue("TODO fix me").build(),
+            "hearingEventType" to MessageAttributeValue.builder().dataType("String").stringValue(sqsMessage.getHearingEventType()).build(), // TODO check this will always be there
             "eventType" to MessageAttributeValue.builder().dataType("String")
               .stringValue("commonplatform.large.case.received").build(),
           ),
@@ -118,22 +118,27 @@ class CourtEventProcessor(
 
   private fun publishMessage(sqsMessage: SQSMessage) {
     if (publishToCourtTopic) {
-      val messageTypeValue =
-        MessageAttributeValue.builder()
+      val attributes = mutableMapOf(
+        "messageType" to MessageAttributeValue.builder()
           .dataType("String")
-          .stringValue("COMMON_PLATFORM_HEARING")
-          .build()
+          .stringValue("COMMON_PLATFORM_HEARING") // TODO
+          .build(),
+      )
 
-      val hearingEventTypeValue =
-        MessageAttributeValue.builder()
-          .dataType("String")
-          .stringValue("change to incoming value")
-          .build()
+      sqsMessage.getHearingEventType()?.let {
+        // Only present on COMMON PLATFORM cases
+        val hearingEventTypeValue =
+          MessageAttributeValue.builder()
+            .dataType("String")
+            .stringValue(sqsMessage.getHearingEventType())
+            .build()
+        attributes.put("hearingEventType", hearingEventTypeValue)
+      }
 
       topic.publish(
         eventType = "commonplatform.case.received",
         event = objectMapper.writeValueAsString(sqsMessage.message),
-        attributes = mapOf("messageType" to messageTypeValue, "hearingEventType" to hearingEventTypeValue),
+        attributes = attributes,
       )
     }
   }
