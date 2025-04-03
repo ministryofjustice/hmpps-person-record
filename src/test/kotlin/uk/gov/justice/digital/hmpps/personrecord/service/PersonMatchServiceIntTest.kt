@@ -106,6 +106,38 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `should not return high confidence match has been merged to another record`() {
+      val searchingRecord = createPerson(createExamplePerson())
+      createPersonKey()
+        .addPerson(searchingRecord)
+
+      val foundRecord = createPerson(createExamplePerson())
+      val mergedToRecord = createPerson(createExamplePerson())
+      createPersonKey()
+        .addPerson(foundRecord)
+        .addPerson(mergedToRecord)
+
+      mergeRecord(sourcePersonEntity = foundRecord, targetPersonEntity = mergedToRecord)
+
+      stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
+
+      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
+
+      noCandidateFound(highConfidenceMatch)
+    }
+
+    @Test
+    fun `should not return its self if person match sends it back`() {
+      val record = createPersonWithNewKey(createExamplePerson())
+
+      stubOnePersonMatchHighConfidenceMatch(matchId = record.matchId, matchedRecord = record.matchId)
+
+      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(record)
+
+      noCandidateFound(highConfidenceMatch)
+    }
+
+    @Test
     fun `should not find candidate records when exclude marker set`() {
       val searchingRecord = createPersonWithNewKey(createExamplePerson())
       val excludedRecord = createPersonWithNewKey(createExamplePerson())
