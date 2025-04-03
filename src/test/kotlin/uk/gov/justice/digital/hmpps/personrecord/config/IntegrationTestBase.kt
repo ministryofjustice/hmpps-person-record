@@ -151,8 +151,10 @@ class IntegrationTestBase {
   }
 
   internal fun mergeRecord(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity): PersonEntity {
-    sourcePersonEntity.mergedTo = targetPersonEntity.id
-    return personRepository.saveAndFlush(sourcePersonEntity)
+    val source = personRepository.findByMatchId(sourcePersonEntity.matchId)!!
+    val target = personRepository.findByMatchId(targetPersonEntity.matchId)!!
+    source.mergedTo = target.id
+    return personRepository.save(source)
   }
 
   internal fun mergeUuid(sourcePersonKey: PersonKeyEntity, targetPersonKeyEntity: PersonKeyEntity): PersonKeyEntity {

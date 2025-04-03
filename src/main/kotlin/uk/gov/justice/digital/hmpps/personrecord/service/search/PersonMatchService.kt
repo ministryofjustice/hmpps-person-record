@@ -26,10 +26,11 @@ class PersonMatchService(
   fun findHighestConfidencePersonRecord(personEntity: PersonEntity) = findHighestConfidencePersonRecordsByProbabilityDesc(personEntity).firstOrNull()?.personEntity
 
   fun findHighestConfidencePersonRecordsByProbabilityDesc(personEntity: PersonEntity): List<PersonMatchResult> = runBlocking {
-    val personScores = handleCollectingPersonScores(personEntity)
+    val personScores = handleCollectingPersonScores(personEntity).removeSelf(personEntity)
     val highConfidenceRecords = personScores.removeLowQualityMatches()
     val highConfidencePersonRecords = getPersonRecords(highConfidenceRecords)
       .allowMatchesWithUUID()
+      .removeMergedRecords()
       .removeMatchesWhereClusterHasExcludeMarker(personEntity.id)
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
       .sortedByDescending { it.probability }
@@ -59,6 +60,8 @@ class PersonMatchService(
     )
   }
 
+  private fun List<PersonMatchScore>.removeSelf(personEntity: PersonEntity): List<PersonMatchScore> = this.filterNot { score -> score.candidateMatchId == personEntity.matchId.toString() }
+
   private fun List<PersonMatchScore>.removeLowQualityMatches(): List<PersonMatchScore> = this.filter { candidate -> isAboveThreshold(candidate.candidateMatchProbability) }
 
   private suspend fun getPersonScores(personEntity: PersonEntity): Result<List<PersonMatchScore>> = kotlin.runCatching {
@@ -68,6 +71,8 @@ class PersonMatchService(
   private fun isAboveThreshold(score: Float): Boolean = score >= THRESHOLD_SCORE
 
   private fun List<PersonMatchResult>.allowMatchesWithUUID(): List<PersonMatchResult> = this.filter { it.personEntity.personKey != PersonKeyEntity.empty }
+
+  private fun List<PersonMatchResult>.removeMergedRecords(): List<PersonMatchResult> = this.filter { it.personEntity.mergedTo == null }
 
   private fun List<PersonMatchResult>.removeMatchesWhereClusterHasExcludeMarker(personRecordId: Long?): List<PersonMatchResult> {
     val clusters: Map<UUID, List<PersonMatchResult>> = this.groupBy { it.personEntity.personKey?.personId!! }
