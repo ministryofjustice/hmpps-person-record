@@ -434,7 +434,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   // TODO a test for when enriching the message with UUIDs makes it larger than 256KB
 
-  // @Disabled
   @Test
   fun `should publish incoming large message to CPR court topic`() {
     val defendantId = randomDefendantId()
