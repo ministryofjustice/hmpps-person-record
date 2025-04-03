@@ -31,6 +31,7 @@ import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import uk.gov.justice.hmpps.sqs.publish
 
+@Suppress("complexity:LongParameterList")
 @Component
 class CourtEventProcessor(
   private val objectMapper: ObjectMapper,
@@ -38,7 +39,10 @@ class CourtEventProcessor(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   private val s3AsyncClient: S3AsyncClient,
-  private val hmppsQueueService: HmppsQueueService,
+  hmppsQueueService: HmppsQueueService,
+  @Value("\${publish-to-court-topic}")
+  private var publishToCourtTopic: Boolean,
+
   @Value("\${aws.cpr-court-message-bucket-name}") private val bucketName: String,
 ) {
   private val topic =
@@ -65,7 +69,7 @@ class CourtEventProcessor(
       isLargeMessage(sqsMessage) -> runBlocking { getPayloadFromS3(sqsMessage) }
       else -> sqsMessage.message
     }
-    // TODO feature flag
+
     if (messageLargerThanThreshold(commonPlatformHearing)) {
       runBlocking {
         publishLargeMessage(commonPlatformHearing)
@@ -88,45 +92,50 @@ class CourtEventProcessor(
   }
 
   suspend fun publishLargeMessage(commonPlatformHearing: String) {
-    val snsExtendedAsyncClientConfiguration: SNSExtendedAsyncClientConfiguration = SNSExtendedAsyncClientConfiguration()
-      .withPayloadSupportEnabled(s3AsyncClient, bucketName)
+    if (publishToCourtTopic) {
+      val snsExtendedAsyncClientConfiguration: SNSExtendedAsyncClientConfiguration =
+        SNSExtendedAsyncClientConfiguration()
+          .withPayloadSupportEnabled(s3AsyncClient, bucketName)
 
-    val snsExtendedClient = AmazonSNSExtendedAsyncClient(
-      topic.snsClient,
-      snsExtendedAsyncClientConfiguration,
-    )
-    snsExtendedClient.publish(
-      PublishRequest.builder().topicArn(topic.arn).messageAttributes(
-        mapOf(
-          "messageType" to MessageAttributeValue.builder().dataType("String").stringValue("COMMON_PLATFORM_HEARING").build(),
-          "hearingEventType" to MessageAttributeValue.builder().dataType("String").stringValue("TODO fix me").build(),
-          "eventType" to MessageAttributeValue.builder().dataType("String").stringValue("commonplatform.large.case.received").build(),
-        ),
-      ).message(objectMapper.writeValueAsString(commonPlatformHearing))
-        .build(),
-    )
+      val snsExtendedClient = AmazonSNSExtendedAsyncClient(
+        topic.snsClient,
+        snsExtendedAsyncClientConfiguration,
+      )
+      snsExtendedClient.publish(
+        PublishRequest.builder().topicArn(topic.arn).messageAttributes(
+          mapOf(
+            "messageType" to MessageAttributeValue.builder().dataType("String").stringValue("COMMON_PLATFORM_HEARING")
+              .build(),
+            "hearingEventType" to MessageAttributeValue.builder().dataType("String").stringValue("TODO fix me").build(),
+            "eventType" to MessageAttributeValue.builder().dataType("String")
+              .stringValue("commonplatform.large.case.received").build(),
+          ),
+        ).message(objectMapper.writeValueAsString(commonPlatformHearing))
+          .build(),
+      )
+    }
   }
 
-  private fun publishMessage(sqsMessage: SQSMessage): String? {
-    val messageTypeValue =
-      MessageAttributeValue.builder()
-        .dataType("String")
-        .stringValue("COMMON_PLATFORM_HEARING")
-        .build()
+  private fun publishMessage(sqsMessage: SQSMessage) {
+    if (publishToCourtTopic) {
+      val messageTypeValue =
+        MessageAttributeValue.builder()
+          .dataType("String")
+          .stringValue("COMMON_PLATFORM_HEARING")
+          .build()
 
-    val hearingEventTypeValue =
-      MessageAttributeValue.builder()
-        .dataType("String")
-        .stringValue("change to incoming value")
-        .build()
+      val hearingEventTypeValue =
+        MessageAttributeValue.builder()
+          .dataType("String")
+          .stringValue("change to incoming value")
+          .build()
 
-    val publishResult = topic.publish(
-      eventType = "commonplatform.case.received",
-      event = objectMapper.writeValueAsString(sqsMessage.message),
-      attributes = mapOf("messageType" to messageTypeValue, "hearingEventType" to hearingEventTypeValue),
-    )
-
-    return publishResult.messageId()
+      topic.publish(
+        eventType = "commonplatform.case.received",
+        event = objectMapper.writeValueAsString(sqsMessage.message),
+        attributes = mapOf("messageType" to messageTypeValue, "hearingEventType" to hearingEventTypeValue),
+      )
+    }
   }
 
   private fun processCommonPlatformPerson(defendant: Defendant, sqsMessage: SQSMessage) {
@@ -163,8 +172,6 @@ class CourtEventProcessor(
   }
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
-    // TODO republish to topic
-
     publishMessage(sqsMessage)
 
     val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(sqsMessage.message)

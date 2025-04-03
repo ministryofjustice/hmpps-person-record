@@ -111,3 +111,5 @@ populate-person-match:
 
 aws:
   region-name: eu-west-2
+
+publish-to-court-topic: false
