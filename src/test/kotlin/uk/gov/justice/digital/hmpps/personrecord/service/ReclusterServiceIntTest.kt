@@ -303,8 +303,11 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       cluster1.assertClusterIsOfSize(3)
       cluster2.assertClusterIsOfSize(0)
+
       cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
       cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+
+      cluster2.assertMergedTo(cluster1)
     }
 
     @Test
@@ -333,8 +336,11 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       cluster1.assertClusterIsOfSize(4)
       cluster2.assertClusterIsOfSize(0)
+
       cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
       cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+
+      cluster2.assertMergedTo(cluster1)
     }
 
     @Test
@@ -368,6 +374,9 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
       cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
       cluster3.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+
+      cluster2.assertMergedTo(cluster1)
+      cluster3.assertMergedTo(cluster1)
     }
 
     @Test
@@ -400,6 +409,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
       cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+
       cluster2.assertMergedTo(cluster1)
     }
   }
@@ -408,7 +418,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
   private fun PersonKeyEntity.assertClusterStatus(status: UUIDStatusType) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.status).isEqualTo(status) }
 
-  private fun PersonKeyEntity.assertMergedTo(mergedCluster: PersonKeyEntity) = awaitAssert { assertThat(this.mergedTo).isEqualTo(mergedCluster.id) }
+  private fun PersonKeyEntity.assertMergedTo(mergedCluster: PersonKeyEntity) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.mergedTo).isEqualTo(mergedCluster.id) }
 
   private fun createRandomProbationPersonDetails(): Person = Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn())))
 }
