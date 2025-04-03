@@ -164,6 +164,9 @@ class CourtEventProcessor(
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
     // TODO republish to topic
+
+    publishMessage(sqsMessage)
+
     val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(sqsMessage.message)
     when {
       isLibraPerson(libraHearingEvent) -> processLibraPerson(libraHearingEvent, sqsMessage)
