@@ -61,10 +61,8 @@ class ReclusterService(
     from.status = UUIDStatusType.RECLUSTER_MERGE
     personKeyRepository.save(from)
 
-    from.personEntities.forEach { personEntity ->
-      personEntity.personKey = to
-      personRepository.save(personEntity)
-    }
+    from.personEntities.forEach { personEntity -> personEntity.personKey = to }
+    personRepository.saveAll(from.personEntities)
   }
 
   private fun handleUnmatchedRecords(clusterDetails: ClusterDetails) {
