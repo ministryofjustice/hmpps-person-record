@@ -43,6 +43,28 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
           .withRequestBody(equalToJson("""["${personA.matchId}", "${personB.matchId}"]""")),
       )
     }
+
+    @Test
+    fun `should process isClusterValid response`() {
+      val personA = createPerson(createExamplePerson())
+      val personB = createPerson(createExamplePerson())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+
+      stubPostRequest(
+        url = "/is-cluster-valid",
+        status = 200,
+        responseBody = """
+          {
+            "isClusterValid": true,
+            "clusters": [["${personA.matchId}", "${personB.matchId}"]]
+          }
+        """.trimIndent(),
+      )
+
+      personMatchService.examineIsClusterValid(cluster)
+    }
   }
 
   @Nested
