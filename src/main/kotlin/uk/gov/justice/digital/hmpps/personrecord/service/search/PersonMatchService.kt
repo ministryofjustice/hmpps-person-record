@@ -4,7 +4,6 @@ import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -127,8 +126,10 @@ class PersonMatchService(
   }
 
   private suspend fun checkClusterIsValid(cluster: PersonKeyEntity): Result<IsClusterValidResponse> = runCatching {
-    retryExecutor.runWithRetryHTTP { personMatchClient.isClusterValid(IsClusterValidRequest.from(cluster)) }
+    retryExecutor.runWithRetryHTTP { personMatchClient.isClusterValid(cluster.getRecordsMatchIds()) }
   }
+
+  private fun PersonKeyEntity.getRecordsMatchIds(): List<String> = this.personEntities.map { it.matchId.toString() }
 
   private companion object {
     const val THRESHOLD_SCORE = 0.999
