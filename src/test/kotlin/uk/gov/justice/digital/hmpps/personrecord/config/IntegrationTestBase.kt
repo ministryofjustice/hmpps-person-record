@@ -166,21 +166,23 @@ class IntegrationTestBase {
   }
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
-    sourceRecord.overrideMarkers.add(
+    val source = personRepository.findByMatchId(sourceRecord.matchId)
+    source?.overrideMarkers?.add(
       OverrideMarkerEntity(
         markerType = EXCLUDE,
         markerValue = excludingRecord.id,
         person = sourceRecord,
       ),
     )
-    excludingRecord.overrideMarkers.add(
+    val target = personRepository.findByMatchId(sourceRecord.matchId)
+    target?.overrideMarkers?.add(
       OverrideMarkerEntity(
         markerType = EXCLUDE,
         markerValue = sourceRecord.id,
         person = excludingRecord,
       ),
     )
-    personRepository.saveAllAndFlush(listOf(sourceRecord, excludingRecord))
+    personRepository.saveAll(listOf(source, target))
   }
 
   internal fun stubNoMatchesPersonMatch(matchId: UUID? = null) = stubPersonMatchScores(matchId = matchId, personMatchResponse = emptyList())
