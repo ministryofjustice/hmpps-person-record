@@ -437,6 +437,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should publish incoming large message to court topic`() {
     val defendantId = randomDefendantId()
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
     val s3Key = UUID.randomUUID().toString()
 
     val incomingMessageFromS3 =
@@ -482,5 +484,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
     // TODO assert event type is correct
     assertThat(body.contains(defendantId)).isEqualTo(true)
+    checkTelemetry(
+      CPR_RECORD_CREATED,
+      mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
+    )
   }
 }

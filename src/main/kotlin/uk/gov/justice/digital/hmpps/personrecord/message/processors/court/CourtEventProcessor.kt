@@ -68,10 +68,10 @@ class CourtEventProcessor(
     // TODO feature flag
     if (messageLargerThanThreshold(commonPlatformHearing)) {
       runBlocking {
-        publishLargeMessage(sqsMessage)
+        publishLargeMessage(commonPlatformHearing)
       }
     } else {
-      publishMessage(sqsMessage) // TODO large messages
+      publishMessage(sqsMessage)
     }
 
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
@@ -87,7 +87,7 @@ class CourtEventProcessor(
     }
   }
 
-  suspend fun publishLargeMessage(sqsMessage: SQSMessage) {
+  suspend fun publishLargeMessage(commonPlatformHearing: String) {
     val snsExtendedAsyncClientConfiguration: SNSExtendedAsyncClientConfiguration = SNSExtendedAsyncClientConfiguration()
       .withPayloadSupportEnabled(s3AsyncClient, bucketName)
 
@@ -102,7 +102,7 @@ class CourtEventProcessor(
           "hearingEventType" to MessageAttributeValue.builder().dataType("String").stringValue("TODO fix me").build(),
           "eventType" to MessageAttributeValue.builder().dataType("String").stringValue("commonplatform.large.case.received").build(),
         ),
-      ).message(objectMapper.writeValueAsString(sqsMessage))
+      ).message(objectMapper.writeValueAsString(commonPlatformHearing))
         .build(),
     )
   }
