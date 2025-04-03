@@ -48,8 +48,10 @@ class ReclusterService(
   }
 
   private fun handleMergeClusters(clusterDetails: ClusterDetails) {
-    val matchedRecordsClusters: List<PersonKeyEntity> = clusterDetails.matchedRecords.groupBy { it.personKey!! }.map { it.key }
-    val returnedClustersFromMatcherScore = matchedRecordsClusters.filterNot { it.id == clusterDetails.changedRecord.personKey?.id }
+    val matchedRecordsClusters: List<PersonKeyEntity> =
+      clusterDetails.matchedRecords.groupBy { it.personKey!! }.map { it.key }.distinctBy { it.id }
+    val returnedClustersFromMatcherScore =
+      matchedRecordsClusters.filterNot { it.id == clusterDetails.changedRecord.personKey?.id }
     returnedClustersFromMatcherScore.forEach {
       mergeClusters(it, clusterDetails.cluster)
     }

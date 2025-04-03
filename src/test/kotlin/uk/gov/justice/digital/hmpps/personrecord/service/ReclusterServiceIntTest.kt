@@ -369,11 +369,46 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
       cluster3.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
     }
+
+    @Test
+    fun `should merge 2 active clusters when match score returns all records from the matched cluster`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val personD = createPerson(createRandomProbationPersonDetails())
+      val cluster2 = createPersonKey()
+        .addPerson(personC)
+        .addPerson(personD)
+
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = personA.matchId,
+        results = listOf(
+          personB.matchId,
+          personC.matchId,
+          personD.matchId,
+        ),
+      )
+
+      reclusterService.recluster(cluster1, changedRecord = personA)
+
+      cluster1.assertClusterIsOfSize(4)
+      cluster2.assertClusterIsOfSize(0)
+
+      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+      cluster2.assertMergedTo(cluster1)
+    }
   }
 
   private fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.personEntities?.size).isEqualTo(size) }
 
   private fun PersonKeyEntity.assertClusterStatus(status: UUIDStatusType) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.status).isEqualTo(status) }
+
+  private fun PersonKeyEntity.assertMergedTo(mergedCluster: PersonKeyEntity) = awaitAssert { assertThat(this.mergedTo).isEqualTo(mergedCluster.id) }
 
   private fun createRandomProbationPersonDetails(): Person = Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn())))
 }
