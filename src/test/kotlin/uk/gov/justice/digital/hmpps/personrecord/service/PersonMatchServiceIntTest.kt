@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
-import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
@@ -42,10 +41,11 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       personMatchService.examineIsClusterValid(cluster)
 
-      wiremock.verify(postRequestedFor(urlEqualTo("/is-cluster-valid"))
-        .withRequestBody(equalToJson("""["${personA.matchId}", "${personB.matchId}"]""")))
+      wiremock.verify(
+        postRequestedFor(urlEqualTo("/is-cluster-valid"))
+          .withRequestBody(equalToJson("""["${personA.matchId}", "${personB.matchId}"]""")),
+      )
     }
-
   }
 
   @Nested
