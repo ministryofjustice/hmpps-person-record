@@ -5,18 +5,21 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclusterval
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import kotlin.collections.groupBy
 
 @Component
 class ReclusterService(
   private val personMatchService: PersonMatchService,
   private val personKeyRepository: PersonKeyRepository,
   private val telemetryService: TelemetryService,
+  private val personRepository: PersonRepository,
 ) {
 
   fun recluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
@@ -40,7 +43,26 @@ class ReclusterService(
   private fun handleDiscrepancyOfMatchesToExistingRecords(clusterDetails: ClusterDetails) {
     when {
       clusterDetails.relationship.isSmaller() -> handleUnmatchedRecords(clusterDetails)
-      else -> return // CPR-617 Handle more high quality matches
+      else -> handleMergeClusters(clusterDetails) // CPR-617 Handle more high quality matches
+    }
+  }
+
+  private fun handleMergeClusters(clusterDetails: ClusterDetails) {
+    val matchedRecordsClusters: List<PersonKeyEntity> = clusterDetails.matchedRecords.groupBy { it.personKey!! }.map { it.key }
+    val returnedClustersFromMatcherScore = matchedRecordsClusters.filterNot { it.id == clusterDetails.changedRecord.personKey?.id }
+    returnedClustersFromMatcherScore.forEach {
+      mergeClusters(it, clusterDetails.cluster)
+    }
+  }
+
+  private fun mergeClusters(from: PersonKeyEntity, to: PersonKeyEntity) {
+    from.mergedTo = to.id
+    from.status = UUIDStatusType.RECLUSTER_MERGE
+    personKeyRepository.save(from)
+
+    from.personEntities.forEach { personEntity ->
+      personEntity.personKey = to
+      personRepository.save(personEntity)
     }
   }
 
