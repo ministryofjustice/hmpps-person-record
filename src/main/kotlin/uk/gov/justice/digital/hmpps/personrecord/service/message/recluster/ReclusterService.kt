@@ -43,14 +43,17 @@ class ReclusterService(
   private fun handleDiscrepancyOfMatchesToExistingRecords(clusterDetails: ClusterDetails) {
     when {
       clusterDetails.relationship.isSmaller() -> handleUnmatchedRecords(clusterDetails)
-      else -> handleMergeClusters(clusterDetails) // CPR-617 Handle more high quality matches
+      else -> handleMergeClusters(clusterDetails)
     }
   }
 
   private fun handleMergeClusters(clusterDetails: ClusterDetails) {
-    val matchedRecordsClusters: List<PersonKeyEntity> = clusterDetails.matchedRecords
-      .collectDistinctClusters()
-      .removeUpdatedCluster(cluster = clusterDetails.cluster)
+    val matchedRecordsClusters: List<PersonKeyEntity> =
+      clusterDetails.matchedRecords
+        .collectDistinctClusters()
+        .removeUpdatedCluster(cluster = clusterDetails.cluster)
+        .removeNeedsAttentionClusters()
+
     matchedRecordsClusters.forEach {
       mergeClusters(it, clusterDetails.cluster)
     }
@@ -92,7 +95,9 @@ class ReclusterService(
 
   private fun List<PersonKeyEntity>.removeUpdatedCluster(cluster: PersonKeyEntity) = this.filterNot { it.id == cluster.id }
 
+  private fun List<PersonKeyEntity>.removeNeedsAttentionClusters() = this.filterNot { clusterNeedsAttention(it) }
+
   private fun List<PersonEntity>.collectDistinctClusters(): List<PersonKeyEntity> = this.groupBy { it.personKey!! }.map { it.key }.distinctBy { it.id }
 
-  private fun clusterNeedsAttention(personKeyEntity: PersonKeyEntity?) = personKeyEntity?.status == UUIDStatusType.NEEDS_ATTENTION
+  private fun clusterNeedsAttention(personKeyEntity: PersonKeyEntity?): Boolean = personKeyEntity?.status == UUIDStatusType.NEEDS_ATTENTION
 }

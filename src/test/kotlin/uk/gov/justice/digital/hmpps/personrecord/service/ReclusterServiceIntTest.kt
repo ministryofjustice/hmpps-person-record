@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.Ignore
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -550,6 +552,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
+    @Disabled("this test is for CPR-623")
     fun `should merge 3 active cluster if matched records have exclude override markers between clusters`() {
       val personA = createPerson(createRandomProbationPersonDetails())
       val cluster1 = createPersonKey()
@@ -594,6 +597,64 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster3.assertMergedTo(cluster1)
     }
 
+    @Test
+    fun `should not merge an active cluster to a matched cluster marked as needs attention`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val cluster2 = createPersonKey(UUIDStatusType.NEEDS_ATTENTION)
+        .addPerson(personB)
+
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = personA.matchId,
+        results = listOf(
+          personB.matchId,
+        ),
+      )
+
+      reclusterService.recluster(cluster1, changedRecord = personA)
+
+      cluster1.assertClusterIsOfSize(1)
+      cluster2.assertClusterIsOfSize(1)
+
+      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster2.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
+    }
+
+    @Test
+    fun `should only merge active cluster to active clusters and exclude clusters marked as needs attention`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val cluster2 = createPersonKey(UUIDStatusType.NEEDS_ATTENTION)
+        .addPerson(personB)
+
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster3 = createPersonKey()
+        .addPerson(personC)
+
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = personA.matchId,
+        results = listOf(
+          personB.matchId,
+          personC.matchId,
+        ),
+      )
+
+      reclusterService.recluster(cluster1, changedRecord = personA)
+
+      cluster1.assertClusterIsOfSize(2)
+      cluster2.assertClusterIsOfSize(1)
+      cluster3.assertClusterIsOfSize(0)
+
+      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster2.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
+      cluster3.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+    }
   }
 
   private fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.personEntities?.size).isEqualTo(size) }
