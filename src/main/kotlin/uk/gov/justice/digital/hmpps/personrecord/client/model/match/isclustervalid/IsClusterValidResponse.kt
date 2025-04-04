@@ -2,14 +2,14 @@ package uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclusterva
 
 data class IsClusterValidResponse(
   val isClusterValid: Boolean,
-  val clusters: List<ValidCluster>,
+  val clusters: List<List<String>>,
 ) {
   companion object {
 
     fun IsClusterValidResponse.result(isValid: () -> Unit, isNotValid: (clusters: List<ValidCluster>) -> Unit) {
       when {
         this.isClusterValid -> isValid()
-        else -> isNotValid(this.clusters)
+        else -> isNotValid(this.clusters.map { cluster -> ValidCluster(cluster) })
       }
     }
   }

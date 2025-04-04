@@ -4,7 +4,6 @@ import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,8 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -45,6 +42,28 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         postRequestedFor(urlEqualTo("/is-cluster-valid"))
           .withRequestBody(equalToJson("""["${personA.matchId}", "${personB.matchId}"]""")),
       )
+    }
+
+    @Test
+    fun `should process isClusterValid response`() {
+      val personA = createPerson(createExamplePerson())
+      val personB = createPerson(createExamplePerson())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+
+      stubPostRequest(
+        url = "/is-cluster-valid",
+        status = 200,
+        responseBody = """
+          {
+            "isClusterValid": true,
+            "clusters": [["${personA.matchId}", "${personB.matchId}"]]
+          }
+        """.trimIndent(),
+      )
+
+      personMatchService.examineIsClusterValid(cluster)
     }
   }
 
@@ -104,6 +123,38 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
       val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
+
+      noCandidateFound(highConfidenceMatch)
+    }
+
+    @Test
+    fun `should not return high confidence match has been merged to another record`() {
+      val searchingRecord = createPerson(createExamplePerson())
+      createPersonKey()
+        .addPerson(searchingRecord)
+
+      val foundRecord = createPerson(createExamplePerson())
+      val mergedToRecord = createPerson(createExamplePerson())
+      createPersonKey()
+        .addPerson(foundRecord)
+        .addPerson(mergedToRecord)
+
+      mergeRecord(sourcePersonEntity = foundRecord, targetPersonEntity = mergedToRecord)
+
+      stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
+
+      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
+
+      noCandidateFound(highConfidenceMatch)
+    }
+
+    @Test
+    fun `should not return its self if person match sends it back`() {
+      val record = createPersonWithNewKey(createExamplePerson())
+
+      stubOnePersonMatchHighConfidenceMatch(matchId = record.matchId, matchedRecord = record.matchId)
+
+      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(record)
 
       noCandidateFound(highConfidenceMatch)
     }
@@ -182,11 +233,6 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
   @Nested
   inner class Telemetry {
 
-    @BeforeEach
-    fun beforeEach() {
-      telemetryRepository.deleteAllInBatch()
-    }
-
     @Test
     fun `should log candidate search summary with correct number of clusters`() {
       val searchingRecord = createPersonWithNewKey(createExamplePerson())
@@ -235,71 +281,12 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       checkTelemetry(
         CPR_CANDIDATE_RECORD_SEARCH,
         mapOf(
+          "MATCH_ID" to searchingRecord.matchId.toString(),
           "SOURCE_SYSTEM" to LIBRA.name,
           "RECORD_COUNT" to "6",
           "UUID_COUNT" to "2",
           "HIGH_CONFIDENCE_COUNT" to "4",
           "LOW_CONFIDENCE_COUNT" to "2",
-        ),
-      )
-    }
-
-    @Test
-    fun `should log candidate scores`() {
-      val searchingRecord = createPersonWithNewKey(createExamplePerson())
-
-      val highScoringRecordOne = createPersonWithNewKey(createExamplePerson())
-      val highScoringRecordTwo = createPersonWithNewKey(createExamplePerson())
-
-      stubXPersonMatchHighConfidenceMatches(
-        matchId = searchingRecord.matchId,
-        results = listOf(highScoringRecordOne.matchId, highScoringRecordTwo.matchId),
-      )
-
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
-
-      assertThat(highConfidenceMatch?.matchId).isEqualTo(highScoringRecordOne.matchId)
-
-      checkTelemetry(
-        CPR_MATCH_SCORE,
-        mapOf(
-          "PROBABILITY_SCORE" to "0.999999",
-          "MATCH_ID" to highScoringRecordOne.matchId.toString(),
-        ),
-      )
-      checkTelemetry(
-        CPR_MATCH_SCORE,
-        mapOf(
-          "PROBABILITY_SCORE" to "0.999999",
-          "MATCH_ID" to highScoringRecordTwo.matchId.toString(),
-        ),
-      )
-    }
-
-    @Test
-    fun `should log high confidence duplicate`() {
-      val searchingRecord = createPersonWithNewKey(createExamplePerson())
-
-      val highScoringRecordOne = createPersonWithNewKey(createExamplePerson())
-      val highScoringRecordTwo = createPersonWithNewKey(createExamplePerson())
-
-      stubXPersonMatchHighConfidenceMatches(
-        matchId = searchingRecord.matchId,
-        results = listOf(highScoringRecordOne.matchId, highScoringRecordTwo.matchId),
-      )
-
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
-
-      assertThat(highConfidenceMatch?.matchId).isEqualTo(highScoringRecordOne.matchId)
-
-      checkTelemetry(
-        CPR_MATCH_PERSON_DUPLICATE,
-        mapOf(
-          "PROBABILITY_SCORE" to "0.999999",
-          "MATCH_ID" to highScoringRecordTwo.matchId.toString(),
-          "C_ID" to highScoringRecordTwo.cId,
-          "UUID" to highScoringRecordTwo.personKey?.personId.toString(),
-          "SOURCE_SYSTEM" to "LIBRA",
         ),
       )
     }
