@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttributes
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
@@ -221,7 +222,12 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val libraMessage: String = sqsMessage?.message!!
 
+    val libraMessageAttributes: MessageAttributes? = sqsMessage.messageAttributes
+
     assertThat(libraMessage.contains(cId)).isEqualTo(true)
+
+    assertThat(libraMessageAttributes?.hearingEventType).isNull()
+    assertThat(libraMessageAttributes?.messageType?.value).isEqualTo(LIBRA_COURT_CASE.name)
 
     checkTelemetry(
       CPR_RECORD_CREATED,

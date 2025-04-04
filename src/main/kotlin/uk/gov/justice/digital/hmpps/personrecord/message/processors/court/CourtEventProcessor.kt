@@ -132,7 +132,7 @@ class CourtEventProcessor(
       val attributes = mutableMapOf(
         "messageType" to MessageAttributeValue.builder()
           .dataType("String")
-          .stringValue("COMMON_PLATFORM_HEARING") // TODO
+          .stringValue(sqsMessage.getMessageType())
           .build(),
       )
 

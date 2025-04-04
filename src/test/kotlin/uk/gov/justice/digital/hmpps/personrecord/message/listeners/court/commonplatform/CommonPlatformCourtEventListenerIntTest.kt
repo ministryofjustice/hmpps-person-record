@@ -17,6 +17,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttributes
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
@@ -425,7 +426,11 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(sqsMessage?.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
     val commonPlatformHearing: String = sqsMessage?.message!!
 
+    val commonPlatformHearingAttributes: MessageAttributes? = sqsMessage?.messageAttributes
+
     assertThat(commonPlatformHearing.contains(defendantId)).isEqualTo(true)
+
+    assertThat(commonPlatformHearingAttributes?.messageType?.value).isEqualTo(COMMON_PLATFORM_HEARING.name)
 
     checkTelemetry(
       CPR_RECORD_CREATED,
