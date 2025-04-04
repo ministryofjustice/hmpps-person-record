@@ -5,18 +5,21 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclusterval
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import kotlin.collections.groupBy
 
 @Component
 class ReclusterService(
   private val personMatchService: PersonMatchService,
   private val personKeyRepository: PersonKeyRepository,
   private val telemetryService: TelemetryService,
+  private val personRepository: PersonRepository,
 ) {
 
   fun recluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
@@ -40,8 +43,29 @@ class ReclusterService(
   private fun handleDiscrepancyOfMatchesToExistingRecords(clusterDetails: ClusterDetails) {
     when {
       clusterDetails.relationship.isSmaller() -> handleUnmatchedRecords(clusterDetails)
-      else -> return // CPR-617 Handle more high quality matches
+      else -> handleMergeClusters(clusterDetails)
     }
+  }
+
+  private fun handleMergeClusters(clusterDetails: ClusterDetails) {
+    val matchedRecordsClusters: List<PersonKeyEntity> =
+      clusterDetails.matchedRecords
+        .collectDistinctClusters()
+        .removeUpdatedCluster(cluster = clusterDetails.cluster)
+        .getActiveClusters()
+
+    matchedRecordsClusters.forEach {
+      mergeClusters(it, clusterDetails.cluster)
+    }
+  }
+
+  private fun mergeClusters(from: PersonKeyEntity, to: PersonKeyEntity) {
+    from.mergedTo = to.id
+    from.status = UUIDStatusType.RECLUSTER_MERGE
+    personKeyRepository.save(from)
+
+    from.personEntities.forEach { personEntity -> personEntity.personKey = to }
+    personRepository.saveAll(from.personEntities)
   }
 
   private fun handleUnmatchedRecords(clusterDetails: ClusterDetails) {
@@ -69,5 +93,11 @@ class ReclusterService(
     personKeyRepository.save(cluster)
   }
 
-  private fun clusterNeedsAttention(personKeyEntity: PersonKeyEntity?) = personKeyEntity?.status == UUIDStatusType.NEEDS_ATTENTION
+  private fun List<PersonKeyEntity>.removeUpdatedCluster(cluster: PersonKeyEntity) = this.filterNot { it.id == cluster.id }
+
+  private fun List<PersonKeyEntity>.getActiveClusters() = this.filter { it.status == UUIDStatusType.ACTIVE }
+
+  private fun List<PersonEntity>.collectDistinctClusters(): List<PersonKeyEntity> = this.groupBy { it.personKey!! }.map { it.key }.distinctBy { it.id }
+
+  private fun clusterNeedsAttention(personKeyEntity: PersonKeyEntity?): Boolean = personKeyEntity?.status == UUIDStatusType.NEEDS_ATTENTION
 }
