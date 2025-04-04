@@ -454,7 +454,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
       ).toByteArray(Charset.forName("UTF8"))
 
-    assertThat(incomingMessageFromS3.size).isGreaterThan(262144)
+    assertThat(incomingMessageFromS3.size).isGreaterThan(256 * 1024)
 
     val putObjectRequest = PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
 
