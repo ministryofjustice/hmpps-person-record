@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Ignore
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -711,7 +710,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
       cluster2.assertClusterStatus(UUIDStatusType.MERGED)
     }
-
   }
 
   private fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.personEntities?.size).isEqualTo(size) }
