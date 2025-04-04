@@ -151,7 +151,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       cluster.assertClusterNotChanged(size = 3)
     }
-
   }
 
   @Nested
