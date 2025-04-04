@@ -25,11 +25,6 @@ hmpps.sqs:
       subscribeTopicId: courtcasestopic
       dlqName: cpr_court_cases_queue_dlq.fifo
       dlqMaxReceiveCount: 1
-    testcourtcasesqueue:
-      queueName: test_only_cpr_court_cases_queue
-      subscribeTopicId: cprcourtcasestopic
-      dlqName: test_only_cpr_court_cases_queue_dlq
-      dlqMaxReceiveCount: 1
     cprdeliusoffendereventsqueue:
       queueName: cpr_delius_offender_events_queue
       dlqName: cpr_delius_offender_events_queue_dlq
