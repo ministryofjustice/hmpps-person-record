@@ -69,12 +69,9 @@ class CourtEventProcessor(
       else -> sqsMessage.message
     }
 
-    if (messageLargerThanThreshold(commonPlatformHearing)) {
-      runBlocking {
-        publishLargeMessage(commonPlatformHearing, sqsMessage)
-      }
-    } else {
-      publishMessage(sqsMessage)
+    when (messageLargerThanThreshold(commonPlatformHearing)) {
+      true -> publishLargeMessage(commonPlatformHearing, sqsMessage)
+      else -> publishMessage(sqsMessage)
     }
 
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
@@ -90,7 +87,7 @@ class CourtEventProcessor(
     }
   }
 
-  suspend fun publishLargeMessage(commonPlatformHearing: String, sqsMessage: SQSMessage) {
+  fun publishLargeMessage(commonPlatformHearing: String, sqsMessage: SQSMessage) = runBlocking {
     if (publishToCourtTopic) {
       val snsExtendedAsyncClientConfiguration: SNSExtendedAsyncClientConfiguration =
         SNSExtendedAsyncClientConfiguration()
