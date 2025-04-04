@@ -48,6 +48,15 @@ class CourtEventProcessor(
     hmppsQueueService.findByTopicId("cprcourtcasestopic")
       ?: throw MissingTopicException("Could not find topic ")
 
+  private val snsExtendedAsyncClientConfiguration: SNSExtendedAsyncClientConfiguration =
+    SNSExtendedAsyncClientConfiguration()
+      .withPayloadSupportEnabled(s3AsyncClient, bucketName)
+
+  private val snsExtendedClient = AmazonSNSExtendedAsyncClient(
+    topic.snsClient,
+    snsExtendedAsyncClientConfiguration,
+  )
+
   companion object {
     const val MAX_MESSAGE_SIZE = 256 * 1024
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -89,19 +98,14 @@ class CourtEventProcessor(
 
   fun publishLargeMessage(commonPlatformHearing: String, sqsMessage: SQSMessage) = runBlocking {
     if (publishToCourtTopic) {
-      val snsExtendedAsyncClientConfiguration: SNSExtendedAsyncClientConfiguration =
-        SNSExtendedAsyncClientConfiguration()
-          .withPayloadSupportEnabled(s3AsyncClient, bucketName)
-
       val attributes = mutableMapOf(
-        "messageType" to MessageAttributeValue.builder().dataType("String").stringValue("COMMON_PLATFORM_HEARING")
+        "messageType" to MessageAttributeValue.builder().dataType("String").stringValue(sqsMessage.messageAttributes?.messageType?.value)
           .build(),
         "eventType" to MessageAttributeValue.builder().dataType("String")
           .stringValue("commonplatform.large.case.received").build(),
       )
 
       sqsMessage.getHearingEventType()?.let {
-        // Only present on COMMON PLATFORM cases
         val hearingEventTypeValue =
           MessageAttributeValue.builder()
             .dataType("String")
@@ -110,10 +114,6 @@ class CourtEventProcessor(
         attributes.put("hearingEventType", hearingEventTypeValue)
       }
 
-      val snsExtendedClient = AmazonSNSExtendedAsyncClient(
-        topic.snsClient,
-        snsExtendedAsyncClientConfiguration,
-      )
       snsExtendedClient.publish(
         PublishRequest.builder().topicArn(topic.arn).messageAttributes(
           attributes,
@@ -133,7 +133,6 @@ class CourtEventProcessor(
       )
 
       sqsMessage.getHearingEventType()?.let {
-        // Only present on COMMON PLATFORM cases
         val hearingEventTypeValue =
           MessageAttributeValue.builder()
             .dataType("String")
