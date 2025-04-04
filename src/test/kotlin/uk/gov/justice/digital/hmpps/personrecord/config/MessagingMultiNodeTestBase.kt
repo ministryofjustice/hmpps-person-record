@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.message.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.HmppsQueue
@@ -44,6 +45,10 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId(Queues.COURT_CASES_QUEUE_ID)
   }
 
+  val testOnlyCourtEventsQueue by lazy {
+    hmppsQueueService.findByQueueId("testcourtcasesqueue")
+  }
+
   val probationEventsQueue by lazy {
     hmppsQueueService.findByQueueId(Queues.PROBATION_EVENT_QUEUE_ID)
   }
@@ -64,29 +69,44 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId(Queues.PRISON_MERGE_EVENT_QUEUE_ID)
   }
 
-  internal fun publishLibraMessage(message: String): String = publishCourtMessage(message, LIBRA_COURT_CASE, "libra.case.received")
+  internal fun publishLibraMessage(message: String): String = publishCourtMessage(message, LIBRA_COURT_CASE, "libra.case.received", null)
 
-  internal fun publishCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.case.received")
+  internal fun publishCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.case.received", "ConfirmedOrUpdated")
 
-  internal fun publishLargeCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.large.case.received")
+  internal fun publishLargeCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, LARGE_CASE_EVENT_TYPE, "ConfirmedOrUpdated")
 
-  private fun publishCourtMessage(message: String, messageType: MessageType, eventType: String): String {
+  private fun publishCourtMessage(message: String, messageType: MessageType, eventType: String, hearingEventType: String?): String {
+    val attributes = mutableMapOf(
+      "messageType" to MessageAttributeValue.builder().dataType("String")
+        .stringValue(messageType.name).build(),
+      "eventType" to MessageAttributeValue.builder().dataType("String")
+        .stringValue(eventType).build(),
+      "messageId" to MessageAttributeValue.builder().dataType("String")
+        .stringValue(UUID.randomUUID().toString()).build(),
+    )
+    hearingEventType?.let {
+      val hearingEventTypeValue =
+        MessageAttributeValue.builder()
+          .dataType("String")
+          .stringValue(hearingEventType)
+          .build()
+      attributes.put("hearingEventType", hearingEventTypeValue)
+    }
     val publishResponse = courtEventsTopic?.publish(
       eventType = messageType.name,
       event = message,
-      attributes = mapOf(
-        "messageType" to MessageAttributeValue.builder().dataType("String")
-          .stringValue(messageType.name).build(),
-        "eventType" to MessageAttributeValue.builder().dataType("String")
-          .stringValue(eventType).build(),
-        "messageId" to MessageAttributeValue.builder().dataType("String")
-          .stringValue(UUID.randomUUID().toString()).build(),
-      ),
+      attributes = attributes,
       messageGroupId = messageType.name,
     )
 
     expectNoMessagesOn(courtEventsQueue)
     return publishResponse!!.messageId()
+  }
+
+  fun expectOneMessageOn(queue: HmppsQueue?) {
+    await untilCallTo {
+      queue?.sqsClient?.countMessagesOnQueue(queue.queueUrl)?.get()
+    } matches { it == 1 }
   }
 
   fun expectNoMessagesOn(queue: HmppsQueue?) {
@@ -237,6 +257,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     purgeQueueAndDlq(probationDeleteEventsQueue)
     purgeQueueAndDlq(prisonEventsQueue)
     purgeQueueAndDlq(prisonMergeEventsQueue)
+    purgeQueueAndDlq(testOnlyCourtEventsQueue)
   }
 
   fun purgeQueueAndDlq(hmppsQueue: HmppsQueue?) {

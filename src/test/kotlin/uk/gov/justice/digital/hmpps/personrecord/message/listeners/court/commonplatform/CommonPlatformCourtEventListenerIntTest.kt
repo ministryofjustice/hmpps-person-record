@@ -1,17 +1,26 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.commonplatform
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import software.amazon.awssdk.core.async.AsyncRequestBody
+import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttributes
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
+import uk.gov.justice.digital.hmpps.personrecord.message.LARGE_CASE_EVENT_TYPE
+import uk.gov.justice.digital.hmpps.personrecord.message.processors.court.LargeMessageBody
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
@@ -29,6 +38,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupContact
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
@@ -38,6 +48,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import java.nio.charset.Charset
 import java.util.UUID
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -391,5 +402,84 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     awaitAssert { assertThat(personRepository.findByDefendantId(defendantId)).isNull() }
+  }
+
+  @Test
+  fun `should publish incoming event to court topic`() {
+    val defendantId = randomDefendantId()
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId))),
+    )
+
+    expectOneMessageOn(testOnlyCourtEventsQueue)
+
+    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
+
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
+    assertThat(sqsMessage?.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
+    val commonPlatformHearing: String = sqsMessage?.message!!
+
+    val commonPlatformHearingAttributes: MessageAttributes? = sqsMessage.messageAttributes
+
+    assertThat(commonPlatformHearing.contains(defendantId)).isEqualTo(true)
+
+    assertThat(commonPlatformHearingAttributes?.messageType?.value).isEqualTo(COMMON_PLATFORM_HEARING.name)
+
+    checkTelemetry(
+      CPR_RECORD_CREATED,
+      mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
+    )
+  }
+
+  @Test
+  fun `should publish incoming large message to CPR court topic`() {
+    val defendantId = randomDefendantId()
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+    val s3Key = UUID.randomUUID().toString()
+
+    val incomingMessageFromS3 =
+      largeCommonPlatformHearing(defendantId).toByteArray(Charset.forName("UTF8"))
+
+    assertThat(incomingMessageFromS3.size).isGreaterThan(256 * 1024)
+
+    val putObjectRequest = PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
+
+    runBlocking {
+      s3AsyncClient.putObject(putObjectRequest, AsyncRequestBody.fromBytes(incomingMessageFromS3))
+    }
+
+    publishLargeCommonPlatformMessage(
+      largeCommonPlatformMessage(s3Key, s3Bucket),
+    )
+
+    expectOneMessageOn(testOnlyCourtEventsQueue)
+
+    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
+
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
+
+    val messageBody = objectMapper.readValue(sqsMessage?.message, ArrayList::class.java)
+    val message = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
+    assertThat(sqsMessage?.messageAttributes?.eventType).isEqualTo(MessageAttribute(LARGE_CASE_EVENT_TYPE))
+    assertThat(sqsMessage?.messageAttributes?.hearingEventType).isEqualTo(MessageAttribute("ConfirmedOrUpdated"))
+    val getRequest =
+      GetObjectRequest.builder().key(message.s3Key).bucket(message.s3BucketName).build()
+
+    val body = runBlocking {
+      s3AsyncClient.getObject(
+        getRequest,
+        AsyncResponseTransformer.toBytes(),
+      ).join().asUtf8String()
+    }
+    assertThat(body.contains(defendantId)).isEqualTo(true)
+
+    checkTelemetry(
+      CPR_RECORD_CREATED,
+      mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
+    )
   }
 }

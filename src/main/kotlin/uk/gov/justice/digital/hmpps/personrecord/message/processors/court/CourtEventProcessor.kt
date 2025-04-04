@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.services.s3.S3AsyncClient
@@ -16,6 +17,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraH
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.message.CourtMessagePublisher
+import uk.gov.justice.digital.hmpps.personrecord.message.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
@@ -29,10 +32,14 @@ class CourtEventProcessor(
   private val createUpdateService: CreateUpdateService,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
+  @Value("\${publish-to-court-topic}")
+  private val publishToCourtTopic: Boolean,
+  private val courtMessagePublisher: CourtMessagePublisher,
   private val s3AsyncClient: S3AsyncClient,
 ) {
 
   companion object {
+    const val MAX_MESSAGE_SIZE = 256 * 1024
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
@@ -51,6 +58,13 @@ class CourtEventProcessor(
       isLargeMessage(sqsMessage) -> runBlocking { getPayloadFromS3(sqsMessage) }
       else -> sqsMessage.message
     }
+    if (publishToCourtTopic) {
+      when (messageLargerThanThreshold(commonPlatformHearing)) {
+        true -> courtMessagePublisher.publishLargeMessage(commonPlatformHearing, sqsMessage)
+        else -> courtMessagePublisher.publishMessage(sqsMessage)
+      }
+    }
+
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
 
     val uniquePersonDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
@@ -82,7 +96,9 @@ class CourtEventProcessor(
     }
   }
 
-  private fun isLargeMessage(sqsMessage: SQSMessage) = sqsMessage.getEventType() == "commonplatform.large.case.received"
+  private fun isLargeMessage(sqsMessage: SQSMessage) = sqsMessage.getEventType() == LARGE_CASE_EVENT_TYPE
+
+  private fun messageLargerThanThreshold(message: String): Boolean = message.toByteArray().size >= MAX_MESSAGE_SIZE
 
   private suspend fun getPayloadFromS3(sqsMessage: SQSMessage): String {
     val messageBody = objectMapper.readValue(sqsMessage.message, ArrayList::class.java)
@@ -96,6 +112,9 @@ class CourtEventProcessor(
   }
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
+    if (publishToCourtTopic) {
+      courtMessagePublisher.publishMessage(sqsMessage)
+    }
     val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(sqsMessage.message)
     when {
       isLibraPerson(libraHearingEvent) -> processLibraPerson(libraHearingEvent, sqsMessage)

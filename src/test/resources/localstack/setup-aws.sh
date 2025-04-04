@@ -8,6 +8,7 @@ export PAGER=
 
 # Create the bucket
 aws s3 --endpoint-url=http://localhost:4566 --region eu-west-2 ls s3://local-court-message-bucket || aws --endpoint-url=http://localhost:4566 --region=eu-west-2 s3 mb s3://local-court-message-bucket
+aws s3 --endpoint-url=http://localhost:4566 --region eu-west-2 ls s3://cpr-local-court-message-bucket || aws --endpoint-url=http://localhost:4566 --region=eu-west-2 s3 mb s3://cpr-local-court-message-bucket
 
 echo "S3 Configured"
 

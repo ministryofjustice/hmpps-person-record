@@ -19,11 +19,14 @@ data class SQSMessage(
 ) {
   fun getMessageType(): String? = messageAttributes?.messageType?.value
   fun getEventType(): String? = messageAttributes?.eventType?.value
+  fun getHearingEventType(): String? = messageAttributes?.hearingEventType?.value
 }
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class MessageAttributes(
   val eventType: MessageAttribute?,
   val messageType: MessageAttribute?,
+  val hearingEventType: MessageAttribute?,
 )
 
 data class MessageAttribute(

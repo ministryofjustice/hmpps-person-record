@@ -1,9 +1,12 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.libra
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
@@ -178,6 +181,40 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to LIBRA.name,
       ),
       times = 0,
+    )
+  }
+
+  @Test
+  fun `should publish incoming event to court topic`() {
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+
+    val firstName = randomName()
+    val lastName = randomName() + "'apostrophe"
+    val postcode = randomPostcode()
+    val pnc = randomPnc()
+    val dateOfBirth = randomDate()
+    val cId = randomCId()
+
+    publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode))
+
+    expectOneMessageOn(testOnlyCourtEventsQueue)
+
+    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
+
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
+
+    val libraMessage: String = sqsMessage?.message!!
+
+    assertThat(libraMessage.contains(cId)).isEqualTo(true)
+
+    assertThat(sqsMessage.getHearingEventType()).isNull()
+    assertThat(sqsMessage.getEventType()).isEqualTo("libra.case.received")
+    assertThat(sqsMessage.getMessageType()).isEqualTo(LIBRA_COURT_CASE.name)
+
+    checkTelemetry(
+      CPR_RECORD_CREATED,
+      mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId),
     )
   }
 }

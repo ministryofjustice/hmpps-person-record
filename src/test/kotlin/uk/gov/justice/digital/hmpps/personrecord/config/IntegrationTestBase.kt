@@ -216,7 +216,7 @@ class IntegrationTestBase {
     },
   )
 
-  internal fun stubPersonMatchScores(matchId: UUID? = null, personMatchResponse: List<PersonMatchScore> = listOf(), scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200) {
+  internal fun stubPersonMatchScores(matchId: UUID? = null, personMatchResponse: List<PersonMatchScore> = emptyList(), scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200) {
     val matchIdUrlPattern: UrlPattern = matchId?.let { urlEqualTo("/person/score/$it") } ?: urlPathMatching("/person/score/.*") // Regex to match any matchId, as not known on create
     stubGetRequest(
       scenario,
@@ -272,18 +272,20 @@ class IntegrationTestBase {
     )
   }
 
-  fun stubGetRequestWithTimeout(url: String, currentScenarioState: String, nextScenarioState: String) = wiremock.stubFor(
-    WireMock.get(url)
-      .inScenario(BASE_SCENARIO)
-      .whenScenarioStateIs(currentScenarioState)
-      .willSetStateTo(nextScenarioState)
-      .willReturn(
-        WireMock.aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withStatus(200)
-          .withFixedDelay(210),
-      ),
-  )
+  fun stubGetRequestWithTimeout(url: String, currentScenarioState: String, nextScenarioState: String) {
+    wiremock.stubFor(
+      WireMock.get(url)
+        .inScenario(BASE_SCENARIO)
+        .whenScenarioStateIs(currentScenarioState)
+        .willSetStateTo(nextScenarioState)
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(200)
+            .withFixedDelay(210),
+        ),
+    )
+  }
 
   internal fun stubGetRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String, status: Int = 200) {
     stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, urlEqualTo(url), body, status)
