@@ -42,7 +42,7 @@ class CourtMessagePublisher(
       "messageType" to MessageAttributeValue.builder().dataType("String").stringValue(sqsMessage.getMessageType())
         .build(),
       "eventType" to MessageAttributeValue.builder().dataType("String")
-        .stringValue("commonplatform.large.case.received").build(),
+        .stringValue("commonplatform.large.case.received").build(), // to enum
     )
 
     sqsMessage.getHearingEventType()?.let {
@@ -61,6 +61,7 @@ class CourtMessagePublisher(
         .build(),
     )
   }
+
   fun publishMessage(sqsMessage: SQSMessage) {
     val attributes = mutableMapOf(
       "messageType" to MessageAttributeValue.builder()
@@ -79,7 +80,7 @@ class CourtMessagePublisher(
     }
 
     topic.publish(
-      eventType = "commonplatform.case.received",
+      eventType = sqsMessage.getEventType()!!,
       event = objectMapper.writeValueAsString(sqsMessage.message),
       attributes = attributes,
     )
