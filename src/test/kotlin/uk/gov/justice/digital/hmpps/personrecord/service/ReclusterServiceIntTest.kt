@@ -657,6 +657,63 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
     }
   }
 
+  @Nested
+  inner class RaceConditions {
+
+    @Test
+    fun `should not merge an active cluster to a matched cluster marked as recluster merge`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val cluster2 = createPersonKey(UUIDStatusType.RECLUSTER_MERGE)
+        .addPerson(personB)
+
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = personA.matchId,
+        results = listOf(
+          personB.matchId,
+        ),
+      )
+
+      reclusterService.recluster(cluster1, changedRecord = personA)
+
+      cluster1.assertClusterIsOfSize(1)
+      cluster2.assertClusterIsOfSize(1)
+
+      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+    }
+
+    @Test
+    fun `should not merge an active cluster to a matched cluster marked as merged`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val cluster2 = createPersonKey(UUIDStatusType.MERGED)
+        .addPerson(personB)
+
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = personA.matchId,
+        results = listOf(
+          personB.matchId,
+        ),
+      )
+
+      reclusterService.recluster(cluster1, changedRecord = personA)
+
+      cluster1.assertClusterIsOfSize(1)
+      cluster2.assertClusterIsOfSize(1)
+
+      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster2.assertClusterStatus(UUIDStatusType.MERGED)
+    }
+
+  }
+
   private fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.personEntities?.size).isEqualTo(size) }
 
   private fun PersonKeyEntity.assertClusterStatus(status: UUIDStatusType) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.status).isEqualTo(status) }
