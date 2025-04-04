@@ -716,7 +716,16 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
   private fun PersonKeyEntity.assertClusterStatus(status: UUIDStatusType) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.status).isEqualTo(status) }
 
-  private fun PersonKeyEntity.assertMergedTo(mergedCluster: PersonKeyEntity) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.mergedTo).isEqualTo(mergedCluster.id) }
+  private fun PersonKeyEntity.assertMergedTo(mergedCluster: PersonKeyEntity) {
+    awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.mergedTo).isEqualTo(mergedCluster.id) }
+    checkTelemetry(
+      TelemetryEventType.CPR_RECLUSTER_MERGE,
+      mapOf(
+        "FROM_UUID" to this.personId.toString(),
+        "TO_UUID" to mergedCluster.personId.toString(),
+      ),
+    )
+  }
 
   private fun createRandomProbationPersonDetails(): Person = Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn())))
 }
