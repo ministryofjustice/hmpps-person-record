@@ -66,6 +66,14 @@ class ReclusterService(
 
     from.personEntities.forEach { personEntity -> personEntity.personKey = to }
     personRepository.saveAll(from.personEntities)
+
+    telemetryService.trackEvent(
+      TelemetryEventType.CPR_RECLUSTER_MERGE,
+      mapOf(
+        EventKeys.FROM_UUID to from.personId.toString(),
+        EventKeys.TO_UUID to to.personId.toString(),
+      ),
+    )
   }
 
   private fun handleUnmatchedRecords(clusterDetails: ClusterDetails) {
