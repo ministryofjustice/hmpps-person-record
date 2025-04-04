@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
@@ -167,14 +166,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         "CLUSTER_SIZE" to "1",
         "UUID" to personKeyEntity.personId.toString(),
       ),
-    )
-    checkTelemetry(
-      CPR_MATCH_PERSON_DUPLICATE,
-      mapOf(
-        "SOURCE_SYSTEM" to "DELIUS",
-        "PROBABILITY_SCORE" to "0.9999999",
-      ),
-      times = 0,
     )
 
     val personKey = personKeyRepository.findByPersonId(personKeyEntity.personId)

@@ -13,8 +13,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_PERSON_DUPLICATE
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MATCH_SCORE
 import java.util.UUID
 
 @Component
@@ -28,15 +26,13 @@ class PersonMatchService(
   fun findHighestConfidencePersonRecord(personEntity: PersonEntity) = findHighestConfidencePersonRecordsByProbabilityDesc(personEntity).firstOrNull()?.personEntity
 
   fun findHighestConfidencePersonRecordsByProbabilityDesc(personEntity: PersonEntity): List<PersonMatchResult> = runBlocking {
-    val personScores = handleCollectingPersonScores(personEntity)
-    val highConfidenceRecords = personScores
-      .removeLowQualityMatches()
-      .logCandidateScores()
+    val personScores = handleCollectingPersonScores(personEntity).removeSelf(personEntity)
+    val highConfidenceRecords = personScores.removeLowQualityMatches()
     val highConfidencePersonRecords = getPersonRecords(highConfidenceRecords)
       .allowMatchesWithUUID()
+      .removeMergedRecords()
       .removeMatchesWhereClusterHasExcludeMarker(personEntity.id)
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
-      .logHighConfidenceDuplicates()
       .sortedByDescending { it.probability }
     return@runBlocking highConfidencePersonRecords
   }
@@ -64,20 +60,9 @@ class PersonMatchService(
     )
   }
 
-  private fun List<PersonMatchScore>.removeLowQualityMatches(): List<PersonMatchScore> = this.filter { candidate -> isAboveThreshold(candidate.candidateMatchProbability) }
+  private fun List<PersonMatchScore>.removeSelf(personEntity: PersonEntity): List<PersonMatchScore> = this.filterNot { score -> score.candidateMatchId == personEntity.matchId.toString() }
 
-  private fun List<PersonMatchScore>.logCandidateScores(): List<PersonMatchScore> {
-    this.forEach { candidate ->
-      telemetryService.trackEvent(
-        CPR_MATCH_SCORE,
-        mapOf(
-          EventKeys.PROBABILITY_SCORE to candidate.candidateMatchProbability.toString(),
-          EventKeys.MATCH_ID to candidate.candidateMatchId,
-        ),
-      )
-    }
-    return this
-  }
+  private fun List<PersonMatchScore>.removeLowQualityMatches(): List<PersonMatchScore> = this.filter { candidate -> isAboveThreshold(candidate.candidateMatchProbability) }
 
   private suspend fun getPersonScores(personEntity: PersonEntity): Result<List<PersonMatchScore>> = kotlin.runCatching {
     retryExecutor.runWithRetryHTTP { personMatchClient.getPersonScores(personEntity.matchId.toString()) }
@@ -86,6 +71,8 @@ class PersonMatchService(
   private fun isAboveThreshold(score: Float): Boolean = score >= THRESHOLD_SCORE
 
   private fun List<PersonMatchResult>.allowMatchesWithUUID(): List<PersonMatchResult> = this.filter { it.personEntity.personKey != PersonKeyEntity.empty }
+
+  private fun List<PersonMatchResult>.removeMergedRecords(): List<PersonMatchResult> = this.filter { it.personEntity.mergedTo == null }
 
   private fun List<PersonMatchResult>.removeMatchesWhereClusterHasExcludeMarker(personRecordId: Long?): List<PersonMatchResult> {
     val clusters: Map<UUID, List<PersonMatchResult>> = this.groupBy { it.personEntity.personKey?.personId!! }
@@ -108,20 +95,6 @@ class PersonMatchService(
         EventKeys.LOW_CONFIDENCE_COUNT to (totalNumberOfScores - this.count()).toString(),
       ),
     )
-    return this
-  }
-
-  private fun List<PersonMatchResult>.logHighConfidenceDuplicates(): List<PersonMatchResult> {
-    this.takeIf { this.size > 1 }?.forEach { candidate ->
-      telemetryService.trackPersonEvent(
-        CPR_MATCH_PERSON_DUPLICATE,
-        personEntity = candidate.personEntity,
-        mapOf(
-          EventKeys.PROBABILITY_SCORE to candidate.probability.toString(),
-          EventKeys.UUID to candidate.personEntity.personKey?.personId?.toString(),
-        ),
-      )
-    }
     return this
   }
 
