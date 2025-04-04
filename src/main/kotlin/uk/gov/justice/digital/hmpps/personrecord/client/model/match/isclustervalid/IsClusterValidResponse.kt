@@ -6,10 +6,10 @@ data class IsClusterValidResponse(
 ) {
   companion object {
 
-    fun IsClusterValidResponse.result(isValid: () -> Unit, isNotValid: (clusters: List<List<String>>) -> Unit) {
+    fun IsClusterValidResponse.result(isValid: () -> Unit, isNotValid: (clusters: List<ValidCluster>) -> Unit) {
       when {
         this.isClusterValid -> isValid()
-        else -> isNotValid(this.clusters)
+        else -> isNotValid(this.clusters.map { cluster -> ValidCluster(cluster) })
       }
     }
   }
