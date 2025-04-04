@@ -2,9 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.libra
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
@@ -30,7 +27,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.format.DateTimeFormatter
 
 class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -203,9 +199,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode))
 
-    await untilCallTo {
-      testOnlyCourtEventsQueue?.sqsClient?.countMessagesOnQueue(testOnlyCourtEventsQueue?.queueUrl!!)?.get()
-    } matches { it == 1 }
+    expectOneMessageOn(testOnlyCourtEventsQueue)
 
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 

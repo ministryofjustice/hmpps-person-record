@@ -84,7 +84,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         .stringValue(UUID.randomUUID().toString()).build(),
     )
     hearingEventType?.let {
-      // Only present on COMMON PLATFORM cases
       val hearingEventTypeValue =
         MessageAttributeValue.builder()
           .dataType("String")
@@ -101,6 +100,12 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
     expectNoMessagesOn(courtEventsQueue)
     return publishResponse!!.messageId()
+  }
+
+  fun expectOneMessageOn(queue: HmppsQueue?) {
+    await untilCallTo {
+      queue?.sqsClient?.countMessagesOnQueue(queue.queueUrl)?.get()
+    } matches { it == 1 }
   }
 
   fun expectNoMessagesOn(queue: HmppsQueue?) {

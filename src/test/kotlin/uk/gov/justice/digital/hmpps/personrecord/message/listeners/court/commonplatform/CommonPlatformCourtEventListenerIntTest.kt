@@ -3,9 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.common
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -49,7 +46,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.nio.charset.Charset
 import java.util.UUID
 
@@ -416,9 +412,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId))),
     )
 
-    await untilCallTo {
-      testOnlyCourtEventsQueue?.sqsClient?.countMessagesOnQueue(testOnlyCourtEventsQueue?.queueUrl!!)?.get()
-    } matches { it == 1 }
+    expectOneMessageOn(testOnlyCourtEventsQueue)
 
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
@@ -437,8 +431,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
   }
-
-  // TODO a test for when enriching the message with UUIDs makes it larger than 256KB
 
   @Test
   fun `should publish incoming large message to CPR court topic`() {
@@ -466,9 +458,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       largeCommonPlatformMessage(s3Key, s3Bucket),
     )
 
-    await untilCallTo {
-      testOnlyCourtEventsQueue?.sqsClient?.countMessagesOnQueue(testOnlyCourtEventsQueue?.queueUrl!!)?.get()
-    } matches { it == 1 }
+    expectOneMessageOn(testOnlyCourtEventsQueue)
 
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
