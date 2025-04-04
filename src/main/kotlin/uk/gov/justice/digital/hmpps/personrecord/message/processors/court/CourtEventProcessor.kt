@@ -97,19 +97,30 @@ class CourtEventProcessor(
         SNSExtendedAsyncClientConfiguration()
           .withPayloadSupportEnabled(s3AsyncClient, bucketName)
 
+      val attributes = mutableMapOf(
+        "messageType" to MessageAttributeValue.builder().dataType("String").stringValue("COMMON_PLATFORM_HEARING")
+          .build(),
+        "eventType" to MessageAttributeValue.builder().dataType("String")
+          .stringValue("commonplatform.large.case.received").build(),
+      )
+
+      sqsMessage.getHearingEventType()?.let {
+        // Only present on COMMON PLATFORM cases
+        val hearingEventTypeValue =
+          MessageAttributeValue.builder()
+            .dataType("String")
+            .stringValue(sqsMessage.getHearingEventType())
+            .build()
+        attributes.put("hearingEventType", hearingEventTypeValue)
+      }
+
       val snsExtendedClient = AmazonSNSExtendedAsyncClient(
         topic.snsClient,
         snsExtendedAsyncClientConfiguration,
       )
       snsExtendedClient.publish(
         PublishRequest.builder().topicArn(topic.arn).messageAttributes(
-          mapOf(
-            "messageType" to MessageAttributeValue.builder().dataType("String").stringValue("COMMON_PLATFORM_HEARING")
-              .build(),
-            "hearingEventType" to MessageAttributeValue.builder().dataType("String").stringValue(sqsMessage.getHearingEventType()).build(), // TODO check this will always be there
-            "eventType" to MessageAttributeValue.builder().dataType("String")
-              .stringValue("commonplatform.large.case.received").build(),
-          ),
+          attributes,
         ).message(objectMapper.writeValueAsString(commonPlatformHearing))
           .build(),
       )
