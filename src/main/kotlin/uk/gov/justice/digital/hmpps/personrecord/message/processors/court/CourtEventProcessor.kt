@@ -77,10 +77,11 @@ class CourtEventProcessor(
       isLargeMessage(sqsMessage) -> runBlocking { getPayloadFromS3(sqsMessage) }
       else -> sqsMessage.message
     }
-
-    when (messageLargerThanThreshold(commonPlatformHearing)) {
-      true -> publishLargeMessage(commonPlatformHearing, sqsMessage)
-      else -> publishMessage(sqsMessage)
+    if (publishToCourtTopic) {
+      when (messageLargerThanThreshold(commonPlatformHearing)) {
+        true -> publishLargeMessage(commonPlatformHearing, sqsMessage)
+        else -> publishMessage(sqsMessage)
+      }
     }
 
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
@@ -97,56 +98,52 @@ class CourtEventProcessor(
   }
 
   fun publishLargeMessage(commonPlatformHearing: String, sqsMessage: SQSMessage) = runBlocking {
-    if (publishToCourtTopic) {
-      val attributes = mutableMapOf(
-        "messageType" to MessageAttributeValue.builder().dataType("String").stringValue(sqsMessage.getMessageType())
-          .build(),
-        "eventType" to MessageAttributeValue.builder().dataType("String")
-          .stringValue("commonplatform.large.case.received").build(),
-      )
+    val attributes = mutableMapOf(
+      "messageType" to MessageAttributeValue.builder().dataType("String").stringValue(sqsMessage.getMessageType())
+        .build(),
+      "eventType" to MessageAttributeValue.builder().dataType("String")
+        .stringValue("commonplatform.large.case.received").build(),
+    )
 
-      sqsMessage.getHearingEventType()?.let {
-        val hearingEventTypeValue =
-          MessageAttributeValue.builder()
-            .dataType("String")
-            .stringValue(sqsMessage.getHearingEventType())
-            .build()
-        attributes.put("hearingEventType", hearingEventTypeValue)
-      }
-
-      snsExtendedClient.publish(
-        PublishRequest.builder().topicArn(topic.arn).messageAttributes(
-          attributes,
-        ).message(objectMapper.writeValueAsString(commonPlatformHearing))
-          .build(),
-      )
+    sqsMessage.getHearingEventType()?.let {
+      val hearingEventTypeValue =
+        MessageAttributeValue.builder()
+          .dataType("String")
+          .stringValue(sqsMessage.getHearingEventType())
+          .build()
+      attributes.put("hearingEventType", hearingEventTypeValue)
     }
+
+    snsExtendedClient.publish(
+      PublishRequest.builder().topicArn(topic.arn).messageAttributes(
+        attributes,
+      ).message(objectMapper.writeValueAsString(commonPlatformHearing))
+        .build(),
+    )
   }
 
   private fun publishMessage(sqsMessage: SQSMessage) {
-    if (publishToCourtTopic) {
-      val attributes = mutableMapOf(
-        "messageType" to MessageAttributeValue.builder()
+    val attributes = mutableMapOf(
+      "messageType" to MessageAttributeValue.builder()
+        .dataType("String")
+        .stringValue(sqsMessage.getMessageType())
+        .build(),
+    )
+
+    sqsMessage.getHearingEventType()?.let {
+      val hearingEventTypeValue =
+        MessageAttributeValue.builder()
           .dataType("String")
-          .stringValue(sqsMessage.getMessageType())
-          .build(),
-      )
-
-      sqsMessage.getHearingEventType()?.let {
-        val hearingEventTypeValue =
-          MessageAttributeValue.builder()
-            .dataType("String")
-            .stringValue(sqsMessage.getHearingEventType())
-            .build()
-        attributes.put("hearingEventType", hearingEventTypeValue)
-      }
-
-      topic.publish(
-        eventType = "commonplatform.case.received",
-        event = objectMapper.writeValueAsString(sqsMessage.message),
-        attributes = attributes,
-      )
+          .stringValue(sqsMessage.getHearingEventType())
+          .build()
+      attributes.put("hearingEventType", hearingEventTypeValue)
     }
+
+    topic.publish(
+      eventType = "commonplatform.case.received",
+      event = objectMapper.writeValueAsString(sqsMessage.message),
+      attributes = attributes,
+    )
   }
 
   private fun processCommonPlatformPerson(defendant: Defendant, sqsMessage: SQSMessage) {

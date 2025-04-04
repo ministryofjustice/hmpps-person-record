@@ -426,7 +426,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(sqsMessage?.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
     val commonPlatformHearing: String = sqsMessage?.message!!
 
-    val commonPlatformHearingAttributes: MessageAttributes? = sqsMessage?.messageAttributes
+    val commonPlatformHearingAttributes: MessageAttributes? = sqsMessage.messageAttributes
 
     assertThat(commonPlatformHearing.contains(defendantId)).isEqualTo(true)
 
