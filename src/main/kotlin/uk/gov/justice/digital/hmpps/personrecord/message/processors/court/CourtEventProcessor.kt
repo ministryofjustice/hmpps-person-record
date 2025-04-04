@@ -99,7 +99,7 @@ class CourtEventProcessor(
   fun publishLargeMessage(commonPlatformHearing: String, sqsMessage: SQSMessage) = runBlocking {
     if (publishToCourtTopic) {
       val attributes = mutableMapOf(
-        "messageType" to MessageAttributeValue.builder().dataType("String").stringValue(sqsMessage.messageAttributes?.messageType?.value)
+        "messageType" to MessageAttributeValue.builder().dataType("String").stringValue(sqsMessage.getMessageType())
           .build(),
         "eventType" to MessageAttributeValue.builder().dataType("String")
           .stringValue("commonplatform.large.case.received").build(),
