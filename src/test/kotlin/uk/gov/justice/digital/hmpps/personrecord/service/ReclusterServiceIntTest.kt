@@ -662,6 +662,47 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       cluster2.assertMergedTo(cluster1)
     }
+
+    @Test
+    fun `should merge to active cluster but not a needs attention cluster even if not all records matched but the cluster is valid`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      val personD = createPerson(createRandomProbationPersonDetails())
+      val cluster2 = createPersonKey()
+        .addPerson(personD)
+
+      val personE = createPerson(createRandomProbationPersonDetails())
+      val cluster3 = createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION)
+        .addPerson(personE)
+
+      stubClusterIsValid()
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = personA.matchId,
+        results = listOf(
+          personC.matchId,
+          personD.matchId,
+          personE.matchId,
+        ),
+      )
+
+      reclusterService.recluster(cluster1, changedRecord = personA)
+
+      cluster1.assertClusterIsOfSize(4)
+      cluster2.assertClusterIsOfSize(0)
+      cluster3.assertClusterIsOfSize(1)
+
+      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+      cluster3.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
+
+      cluster2.assertMergedTo(cluster1)
+    }
   }
 
   @Nested
