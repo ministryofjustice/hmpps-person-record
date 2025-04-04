@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Defend
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.CourtMessagePublisher
+import uk.gov.justice.digital.hmpps.personrecord.message.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
@@ -95,7 +96,7 @@ class CourtEventProcessor(
     }
   }
 
-  private fun isLargeMessage(sqsMessage: SQSMessage) = sqsMessage.getEventType() == "commonplatform.large.case.received"
+  private fun isLargeMessage(sqsMessage: SQSMessage) = sqsMessage.getEventType() == LARGE_CASE_EVENT_TYPE
 
   private fun messageLargerThanThreshold(message: String): Boolean = message.toByteArray().size >= MAX_MESSAGE_SIZE
 

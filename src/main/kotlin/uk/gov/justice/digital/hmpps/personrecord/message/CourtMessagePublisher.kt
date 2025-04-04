@@ -16,6 +16,8 @@ import uk.gov.justice.hmpps.sqs.MissingTopicException
 import uk.gov.justice.hmpps.sqs.publish
 import java.util.concurrent.CompletableFuture
 
+const val LARGE_CASE_EVENT_TYPE = "commonplatform.large.case.received"
+
 @Component
 class CourtMessagePublisher(
   s3AsyncClient: S3AsyncClient,
@@ -42,7 +44,7 @@ class CourtMessagePublisher(
       "messageType" to MessageAttributeValue.builder().dataType("String").stringValue(sqsMessage.getMessageType())
         .build(),
       "eventType" to MessageAttributeValue.builder().dataType("String")
-        .stringValue("commonplatform.large.case.received").build(), // to enum
+        .stringValue(LARGE_CASE_EVENT_TYPE).build(), // to enum
     )
 
     sqsMessage.getHearingEventType()?.let {
