@@ -52,7 +52,7 @@ class ReclusterService(
       clusterDetails.matchedRecords
         .collectDistinctClusters()
         .removeUpdatedCluster(cluster = clusterDetails.cluster)
-        .removeNeedsAttentionClusters()
+        .getActiveClusters()
 
     matchedRecordsClusters.forEach {
       mergeClusters(it, clusterDetails.cluster)
@@ -95,7 +95,7 @@ class ReclusterService(
 
   private fun List<PersonKeyEntity>.removeUpdatedCluster(cluster: PersonKeyEntity) = this.filterNot { it.id == cluster.id }
 
-  private fun List<PersonKeyEntity>.removeNeedsAttentionClusters() = this.filterNot { clusterNeedsAttention(it) }
+  private fun List<PersonKeyEntity>.getActiveClusters() = this.filter { it.status == UUIDStatusType.ACTIVE }
 
   private fun List<PersonEntity>.collectDistinctClusters(): List<PersonKeyEntity> = this.groupBy { it.personKey!! }.map { it.key }.distinctBy { it.id }
 
