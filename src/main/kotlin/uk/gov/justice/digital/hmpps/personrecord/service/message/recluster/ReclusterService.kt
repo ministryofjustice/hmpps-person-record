@@ -80,10 +80,8 @@ class ReclusterService(
     when {
       clusterDetails.matchedRecords.isEmpty() -> handleInvalidClusterComposition(clusterDetails.cluster)
       else -> personMatchService.examineIsClusterValid(clusterDetails.cluster).result(
-        isValid = { }, // Will need to check if extra records to merge here
-        isNotValid = {
-          handleInvalidClusterComposition(clusterDetails.cluster)
-        },
+        isValid = { handleMergeClusters(clusterDetails) },
+        isNotValid = { handleInvalidClusterComposition(clusterDetails.cluster) },
       )
     }
   }

@@ -152,33 +152,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster.assertClusterNotChanged(size = 3)
     }
 
-    @Test
-    fun `should do nothing when matches only one record in cluster with multiple records and links to other cluster but is still a valid cluster`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-        .addPerson(personC)
-
-      val personD = createPerson(createRandomProbationPersonDetails())
-      createPersonKey()
-        .addPerson(personD)
-
-      stubClusterIsValid()
-      stubXPersonMatchHighConfidenceMatches(
-        matchId = personA.matchId,
-        results = listOf(
-          personB.matchId,
-          personD.matchId,
-        ),
-      )
-
-      reclusterService.recluster(cluster, changedRecord = personA)
-
-      cluster.assertClusterNotChanged(size = 3)
-    }
   }
 
   @Nested
@@ -653,6 +626,42 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
       cluster2.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
       cluster3.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+
+      cluster3.assertMergedTo(cluster1)
+    }
+
+    @Test
+    fun `should merge to active cluster even if not all records matched but the cluster is valid`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      val personD = createPerson(createRandomProbationPersonDetails())
+      val cluster2 = createPersonKey()
+        .addPerson(personD)
+
+      stubClusterIsValid()
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = personA.matchId,
+        results = listOf(
+          personC.matchId,
+          personD.matchId,
+        ),
+      )
+
+      reclusterService.recluster(cluster1, changedRecord = personA)
+
+      cluster1.assertClusterIsOfSize(4)
+      cluster2.assertClusterIsOfSize(0)
+
+      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+
+      cluster2.assertMergedTo(cluster1)
     }
   }
 
