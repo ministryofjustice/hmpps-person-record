@@ -42,7 +42,6 @@ class CourtEventProcessor(
   hmppsQueueService: HmppsQueueService,
   @Value("\${publish-to-court-topic}")
   private var publishToCourtTopic: Boolean,
-
   @Value("\${aws.cpr-court-message-bucket-name}") private val bucketName: String,
 ) {
   private val topic =
@@ -50,7 +49,7 @@ class CourtEventProcessor(
       ?: throw MissingTopicException("Could not find topic ")
 
   companion object {
-    const val MAX_MESSAGE_SIZE = 262144
+    const val MAX_MESSAGE_SIZE = 256 * 1024
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
