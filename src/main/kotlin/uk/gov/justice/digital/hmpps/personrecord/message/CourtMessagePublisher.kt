@@ -23,7 +23,6 @@ class CourtMessagePublisher(
   s3AsyncClient: S3AsyncClient,
   hmppsQueueService: HmppsQueueService,
   private val objectMapper: ObjectMapper,
-
   @Value("\${aws.cpr-court-message-bucket-name}") private val bucketName: String,
 ) {
   private val topic =
