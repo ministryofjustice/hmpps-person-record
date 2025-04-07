@@ -78,6 +78,34 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
   inner class NoChangeToCluster {
 
     @Test
+    fun `should do nothing when there is a mutual exclusion between record on matched clusters`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster2 = createPersonKey()
+        .addPerson(personC)
+
+      excludeRecord(personA, personC)
+
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = personA.matchId,
+        results = listOf(
+          personB.matchId,
+          personC.matchId,
+        ),
+      )
+
+      reclusterService.recluster(cluster1, changedRecord = personA)
+
+      cluster1.assertClusterNotChanged(size = 2)
+      cluster2.assertClusterNotChanged(size = 1)
+    }
+
+    @Test
     fun `should do nothing when match return same items from cluster with no records`() {
       val personA = createPerson(createRandomProbationPersonDetails())
       val cluster = createPersonKey()
