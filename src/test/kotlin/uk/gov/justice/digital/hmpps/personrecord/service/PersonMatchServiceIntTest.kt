@@ -193,6 +193,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         ),
       )
 
+      // Need to solve this in mem -> db out of sync issue
       val person = personRepository.findByMatchId(searchingRecord.matchId)!!
       val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(person)
 
