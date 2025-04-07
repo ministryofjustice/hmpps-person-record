@@ -37,5 +37,3 @@ generic-prometheus-alerts:
   sqsAlertsTotalMessagesThreshold: 1
   rdsAlertsDatabases:
     cloud-platform-21758fcf16e3a488: "hmpps-person-record-database"
-
-    publish-to-court-topic: true
