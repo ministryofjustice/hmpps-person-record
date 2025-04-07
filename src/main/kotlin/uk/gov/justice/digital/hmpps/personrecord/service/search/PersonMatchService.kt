@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
@@ -31,6 +32,7 @@ class PersonMatchService(
     val highConfidencePersonRecords = getPersonRecords(highConfidenceRecords)
       .allowMatchesWithUUID()
       .removeMergedRecords()
+      .removeMatchesWhereClusterInInvalidState()
       .removeMatchesWhereClusterHasExcludeMarker(personEntity.id)
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
       .sortedByDescending { it.probability }
@@ -82,6 +84,11 @@ class PersonMatchService(
       }
     }.map { it.key }
     return this.filter { candidate -> excludedClusters.contains(candidate.personEntity.personKey?.personId).not() }
+  }
+
+  private fun List<PersonMatchResult>.removeMatchesWhereClusterInInvalidState(): List<PersonMatchResult> {
+    val validStatuses = listOf(UUIDStatusType.ACTIVE, UUIDStatusType.NEEDS_ATTENTION)
+    return this.filter { candidate -> validStatuses.contains(candidate.personEntity.personKey?.status) }
   }
 
   private fun List<PersonMatchResult>.logCandidateSearchSummary(personEntity: PersonEntity, totalNumberOfScores: Int): List<PersonMatchResult> {
