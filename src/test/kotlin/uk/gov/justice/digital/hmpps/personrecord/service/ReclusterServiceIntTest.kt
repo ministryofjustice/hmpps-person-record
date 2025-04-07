@@ -78,7 +78,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
   inner class NoChangeToCluster {
 
     @Test
-    fun `should do nothing when there is a mutual exclusion between record on matched clusters`() {
+    fun `should do nothing when there is a mutual exclusion between updated record and matched clusters`() {
       val personA = createPerson(createRandomProbationPersonDetails())
       val personB = createPerson(createRandomProbationPersonDetails())
       val cluster1 = createPersonKey()
@@ -103,6 +103,64 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       cluster1.assertClusterNotChanged(size = 2)
       cluster2.assertClusterNotChanged(size = 1)
+    }
+
+    @Test
+    fun `should do nothing when there is a mutual exclusion between records in matched clusters`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster2 = createPersonKey()
+        .addPerson(personC)
+
+      excludeRecord(personB, personC)
+
+      stubPersonMatchUpsert()
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = personA.matchId,
+        results = listOf(
+          personB.matchId,
+          personC.matchId,
+        ),
+      )
+
+      probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup(crn = personA.crn))
+
+      cluster1.assertClusterNotChanged(size = 2)
+      cluster2.assertClusterNotChanged(size = 1)
+    }
+
+    @Test
+    fun `should do nothing when there is a mutual exclusion between updated record and all records on matched cluster`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster2 = createPersonKey()
+        .addPerson(personB)
+        .addPerson(personC)
+
+      excludeRecord(personA, personB)
+      excludeRecord(personA, personC)
+
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = personA.matchId,
+        results = listOf(
+          personB.matchId,
+          personC.matchId,
+        ),
+      )
+
+      reclusterService.recluster(cluster1, changedRecord = personA)
+
+      cluster1.assertClusterNotChanged(size = 1)
+      cluster2.assertClusterNotChanged(size = 2)
     }
 
     @Test

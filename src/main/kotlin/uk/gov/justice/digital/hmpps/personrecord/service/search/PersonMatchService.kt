@@ -33,7 +33,7 @@ class PersonMatchService(
       .allowMatchesWithUUID()
       .removeMergedRecords()
       .removeMatchesWhereClusterInInvalidState()
-      .removeMatchesWhereClusterHasExcludeMarker(personEntity.id)
+      .removeMatchesWhereClusterHasExcludeMarker(personEntity)
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
       .sortedByDescending { it.probability }
     return@runBlocking highConfidencePersonRecords
@@ -76,11 +76,11 @@ class PersonMatchService(
 
   private fun List<PersonMatchResult>.removeMergedRecords(): List<PersonMatchResult> = this.filter { it.personEntity.mergedTo == null }
 
-  private fun List<PersonMatchResult>.removeMatchesWhereClusterHasExcludeMarker(personRecordId: Long?): List<PersonMatchResult> {
+  private fun List<PersonMatchResult>.removeMatchesWhereClusterHasExcludeMarker(personEntity: PersonEntity): List<PersonMatchResult> {
     val clusters: Map<UUID, List<PersonMatchResult>> = this.groupBy { it.personEntity.personKey?.personId!! }
     val excludedClusters: List<UUID> = clusters.filter { (_, records) ->
       records.any { record ->
-        record.personEntity.overrideMarkers.any { it.markerType == OverrideMarkerType.EXCLUDE && it.markerValue == personRecordId }
+        record.personEntity.overrideMarkers.any { it.markerType == OverrideMarkerType.EXCLUDE && it.markerValue == personEntity.id }
       }
     }.map { it.key }
     return this.filter { candidate -> excludedClusters.contains(candidate.personEntity.personKey?.personId).not() }
