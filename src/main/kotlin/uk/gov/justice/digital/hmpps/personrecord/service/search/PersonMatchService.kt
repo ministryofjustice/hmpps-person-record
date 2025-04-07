@@ -86,7 +86,10 @@ class PersonMatchService(
     return this.filter { candidate -> excludedClusters.contains(candidate.personEntity.personKey?.personId).not() }
   }
 
-  private fun List<PersonMatchResult>.removeMatchesWhereClusterInInvalidState(): List<PersonMatchResult> = this.filter { candidate -> listOf(UUIDStatusType.ACTIVE, UUIDStatusType.NEEDS_ATTENTION).contains(candidate.personEntity.personKey?.status) }
+  private fun List<PersonMatchResult>.removeMatchesWhereClusterInInvalidState(): List<PersonMatchResult> {
+    val validStatuses = listOf(UUIDStatusType.ACTIVE, UUIDStatusType.NEEDS_ATTENTION)
+    return this.filter { candidate -> validStatuses.contains(candidate.personEntity.personKey?.status) }
+  }
 
   private fun List<PersonMatchResult>.logCandidateSearchSummary(personEntity: PersonEntity, totalNumberOfScores: Int): List<PersonMatchResult> {
     telemetryService.trackPersonEvent(

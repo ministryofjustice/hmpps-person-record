@@ -267,7 +267,6 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       noCandidateFound(highConfidenceMatch)
     }
-
   }
 
   @Nested
