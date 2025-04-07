@@ -38,3 +38,5 @@ generic-prometheus-alerts:
   rdsAlertsDatabases:
     cloud-platform-288cab966b34da54: "hmpps-person-record-database"
 
+    publish-to-court-topic: true
+
