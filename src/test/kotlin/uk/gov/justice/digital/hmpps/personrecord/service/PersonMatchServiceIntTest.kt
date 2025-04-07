@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -228,6 +229,45 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       assertThat(highConfidenceMatch?.matchId).isEqualTo(highScoringRecordTwo.matchId)
     }
+  }
+
+  @Nested
+  inner class RaceCondition {
+
+    @Test
+    fun `should not return high confidence match with recluster merge status`() {
+      val searchingRecord = createPerson(createExamplePerson())
+      createPersonKey()
+        .addPerson(searchingRecord)
+
+      val foundRecord = createPerson(createExamplePerson())
+      createPersonKey(UUIDStatusType.RECLUSTER_MERGE)
+        .addPerson(foundRecord)
+
+      stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
+
+      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
+
+      noCandidateFound(highConfidenceMatch)
+    }
+
+    @Test
+    fun `should not return high confidence match with merged status`() {
+      val searchingRecord = createPerson(createExamplePerson())
+      createPersonKey()
+        .addPerson(searchingRecord)
+
+      val foundRecord = createPerson(createExamplePerson())
+      createPersonKey(UUIDStatusType.MERGED)
+        .addPerson(foundRecord)
+
+      stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
+
+      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
+
+      noCandidateFound(highConfidenceMatch)
+    }
+
   }
 
   @Nested
