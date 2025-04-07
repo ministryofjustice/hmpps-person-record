@@ -77,10 +77,11 @@ class PersonMatchService(
   private fun List<PersonMatchResult>.removeMergedRecords(): List<PersonMatchResult> = this.filter { it.personEntity.mergedTo == null }
 
   private fun List<PersonMatchResult>.removeMatchesWhereClusterHasExcludeMarker(personEntity: PersonEntity): List<PersonMatchResult> {
+    val recordIds = personEntity.personKey?.getRecordsIds() ?: listOf(personEntity.id)
     val clusters: Map<UUID, List<PersonMatchResult>> = this.groupBy { it.personEntity.personKey?.personId!! }
     val excludedClusters: List<UUID> = clusters.filter { (_, records) ->
       records.any { record ->
-        record.personEntity.overrideMarkers.any { it.markerType == OverrideMarkerType.EXCLUDE && it.markerValue == personEntity.id }
+        record.personEntity.overrideMarkers.any { it.markerType == OverrideMarkerType.EXCLUDE && recordIds.contains(it.markerValue) }
       }
     }.map { it.key }
     return this.filter { candidate -> excludedClusters.contains(candidate.personEntity.personKey?.personId).not() }
@@ -108,6 +109,8 @@ class PersonMatchService(
   private suspend fun checkClusterIsValid(cluster: PersonKeyEntity): Result<IsClusterValidResponse> = runCatching {
     retryExecutor.runWithRetryHTTP { personMatchClient.isClusterValid(cluster.getRecordsMatchIds()) }
   }
+
+  private fun PersonKeyEntity.getRecordsIds(): List<Long> = this.personEntities.mapNotNull { it.id }
 
   private fun PersonKeyEntity.getRecordsMatchIds(): List<String> = this.personEntities.map { it.matchId.toString() }
 

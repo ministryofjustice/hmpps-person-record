@@ -169,7 +169,8 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = excludedRecord.matchId)
 
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
+      val person = personRepository.findByMatchId(searchingRecord.matchId)!!
+      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(person)
 
       noCandidateFound(highConfidenceMatch)
     }
@@ -192,7 +193,8 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         ),
       )
 
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
+      val person = personRepository.findByMatchId(searchingRecord.matchId)!!
+      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(person)
 
       noCandidateFound(highConfidenceMatch)
     }
