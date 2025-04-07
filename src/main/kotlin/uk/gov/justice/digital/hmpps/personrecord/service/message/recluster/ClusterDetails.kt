@@ -22,8 +22,11 @@ class ClusterDetails(
     private val matchedRecordsSet = matchedRecords.asIdSet()
     private val existingRecordsSet = existingRecordsInCluster.asIdSet()
 
+    private val recordsInTheClusterThatDoNotMatch = existingRecordsSet.subtract(matchedRecordsSet)
+
     fun isDifferent(): Boolean = matchedRecordsSet != existingRecordsSet
-    fun isSmaller(): Boolean = existingRecordsSet.subtract(matchedRecordsSet).isNotEmpty()
+    fun isSmaller(): Boolean = recordsInTheClusterThatDoNotMatch.isNotEmpty()
+    fun notMatchedToAnyRecord(): Boolean = recordsInTheClusterThatDoNotMatch.size == existingRecordsInCluster.size
 
     private fun List<PersonEntity>.asIdSet(): Set<Long?> = this.map { it.id }.toSet()
   }

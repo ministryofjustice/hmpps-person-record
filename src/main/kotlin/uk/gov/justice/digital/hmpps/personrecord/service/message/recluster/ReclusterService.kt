@@ -78,7 +78,7 @@ class ReclusterService(
 
   private fun handleUnmatchedRecords(clusterDetails: ClusterDetails) {
     when {
-      clusterDetails.matchedRecords.isEmpty() -> handleInvalidClusterComposition(clusterDetails.cluster)
+      clusterDetails.matchedRecords.isEmpty() or clusterDetails.relationship.notMatchedToAnyRecord() -> handleInvalidClusterComposition(clusterDetails.cluster)
       else -> personMatchService.examineIsClusterValid(clusterDetails.cluster).result(
         isValid = { handleMergeClusters(clusterDetails) },
         isNotValid = { handleInvalidClusterComposition(clusterDetails.cluster) },
