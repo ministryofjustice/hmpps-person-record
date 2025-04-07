@@ -227,31 +227,26 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val personA = createPerson(createRandomProbationPersonDetails())
       val personB = createPerson(createRandomProbationPersonDetails())
       val personC = createPerson(createRandomProbationPersonDetails())
-      val clusterA = createPersonKey()
+      val cluster1 = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
         .addPerson(personC)
 
       val personD = createPerson(createRandomProbationPersonDetails())
-      createPersonKey()
+      val cluster2 = createPersonKey()
         .addPerson(personD)
 
-      stubClusterIsNotValid()
       stubOnePersonMatchHighConfidenceMatch(matchId = personA.matchId, matchedRecord = personD.matchId)
 
-      reclusterService.recluster(clusterA, changedRecord = personA)
+      reclusterService.recluster(cluster1, changedRecord = personA)
 
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
-        mapOf("UUID" to clusterA.personId.toString()),
+        mapOf("UUID" to cluster1.personId.toString()),
       )
-      clusterA.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
+      cluster1.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
+      cluster2.assertClusterStatus(UUIDStatusType.ACTIVE)
     }
-  }
-
-  private fun PersonKeyEntity.assertClusterNotChanged(size: Int) {
-    assertClusterStatus(UUIDStatusType.ACTIVE)
-    assertClusterIsOfSize(size)
   }
 
   @Nested
@@ -759,6 +754,11 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
       cluster2.assertClusterStatus(UUIDStatusType.MERGED)
     }
+  }
+
+  private fun PersonKeyEntity.assertClusterNotChanged(size: Int) {
+    assertClusterStatus(UUIDStatusType.ACTIVE)
+    assertClusterIsOfSize(size)
   }
 
   private fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.personEntities?.size).isEqualTo(size) }
