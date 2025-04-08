@@ -28,7 +28,7 @@ dependencies {
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.2.1")
   implementation("software.amazon.sns:sns-extended-client:2.1.0")
 
-  implementation("io.swagger.core.v3:swagger-annotations:2.2.29")
+  implementation("io.swagger.core.v3:swagger-annotations:2.2.30")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
 
   constraints {
@@ -38,7 +38,7 @@ dependencies {
   }
 
   implementation("org.springframework.cloud:spring-cloud-dependencies:2024.0.1")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 
   runtimeOnly("org.postgresql:postgresql:42.7.5")
   runtimeOnly("org.flywaydb:flyway-core")
