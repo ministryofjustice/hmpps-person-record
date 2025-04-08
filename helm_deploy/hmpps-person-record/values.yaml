@@ -38,7 +38,7 @@ generic-service:
           deny all;
           return 401;
         }
-        location /populatepersonmatch/** {
+        location /populatepersonmatch {
           deny all;
           return 401;
         }
