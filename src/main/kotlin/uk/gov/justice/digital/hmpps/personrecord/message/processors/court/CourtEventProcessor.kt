@@ -32,7 +32,7 @@ class CourtEventProcessor(
   private val createUpdateService: CreateUpdateService,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
-  @Value("\${publish-to-court-topic}")
+  @Value("\${publish-to-court-topic:false}")
   private val publishToCourtTopic: Boolean,
   private val courtMessagePublisher: CourtMessagePublisher,
   private val s3AsyncClient: S3AsyncClient,
