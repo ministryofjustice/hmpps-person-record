@@ -72,6 +72,57 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
   inner class Scoring {
 
     @Test
+    fun `should find one high confidence match for record not assigned to cluster with override markers`() {
+      val searchingRecord = createPerson(createExamplePerson())
+
+      val foundRecord = createPerson(createExamplePerson())
+      val overridesRecord = createPerson(createExamplePerson())
+      createPersonKey()
+        .addPerson(foundRecord)
+        .addPerson(overridesRecord)
+
+      excludeRecord(overridesRecord, excludingRecord = searchingRecord)
+
+      stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
+
+      val person = personRepository.findByMatchId(searchingRecord.matchId)!!
+      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(person)
+
+      noCandidateFound(highConfidenceMatch)
+    }
+
+    @Test
+    fun `should not find one high confidence match if record in searching cluster has override marker with match`() {
+      val searchingRecord = createPerson(createExamplePerson())
+      val overridesRecord = createPerson(createExamplePerson())
+      createPersonKey()
+        .addPerson(searchingRecord)
+        .addPerson(overridesRecord)
+
+      val foundRecord = createPersonWithNewKey(createExamplePerson())
+
+      excludeRecord(overridesRecord, excludingRecord = foundRecord)
+
+      stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
+
+      val person = personRepository.findByMatchId(searchingRecord.matchId)!!
+      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(person)
+
+      noCandidateFound(highConfidenceMatch)
+    }
+
+    @Test
+    fun `should find one high confidence match for record not assigned to cluster`() {
+      val searchingRecord = createPerson(createExamplePerson())
+      val foundRecord = createPersonWithNewKey(createExamplePerson())
+
+      stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
+
+      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
+      assertThat(highConfidenceMatch?.matchId).isEqualTo(foundRecord.matchId)
+    }
+
+    @Test
     fun `should find one high confidence match`() {
       val searchingRecord = createPersonWithNewKey(createExamplePerson())
       val foundRecord = createPersonWithNewKey(createExamplePerson())
@@ -193,7 +244,6 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         ),
       )
 
-      // Need to solve this in mem -> db out of sync issue
       val person = personRepository.findByMatchId(searchingRecord.matchId)!!
       val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(person)
 
