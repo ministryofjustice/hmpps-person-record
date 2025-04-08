@@ -73,9 +73,6 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should find one high confidence match for record not assigned to cluster with override markers`() {
-      // Need to solve this as
-      // Record A might link to B but if C is excluded to A
-      // should ignore B match
       val searchingRecord = createPerson(createExamplePerson())
 
       val foundRecord = createPerson(createExamplePerson())
