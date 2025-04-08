@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclusterval
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
@@ -33,7 +32,7 @@ class PersonMatchService(
       .allowMatchesWithUUID()
       .removeMergedRecords()
       .removeMatchesWhereClusterInInvalidState()
-      .removeMatchesWhereClusterHasExcludeMarker(personEntity.id)
+      .removeMatchesWhereClusterHasExcludeMarker(personEntity)
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
       .sortedByDescending { it.probability }
     return@runBlocking highConfidencePersonRecords
@@ -76,14 +75,12 @@ class PersonMatchService(
 
   private fun List<PersonMatchResult>.removeMergedRecords(): List<PersonMatchResult> = this.filter { it.personEntity.mergedTo == null }
 
-  private fun List<PersonMatchResult>.removeMatchesWhereClusterHasExcludeMarker(personRecordId: Long?): List<PersonMatchResult> {
-    val clusters: Map<UUID, List<PersonMatchResult>> = this.groupBy { it.personEntity.personKey?.personId!! }
-    val excludedClusters: List<UUID> = clusters.filter { (_, records) ->
-      records.any { record ->
-        record.personEntity.overrideMarkers.any { it.markerType == OverrideMarkerType.EXCLUDE && it.markerValue == personRecordId }
-      }
-    }.map { it.key }
-    return this.filter { candidate -> excludedClusters.contains(candidate.personEntity.personKey?.personId).not() }
+  private fun List<PersonMatchResult>.removeMatchesWhereClusterHasExcludeMarker(personEntity: PersonEntity): List<PersonMatchResult> {
+    val updatedClusterRecordIds = personEntity.personKey?.getRecordIds() ?: listOf(personEntity.id)
+    val excludedClusters = this.collectDistinctClusters().filter { cluster ->
+      cluster.collectExcludeOverrideMarkers().any { updatedClusterRecordIds.contains(it.markerValue) }
+    }.map { it.id }
+    return this.filterNot { match -> excludedClusters.contains(match.personEntity.personKey?.id) }
   }
 
   private fun List<PersonMatchResult>.removeMatchesWhereClusterInInvalidState(): List<PersonMatchResult> {
@@ -110,6 +107,8 @@ class PersonMatchService(
   }
 
   private fun PersonKeyEntity.getRecordsMatchIds(): List<String> = this.personEntities.map { it.matchId.toString() }
+
+  private fun List<PersonMatchResult>.collectDistinctClusters(): List<PersonKeyEntity> = this.map { it.personEntity }.groupBy { it.personKey!! }.map { it.key }.distinctBy { it.id }
 
   private companion object {
     const val THRESHOLD_SCORE = 0.999
