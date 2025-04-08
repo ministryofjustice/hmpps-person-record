@@ -5,24 +5,20 @@ import jakarta.transaction.Transactional
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.server.ResponseStatusException
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchMigrateRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
-import java.util.UUID
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
@@ -38,19 +34,8 @@ class PopulatePersonMatch(
 
   @Hidden
   @RequestMapping(method = [RequestMethod.POST], value = ["/populatepersonmatch"])
-  suspend fun migrate(@RequestParam startPage: Int = 0): String {
+  suspend fun populate(@RequestParam startPage: Int = 0): String {
     runPopulation(startPage)
-    return OK
-  }
-
-  @Hidden
-  @RequestMapping(method = [RequestMethod.POST], value = ["/populatepersonmatch/person"])
-  suspend fun populatePerson(@RequestParam matchId: UUID): String {
-    val personToUpsert: PersonEntity? = runBlocking { personRepository.findByMatchId(matchId) }
-    val personMatchRequest = personToUpsert?.let { PersonMatchRecord.from(it) }
-      ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "MatchId not found: $matchId")
-    retryExecutor.runWithRetryHTTP { personMatchClient.postPerson(personMatchRequest) }
-    log.info("Upserted record with matchId: $matchId")
     return OK
   }
 
