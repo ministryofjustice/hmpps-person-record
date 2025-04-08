@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 enum class EventKeys {
@@ -21,7 +20,6 @@ enum class EventKeys {
 
   // Merge
   RECORD_TYPE,
-
   SOURCE_CRN,
   TARGET_CRN,
   TO_UUID,
@@ -36,7 +34,6 @@ enum class EventKeys {
   UNMERGED_CRN,
 
   // Matching
-  PROBABILITY_SCORE,
   HIGH_CONFIDENCE_COUNT,
   LOW_CONFIDENCE_COUNT,
 
@@ -50,21 +47,6 @@ enum class EventKeys {
 
 @Component
 class TelemetryService(private val telemetryClient: TelemetryClient) {
-
-  fun trackPersonEvent(
-    eventType: TelemetryEventType,
-    person: Person,
-    elementMap: Map<EventKeys, String?> = emptyMap(),
-  ) {
-    val identifierMap = mapOf(
-      EventKeys.SOURCE_SYSTEM to person.sourceSystem.name,
-      EventKeys.DEFENDANT_ID to person.defendantId,
-      EventKeys.C_ID to person.cId,
-      EventKeys.CRN to person.crn,
-      EventKeys.PRISON_NUMBER to person.prisonNumber,
-    )
-    trackEvent(eventType, identifierMap + elementMap)
-  }
 
   fun trackPersonEvent(
     eventType: TelemetryEventType,

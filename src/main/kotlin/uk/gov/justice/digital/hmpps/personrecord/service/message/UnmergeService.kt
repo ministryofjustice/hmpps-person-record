@@ -71,12 +71,13 @@ class UnmergeService(
   }
 
   private fun logRecordNotFoundAndCreatePerson(person: Person, recordType: UnmergeRecordType): PersonEntity {
+    val personEntity = personService.createPersonEntity(person)
     telemetryService.trackPersonEvent(
       TelemetryEventType.CPR_UNMERGE_RECORD_NOT_FOUND,
-      person,
+      personEntity,
       mapOf(EventKeys.RECORD_TYPE to recordType.name),
     )
-    return personService.createPersonEntity(person)
+    return personEntity
   }
 
   private fun unmergeRecords(unmergeEvent: UnmergeEvent, reactivatedPersonEntity: PersonEntity, unmergedPersonEntity: PersonEntity) {
