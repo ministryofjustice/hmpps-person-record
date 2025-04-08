@@ -23,7 +23,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 
-const val PROBATION_MERGE_EVENT_QUEUE_CONFIG_KEY = "cprdeliusmergeeventsqueue"
 
 @Component
 @Profile("!seeding")
