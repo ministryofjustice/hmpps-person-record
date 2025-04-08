@@ -4,5 +4,5 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class IsClusterValidMissingRecordResponse(
-  val unknownIds: List<String>
+  val unknownIds: List<String>,
 )
