@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -604,8 +603,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    @Disabled("this test is for CPR-623")
-    fun `should merge 3 active cluster if matched records have exclude override markers between clusters`() {
+    fun `should not merge active cluster to matched clusters with exclude override markers between records`() {
       val personA = createPerson(createRandomProbationPersonDetails())
       val cluster1 = createPersonKey()
         .addPerson(personA)
