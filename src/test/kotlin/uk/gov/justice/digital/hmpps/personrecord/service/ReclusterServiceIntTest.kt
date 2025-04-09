@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
-import kotlin.test.Ignore
 
 /**
  * Test that cover recluster scenarios.
@@ -873,10 +872,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster3.assertClusterStatus(UUIDStatusType.ACTIVE)
     }
 
-    @Ignore
-    @Test
-    fun `should merge the highest confidence cluster when there are mutual exclusion between matched clusters`() {}
-
     @Test
     fun `should mark active cluster needs attention when the update record exclude another record in the matched cluster`() {
       val personA = createPerson(createRandomProbationPersonDetails())
@@ -908,18 +903,58 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       reclusterService.recluster(cluster1, changedRecord = personA)
 
-      cluster1.assertClusterIsOfSize(3)
-      cluster2.assertClusterIsOfSize(0)
-      cluster3.assertClusterIsOfSize(0)
+      cluster1.assertClusterIsOfSize(1)
+      cluster2.assertClusterIsOfSize(1)
+      cluster3.assertClusterIsOfSize(1)
       cluster4.assertClusterIsOfSize(1)
 
-      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
-      cluster3.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+      cluster1.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
+      cluster2.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster3.assertClusterStatus(UUIDStatusType.ACTIVE)
       cluster4.assertClusterStatus(UUIDStatusType.ACTIVE)
+    }
 
-      cluster2.assertMergedTo(cluster1)
-      cluster3.assertMergedTo(cluster1)
+    @Test
+    fun `should mark active cluster needs attention when the update record exclude multiple records in the matched cluster`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val cluster2 = createPersonKey()
+        .addPerson(personB)
+
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster3 = createPersonKey()
+        .addPerson(personC)
+
+      val personD = createPerson(createRandomProbationPersonDetails())
+      val cluster4 = createPersonKey()
+        .addPerson(personD)
+
+      excludeRecord(personB, personC)
+      excludeRecord(personC, personD)
+
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = personA.matchId,
+        results = listOf(
+          personB.matchId,
+          personC.matchId,
+          personD.matchId,
+        ),
+      )
+
+      reclusterService.recluster(cluster1, changedRecord = personA)
+
+      cluster1.assertClusterIsOfSize(1)
+      cluster2.assertClusterIsOfSize(1)
+      cluster3.assertClusterIsOfSize(1)
+      cluster4.assertClusterIsOfSize(1)
+
+      cluster1.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
+      cluster2.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster3.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster4.assertClusterStatus(UUIDStatusType.ACTIVE)
     }
   }
 
