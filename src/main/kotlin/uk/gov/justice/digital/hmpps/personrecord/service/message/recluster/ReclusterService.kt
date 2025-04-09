@@ -54,8 +54,19 @@ class ReclusterService(
         .removeUpdatedCluster(cluster = clusterDetails.cluster)
         .getActiveClusters()
 
-    matchedRecordsClusters.forEach {
-      mergeClusters(it, clusterDetails.cluster)
+    when {
+      hasExcludeMarkerBetweenClusters(matchedRecordsClusters) -> setClusterAsNeedsAttention(clusterDetails.cluster)
+      else -> matchedRecordsClusters.forEach {
+        mergeClusters(it, clusterDetails.cluster)
+      }
+    }
+  }
+
+  private fun hasExcludeMarkerBetweenClusters(clusters: List<PersonKeyEntity>): Boolean {
+    val allRecordsIdsFromClusters = clusters.map { it.getRecordIds() }.flatten().toSet()
+    return clusters.any { cluster ->
+      val excludeMarkerRecordIds = cluster.collectExcludeOverrideMarkers().map { it.markerValue }.toSet()
+      allRecordsIdsFromClusters.intersect(excludeMarkerRecordIds).isNotEmpty()
     }
   }
 
