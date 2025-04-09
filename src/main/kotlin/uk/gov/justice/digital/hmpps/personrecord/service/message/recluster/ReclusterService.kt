@@ -55,7 +55,7 @@ class ReclusterService(
         .getActiveClusters()
 
     when {
-      hasExcludeMarkerBetweenClusters(matchedRecordsClusters) -> setClusterAsNeedsAttention(clusterDetails.cluster)
+      hasExcludeMarkerBetweenClusters(matchedRecordsClusters) -> handleExclusionsBetweenMatchedClusters(clusterDetails.cluster)
       else -> matchedRecordsClusters.forEach {
         mergeClusters(it, clusterDetails.cluster)
       }
@@ -95,6 +95,14 @@ class ReclusterService(
         isNotValid = { handleInvalidClusterComposition(clusterDetails.cluster) },
       )
     }
+  }
+
+  private fun handleExclusionsBetweenMatchedClusters(cluster: PersonKeyEntity) {
+    telemetryService.trackEvent(
+      TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
+      mapOf(EventKeys.UUID to cluster.personId.toString()),
+    )
+    setClusterAsNeedsAttention(cluster)
   }
 
   private fun handleInvalidClusterComposition(cluster: PersonKeyEntity) {

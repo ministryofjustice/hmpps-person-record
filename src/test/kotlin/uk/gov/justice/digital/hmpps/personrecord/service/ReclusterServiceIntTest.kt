@@ -903,6 +903,11 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       reclusterService.recluster(cluster1, changedRecord = personA)
 
+      checkTelemetry(
+        TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
+        mapOf("UUID" to cluster1.personId.toString()),
+      )
+
       cluster1.assertClusterIsOfSize(1)
       cluster2.assertClusterIsOfSize(1)
       cluster3.assertClusterIsOfSize(1)
@@ -945,6 +950,11 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       )
 
       reclusterService.recluster(cluster1, changedRecord = personA)
+
+      checkTelemetry(
+        TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
+        mapOf("UUID" to cluster1.personId.toString()),
+      )
 
       cluster1.assertClusterIsOfSize(1)
       cluster2.assertClusterIsOfSize(1)
