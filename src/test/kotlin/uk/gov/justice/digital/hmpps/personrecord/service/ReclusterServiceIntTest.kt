@@ -800,13 +800,48 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
   inner class ClustersWithExcludeMarkers {
 
     @Test
-    @Ignore
-    fun `should not merge an updated active cluster that has an exclusion marker to an active matched cluster`() {}
+    fun `should not merge an updated active cluster that has an exclusion marker to another matched active cluster`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      val personD = createPerson(createRandomProbationPersonDetails())
+      val personE = createPerson(createRandomProbationPersonDetails())
+      val cluster2 = createPersonKey()
+        .addPerson(personD)
+        .addPerson(personE)
+
+      excludeRecord(personB, personD)
+      val updatedPersonA = personRepository.findByMatchId(personA.matchId)
+
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = personA.matchId,
+        results = listOf(
+          personB.matchId,
+          personC.matchId,
+          personD.matchId,
+          personE.matchId,
+        ),
+      )
+
+      reclusterService.recluster(cluster1, changedRecord = updatedPersonA!!)
+
+      cluster1.assertClusterIsOfSize(3)
+      cluster2.assertClusterIsOfSize(2)
+
+      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster2.assertClusterStatus(UUIDStatusType.ACTIVE)
+    }
 
     @Ignore
     @Test
     fun `should not merge an updated active cluster when there is an exclusion to an record that is not returned by the match score`() {}
 
+    @Ignore
     @Test
     fun `should only merge an updated active cluster to matched clusters with high confidence`() {
       // TODO - refactor the setup to allow high confidence configuration

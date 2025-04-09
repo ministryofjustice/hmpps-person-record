@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.message.recluster
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse.Companion.result
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -54,7 +53,6 @@ class ReclusterService(
         .collectDistinctClusters()
         .removeUpdatedCluster(cluster = clusterDetails.cluster)
         .getActiveClusters()
-        .processClustersWithOverrideMarkers()
 
     matchedRecordsClusters.forEach {
       mergeClusters(it, clusterDetails.cluster)
@@ -108,20 +106,4 @@ class ReclusterService(
   private fun List<PersonEntity>.collectDistinctClusters(): List<PersonKeyEntity> = this.groupBy { it.personKey!! }.map { it.key }.distinctBy { it.id }
 
   private fun clusterNeedsAttention(personKeyEntity: PersonKeyEntity?): Boolean = personKeyEntity?.status == UUIDStatusType.NEEDS_ATTENTION
-
-  private fun List<PersonKeyEntity>.processClustersWithOverrideMarkers(): List<PersonKeyEntity> {
-    val cloneOfThis: MutableList<PersonKeyEntity> = this.toMutableList()
-    this.forEach { c ->
-      val overrideMarkers: List<OverrideMarkerEntity> = c.collectExcludeOverrideMarkers()
-      overrideMarkers.forEach { marker ->
-        val to = marker.markerValue
-        val foundIndex = this.indexOfFirst { it.getRecordIds().contains(to) }
-        if (foundIndex > 0) {
-          cloneOfThis.removeAt(foundIndex)
-        }
-      }
-    }
-
-    return cloneOfThis.toList()
-  }
 }
