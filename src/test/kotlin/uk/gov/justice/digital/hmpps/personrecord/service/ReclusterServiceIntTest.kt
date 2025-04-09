@@ -837,14 +837,48 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster2.assertClusterStatus(UUIDStatusType.ACTIVE)
     }
 
-    @Ignore
     @Test
-    fun `should not merge an updated active cluster when there is an exclusion to an record that is not returned by the match score`() {}
+    fun `should merge to an excluded cluster that has exclusion to the updated cluster`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val cluster2 = createPersonKey()
+        .addPerson(personB)
+
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster3 = createPersonKey()
+        .addPerson(personC)
+
+      excludeRecord(personA, personC)
+      excludeRecord(personB, personC)
+
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = personA.matchId,
+        results = listOf(
+          personB.matchId,
+          personC.matchId,
+        ),
+      )
+
+      reclusterService.recluster(cluster1, changedRecord = personA)
+
+      cluster1.assertClusterIsOfSize(2)
+      cluster2.assertClusterIsOfSize(0)
+      cluster3.assertClusterIsOfSize(1)
+
+      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+      cluster3.assertClusterStatus(UUIDStatusType.ACTIVE)
+    }
 
     @Ignore
     @Test
-    fun `should only merge an updated active cluster to matched clusters with high confidence`() {
-      // TODO - refactor the setup to allow high confidence configuration
+    fun `should merge the highest confidence cluster when there are mutual exclusion between matched clusters`() {}
+
+    @Test
+    fun `should mark active cluster needs attention when the update record exclude another record in the matched cluster`() {
       val personA = createPerson(createRandomProbationPersonDetails())
       val cluster1 = createPersonKey()
         .addPerson(personA)
@@ -887,14 +921,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster2.assertMergedTo(cluster1)
       cluster3.assertMergedTo(cluster1)
     }
-
-    @Ignore
-    @Test
-    fun `should always omit any excluded cluster when marked from the updated cluster`() {}
-
-    @Ignore
-    @Test
-    fun `should merge the highest confidence cluster when there are mutual exclusion between matched clusters`() {}
   }
 
   private fun PersonKeyEntity.assertClusterNotChanged(size: Int) {
