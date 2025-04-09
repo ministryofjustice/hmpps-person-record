@@ -603,51 +603,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should not merge active cluster to matched clusters with exclude override markers between records`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
-
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val cluster2 = createPersonKey()
-        .addPerson(personB)
-
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val cluster3 = createPersonKey()
-        .addPerson(personC)
-
-      val personD = createPerson(createRandomProbationPersonDetails())
-      val cluster4 = createPersonKey()
-        .addPerson(personD)
-
-      excludeRecord(personB, personD)
-
-      stubXPersonMatchHighConfidenceMatches(
-        matchId = personA.matchId,
-        results = listOf(
-          personB.matchId,
-          personC.matchId,
-          personD.matchId,
-        ),
-      )
-
-      reclusterService.recluster(cluster1, changedRecord = personA)
-
-      cluster1.assertClusterIsOfSize(3)
-      cluster2.assertClusterIsOfSize(0)
-      cluster3.assertClusterIsOfSize(0)
-      cluster4.assertClusterIsOfSize(1)
-
-      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
-      cluster3.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
-      cluster4.assertClusterStatus(UUIDStatusType.ACTIVE)
-
-      cluster2.assertMergedTo(cluster1)
-      cluster3.assertMergedTo(cluster1)
-    }
-
-    @Test
     fun `should not merge an active cluster to a matched cluster marked as needs attention`() {
       val personA = createPerson(createRandomProbationPersonDetails())
       val cluster1 = createPersonKey()
@@ -837,6 +792,55 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
       cluster2.assertClusterStatus(UUIDStatusType.MERGED)
+    }
+  }
+
+  @Nested
+  inner class ClustersWithExcludeMarkers {
+
+    @Test
+    fun `should not merge active cluster to matched clusters with exclude override markers between records`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val cluster2 = createPersonKey()
+        .addPerson(personB)
+
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster3 = createPersonKey()
+        .addPerson(personC)
+
+      val personD = createPerson(createRandomProbationPersonDetails())
+      val cluster4 = createPersonKey()
+        .addPerson(personD)
+
+      excludeRecord(personB, personD)
+
+      stubXPersonMatchHighConfidenceMatches(
+        matchId = personA.matchId,
+        results = listOf(
+          personB.matchId,
+          personC.matchId,
+          personD.matchId,
+        ),
+      )
+
+      reclusterService.recluster(cluster1, changedRecord = personA)
+
+      cluster1.assertClusterIsOfSize(3)
+      cluster2.assertClusterIsOfSize(0)
+      cluster3.assertClusterIsOfSize(0)
+      cluster4.assertClusterIsOfSize(1)
+
+      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+      cluster3.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+      cluster4.assertClusterStatus(UUIDStatusType.ACTIVE)
+
+      cluster2.assertMergedTo(cluster1)
+      cluster3.assertMergedTo(cluster1)
     }
   }
 
