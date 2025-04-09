@@ -801,22 +801,15 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     @Ignore
-    fun `should not merge an updated active cluster that has an exclusion marker to an active matched cluster` () {}
+    fun `should not merge an updated active cluster that has an exclusion marker to an active matched cluster`() {}
 
     @Ignore
-    fun `should not merge an updated active cluster when there is an exclusion to an record that is not returned by the match score` () {}
-
-    @Ignore
-    fun `should only merge an updated active cluster to matched clusters with high confidence` () {}
-
-    @Ignore
-    fun `should always omit any excluded cluster when marked from the updated cluster` () {}
-
-    @Ignore
-    fun `should merge the highest confidence cluster when there are mutual exclusion between matched clusters` () {}
+    @Test
+    fun `should not merge an updated active cluster when there is an exclusion to an record that is not returned by the match score`() {}
 
     @Test
-    fun `should not merge active cluster to matched clusters with exclude override markers between records`() {
+    fun `should only merge an updated active cluster to matched clusters with high confidence`() {
+      // TODO - refactor the setup to allow high confidence configuration
       val personA = createPerson(createRandomProbationPersonDetails())
       val cluster1 = createPersonKey()
         .addPerson(personA)
@@ -859,6 +852,14 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster2.assertMergedTo(cluster1)
       cluster3.assertMergedTo(cluster1)
     }
+
+    @Ignore
+    @Test
+    fun `should always omit any excluded cluster when marked from the updated cluster`() {}
+
+    @Ignore
+    @Test
+    fun `should merge the highest confidence cluster when there are mutual exclusion between matched clusters`() {}
   }
 
   private fun PersonKeyEntity.assertClusterNotChanged(size: Int) {
