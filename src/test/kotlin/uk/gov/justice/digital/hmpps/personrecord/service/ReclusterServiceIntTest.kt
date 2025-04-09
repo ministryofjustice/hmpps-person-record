@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
+import kotlin.test.Ignore
 
 /**
  * Test that cover recluster scenarios.
@@ -797,6 +798,22 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
   @Nested
   inner class ClustersWithExcludeMarkers {
+
+    @Test
+    @Ignore
+    fun `should not merge an updated active cluster that has an exclusion marker to an active matched cluster` () {}
+
+    @Ignore
+    fun `should not merge an updated active cluster when there is an exclusion to an record that is not returned by the match score` () {}
+
+    @Ignore
+    fun `should only merge an updated active cluster to matched clusters with high confidence` () {}
+
+    @Ignore
+    fun `should always omit any excluded cluster when marked from the updated cluster` () {}
+
+    @Ignore
+    fun `should merge the highest confidence cluster when there are mutual exclusion between matched clusters` () {}
 
     @Test
     fun `should not merge active cluster to matched clusters with exclude override markers between records`() {
