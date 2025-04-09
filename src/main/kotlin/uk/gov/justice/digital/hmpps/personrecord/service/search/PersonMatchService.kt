@@ -1,9 +1,14 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.search
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import feign.FeignException
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidMissingRecordResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -13,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
+import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 @Component
@@ -21,6 +27,7 @@ class PersonMatchService(
   private val retryExecutor: RetryExecutor,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
+  private val objectMapper: ObjectMapper,
 ) {
 
   fun findHighestConfidencePersonRecord(personEntity: PersonEntity) = findHighestConfidencePersonRecordsByProbabilityDesc(personEntity).firstOrNull()?.personEntity
@@ -41,8 +48,27 @@ class PersonMatchService(
   fun examineIsClusterValid(cluster: PersonKeyEntity): IsClusterValidResponse = runBlocking {
     checkClusterIsValid(cluster).fold(
       onSuccess = { it },
-      onFailure = { throw it },
+      onFailure = { exception ->
+        when {
+          exception is FeignException.NotFound -> handleNotFoundRecordsIsClusterValid(cluster, exception)
+          else -> throw exception
+        }
+      },
     )
+  }
+
+  private suspend fun handleNotFoundRecordsIsClusterValid(cluster: PersonKeyEntity, exception: FeignException.NotFound): IsClusterValidResponse {
+    val missingRecords = handleDecodeOfNotFoundException(exception)
+    missingRecords.unknownIds.forEach { matchId ->
+      personRepository.findByMatchId(UUID.fromString(matchId))?.let { personMatchClient.postPerson(PersonMatchRecord.from(it)) }
+    }
+    return checkClusterIsValid(cluster).getOrThrow()
+  }
+
+  private fun handleDecodeOfNotFoundException(exception: FeignException.NotFound): IsClusterValidMissingRecordResponse {
+    val responseBody = exception.responseBody().orElseThrow { throw exception }
+    val decodedBody = StandardCharsets.UTF_8.decode(responseBody).toString()
+    return objectMapper.readValue<IsClusterValidMissingRecordResponse>(decodedBody)
   }
 
   private fun getPersonRecords(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.mapNotNull {
@@ -103,7 +129,7 @@ class PersonMatchService(
   }
 
   private suspend fun checkClusterIsValid(cluster: PersonKeyEntity): Result<IsClusterValidResponse> = runCatching {
-    retryExecutor.runWithRetryHTTP { personMatchClient.isClusterValid(cluster.getRecordsMatchIds()) }
+    personMatchClient.isClusterValid(cluster.getRecordsMatchIds())
   }
 
   private fun PersonKeyEntity.getRecordsMatchIds(): List<String> = this.personEntities.map { it.matchId.toString() }

@@ -234,12 +234,12 @@ class IntegrationTestBase {
       currentScenarioState,
       nextScenarioState,
       url = "/is-cluster-valid",
-      status = 200,
+      status = status,
       responseBody = objectMapper.writeValueAsString(isClusterValidResponse),
     )
   }
 
-  internal fun stubClusterIsValid() = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = true, clusters = listOf()))
+  internal fun stubClusterIsValid(scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = true, clusters = listOf()), scenario, currentScenarioState, nextScenarioState)
 
   internal fun stubClusterIsNotValid(clusters: List<ValidCluster> = listOf()) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = false, clusters = clusters.map { cluster -> cluster.records }))
 

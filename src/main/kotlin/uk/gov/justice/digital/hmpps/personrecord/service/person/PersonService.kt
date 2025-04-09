@@ -23,14 +23,14 @@ class PersonService(
   fun createPersonEntity(person: Person): PersonEntity {
     val personEntity = createNewPersonEntity(person)
     sendPersonDetailsToPersonMatch(personEntity)
-    telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_CREATED, person)
+    telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_CREATED, personEntity)
     return personEntity
   }
 
   fun updatePersonEntity(person: Person, existingPersonEntity: PersonEntity): PersonEntity {
     val updatedEntity = updateExistingPersonEntity(person, existingPersonEntity)
     sendPersonDetailsToPersonMatch(updatedEntity)
-    telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_UPDATED, person)
+    telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_UPDATED, updatedEntity)
     return updatedEntity
   }
 

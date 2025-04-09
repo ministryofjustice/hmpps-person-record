@@ -149,10 +149,6 @@ class PersonEntity(
     this.personKey = null
   }
 
-  fun getPostcodesForMatching(): Set<String> = this.addresses.mapNotNull { it.postcode }.toSet()
-
-  fun getIdentifiersForMatching(identifiers: List<IdentifierType>): Set<ReferenceEntity> = this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }.toSet()
-
   fun update(person: Person) {
     this.title = person.title
     this.firstName = person.firstName

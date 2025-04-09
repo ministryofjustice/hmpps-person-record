@@ -66,6 +66,31 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       personMatchService.examineIsClusterValid(cluster)
     }
+
+    @Test
+    fun `should handle out of sync isClusterValid response`() {
+      val personA = createPerson(createExamplePerson())
+      val personB = createPerson(createExamplePerson())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+
+      stubPostRequest(
+        url = "/is-cluster-valid",
+        status = 404,
+        responseBody = """
+          {
+            "unknownIds": ["${personA.matchId}"]
+          }
+        """.trimIndent(),
+        nextScenarioState = "FOUND ALL RECORDS",
+      )
+      stubPersonMatchUpsert(currentScenarioState = "FOUND ALL RECORDS", nextScenarioState = "CLUSTER IS VALID")
+      stubClusterIsValid(currentScenarioState = "CLUSTER IS VALID")
+
+      val result = personMatchService.examineIsClusterValid(cluster)
+      assertThat(result.isClusterValid).isTrue()
+    }
   }
 
   @Nested
