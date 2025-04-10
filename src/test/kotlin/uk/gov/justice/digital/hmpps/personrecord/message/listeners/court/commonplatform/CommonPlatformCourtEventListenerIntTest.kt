@@ -431,6 +431,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val commonPlatformHearingAttributes: MessageAttributes? = sqsMessage.messageAttributes
 
     assertThat(commonPlatformHearing.contains(defendantId)).isEqualTo(true)
+    assertThat(commonPlatformHearing.contains("cprUUID")).isEqualTo(true)
 
     assertThat(commonPlatformHearingAttributes?.messageType?.value).isEqualTo(COMMON_PLATFORM_HEARING.name)
 
@@ -441,13 +442,11 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should publish incoming large message to CPR court topic with cprUUID`() {
+  fun `should publish incoming large message to CPR court topic`() {
     val defendantId = randomDefendantId()
     stubPersonMatchUpsert()
     stubPersonMatchScores()
     val s3Key = UUID.randomUUID().toString()
-
-    val cprUUID = "a81bc81b-dead-4e5d-abff-90865d1e13b1"
 
     val incomingMessageFromS3 =
       largeCommonPlatformHearing(defendantId).toByteArray(Charset.forName("UTF8"))
@@ -484,7 +483,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ).join().asUtf8String()
     }
     assertThat(body.contains(defendantId)).isEqualTo(true)
-    assertThat(body.contains(cprUUID)).isEqualTo(true)
 
     checkTelemetry(
       CPR_RECORD_CREATED,
@@ -494,6 +492,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should republish court message and add cprUUID to each defendant`() {
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+
     purgeQueueAndDlq(courtEventsQueue!!)
     val firstDefendantId = randomDefendantId()
     val secondDefendantId = randomDefendantId()
@@ -512,10 +513,10 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     await untilCallTo {
-      courtEventsQueue?.sqsClient?.countMessagesOnQueue(courtEventsQueue?.queueUrl!!)?.get()
+      testOnlyCourtEventsQueue?.sqsClient?.countMessagesOnQueue(testOnlyCourtEventsQueue?.queueUrl!!)?.get()
     } matches { it == 1 }
 
-    val messageResponse = courtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(courtEventsQueue?.queueUrl).build())?.get()
+    val messageResponse = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())?.get()
 
     val body = messageResponse?.messages()?.get(0)?.body()!!
 

@@ -60,20 +60,8 @@ class CourtEventProcessor(
       isLargeMessage(sqsMessage) -> runBlocking { getPayloadFromS3(sqsMessage) }
       else -> sqsMessage.message
     }
-    if (publishToCourtTopic) {
-      when (messageLargerThanThreshold(commonPlatformHearing)) {
-        true -> courtMessagePublisher.publishLargeMessage(commonPlatformHearing, sqsMessage)
-        else -> courtMessagePublisher.publishMessage(sqsMessage)
-      }
-    }
 
     val json = JsonPath.parse(sqsMessage.message)
-
-//    processedDefendants.forEach { def ->
-//      val defendantId = def.defendantId
-//      json.put("$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]", "cprUUID", def.personKey!!.personId.toString())
-//    }
-    val check: LinkedHashMap<String, Any> = json.read("$.hearing.prosecutionCases[0].defendants[0]")
 
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
 
@@ -83,13 +71,20 @@ class CourtEventProcessor(
       .filter { it.isPerson() }
       .distinctBy { it.id }
 
+    val updatedSQSMessage: SQSMessage = sqsMessage
     uniquePersonDefendants.forEach { defendant ->
       processCommonPlatformPerson(defendant, sqsMessage)
       val cprPerson: PersonEntity? = uniquePersonDefendants.first().id?.let { personRepository.findByDefendantId(it) }
       val defendantId = cprPerson?.defendantId
       val cprUUID = cprPerson?.personKey?.personId.toString()
-      json.put("$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]", "cprUUID", cprUUID)
-      val check: String = json.read("$.hearing.prosecutionCases[0].defendants[0].cprUUID")
+      updatedSQSMessage.message = json.put("$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]", "cprUUID", cprUUID).jsonString()
+    }
+
+    if (publishToCourtTopic) {
+      when (messageLargerThanThreshold(commonPlatformHearing)) {
+        true -> courtMessagePublisher.publishLargeMessage(commonPlatformHearing, sqsMessage)
+        else -> courtMessagePublisher.publishMessage(updatedSQSMessage)
+      }
     }
   }
 
