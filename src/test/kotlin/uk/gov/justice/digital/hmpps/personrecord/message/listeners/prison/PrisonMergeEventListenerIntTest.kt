@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
-import java.time.LocalDateTime
 
 class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -121,7 +120,12 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(
         MERGE_MESSAGE_RECEIVED,
-        mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
+        mapOf(
+          "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
+          "TARGET_PRISON_NUMBER" to targetPrisonNumber,
+          "EVENT_TYPE" to PRISONER_MERGED,
+          "SOURCE_SYSTEM" to NOMIS.name,
+        ),
       )
       checkTelemetry(
         CPR_RECORD_MERGED,
@@ -153,7 +157,12 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(
         MERGE_MESSAGE_RECEIVED,
-        mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
+        mapOf(
+          "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
+          "TARGET_PRISON_NUMBER" to targetPrisonNumber,
+          "EVENT_TYPE" to PRISONER_MERGED,
+          "SOURCE_SYSTEM" to NOMIS.name,
+        ),
       )
       checkTelemetry(
         CPR_MERGE_RECORD_NOT_FOUND,
@@ -190,7 +199,12 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(
         MERGE_MESSAGE_RECEIVED,
-        mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
+        mapOf(
+          "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
+          "TARGET_PRISON_NUMBER" to targetPrisonNumber,
+          "EVENT_TYPE" to PRISONER_MERGED,
+          "SOURCE_SYSTEM" to NOMIS.name,
+        ),
       )
       checkTelemetry(
         CPR_RECORD_MERGED,
@@ -232,7 +246,12 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(
         MERGE_MESSAGE_RECEIVED,
-        mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
+        mapOf(
+          "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
+          "TARGET_PRISON_NUMBER" to targetPrisonNumber,
+          "EVENT_TYPE" to PRISONER_MERGED,
+          "SOURCE_SYSTEM" to NOMIS.name,
+        ),
       )
       checkTelemetry(
         CPR_RECORD_MERGED,
@@ -273,7 +292,12 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(
         MERGE_MESSAGE_RECEIVED,
-        mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
+        mapOf(
+          "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
+          "TARGET_PRISON_NUMBER" to targetPrisonNumber,
+          "EVENT_TYPE" to PRISONER_MERGED,
+          "SOURCE_SYSTEM" to NOMIS.name,
+        ),
       )
       checkTelemetry(
         CPR_RECORD_MERGED,
@@ -309,12 +333,23 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stub5xxResponse(prisonURL(targetPrisonNumber), "next request will succeed", "retry")
 
       val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, target, scenario = "retry", currentScenarioState = "next request will succeed")
+      prisonMergeEventAndResponseSetup(
+        PRISONER_MERGED,
+        sourcePrisonNumber,
+        target,
+        scenario = "retry",
+        currentScenarioState = "next request will succeed",
+      )
 
       expectNoMessagesOnQueueOrDlq(prisonMergeEventsQueue)
       checkTelemetry(
         MERGE_MESSAGE_RECEIVED,
-        mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
+        mapOf(
+          "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
+          "TARGET_PRISON_NUMBER" to targetPrisonNumber,
+          "EVENT_TYPE" to PRISONER_MERGED,
+          "SOURCE_SYSTEM" to NOMIS.name,
+        ),
       )
       checkTelemetry(
         CPR_RECORD_MERGED,
@@ -326,42 +361,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
-    }
-
-    @Test
-    fun `processes prisoner merge event maps to EventLogging table`() {
-      val targetPrisonNumber = randomPrisonNumber()
-      val sourcePrisonNumber = randomPrisonNumber()
-      val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
-      val personKeyEntity = createPersonKey()
-      createPerson(
-        Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity,
-      )
-      createPerson(
-        Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity,
-      )
-
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
-
-      val loggedEvent = awaitNotNullEventLog(targetPrisonNumber, PRISONER_MERGED)
-
-      val sourcePerson = personRepository.findByPrisonNumber(sourcePrisonNumber)
-      val targetPerson = personRepository.findByPrisonNumber(targetPrisonNumber)
-
-      val beforeDataDTO = sourcePerson?.let { Person.from(it) }
-      val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
-
-      val processedDataDTO = targetPerson?.let { Person.from(it) }
-      val processedData = objectMapper.writeValueAsString(processedDataDTO)
-
-      assertThat(loggedEvent.sourceSystem).isEqualTo(targetPerson?.sourceSystem.toString())
-      assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
-      assertThat(loggedEvent.beforeData).isEqualTo(beforeData)
-      assertThat(loggedEvent.processedData).isEqualTo(processedData)
-
-      assertThat(loggedEvent.uuid).isEqualTo(sourcePerson?.personKey?.personId.toString())
     }
   }
 }

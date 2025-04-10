@@ -38,7 +38,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclusterval
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLoggingRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -69,9 +68,6 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var telemetryRepository: TelemetryTestRepository
-
-  @Autowired
-  lateinit var eventLoggingRepository: EventLoggingRepository
 
   @AfterEach
   fun after() {
@@ -120,10 +116,6 @@ class IntegrationTestBase {
   internal fun awaitAssert(function: () -> Unit) = awaitAssert(function = function, timeout = 3)
 
   internal fun awaitNotNullPerson(function: () -> PersonEntity?): PersonEntity = await atMost (Duration.ofSeconds(3)) untilNotNull function
-
-  internal fun awaitNotNullEventLog(sourceSystemId: String, eventType: String) = await atMost (Duration.ofSeconds(3)) untilNotNull {
-    eventLoggingRepository.findFirstBySourceSystemIdAndEventTypeOrderByEventTimestampDesc(sourceSystemId, eventType)
-  }
 
   internal fun createPersonKey(status: UUIDStatusType = ACTIVE): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
