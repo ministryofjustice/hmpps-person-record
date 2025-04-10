@@ -7,14 +7,9 @@ import org.awaitility.kotlin.untilNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.message.UnmergeService.Companion.UnmergeRecordType
@@ -29,7 +24,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.UNMERGE_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -48,11 +42,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val reactivatedCrn = randomCrn()
       val unmergedCrn = randomCrn()
 
-      val personKeyEntity = createPersonKey()
-      createPerson(
-        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
-        personKeyEntity = personKeyEntity,
-      )
+      val personEntity = createPersonWithNewKey(createRandomProbationPersonDetails(crn = unmergedCrn))
 
       val reactivated = ApiResponseSetup(crn = reactivatedCrn)
       val unmerged = ApiResponseSetup(crn = unmergedCrn)
@@ -88,14 +78,14 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         mapOf(
           "REACTIVATED_CRN" to reactivatedCrn,
           "UNMERGED_CRN" to unmergedCrn,
-          "UNMERGED_UUID" to personKeyEntity.personId.toString(),
+          "UNMERGED_UUID" to personEntity.personKey?.personId.toString(),
           "SOURCE_SYSTEM" to "DELIUS",
         ),
       )
 
       val reactivatedPerson = awaitNotNullPerson { personRepository.findByCrn(reactivatedCrn) }
       assertThat(reactivatedPerson.personKey).isNotNull()
-      assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(personKeyEntity.personId)
+      assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(personEntity.personKey?.personId)
     }
 
     @Test
@@ -103,17 +93,9 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val reactivatedCrn = randomCrn()
       val unmergedCrn = randomCrn()
 
-      val unmergedPersonKey = createPersonKey()
-      val reactivatedPersonKey = createPersonKey()
+      createPersonWithNewKey(createRandomProbationPersonDetails(crn = unmergedCrn))
+      createPersonWithNewKey(createRandomProbationPersonDetails(crn = reactivatedCrn))
 
-      createPerson(
-        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
-        personKeyEntity = unmergedPersonKey,
-      )
-      createPerson(
-        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
-        personKeyEntity = reactivatedPersonKey,
-      )
       stub5xxResponse(probationUrl(unmergedCrn), "next request will succeed", "retry")
 
       val reactivated = ApiResponseSetup(crn = reactivatedCrn)
@@ -142,10 +124,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val reactivatedCrn = randomCrn()
       val unmergedCrn = randomCrn()
 
-      createPerson(
-        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
-        personKeyEntity = createPersonKey(),
-      )
+      createPerson(createRandomProbationPersonDetails(reactivatedCrn))
 
       val reactivated = ApiResponseSetup(crn = reactivatedCrn)
       val unmerged = ApiResponseSetup(crn = unmergedCrn)
@@ -195,14 +174,9 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         val unmergedCrn = randomCrn()
 
         val personKey = createPersonKey()
-        createPerson(
-          Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
-          personKeyEntity = personKey,
-        )
-        createPerson(
-          Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
-          personKeyEntity = personKey,
-        )
+          .addPerson(createPerson(createRandomProbationPersonDetails(unmergedCrn)))
+          .addPerson(createPerson(createRandomProbationPersonDetails(reactivatedCrn)))
+          .savePersonKey()
 
         val reactivated = ApiResponseSetup(crn = reactivatedCrn)
         val unmerged = ApiResponseSetup(crn = unmergedCrn)
@@ -258,21 +232,10 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         val unmergedCrn = randomCrn()
 
         val personKey = createPersonKey()
-        createPerson(
-          person = Person(
-            crn = randomCrn(),
-            sourceSystem = SourceSystemType.DELIUS,
-          ),
-          personKeyEntity = personKey,
-        )
-        createPerson(
-          Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
-          personKeyEntity = personKey,
-        )
-        createPerson(
-          Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
-          personKeyEntity = personKey,
-        )
+          .addPerson(createPerson(createRandomProbationPersonDetails(unmergedCrn)))
+          .addPerson(createPerson(createRandomProbationPersonDetails(reactivatedCrn)))
+          .addPerson(createPerson(createRandomProbationPersonDetails()))
+          .savePersonKey()
 
         val reactivated = ApiResponseSetup(crn = reactivatedCrn)
         val unmerged = ApiResponseSetup(crn = unmergedCrn)
@@ -325,15 +288,10 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         val reactivatedCrn = randomCrn()
         val unmergedCrn = randomCrn()
 
-        val personKey = createPersonKey()
-        createPerson(
-          Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
-          personKeyEntity = personKey,
-        )
-        createPerson(
-          Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
-          personKeyEntity = personKey,
-        )
+        createPersonKey()
+          .addPerson(createPerson(createRandomProbationPersonDetails(unmergedCrn)))
+          .addPerson(createPerson(createRandomProbationPersonDetails(reactivatedCrn)))
+          .savePersonKey()
 
         val reactivated = ApiResponseSetup(crn = reactivatedCrn)
         val unmerged = ApiResponseSetup(crn = unmergedCrn)
@@ -374,17 +332,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         val reactivatedCrn = randomCrn()
         val unmergedCrn = randomCrn()
 
-        val unmergedPersonKey = createPersonKey()
-        val reactivatedPersonKey = createPersonKey()
-
-        createPerson(
-          Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = unmergedCrn))),
-          personKeyEntity = unmergedPersonKey,
-        )
-        createPerson(
-          Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = reactivatedCrn))),
-          personKeyEntity = reactivatedPersonKey,
-        )
+        val unmergedPerson = createPersonWithNewKey(createRandomProbationPersonDetails(unmergedCrn))
+        val reactivatedPerson = createPersonWithNewKey(createRandomProbationPersonDetails(reactivatedCrn))
 
         val reactivated = ApiResponseSetup(crn = reactivatedCrn)
         val unmerged = ApiResponseSetup(crn = unmergedCrn)
@@ -419,18 +368,18 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
           mapOf(
             "REACTIVATED_CRN" to reactivatedCrn,
             "UNMERGED_CRN" to unmergedCrn,
-            "UNMERGED_UUID" to unmergedPersonKey.personId.toString(),
+            "UNMERGED_UUID" to unmergedPerson.personKey?.personId.toString(),
             "SOURCE_SYSTEM" to "DELIUS",
           ),
         )
 
-        val reactivatedMergedPersonKey = await.atMost(4, SECONDS) untilNotNull { personKeyRepository.findByPersonId(reactivatedPersonKey.personId) }
+        val reactivatedMergedPersonKey = await.atMost(4, SECONDS) untilNotNull { personKeyRepository.findByPersonId(reactivatedPerson.personKey?.personId) }
         assertThat(reactivatedMergedPersonKey.personEntities.size).isEqualTo(0)
         assertThat(reactivatedMergedPersonKey.status).isEqualTo(UUIDStatusType.MERGED)
 
-        val reactivatedPerson = awaitNotNullPerson { personRepository.findByCrn(reactivatedCrn) }
-        assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(reactivatedPersonKey.personId)
-        assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(unmergedPersonKey.personId)
+        val updatedReactivatedPerson = awaitNotNullPerson { personRepository.findByCrn(reactivatedCrn) }
+        assertThat(updatedReactivatedPerson.personKey?.personId).isNotEqualTo(reactivatedPerson.personKey?.personId)
+        assertThat(updatedReactivatedPerson.personKey?.personId).isNotEqualTo(unmergedPerson.personKey?.personId)
       }
     }
   }

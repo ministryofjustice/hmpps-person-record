@@ -126,8 +126,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       addresses = listOf(Address(postcode = randomPostcode())),
       sourceSystem = DELIUS,
     )
-    val personKeyEntity = createPersonKey()
-    val existingPerson = createPerson(personFromProbation, personKeyEntity = personKeyEntity)
+
+    val existingPerson = createPersonWithNewKey(personFromProbation)
 
     stubPersonMatchUpsert()
     stubOnePersonMatchHighConfidenceMatch(matchedRecord = existingPerson.matchId)
@@ -159,11 +159,11 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
         "CLUSTER_SIZE" to "1",
-        "UUID" to personKeyEntity.personId.toString(),
+        "UUID" to existingPerson.personKey?.personId.toString(),
       ),
     )
 
-    val personKey = personKeyRepository.findByPersonId(personKeyEntity.personId)
+    val personKey = personKeyRepository.findByPersonId(existingPerson.personKey?.personId)
     assertThat(personKey?.personEntities?.size).isEqualTo(2)
   }
 

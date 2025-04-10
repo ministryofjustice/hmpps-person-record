@@ -238,15 +238,9 @@ class CanonicalApiIntTest : WebTestBase() {
   fun `should return latest modified from 2 records`() {
     val personKey = createPersonKey()
 
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKey,
-    )
+    createPersonWithNewKey(createRandomProbationPersonDetails())
 
-    val latestPerson = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKey,
-    )
+    val latestPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
 
     val responseBody = webTestClient.get()
       .uri(canonicalAPIUrl(personKey.personId.toString()))
@@ -265,8 +259,6 @@ class CanonicalApiIntTest : WebTestBase() {
 
   @Test
   fun `should add list of additional identifiers to the canonical record`() {
-    val personKey = createPersonKey()
-
     val personOneCro = randomCro()
     val personTwoCro = randomCro()
 
@@ -309,7 +301,6 @@ class CanonicalApiIntTest : WebTestBase() {
           Reference(identifierType = IdentifierType.DRIVER_LICENSE_NUMBER, identifierValue = personOneDriversLicenseNumber),
         ),
       ),
-      personKey,
     )
 
     val personTwo = createPerson(
@@ -336,8 +327,12 @@ class CanonicalApiIntTest : WebTestBase() {
           Reference(identifierType = IdentifierType.DRIVER_LICENSE_NUMBER, identifierValue = personTwoDriversLicenseNumber),
         ),
       ),
-      personKey,
     )
+
+    val personKey = createPersonKey()
+      .addPerson(personOne)
+      .addPerson(personTwo)
+      .savePersonKey()
 
     val responseBody = webTestClient.get()
       .uri(canonicalAPIUrl(personKey.personId.toString()))
@@ -362,9 +357,7 @@ class CanonicalApiIntTest : WebTestBase() {
 
   @Test
   fun `should add an empty list of additional identifiers to the canonical record when null`() {
-    val personKey = createPersonKey()
-
-    createPerson(
+    val person = createPersonWithNewKey(
       Person(
         firstName = randomName(),
         lastName = randomName(),
@@ -377,11 +370,10 @@ class CanonicalApiIntTest : WebTestBase() {
         religion = randomReligion(),
         masterDefendantId = randomDefendantId(),
       ),
-      personKey,
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(personKey.personId.toString()))
+      .uri(canonicalAPIUrl(person.personKey?.personId.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -400,15 +392,9 @@ class CanonicalApiIntTest : WebTestBase() {
   fun `should return latest modified with latest person set to null record`() {
     val personKey = createPersonKey()
 
-    val person = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKey,
-    )
+    val person = createPersonWithNewKey(createRandomProbationPersonDetails())
 
-    val latestPerson = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKey,
-    )
+    val latestPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
 
     latestPerson.lastModified = null
     personRepository.saveAndFlush(latestPerson)
@@ -432,15 +418,9 @@ class CanonicalApiIntTest : WebTestBase() {
   fun `should return record when all last modified are null`() {
     val personKey = createPersonKey()
 
-    val person = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKey,
-    )
+    val person = createPersonWithNewKey(createRandomProbationPersonDetails())
 
-    val latestPerson = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKey,
-    )
+    val latestPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
 
     latestPerson.lastModified = null
     person.lastModified = null
@@ -466,16 +446,18 @@ class CanonicalApiIntTest : WebTestBase() {
     val targetPersonFirstName = randomName()
 
     val sourcePersonKey = createPersonKey()
-    val targetPersonKey = createPersonKey()
+      .addPerson(
+        createPerson(Person.from(ProbationCase(name = Name(firstName = sourcePersonFirstName), identifiers = Identifiers()))),
+      )
+      .savePersonKey()
 
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = sourcePersonFirstName), identifiers = Identifiers())),
-      personKeyEntity = sourcePersonKey,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = targetPersonFirstName), identifiers = Identifiers())),
-      personKeyEntity = targetPersonKey,
-    )
+    val targetPersonKey = createPersonKey()
+      .addPerson(
+        createPerson(
+          Person.from(ProbationCase(name = Name(firstName = targetPersonFirstName), identifiers = Identifiers())),
+        ),
+      )
+      .savePersonKey()
 
     mergeUuid(sourcePersonKey, targetPersonKey)
 
@@ -500,21 +482,28 @@ class CanonicalApiIntTest : WebTestBase() {
     val newTargetPersonFirstName = randomName()
 
     val sourcePersonKey = createPersonKey()
-    val targetPersonKey = createPersonKey()
-    val newTargetPersonKey = createPersonKey()
+      .addPerson(
+        createPersonWithNewKey(
+          Person.from(ProbationCase(name = Name(firstName = sourcePersonFirstName), identifiers = Identifiers())),
+        ),
+      )
+      .savePersonKey()
 
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = sourcePersonFirstName), identifiers = Identifiers())),
-      personKeyEntity = sourcePersonKey,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = targetPersonFirstName), identifiers = Identifiers())),
-      personKeyEntity = targetPersonKey,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = newTargetPersonFirstName), identifiers = Identifiers())),
-      personKeyEntity = newTargetPersonKey,
-    )
+    val targetPersonKey = createPersonKey()
+      .addPerson(
+        createPerson(
+          Person.from(ProbationCase(name = Name(firstName = targetPersonFirstName), identifiers = Identifiers())),
+        ),
+      )
+      .savePersonKey()
+
+    val newTargetPersonKey = createPersonKey()
+      .addPerson(
+        createPerson(
+          Person.from(ProbationCase(name = Name(firstName = newTargetPersonFirstName), identifiers = Identifiers())),
+        ),
+      )
+      .savePersonKey()
 
     mergeUuid(sourcePersonKey, targetPersonKey)
     mergeUuid(targetPersonKey, newTargetPersonKey)
@@ -536,21 +525,14 @@ class CanonicalApiIntTest : WebTestBase() {
   @Test
   fun `should return 500 error when records are merged in a loop`() {
     val record1 = createPersonKey()
+      .addPerson(createPerson(createRandomProbationPersonDetails()))
+      .savePersonKey()
     val record2 = createPersonKey()
+      .addPerson(createPerson(createRandomProbationPersonDetails()))
+      .savePersonKey()
     val record3 = createPersonKey()
-
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName()), identifiers = Identifiers())),
-      personKeyEntity = record1,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName()), identifiers = Identifiers())),
-      personKeyEntity = record2,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName()), identifiers = Identifiers())),
-      personKeyEntity = record3,
-    )
+      .addPerson(createPerson(createRandomProbationPersonDetails()))
+      .savePersonKey()
 
     // merge UUIDS 1 -> 2 -> 3 -> 1
     mergeUuid(record1, record2)

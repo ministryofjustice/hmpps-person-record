@@ -163,8 +163,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         addresses = listOf(Address(postcode = postcode)),
         sourceSystem = NOMIS,
       )
-      val personKeyEntity = createPersonKey()
-      val existingPerson = createPerson(existingPrisoner, personKeyEntity = personKeyEntity)
+      val existingPerson = createPersonWithNewKey(existingPrisoner)
 
       stubOnePersonMatchHighConfidenceMatch(matchedRecord = existingPerson.matchId)
 
@@ -195,12 +194,12 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         mapOf(
           "SOURCE_SYSTEM" to DELIUS.name,
           "CLUSTER_SIZE" to "1",
-          "UUID" to personKeyEntity.personId.toString(),
+          "UUID" to existingPerson.personKey?.personId.toString(),
         ),
       )
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
-      val personKey = personKeyRepository.findByPersonId(personKeyEntity.personId)
+      val personKey = personKeyRepository.findByPersonId(existingPerson.personKey?.personId)
       assertThat(personKey?.personEntities?.size).isEqualTo(2)
     }
 

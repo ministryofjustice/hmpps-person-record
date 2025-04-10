@@ -42,6 +42,12 @@ class PersonKeyEntity(
 
 ) {
 
+  fun addPerson(personEntity: PersonEntity): PersonKeyEntity {
+    personEntity.personKey = this
+    this.personEntities.add(personEntity)
+    return this
+  }
+
   fun getRecordIds(): List<Long> = this.personEntities.mapNotNull { it.id }
 
   fun collectExcludeOverrideMarkers(): List<OverrideMarkerEntity> = this.personEntities.map { it.overrideMarkers }.flatten().filter { it.markerType == OverrideMarkerType.EXCLUDE }

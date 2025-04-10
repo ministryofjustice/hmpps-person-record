@@ -63,10 +63,8 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     val sourcePrisonNumber = randomPrisonNumber()
     val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
     val personKeyEntity = createPersonKey()
-    createPerson(
-      Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
-      personKeyEntity = personKeyEntity,
-    )
+      .addPerson(createPerson(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS)))
+      .savePersonKey()
 
     prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
 
@@ -107,15 +105,12 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
       val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
+
+      val targetPerson = createPerson(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
       val personKeyEntity = createPersonKey()
-      createPerson(
-        Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity,
-      )
-      val targetPerson = createPerson(
-        Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity,
-      )
+        .addPerson(createPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS)))
+        .addPerson(targetPerson)
+        .savePersonKey()
 
       prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
 
@@ -143,10 +138,9 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
       val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
-      val personKeyEntity = createPersonKey()
-      createPerson(
+
+      createPersonWithNewKey(
         Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity,
       )
 
       prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
@@ -171,20 +165,16 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
       val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
+
       val personKeyEntity1 = createPersonKey()
+        .addPerson(createPerson(Person(prisonNumber = randomPrisonNumber(), sourceSystem = NOMIS)))
+        .addPerson(createPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS)))
+        .savePersonKey()
+
+      val targetPerson = createPerson(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
       val personKeyEntity2 = createPersonKey()
-      createPerson(
-        Person(prisonNumber = randomPrisonNumber(), sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity1,
-      )
-      createPerson(
-        Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity1,
-      )
-      val targetPerson = createPerson(
-        Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity2,
-      )
+        .addPerson(targetPerson)
+        .savePersonKey()
 
       prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
 
@@ -219,13 +209,13 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
       val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
-      val personKeyEntity2 = createPersonKey()
+
       createPerson(
         Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
       )
-      val targetPerson = createPerson(
+
+      val targetPerson = createPersonWithNewKey(
         Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity2,
       )
 
       prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
@@ -237,7 +227,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
-          "TO_UUID" to personKeyEntity2.personId.toString(),
+          "TO_UUID" to targetPerson.personKey?.personId.toString(),
           "FROM_UUID" to null,
           "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
           "TARGET_PRISON_NUMBER" to targetPrisonNumber,
@@ -249,7 +239,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
       assertThat(sourcePerson?.personKey).isNull()
 
-      val targetCluster = personKeyRepository.findByPersonId(personKeyEntity2.personId)
+      val targetCluster = personKeyRepository.findByPersonId(targetPerson.personKey?.personId)
       assertThat(targetCluster?.personEntities?.size).isEqualTo(1)
     }
 
@@ -258,16 +248,15 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
       val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
+
       val personKeyEntity1 = createPersonKey()
+        .addPerson(createPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS)))
+        .savePersonKey()
+
+      val targetPerson = createPerson(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
       val personKeyEntity2 = createPersonKey()
-      createPerson(
-        Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity1,
-      )
-      val targetPerson = createPerson(
-        Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity2,
-      )
+        .addPerson(targetPerson)
+        .savePersonKey()
 
       prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
 
@@ -297,15 +286,13 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
       val personKeyEntity1 = createPersonKey()
+        .addPerson(createPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS)))
+        .savePersonKey()
+
       val personKeyEntity2 = createPersonKey()
-      createPerson(
-        Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity1,
-      )
-      createPerson(
-        Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity2,
-      )
+        .addPerson(createPerson(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS)))
+        .savePersonKey()
+
       stub5xxResponse(prisonURL(targetPrisonNumber), "next request will succeed", "retry")
 
       val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
@@ -333,15 +320,11 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
       val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
-      val personKeyEntity = createPersonKey()
-      createPerson(
-        Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity,
-      )
-      createPerson(
-        Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity,
-      )
+
+      createPersonKey()
+        .addPerson(createPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS)))
+        .addPerson(createPerson(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS)))
+        .savePersonKey()
 
       prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
 

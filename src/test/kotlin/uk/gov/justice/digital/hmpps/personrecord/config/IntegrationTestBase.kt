@@ -35,6 +35,9 @@ import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -48,6 +51,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
@@ -128,25 +133,21 @@ class IntegrationTestBase {
   internal fun createPersonKey(status: UUIDStatusType = ACTIVE): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
     personKeyEntity.status = status
-    return personKeyRepository.save(personKeyEntity)
+    return personKeyEntity
   }
 
-  internal fun PersonKeyEntity.addPerson(personEntity: PersonEntity): PersonKeyEntity {
-    this.personEntities.add(personEntity)
-    personEntity.personKey = this
-    return personKeyRepository.save(this)
-  }
+  internal fun PersonKeyEntity.savePersonKey(): PersonKeyEntity = personKeyRepository.save(this)
 
   internal fun createPersonWithNewKey(person: Person): PersonEntity {
     val personEntity = PersonEntity.new(person = person)
-    personEntity.personKey = createPersonKey()
-    return personRepository.saveAndFlush(personEntity)
+    createPersonKey()
+      .addPerson(personEntity)
+      .savePersonKey()
+    return personEntity
   }
 
-  internal fun createPerson(person: Person, personKeyEntity: PersonKeyEntity? = null): PersonEntity {
+  internal fun createPerson(person: Person): PersonEntity {
     val personEntity = PersonEntity.new(person = person)
-    personEntity.personKey = personKeyEntity
-    personKeyEntity?.personEntities?.add(personEntity)
     return personRepository.saveAndFlush(personEntity)
   }
 
@@ -337,6 +338,8 @@ class IntegrationTestBase {
         ),
     )
   }
+
+  internal fun createRandomProbationPersonDetails(crn: String = randomCrn()): Person = Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn)))
 
   internal fun stubDeleteRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String = "{}", status: Int = 200) {
     wiremock.stubFor(

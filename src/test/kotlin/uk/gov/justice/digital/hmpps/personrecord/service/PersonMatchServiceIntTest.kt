@@ -110,8 +110,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
-      val person = personRepository.findByMatchId(searchingRecord.matchId)!!
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(person)
+      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
 
       noCandidateFound(highConfidenceMatch)
     }
@@ -255,9 +254,12 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
     fun `should not find candidate records when exclude marker set on different record in matched cluster`() {
       val searchingRecord = createPersonWithNewKey(createExamplePerson())
 
-      val matchingCluster = createPersonKey()
-      val excludedRecord = createPerson(createExamplePerson(), personKeyEntity = matchingCluster)
-      val matchRecordOnSameCluster = createPerson(createExamplePerson(), personKeyEntity = matchingCluster)
+      val excludedRecord = createPerson(createExamplePerson())
+      val matchRecordOnSameCluster = createPerson(createExamplePerson())
+      createPersonKey()
+        .addPerson(excludedRecord)
+        .addPerson(matchRecordOnSameCluster)
+        .savePersonKey()
 
       excludeRecord(searchingRecord, excludingRecord = excludedRecord)
 
@@ -355,31 +357,28 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       val searchingRecord = createPersonWithNewKey(createExamplePerson())
 
       val cluster1 = createPersonKey()
-      val cluster1Records = listOf(
-        createPerson(createExamplePerson(), personKeyEntity = cluster1),
-        createPerson(createExamplePerson(), personKeyEntity = cluster1),
-      )
+        .addPerson(createPerson(createExamplePerson()))
+        .addPerson(createPerson(createExamplePerson()))
+        .savePersonKey()
 
       val cluster2 = createPersonKey()
-      val cluster2Records = listOf(
-        createPerson(createExamplePerson(), personKeyEntity = cluster2),
-        createPerson(createExamplePerson(), personKeyEntity = cluster2),
-      )
+        .addPerson(createPerson(createExamplePerson()))
+        .addPerson(createPerson(createExamplePerson()))
+        .savePersonKey()
 
       val cluster3 = createPersonKey()
-      val cluster3Records = listOf(
-        createPerson(createExamplePerson(), personKeyEntity = cluster3),
-        createPerson(createExamplePerson(), personKeyEntity = cluster3),
-      )
+        .addPerson(createPerson(createExamplePerson()))
+        .addPerson(createPerson(createExamplePerson()))
+        .savePersonKey()
 
-      val highScoringResults = (cluster1Records + cluster2Records).map {
+      val highScoringResults = (cluster1.personEntities + cluster2.personEntities).map {
         PersonMatchScore(
           candidateMatchId = it.matchId.toString(),
           candidateMatchWeight = 1.0F,
           candidateMatchProbability = 0.9999F,
         )
       }
-      val lowScoringResults = cluster3Records.map {
+      val lowScoringResults = cluster3.personEntities.map {
         PersonMatchScore(
           candidateMatchId = it.matchId.toString(),
           candidateMatchWeight = 1.0F,

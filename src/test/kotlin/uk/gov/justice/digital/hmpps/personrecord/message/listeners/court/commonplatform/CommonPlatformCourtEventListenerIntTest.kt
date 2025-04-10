@@ -112,8 +112,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val firstName = randomName()
     val lastName = randomName()
 
-    val personKey = createPersonKey()
-    val person = createPerson(
+    val person = createPersonWithNewKey(
       Person(
         defendantId = defendantId,
         references = listOf(Reference(PNC, pnc), Reference(CRO, cro)),
@@ -121,7 +120,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         lastName = lastName,
         sourceSystem = COMMON_PLATFORM,
       ),
-      personKeyEntity = personKey,
     )
 
     stubNoMatchesPersonMatch(matchId = person.matchId)

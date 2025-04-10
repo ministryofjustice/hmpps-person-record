@@ -31,11 +31,8 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should process offender delete with 1 record on single UUID`() {
     val crn = randomCrn()
     val domainEvent = buildDomainEvent(crn)
-    val personKey = createPersonKey()
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
-      personKeyEntity = personKey,
-    )
+    val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
+
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
     checkTelemetry(
@@ -44,15 +41,15 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to crn, "UUID" to personKey.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to crn, "UUID" to person.personKey?.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_UUID_DELETED,
-      mapOf("CRN" to crn, "UUID" to personKey.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to crn, "UUID" to person.personKey?.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
     awaitAssert { assertThat(personRepository.findByCrn(crn)).isNull() }
-    awaitAssert { assertThat(personKeyRepository.findByPersonId(personKey.personId)).isNull() }
+    awaitAssert { assertThat(personKeyRepository.findByPersonId(person.personKey?.personId)).isNull() }
   }
 
   @Test
@@ -60,14 +57,10 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val crn = randomCrn()
     val domainEvent = buildDomainEvent(crn)
     val personKey = createPersonKey()
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
-      personKeyEntity = personKey,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKeyEntity = personKey,
-    )
+      .addPerson(createPerson(createRandomProbationPersonDetails(crn)))
+      .addPerson(createPerson(createRandomProbationPersonDetails()))
+      .savePersonKey()
+
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
     checkTelemetry(
@@ -95,14 +88,13 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = buildDomainEvent(recordBCrn)
 
     // Record Cluster (2 Records - B merged to A)
+    val recordA = createPerson(createRandomProbationPersonDetails(recordACrn))
+    val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
     val cluster = createPersonKey()
-    val recordA = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordACrn))),
-      personKeyEntity = cluster,
-    )
-    val recordB = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordBCrn))),
-    )
+      .addPerson(recordA)
+      .addPerson(recordB)
+      .savePersonKey()
+
     mergeRecord(recordB, recordA)
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
@@ -127,15 +119,12 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = buildDomainEvent(recordACrn)
 
     // Record Cluster (1 Record - B merged to A)
+    val recordA = createPerson(createRandomProbationPersonDetails(recordACrn))
+    val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
     val cluster = createPersonKey()
-    val recordA = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordACrn))),
-      personKeyEntity = cluster,
-    )
-    val recordB = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordBCrn))),
-      personKeyEntity = cluster,
-    )
+      .addPerson(recordA)
+      .addPerson(recordB)
+      .savePersonKey()
 
     mergeRecord(recordB, recordA)
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
@@ -168,17 +157,13 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val recordBCrn = randomCrn()
     val domainEvent = buildDomainEvent(recordACrn)
 
+    val mergedTo = createPerson(createRandomProbationPersonDetails(recordACrn))
     val clusterA = createPersonKey()
-    var mergedTo = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordACrn))),
-      personKeyEntity = clusterA,
-    )
+      .addPerson(mergedTo)
+      .savePersonKey()
 
+    var mergedFrom = createPerson(createRandomProbationPersonDetails(recordBCrn))
     val clusterB = createPersonKey()
-    var mergedFrom = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordBCrn))),
-      personKeyEntity = clusterB,
-    )
 
     mergedFrom = mergeRecord(mergedFrom, mergedTo)
     mergeUuid(mergedFrom.personKey!!, mergedTo.personKey!!)
@@ -222,23 +207,21 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = buildDomainEvent(recordACrn)
 
     // First Record Cluster (1 Record)
+    val recordA = createPerson(createRandomProbationPersonDetails(recordACrn))
     val clusterA = createPersonKey()
-    val recordA = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordACrn))),
-      personKeyEntity = clusterA,
-    )
+      .addPerson(recordA)
+      .savePersonKey()
 
     // Second Record Cluster (2 Records - C merged to B)
+    var recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
     val clusterB = createPersonKey()
-    var recordB = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordBCrn))),
-      personKeyEntity = clusterB,
-    )
-    var recordC = createPerson(
+      .addPerson(recordA)
+      .savePersonKey()
+    val recordC = createPerson(
       Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordCCrn))),
     )
 
-    recordC = mergeRecord(recordC, recordB)
+    mergeRecord(recordC, recordB)
     recordB = mergeRecord(recordB, recordA)
     mergeUuid(recordB.personKey!!, recordA.personKey!!)
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
@@ -280,17 +263,13 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = buildDomainEvent(recordACrn)
 
     // Record Cluster (3 Records - B -> A <- C)
+    val recordA = createPerson(createRandomProbationPersonDetails(recordACrn))
     val cluster = createPersonKey()
-    val recordA = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordACrn))),
-      personKeyEntity = cluster,
-    )
-    val recordB = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordBCrn))),
-    )
-    val recordC = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordCCrn))),
-    )
+      .addPerson(recordA)
+      .savePersonKey()
+
+    val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
+    val recordC = createPerson(createRandomProbationPersonDetails(recordCCrn))
     mergeRecord(recordB, recordA)
     mergeRecord(recordC, recordA)
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
@@ -331,19 +310,15 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = buildDomainEvent(recordACrn)
 
     // Record Cluster (3 Records - B -> A)
+    val recordA = createPerson(createRandomProbationPersonDetails(recordACrn))
+    val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
+    val recordC = createPerson(createRandomProbationPersonDetails(recordCCrn))
     val cluster = createPersonKey()
-    val recordA = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordACrn))),
-      personKeyEntity = cluster,
-    )
-    val recordB = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordBCrn))),
-      personKeyEntity = cluster,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = recordCCrn))),
-      personKeyEntity = cluster,
-    )
+      .addPerson(recordA)
+      .addPerson(recordB)
+      .addPerson(recordC)
+      .savePersonKey()
+
     mergeRecord(recordB, recordA)
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
@@ -384,11 +359,10 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should process offender delete and map to EventLogging table`() {
     val crn = randomCrn()
     val domainEvent = buildDomainEvent(crn)
-    val personKey = createPersonKey()
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
-      personKeyEntity = personKey,
-    )
+    createPersonKey()
+      .addPerson(createPerson(createRandomProbationPersonDetails(crn)))
+      .savePersonKey()
+
     val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
 
     val beforeDataDTO = Person.from(personEntity)
