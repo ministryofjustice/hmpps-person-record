@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.jayway.jsonpath.JsonPath
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -16,6 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.Common
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.CourtMessagePublisher
 import uk.gov.justice.digital.hmpps.personrecord.message.LARGE_CASE_EVENT_TYPE
@@ -65,6 +67,14 @@ class CourtEventProcessor(
       }
     }
 
+    val json = JsonPath.parse(sqsMessage.message)
+
+//    processedDefendants.forEach { def ->
+//      val defendantId = def.defendantId
+//      json.put("$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]", "cprUUID", def.personKey!!.personId.toString())
+//    }
+    val check: LinkedHashMap<String, Any> = json.read("$.hearing.prosecutionCases[0].defendants[0]")
+
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
 
     val uniquePersonDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
@@ -75,6 +85,11 @@ class CourtEventProcessor(
 
     uniquePersonDefendants.forEach { defendant ->
       processCommonPlatformPerson(defendant, sqsMessage)
+      val cprPerson: PersonEntity? = uniquePersonDefendants.first().id?.let { personRepository.findByDefendantId(it) }
+      val defendantId = cprPerson?.defendantId
+      val cprUUID = cprPerson?.personKey?.personId.toString()
+      json.put("$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]", "cprUUID", cprUUID)
+      val check: String = json.read("$.hearing.prosecutionCases[0].defendants[0].cprUUID")
     }
   }
 
