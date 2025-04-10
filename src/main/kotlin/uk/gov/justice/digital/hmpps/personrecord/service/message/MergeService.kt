@@ -8,10 +8,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
-import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
@@ -21,7 +19,6 @@ class MergeService(
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   private val personKeyRepository: PersonKeyRepository,
-  private val eventLoggingService: EventLoggingService,
   private val deletionService: DeletionService,
 ) {
 
@@ -40,18 +37,6 @@ class MergeService(
     }
 
     sourcePersonEntity?.let { deletionService.deletePersonFromPersonMatch(it) }
-    logChangeInEventLog(mergeEvent, sourcePersonEntity, targetPersonEntity)
-  }
-
-  private fun logChangeInEventLog(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity?) {
-    val beforeDataDTO = sourcePersonEntity?.let { Person.from(it) }
-    val processedDataDTO = targetPersonEntity?.let { Person.from(it) }
-    eventLoggingService.recordEventLog(
-      beforePerson = beforeDataDTO,
-      processedPerson = processedDataDTO,
-      uuid = sourcePersonEntity?.personKey?.personId?.toString(),
-      eventType = mergeEvent.event,
-    )
   }
 
   private fun handleMergeWithSameUuids(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {

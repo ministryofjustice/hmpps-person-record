@@ -29,7 +29,7 @@ class PrisonEventProcessor(
       prisonNumber,
     ) {
       it?.let {
-        createUpdateService.processPerson(Person.from(it), domainEvent.eventType) {
+        createUpdateService.processPerson(Person.from(it)) {
           personRepository.findByPrisonNumber(prisonNumber)
         }
       }

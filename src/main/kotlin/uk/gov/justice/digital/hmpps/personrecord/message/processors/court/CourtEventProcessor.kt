@@ -89,7 +89,7 @@ class CourtEventProcessor(
         EventKeys.SOURCE_SYSTEM to SourceSystemType.COMMON_PLATFORM.name,
       ),
     )
-    createUpdateService.processPerson(person, null) {
+    createUpdateService.processPerson(person) {
       person.defendantId?.let {
         personRepository.findByDefendantId(it)
       }
@@ -132,7 +132,7 @@ class CourtEventProcessor(
         EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
       ),
     )
-    createUpdateService.processPerson(person, null) {
+    createUpdateService.processPerson(person) {
       person.cId?.let {
         personRepository.findByCId(it)
       }

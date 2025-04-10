@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
@@ -22,7 +21,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
-import java.time.LocalDateTime
 
 class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -255,42 +253,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
           "SOURCE_SYSTEM" to "DELIUS",
         ),
       )
-    }
-
-    @Test
-    fun `processes offender merge event is mapped to EventLogging table`() {
-      val sourceCrn = randomCrn()
-      val targetCrn = randomCrn()
-      val target = ApiResponseSetup(crn = targetCrn)
-      val personKeyEntity = createPersonKey()
-      createPerson(
-        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = sourceCrn))),
-        personKeyEntity = personKeyEntity,
-      )
-      createPerson(
-        Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = targetCrn))),
-        personKeyEntity = personKeyEntity,
-      )
-
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, target)
-
-      val loggedEvent = awaitNotNullEventLog(targetCrn, OFFENDER_MERGED)
-
-      val sourcePerson = personRepository.findByCrn(sourceCrn)
-      val targetPerson = personRepository.findByCrn(targetCrn)
-
-      val beforeDataDTO = sourcePerson?.let { Person.from(it) }
-      val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
-
-      val processedDataDTO = targetPerson?.let { Person.from(it) }
-      val processedData = objectMapper.writeValueAsString(processedDataDTO)
-
-      assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
-      assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
-      assertThat(loggedEvent.beforeData).isEqualTo(beforeData)
-      assertThat(loggedEvent.processedData).isEqualTo(processedData)
-
-      assertThat(loggedEvent.uuid).isEqualTo(sourcePerson?.personKey?.personId.toString())
     }
 
     @Test

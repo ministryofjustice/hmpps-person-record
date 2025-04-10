@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.shouldCreateOrUpdate
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
@@ -20,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 class CreateUpdateService(
   private val personService: PersonService,
   private val reclusterService: ReclusterService,
-  private val eventLoggingService: EventLoggingService,
 ) {
 
   @Retryable(
@@ -32,48 +30,28 @@ class CreateUpdateService(
     ],
   )
   @Transactional(isolation = REPEATABLE_READ)
-  fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) {
+  fun processPerson(person: Person, callback: () -> PersonEntity?) {
     runBlocking {
       val existingPersonEntitySearch: PersonEntity? = callback()
       existingPersonEntitySearch.shouldCreateOrUpdate(
         shouldCreate = {
-          handlePersonCreation(person, event)
+          handlePersonCreation(person)
         },
         shouldUpdate = {
-          handlePersonUpdate(person, it, event)
+          handlePersonUpdate(person, it)
         },
       )
     }
   }
 
-  private fun handlePersonCreation(person: Person, event: String?): PersonEntity {
+  private fun handlePersonCreation(person: Person): PersonEntity {
     val personEntity: PersonEntity = personService.createPersonEntity(person)
     personService.linkRecordToPersonKey(personEntity)
-
-    val processedDataDTO = Person.from(personEntity)
-
-    eventLoggingService.recordEventLog(
-      beforePerson = null,
-      processedPerson = processedDataDTO,
-      uuid = personEntity.personKey?.personId?.toString(),
-      eventType = event,
-    )
-
     return personEntity
   }
 
-  private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?): PersonEntity {
-    val beforeDataDTO = Person.from(existingPersonEntity)
+  private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity): PersonEntity {
     val updatedPerson = personService.updatePersonEntity(person, existingPersonEntity)
-    val processedDataDTO = Person.from(updatedPerson)
-
-    eventLoggingService.recordEventLog(
-      beforePerson = beforeDataDTO,
-      processedPerson = processedDataDTO,
-      uuid = existingPersonEntity.personKey?.personId?.toString(),
-      eventType = event,
-    )
-
     updatedPerson.personKey?.let { reclusterService.recluster(it, changedRecord = updatedPerson) }
     return updatedPerson
   }

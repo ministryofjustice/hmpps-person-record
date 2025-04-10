@@ -27,7 +27,7 @@ class ProbationEventProcessor(
       crn,
     ) {
       it?.let {
-        createUpdateService.processPerson(Person.from(it), eventType) {
+        createUpdateService.processPerson(Person.from(it)) {
           personRepository.findByCrn(crn)
         }
       }
