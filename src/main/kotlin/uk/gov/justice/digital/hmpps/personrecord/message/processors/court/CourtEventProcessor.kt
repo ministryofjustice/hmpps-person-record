@@ -71,16 +71,16 @@ class CourtEventProcessor(
       processCommonPlatformPerson(defendant, sqsMessage)
     }
 
-    val defentantIds: List<String?> = uniquePersonDefendants.map { defendant ->
+    val defendantIds: List<String> = uniquePersonDefendants.map { defendant ->
       personRepository.findByDefendantId(
-        defendant.id.toString(),
-      )?.defendantId
+          defendant.id.toString(),
+      )?.defendantId.toString()
     }
 
     if (publishToCourtTopic) {
       when (messageLargerThanThreshold(commonPlatformHearing)) {
-        true -> courtMessagePublisher.publishLargeMessage(commonPlatformHearing, sqsMessage, defentantIds)
-        else -> courtMessagePublisher.publishMessage(sqsMessage, defentantIds)
+        true -> courtMessagePublisher.publishLargeMessage(commonPlatformHearing, sqsMessage, defendantIds)
+        else -> courtMessagePublisher.publishMessage(sqsMessage, defendantIds)
       }
     }
   }
@@ -126,7 +126,7 @@ class CourtEventProcessor(
 
     val person = personRepository.findByCId(libraHearingEvent.cId.toString())
     if (publishToCourtTopic) {
-      courtMessagePublisher.publishMessage(sqsMessage, listOf(person?.defendantId))
+      courtMessagePublisher.publishMessage(sqsMessage, listOf(person?.defendantId.toString()))
     }
   }
 
