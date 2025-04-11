@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.jayway.jsonpath.JsonPath
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -16,6 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.Common
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.CourtMessagePublisher
 import uk.gov.justice.digital.hmpps.personrecord.message.LARGE_CASE_EVENT_TYPE
@@ -73,14 +75,20 @@ class CourtEventProcessor(
 
     val defendantIds: List<String> = uniquePersonDefendants.map { defendant ->
       personRepository.findByDefendantId(
-          defendant.id.toString(),
+        defendant.id.toString(),
       )?.defendantId.toString()
     }
 
     if (publishToCourtTopic) {
       when (messageLargerThanThreshold(commonPlatformHearing)) {
-        true -> courtMessagePublisher.publishLargeMessage(commonPlatformHearing, sqsMessage, defendantIds)
-        else -> courtMessagePublisher.publishMessage(sqsMessage, defendantIds)
+        true -> {
+          val updateCommonPlatformLargeSqsMessage: String = addCprUuidToCommonPlatformSqsMessage(commonPlatformHearing, defendantIds)
+          courtMessagePublisher.publishLargeMessage(sqsMessage, updateCommonPlatformLargeSqsMessage)
+        }
+        else -> {
+          val updateCommonPlatformSqsMessage: String = addCprUuidToCommonPlatformSqsMessage(sqsMessage.message, defendantIds)
+          courtMessagePublisher.publishMessage(sqsMessage, updateCommonPlatformSqsMessage)
+        }
       }
     }
   }
@@ -126,7 +134,8 @@ class CourtEventProcessor(
 
     val person = personRepository.findByCId(libraHearingEvent.cId.toString())
     if (publishToCourtTopic) {
-      courtMessagePublisher.publishMessage(sqsMessage, listOf(person?.defendantId.toString()))
+      val libraUpdateSqsMessage = addCprUuidToLibraSqsMessage(sqsMessage.message, listOf(person?.defendantId.toString()))
+      courtMessagePublisher.publishMessage(sqsMessage, libraUpdateSqsMessage)
     }
   }
 
@@ -149,6 +158,29 @@ class CourtEventProcessor(
   }
 
   private fun isLibraPerson(libraHearingEvent: LibraHearingEvent) = libraHearingEvent.defendantType == DefendantType.PERSON.value
+
+  private fun addCprUuidToCommonPlatformSqsMessage(message: String, defendantIds: List<String?>): String {
+    val messageParser = JsonPath.parse(message)
+    defendantIds.forEach { id ->
+      val person: PersonEntity? = id?.let { personRepository.findByDefendantId(it) }
+      val defendantId = person?.defendantId
+      val cprUUID = person?.personKey?.personId.toString()
+      messageParser.put("$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]", "cprUUID", cprUUID)
+    }
+
+    return messageParser.jsonString()
+  }
+
+  private fun addCprUuidToLibraSqsMessage(message: String, defendantIds: List<String?>): String {
+    val messageParser = JsonPath.parse(message)
+    defendantIds.forEach { id ->
+      val person: PersonEntity? = id?.let { personRepository.findByDefendantId(it) }
+      val cprUUID = person?.personKey?.personId.toString()
+      messageParser.put("$", "cprUUID", cprUUID)
+    }
+
+    return messageParser.jsonString()
+  }
 }
 
 data class LargeMessageBody(val s3Key: String, val s3BucketName: String)

@@ -185,7 +185,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should publish incoming event to court topic`() {
+  fun `should publish incoming event to court topic including cprUUID`() {
     stubPersonMatchUpsert()
     stubPersonMatchScores()
 
@@ -207,6 +207,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val libraMessage: String = sqsMessage?.message!!
 
     assertThat(libraMessage.contains(cId)).isEqualTo(true)
+    assertThat(libraMessage.contains("cprUUID")).isEqualTo(true)
 
     assertThat(sqsMessage.getHearingEventType()).isNull()
     assertThat(sqsMessage.getEventType()).isEqualTo("libra.case.received")
