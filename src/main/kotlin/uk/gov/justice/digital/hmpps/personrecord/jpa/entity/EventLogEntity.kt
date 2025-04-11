@@ -11,6 +11,9 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.Type
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.extractSourceSystemId
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import java.time.LocalDate
@@ -26,7 +29,7 @@ class EventLogEntity(
   val id: Long? = null,
 
   @Column(name = "source_system_id")
-  val sourceSystemId: String,
+  val sourceSystemId: String? = null,
 
   @Column(name = "match_id")
   val matchId: UUID,
@@ -51,35 +54,35 @@ class EventLogEntity(
 
   @Type(StringArrayType::class)
   @Column(name = "first_name_aliases", columnDefinition = "text[]")
-  val firstNameAliases: List<String> = emptyList(),
+  val firstNameAliases: Array<String> = emptyArray<String>(),
 
   @Type(StringArrayType::class)
   @Column(name = "last_name_aliases", columnDefinition = "text[]")
-  val lastNameAliases: List<String> = emptyList(),
+  val lastNameAliases: Array<String> = emptyArray<String>(),
 
   @Type(LocalDateArrayType::class)
   @Column(name = "date_of_birth_aliases", columnDefinition = "date[]")
-  val dateOfBirthAliases: List<LocalDate> = emptyList(),
+  val dateOfBirthAliases: Array<LocalDate> = emptyArray<LocalDate>(),
 
   @Type(StringArrayType::class)
   @Column(columnDefinition = "text[]")
-  val postcodes: List<String> = emptyList(),
+  val postcodes: Array<String> = emptyArray<String>(),
 
   @Type(StringArrayType::class)
   @Column(columnDefinition = "text[]")
-  val cros: List<String> = emptyList(),
+  val cros: Array<String> = emptyArray<String>(),
 
   @Type(StringArrayType::class)
   @Column(columnDefinition = "text[]")
-  val pncs: List<String> = emptyList(),
+  val pncs: Array<String> = emptyArray<String>(),
 
   @Type(LocalDateArrayType::class)
   @Column(name = "sentence_dates", columnDefinition = "date[]")
-  val sentenceDates: List<LocalDate> = emptyList(),
+  val sentenceDates: Array<LocalDate> = emptyArray<LocalDate>(),
 
   @Type(StringArrayType::class)
   @Column(name = "override_markers", columnDefinition = "text[]")
-  val overrideMarkers: List<String> = emptyList(),
+  val overrideMarkers: Array<String> = emptyArray<String>(),
 
   @Enumerated(STRING)
   @Column(name = "source_system")
@@ -92,11 +95,46 @@ class EventLogEntity(
   val operationId: String? = null,
 
   @Column(name = "record_merged_to")
-  val recordMergedTo: String? = null,
+  val recordMergedTo: Long? = null,
 
   @Column(name = "cluster_composition")
   val clusterComposition: String? = null,
 
-  @Column(name = "event_timestamp")
+  @Column(
+    name = "event_timestamp",
+    insertable = false,
+    updatable = false,
+  )
   val eventTimestamp: LocalDateTime? = null,
-)
+
+  ) {
+  companion object {
+
+    fun from(personEntity: PersonEntity): EventLogEntity {
+      val personKeyEntity = personEntity.personKey!!
+      return EventLogEntity(
+        sourceSystemId = personEntity.extractSourceSystemId(),
+        matchId = personEntity.matchId,
+        uuid = personKeyEntity.personId!!,
+        uuidStatusType = personKeyEntity.status,
+        firstName = personEntity.firstName,
+        middleNames = personEntity.middleNames,
+        lastName = personEntity.lastName,
+        dateOfBirth = personEntity.dateOfBirth,
+        firstNameAliases = personEntity.pseudonyms.mapNotNull { it.firstName }.sorted().toTypedArray(),
+        lastNameAliases = personEntity.pseudonyms.mapNotNull { it.lastName }.sorted().toTypedArray(),
+        dateOfBirthAliases = personEntity.pseudonyms.mapNotNull { it.dateOfBirth }.sorted().toTypedArray(),
+        postcodes = personEntity.addresses.mapNotNull { it.postcode }.sorted().toTypedArray(),
+        cros = personEntity.references.getType(IdentifierType.CRO).mapNotNull { it.identifierValue }.sorted().toTypedArray(),
+        pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue }.sorted().toTypedArray(),
+        sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.sorted().toTypedArray(),
+        overrideMarkers = emptyArray(),
+        sourceSystem = personEntity.sourceSystem,
+        eventType = null,
+        operationId = null,
+        recordMergedTo = personEntity.mergedTo,
+        clusterComposition = null,
+      )
+    }
+  }
+}

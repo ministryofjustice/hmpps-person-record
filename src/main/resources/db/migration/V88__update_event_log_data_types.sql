@@ -8,5 +8,7 @@ ALTER TABLE event_log
     DROP COLUMN sentence_dates,
     ADD COLUMN sentence_dates DATE[] DEFAULT ARRAY[]::DATE[];
 
+CREATE INDEX idx_event_log_uuid ON event_log(uuid);
+
 ----------------------------------------
 COMMIT;
