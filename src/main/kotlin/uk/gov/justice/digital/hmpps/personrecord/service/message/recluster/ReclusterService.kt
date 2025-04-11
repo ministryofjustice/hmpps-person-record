@@ -54,8 +54,19 @@ class ReclusterService(
         .removeUpdatedCluster(cluster = clusterDetails.cluster)
         .getActiveClusters()
 
-    matchedRecordsClusters.forEach {
-      mergeClusters(it, clusterDetails.cluster)
+    when {
+      hasExcludeMarkerBetweenClusters(matchedRecordsClusters) -> handleExclusionsBetweenMatchedClusters(clusterDetails.cluster)
+      else -> matchedRecordsClusters.forEach {
+        mergeClusters(it, clusterDetails.cluster)
+      }
+    }
+  }
+
+  private fun hasExcludeMarkerBetweenClusters(clusters: List<PersonKeyEntity>): Boolean {
+    val allRecordsIdsFromClusters = clusters.map { it.getRecordIds() }.flatten().toSet()
+    return clusters.any { cluster ->
+      val excludeMarkerRecordIds = cluster.collectExcludeOverrideMarkers().map { it.markerValue }.toSet()
+      allRecordsIdsFromClusters.intersect(excludeMarkerRecordIds).isNotEmpty()
     }
   }
 
@@ -84,6 +95,14 @@ class ReclusterService(
         isNotValid = { handleInvalidClusterComposition(clusterDetails.cluster) },
       )
     }
+  }
+
+  private fun handleExclusionsBetweenMatchedClusters(cluster: PersonKeyEntity) {
+    telemetryService.trackEvent(
+      TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
+      mapOf(EventKeys.UUID to cluster.personId.toString()),
+    )
+    setClusterAsNeedsAttention(cluster)
   }
 
   private fun handleInvalidClusterComposition(cluster: PersonKeyEntity) {

@@ -10,7 +10,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
-import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -21,7 +20,6 @@ class UnmergeService(
   private val personService: PersonService,
   private val personKeyRepository: PersonKeyRepository,
   private val personRepository: PersonRepository,
-  private val eventLoggingService: EventLoggingService,
 ) {
 
   fun processUnmerge(unmergeEvent: UnmergeEvent, reactivatedPersonCallback: () -> PersonEntity?, unmergedPersonCallback: () -> PersonEntity?) = runBlocking {
@@ -34,16 +32,6 @@ class UnmergeService(
 
     setClusterToNeedsAttentionIfAdditionalRecords(unmergedPersonEntity, reactivatedPersonEntity)
     unmergeRecords(unmergeEvent, reactivatedPersonEntity, unmergedPersonEntity)
-
-    val beforeDataDTO = Person.from(unmergedPersonEntity)
-    val processedDataDTO = Person.from(reactivatedPersonEntity)
-
-    eventLoggingService.recordEventLog(
-      beforePerson = beforeDataDTO,
-      processedPerson = processedDataDTO,
-      uuid = reactivatedPersonEntity.personKey?.personId.toString(),
-      eventType = unmergeEvent.event,
-    )
   }
 
   private fun retrieveUnmergedPerson(unmergeEvent: UnmergeEvent, unmergedPersonCallback: () -> PersonEntity?): PersonEntity {

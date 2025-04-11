@@ -11,14 +11,12 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_GDPR_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
-import java.time.LocalDateTime
 
 class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -378,31 +376,5 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       personReference = personReference,
       additionalInformation = null,
     )
-  }
-
-  @Test
-  fun `should process offender delete and map to EventLogging table`() {
-    val crn = randomCrn()
-    val domainEvent = buildDomainEvent(crn)
-    val personKey = createPersonKey()
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn))),
-      personKeyEntity = personKey,
-    )
-    val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
-
-    val beforeDataDTO = Person.from(personEntity)
-    val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
-
-    publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
-
-    val loggedEvent = awaitNotNullEventLog(crn, OFFENDER_GDPR_DELETION)
-
-    assertThat(loggedEvent.sourceSystem).isEqualTo(DELIUS.name)
-    assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
-    assertThat(loggedEvent.beforeData).isEqualTo(beforeData)
-    assertThat(loggedEvent.processedData).isEqualTo(null)
-
-    assertThat(loggedEvent.uuid).isEqualTo(personEntity.personKey?.personId.toString())
   }
 }
