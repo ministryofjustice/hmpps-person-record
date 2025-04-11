@@ -39,7 +39,7 @@ dependencies {
 
   implementation("org.springframework.cloud:spring-cloud-dependencies:2024.0.1")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-  implementation("com.vladmihalcea:hibernate-types-60:2.21.1")
+  implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.9.9")
 
   runtimeOnly("org.postgresql:postgresql:42.7.5")
   runtimeOnly("org.flywaydb:flyway-core")

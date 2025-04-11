@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
-import com.vladmihalcea.hibernate.type.array.LocalDateArrayType
-import com.vladmihalcea.hibernate.type.array.StringArrayType
+import io.hypersistence.utils.hibernate.type.array.LocalDateArrayType
+import io.hypersistence.utils.hibernate.type.array.StringArrayType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType.STRING
@@ -19,7 +19,7 @@ import java.util.UUID
 
 @Entity
 @Table(name = "event_log")
-class EventLog(
+class EventLogEntity(
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,35 +50,35 @@ class EventLog(
   val dateOfBirth: LocalDate? = null,
 
   @Type(StringArrayType::class)
-  @Column(name = "first_name_aliases", columnDefinition = "TEXT[]")
+  @Column(name = "first_name_aliases", columnDefinition = "text[]")
   val firstNameAliases: List<String> = emptyList(),
 
   @Type(StringArrayType::class)
-  @Column(name = "last_name_aliases", columnDefinition = "TEXT[]")
+  @Column(name = "last_name_aliases", columnDefinition = "text[]")
   val lastNameAliases: List<String> = emptyList(),
 
   @Type(LocalDateArrayType::class)
-  @Column(name = "date_of_birth_aliases", columnDefinition = "DATE[]")
+  @Column(name = "date_of_birth_aliases", columnDefinition = "date[]")
   val dateOfBirthAliases: List<LocalDate> = emptyList(),
 
   @Type(StringArrayType::class)
-  @Column(columnDefinition = "TEXT[]")
+  @Column(columnDefinition = "text[]")
   val postcodes: List<String> = emptyList(),
 
   @Type(StringArrayType::class)
-  @Column(columnDefinition = "TEXT[]")
+  @Column(columnDefinition = "text[]")
   val cros: List<String> = emptyList(),
 
   @Type(StringArrayType::class)
-  @Column(columnDefinition = "TEXT[]")
+  @Column(columnDefinition = "text[]")
   val pncs: List<String> = emptyList(),
 
   @Type(LocalDateArrayType::class)
-  @Column(name = "sentence_dates", columnDefinition = "DATE[]")
+  @Column(name = "sentence_dates", columnDefinition = "date[]")
   val sentenceDates: List<LocalDate> = emptyList(),
 
   @Type(StringArrayType::class)
-  @Column(name = "override_markers", columnDefinition = "TEXT[]")
+  @Column(name = "override_markers", columnDefinition = "text[]")
   val overrideMarkers: List<String> = emptyList(),
 
   @Enumerated(STRING)
