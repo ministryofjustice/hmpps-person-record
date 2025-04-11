@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -22,9 +21,9 @@ const val LARGE_CASE_EVENT_TYPE = "commonplatform.large.case.received"
 class CourtMessagePublisher(
   s3AsyncClient: S3AsyncClient,
   hmppsQueueService: HmppsQueueService,
-  private val objectMapper: ObjectMapper,
   @Value("\${aws.cpr-court-message-bucket-name}") private val bucketName: String,
 ) {
+
   private val topic =
     hmppsQueueService.findByTopicId("cprcourtcasestopic")
       ?: throw MissingTopicException("Could not find topic ")
@@ -38,7 +37,10 @@ class CourtMessagePublisher(
     snsExtendedAsyncClientConfiguration,
   )
 
-  fun publishLargeMessage(commonPlatformHearing: String, sqsMessage: SQSMessage): CompletableFuture<PublishResponse> = runBlocking {
+  fun publishLargeMessage(
+    sqsMessage: SQSMessage,
+    updatedSqsMessage: String,
+  ): CompletableFuture<PublishResponse> = runBlocking {
     val attributes = mutableMapOf(
       "messageType" to MessageAttributeValue.builder().dataType("String").stringValue(sqsMessage.getMessageType())
         .build(),
@@ -58,12 +60,12 @@ class CourtMessagePublisher(
     snsExtendedClient.publish(
       PublishRequest.builder().topicArn(topic.arn).messageAttributes(
         attributes,
-      ).message(objectMapper.writeValueAsString(commonPlatformHearing))
+      ).message(updatedSqsMessage)
         .build(),
     )
   }
 
-  fun publishMessage(sqsMessage: SQSMessage) {
+  fun publishMessage(sqsMessage: SQSMessage, updatedSqsMessage: String) {
     val attributes = mutableMapOf(
       "messageType" to MessageAttributeValue.builder()
         .dataType("String")
@@ -82,7 +84,7 @@ class CourtMessagePublisher(
 
     topic.publish(
       eventType = sqsMessage.getEventType()!!,
-      event = objectMapper.writeValueAsString(sqsMessage.message),
+      event = updatedSqsMessage,
       attributes = attributes,
     )
   }

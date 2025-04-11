@@ -405,7 +405,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should publish incoming event to court topic`() {
+  fun `should publish incoming event to court topic including cprUUID`() {
     val defendantId = randomDefendantId()
     stubPersonMatchUpsert()
     stubPersonMatchScores()
@@ -425,6 +425,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val commonPlatformHearingAttributes: MessageAttributes? = sqsMessage.messageAttributes
 
     assertThat(commonPlatformHearing.contains(defendantId)).isEqualTo(true)
+    assertThat(commonPlatformHearing.contains("cprUUID")).isEqualTo(true)
 
     assertThat(commonPlatformHearingAttributes?.messageType?.value).isEqualTo(COMMON_PLATFORM_HEARING.name)
 
@@ -435,7 +436,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should publish incoming large message to CPR court topic`() {
+  fun `should publish incoming large message to CPR court topic including cprUUID`() {
     val defendantId = randomDefendantId()
     stubPersonMatchUpsert()
     stubPersonMatchScores()
@@ -476,6 +477,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ).join().asUtf8String()
     }
     assertThat(body.contains(defendantId)).isEqualTo(true)
+    assertThat(body.contains("cprUUID")).isEqualTo(true)
 
     checkTelemetry(
       CPR_RECORD_CREATED,
