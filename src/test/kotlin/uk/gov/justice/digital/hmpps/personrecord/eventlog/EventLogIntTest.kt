@@ -82,4 +82,18 @@ class EventLogIntTest : IntegrationTestBase() {
     assertThat(eventLog.clusterComposition).isNull()
     assertThat(eventLog.eventTimestamp).isNull()
   }
+
+  @Test
+  fun `should map a merged person to event log`() {
+    val mergedIntoPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+    var mergedToPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+
+    mergedToPerson = mergeRecord(mergedToPerson, mergedIntoPerson)
+
+    val eventLogEntity = EventLogEntity.from(mergedToPerson)
+    val eventLog = eventLogRepository.save(eventLogEntity)
+
+    assertThat(eventLog).isNotNull()
+    assertThat(mergedToPerson.mergedTo).isEqualTo(mergedIntoPerson.id)
+  }
 }

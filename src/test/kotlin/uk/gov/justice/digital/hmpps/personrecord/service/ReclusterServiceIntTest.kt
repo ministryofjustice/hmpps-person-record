@@ -987,6 +987,4 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       ),
     )
   }
-
-  private fun createRandomProbationPersonDetails(): Person = Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn())))
 }
