@@ -10,7 +10,6 @@ import software.amazon.awssdk.services.sns.model.PublishRequest
 import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.sns.AmazonSNSExtendedAsyncClient
 import software.amazon.sns.SNSExtendedAsyncClientConfiguration
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -44,7 +43,7 @@ class CourtMessagePublisher(
   fun publishLargeMessage(
     commonPlatformHearing: String,
     sqsMessage: SQSMessage,
-    defendants: List<Defendant>?,
+    defendantIds: List<String>,
   ): CompletableFuture<PublishResponse> = runBlocking {
     val attributes = mutableMapOf(
       "messageType" to MessageAttributeValue.builder().dataType("String").stringValue(sqsMessage.getMessageType())
@@ -62,7 +61,7 @@ class CourtMessagePublisher(
       attributes.put("hearingEventType", hearingEventTypeValue)
     }
 
-    val updatedSqsMessage: String? = addCprUuidToSqsMessage(commonPlatformHearing, defendants)
+    val updatedSqsMessage: String? = addCprUuidToSqsMessage(commonPlatformHearing, defendantIds)
 
     snsExtendedClient.publish(
       PublishRequest.builder().topicArn(topic.arn).messageAttributes(
@@ -72,7 +71,7 @@ class CourtMessagePublisher(
     )
   }
 
-  fun publishMessage(sqsMessage: SQSMessage, defendants: List<Defendant>?) {
+  fun publishMessage(sqsMessage: SQSMessage, defendantIds: List<String>) {
     val attributes = mutableMapOf(
       "messageType" to MessageAttributeValue.builder()
         .dataType("String")
@@ -89,7 +88,7 @@ class CourtMessagePublisher(
       attributes.put("hearingEventType", hearingEventTypeValue)
     }
 
-    val updatedSqsMessage: String? = addCprUuidToSqsMessage(sqsMessage.message, defendants)
+    val updatedSqsMessage: String? = addCprUuidToSqsMessage(sqsMessage.message, defendantIds)
 
     topic.publish(
       eventType = sqsMessage.getEventType()!!,
@@ -98,10 +97,10 @@ class CourtMessagePublisher(
     )
   }
 
-  private fun addCprUuidToSqsMessage(message: String, defendants: List<Defendant>?): String {
+  private fun addCprUuidToSqsMessage(message: String, defendantIds: List<String?>): String {
     val messageParser = JsonPath.parse(message)
-    defendants?.forEach { defendant ->
-      val person: PersonEntity? = defendant.id?.let { personRepository.findByDefendantId(it) }
+    defendantIds.forEach { defendant ->
+      val person: PersonEntity? = defendant?.let { personRepository.findByDefendantId(it) }
       val defendantId = person?.defendantId
       val cprUUID = person?.personKey?.personId.toString()
       messageParser.put("$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]", "cprUUID", cprUUID)
