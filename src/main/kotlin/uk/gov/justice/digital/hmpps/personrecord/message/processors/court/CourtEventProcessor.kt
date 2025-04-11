@@ -71,9 +71,11 @@ class CourtEventProcessor(
       processCommonPlatformPerson(defendant, sqsMessage)
     }
 
-    val defentantIds: List<String?> = uniquePersonDefendants.map { defendant -> personRepository.findByDefendantId(
-      defendant.id.toString()
-    )?.defendantId }
+    val defentantIds: List<String?> = uniquePersonDefendants.map { defendant ->
+      personRepository.findByDefendantId(
+        defendant.id.toString(),
+      )?.defendantId
+    }
 
     if (publishToCourtTopic) {
       when (messageLargerThanThreshold(commonPlatformHearing)) {
