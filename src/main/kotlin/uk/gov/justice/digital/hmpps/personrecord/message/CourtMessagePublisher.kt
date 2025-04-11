@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.jayway.jsonpath.JsonPath
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
@@ -27,7 +26,6 @@ class CourtMessagePublisher(
   private val personRepository: PersonRepository,
   s3AsyncClient: S3AsyncClient,
   hmppsQueueService: HmppsQueueService,
-  private val objectMapper: ObjectMapper,
   @Value("\${aws.cpr-court-message-bucket-name}") private val bucketName: String,
 ) {
   private val topic =
@@ -43,7 +41,11 @@ class CourtMessagePublisher(
     snsExtendedAsyncClientConfiguration,
   )
 
-  fun publishLargeMessage(commonPlatformHearing: String, sqsMessage: SQSMessage): CompletableFuture<PublishResponse> = runBlocking {
+  fun publishLargeMessage(
+    commonPlatformHearing: String,
+    sqsMessage: SQSMessage,
+    defendants: List<Defendant>?,
+  ): CompletableFuture<PublishResponse> = runBlocking {
     val attributes = mutableMapOf(
       "messageType" to MessageAttributeValue.builder().dataType("String").stringValue(sqsMessage.getMessageType())
         .build(),
@@ -60,15 +62,25 @@ class CourtMessagePublisher(
       attributes.put("hearingEventType", hearingEventTypeValue)
     }
 
+    val messageParser = JsonPath.parse(commonPlatformHearing)
+    defendants?.forEach { defendant ->
+      val person: PersonEntity? = defendant.id?.let { personRepository.findByDefendantId(it) }
+      val defendantId = person?.defendantId
+      val cprUUID = person?.personKey?.personId.toString()
+      messageParser.put("$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]", "cprUUID", cprUUID)
+    }
+
+    val updatedSqsMessage = messageParser.jsonString()
+
     snsExtendedClient.publish(
       PublishRequest.builder().topicArn(topic.arn).messageAttributes(
         attributes,
-      ).message(objectMapper.writeValueAsString(commonPlatformHearing))
+      ).message(updatedSqsMessage)
         .build(),
     )
   }
 
-  fun publishMessage(sqsMessage: SQSMessage, defendents: List<Defendant>?) {
+  fun publishMessage(sqsMessage: SQSMessage, defendants: List<Defendant>?) {
     val attributes = mutableMapOf(
       "messageType" to MessageAttributeValue.builder()
         .dataType("String")
@@ -87,7 +99,7 @@ class CourtMessagePublisher(
 
     // add the cprUUID
     val messageParser = JsonPath.parse(sqsMessage.message)
-    defendents?.forEach { defendant ->
+    defendants?.forEach { defendant ->
       val person: PersonEntity? = defendant.id?.let { personRepository.findByDefendantId(it) }
       val defendantId = person?.defendantId
       val cprUUID = person?.personKey?.personId.toString()

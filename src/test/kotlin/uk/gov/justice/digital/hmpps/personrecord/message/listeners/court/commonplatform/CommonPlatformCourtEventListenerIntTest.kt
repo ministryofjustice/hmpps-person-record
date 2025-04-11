@@ -441,9 +441,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
-  @Disabled
   @Test
-  fun `should publish incoming large message to CPR court topic`() {
+  fun `should publish incoming large message to CPR court topic including cprUUID`() {
     val defendantId = randomDefendantId()
     stubPersonMatchUpsert()
     stubPersonMatchScores()
@@ -484,6 +483,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ).join().asUtf8String()
     }
     assertThat(body.contains(defendantId)).isEqualTo(true)
+    assertThat(body.contains("cprUUID")).isEqualTo(true)
 
     checkTelemetry(
       CPR_RECORD_CREATED,
