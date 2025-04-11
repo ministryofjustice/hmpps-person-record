@@ -3,10 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.common
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.await
-import org.awaitility.kotlin.matches
-import org.awaitility.kotlin.untilCallTo
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -17,7 +13,6 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttributes
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
@@ -53,7 +48,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
-import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.nio.charset.Charset
 import java.util.UUID
 
@@ -489,48 +483,5 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
-  }
-
-  @Disabled
-  @Test
-  fun `should republish court message and add cprUUID to each defendant`() {
-    stubPersonMatchUpsert()
-    stubPersonMatchScores()
-
-    purgeQueueAndDlq(courtEventsQueue!!)
-    val firstDefendantId = randomDefendantId()
-    val secondDefendantId = randomDefendantId()
-    val thirdDefendantId = randomDefendantId()
-
-    val commonPlatformMessage = listOf(
-      CommonPlatformHearingSetup(defendantId = firstDefendantId),
-      CommonPlatformHearingSetup(defendantId = secondDefendantId),
-      CommonPlatformHearingSetup(defendantId = thirdDefendantId),
-
-    )
-    publishCommonPlatformMessage(
-      commonPlatformHearing(
-        commonPlatformMessage,
-      ),
-    )
-
-    await untilCallTo {
-      testOnlyCourtEventsQueue?.sqsClient?.countMessagesOnQueue(testOnlyCourtEventsQueue?.queueUrl!!)?.get()
-    } matches { it == 1 }
-
-    val messageResponse = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())?.get()
-
-    val body = messageResponse?.messages()?.get(0)?.body()!!
-
-    val readValue = objectMapper.readValue<CommonPlatformHearingEvent>(body)
-    readValue.hearing.prosecutionCases.forEach {
-      it.defendants.forEach {
-        assertThat(it.cprUUID).isNotNull() // use jsonpath for this assertion
-      }
-    }
-    // tests for LIBRA cases
-    // tests for when CP cases do not have prosecutionCases
-    // add organisations to output
-    // preserve message attributes
   }
 }
