@@ -62,15 +62,7 @@ class CourtMessagePublisher(
       attributes.put("hearingEventType", hearingEventTypeValue)
     }
 
-    val messageParser = JsonPath.parse(commonPlatformHearing)
-    defendants?.forEach { defendant ->
-      val person: PersonEntity? = defendant.id?.let { personRepository.findByDefendantId(it) }
-      val defendantId = person?.defendantId
-      val cprUUID = person?.personKey?.personId.toString()
-      messageParser.put("$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]", "cprUUID", cprUUID)
-    }
-
-    val updatedSqsMessage = messageParser.jsonString()
+    val updatedSqsMessage: String? = addCprUuidToSqsMessage(commonPlatformHearing, defendants)
 
     snsExtendedClient.publish(
       PublishRequest.builder().topicArn(topic.arn).messageAttributes(
@@ -97,8 +89,17 @@ class CourtMessagePublisher(
       attributes.put("hearingEventType", hearingEventTypeValue)
     }
 
-    // add the cprUUID
-    val messageParser = JsonPath.parse(sqsMessage.message)
+    val updatedSqsMessage: String? = addCprUuidToSqsMessage(sqsMessage.message, defendants)
+
+    topic.publish(
+      eventType = sqsMessage.getEventType()!!,
+      event = updatedSqsMessage!!,
+      attributes = attributes,
+    )
+  }
+
+  private fun addCprUuidToSqsMessage(message: String, defendants: List<Defendant>?): String {
+    val messageParser = JsonPath.parse(message)
     defendants?.forEach { defendant ->
       val person: PersonEntity? = defendant.id?.let { personRepository.findByDefendantId(it) }
       val defendantId = person?.defendantId
@@ -106,12 +107,6 @@ class CourtMessagePublisher(
       messageParser.put("$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]", "cprUUID", cprUUID)
     }
 
-    val updatedSqsMessage = messageParser.jsonString()
-
-    topic.publish(
-      eventType = sqsMessage.getEventType()!!,
-      event = updatedSqsMessage,
-      attributes = attributes,
-    )
+    return messageParser.jsonString()
   }
 }
