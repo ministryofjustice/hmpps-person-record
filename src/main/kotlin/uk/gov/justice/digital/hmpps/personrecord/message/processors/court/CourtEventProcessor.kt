@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.jayway.jsonpath.JsonPath
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -17,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.Common
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.CourtMessagePublisher
 import uk.gov.justice.digital.hmpps.personrecord.message.LARGE_CASE_EVENT_TYPE
@@ -61,8 +59,6 @@ class CourtEventProcessor(
       else -> sqsMessage.message
     }
 
-    val json = JsonPath.parse(sqsMessage.message)
-
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
 
     val uniquePersonDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
@@ -71,19 +67,14 @@ class CourtEventProcessor(
       .filter { it.isPerson() }
       .distinctBy { it.id }
 
-    val updatedSQSMessage: SQSMessage = sqsMessage
     uniquePersonDefendants.forEach { defendant ->
       processCommonPlatformPerson(defendant, sqsMessage)
-      val cprPerson: PersonEntity? = uniquePersonDefendants.first().id?.let { personRepository.findByDefendantId(it) }
-      val defendantId = cprPerson?.defendantId
-      val cprUUID = cprPerson?.personKey?.personId.toString()
-      updatedSQSMessage.message = json.put("$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]", "cprUUID", cprUUID).jsonString()
     }
 
     if (publishToCourtTopic) {
       when (messageLargerThanThreshold(commonPlatformHearing)) {
         true -> courtMessagePublisher.publishLargeMessage(commonPlatformHearing, sqsMessage)
-        else -> courtMessagePublisher.publishMessage(updatedSQSMessage)
+        else -> courtMessagePublisher.publishMessage(sqsMessage, uniquePersonDefendants)
       }
     }
   }
@@ -123,7 +114,7 @@ class CourtEventProcessor(
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
     if (publishToCourtTopic) {
-      courtMessagePublisher.publishMessage(sqsMessage)
+      courtMessagePublisher.publishMessage(sqsMessage, null)
     }
     val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(sqsMessage.message)
     when {

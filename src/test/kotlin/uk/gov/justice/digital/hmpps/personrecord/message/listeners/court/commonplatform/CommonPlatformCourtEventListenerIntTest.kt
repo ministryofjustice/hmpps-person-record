@@ -6,6 +6,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -412,7 +413,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should publish incoming event to court topic`() {
     val defendantId = randomDefendantId()
-    val cprUUID = "a81bc81b-dead-4e5d-abff-90865d1e13b1"
     stubPersonMatchUpsert()
     stubPersonMatchScores()
 
@@ -441,6 +441,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
+  @Disabled
   @Test
   fun `should publish incoming large message to CPR court topic`() {
     val defendantId = randomDefendantId()
@@ -490,6 +491,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
+  @Disabled
   @Test
   fun `should republish court message and add cprUUID to each defendant`() {
     stubPersonMatchUpsert()

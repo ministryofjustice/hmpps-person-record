@@ -11,7 +11,7 @@ data class SQSMessage(
   val type: String,
   @NotBlank
   @JsonProperty("Message")
-  var message: String,
+  val message: String,
   @JsonProperty("MessageId")
   val messageId: String? = null,
   @JsonProperty(value = "MessageAttributes")
