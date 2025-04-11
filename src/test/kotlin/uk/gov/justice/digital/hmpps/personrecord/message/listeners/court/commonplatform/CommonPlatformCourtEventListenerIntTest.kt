@@ -411,7 +411,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should publish incoming event to court topic`() {
+  fun `should publish incoming event to court topic including cprUUID`() {
     val defendantId = randomDefendantId()
     stubPersonMatchUpsert()
     stubPersonMatchScores()
