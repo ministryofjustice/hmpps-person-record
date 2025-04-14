@@ -38,6 +38,7 @@ class EventLogEntity(
   @Column(name = "match_id")
   val matchId: UUID,
 
+  @Column
   val uuid: UUID,
 
   @Column(name = "uuid_status_type")
