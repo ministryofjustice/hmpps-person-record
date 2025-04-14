@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.Common
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.CourtMessagePublisher
 import uk.gov.justice.digital.hmpps.personrecord.message.LARGE_CASE_EVENT_TYPE
@@ -67,19 +68,19 @@ class CourtEventProcessor(
       .filter { it.isPerson() }
       .distinctBy { it.id }
 
-    uniquePersonDefendants.forEach { defendant ->
+    val processedDefendants = uniquePersonDefendants.map { defendant ->
       processCommonPlatformPerson(defendant, sqsMessage)
     }
 
     if (publishToCourtTopic) {
       when (messageLargerThanThreshold(commonPlatformHearing)) {
         true -> courtMessagePublisher.publishLargeMessage(commonPlatformHearing, sqsMessage)
-        else -> courtMessagePublisher.publishMessage(sqsMessage)
+        else -> courtMessagePublisher.publishMessage(sqsMessage, processedDefendants)
       }
     }
   }
 
-  private fun processCommonPlatformPerson(defendant: Defendant, sqsMessage: SQSMessage) {
+  private fun processCommonPlatformPerson(defendant: Defendant, sqsMessage: SQSMessage): PersonEntity {
     val person = Person.from(defendant)
     telemetryService.trackEvent(
       MESSAGE_RECEIVED,
@@ -90,7 +91,7 @@ class CourtEventProcessor(
         EventKeys.SOURCE_SYSTEM to SourceSystemType.COMMON_PLATFORM.name,
       ),
     )
-    createUpdateService.processPerson(person) {
+    return createUpdateService.processPerson(person) {
       person.defendantId?.let {
         personRepository.findByDefendantId(it)
       }

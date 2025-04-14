@@ -30,6 +30,9 @@ class ProbationUnmergeEventProcessor(
         EventKeys.SOURCE_SYSTEM to DELIUS.name,
       ),
     )
+    // get unmerged case
+    // get reactivated case
+    // process
     encodingService.getProbationCase(domainEvent.additionalInformation?.unmergedCrn!!) { unmergedProbationCase ->
 
       encodingService.getProbationCase(

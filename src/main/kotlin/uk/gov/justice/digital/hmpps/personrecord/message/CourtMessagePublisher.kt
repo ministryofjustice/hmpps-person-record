@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.sns.model.PublishResponse
 import software.amazon.sns.AmazonSNSExtendedAsyncClient
 import software.amazon.sns.SNSExtendedAsyncClientConfiguration
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import uk.gov.justice.hmpps.sqs.publish
@@ -63,14 +64,14 @@ class CourtMessagePublisher(
     )
   }
 
-  fun publishMessage(sqsMessage: SQSMessage) {
+  fun publishMessage(sqsMessage: SQSMessage, processedDefendants: List<PersonEntity>? = null) {
     val attributes = mutableMapOf(
       "messageType" to MessageAttributeValue.builder()
         .dataType("String")
         .stringValue(sqsMessage.getMessageType())
         .build(),
     )
-
+    println(processedDefendants?.size)
     sqsMessage.getHearingEventType()?.let {
       val hearingEventTypeValue =
         MessageAttributeValue.builder()
