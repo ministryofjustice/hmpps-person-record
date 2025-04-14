@@ -29,6 +29,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
@@ -93,6 +94,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
+    checkEventLog(defendantId, CPRLogEvents.CPR_RECORD_CREATED)
     checkTelemetry(
       CPR_RECORD_UPDATED,
       mapOf(
@@ -148,6 +150,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_UPDATED,
       mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
+    checkEventLog(person.defendantId!!, CPRLogEvents.CPR_RECORD_UPDATED)
   }
 
   @Test
@@ -432,6 +435,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
+    checkEventLog(defendantId, CPRLogEvents.CPR_RECORD_CREATED)
   }
 
   @Test
@@ -481,5 +485,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
+    checkEventLog(defendantId, CPRLogEvents.CPR_RECORD_CREATED)
   }
 }

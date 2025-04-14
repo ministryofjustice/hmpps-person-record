@@ -35,7 +35,7 @@ class PersonKeyEntity(
 
   @Column
   @Enumerated(STRING)
-  var status: UUIDStatusType = UUIDStatusType.ACTIVE,
+  var status: UUIDStatusType? = null,
 
   @Version
   var version: Int = 0,

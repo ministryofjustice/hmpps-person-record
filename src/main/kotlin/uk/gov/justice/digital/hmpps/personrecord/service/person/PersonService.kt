@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonAssignedToUUID
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 
@@ -38,6 +39,7 @@ class PersonService(
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
     val personKeyEntity = personKeyService.getOrCreatePersonKey(personEntity)
     personEntity.personKey = personKeyEntity
+    publisher.publishEvent(PersonAssignedToUUID(personEntity))
     return personRepository.saveAndFlush(personEntity)
   }
 

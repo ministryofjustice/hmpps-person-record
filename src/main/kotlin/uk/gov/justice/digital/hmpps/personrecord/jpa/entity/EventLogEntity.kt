@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Compani
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -36,14 +36,14 @@ class EventLogEntity(
   val sourceSystemId: String? = null,
 
   @Column(name = "match_id")
-  val matchId: UUID,
+  val matchId: UUID? = null,
 
   @Column
-  val uuid: UUID,
+  val uuid: UUID? = null,
 
   @Column(name = "uuid_status_type")
   @Enumerated(STRING)
-  val uuidStatusType: UUIDStatusType,
+  val uuidStatusType: UUIDStatusType? = null,
 
   @Column(name = "first_name")
   val firstName: String? = null,
@@ -95,7 +95,7 @@ class EventLogEntity(
 
   @Enumerated(STRING)
   @Column(name = "source_system")
-  val sourceSystem: SourceSystemType,
+  val sourceSystem: SourceSystemType? = null,
 
   @Enumerated(STRING)
   @Column(name = "event_type")
@@ -124,8 +124,8 @@ class EventLogEntity(
     ): EventLogEntity = EventLogEntity(
       sourceSystemId = personEntity.extractSourceSystemId(),
       matchId = personEntity.matchId,
-      uuid = personEntity.personKey?.personId!!,
-      uuidStatusType = personEntity.personKey?.status!!,
+      uuid = personEntity.personKey?.personId,
+      uuidStatusType = personEntity.personKey?.status,
       firstName = personEntity.firstName,
       middleNames = personEntity.middleNames,
       lastName = personEntity.lastName,
@@ -144,6 +144,13 @@ class EventLogEntity(
       operationId = operationId,
       recordMergedTo = personEntity.mergedTo,
       clusterComposition = clusterComposition?.toString(),
+    )
+
+    fun from(personKeyEntity: PersonKeyEntity, eventType: CPRLogEvents, operationId: String) = EventLogEntity(
+      uuid = personKeyEntity.personId,
+      uuidStatusType = personKeyEntity.status,
+      eventType = eventType,
+      operationId = operationId,
     )
 
     private fun List<String>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()

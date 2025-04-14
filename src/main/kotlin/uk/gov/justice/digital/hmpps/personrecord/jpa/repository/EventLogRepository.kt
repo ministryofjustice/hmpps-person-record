@@ -8,4 +8,6 @@ import java.util.UUID
 @Repository
 interface EventLogRepository : JpaRepository<EventLogEntity, Long> {
   fun findByUuid(uuid: UUID): List<EventLogEntity>
+
+  fun findBySourceSystemIdOrderByEventTimestampDesc(sourceSystemId: String): List<EventLogEntity>?
 }

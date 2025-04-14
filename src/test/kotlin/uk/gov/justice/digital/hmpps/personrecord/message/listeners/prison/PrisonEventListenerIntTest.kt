@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
@@ -184,7 +185,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         CPR_RECORD_CREATED,
         mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
+      checkEventLog(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
+
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber))
+      checkEventLog(prisonNumber, CPRLogEvents.CPR_UUID_CREATED)
     }
 
     @Test
@@ -208,6 +212,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       }
 
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber))
+      checkEventLog(prisonNumber, CPRLogEvents.CPR_UUID_CREATED)
     }
 
     @Test
@@ -230,6 +235,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       }
 
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber))
+      checkEventLog(prisonNumber, CPRLogEvents.CPR_UUID_CREATED)
     }
 
     @Test
@@ -252,6 +258,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         CPR_RECORD_UPDATED,
         mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
+      checkEventLog(prisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
 
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber = prisonNumber)!!
@@ -296,6 +303,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         CPR_RECORD_CREATED,
         mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
+      checkEventLog(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
     }
 
     private fun createPrisoner(): PersonEntity = createPersonWithNewKey(

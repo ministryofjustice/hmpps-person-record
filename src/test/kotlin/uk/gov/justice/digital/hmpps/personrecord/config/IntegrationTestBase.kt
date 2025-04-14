@@ -41,6 +41,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -48,6 +49,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType.
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -73,6 +75,9 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var telemetryRepository: TelemetryTestRepository
+
+  @Autowired
+  lateinit var eventLogRepository: EventLogRepository
 
   @AfterEach
   fun after() {
@@ -115,6 +120,19 @@ class IntegrationTestBase {
         }.all { it }
       }
       assertThat(matchingEvents?.size).`as`("Missing data $event $expected and actual data $allEvents").isEqualTo(times)
+    }, timeout)
+  }
+
+  internal fun checkEventLog(
+    sourceSystemId: String,
+    event: CPRLogEvents,
+    times: Int = 1,
+    timeout: Long = 3,
+  ) {
+    awaitAssert(function = {
+      val matchingEvents = eventLogRepository.findBySourceSystemIdOrderByEventTimestampDesc(sourceSystemId)
+        ?.filter { it.eventType == event }
+      assertThat(matchingEvents?.size).`as`("Missing data $event").isEqualTo(times)
     }, timeout)
   }
 

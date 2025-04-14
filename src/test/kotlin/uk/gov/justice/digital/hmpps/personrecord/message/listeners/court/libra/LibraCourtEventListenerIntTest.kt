@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -53,7 +54,10 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
+    checkEventLog(cId, CPRLogEvents.CPR_RECORD_CREATED)
+
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
+    checkEventLog(cId, CPRLogEvents.CPR_UUID_CREATED)
 
     val person = awaitNotNullPerson { personRepository.findByCId(cId) }
 
@@ -100,6 +104,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
+    checkEventLog(cId, CPRLogEvents.CPR_RECORD_UPDATED)
 
     val person = awaitNotNullPerson {
       personRepository.findByCId(cId)
@@ -144,6 +149,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
+    checkEventLog(cId, CPRLogEvents.CPR_RECORD_CREATED)
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
