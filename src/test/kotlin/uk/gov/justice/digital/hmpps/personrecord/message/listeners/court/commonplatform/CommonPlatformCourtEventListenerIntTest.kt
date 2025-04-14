@@ -388,7 +388,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should not process when is organisation`() {
+  fun `should republish message and not save when organisation`() {
     val defendantId = randomDefendantId()
     publishCommonPlatformMessage(
       commonPlatformHearing(
@@ -397,6 +397,41 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
       ),
     )
+
+    expectOneMessageOn(testOnlyCourtEventsQueue)
+
+    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
+
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
+    assertThat(sqsMessage?.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
+
+    awaitAssert { assertThat(personRepository.findByDefendantId(defendantId)).isNull() }
+  }
+
+  @Test
+  fun `should republish large message and not save when organisation`() {
+    val defendantId = randomDefendantId()
+
+    val s3Key = UUID.randomUUID().toString()
+
+    val incomingMessageFromS3 =
+      largeCommonPlatformHearing(defendantId).toByteArray(Charset.forName("UTF8"))
+
+    assertThat(incomingMessageFromS3.size).isGreaterThan(256 * 1024)
+
+    val putObjectRequest = PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
+
+    s3AsyncClient.putObject(putObjectRequest, AsyncRequestBody.fromBytes(incomingMessageFromS3)).get()
+
+    publishLargeCommonPlatformMessage(
+      largeCommonPlatformMessage(s3Key, s3Bucket),
+    )
+    expectOneMessageOn(testOnlyCourtEventsQueue)
+
+    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
+
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
+    assertThat(sqsMessage?.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.large.case.received"))
 
     awaitAssert { assertThat(personRepository.findByDefendantId(defendantId)).isNull() }
   }
@@ -416,7 +451,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
     val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
-    assertThat(sqsMessage?.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
+    assertThat(sqsMessage?.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.large.case.received"))
     val commonPlatformHearing: String = sqsMessage?.message!!
 
     val commonPlatformHearingAttributes: MessageAttributes? = sqsMessage.messageAttributes
