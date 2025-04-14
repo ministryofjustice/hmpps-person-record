@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.commonplatform
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -301,9 +300,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val request =
       PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
 
-    runBlocking {
-      s3AsyncClient.putObject(request, AsyncRequestBody.fromString(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId)))))
-    }
+    s3AsyncClient.putObject(request, AsyncRequestBody.fromString(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId))))).get()
     val messageId = publishLargeCommonPlatformMessage(
       largeCommonPlatformMessage(s3Key, s3Bucket),
     )
@@ -429,6 +426,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val person = awaitNotNullPerson {
       personRepository.findByDefendantId(defendantId)
     }
+    assertThat(commonPlatformHearing.contains("cprUUID")).isEqualTo(true)
     assertThat(commonPlatformHearing.contains(person.personKey?.personId.toString())).isEqualTo(true)
 
     assertThat(commonPlatformHearingAttributes?.messageType?.value).isEqualTo(COMMON_PLATFORM_HEARING.name)
@@ -473,14 +471,15 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       GetObjectRequest.builder().key(message.s3Key).bucket(message.s3BucketName).build()
 
     val body = s3AsyncClient.getObject(
-        getRequest,
-        AsyncResponseTransformer.toBytes(),
-      ).join().asUtf8String()
+      getRequest,
+      AsyncResponseTransformer.toBytes(),
+    ).join().asUtf8String()
     assertThat(body.contains(defendantId)).isEqualTo(true)
 
     val person = awaitNotNullPerson {
       personRepository.findByDefendantId(defendantId)
     }
+    assertThat(body.contains("cprUUID")).isEqualTo(true)
     assertThat(body.contains(person.personKey?.personId.toString())).isEqualTo(true)
 
     checkTelemetry(
