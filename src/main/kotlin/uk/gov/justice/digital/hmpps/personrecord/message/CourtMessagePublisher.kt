@@ -13,7 +13,6 @@ import software.amazon.sns.AmazonSNSExtendedAsyncClient
 import software.amazon.sns.SNSExtendedAsyncClientConfiguration
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import uk.gov.justice.hmpps.sqs.publish
@@ -27,7 +26,6 @@ class CourtMessagePublisher(
   hmppsQueueService: HmppsQueueService,
   private val objectMapper: ObjectMapper,
   @Value("\${aws.cpr-court-message-bucket-name}") private val bucketName: String,
-  private val personRepository: PersonRepository,
 ) {
   private val topic =
     hmppsQueueService.findByTopicId("cprcourtcasestopic")
