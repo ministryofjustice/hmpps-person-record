@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.jayway.jsonpath.JsonPath
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -74,8 +75,11 @@ class CourtEventProcessor(
 
     if (publishToCourtTopic) {
       when (messageLargerThanThreshold(commonPlatformHearing)) {
-        true -> courtMessagePublisher.publishLargeMessage(commonPlatformHearing, sqsMessage, processedDefendants)
-        else -> courtMessagePublisher.publishMessage(sqsMessage, processedDefendants)
+        true -> courtMessagePublisher.publishLargeMessage(
+          sqsMessage,
+          addCprUUID(commonPlatformHearing, processedDefendants),
+        )
+        else -> courtMessagePublisher.publishMessage(sqsMessage, addCprUUID(sqsMessage.message, processedDefendants))
       }
     }
   }
@@ -114,16 +118,18 @@ class CourtEventProcessor(
   }
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
-    if (publishToCourtTopic) {
-      courtMessagePublisher.publishMessage(sqsMessage)
-    }
     val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(sqsMessage.message)
-    when {
+    val personEntity = when {
       isLibraPerson(libraHearingEvent) -> processLibraPerson(libraHearingEvent, sqsMessage)
+      else -> null
+    }
+    if (publishToCourtTopic) {
+      val updatedMessage = addCprUUIDToLibra(sqsMessage.message, personEntity)
+      courtMessagePublisher.publishMessage(sqsMessage, updatedMessage)
     }
   }
 
-  private fun processLibraPerson(libraHearingEvent: LibraHearingEvent, sqsMessage: SQSMessage) {
+  private fun processLibraPerson(libraHearingEvent: LibraHearingEvent, sqsMessage: SQSMessage): PersonEntity {
     val person = Person.from(libraHearingEvent)
     telemetryService.trackEvent(
       MESSAGE_RECEIVED,
@@ -134,7 +140,7 @@ class CourtEventProcessor(
         EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
       ),
     )
-    createUpdateService.processPerson(person) {
+    return createUpdateService.processPerson(person) {
       person.cId?.let {
         personRepository.findByCId(it)
       }
@@ -142,6 +148,39 @@ class CourtEventProcessor(
   }
 
   private fun isLibraPerson(libraHearingEvent: LibraHearingEvent) = libraHearingEvent.defendantType == DefendantType.PERSON.value
+}
+
+private fun addCprUUID(
+  message: String,
+  processedDefendants: List<PersonEntity>?,
+): String {
+  val messageParser = JsonPath.parse(message)
+  processedDefendants?.forEach { defendant ->
+    val defendantId = defendant.defendantId
+    val cprUUID = defendant.personKey?.personId.toString()
+    messageParser.put(
+      "$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]",
+      "cprUUID",
+      cprUUID,
+    )
+  }
+  return messageParser.jsonString()
+}
+
+private fun addCprUUIDToLibra(
+  message: String,
+  defendant: PersonEntity?,
+): String {
+  val messageParser = JsonPath.parse(message)
+
+  val cprUUID = defendant?.personKey?.personId.toString()
+  messageParser.put(
+    "$",
+    "cprUUID",
+    cprUUID,
+  )
+
+  return messageParser.jsonString()
 }
 
 data class LargeMessageBody(val s3Key: String, val s3BucketName: String)
