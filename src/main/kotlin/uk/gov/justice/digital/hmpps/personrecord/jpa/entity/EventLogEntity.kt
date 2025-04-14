@@ -11,6 +11,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import org.hibernate.annotations.GeneratedColumn
 import org.hibernate.annotations.Type
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.extractSourceSystemId
@@ -108,11 +109,7 @@ class EventLogEntity(
   @Column(name = "cluster_composition")
   val clusterComposition: String? = null,
 
-  @Column(
-    name = "event_timestamp",
-    insertable = false,
-    updatable = false,
-  )
+  @GeneratedColumn("event_timestamp")
   val eventTimestamp: LocalDateTime? = null,
 
 ) {
