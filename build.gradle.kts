@@ -32,7 +32,7 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
 
   constraints {
-    implementation("commons-io:commons-io:2.18.0") {
+    implementation("commons-io:commons-io:2.19.0") {
       because("2.13.0 has CVEs")
     }
   }
