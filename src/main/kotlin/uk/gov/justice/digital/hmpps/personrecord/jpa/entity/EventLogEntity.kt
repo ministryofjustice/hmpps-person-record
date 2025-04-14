@@ -115,39 +115,38 @@ class EventLogEntity(
   )
   val eventTimestamp: LocalDateTime? = null,
 
-  ) {
+) {
   companion object {
 
-    fun from(personEntity: PersonEntity,
-             eventType: CPRLogEvents,
-             operationId: String,
-             clusterComposition: List<ValidCluster>? = null
-    ): EventLogEntity {
-      return EventLogEntity(
-        sourceSystemId = personEntity.extractSourceSystemId(),
-        matchId = personEntity.matchId,
-        uuid = personEntity.personKey?.personId!!,
-        uuidStatusType = personEntity.personKey?.status!!,
-        firstName = personEntity.firstName,
-        middleNames = personEntity.middleNames,
-        lastName = personEntity.lastName,
-        dateOfBirth = personEntity.dateOfBirth,
-        firstNameAliases = personEntity.pseudonyms.mapNotNull { it.firstName }.dedupeAndSortedArray(),
-        lastNameAliases = personEntity.pseudonyms.mapNotNull { it.lastName }.dedupeAndSortedArray(),
-        dateOfBirthAliases = personEntity.pseudonyms.mapNotNull { it.dateOfBirth }.dedupeAndSortedArray(),
-        postcodes = personEntity.addresses.mapNotNull { it.postcode }.dedupeAndSortedArray(),
-        cros = personEntity.references.getType(IdentifierType.CRO).mapNotNull { it.identifierValue }.dedupeAndSortedArray(),
-        pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue }.dedupeAndSortedArray(),
-        sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.dedupeAndSortedArray(),
-        excludeOverrideMarkers = personEntity.getExcludeOverrideMarkers().mapNotNull { it.markerValue }.dedupeAndSortedArray(),
-        includeOverrideMarkers = personEntity.getIncludeOverrideMarkers().mapNotNull { it.markerValue }.dedupeAndSortedArray(),
-        sourceSystem = personEntity.sourceSystem,
-        eventType = eventType,
-        operationId = operationId,
-        recordMergedTo = personEntity.mergedTo,
-        clusterComposition = clusterComposition?.toString(),
-      )
-    }
+    fun from(
+      personEntity: PersonEntity,
+      eventType: CPRLogEvents,
+      operationId: String,
+      clusterComposition: List<ValidCluster>? = null,
+    ): EventLogEntity = EventLogEntity(
+      sourceSystemId = personEntity.extractSourceSystemId(),
+      matchId = personEntity.matchId,
+      uuid = personEntity.personKey?.personId!!,
+      uuidStatusType = personEntity.personKey?.status!!,
+      firstName = personEntity.firstName,
+      middleNames = personEntity.middleNames,
+      lastName = personEntity.lastName,
+      dateOfBirth = personEntity.dateOfBirth,
+      firstNameAliases = personEntity.pseudonyms.mapNotNull { it.firstName }.dedupeAndSortedArray(),
+      lastNameAliases = personEntity.pseudonyms.mapNotNull { it.lastName }.dedupeAndSortedArray(),
+      dateOfBirthAliases = personEntity.pseudonyms.mapNotNull { it.dateOfBirth }.dedupeAndSortedArray(),
+      postcodes = personEntity.addresses.mapNotNull { it.postcode }.dedupeAndSortedArray(),
+      cros = personEntity.references.getType(IdentifierType.CRO).mapNotNull { it.identifierValue }.dedupeAndSortedArray(),
+      pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue }.dedupeAndSortedArray(),
+      sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.dedupeAndSortedArray(),
+      excludeOverrideMarkers = personEntity.getExcludeOverrideMarkers().mapNotNull { it.markerValue }.dedupeAndSortedArray(),
+      includeOverrideMarkers = personEntity.getIncludeOverrideMarkers().mapNotNull { it.markerValue }.dedupeAndSortedArray(),
+      sourceSystem = personEntity.sourceSystem,
+      eventType = eventType,
+      operationId = operationId,
+      recordMergedTo = personEntity.mergedTo,
+      clusterComposition = clusterComposition?.toString(),
+    )
 
     private fun List<String>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
 
