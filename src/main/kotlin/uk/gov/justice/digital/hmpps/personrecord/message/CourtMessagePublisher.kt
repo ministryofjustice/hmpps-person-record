@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.message
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.jayway.jsonpath.JsonPath
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -12,6 +13,7 @@ import software.amazon.sns.AmazonSNSExtendedAsyncClient
 import software.amazon.sns.SNSExtendedAsyncClientConfiguration
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import uk.gov.justice.hmpps.sqs.publish
@@ -25,6 +27,7 @@ class CourtMessagePublisher(
   hmppsQueueService: HmppsQueueService,
   private val objectMapper: ObjectMapper,
   @Value("\${aws.cpr-court-message-bucket-name}") private val bucketName: String,
+  private val personRepository: PersonRepository,
 ) {
   private val topic =
     hmppsQueueService.findByTopicId("cprcourtcasestopic")
@@ -80,10 +83,17 @@ class CourtMessagePublisher(
           .build()
       attributes.put("hearingEventType", hearingEventTypeValue)
     }
+    val messageParser = JsonPath.parse(sqsMessage.message)
+
+    processedDefendants?.forEach { defendant ->
+      val defendantId = defendant.defendantId
+      val cprUUID = defendant.personKey?.personId.toString()
+      messageParser.put("$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]", "cprUUID", cprUUID)
+    }
 
     topic.publish(
       eventType = sqsMessage.getEventType()!!,
-      event = objectMapper.writeValueAsString(sqsMessage.message),
+      event = messageParser.jsonString(),
       attributes = attributes,
     )
   }
