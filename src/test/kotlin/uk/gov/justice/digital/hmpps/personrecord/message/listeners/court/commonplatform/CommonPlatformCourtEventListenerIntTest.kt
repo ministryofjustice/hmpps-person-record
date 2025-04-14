@@ -301,9 +301,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val request =
       PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
 
-    runBlocking {
-      s3AsyncClient.putObject(request, AsyncRequestBody.fromString(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId)))))
-    }
+    s3AsyncClient.putObject(request, AsyncRequestBody.fromString(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId))))).get()
+
     val messageId = publishLargeCommonPlatformMessage(
       largeCommonPlatformMessage(s3Key, s3Bucket),
     )
@@ -449,9 +448,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val putObjectRequest = PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
 
-    runBlocking {
-      s3AsyncClient.putObject(putObjectRequest, AsyncRequestBody.fromBytes(incomingMessageFromS3))
-    }
+    s3AsyncClient.putObject(putObjectRequest, AsyncRequestBody.fromBytes(incomingMessageFromS3)).get()
 
     publishLargeCommonPlatformMessage(
       largeCommonPlatformMessage(s3Key, s3Bucket),
