@@ -58,12 +58,6 @@ class CourtEventProcessor(
       isLargeMessage(sqsMessage) -> runBlocking { getPayloadFromS3(sqsMessage) }
       else -> sqsMessage.message
     }
-    if (publishToCourtTopic) {
-      when (messageLargerThanThreshold(commonPlatformHearing)) {
-        true -> courtMessagePublisher.publishLargeMessage(commonPlatformHearing, sqsMessage)
-        else -> courtMessagePublisher.publishMessage(sqsMessage)
-      }
-    }
 
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
 
@@ -75,6 +69,13 @@ class CourtEventProcessor(
 
     uniquePersonDefendants.forEach { defendant ->
       processCommonPlatformPerson(defendant, sqsMessage)
+    }
+
+    if (publishToCourtTopic) {
+      when (messageLargerThanThreshold(commonPlatformHearing)) {
+        true -> courtMessagePublisher.publishLargeMessage(commonPlatformHearing, sqsMessage)
+        else -> courtMessagePublisher.publishMessage(sqsMessage)
+      }
     }
   }
 

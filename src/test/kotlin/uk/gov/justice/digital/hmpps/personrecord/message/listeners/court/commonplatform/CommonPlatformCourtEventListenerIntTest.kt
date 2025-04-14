@@ -405,7 +405,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should publish incoming event to court topic`() {
+  fun `should publish incoming event to court topic including the cpr uuid`() {
     val defendantId = randomDefendantId()
     stubPersonMatchUpsert()
     stubPersonMatchScores()
@@ -425,6 +425,11 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val commonPlatformHearingAttributes: MessageAttributes? = sqsMessage.messageAttributes
 
     assertThat(commonPlatformHearing.contains(defendantId)).isEqualTo(true)
+
+    val person = awaitNotNullPerson {
+      personRepository.findByDefendantId(defendantId)
+    }
+    assertThat(commonPlatformHearing.contains(person.personKey?.personId.toString())).isEqualTo(true)
 
     assertThat(commonPlatformHearingAttributes?.messageType?.value).isEqualTo(COMMON_PLATFORM_HEARING.name)
 
