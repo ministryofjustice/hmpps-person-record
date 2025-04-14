@@ -440,7 +440,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should publish incoming large message to CPR court topic`() {
+  fun `should publish incoming large message to CPR court topic including the cpr uuid`() {
     val defendantId = randomDefendantId()
     stubPersonMatchUpsert()
     stubPersonMatchScores()
@@ -453,9 +453,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val putObjectRequest = PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
 
-    runBlocking {
-      s3AsyncClient.putObject(putObjectRequest, AsyncRequestBody.fromBytes(incomingMessageFromS3))
-    }
+    s3AsyncClient.putObject(putObjectRequest, AsyncRequestBody.fromBytes(incomingMessageFromS3)).get()
 
     publishLargeCommonPlatformMessage(
       largeCommonPlatformMessage(s3Key, s3Bucket),
@@ -474,13 +472,16 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val getRequest =
       GetObjectRequest.builder().key(message.s3Key).bucket(message.s3BucketName).build()
 
-    val body = runBlocking {
-      s3AsyncClient.getObject(
+    val body = s3AsyncClient.getObject(
         getRequest,
         AsyncResponseTransformer.toBytes(),
       ).join().asUtf8String()
-    }
     assertThat(body.contains(defendantId)).isEqualTo(true)
+
+    val person = awaitNotNullPerson {
+      personRepository.findByDefendantId(defendantId)
+    }
+    assertThat(body.contains(person.personKey?.personId.toString())).isEqualTo(true)
 
     checkTelemetry(
       CPR_RECORD_CREATED,

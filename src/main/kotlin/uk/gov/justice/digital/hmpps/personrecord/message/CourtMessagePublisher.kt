@@ -40,7 +40,11 @@ class CourtMessagePublisher(
     snsExtendedAsyncClientConfiguration,
   )
 
-  fun publishLargeMessage(commonPlatformHearing: String, sqsMessage: SQSMessage): CompletableFuture<PublishResponse> = runBlocking {
+  fun publishLargeMessage(
+    commonPlatformHearing: String,
+    sqsMessage: SQSMessage,
+    processedDefendants: List<PersonEntity>
+  ): CompletableFuture<PublishResponse> = runBlocking {
     val attributes = mutableMapOf(
       "messageType" to MessageAttributeValue.builder().dataType("String").stringValue(sqsMessage.getMessageType())
         .build(),
@@ -57,10 +61,17 @@ class CourtMessagePublisher(
       attributes.put("hearingEventType", hearingEventTypeValue)
     }
 
+    val messageParser = JsonPath.parse(commonPlatformHearing)
+    processedDefendants.forEach { defendant ->
+      val defendantId = defendant.defendantId
+      val cprUUID = defendant.personKey?.personId.toString()
+      messageParser.put("$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]", "cprUUID", cprUUID)
+    }
+
     snsExtendedClient.publish(
       PublishRequest.builder().topicArn(topic.arn).messageAttributes(
         attributes,
-      ).message(objectMapper.writeValueAsString(commonPlatformHearing))
+      ).message(messageParser.jsonString())
         .build(),
     )
   }
@@ -72,7 +83,7 @@ class CourtMessagePublisher(
         .stringValue(sqsMessage.getMessageType())
         .build(),
     )
-    println(processedDefendants?.size)
+
     sqsMessage.getHearingEventType()?.let {
       val hearingEventTypeValue =
         MessageAttributeValue.builder()

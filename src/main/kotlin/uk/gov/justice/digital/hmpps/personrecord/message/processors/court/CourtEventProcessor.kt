@@ -74,7 +74,7 @@ class CourtEventProcessor(
 
     if (publishToCourtTopic) {
       when (messageLargerThanThreshold(commonPlatformHearing)) {
-        true -> courtMessagePublisher.publishLargeMessage(commonPlatformHearing, sqsMessage)
+        true -> courtMessagePublisher.publishLargeMessage(commonPlatformHearing, sqsMessage, processedDefendants)
         else -> courtMessagePublisher.publishMessage(sqsMessage, processedDefendants)
       }
     }
