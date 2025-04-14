@@ -19,12 +19,15 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import java.time.LocalDate
+import java.util.UUID
 
 class EventLogIntTest : IntegrationTestBase() {
 
@@ -33,6 +36,7 @@ class EventLogIntTest : IntegrationTestBase() {
 
   @Test
   fun `should map person to event log`() {
+    val operationId = UUID.randomUUID().toString()
     val personEntity = createPersonWithNewKey(
       Person.from(
         ProbationCase(
@@ -46,12 +50,12 @@ class EventLogIntTest : IntegrationTestBase() {
               dateOfBirth = randomDate(),
             ),
           ),
-          sentences = listOf(Sentences(sentenceDate = randomDate()))
+          sentences = listOf(Sentences(sentenceDate = randomDate())),
         ),
       ),
     )
 
-    val eventLogEntity = EventLogEntity.from(personEntity)
+    val eventLogEntity = EventLogEntity.from(personEntity, CPRLogEvents.CPR_RECORD_UPDATED, operationId)
     val eventLog = eventLogRepository.save(eventLogEntity)
 
     assertThat(eventLog).isNotNull()
@@ -81,19 +85,87 @@ class EventLogIntTest : IntegrationTestBase() {
     assertThat(eventLog.recordMergedTo).isNull()
     assertThat(eventLog.clusterComposition).isNull()
     assertThat(eventLog.eventTimestamp).isNull()
+    assertThat(eventLog.eventType).isEqualTo(CPRLogEvents.CPR_RECORD_UPDATED)
+    assertThat(eventLog.excludeOverrideMarkers.size).isEqualTo(0)
+    assertThat(eventLog.includeOverrideMarkers.size).isEqualTo(0)
+    assertThat(eventLog.operationId).isEqualTo(operationId)
   }
 
   @Test
   fun `should map a merged person to event log`() {
+    val operationId = UUID.randomUUID().toString()
     val mergedIntoPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
     var mergedToPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
 
     mergedToPerson = mergeRecord(mergedToPerson, mergedIntoPerson)
 
-    val eventLogEntity = EventLogEntity.from(mergedToPerson)
+    val eventLogEntity = EventLogEntity.from(mergedToPerson, CPRLogEvents.CPR_RECORD_CREATED, operationId)
     val eventLog = eventLogRepository.save(eventLogEntity)
 
     assertThat(eventLog).isNotNull()
     assertThat(mergedToPerson.mergedTo).isEqualTo(mergedIntoPerson.id)
+  }
+
+  @Test
+  fun `should map exclude override to event log`() {
+    val operationId = UUID.randomUUID().toString()
+    val toRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
+    val fromRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
+
+    excludeRecord(toRecord, fromRecord)
+
+    val updatedToRecord = personRepository.findByMatchId(toRecord.matchId)!!
+    val eventLogEntity = EventLogEntity.from(updatedToRecord, CPRLogEvents.CPR_RECORD_CREATED, operationId)
+    val eventLog = eventLogRepository.save(eventLogEntity)
+
+    assertThat(eventLog.excludeOverrideMarkers.size).isEqualTo(1)
+    assertThat(eventLog.excludeOverrideMarkers.first()).isEqualTo(fromRecord.id)
+  }
+
+  @Test
+  fun `should dedupe and sort lists`() {
+    val operationId = UUID.randomUUID().toString()
+    val personEntity = createPersonWithNewKey(
+      Person.from(
+        ProbationCase(
+          name = Name(firstName = randomName(), lastName = randomName()),
+          identifiers = Identifiers(crn = randomCrn(), cro = CROIdentifier.from(randomCro()), pnc = PNCIdentifier.from(randomPnc())),
+          addresses = listOf(Address(postcode = "ZX1 1AB"), Address(postcode = "AB1 2BC"), Address(postcode = "ZX1 1AB")),
+          aliases = listOf(
+            ProbationCaseAlias(
+              name = Name(firstName = "Bob", lastName = "Smythe"),
+              dateOfBirth = LocalDate.of(1970, 1, 1),
+            ),
+            ProbationCaseAlias(
+              name = Name(firstName = "Bob", lastName = "Smith"),
+              dateOfBirth = LocalDate.of(1980, 1, 1),
+            ),
+          ),
+          sentences = listOf(
+            Sentences(sentenceDate = LocalDate.of(1980, 1, 1)),
+            Sentences(sentenceDate = LocalDate.of(1990, 1, 1)),
+            Sentences(sentenceDate = LocalDate.of(1980, 1, 1)),
+          ),
+        ),
+      ),
+    )
+
+    val eventLogEntity = EventLogEntity.from(personEntity, CPRLogEvents.CPR_RECORD_CREATED, operationId)
+    val eventLog = eventLogRepository.save(eventLogEntity)
+
+    assertThat(eventLog.postcodes.size).isEqualTo(2)
+    assertThat(eventLog.postcodes[0]).isEqualTo("AB1 2BC")
+    assertThat(eventLog.postcodes[1]).isEqualTo("ZX1 1AB")
+
+    assertThat(eventLog.firstNameAliases.size).isEqualTo(1)
+    assertThat(eventLog.firstNameAliases[0]).isEqualTo("Bob")
+
+    assertThat(eventLog.lastNameAliases.size).isEqualTo(2)
+    assertThat(eventLog.lastNameAliases[0]).isEqualTo("Smith")
+    assertThat(eventLog.lastNameAliases[1]).isEqualTo("Smythe")
+
+    assertThat(eventLog.sentenceDates.size).isEqualTo(2)
+    assertThat(eventLog.sentenceDates[0]).isEqualTo(LocalDate.of(1980, 1, 1))
+    assertThat(eventLog.sentenceDates[1]).isEqualTo(LocalDate.of(1990, 1, 1))
   }
 }

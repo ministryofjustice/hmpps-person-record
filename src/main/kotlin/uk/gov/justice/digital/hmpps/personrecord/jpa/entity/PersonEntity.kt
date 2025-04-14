@@ -134,6 +134,10 @@ class PersonEntity(
 
 ) {
 
+  fun getExcludeOverrideMarkers() = this.overrideMarkers.filter { it.markerType == OverrideMarkerType.EXCLUDE }
+
+  fun getIncludeOverrideMarkers() = this.overrideMarkers.filter { it.markerType == OverrideMarkerType.INCLUDE }
+
   fun addExcludeOverrideMarker(excludeRecord: PersonEntity) {
     this.overrideMarkers.add(
       OverrideMarkerEntity(markerType = OverrideMarkerType.EXCLUDE, markerValue = excludeRecord.id, person = this),

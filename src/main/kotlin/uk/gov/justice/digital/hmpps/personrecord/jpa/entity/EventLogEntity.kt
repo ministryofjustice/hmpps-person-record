@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
 import io.hypersistence.utils.hibernate.type.array.LocalDateArrayType
+import io.hypersistence.utils.hibernate.type.array.LongArrayType
 import io.hypersistence.utils.hibernate.type.array.StringArrayType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -11,11 +12,13 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.Type
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.extractSourceSystemId
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.CPRLogEvents
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -80,16 +83,21 @@ class EventLogEntity(
   @Column(name = "sentence_dates", columnDefinition = "date[]")
   val sentenceDates: Array<LocalDate> = emptyArray<LocalDate>(),
 
-  @Type(StringArrayType::class)
-  @Column(name = "override_markers", columnDefinition = "text[]")
-  val overrideMarkers: Array<String> = emptyArray<String>(),
+  @Type(LongArrayType::class)
+  @Column(name = "exclude_override_markers", columnDefinition = "bigint[]")
+  val excludeOverrideMarkers: Array<Long> = emptyArray<Long>(),
+
+  @Type(LongArrayType::class)
+  @Column(name = "include_override_markers", columnDefinition = "bigint[]")
+  val includeOverrideMarkers: Array<Long> = emptyArray<Long>(),
 
   @Enumerated(STRING)
   @Column(name = "source_system")
   val sourceSystem: SourceSystemType,
 
+  @Enumerated(STRING)
   @Column(name = "event_type")
-  val eventType: String? = null,
+  val eventType: CPRLogEvents,
 
   @Column(name = "operation_id")
   val operationId: String? = null,
@@ -110,31 +118,41 @@ class EventLogEntity(
   ) {
   companion object {
 
-    fun from(personEntity: PersonEntity): EventLogEntity {
-      val personKeyEntity = personEntity.personKey!!
+    fun from(personEntity: PersonEntity,
+             eventType: CPRLogEvents,
+             operationId: String,
+             clusterComposition: List<ValidCluster>? = null
+    ): EventLogEntity {
       return EventLogEntity(
         sourceSystemId = personEntity.extractSourceSystemId(),
         matchId = personEntity.matchId,
-        uuid = personKeyEntity.personId!!,
-        uuidStatusType = personKeyEntity.status,
+        uuid = personEntity.personKey?.personId!!,
+        uuidStatusType = personEntity.personKey?.status!!,
         firstName = personEntity.firstName,
         middleNames = personEntity.middleNames,
         lastName = personEntity.lastName,
         dateOfBirth = personEntity.dateOfBirth,
-        firstNameAliases = personEntity.pseudonyms.mapNotNull { it.firstName }.sorted().toTypedArray(),
-        lastNameAliases = personEntity.pseudonyms.mapNotNull { it.lastName }.sorted().toTypedArray(),
-        dateOfBirthAliases = personEntity.pseudonyms.mapNotNull { it.dateOfBirth }.sorted().toTypedArray(),
-        postcodes = personEntity.addresses.mapNotNull { it.postcode }.sorted().toTypedArray(),
-        cros = personEntity.references.getType(IdentifierType.CRO).mapNotNull { it.identifierValue }.sorted().toTypedArray(),
-        pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue }.sorted().toTypedArray(),
-        sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.sorted().toTypedArray(),
-        overrideMarkers = emptyArray(),
+        firstNameAliases = personEntity.pseudonyms.mapNotNull { it.firstName }.dedupeAndSortedArray(),
+        lastNameAliases = personEntity.pseudonyms.mapNotNull { it.lastName }.dedupeAndSortedArray(),
+        dateOfBirthAliases = personEntity.pseudonyms.mapNotNull { it.dateOfBirth }.dedupeAndSortedArray(),
+        postcodes = personEntity.addresses.mapNotNull { it.postcode }.dedupeAndSortedArray(),
+        cros = personEntity.references.getType(IdentifierType.CRO).mapNotNull { it.identifierValue }.dedupeAndSortedArray(),
+        pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue }.dedupeAndSortedArray(),
+        sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.dedupeAndSortedArray(),
+        excludeOverrideMarkers = personEntity.getExcludeOverrideMarkers().mapNotNull { it.markerValue }.dedupeAndSortedArray(),
+        includeOverrideMarkers = personEntity.getIncludeOverrideMarkers().mapNotNull { it.markerValue }.dedupeAndSortedArray(),
         sourceSystem = personEntity.sourceSystem,
-        eventType = null,
-        operationId = null,
+        eventType = eventType,
+        operationId = operationId,
         recordMergedTo = personEntity.mergedTo,
-        clusterComposition = null,
+        clusterComposition = clusterComposition?.toString(),
       )
     }
+
+    private fun List<String>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
+
+    private fun List<Long>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
+
+    private fun List<LocalDate>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
   }
 }
