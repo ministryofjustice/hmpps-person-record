@@ -491,7 +491,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubPersonMatchScores()
 
     val defendantId = randomDefendantId()
-    putLargeMessageBodyIntoS3(defendantId)
+    putLargeMessageBodyIntoS3(largeCommonPlatformHearing(defendantId))
 
     expectOneMessageOn(testOnlyCourtEventsQueue)
 
@@ -514,10 +514,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun putLargeMessageBodyIntoS3(defendantId: String) {
+  fun putLargeMessageBodyIntoS3(message: String) {
     val s3Key = UUID.randomUUID().toString()
-    val incomingMessageFromS3 =
-      largeCommonPlatformHearing(defendantId).toByteArray(Charset.forName("UTF8"))
+    val incomingMessageFromS3 = message.toByteArray(Charset.forName("UTF8"))
     val putObjectRequest = PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
     s3AsyncClient.putObject(putObjectRequest, AsyncRequestBody.fromBytes(incomingMessageFromS3)).get()
 
