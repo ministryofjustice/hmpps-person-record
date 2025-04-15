@@ -412,14 +412,15 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should republish large message and not save when organisation`() {
     stubPersonMatchUpsert()
     stubPersonMatchScores()
+    val organizationDefendantId = randomDefendantId()
 
     val organisations = (1..1000).map { itr ->
       CommonPlatformHearingSetup(isPerson = false)
     }
     val defendantId = randomDefendantId()
     val person = CommonPlatformHearingSetup(defendantId = defendantId)
-
-    val largeMessage = commonPlatformHearing(organisations + person)
+    val organization = CommonPlatformHearingSetup(defendantId = organizationDefendantId, isPerson = false)
+    val largeMessage = commonPlatformHearing(organisations + person + organization)
 
     val s3Key = UUID.randomUUID().toString()
 
@@ -443,14 +444,17 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val defendant = awaitNotNullPerson {
       personRepository.findByDefendantId(defendantId)
     }
+
+    assertThat(personRepository.findByDefendantId(organizationDefendantId)).isNull()
+
     val getRequest =
       GetObjectRequest.builder().key(message.s3Key).bucket(message.s3BucketName).build()
     val body = s3AsyncClient.getObject(
       getRequest,
       AsyncResponseTransformer.toBytes(),
     ).join().asUtf8String()
-    
-    assertThat("cprUUID".count{ body.contains(it) }).isEqualTo(1)
+
+    assertThat(body.split("cprUUID").size).isEqualTo(2)
     assertThat(body.contains(defendant.personKey?.personId.toString())).isEqualTo(true)
   }
 
