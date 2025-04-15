@@ -72,12 +72,10 @@ class CourtEventProcessor(
       }
 
     if (publishToCourtTopic) {
+      val updatedMessage = addCprUUID(commonPlatformHearing, defendants)
       when (messageLargerThanThreshold(commonPlatformHearing)) {
-        true -> courtMessagePublisher.publishLargeMessage(
-          sqsMessage,
-          addCprUUID(commonPlatformHearing, defendants),
-        )
-        else -> courtMessagePublisher.publishMessage(sqsMessage, addCprUUID(commonPlatformHearing, defendants))
+        true -> courtMessagePublisher.publishLargeMessage(sqsMessage, updatedMessage)
+        else -> courtMessagePublisher.publishMessage(sqsMessage, updatedMessage)
       }
     }
   }
