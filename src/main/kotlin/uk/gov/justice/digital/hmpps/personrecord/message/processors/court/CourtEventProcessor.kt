@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.Common
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.CourtMessagePublisher
 import uk.gov.justice.digital.hmpps.personrecord.message.LARGE_CASE_EVENT_TYPE
@@ -58,27 +59,27 @@ class CourtEventProcessor(
       isLargeMessage(sqsMessage) -> runBlocking { getPayloadFromS3(sqsMessage) }
       else -> sqsMessage.message
     }
-    if (publishToCourtTopic) {
-      when (messageLargerThanThreshold(commonPlatformHearing)) {
-        true -> courtMessagePublisher.publishLargeMessage(commonPlatformHearing, sqsMessage)
-        else -> courtMessagePublisher.publishMessage(sqsMessage)
-      }
-    }
 
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
 
-    val uniquePersonDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
+    val defendants = commonPlatformHearingEvent.hearing.prosecutionCases
       .flatMap { it.defendants }
       .filterNot { it.isYouth }
       .filter { it.isPerson() }
-      .distinctBy { it.id }
+      .distinctBy { it.id }.map { defendant ->
+        processCommonPlatformPerson(defendant, sqsMessage)
+      }
 
-    uniquePersonDefendants.forEach { defendant ->
-      processCommonPlatformPerson(defendant, sqsMessage)
+    if (publishToCourtTopic) {
+      val updatedMessage = addCprUUIDToCommonPlatform(commonPlatformHearing, defendants)
+      when (messageLargerThanThreshold(commonPlatformHearing)) {
+        true -> courtMessagePublisher.publishLargeMessage(sqsMessage, updatedMessage)
+        else -> courtMessagePublisher.publishMessage(sqsMessage, updatedMessage)
+      }
     }
   }
 
-  private fun processCommonPlatformPerson(defendant: Defendant, sqsMessage: SQSMessage) {
+  private fun processCommonPlatformPerson(defendant: Defendant, sqsMessage: SQSMessage): PersonEntity {
     val person = Person.from(defendant)
     telemetryService.trackEvent(
       MESSAGE_RECEIVED,
@@ -89,7 +90,7 @@ class CourtEventProcessor(
         EventKeys.SOURCE_SYSTEM to SourceSystemType.COMMON_PLATFORM.name,
       ),
     )
-    createUpdateService.processPerson(person) {
+    return createUpdateService.processPerson(person) {
       person.defendantId?.let {
         personRepository.findByDefendantId(it)
       }
@@ -102,9 +103,9 @@ class CourtEventProcessor(
 
   private suspend fun getPayloadFromS3(sqsMessage: SQSMessage): String {
     val messageBody = objectMapper.readValue(sqsMessage.message, ArrayList::class.java)
-    val message = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
+    val (s3Key, s3BucketName) = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
 
-    val request = GetObjectRequest.builder().key(message.s3Key).bucket(message.s3BucketName).build()
+    val request = GetObjectRequest.builder().key(s3Key).bucket(s3BucketName).build()
     return s3AsyncClient.getObject(
       request,
       AsyncResponseTransformer.toBytes(),
@@ -112,16 +113,18 @@ class CourtEventProcessor(
   }
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
-    if (publishToCourtTopic) {
-      courtMessagePublisher.publishMessage(sqsMessage)
-    }
     val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(sqsMessage.message)
-    when {
+    val personEntity = when {
       isLibraPerson(libraHearingEvent) -> processLibraPerson(libraHearingEvent, sqsMessage)
+      else -> null
+    }
+    if (publishToCourtTopic) {
+      val updatedMessage = addCprUUIDToLibra(sqsMessage.message, personEntity)
+      courtMessagePublisher.publishMessage(sqsMessage, updatedMessage)
     }
   }
 
-  private fun processLibraPerson(libraHearingEvent: LibraHearingEvent, sqsMessage: SQSMessage) {
+  private fun processLibraPerson(libraHearingEvent: LibraHearingEvent, sqsMessage: SQSMessage): PersonEntity {
     val person = Person.from(libraHearingEvent)
     telemetryService.trackEvent(
       MESSAGE_RECEIVED,
@@ -132,7 +135,7 @@ class CourtEventProcessor(
         EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
       ),
     )
-    createUpdateService.processPerson(person) {
+    return createUpdateService.processPerson(person) {
       person.cId?.let {
         personRepository.findByCId(it)
       }
