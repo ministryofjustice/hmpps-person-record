@@ -120,10 +120,7 @@ class CourtEventProcessor(
       else -> null
     }
     if (publishToCourtTopic) {
-      val updatedMessage = sqsMessage.message
-      if (personEntity != null) {
-        addCprUUIDToLibra(sqsMessage.message, personEntity)
-      }
+      val updatedMessage = addCprUUIDToLibra(sqsMessage.message, personEntity)
       courtMessagePublisher.publishMessage(sqsMessage, updatedMessage)
     }
   }
@@ -170,6 +167,10 @@ private fun addCprUUIDToLibra(
   message: String,
   defendant: PersonEntity?,
 ): String {
+
+  if (defendant == null)
+    return message
+
   val messageParser = JsonPath.parse(message)
 
   val cprUUID = defendant?.personKey?.personId.toString()
