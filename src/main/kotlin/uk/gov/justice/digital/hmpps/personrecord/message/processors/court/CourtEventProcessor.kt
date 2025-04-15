@@ -168,17 +168,15 @@ private fun addCprUUIDToLibra(
   defendant: PersonEntity?,
 ): String {
 
-  if (defendant == null)
-    return message
-
   val messageParser = JsonPath.parse(message)
 
-  val cprUUID = defendant?.personKey?.personId.toString()
-  messageParser.put(
-    "$",
-    "cprUUID",
-    cprUUID,
-  )
+  defendant?.personKey?.personId?.let {
+    messageParser.put(
+      "$",
+      "cprUUID",
+      it.toString(),
+    )
+  }
 
   return messageParser.jsonString()
 }
