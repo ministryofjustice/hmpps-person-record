@@ -120,7 +120,10 @@ class CourtEventProcessor(
       else -> null
     }
     if (publishToCourtTopic) {
-      val updatedMessage = addCprUUIDToLibra(sqsMessage.message, personEntity)
+      val updatedMessage = sqsMessage.message
+      if (personEntity != null) {
+        addCprUUIDToLibra(sqsMessage.message, personEntity)
+      }
       courtMessagePublisher.publishMessage(sqsMessage, updatedMessage)
     }
   }
