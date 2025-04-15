@@ -563,6 +563,9 @@ class CanonicalApiIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .is5xxServerError
+      .expectBody()
+      .jsonPath("message")
+      .isEqualTo("Circular merge reference")
   }
 
   @Test
