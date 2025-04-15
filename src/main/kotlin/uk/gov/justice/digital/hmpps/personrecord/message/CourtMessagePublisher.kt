@@ -47,14 +47,7 @@ class CourtMessagePublisher(
         .stringValue(LARGE_CASE_EVENT_TYPE).build(), // to enum
     )
 
-    sqsMessage.getHearingEventType()?.let {
-      val hearingEventTypeValue =
-        MessageAttributeValue.builder()
-          .dataType("String")
-          .stringValue(sqsMessage.getHearingEventType())
-          .build()
-      attributes.put("hearingEventType", hearingEventTypeValue)
-    }
+    attributes.addHearingEventType(sqsMessage)
 
     snsExtendedClient.publish(
       PublishRequest.builder().topicArn(topic.arn).messageAttributes(
@@ -75,19 +68,25 @@ class CourtMessagePublisher(
         .build(),
     )
 
-    sqsMessage.getHearingEventType()?.let {
-      val hearingEventTypeValue =
-        MessageAttributeValue.builder()
-          .dataType("String")
-          .stringValue(sqsMessage.getHearingEventType())
-          .build()
-      attributes.put("hearingEventType", hearingEventTypeValue)
-    }
+    attributes.addHearingEventType(sqsMessage)
 
     topic.publish(
       eventType = sqsMessage.getEventType()!!,
       event = updatedMessage,
       attributes = attributes,
     )
+  }
+
+  private fun MutableMap<String, MessageAttributeValue>.addHearingEventType(
+    sqsMessage: SQSMessage,
+  ) {
+    sqsMessage.getHearingEventType()?.let {
+      val hearingEventTypeValue =
+        MessageAttributeValue.builder()
+          .dataType("String")
+          .stringValue(sqsMessage.getHearingEventType())
+          .build()
+      this.put("hearingEventType", hearingEventTypeValue)
+    }
   }
 }
