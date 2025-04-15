@@ -59,7 +59,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_CREATED)
 
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
-    checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID)
 
     val person = awaitNotNullPerson { personRepository.findByCId(cId) }
 
@@ -265,16 +264,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(createdLog.dateOfBirth).isEqualTo(dateOfBirth)
         assertThat(createdLog.sourceSystem).isEqualTo(LIBRA)
         assertThat(createdLog.postcodes).isEqualTo(arrayOf(postcode))
-
-        assertThat(createdLog.uuid).isNull()
-        assertThat(createdLog.uuidStatusType).isNull()
-      }
-
-      checkEventLog(cId, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID) { eventLogs ->
-        assertThat(eventLogs?.size).isEqualTo(1)
-        val assignedLog = eventLogs!!.first()
-        assertThat(assignedLog.uuid).isNotNull()
-        assertThat(assignedLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
+        assertThat(createdLog.uuid).isNotNull()
+        assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
       }
     }
   }

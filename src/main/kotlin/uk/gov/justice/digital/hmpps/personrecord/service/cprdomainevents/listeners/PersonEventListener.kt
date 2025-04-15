@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.listen
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonAssignedToUUID
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -26,10 +25,5 @@ class PersonEventListener(
   fun handlePersonUpdated(personUpdated: PersonUpdated) {
     telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_UPDATED, personUpdated.personEntity)
     eventLogService.logEvent(personUpdated.personEntity, CPRLogEvents.CPR_RECORD_UPDATED)
-  }
-
-  @EventListener
-  fun handlePersonAssignedToUuid(personAssigned: PersonAssignedToUUID) {
-    eventLogService.logEvent(personAssigned.personEntity, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID)
   }
 }

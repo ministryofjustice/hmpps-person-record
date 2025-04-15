@@ -141,7 +141,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
-      checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID)
     }
 
     @Test
@@ -215,7 +214,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
-      checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID)
     }
 
     @Test
@@ -233,7 +231,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
-      checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID)
     }
 
     @Test
@@ -320,7 +317,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubPersonMatchScores(personMatchResponse = listOf(highConfidenceMatchWhichDoesNotExistInCPR))
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn))
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
-    checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID)
   }
 
   @Test
@@ -414,16 +410,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(createdLog.firstNameAliases).isEqualTo(arrayOf(aliasFirstName))
         assertThat(createdLog.lastNameAliases).isEqualTo(arrayOf(aliasLastName))
         assertThat(createdLog.dateOfBirthAliases).isEqualTo(arrayOf(aliasDateOfBirth))
-
-        assertThat(createdLog.uuid).isNull()
-        assertThat(createdLog.uuidStatusType).isNull()
-      }
-
-      checkEventLog(crn, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID) { eventLogs ->
-        assertThat(eventLogs?.size).isEqualTo(1)
-        val assignedLog = eventLogs!!.first()
-        assertThat(assignedLog.uuid).isNotNull()
-        assertThat(assignedLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
+        assertThat(createdLog.uuid).isNotNull()
+        assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
       }
     }
   }

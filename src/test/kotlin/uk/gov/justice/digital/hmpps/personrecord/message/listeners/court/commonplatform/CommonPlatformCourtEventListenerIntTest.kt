@@ -558,16 +558,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(createdLog.sourceSystem).isEqualTo(COMMON_PLATFORM)
         assertThat(createdLog.firstNameAliases).isEqualTo(arrayOf(aliasFirstName))
         assertThat(createdLog.lastNameAliases).isEqualTo(arrayOf(aliasLastName))
-
-        assertThat(createdLog.uuid).isNull()
-        assertThat(createdLog.uuidStatusType).isNull()
-      }
-
-      checkEventLog(defendantId, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID) { eventLogs ->
-        assertThat(eventLogs?.size).isEqualTo(1)
-        val assignedLog = eventLogs!!.first()
-        assertThat(assignedLog.uuid).isNotNull()
-        assertThat(assignedLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
+        assertThat(createdLog.uuid).isNotNull()
+        assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
       }
     }
   }
