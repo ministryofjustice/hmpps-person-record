@@ -446,15 +446,15 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     assertThat(personRepository.findByDefendantId(organizationDefendantId)).isNull()
 
-    val getRequest =
-      GetObjectRequest.builder().key(message.s3Key).bucket(message.s3BucketName).build()
-    val body = s3AsyncClient.getObject(
-      getRequest,
+    val messageStoredInS3 = s3AsyncClient.getObject(
+      GetObjectRequest.builder().key(message.s3Key).bucket(message.s3BucketName).build(),
       AsyncResponseTransformer.toBytes(),
     ).join().asUtf8String()
 
-    assertThat(body.split("cprUUID").size).isEqualTo(2)
-    assertThat(body.contains(defendant.personKey?.personId.toString())).isEqualTo(true)
+    val occurrenceOfCprUUId = messageStoredInS3.split("cprUUID").size - 1
+
+    assertThat(occurrenceOfCprUUId).isEqualTo(1)
+    assertThat(messageStoredInS3.contains(defendant.personKey?.personId.toString())).isEqualTo(true)
   }
 
   @Test
