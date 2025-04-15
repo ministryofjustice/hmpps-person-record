@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -22,7 +21,6 @@ const val LARGE_CASE_EVENT_TYPE = "commonplatform.large.case.received"
 class CourtMessagePublisher(
   s3AsyncClient: S3AsyncClient,
   hmppsQueueService: HmppsQueueService,
-  private val objectMapper: ObjectMapper,
   @Value("\${aws.cpr-court-message-bucket-name}") private val bucketName: String,
 ) {
   private val topic =
@@ -38,7 +36,10 @@ class CourtMessagePublisher(
     snsExtendedAsyncClientConfiguration,
   )
 
-  fun publishLargeMessage(commonPlatformHearing: String, sqsMessage: SQSMessage): CompletableFuture<PublishResponse> = runBlocking {
+  fun publishLargeMessage(
+    sqsMessage: SQSMessage,
+    updatedMessage: String,
+  ): CompletableFuture<PublishResponse> = runBlocking {
     val attributes = mutableMapOf(
       "messageType" to MessageAttributeValue.builder().dataType("String").stringValue(sqsMessage.getMessageType())
         .build(),
@@ -46,24 +47,20 @@ class CourtMessagePublisher(
         .stringValue(LARGE_CASE_EVENT_TYPE).build(), // to enum
     )
 
-    sqsMessage.getHearingEventType()?.let {
-      val hearingEventTypeValue =
-        MessageAttributeValue.builder()
-          .dataType("String")
-          .stringValue(sqsMessage.getHearingEventType())
-          .build()
-      attributes.put("hearingEventType", hearingEventTypeValue)
-    }
+    attributes.addHearingEventType(sqsMessage)
 
     snsExtendedClient.publish(
       PublishRequest.builder().topicArn(topic.arn).messageAttributes(
         attributes,
-      ).message(objectMapper.writeValueAsString(commonPlatformHearing))
+      ).message(updatedMessage)
         .build(),
     )
   }
 
-  fun publishMessage(sqsMessage: SQSMessage) {
+  fun publishMessage(
+    sqsMessage: SQSMessage,
+    updatedMessage: String,
+  ) {
     val attributes = mutableMapOf(
       "messageType" to MessageAttributeValue.builder()
         .dataType("String")
@@ -71,19 +68,25 @@ class CourtMessagePublisher(
         .build(),
     )
 
+    attributes.addHearingEventType(sqsMessage)
+
+    topic.publish(
+      eventType = sqsMessage.getEventType()!!,
+      event = updatedMessage,
+      attributes = attributes,
+    )
+  }
+
+  private fun MutableMap<String, MessageAttributeValue>.addHearingEventType(
+    sqsMessage: SQSMessage,
+  ) {
     sqsMessage.getHearingEventType()?.let {
       val hearingEventTypeValue =
         MessageAttributeValue.builder()
           .dataType("String")
-          .stringValue(sqsMessage.getHearingEventType())
+          .stringValue(it)
           .build()
-      attributes.put("hearingEventType", hearingEventTypeValue)
+      this.put("hearingEventType", hearingEventTypeValue)
     }
-
-    topic.publish(
-      eventType = sqsMessage.getEventType()!!,
-      event = objectMapper.writeValueAsString(sqsMessage.message),
-      attributes = attributes,
-    )
   }
 }

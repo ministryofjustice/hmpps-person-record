@@ -30,24 +30,20 @@ class CreateUpdateService(
     ],
   )
   @Transactional(isolation = REPEATABLE_READ)
-  fun processPerson(person: Person, callback: () -> PersonEntity?) {
-    runBlocking {
-      val existingPersonEntitySearch: PersonEntity? = callback()
-      existingPersonEntitySearch.shouldCreateOrUpdate(
-        shouldCreate = {
-          handlePersonCreation(person)
-        },
-        shouldUpdate = {
-          handlePersonUpdate(person, it)
-        },
-      )
-    }
+  fun processPerson(person: Person, findPerson: () -> PersonEntity?): PersonEntity = runBlocking {
+    return@runBlocking findPerson().shouldCreateOrUpdate(
+      shouldCreate = {
+        handlePersonCreation(person)
+      },
+      shouldUpdate = {
+        handlePersonUpdate(person, it)
+      },
+    )
   }
 
   private fun handlePersonCreation(person: Person): PersonEntity {
     val personEntity: PersonEntity = personService.createPersonEntity(person)
-    personService.linkRecordToPersonKey(personEntity)
-    return personEntity
+    return personService.linkRecordToPersonKey(personEntity)
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity): PersonEntity {

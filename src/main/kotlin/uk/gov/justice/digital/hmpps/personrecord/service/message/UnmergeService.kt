@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
-import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.UnmergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -22,16 +21,18 @@ class UnmergeService(
   private val personRepository: PersonRepository,
 ) {
 
-  fun processUnmerge(unmergeEvent: UnmergeEvent, reactivatedPersonCallback: () -> PersonEntity?, unmergedPersonCallback: () -> PersonEntity?) = runBlocking {
-    processUnmergingOfRecords(unmergeEvent, reactivatedPersonCallback, unmergedPersonCallback)
-  }
+  fun processUnmerge(
+    unmergeEvent: UnmergeEvent,
+    reactivatedPersonCallback: () -> PersonEntity?,
+    unmergedPersonCallback: () -> PersonEntity?,
+  ): PersonEntity = processUnmergingOfRecords(unmergeEvent, reactivatedPersonCallback, unmergedPersonCallback)
 
-  private fun processUnmergingOfRecords(unmergeEvent: UnmergeEvent, reactivatedPersonCallback: () -> PersonEntity?, unmergedPersonCallback: () -> PersonEntity?) {
+  private fun processUnmergingOfRecords(unmergeEvent: UnmergeEvent, reactivatedPersonCallback: () -> PersonEntity?, unmergedPersonCallback: () -> PersonEntity?): PersonEntity {
     val unmergedPersonEntity = retrieveUnmergedPerson(unmergeEvent, unmergedPersonCallback)
     val reactivatedPersonEntity = retrieveReactivatedPerson(unmergeEvent, reactivatedPersonCallback)
 
     setClusterToNeedsAttentionIfAdditionalRecords(unmergedPersonEntity, reactivatedPersonEntity)
-    unmergeRecords(unmergeEvent, reactivatedPersonEntity, unmergedPersonEntity)
+    return unmergeRecords(unmergeEvent, reactivatedPersonEntity, unmergedPersonEntity)
   }
 
   private fun retrieveUnmergedPerson(unmergeEvent: UnmergeEvent, unmergedPersonCallback: () -> PersonEntity?): PersonEntity {
@@ -68,7 +69,7 @@ class UnmergeService(
     return personEntity
   }
 
-  private fun unmergeRecords(unmergeEvent: UnmergeEvent, reactivatedPersonEntity: PersonEntity, unmergedPersonEntity: PersonEntity) {
+  private fun unmergeRecords(unmergeEvent: UnmergeEvent, reactivatedPersonEntity: PersonEntity, unmergedPersonEntity: PersonEntity): PersonEntity {
     val (excludedReactivatedRecord, excludedUnmergedRecord) = unlinkAndAddExcludeMarkersToRecords(unmergeEvent, reactivatedPersonEntity, unmergedPersonEntity)
     val linkedReactivatedRecord = personService.linkRecordToPersonKey(excludedReactivatedRecord)
     telemetryService.trackEvent(
@@ -81,6 +82,7 @@ class UnmergeService(
         EventKeys.SOURCE_SYSTEM to unmergeEvent.reactivatedRecord.sourceSystem.name,
       ),
     )
+    return linkedReactivatedRecord
   }
 
   private fun unlinkAndAddExcludeMarkersToRecords(unmergeEvent: UnmergeEvent, reactivatedPersonEntity: PersonEntity, unmergedPersonEntity: PersonEntity): Pair<PersonEntity, PersonEntity> {
