@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.common
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -28,6 +29,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -93,7 +95,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
-    checkEventLog(defendantId, CPRLogEvents.CPR_RECORD_CREATED)
+    checkEventLogExist(defendantId, CPRLogEvents.CPR_RECORD_CREATED)
     checkTelemetry(
       CPR_RECORD_UPDATED,
       mapOf(
@@ -149,7 +151,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_UPDATED,
       mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
-    checkEventLog(person.defendantId!!, CPRLogEvents.CPR_RECORD_UPDATED)
+    checkEventLogExist(person.defendantId!!, CPRLogEvents.CPR_RECORD_UPDATED)
   }
 
   @Test
@@ -494,7 +496,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
-    checkEventLog(defendantId, CPRLogEvents.CPR_RECORD_CREATED)
+    checkEventLogExist(defendantId, CPRLogEvents.CPR_RECORD_CREATED)
   }
 
   @Test
@@ -546,6 +548,60 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
-    checkEventLog(defendantId, CPRLogEvents.CPR_RECORD_CREATED)
+    checkEventLogExist(defendantId, CPRLogEvents.CPR_RECORD_CREATED)
+  }
+
+  @Nested
+  inner class EventLog {
+
+    @Test
+    fun `should save details to event log on defendant create`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+
+      val pnc = randomPnc()
+      val cro = randomCro()
+      val defendantId = randomDefendantId()
+      val firstName = randomName()
+      val lastName = randomName()
+      val aliasFirstName = randomName()
+      val aliasLastName = randomName()
+
+      publishCommonPlatformMessage(
+        commonPlatformHearing(listOf(CommonPlatformHearingSetup(
+          pnc = pnc,
+          firstName = firstName,
+          lastName = lastName,
+          cro = cro,
+          defendantId = defendantId,
+          aliases = listOf(
+            CommonPlatformHearingSetupAlias(firstName = aliasFirstName, lastName = aliasLastName),
+          ),
+        ))),
+      )
+
+      checkEventLog(defendantId, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
+        assertThat(eventLogs?.size).isEqualTo(1)
+        val createdLog = eventLogs!!.first()
+        assertThat(createdLog.pncs).isEqualTo(arrayOf(pnc))
+        assertThat(createdLog.cros).isEqualTo(arrayOf(cro))
+        assertThat(createdLog.firstName).isEqualTo(firstName)
+        assertThat(createdLog.lastName).isEqualTo(lastName)
+        assertThat(createdLog.sourceSystemId).isEqualTo(defendantId)
+        assertThat(createdLog.sourceSystem).isEqualTo(COMMON_PLATFORM)
+        assertThat(createdLog.firstNameAliases).isEqualTo(arrayOf(aliasFirstName))
+        assertThat(createdLog.lastNameAliases).isEqualTo(arrayOf(aliasLastName))
+
+        assertThat(createdLog.uuid).isNull()
+        assertThat(createdLog.uuidStatusType).isNull()
+      }
+
+      checkEventLog(defendantId, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID) { eventLogs ->
+        assertThat(eventLogs?.size).isEqualTo(1)
+        val assignedLog = eventLogs!!.first()
+        assertThat(assignedLog.uuid).isNotNull()
+        assertThat(assignedLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
+      }
+    }
   }
 }

@@ -54,10 +54,10 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
-    checkEventLog(cId, CPRLogEvents.CPR_RECORD_CREATED)
+    checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_CREATED)
 
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
-    checkEventLog(cId, CPRLogEvents.CPR_UUID_CREATED)
+    checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID)
 
     val person = awaitNotNullPerson { personRepository.findByCId(cId) }
 
@@ -104,7 +104,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
-    checkEventLog(cId, CPRLogEvents.CPR_RECORD_UPDATED)
+    checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_UPDATED)
 
     val person = awaitNotNullPerson {
       personRepository.findByCId(cId)
@@ -149,7 +149,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
-    checkEventLog(cId, CPRLogEvents.CPR_RECORD_CREATED)
+    checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_CREATED)
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(

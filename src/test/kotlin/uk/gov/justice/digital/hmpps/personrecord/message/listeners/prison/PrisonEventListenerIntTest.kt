@@ -185,10 +185,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         CPR_RECORD_CREATED,
         mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
-      checkEventLog(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
+      checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
 
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber))
-      checkEventLog(prisonNumber, CPRLogEvents.CPR_UUID_CREATED)
+      checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID)
     }
 
     @Test
@@ -212,7 +212,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       }
 
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber))
-      checkEventLog(prisonNumber, CPRLogEvents.CPR_UUID_CREATED)
+      checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID)
     }
 
     @Test
@@ -235,7 +235,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       }
 
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber))
-      checkEventLog(prisonNumber, CPRLogEvents.CPR_UUID_CREATED)
+      checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID)
     }
 
     @Test
@@ -258,7 +258,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         CPR_RECORD_UPDATED,
         mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
-      checkEventLog(prisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
+      checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
 
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber = prisonNumber)!!
@@ -303,7 +303,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         CPR_RECORD_CREATED,
         mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
-      checkEventLog(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
+      checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID)
     }
 
     private fun createPrisoner(): PersonEntity = createPersonWithNewKey(

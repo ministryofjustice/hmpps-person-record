@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
@@ -138,7 +139,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+      checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+      checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID)
     }
 
     @Test
@@ -194,6 +197,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
       )
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+      checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
 
       val personKey = personKeyRepository.findByPersonId(personKeyEntity.personId)
       assertThat(personKey?.personEntities?.size).isEqualTo(2)
@@ -209,7 +213,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+      checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+      checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID)
     }
 
     @Test
@@ -224,8 +230,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = nextCrn, prisonNumber = prisonNumber))
       awaitNotNullPerson { personRepository.findByCrn(nextCrn) }
 
-      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to nextCrn))
+      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+      checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+      checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID)
     }
 
     @Test
@@ -239,6 +247,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+      checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
     }
 
     @Test
@@ -250,6 +259,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"), 1)
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+      checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
     }
 
     @Test
@@ -310,6 +320,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubPersonMatchScores(personMatchResponse = listOf(highConfidenceMatchWhichDoesNotExistInCPR))
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn))
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+    checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID)
   }
 
   @Test

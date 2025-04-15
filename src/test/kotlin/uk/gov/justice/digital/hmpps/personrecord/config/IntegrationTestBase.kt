@@ -38,6 +38,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclusterval
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -123,16 +124,24 @@ class IntegrationTestBase {
     }, timeout)
   }
 
-  internal fun checkEventLog(
+  internal fun checkEventLogExist(
     sourceSystemId: String,
     event: CPRLogEvents,
     times: Int = 1,
+  ) {
+    checkEventLog(sourceSystemId, event) { logEvents ->
+      assertThat(logEvents).hasSize(times)
+    }
+  }
+
+  internal fun checkEventLog(
+    sourceSystemId: String,
+    event: CPRLogEvents,
     timeout: Long = 3,
+    matchingEvents: (logEvents: List<EventLogEntity>?) -> Unit,
   ) {
     awaitAssert(function = {
-      val matchingEvents = eventLogRepository.findBySourceSystemIdOrderByEventTimestampDesc(sourceSystemId)
-        ?.filter { it.eventType == event }
-      assertThat(matchingEvents?.size).`as`("Missing data $event").isEqualTo(times)
+      matchingEvents(eventLogRepository.findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(event, sourceSystemId))
     }, timeout)
   }
 
