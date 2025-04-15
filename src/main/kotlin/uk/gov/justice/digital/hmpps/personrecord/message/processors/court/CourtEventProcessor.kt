@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.jayway.jsonpath.JsonPath
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -72,7 +71,7 @@ class CourtEventProcessor(
       }
 
     if (publishToCourtTopic) {
-      val updatedMessage = addCprUUID(commonPlatformHearing, defendants)
+      val updatedMessage = addCprUUIDToCommonPlatform(commonPlatformHearing, defendants)
       when (messageLargerThanThreshold(commonPlatformHearing)) {
         true -> courtMessagePublisher.publishLargeMessage(sqsMessage, updatedMessage)
         else -> courtMessagePublisher.publishMessage(sqsMessage, updatedMessage)
@@ -144,40 +143,6 @@ class CourtEventProcessor(
   }
 
   private fun isLibraPerson(libraHearingEvent: LibraHearingEvent) = libraHearingEvent.defendantType == DefendantType.PERSON.value
-}
-
-private fun addCprUUID(
-  message: String,
-  processedDefendants: List<PersonEntity>?,
-): String {
-  val messageParser = JsonPath.parse(message)
-  processedDefendants?.forEach { defendant ->
-    val defendantId = defendant.defendantId
-    val cprUUID = defendant.personKey?.personId.toString()
-    messageParser.put(
-      "$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]",
-      "cprUUID",
-      cprUUID,
-    )
-  }
-  return messageParser.jsonString()
-}
-
-private fun addCprUUIDToLibra(
-  message: String,
-  defendant: PersonEntity?,
-): String {
-  val messageParser = JsonPath.parse(message)
-
-  defendant?.personKey?.personId?.let {
-    messageParser.put(
-      "$",
-      "cprUUID",
-      it.toString(),
-    )
-  }
-
-  return messageParser.jsonString()
 }
 
 data class LargeMessageBody(val s3Key: String, val s3BucketName: String)
