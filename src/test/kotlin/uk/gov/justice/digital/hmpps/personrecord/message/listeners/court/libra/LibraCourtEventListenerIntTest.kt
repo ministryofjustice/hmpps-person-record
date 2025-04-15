@@ -5,7 +5,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType.ORGANISATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
@@ -168,10 +168,21 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should not process organisations from libra`() {
+  fun `should republish organisation defendant from libra without creating a person record`() {
     val cId = randomCId()
-    val messageId = publishLibraMessage(libraHearing(cId = cId, defendantType = DefendantType.ORGANISATION))
+    val messageId = publishLibraMessage(libraHearing(cId = cId, defendantType = ORGANISATION))
 
+    expectOneMessageOn(testOnlyCourtEventsQueue)
+
+    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
+    assertThat(personRepository.findByCId(cId)).isNull()
+
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
+
+    val libraMessage: String = sqsMessage?.message!!
+
+    assertThat(libraMessage.contains(cId)).isEqualTo(true)
+    assertThat(libraMessage.contains("cprUUID")).isEqualTo(false)
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
@@ -185,7 +196,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should publish incoming event to court topic`() {
+  fun `should publish incoming person defendant to court topic with UUID`() {
     stubPersonMatchUpsert()
     stubPersonMatchScores()
 
@@ -200,6 +211,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     expectOneMessageOn(testOnlyCourtEventsQueue)
 
+    val cprUUID = awaitNotNullPerson { personRepository.findByCId(cId) }.personKey?.personId.toString()
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
     val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
@@ -207,6 +219,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val libraMessage: String = sqsMessage?.message!!
 
     assertThat(libraMessage.contains(cId)).isEqualTo(true)
+    assertThat(libraMessage.contains(cprUUID)).isEqualTo(true)
 
     assertThat(sqsMessage.getHearingEventType()).isNull()
     assertThat(sqsMessage.getEventType()).isEqualTo("libra.case.received")
