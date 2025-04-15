@@ -108,9 +108,9 @@ class CourtEventProcessor(
 
   private suspend fun getPayloadFromS3(sqsMessage: SQSMessage): String {
     val messageBody = objectMapper.readValue(sqsMessage.message, ArrayList::class.java)
-    val message = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
+    val (s3Key, s3BucketName) = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
 
-    val request = GetObjectRequest.builder().key(message.s3Key).bucket(message.s3BucketName).build()
+    val request = GetObjectRequest.builder().key(s3Key).bucket(s3BucketName).build()
     return s3AsyncClient.getObject(
       request,
       AsyncResponseTransformer.toBytes(),
