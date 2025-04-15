@@ -9,6 +9,7 @@ import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.shouldCreateOrUpdate
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -47,8 +48,18 @@ class CreateUpdateService(
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity): PersonEntity {
-    val updatedPerson = personService.updatePersonEntity(person, existingPersonEntity)
-    updatedPerson.personKey?.let { reclusterService.recluster(it, changedRecord = updatedPerson) }
-    return updatedPerson
+    val updatedPersonEntity = personService.updatePersonEntity(person, existingPersonEntity)
+    when {
+      hasAnyFieldsUsedForMatchingChanged(existingPersonEntity, updatedPersonEntity) -> updatedPersonEntity.personKey?.let {
+        reclusterService.recluster(it, changedRecord = updatedPersonEntity)
+      }
+    }
+    return updatedPersonEntity
+  }
+
+  private fun hasAnyFieldsUsedForMatchingChanged(existingPersonEntity: PersonEntity, updatedPersonEntity: PersonEntity): Boolean {
+    val old = PersonMatchRecord.from(existingPersonEntity)
+    val new = PersonMatchRecord.from(updatedPersonEntity)
+    return old != new
   }
 }
