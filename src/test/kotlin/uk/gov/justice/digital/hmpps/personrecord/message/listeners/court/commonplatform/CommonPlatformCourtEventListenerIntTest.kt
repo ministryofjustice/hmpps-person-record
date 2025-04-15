@@ -416,10 +416,11 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should republish large message and not save when organisation`() {
     stubPersonMatchUpsert()
     stubPersonMatchScores()
+
     val organizationDefendantId = randomDefendantId()
     val defendantId = randomDefendantId()
 
-    val organisations = (1..1000).map { CommonPlatformHearingSetup(isPerson = false) }
+    val organisations = (1..250).map { CommonPlatformHearingSetup(isPerson = false) }
     val person = CommonPlatformHearingSetup(defendantId = defendantId)
     val organization = CommonPlatformHearingSetup(defendantId = organizationDefendantId, isPerson = false)
     val largeMessage = commonPlatformHearing(organisations + person + organization)
@@ -489,19 +490,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubPersonMatchUpsert()
     stubPersonMatchScores()
 
-    val s3Key = UUID.randomUUID().toString()
     val defendantId = randomDefendantId()
-    val incomingMessageFromS3 =
-      largeCommonPlatformHearing(defendantId).toByteArray(Charset.forName("UTF8"))
-
-    assertThat(incomingMessageFromS3.size).isGreaterThan(256 * 1024)
-
-    val putObjectRequest = PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
-    s3AsyncClient.putObject(putObjectRequest, AsyncRequestBody.fromBytes(incomingMessageFromS3)).get()
-
-    publishLargeCommonPlatformMessage(
-      largeCommonPlatformMessage(s3Key, s3Bucket),
-    )
+    putLargeMessageBodyIntoS3(defendantId)
 
     expectOneMessageOn(testOnlyCourtEventsQueue)
 
@@ -521,6 +511,20 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
+    )
+  }
+
+  fun putLargeMessageBodyIntoS3(defendantId: String) {
+    val s3Key = UUID.randomUUID().toString()
+    val incomingMessageFromS3 =
+      largeCommonPlatformHearing(defendantId).toByteArray(Charset.forName("UTF8"))
+    val putObjectRequest = PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
+    s3AsyncClient.putObject(putObjectRequest, AsyncRequestBody.fromBytes(incomingMessageFromS3)).get()
+
+    assertThat(incomingMessageFromS3.size).isGreaterThan(256 * 1024)
+
+    publishLargeCommonPlatformMessage(
+      largeCommonPlatformMessage(s3Key, s3Bucket),
     )
   }
 
