@@ -63,23 +63,21 @@ class CourtEventProcessor(
 
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
 
-    val uniquePersonDefendants = commonPlatformHearingEvent.hearing.prosecutionCases
+    val defendants = commonPlatformHearingEvent.hearing.prosecutionCases
       .flatMap { it.defendants }
       .filterNot { it.isYouth }
       .filter { it.isPerson() }
-      .distinctBy { it.id }
-
-    val processedDefendants = uniquePersonDefendants.map { defendant ->
-      processCommonPlatformPerson(defendant, sqsMessage)
-    }
+      .distinctBy { it.id }.map { defendant ->
+        processCommonPlatformPerson(defendant, sqsMessage)
+      }
 
     if (publishToCourtTopic) {
       when (messageLargerThanThreshold(commonPlatformHearing)) {
         true -> courtMessagePublisher.publishLargeMessage(
           sqsMessage,
-          addCprUUID(commonPlatformHearing, processedDefendants),
+          addCprUUID(commonPlatformHearing, defendants),
         )
-        else -> courtMessagePublisher.publishMessage(sqsMessage, addCprUUID(sqsMessage.message, processedDefendants))
+        else -> courtMessagePublisher.publishMessage(sqsMessage, addCprUUID(commonPlatformHearing, defendants))
       }
     }
   }
