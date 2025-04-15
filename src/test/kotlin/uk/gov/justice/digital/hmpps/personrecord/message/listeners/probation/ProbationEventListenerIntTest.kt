@@ -364,4 +364,67 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
   }
+
+  @Nested
+  inner class EventLog {
+
+    @Test
+    fun `should save record details to event log on create`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+
+      val crn = randomCrn()
+      val firstName = randomName()
+      val middleName = randomName()
+      val lastName = randomName()
+      val pnc = randomPnc()
+      val cro = randomCro()
+      val postcode = randomPostcode()
+      val sentenceDate = randomDate()
+      val aliasFirstName = randomName()
+      val aliasLastName = randomName()
+      val aliasDateOfBirth = randomDate()
+
+      val apiResponse = ApiResponseSetup(
+        crn = crn,
+        pnc = pnc,
+        firstName = firstName,
+        middleName = middleName,
+        lastName = lastName,
+        cro = cro,
+        addresses = listOf(
+          ApiResponseSetupAddress(postcode = postcode, fullAddress = ""),
+        ),
+        aliases = listOf(ApiResponseSetupAlias(aliasFirstName, "", aliasLastName, aliasDateOfBirth)),
+        sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
+      )
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
+
+      checkEventLog(crn, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
+        assertThat(eventLogs?.size).isEqualTo(1)
+        val createdLog = eventLogs!!.first()
+        assertThat(createdLog.pncs).isEqualTo(arrayOf(pnc))
+        assertThat(createdLog.cros).isEqualTo(arrayOf(cro))
+        assertThat(createdLog.firstName).isEqualTo(firstName)
+        assertThat(createdLog.middleNames).isEqualTo(middleName)
+        assertThat(createdLog.lastName).isEqualTo(lastName)
+        assertThat(createdLog.sourceSystem).isEqualTo(DELIUS)
+        assertThat(createdLog.postcodes).isEqualTo(arrayOf(postcode))
+        assertThat(createdLog.sentenceDates).isEqualTo(arrayOf(sentenceDate))
+        assertThat(createdLog.firstNameAliases).isEqualTo(arrayOf(aliasFirstName))
+        assertThat(createdLog.lastNameAliases).isEqualTo(arrayOf(aliasLastName))
+        assertThat(createdLog.dateOfBirthAliases).isEqualTo(arrayOf(aliasDateOfBirth))
+
+        assertThat(createdLog.uuid).isNull()
+        assertThat(createdLog.uuidStatusType).isNull()
+      }
+
+      checkEventLog(crn, CPRLogEvents.CPR_RECORD_ASSIGNED_UUID) { eventLogs ->
+        assertThat(eventLogs?.size).isEqualTo(1)
+        val assignedLog = eventLogs!!.first()
+        assertThat(assignedLog.uuid).isNotNull()
+        assertThat(assignedLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
+      }
+    }
+  }
 }

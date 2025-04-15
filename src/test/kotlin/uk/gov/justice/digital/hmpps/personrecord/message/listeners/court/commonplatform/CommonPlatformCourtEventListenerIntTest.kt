@@ -568,16 +568,20 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       val aliasLastName = randomName()
 
       publishCommonPlatformMessage(
-        commonPlatformHearing(listOf(CommonPlatformHearingSetup(
-          pnc = pnc,
-          firstName = firstName,
-          lastName = lastName,
-          cro = cro,
-          defendantId = defendantId,
-          aliases = listOf(
-            CommonPlatformHearingSetupAlias(firstName = aliasFirstName, lastName = aliasLastName),
+        commonPlatformHearing(
+          listOf(
+            CommonPlatformHearingSetup(
+              pnc = pnc,
+              firstName = firstName,
+              lastName = lastName,
+              cro = cro,
+              defendantId = defendantId,
+              aliases = listOf(
+                CommonPlatformHearingSetupAlias(firstName = aliasFirstName, lastName = aliasLastName),
+              ),
+            ),
           ),
-        ))),
+        ),
       )
 
       checkEventLog(defendantId, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
