@@ -84,7 +84,7 @@ class CourtMessagePublisher(
       val hearingEventTypeValue =
         MessageAttributeValue.builder()
           .dataType("String")
-          .stringValue(sqsMessage.getHearingEventType())
+          .stringValue(it)
           .build()
       this.put("hearingEventType", hearingEventTypeValue)
     }
