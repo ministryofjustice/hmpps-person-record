@@ -369,6 +369,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(createdLog.uuid).isNotNull()
         assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
       }
+      checkEventLogExist(prisonNumber, CPRLogEvents.CPR_UUID_CREATED)
     }
   }
 

@@ -514,6 +514,30 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkEventLogExist(defendantId, CPRLogEvents.CPR_RECORD_CREATED)
   }
 
+  fun putLargeMessageBodyIntoS3(message: String) {
+    val s3Key = UUID.randomUUID().toString()
+    val incomingMessageFromS3 = message.toByteArray(Charset.forName("UTF8"))
+    val putObjectRequest = PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
+    s3AsyncClient.putObject(putObjectRequest, AsyncRequestBody.fromBytes(incomingMessageFromS3)).get()
+
+    assertThat(incomingMessageFromS3.size).isGreaterThan(256 * 1024)
+
+    publishLargeCommonPlatformMessage(
+      largeCommonPlatformMessage(s3Key, s3Bucket),
+    )
+  }
+
+  fun getLargeMessageBodyFromS3(sqsMessage: SQSMessage?): String {
+    val messageBody = objectMapper.readValue(sqsMessage?.message, ArrayList::class.java)
+    val message = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
+    val body = s3AsyncClient.getObject(
+      GetObjectRequest.builder().key(message.s3Key).bucket(message.s3BucketName).build(),
+      AsyncResponseTransformer.toBytes(),
+    ).join().asUtf8String()
+
+    return body
+  }
+
   @Nested
   inner class EventLog {
 
@@ -561,30 +585,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(createdLog.uuid).isNotNull()
         assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
       }
+      checkEventLogExist(defendantId, CPRLogEvents.CPR_UUID_CREATED)
     }
   }
 
-  fun putLargeMessageBodyIntoS3(message: String) {
-    val s3Key = UUID.randomUUID().toString()
-    val incomingMessageFromS3 = message.toByteArray(Charset.forName("UTF8"))
-    val putObjectRequest = PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
-    s3AsyncClient.putObject(putObjectRequest, AsyncRequestBody.fromBytes(incomingMessageFromS3)).get()
-
-    assertThat(incomingMessageFromS3.size).isGreaterThan(256 * 1024)
-
-    publishLargeCommonPlatformMessage(
-      largeCommonPlatformMessage(s3Key, s3Bucket),
-    )
-  }
-
-  fun getLargeMessageBodyFromS3(sqsMessage: SQSMessage?): String {
-    val messageBody = objectMapper.readValue(sqsMessage?.message, ArrayList::class.java)
-    val message = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
-    val body = s3AsyncClient.getObject(
-      GetObjectRequest.builder().key(message.s3Key).bucket(message.s3BucketName).build(),
-      AsyncResponseTransformer.toBytes(),
-    ).join().asUtf8String()
-
-    return body
-  }
 }

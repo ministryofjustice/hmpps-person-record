@@ -14,9 +14,11 @@ class EventLogService(
   private val telemetryClient: TelemetryClient,
 ) {
 
-  fun logEvent(personEntity: PersonEntity, eventType: CPRLogEvents): EventLogEntity = eventLogRepository.save(EventLogEntity.from(personEntity, eventType, getOperationId()))
-
-  fun logEvent(personKeyEntity: PersonKeyEntity, eventType: CPRLogEvents): EventLogEntity = eventLogRepository.save(EventLogEntity.from(personKeyEntity, eventType, getOperationId()))
+  fun logEvent(
+    personEntity: PersonEntity,
+    eventType: CPRLogEvents,
+    personKeyEntity: PersonKeyEntity? = null,
+  ): EventLogEntity = eventLogRepository.save(EventLogEntity.from(personEntity, eventType, getOperationId(), personKeyEntity = personKeyEntity))
 
   private fun getOperationId() = telemetryClient.context.operation.id ?: UUID.randomUUID().toString()
 }

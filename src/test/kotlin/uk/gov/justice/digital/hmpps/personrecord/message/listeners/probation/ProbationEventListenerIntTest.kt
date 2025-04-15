@@ -413,6 +413,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(createdLog.uuid).isNotNull()
         assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
       }
+      checkEventLogExist(crn, CPRLogEvents.CPR_UUID_CREATED)
     }
   }
 }

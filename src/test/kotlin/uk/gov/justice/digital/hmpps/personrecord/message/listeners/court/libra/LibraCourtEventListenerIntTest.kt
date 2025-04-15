@@ -267,6 +267,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(createdLog.uuid).isNotNull()
         assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
       }
+      checkEventLogExist(cId, CPRLogEvents.CPR_UUID_CREATED)
     }
   }
 }

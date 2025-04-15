@@ -24,7 +24,7 @@ class PersonKeyEventListener(
       personKeyCreated.personEntity,
       mapOf(EventKeys.UUID to personKeyCreated.personKeyEntity.personId.toString()),
     )
-    eventLogService.logEvent(personKeyCreated.personKeyEntity, CPRLogEvents.CPR_UUID_CREATED)
+    eventLogService.logEvent(personKeyCreated.personEntity, CPRLogEvents.CPR_UUID_CREATED, personKeyCreated.personKeyEntity)
   }
 
   @EventListener

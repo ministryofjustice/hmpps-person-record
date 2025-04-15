@@ -121,11 +121,12 @@ class EventLogEntity(
       eventType: CPRLogEvents,
       operationId: String,
       clusterComposition: List<ValidCluster>? = null,
+      personKeyEntity: PersonKeyEntity? = null,
     ): EventLogEntity = EventLogEntity(
       sourceSystemId = personEntity.extractSourceSystemId(),
       matchId = personEntity.matchId,
-      uuid = personEntity.personKey?.personId,
-      uuidStatusType = personEntity.personKey?.status,
+      uuid = personKeyEntity?.personId ?: personEntity.personKey?.personId,
+      uuidStatusType = personKeyEntity?.status ?: personEntity.personKey?.status,
       firstName = personEntity.firstName,
       middleNames = personEntity.middleNames,
       lastName = personEntity.lastName,
@@ -144,13 +145,6 @@ class EventLogEntity(
       operationId = operationId,
       recordMergedTo = personEntity.mergedTo,
       clusterComposition = clusterComposition?.toString(),
-    )
-
-    fun from(personKeyEntity: PersonKeyEntity, eventType: CPRLogEvents, operationId: String) = EventLogEntity(
-      uuid = personKeyEntity.personId,
-      uuidStatusType = personKeyEntity.status,
-      eventType = eventType,
-      operationId = operationId,
     )
 
     private fun List<String>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
