@@ -24,6 +24,8 @@ class PersonEventListener(
   @EventListener
   fun handlePersonUpdated(personUpdated: PersonUpdated) {
     telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_UPDATED, personUpdated.personEntity)
-    eventLogService.logEvent(personUpdated.personEntity, CPRLogEvents.CPR_RECORD_UPDATED)
+    when {
+      personUpdated.matchingFieldsHaveChanged -> eventLogService.logEvent(personUpdated.personEntity, CPRLogEvents.CPR_RECORD_UPDATED)
+    }
   }
 }

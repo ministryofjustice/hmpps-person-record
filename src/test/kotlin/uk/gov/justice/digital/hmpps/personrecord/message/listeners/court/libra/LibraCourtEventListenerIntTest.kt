@@ -93,7 +93,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubPersonMatchUpsert()
     stubNoMatchesPersonMatch(matchId = personEntity.matchId)
 
-    val updatedMessage = publishLibraMessage(libraHearing(firstName = firstName, cId = cId, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
+    val changedFirstName = randomName()
+    val updatedMessage = publishLibraMessage(libraHearing(firstName = changedFirstName, cId = cId, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
@@ -112,6 +113,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     assertThat(person.title).isEqualTo("Mr")
+    assertThat(person.firstName).isEqualTo(changedFirstName)
     assertThat(person.lastName).isEqualTo(lastName)
     assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
     assertThat(person.addresses.size).isEqualTo(1)

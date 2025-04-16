@@ -22,6 +22,8 @@ data class PersonMatchRecord(
   val prisonNumber: String? = "",
 ) {
 
+  fun matchingFieldsAreDifferent(personMatchRecord: PersonMatchRecord): Boolean = this != personMatchRecord
+
   companion object {
     fun from(personEntity: PersonEntity): PersonMatchRecord = PersonMatchRecord(
       matchId = personEntity.matchId.toString(),
@@ -30,13 +32,13 @@ data class PersonMatchRecord(
       middleNames = personEntity.middleNames ?: "",
       lastName = personEntity.lastName ?: "",
       dateOfBirth = personEntity.dateOfBirth?.toString() ?: "",
-      firstNameAliases = personEntity.pseudonyms.mapNotNull { it.firstName },
-      lastNameAliases = personEntity.pseudonyms.mapNotNull { it.lastName },
-      dateOfBirthAliases = personEntity.pseudonyms.mapNotNull { it.dateOfBirth }.map { it.toString() },
-      postcodes = personEntity.addresses.mapNotNull { it.postcode },
-      cros = personEntity.references.getType(IdentifierType.CRO).mapNotNull { it.identifierValue },
-      pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue },
-      sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.map { it.toString() },
+      firstNameAliases = personEntity.pseudonyms.mapNotNull { it.firstName }.distinct().sorted(),
+      lastNameAliases = personEntity.pseudonyms.mapNotNull { it.lastName }.distinct().sorted(),
+      dateOfBirthAliases = personEntity.pseudonyms.mapNotNull { it.dateOfBirth }.map { it.toString() }.distinct().sorted(),
+      postcodes = personEntity.addresses.mapNotNull { it.postcode }.distinct().sorted(),
+      cros = personEntity.references.getType(IdentifierType.CRO).mapNotNull { it.identifierValue }.distinct().sorted(),
+      pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue }.distinct().sorted(),
+      sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.map { it.toString() }.distinct().sorted(),
       crn = personEntity.crn ?: "",
       prisonNumber = personEntity.prisonNumber ?: "",
     )
