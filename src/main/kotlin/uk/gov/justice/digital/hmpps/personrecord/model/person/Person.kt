@@ -19,7 +19,7 @@ import java.util.UUID
 data class Person(
   val personId: UUID? = null,
   val firstName: String? = null,
-  val middleNames: List<String>? = emptyList(),
+  val middleNames: List<String>? = null,
   val lastName: String? = null,
   val dateOfBirth: LocalDate? = null,
   val crn: String? = null,
@@ -64,7 +64,7 @@ data class Person(
       return Person(
         title = probationCase.title?.value,
         firstName = probationCase.name.firstName,
-        middleNames = probationCase.name.middleNames?.split(" ") ?: emptyList(),
+        middleNames = probationCase.name.middleNames?.split(" "),
         lastName = probationCase.name.lastName,
         dateOfBirth = probationCase.dateOfBirth,
         crn = probationCase.identifiers.crn,
@@ -177,7 +177,7 @@ data class Person(
         prisonNumber = prisoner.prisonNumber,
         title = prisoner.title,
         firstName = prisoner.firstName,
-        middleNames = prisoner.middleNames?.split(" ") ?: emptyList(),
+        middleNames = prisoner.middleNames?.split(" "),
         lastName = prisoner.lastName,
         dateOfBirth = prisoner.dateOfBirth,
         ethnicity = prisoner.ethnicity,
@@ -196,7 +196,7 @@ data class Person(
     fun from(existingPersonEntity: PersonEntity): Person = Person(
       personId = existingPersonEntity.personKey?.personId,
       firstName = existingPersonEntity.firstName,
-      middleNames = existingPersonEntity.middleNames?.split(" ") ?: emptyList(),
+      middleNames = existingPersonEntity.middleNames?.split(" "),
       lastName = existingPersonEntity.lastName,
       dateOfBirth = existingPersonEntity.dateOfBirth,
       crn = existingPersonEntity.crn,
