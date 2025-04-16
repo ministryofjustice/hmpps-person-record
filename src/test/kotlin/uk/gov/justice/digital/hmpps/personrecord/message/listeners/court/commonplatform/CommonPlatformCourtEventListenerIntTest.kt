@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.common
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -28,6 +29,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
@@ -456,5 +459,56 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     ).join().asUtf8String()
 
     return Pair(body, sqsMessage)
+  }
+
+  @Nested
+  inner class EventLog {
+
+    @Test
+    fun `should save details to event log on defendant create`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+
+      val pnc = randomPnc()
+      val cro = randomCro()
+      val defendantId = randomDefendantId()
+      val firstName = randomName()
+      val lastName = randomName()
+      val aliasFirstName = randomName()
+      val aliasLastName = randomName()
+
+      publishCommonPlatformMessage(
+        commonPlatformHearing(
+          listOf(
+            CommonPlatformHearingSetup(
+              pnc = pnc,
+              firstName = firstName,
+              lastName = lastName,
+              cro = cro,
+              defendantId = defendantId,
+              aliases = listOf(
+                CommonPlatformHearingSetupAlias(firstName = aliasFirstName, lastName = aliasLastName),
+              ),
+            ),
+          ),
+        ),
+      )
+
+      checkEventLog(defendantId, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
+        assertThat(eventLogs?.size).isEqualTo(1)
+        val createdLog = eventLogs!!.first()
+        assertThat(createdLog.pncs).isEqualTo(arrayOf(pnc))
+        assertThat(createdLog.cros).isEqualTo(arrayOf(cro))
+        assertThat(createdLog.firstName).isEqualTo(firstName)
+        assertThat(createdLog.lastName).isEqualTo(lastName)
+        assertThat(createdLog.sourceSystemId).isEqualTo(defendantId)
+        assertThat(createdLog.sourceSystem).isEqualTo(COMMON_PLATFORM)
+        assertThat(createdLog.firstNameAliases).isEqualTo(arrayOf(aliasFirstName))
+        assertThat(createdLog.lastNameAliases).isEqualTo(arrayOf(aliasLastName))
+        assertThat(createdLog.uuid).isNotNull()
+        assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
+      }
+      checkEventLogExist(defendantId, CPRLogEvents.CPR_UUID_CREATED)
+    }
   }
 }
