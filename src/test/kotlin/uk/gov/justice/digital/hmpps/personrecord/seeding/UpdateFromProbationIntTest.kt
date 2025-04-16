@@ -68,7 +68,7 @@ class UpdateFromProbationIntTest : WebTestBase() {
     assertThat(personRepository.findByCrn(crnSix)!!.firstName).isEqualTo("POPSixFirstName")
     val popSeven = personRepository.findByCrn(crnSeven)!!
     assertThat(popSeven.firstName).isEqualTo("POPSevenFirstName")
-    assertThat(popSeven.middleNames).isEqualTo("")
+    assertThat(popSeven.middleNames).isNull()
     assertThat(popSeven.references.getType(IdentifierType.CRO)).isEqualTo(emptyList<ReferenceEntity>())
     assertThat(popSeven.pseudonyms.size).isEqualTo(0)
     val newSentenceDate = LocalDate.of(2021, 11, 4)
@@ -103,7 +103,7 @@ class UpdateFromProbationIntTest : WebTestBase() {
     assertThat(personRepository.findByCrn(crnSix)!!.firstName).isEqualTo("POPSixFirstName")
     val popSeven = personRepository.findByCrn(crnSeven)!!
     assertThat(popSeven.firstName).isEqualTo("POPSevenFirstName")
-    assertThat(popSeven.middleNames).isEqualTo("")
+    assertThat(popSeven.middleNames).isNull()
     assertThat(popSeven.references.getType(IdentifierType.CRO)).isEqualTo(emptyList<ReferenceEntity>())
     assertThat(popSeven.pseudonyms.size).isEqualTo(0)
     val newSentenceDate = LocalDate.of(2021, 11, 4)
