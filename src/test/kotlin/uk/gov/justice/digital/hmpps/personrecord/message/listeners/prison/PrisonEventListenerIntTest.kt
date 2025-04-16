@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
@@ -184,6 +185,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         CPR_RECORD_CREATED,
         mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
+      checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
+
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber))
     }
 
@@ -252,6 +255,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         CPR_RECORD_UPDATED,
         mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
+      checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
 
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber = prisonNumber)!!
@@ -318,6 +322,55 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
       ),
     )
+  }
+
+  @Nested
+  inner class EventLog {
+
+    @Test
+    fun `should save record details in event log on create`() {
+      val prisonNumber = randomPrisonNumber()
+      val firstName = randomName()
+      val middleName = randomName()
+      val lastName = randomName()
+      val pnc = randomPnc()
+      val cro = randomCro()
+      val postcode = randomPostcode()
+      val personDateOfBirth = randomDate()
+      val sentenceStartDate = randomDate()
+      val aliasFirstName = randomName()
+      val aliasMiddleName = randomName()
+      val aliasLastName = randomName()
+      val aliasDateOfBirth = randomDate()
+
+      stubPersonMatchUpsert()
+      stubNoMatchesPersonMatch()
+      stubPrisonResponse(ApiResponseSetup(aliases = listOf(ApiResponseSetupAlias(aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, sentenceStartDate = sentenceStartDate, primarySentence = true, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true, fullAddress = "")), dateOfBirth = personDateOfBirth))
+
+      val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
+      val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
+      publishDomainEvent(PRISONER_CREATED, domainEvent)
+
+      checkEventLog(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
+        assertThat(eventLogs?.size).isEqualTo(1)
+        val createdLog = eventLogs!!.first()
+        assertThat(createdLog.pncs).isEqualTo(arrayOf(pnc))
+        assertThat(createdLog.cros).isEqualTo(arrayOf(cro))
+        assertThat(createdLog.firstName).isEqualTo(firstName)
+        assertThat(createdLog.middleNames).isEqualTo("$middleName $middleName")
+        assertThat(createdLog.lastName).isEqualTo(lastName)
+        assertThat(createdLog.dateOfBirth).isEqualTo(personDateOfBirth)
+        assertThat(createdLog.sourceSystem).isEqualTo(SourceSystemType.NOMIS)
+        assertThat(createdLog.postcodes).isEqualTo(arrayOf(postcode))
+        assertThat(createdLog.sentenceDates).isEqualTo(arrayOf(sentenceStartDate))
+        assertThat(createdLog.firstNameAliases).isEqualTo(arrayOf(aliasFirstName))
+        assertThat(createdLog.lastNameAliases).isEqualTo(arrayOf(aliasLastName))
+        assertThat(createdLog.dateOfBirthAliases).isEqualTo(arrayOf(aliasDateOfBirth))
+        assertThat(createdLog.uuid).isNotNull()
+        assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
+      }
+      checkEventLogExist(prisonNumber, CPRLogEvents.CPR_UUID_CREATED)
+    }
   }
 
   companion object {

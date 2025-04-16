@@ -41,17 +41,7 @@ data class Person(
   val cId: String? = null,
 ) {
 
-  fun getPostcodesForMatching(): Set<String> = this.addresses.mapNotNull { it.postcode }.toSet()
-
   companion object {
-
-    fun Person?.extractSourceSystemId(): String? = when (this?.sourceSystem) {
-      DELIUS -> this.crn
-      NOMIS -> this.prisonNumber
-      COMMON_PLATFORM -> this.defendantId
-      LIBRA -> this.cId
-      else -> null
-    }
 
     fun List<Reference>.getType(type: IdentifierType): List<Reference> = this.filter { it.identifierType == type }
 
