@@ -25,13 +25,11 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
-import java.util.UUID
 
 class EventLogIntTest : IntegrationTestBase() {
 
   @Test
   fun `should map person to event log`() {
-    val operationId = UUID.randomUUID().toString()
     val personEntity = createPersonWithNewKey(
       Person.from(
         ProbationCase(
@@ -50,7 +48,7 @@ class EventLogIntTest : IntegrationTestBase() {
       ),
     )
 
-    val eventLogEntity = EventLogEntity.from(personEntity, CPRLogEvents.CPR_RECORD_UPDATED, operationId)
+    val eventLogEntity = EventLogEntity.from(personEntity, CPRLogEvents.CPR_RECORD_UPDATED)
     val eventLog = eventLogRepository.save(eventLogEntity)
 
     assertThat(eventLog).isNotNull()
@@ -83,18 +81,16 @@ class EventLogIntTest : IntegrationTestBase() {
     assertThat(eventLog.eventType).isEqualTo(CPRLogEvents.CPR_RECORD_UPDATED)
     assertThat(eventLog.excludeOverrideMarkers.size).isEqualTo(0)
     assertThat(eventLog.includeOverrideMarkers.size).isEqualTo(0)
-    assertThat(eventLog.operationId).isEqualTo(operationId)
   }
 
   @Test
   fun `should map a merged person to event log`() {
-    val operationId = UUID.randomUUID().toString()
     val mergedIntoPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
     var mergedToPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
 
     mergedToPerson = mergeRecord(mergedToPerson, mergedIntoPerson)
 
-    val eventLogEntity = EventLogEntity.from(mergedToPerson, CPRLogEvents.CPR_RECORD_CREATED, operationId)
+    val eventLogEntity = EventLogEntity.from(mergedToPerson, CPRLogEvents.CPR_RECORD_CREATED)
     val eventLog = eventLogRepository.save(eventLogEntity)
 
     assertThat(eventLog).isNotNull()
@@ -103,14 +99,13 @@ class EventLogIntTest : IntegrationTestBase() {
 
   @Test
   fun `should map exclude override to event log`() {
-    val operationId = UUID.randomUUID().toString()
     val toRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
     val fromRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
 
     excludeRecord(toRecord, fromRecord)
 
     val updatedToRecord = personRepository.findByMatchId(toRecord.matchId)!!
-    val eventLogEntity = EventLogEntity.from(updatedToRecord, CPRLogEvents.CPR_RECORD_CREATED, operationId)
+    val eventLogEntity = EventLogEntity.from(updatedToRecord, CPRLogEvents.CPR_RECORD_CREATED)
     val eventLog = eventLogRepository.save(eventLogEntity)
 
     assertThat(eventLog.excludeOverrideMarkers.size).isEqualTo(1)
@@ -119,7 +114,6 @@ class EventLogIntTest : IntegrationTestBase() {
 
   @Test
   fun `should dedupe and sort lists`() {
-    val operationId = UUID.randomUUID().toString()
     val personEntity = createPersonWithNewKey(
       Person.from(
         ProbationCase(
@@ -145,7 +139,7 @@ class EventLogIntTest : IntegrationTestBase() {
       ),
     )
 
-    val eventLogEntity = EventLogEntity.from(personEntity, CPRLogEvents.CPR_RECORD_CREATED, operationId)
+    val eventLogEntity = EventLogEntity.from(personEntity, CPRLogEvents.CPR_RECORD_CREATED)
     val eventLog = eventLogRepository.save(eventLogEntity)
 
     assertThat(eventLog.postcodes.size).isEqualTo(2)

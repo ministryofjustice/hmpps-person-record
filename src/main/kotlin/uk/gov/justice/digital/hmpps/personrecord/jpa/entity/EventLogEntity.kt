@@ -101,9 +101,6 @@ class EventLogEntity(
   @Column(name = "event_type")
   val eventType: CPRLogEvents,
 
-  @Column(name = "operation_id")
-  val operationId: String? = null,
-
   @Column(name = "record_merged_to")
   val recordMergedTo: Long? = null,
 
@@ -119,7 +116,6 @@ class EventLogEntity(
     fun from(
       personEntity: PersonEntity,
       eventType: CPRLogEvents,
-      operationId: String,
       clusterComposition: List<ValidCluster>? = null,
       personKeyEntity: PersonKeyEntity? = null,
     ): EventLogEntity = EventLogEntity(
@@ -142,7 +138,6 @@ class EventLogEntity(
       includeOverrideMarkers = personEntity.getIncludeOverrideMarkers().mapNotNull { it.markerValue }.dedupeAndSortedArray(),
       sourceSystem = personEntity.sourceSystem,
       eventType = eventType,
-      operationId = operationId,
       recordMergedTo = personEntity.mergedTo,
       clusterComposition = clusterComposition?.toString(),
     )
