@@ -187,7 +187,7 @@ data class Person(
         prisonNumber = prisoner.prisonNumber,
         title = prisoner.title,
         firstName = prisoner.firstName,
-        middleNames = prisoner.middleNames?.split(" ") ?: emptyList(),
+        middleNames = prisoner.middleNames?.split(" "),
         lastName = prisoner.lastName,
         dateOfBirth = prisoner.dateOfBirth,
         ethnicity = prisoner.ethnicity,
