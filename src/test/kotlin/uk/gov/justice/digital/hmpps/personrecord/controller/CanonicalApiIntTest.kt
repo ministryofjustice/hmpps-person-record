@@ -615,7 +615,7 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should handle requests when middle names are missing`() {
+  fun `should handle requests when middle names are explicitly set to null`() {
     val firstName = randomName()
     val lastName = randomName()
     val middleNames = randomName()
