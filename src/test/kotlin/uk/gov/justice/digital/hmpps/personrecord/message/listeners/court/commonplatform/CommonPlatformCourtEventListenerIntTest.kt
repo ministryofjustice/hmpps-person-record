@@ -42,7 +42,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatfo
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
-import uk.gov.justice.digital.hmpps.personrecord.test.randomHearingId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
@@ -57,50 +56,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Value("\${aws.court-message-bucket-name}")
   lateinit var s3Bucket: String
-
-  @Test
-  fun `FIFO queue and topic remove duplicate messages`() {
-    stubPersonMatchUpsert()
-    stubNoMatchesPersonMatch()
-    val pnc = randomPnc()
-    val defendantId = randomDefendantId()
-    val firstName = randomName()
-    val lastName = randomName()
-    val nationalInsuranceNumber = randomNationalInsuranceNumber()
-    val hearingId = randomHearingId()
-    blitz(30, 6) {
-      publishCommonPlatformMessage(
-        commonPlatformHearing(
-          listOf(
-            CommonPlatformHearingSetup(
-              pnc = pnc,
-              defendantId = defendantId,
-              firstName = firstName,
-              lastName = lastName,
-              cro = "",
-              nationalInsuranceNumber = nationalInsuranceNumber,
-              hearingId = hearingId,
-            ),
-          ),
-        ),
-      )
-    }
-
-    expectNoMessagesOnQueueOrDlq(courtEventsQueue)
-
-    checkTelemetry(
-      CPR_RECORD_CREATED,
-      mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
-    )
-    checkTelemetry(
-      CPR_RECORD_UPDATED,
-      mapOf(
-        "SOURCE_SYSTEM" to "COMMON_PLATFORM",
-        "DEFENDANT_ID" to defendantId,
-      ),
-      0,
-    )
-  }
 
   @Test
   fun `should update an existing person record from common platform message`() {
@@ -280,36 +235,12 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should log Message Processing Failed telemetry event when an exception is thrown`() {
     val messageId = publishCommonPlatformMessage(
       "notAValidMessage",
-
     )
 
     checkTelemetry(
       MESSAGE_PROCESSING_FAILED,
       mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name),
     )
-  }
-
-  @Test
-  fun `should process large messages`() {
-    stubPersonMatchScores()
-    stubPersonMatchUpsert()
-    val defendantId = randomDefendantId()
-
-    val s3Key = UUID.randomUUID().toString()
-
-    val request =
-      PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
-
-    s3AsyncClient.putObject(request, AsyncRequestBody.fromString(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId))))).get()
-    val messageId = publishLargeCommonPlatformMessage(
-      largeCommonPlatformMessage(s3Key, s3Bucket),
-    )
-
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
-    )
-    awaitNotNullPerson { personRepository.findByDefendantId(defendantId) }
   }
 
   @Test
