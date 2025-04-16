@@ -357,11 +357,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     putLargeMessageBodyIntoS3(largeMessage)
 
-    expectOneMessageOn(testOnlyCourtEventsQueue)
+    val (messageStoredInS3) = getLargeMessageBodyFromS3()
 
-    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
-    val messageStoredInS3 = getLargeMessageBodyFromS3(sqsMessage)
     val occurrenceOfCprUUId = messageStoredInS3.split("cprUUID").size - 1
 
     val defendant = awaitNotNullPerson {
@@ -374,7 +371,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should publish incoming event to court topic including the cpr uuid`() {
+  fun `should republish message to court topic including the cpr uuid`() {
     val defendantId = randomDefendantId()
     stubPersonMatchUpsert()
     stubPersonMatchScores()
@@ -410,18 +407,14 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should publish incoming large message to CPR court topic including the cpr uuid`() {
+  fun `should publish large message to CPR court topic including the cpr uuid`() {
     stubPersonMatchUpsert()
     stubPersonMatchScores()
 
     val defendantId = randomDefendantId()
     putLargeMessageBodyIntoS3(largeCommonPlatformHearing(defendantId))
 
-    expectOneMessageOn(testOnlyCourtEventsQueue)
-
-    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
-    val messageBody = getLargeMessageBodyFromS3(sqsMessage)
+    val (messageBody, sqsMessage) = getLargeMessageBodyFromS3()
     val person = awaitNotNullPerson {
       personRepository.findByDefendantId(defendantId)
     }
@@ -451,7 +444,11 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun getLargeMessageBodyFromS3(sqsMessage: SQSMessage?): String {
+  fun getLargeMessageBodyFromS3(): Pair<String, SQSMessage?> {
+    expectOneMessageOn(testOnlyCourtEventsQueue)
+
+    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
     val messageBody = objectMapper.readValue(sqsMessage?.message, ArrayList::class.java)
     val message = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
     val body = s3AsyncClient.getObject(
@@ -459,6 +456,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       AsyncResponseTransformer.toBytes(),
     ).join().asUtf8String()
 
-    return body
+    return Pair(body, sqsMessage)
   }
 }
