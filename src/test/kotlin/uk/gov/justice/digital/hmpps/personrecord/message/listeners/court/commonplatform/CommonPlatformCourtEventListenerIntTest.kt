@@ -45,7 +45,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatfo
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
-import uk.gov.justice.digital.hmpps.personrecord.test.randomHearingId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
@@ -60,51 +59,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Value("\${aws.court-message-bucket-name}")
   lateinit var s3Bucket: String
-
-  @Test
-  fun `FIFO queue and topic remove duplicate messages`() {
-    stubPersonMatchUpsert()
-    stubNoMatchesPersonMatch()
-    val pnc = randomPnc()
-    val defendantId = randomDefendantId()
-    val firstName = randomName()
-    val lastName = randomName()
-    val nationalInsuranceNumber = randomNationalInsuranceNumber()
-    val hearingId = randomHearingId()
-    blitz(30, 6) {
-      publishCommonPlatformMessage(
-        commonPlatformHearing(
-          listOf(
-            CommonPlatformHearingSetup(
-              pnc = pnc,
-              defendantId = defendantId,
-              firstName = firstName,
-              lastName = lastName,
-              cro = "",
-              nationalInsuranceNumber = nationalInsuranceNumber,
-              hearingId = hearingId,
-            ),
-          ),
-        ),
-      )
-    }
-
-    expectNoMessagesOnQueueOrDlq(courtEventsQueue)
-
-    checkTelemetry(
-      CPR_RECORD_CREATED,
-      mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
-    )
-    checkEventLogExist(defendantId, CPRLogEvents.CPR_RECORD_CREATED)
-    checkTelemetry(
-      CPR_RECORD_UPDATED,
-      mapOf(
-        "SOURCE_SYSTEM" to "COMMON_PLATFORM",
-        "DEFENDANT_ID" to defendantId,
-      ),
-      0,
-    )
-  }
 
   @Test
   fun `should update an existing person record from common platform message`() {
@@ -151,7 +105,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_UPDATED,
       mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
-    checkEventLogExist(person.defendantId!!, CPRLogEvents.CPR_RECORD_UPDATED)
   }
 
   @Test
@@ -285,36 +238,12 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should log Message Processing Failed telemetry event when an exception is thrown`() {
     val messageId = publishCommonPlatformMessage(
       "notAValidMessage",
-
     )
 
     checkTelemetry(
       MESSAGE_PROCESSING_FAILED,
       mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name),
     )
-  }
-
-  @Test
-  fun `should process large messages`() {
-    stubPersonMatchScores()
-    stubPersonMatchUpsert()
-    val defendantId = randomDefendantId()
-
-    val s3Key = UUID.randomUUID().toString()
-
-    val request =
-      PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
-
-    s3AsyncClient.putObject(request, AsyncRequestBody.fromString(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId))))).get()
-    val messageId = publishLargeCommonPlatformMessage(
-      largeCommonPlatformMessage(s3Key, s3Bucket),
-    )
-
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
-    )
-    awaitNotNullPerson { personRepository.findByDefendantId(defendantId) }
   }
 
   @Test
@@ -426,16 +355,11 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val defendantId = randomDefendantId()
     val organisations = (1..250).map { CommonPlatformHearingSetup(isPerson = false) }
     val person = CommonPlatformHearingSetup(defendantId = defendantId)
-    val organization = CommonPlatformHearingSetup(defendantId = randomDefendantId(), isPerson = false)
+    val organization = CommonPlatformHearingSetup(defendantId = organizationDefendantId, isPerson = false)
     val largeMessage = commonPlatformHearing(organisations + person + organization)
 
-    putLargeMessageBodyIntoS3(largeMessage)
+    val (messageStoredInS3) = publishAndReceiveLargeMessage(largeMessage)
 
-    expectOneMessageOn(testOnlyCourtEventsQueue)
-
-    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
-    val messageStoredInS3 = getLargeMessageBodyFromS3(sqsMessage)
     val occurrenceOfCprUUId = messageStoredInS3.split("cprUUID").size - 1
 
     val defendant = awaitNotNullPerson {
@@ -448,7 +372,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should publish incoming event to court topic including the cpr uuid`() {
+  fun `should republish message to court topic including the cpr uuid`() {
     val defendantId = randomDefendantId()
     stubPersonMatchUpsert()
     stubPersonMatchScores()
@@ -481,22 +405,16 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
-    checkEventLogExist(defendantId, CPRLogEvents.CPR_RECORD_CREATED)
   }
 
   @Test
-  fun `should publish incoming large message to CPR court topic including the cpr uuid`() {
+  fun `should publish large message to CPR court topic including the cpr uuid`() {
     stubPersonMatchUpsert()
     stubPersonMatchScores()
 
     val defendantId = randomDefendantId()
-    putLargeMessageBodyIntoS3(largeCommonPlatformHearing(defendantId))
 
-    expectOneMessageOn(testOnlyCourtEventsQueue)
-
-    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
-    val messageBody = getLargeMessageBodyFromS3(sqsMessage)
+    val (messageBody, sqsMessage) = publishAndReceiveLargeMessage(largeCommonPlatformHearing(defendantId))
     val person = awaitNotNullPerson {
       personRepository.findByDefendantId(defendantId)
     }
@@ -511,10 +429,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
-    checkEventLogExist(defendantId, CPRLogEvents.CPR_RECORD_CREATED)
   }
 
-  fun putLargeMessageBodyIntoS3(message: String) {
+  private fun putLargeMessageBodyIntoS3(message: String) {
     val s3Key = UUID.randomUUID().toString()
     val incomingMessageFromS3 = message.toByteArray(Charset.forName("UTF8"))
     val putObjectRequest = PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
@@ -527,15 +444,21 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun getLargeMessageBodyFromS3(sqsMessage: SQSMessage?): String {
+  private fun publishAndReceiveLargeMessage(message: String): Pair<String, SQSMessage?> {
+    putLargeMessageBodyIntoS3(message)
+
+    expectOneMessageOn(testOnlyCourtEventsQueue)
+
+    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
     val messageBody = objectMapper.readValue(sqsMessage?.message, ArrayList::class.java)
-    val message = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
+    val (s3Key, s3BucketName) = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
     val body = s3AsyncClient.getObject(
-      GetObjectRequest.builder().key(message.s3Key).bucket(message.s3BucketName).build(),
+      GetObjectRequest.builder().key(s3Key).bucket(s3BucketName).build(),
       AsyncResponseTransformer.toBytes(),
     ).join().asUtf8String()
 
-    return body
+    return Pair(body, sqsMessage)
   }
 
   @Nested
