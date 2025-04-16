@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
-import java.util.UUID
+
 
 @Component
 class EventLogService(
@@ -20,5 +20,9 @@ class EventLogService(
     personKeyEntity: PersonKeyEntity? = null,
   ): EventLogEntity = eventLogRepository.save(EventLogEntity.from(personEntity, eventType, getOperationId(), personKeyEntity = personKeyEntity))
 
-  private fun getOperationId() = telemetryClient.context.operation.id ?: UUID.randomUUID().toString()
+  private fun getOperationId() = telemetryClient.context.operation.id ?: OPERATION_ID_UNAVAILABLE
+
+  companion object {
+    private const val OPERATION_ID_UNAVAILABLE = "OPERATION_ID_UNAVAILABLE"
+  }
 }

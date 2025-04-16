@@ -46,10 +46,10 @@ class CreateUpdateService(
   }
 
   private fun handlePersonCreation(person: Person): PersonEntity {
-    var personEntity: PersonEntity = personService.createPersonEntity(person)
-    personEntity = personService.linkRecordToPersonKey(personEntity)
-    publisher.publishEvent(PersonCreated(personEntity))
-    return personEntity
+    val personEntity: PersonEntity = personService.createPersonEntity(person)
+    val linkedPersonEntity = personService.linkRecordToPersonKey(personEntity)
+    publisher.publishEvent(PersonCreated(linkedPersonEntity))
+    return linkedPersonEntity
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity): PersonEntity {
