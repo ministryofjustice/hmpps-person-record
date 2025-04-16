@@ -16,13 +16,11 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Compani
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Component
 class CreateUpdateService(
   private val personService: PersonService,
-  private val reclusterService: ReclusterService,
   private val publisher: ApplicationEventPublisher,
 ) {
 
@@ -59,11 +57,6 @@ class CreateUpdateService(
     val newMatchingDetails = PersonMatchRecord.from(updatedPersonEntity)
     val matchingFieldsHaveChanged = oldMatchingDetails.matchingFieldsAreDifferent(newMatchingDetails)
     publisher.publishEvent(PersonUpdated(updatedPersonEntity, matchingFieldsHaveChanged))
-    when {
-      matchingFieldsHaveChanged -> updatedPersonEntity.personKey?.let {
-        reclusterService.recluster(it, changedRecord = updatedPersonEntity)
-      }
-    }
     return updatedPersonEntity
   }
 }

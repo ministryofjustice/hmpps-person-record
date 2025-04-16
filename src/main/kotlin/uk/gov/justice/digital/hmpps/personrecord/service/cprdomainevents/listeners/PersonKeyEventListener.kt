@@ -18,7 +18,7 @@ class PersonKeyEventListener(
 ) {
 
   @EventListener
-  fun handlePersonKeyCreated(personKeyCreated: PersonKeyCreated) {
+  fun onPersonKeyCreated(personKeyCreated: PersonKeyCreated) {
     telemetryService.trackPersonEvent(
       CPR_UUID_CREATED,
       personKeyCreated.personEntity,
@@ -28,7 +28,7 @@ class PersonKeyEventListener(
   }
 
   @EventListener
-  fun handlePersonKeyFound(personKeyFound: PersonKeyFound) {
+  fun onPersonKeyFound(personKeyFound: PersonKeyFound) {
     telemetryService.trackPersonEvent(
       CPR_CANDIDATE_RECORD_FOUND_UUID,
       personKeyFound.personEntity,

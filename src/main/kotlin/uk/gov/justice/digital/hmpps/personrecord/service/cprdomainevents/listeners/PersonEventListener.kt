@@ -1,31 +1,37 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.listeners
 
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.recluster.Recluster
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordPersonTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.EventLogService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Component
 class PersonEventListener(
-  private val telemetryService: TelemetryService,
-  private val eventLogService: EventLogService,
+  private val publisher: ApplicationEventPublisher,
 ) {
 
   @EventListener
-  fun handlePersonCreated(personCreated: PersonCreated) {
-    telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_CREATED, personCreated.personEntity)
-    eventLogService.logEvent(personCreated.personEntity, CPRLogEvents.CPR_RECORD_CREATED)
+  fun onPersonCreated(personCreated: PersonCreated) {
+    publisher.publishEvent(RecordPersonTelemetry(TelemetryEventType.CPR_RECORD_CREATED, personCreated.personEntity))
+    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_CREATED, personCreated.personEntity))
   }
 
   @EventListener
-  fun handlePersonUpdated(personUpdated: PersonUpdated) {
-    telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_UPDATED, personUpdated.personEntity)
+  fun onPersonUpdated(personUpdated: PersonUpdated) {
+    publisher.publishEvent(RecordPersonTelemetry(TelemetryEventType.CPR_RECORD_UPDATED, personUpdated.personEntity))
     when {
-      personUpdated.matchingFieldsHaveChanged -> eventLogService.logEvent(personUpdated.personEntity, CPRLogEvents.CPR_RECORD_UPDATED)
+      personUpdated.matchingFieldsHaveChanged -> {
+        publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_UPDATED, personUpdated.personEntity))
+        personUpdated.personEntity.personKey?.let {
+          publisher.publishEvent(Recluster(it, changedRecord = personUpdated.personEntity))
+        }
+      }
     }
   }
 }
