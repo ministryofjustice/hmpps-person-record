@@ -17,6 +17,8 @@ generic-service:
 
   scheduledDowntime:
     enabled: true
+    # Start at 6:35am UTC Monday-Friday - 5 minutes after hmpps-person-match
+    startup: '35 6 * * 1-5'
 
 generic-prometheus-alerts:
   businessHoursOnly: true

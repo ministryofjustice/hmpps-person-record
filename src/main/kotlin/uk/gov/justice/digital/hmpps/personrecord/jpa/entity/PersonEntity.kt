@@ -221,7 +221,7 @@ class PersonEntity(
       DELIUS -> this.crn
       NOMIS -> this.prisonNumber
       COMMON_PLATFORM -> this.defendantId
-      LIBRA -> this.defendantId
+      LIBRA -> this.cId
       else -> null
     }
 

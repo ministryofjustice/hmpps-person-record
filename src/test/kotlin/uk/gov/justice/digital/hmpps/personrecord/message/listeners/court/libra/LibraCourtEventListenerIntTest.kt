@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.libra
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
@@ -14,6 +15,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -53,6 +56,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
+    checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_CREATED)
+
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
 
     val person = awaitNotNullPerson { personRepository.findByCId(cId) }
@@ -100,6 +105,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
+    checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_UPDATED)
 
     val person = awaitNotNullPerson {
       personRepository.findByCId(cId)
@@ -144,6 +150,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
+    checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_CREATED)
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
@@ -229,5 +236,38 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId),
     )
+  }
+
+  @Nested
+  inner class EventLog {
+
+    @Test
+    fun `should save record details in event log on create`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+
+      val firstName = randomName()
+      val lastName = randomName()
+      val postcode = randomPostcode()
+      val pnc = randomPnc()
+      val dateOfBirth = randomDate()
+      val cId = randomCId()
+
+      publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode))
+
+      checkEventLog(cId, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
+        assertThat(eventLogs?.size).isEqualTo(1)
+        val createdLog = eventLogs!!.first()
+        assertThat(createdLog.pncs).isEqualTo(arrayOf(pnc))
+        assertThat(createdLog.firstName).isEqualTo(firstName)
+        assertThat(createdLog.lastName).isEqualTo(lastName)
+        assertThat(createdLog.dateOfBirth).isEqualTo(dateOfBirth)
+        assertThat(createdLog.sourceSystem).isEqualTo(LIBRA)
+        assertThat(createdLog.postcodes).isEqualTo(arrayOf(postcode))
+        assertThat(createdLog.uuid).isNotNull()
+        assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
+      }
+      checkEventLogExist(cId, CPRLogEvents.CPR_UUID_CREATED)
+    }
   }
 }

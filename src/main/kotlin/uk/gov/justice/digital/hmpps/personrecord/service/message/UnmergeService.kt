@@ -43,7 +43,9 @@ class UnmergeService(
         return@shouldCreateOrUpdate linkedPersonEntity
       },
       shouldUpdate = {
-        personService.updatePersonEntity(unmergeEvent.unmergedRecord, it)
+        val updatedPersonEntity = personService.updatePersonEntity(unmergeEvent.unmergedRecord, it)
+        telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_UPDATED, updatedPersonEntity)
+        return@shouldCreateOrUpdate updatedPersonEntity
       },
     )
   }
@@ -54,13 +56,16 @@ class UnmergeService(
         return@shouldCreateOrUpdate logRecordNotFoundAndCreatePerson(unmergeEvent.reactivatedRecord, UnmergeRecordType.REACTIVATED)
       },
       shouldUpdate = {
-        return@shouldCreateOrUpdate personService.updatePersonEntity(unmergeEvent.reactivatedRecord, it)
+        val updatedPersonEntity = personService.updatePersonEntity(unmergeEvent.reactivatedRecord, it)
+        telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_UPDATED, updatedPersonEntity)
+        return@shouldCreateOrUpdate updatedPersonEntity
       },
     )
   }
 
   private fun logRecordNotFoundAndCreatePerson(person: Person, recordType: UnmergeRecordType): PersonEntity {
     val personEntity = personService.createPersonEntity(person)
+    telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_CREATED, personEntity)
     telemetryService.trackPersonEvent(
       TelemetryEventType.CPR_UNMERGE_RECORD_NOT_FOUND,
       personEntity,
