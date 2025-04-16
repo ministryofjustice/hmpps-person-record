@@ -206,7 +206,7 @@ data class Person(
     fun from(existingPersonEntity: PersonEntity): Person = Person(
       personId = existingPersonEntity.personKey?.personId,
       firstName = existingPersonEntity.firstName,
-      middleNames = existingPersonEntity.middleNames?.split(" ") ?: emptyList(),
+      middleNames = existingPersonEntity.middleNames?.split(" "),
       lastName = existingPersonEntity.lastName,
       dateOfBirth = existingPersonEntity.dateOfBirth,
       crn = existingPersonEntity.crn,
