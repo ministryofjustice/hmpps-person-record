@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.listeners
 
+import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionalEventListener
@@ -12,6 +13,7 @@ class EventLogListener(
 ) {
 
   @Async
+  @EventListener
   @TransactionalEventListener
   fun onEventLogEvent(eventLog: RecordEventLog) {
     eventLogService.logEvent(eventLog.personEntity, eventLog.eventType, eventLog.personKeyEntity)

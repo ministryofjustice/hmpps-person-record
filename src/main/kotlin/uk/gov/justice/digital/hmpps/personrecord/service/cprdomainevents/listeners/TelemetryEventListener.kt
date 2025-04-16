@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.listeners
 
+import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionalEventListener
@@ -12,11 +13,13 @@ class TelemetryEventListener(
 ) {
 
   @Async
+  @EventListener
   @TransactionalEventListener
   fun onTelemetryEvent(personTelemetryEvent: RecordPersonTelemetry) {
     telemetryService.trackPersonEvent(
       personTelemetryEvent.telemetryEventType,
       personTelemetryEvent.personEntity,
+      personTelemetryEvent.elementMap,
     )
   }
 }
