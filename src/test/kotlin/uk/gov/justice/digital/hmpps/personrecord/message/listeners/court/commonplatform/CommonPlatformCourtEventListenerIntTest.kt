@@ -352,12 +352,10 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val defendantId = randomDefendantId()
     val organisations = (1..250).map { CommonPlatformHearingSetup(isPerson = false) }
     val person = CommonPlatformHearingSetup(defendantId = defendantId)
-    val organization = CommonPlatformHearingSetup(defendantId = randomDefendantId(), isPerson = false)
+    val organization = CommonPlatformHearingSetup(defendantId = organizationDefendantId, isPerson = false)
     val largeMessage = commonPlatformHearing(organisations + person + organization)
 
-    putLargeMessageBodyIntoS3(largeMessage)
-
-    val (messageStoredInS3) = getLargeMessageBodyFromS3()
+    val (messageStoredInS3) = publishAndReceiveLargeMessage(largeMessage)
 
     val occurrenceOfCprUUId = messageStoredInS3.split("cprUUID").size - 1
 
@@ -412,9 +410,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubPersonMatchScores()
 
     val defendantId = randomDefendantId()
-    putLargeMessageBodyIntoS3(largeCommonPlatformHearing(defendantId))
 
-    val (messageBody, sqsMessage) = getLargeMessageBodyFromS3()
+    val (messageBody, sqsMessage) = publishAndReceiveLargeMessage(largeCommonPlatformHearing(defendantId))
     val person = awaitNotNullPerson {
       personRepository.findByDefendantId(defendantId)
     }
@@ -431,7 +428,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun putLargeMessageBodyIntoS3(message: String) {
+  private fun putLargeMessageBodyIntoS3(message: String) {
     val s3Key = UUID.randomUUID().toString()
     val incomingMessageFromS3 = message.toByteArray(Charset.forName("UTF8"))
     val putObjectRequest = PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
@@ -444,7 +441,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
-  fun getLargeMessageBodyFromS3(): Pair<String, SQSMessage?> {
+  private fun publishAndReceiveLargeMessage(message: String): Pair<String, SQSMessage?> {
+    putLargeMessageBodyIntoS3(message)
+
     expectOneMessageOn(testOnlyCourtEventsQueue)
 
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
