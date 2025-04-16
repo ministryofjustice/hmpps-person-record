@@ -665,7 +665,7 @@ class CanonicalApiIntTest : WebTestBase() {
       ),
     )
 
-    val responseBody = webTestClient.get()
+    webTestClient.get()
       .uri(canonicalAPIUrl(person.personKey?.personId.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
