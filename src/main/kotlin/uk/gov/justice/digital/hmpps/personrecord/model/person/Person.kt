@@ -74,7 +74,7 @@ data class Person(
       return Person(
         title = probationCase.title?.value,
         firstName = probationCase.name.firstName,
-        middleNames = probationCase.name.middleNames?.split(" ") ?: emptyList(),
+        middleNames = probationCase.name.middleNames?.split(" "),
         lastName = probationCase.name.lastName,
         dateOfBirth = probationCase.dateOfBirth,
         crn = probationCase.identifiers.crn,
