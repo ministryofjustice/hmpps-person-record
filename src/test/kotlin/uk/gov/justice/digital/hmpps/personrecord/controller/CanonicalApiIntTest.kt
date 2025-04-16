@@ -616,7 +616,6 @@ class CanonicalApiIntTest : WebTestBase() {
 
   @Test
   fun `should handle requests when middle names are missing`() {
-    // it may be better to queue the actual message that caused the issue
     val firstName = randomName()
     val lastName = randomName()
     val middleNames = randomName()

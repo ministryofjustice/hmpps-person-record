@@ -39,10 +39,7 @@ data class CanonicalRecord(
       return CanonicalRecord(
         cprUUID = personKey.personId.toString(),
         firstName = latestPerson.firstName,
-        middleNames = when (latestPerson.middleNames?.isNotEmpty()) {
-          true -> latestPerson.middleNames
-          else -> ""
-        },
+        middleNames = latestPerson.middleNames?.let { it } ?: "",
         lastName = latestPerson.lastName,
         dateOfBirth = latestPerson.dateOfBirth?.toString(),
         title = latestPerson.title,
