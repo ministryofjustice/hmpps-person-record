@@ -449,9 +449,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
     val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
     val messageBody = objectMapper.readValue(sqsMessage?.message, ArrayList::class.java)
-    val message = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
+    val (s3Key, s3BucketName) = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
     val body = s3AsyncClient.getObject(
-      GetObjectRequest.builder().key(message.s3Key).bucket(message.s3BucketName).build(),
+      GetObjectRequest.builder().key(s3Key).bucket(s3BucketName).build(),
       AsyncResponseTransformer.toBytes(),
     ).join().asUtf8String()
 
