@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 
-
 @Component
 class EventLogService(
   private val eventLogRepository: EventLogRepository,
