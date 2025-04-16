@@ -19,7 +19,7 @@ import java.util.UUID
 data class Person(
   val personId: UUID? = null,
   val firstName: String? = null,
-  val middleNames: List<String>? = emptyList(),
+  val middleNames: List<String>? = null,
   val lastName: String? = null,
   val dateOfBirth: LocalDate? = null,
   val crn: String? = null,
