@@ -1,52 +1,67 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions
 
-import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatus.BAD_REQUEST
+import org.springframework.http.HttpStatus.FORBIDDEN
+import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
+import org.springframework.http.HttpStatus.NOT_FOUND
+import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @RestControllerAdvice
 class ExceptionHandler {
 
-  @ExceptionHandler(PersonRecordNotFoundException::class)
-  fun handlePersonRecordNotFoundException(e: PersonRecordNotFoundException): ResponseEntity<ErrorResponse> = ResponseEntity
-    .status(HttpStatus.NOT_FOUND)
+  @ExceptionHandler(MethodArgumentTypeMismatchException::class)
+  fun handleBadRequest(e: MethodArgumentTypeMismatchException): ResponseEntity<ErrorResponse?>? = ResponseEntity
+    .status(BAD_REQUEST)
     .body(
       ErrorResponse(
-        status = HttpStatus.NOT_FOUND,
-        userMessage = "Not found: ${e.message}",
+        status = BAD_REQUEST,
+        userMessage = "Bad request: ${e.message}",
+      ),
+    )
+
+  @ExceptionHandler(RuntimeException::class)
+  fun handleInternalServerError(e: RuntimeException): ResponseEntity<ErrorResponse?>? = ResponseEntity
+    .status(INTERNAL_SERVER_ERROR)
+    .body(
+      ErrorResponse(
+        status = INTERNAL_SERVER_ERROR,
+        userMessage = e.message ?: "Internal Server Error",
       ),
     )
 
   @ExceptionHandler(AccessDeniedException::class)
   fun handleAccessDeniedException(e: AccessDeniedException): ResponseEntity<ErrorResponse?>? = ResponseEntity
-    .status(HttpStatus.FORBIDDEN)
+    .status(FORBIDDEN)
     .body(
       ErrorResponse(
-        status = HttpStatus.FORBIDDEN,
+        status = FORBIDDEN,
         userMessage = "Forbidden: ${e.message}",
       ),
     )
 
   @ExceptionHandler(CanonicalRecordNotFoundException::class)
   fun handleKeyNotFoundException(e: CanonicalRecordNotFoundException): ResponseEntity<ErrorResponse> = ResponseEntity
-    .status(HttpStatus.NOT_FOUND)
+    .status(NOT_FOUND)
     .body(
       ErrorResponse(
-        status = HttpStatus.NOT_FOUND,
+        status = NOT_FOUND,
         userMessage = "Not found: ${e.message}",
       ),
     )
 
   @ExceptionHandler(AuthenticationException::class)
   fun handleUnauthorizedException(e: AuthenticationException): ResponseEntity<ErrorResponse?>? = ResponseEntity
-    .status(HttpStatus.UNAUTHORIZED)
+    .status(UNAUTHORIZED)
     .body(
       ErrorResponse(
-        status = HttpStatus.UNAUTHORIZED,
+        status = UNAUTHORIZED,
         userMessage = "Unauthorized: ${e.message}",
       ),
     )
