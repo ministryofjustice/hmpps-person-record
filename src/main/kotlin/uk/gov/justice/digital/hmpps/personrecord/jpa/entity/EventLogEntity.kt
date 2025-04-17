@@ -121,7 +121,7 @@ class EventLogEntity(
     ): EventLogEntity = EventLogEntity(
       sourceSystemId = personEntity.extractSourceSystemId(),
       matchId = personEntity.matchId,
-      uuid = personKeyEntity?.personId ?: personEntity.personKey?.personId,
+      uuid = personKeyEntity?.personUUID ?: personEntity.personKey?.personUUID,
       uuidStatusType = personKeyEntity?.status ?: personEntity.personKey?.status,
       firstName = personEntity.firstName,
       middleNames = personEntity.middleNames,

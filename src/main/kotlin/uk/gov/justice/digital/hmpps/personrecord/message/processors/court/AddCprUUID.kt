@@ -10,7 +10,7 @@ fun addCprUUIDToCommonPlatform(
   val messageParser = JsonPath.parse(message)
   processedDefendants?.forEach { defendant ->
     val defendantId = defendant.defendantId
-    val cprUUID = defendant.personKey?.personId.toString()
+    val cprUUID = defendant.personKey?.personUUID.toString()
     messageParser.put(
       "$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]",
       "cprUUID",
@@ -26,7 +26,7 @@ fun addCprUUIDToLibra(
 ): String {
   val messageParser = JsonPath.parse(message)
 
-  defendant?.personKey?.personId?.let {
+  defendant?.personKey?.personUUID?.let {
     messageParser.put(
       "$",
       "cprUUID",

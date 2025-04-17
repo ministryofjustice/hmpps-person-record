@@ -37,7 +37,7 @@ data class CanonicalRecord(
     fun from(personKey: PersonKeyEntity): CanonicalRecord {
       val latestPerson = personKey.personEntities.sortedByDescending { it.lastModified }.first()
       return CanonicalRecord(
-        cprUUID = personKey.personId.toString(),
+        cprUUID = personKey.personUUID.toString(),
         firstName = latestPerson.firstName,
         middleNames = latestPerson.middleNames,
         lastName = latestPerson.lastName,

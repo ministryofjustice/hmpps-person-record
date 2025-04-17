@@ -17,7 +17,7 @@ class CanonicalApiServerErrorTest : WebTestBase() {
   @Test
   fun `should return custom internal server error message when 500 error occurs`() {
     val cprUUID = UUID.randomUUID()
-    doThrow(RuntimeException()).whenever(personKeyRepository).findByPersonId(cprUUID)
+    doThrow(RuntimeException()).whenever(personKeyRepository).findByPersonUUID(cprUUID)
     webTestClient.get()
       .uri("/person/$cprUUID")
       .authorised(listOf(API_READ_ONLY))

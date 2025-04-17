@@ -33,15 +33,15 @@ class APIController(
   fun getCanonicalRecord(
     @PathVariable(name = "uuid") uuid: UUID,
   ): CanonicalRecord {
-    val personKeyEntity = getCorrectPersonKeyEntity(personKeyRepository.findByPersonId(uuid), mutableSetOf())
+    val personKeyEntity = getCorrectPersonKeyEntity(personKeyRepository.findByPersonUUID(uuid), mutableSetOf())
     return buildCanonicalRecord(personKeyEntity, uuid)
   }
 
   private fun getCorrectPersonKeyEntity(personKeyEntity: PersonKeyEntity?, existingMergeChain: MutableSet<UUID?>): PersonKeyEntity? = personKeyEntity?.mergedTo?.let {
-    if (existingMergeChain.contains(personKeyEntity.personId)) {
+    if (existingMergeChain.contains(personKeyEntity.personUUID)) {
       error("Circular merge reference")
     }
-    existingMergeChain.add(personKeyEntity.personId)
+    existingMergeChain.add(personKeyEntity.personUUID)
     getCorrectPersonKeyEntity(personKeyRepository.findByIdOrNull(it), existingMergeChain)
   }
     ?: personKeyEntity

@@ -80,8 +80,8 @@ class UnmergeService(
     telemetryService.trackEvent(
       TelemetryEventType.CPR_RECORD_UNMERGED,
       mapOf(
-        EventKeys.REACTIVATED_UUID to linkedReactivatedRecord.personKey?.personId.toString(),
-        EventKeys.UNMERGED_UUID to excludedUnmergedRecord.personKey?.personId.toString(),
+        EventKeys.REACTIVATED_UUID to linkedReactivatedRecord.personKey?.personUUID.toString(),
+        EventKeys.UNMERGED_UUID to excludedUnmergedRecord.personKey?.personUUID.toString(),
         unmergeEvent.unmergedSystemId.first to unmergeEvent.unmergedSystemId.second,
         unmergeEvent.reactivatedSystemId.first to unmergeEvent.reactivatedSystemId.second,
         EventKeys.SOURCE_SYSTEM to unmergeEvent.reactivatedRecord.sourceSystem.name,
@@ -106,7 +106,7 @@ class UnmergeService(
     when {
       clusterContainsAdditionalRecords(unmergedPersonEntity, reactivatedPersonEntity) -> {
         // Get latest person key from persistence
-        val personKey = personKeyRepository.findByPersonId(unmergedPersonEntity.personKey!!.personId)
+        val personKey = personKeyRepository.findByPersonUUID(unmergedPersonEntity.personKey!!.personUUID)
         personKey!!.status = UUIDStatusType.NEEDS_ATTENTION
         unmergedPersonEntity.personKey = personKeyRepository.save(personKey)
       }

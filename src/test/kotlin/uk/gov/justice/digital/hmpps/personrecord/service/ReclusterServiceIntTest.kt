@@ -64,7 +64,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       )
       checkTelemetry(
         TelemetryEventType.CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION,
-        mapOf("UUID" to cluster.personId.toString()),
+        mapOf("UUID" to cluster.personUUID.toString()),
       )
     }
   }
@@ -254,7 +254,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
-        mapOf("UUID" to cluster.personId.toString()),
+        mapOf("UUID" to cluster.personUUID.toString()),
       )
       cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
     }
@@ -274,7 +274,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
         mapOf(
-          "UUID" to cluster.personId.toString(),
+          "UUID" to cluster.personUUID.toString(),
         ),
       )
       cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
@@ -297,7 +297,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
         mapOf(
-          "UUID" to cluster.personId.toString(),
+          "UUID" to cluster.personUUID.toString(),
         ),
       )
       cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
@@ -323,7 +323,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
-        mapOf("UUID" to cluster1.personId.toString()),
+        mapOf("UUID" to cluster1.personUUID.toString()),
       )
       cluster1.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
       cluster2.assertClusterStatus(UUIDStatusType.ACTIVE)
@@ -901,7 +901,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(
         TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
-        mapOf("UUID" to cluster1.personId.toString()),
+        mapOf("UUID" to cluster1.personUUID.toString()),
       )
 
       cluster1.assertClusterIsOfSize(1)
@@ -949,7 +949,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(
         TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
-        mapOf("UUID" to cluster1.personId.toString()),
+        mapOf("UUID" to cluster1.personUUID.toString()),
       )
 
       cluster1.assertClusterIsOfSize(1)
@@ -1005,17 +1005,17 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
     assertClusterIsOfSize(size)
   }
 
-  private fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.personEntities?.size).isEqualTo(size) }
+  private fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.personEntities?.size).isEqualTo(size) }
 
-  private fun PersonKeyEntity.assertClusterStatus(status: UUIDStatusType) = awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.status).isEqualTo(status) }
+  private fun PersonKeyEntity.assertClusterStatus(status: UUIDStatusType) = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.status).isEqualTo(status) }
 
   private fun PersonKeyEntity.assertMergedTo(mergedCluster: PersonKeyEntity) {
-    awaitAssert { assertThat(personKeyRepository.findByPersonId(this.personId)?.mergedTo).isEqualTo(mergedCluster.id) }
+    awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.mergedTo).isEqualTo(mergedCluster.id) }
     checkTelemetry(
       TelemetryEventType.CPR_RECLUSTER_MERGE,
       mapOf(
-        "FROM_UUID" to this.personId.toString(),
-        "TO_UUID" to mergedCluster.personId.toString(),
+        "FROM_UUID" to this.personUUID.toString(),
+        "TO_UUID" to mergedCluster.personUUID.toString(),
       ),
     )
   }

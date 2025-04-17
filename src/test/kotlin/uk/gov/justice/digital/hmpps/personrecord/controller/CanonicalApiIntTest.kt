@@ -87,7 +87,7 @@ class CanonicalApiIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(person.personKey?.personId.toString()))
+      .uri(canonicalAPIUrl(person.personKey?.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -100,7 +100,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val canonicalNationality = listOf(CanonicalNationality(nationalityCode = nationality))
     val canonicalAddress = CanonicalAddress(noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
 
-    assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personId.toString())
+    assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personUUID.toString())
     assertThat(responseBody.firstName).isEqualTo(person.firstName)
     assertThat(responseBody.middleNames).isEqualTo(person.middleNames)
     assertThat(responseBody.lastName).isEqualTo(person.lastName)
@@ -132,7 +132,7 @@ class CanonicalApiIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(person.personKey?.personId.toString()))
+      .uri(canonicalAPIUrl(person.personKey?.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -141,7 +141,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personId.toString())
+    assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personUUID.toString())
     assertThat(responseBody.firstName).isNull()
     assertThat(responseBody.middleNames).isNull()
     assertThat(responseBody.lastName).isNull()
@@ -181,7 +181,7 @@ class CanonicalApiIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(person.personKey?.personId.toString()))
+      .uri(canonicalAPIUrl(person.personKey?.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -211,7 +211,7 @@ class CanonicalApiIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(person.personKey?.personId.toString()))
+      .uri(canonicalAPIUrl(person.personKey?.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -249,7 +249,7 @@ class CanonicalApiIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(personKey.personId.toString()))
+      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -340,7 +340,7 @@ class CanonicalApiIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(personKey.personId.toString()))
+      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -381,7 +381,7 @@ class CanonicalApiIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(personKey.personId.toString()))
+      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -414,7 +414,7 @@ class CanonicalApiIntTest : WebTestBase() {
     personRepository.saveAndFlush(latestPerson)
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(personKey.personId.toString()))
+      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -448,7 +448,7 @@ class CanonicalApiIntTest : WebTestBase() {
     personRepository.saveAndFlush(person)
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(personKey.personId.toString()))
+      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -480,7 +480,7 @@ class CanonicalApiIntTest : WebTestBase() {
     mergeUuid(sourcePersonKey, targetPersonKey)
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(sourcePersonKey.personId.toString()))
+      .uri(canonicalAPIUrl(sourcePersonKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -490,7 +490,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(responseBody.firstName).isEqualTo(targetPersonFirstName)
-    assertThat(responseBody.cprUUID).isEqualTo(targetPersonKey.personId.toString())
+    assertThat(responseBody.cprUUID).isEqualTo(targetPersonKey.personUUID.toString())
   }
 
   @Test
@@ -520,7 +520,7 @@ class CanonicalApiIntTest : WebTestBase() {
     mergeUuid(targetPersonKey, newTargetPersonKey)
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(sourcePersonKey.personId.toString()))
+      .uri(canonicalAPIUrl(sourcePersonKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -530,7 +530,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(responseBody.firstName).isEqualTo(newTargetPersonFirstName)
-    assertThat(responseBody.cprUUID).isEqualTo(newTargetPersonKey.personId.toString())
+    assertThat(responseBody.cprUUID).isEqualTo(newTargetPersonKey.personUUID.toString())
   }
 
   @Test
@@ -558,7 +558,7 @@ class CanonicalApiIntTest : WebTestBase() {
     mergeUuid(record3, record1)
 
     webTestClient.get()
-      .uri(canonicalAPIUrl(record1.personId.toString()))
+      .uri(canonicalAPIUrl(record1.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()

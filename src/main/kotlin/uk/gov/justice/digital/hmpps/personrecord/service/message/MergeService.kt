@@ -95,8 +95,8 @@ class MergeService(
   }
 
   private fun mergeRecord(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity, mergeAction: (sourcePersonEntity: PersonEntity?, targetPersonEntity: PersonEntity) -> Unit) {
-    val initialSourceUuid = sourcePersonEntity?.personKey?.let { it.personId.toString() }
-    val initialTargetUuid = targetPersonEntity.personKey?.let { it.personId.toString() }
+    val initialSourceUuid = sourcePersonEntity?.personKey?.let { it.personUUID.toString() }
+    val initialTargetUuid = targetPersonEntity.personKey?.let { it.personUUID.toString() }
 
     mergeAction(sourcePersonEntity, targetPersonEntity)
 

@@ -168,11 +168,11 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
         "CLUSTER_SIZE" to "1",
-        "UUID" to personKeyEntity.personId.toString(),
+        "UUID" to personKeyEntity.personUUID.toString(),
       ),
     )
 
-    val personKey = personKeyRepository.findByPersonId(personKeyEntity.personId)
+    val personKey = personKeyRepository.findByPersonUUID(personKeyEntity.personUUID)
     assertThat(personKey?.personEntities?.size).isEqualTo(2)
   }
 
@@ -220,7 +220,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     expectOneMessageOn(testOnlyCourtEventsQueue)
 
-    val cprUUID = awaitNotNullPerson { personRepository.findByCId(cId) }.personKey?.personId.toString()
+    val cprUUID = awaitNotNullPerson { personRepository.findByCId(cId) }.personKey?.personUUID.toString()
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
     val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }

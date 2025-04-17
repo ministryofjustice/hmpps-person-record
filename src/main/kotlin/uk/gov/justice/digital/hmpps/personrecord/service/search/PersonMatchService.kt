@@ -120,7 +120,7 @@ class PersonMatchService(
       personEntity,
       mapOf(
         EventKeys.RECORD_COUNT to totalNumberOfScores.toString(),
-        EventKeys.UUID_COUNT to this.groupBy { match -> match.personEntity.personKey?.personId?.toString() }.size.toString(),
+        EventKeys.UUID_COUNT to this.groupBy { match -> match.personEntity.personKey?.personUUID?.toString() }.size.toString(),
         EventKeys.HIGH_CONFIDENCE_COUNT to this.count().toString(),
         EventKeys.LOW_CONFIDENCE_COUNT to (totalNumberOfScores - this.count()).toString(),
       ),

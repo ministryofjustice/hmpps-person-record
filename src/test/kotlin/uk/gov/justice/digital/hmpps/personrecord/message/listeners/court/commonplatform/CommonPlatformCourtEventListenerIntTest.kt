@@ -368,7 +368,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     assertThat(personRepository.findByDefendantId(organizationDefendantId)).isNull()
     assertThat(occurrenceOfCprUUId).isEqualTo(1)
-    assertThat(messageStoredInS3.contains(defendant.personKey?.personId.toString())).isEqualTo(true)
+    assertThat(messageStoredInS3.contains(defendant.personKey?.personUUID.toString())).isEqualTo(true)
   }
 
   @Test
@@ -397,7 +397,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       personRepository.findByDefendantId(defendantId)
     }
     assertThat(commonPlatformHearing.contains("cprUUID")).isEqualTo(true)
-    assertThat(commonPlatformHearing.contains(person.personKey?.personId.toString())).isEqualTo(true)
+    assertThat(commonPlatformHearing.contains(person.personKey?.personUUID.toString())).isEqualTo(true)
 
     assertThat(commonPlatformHearingAttributes?.messageType?.value).isEqualTo(COMMON_PLATFORM_HEARING.name)
 
@@ -423,7 +423,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(sqsMessage?.messageAttributes?.hearingEventType).isEqualTo(MessageAttribute("ConfirmedOrUpdated"))
     assertThat(messageBody.contains(defendantId)).isEqualTo(true)
     assertThat(messageBody.contains("cprUUID")).isEqualTo(true)
-    assertThat(messageBody.contains(person.personKey?.personId.toString())).isEqualTo(true)
+    assertThat(messageBody.contains(person.personKey?.personUUID.toString())).isEqualTo(true)
 
     checkTelemetry(
       CPR_RECORD_CREATED,

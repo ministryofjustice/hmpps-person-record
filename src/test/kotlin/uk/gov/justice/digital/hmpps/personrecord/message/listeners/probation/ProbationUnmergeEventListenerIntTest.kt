@@ -88,14 +88,14 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         mapOf(
           "REACTIVATED_CRN" to reactivatedCrn,
           "UNMERGED_CRN" to unmergedCrn,
-          "UNMERGED_UUID" to personKeyEntity.personId.toString(),
+          "UNMERGED_UUID" to personKeyEntity.personUUID.toString(),
           "SOURCE_SYSTEM" to "DELIUS",
         ),
       )
 
       val reactivatedPerson = awaitNotNullPerson { personRepository.findByCrn(reactivatedCrn) }
       assertThat(reactivatedPerson.personKey).isNotNull()
-      assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(personKeyEntity.personId)
+      assertThat(reactivatedPerson.personKey?.personUUID).isNotEqualTo(personKeyEntity.personUUID)
     }
 
     @Test
@@ -239,7 +239,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
           mapOf(
             "REACTIVATED_CRN" to reactivatedCrn,
             "UNMERGED_CRN" to unmergedCrn,
-            "UNMERGED_UUID" to personKey.personId.toString(),
+            "UNMERGED_UUID" to personKey.personUUID.toString(),
             "SOURCE_SYSTEM" to "DELIUS",
           ),
         )
@@ -249,7 +249,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(unmergedPerson.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
         assertThat(unmergedPerson.personKey?.personEntities?.size).isEqualTo(1)
         assertThat(reactivatedPerson.personKey?.personEntities?.size).isEqualTo(1)
-        assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(personKey.personId)
+        assertThat(reactivatedPerson.personKey?.personUUID).isNotEqualTo(personKey.personUUID)
       }
 
       @Test
@@ -309,7 +309,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
           mapOf(
             "REACTIVATED_CRN" to reactivatedCrn,
             "UNMERGED_CRN" to unmergedCrn,
-            "UNMERGED_UUID" to personKey.personId.toString(),
+            "UNMERGED_UUID" to personKey.personUUID.toString(),
             "SOURCE_SYSTEM" to "DELIUS",
           ),
         )
@@ -419,18 +419,18 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
           mapOf(
             "REACTIVATED_CRN" to reactivatedCrn,
             "UNMERGED_CRN" to unmergedCrn,
-            "UNMERGED_UUID" to unmergedPersonKey.personId.toString(),
+            "UNMERGED_UUID" to unmergedPersonKey.personUUID.toString(),
             "SOURCE_SYSTEM" to "DELIUS",
           ),
         )
 
-        val reactivatedMergedPersonKey = await.atMost(4, SECONDS) untilNotNull { personKeyRepository.findByPersonId(reactivatedPersonKey.personId) }
+        val reactivatedMergedPersonKey = await.atMost(4, SECONDS) untilNotNull { personKeyRepository.findByPersonUUID(reactivatedPersonKey.personUUID) }
         assertThat(reactivatedMergedPersonKey.personEntities.size).isEqualTo(0)
         assertThat(reactivatedMergedPersonKey.status).isEqualTo(UUIDStatusType.MERGED)
 
         val reactivatedPerson = awaitNotNullPerson { personRepository.findByCrn(reactivatedCrn) }
-        assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(reactivatedPersonKey.personId)
-        assertThat(reactivatedPerson.personKey?.personId).isNotEqualTo(unmergedPersonKey.personId)
+        assertThat(reactivatedPerson.personKey?.personUUID).isNotEqualTo(reactivatedPersonKey.personUUID)
+        assertThat(reactivatedPerson.personKey?.personUUID).isNotEqualTo(unmergedPersonKey.personUUID)
       }
     }
   }
