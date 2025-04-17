@@ -53,7 +53,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val mergedSourcePerson = personRepository.findByCrn(sourcePerson.crn!!)
       assertThat(mergedSourcePerson?.mergedTo).isEqualTo(targetPerson.id)
-      
+
       checkEventLogExist(sourcePerson?.crn!!, CPRLogEvents.CPR_RECORD_MERGED)
     }
 
@@ -173,7 +173,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
           "SOURCE_SYSTEM" to "DELIUS",
         ),
       )
-      checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
+      checkEventLogExist(sourcePerson.crn!!, CPRLogEvents.CPR_RECORD_MERGED)
 
       val mergedSourcePerson = personRepository.findByCrn(sourcePerson.crn!!)
       assertThat(mergedSourcePerson?.mergedTo).isEqualTo(targetPerson.id)
