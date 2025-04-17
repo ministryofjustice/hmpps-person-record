@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message.recluster
 
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse.Companion.result
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -8,7 +9,10 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyReposit
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
-import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordClusterTelemetry
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordTelemetry
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -18,16 +22,13 @@ import kotlin.collections.groupBy
 class ReclusterService(
   private val personMatchService: PersonMatchService,
   private val personKeyRepository: PersonKeyRepository,
-  private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
+  private val publisher: ApplicationEventPublisher,
 ) {
 
   fun recluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
     when {
-      clusterNeedsAttention(cluster) -> telemetryService.trackEvent(
-        TelemetryEventType.CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION,
-        mapOf(EventKeys.UUID to cluster.personId.toString()),
-      )
+      clusterNeedsAttention(cluster) -> publisher.publishEvent(RecordClusterTelemetry(TelemetryEventType.CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION, cluster))
       else -> handleRecluster(cluster, changedRecord)
     }
   }
@@ -75,14 +76,19 @@ class ReclusterService(
     from.status = UUIDStatusType.RECLUSTER_MERGE
     personKeyRepository.save(from)
 
-    from.personEntities.forEach { personEntity -> personEntity.personKey = to }
+    from.personEntities.forEach { personEntity ->
+      personEntity.personKey = to
+      publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED, personEntity))
+    }
     personRepository.saveAll(from.personEntities)
 
-    telemetryService.trackEvent(
-      TelemetryEventType.CPR_RECLUSTER_MERGE,
-      mapOf(
-        EventKeys.FROM_UUID to from.personId.toString(),
-        EventKeys.TO_UUID to to.personId.toString(),
+    publisher.publishEvent(
+      RecordTelemetry(
+        TelemetryEventType.CPR_RECLUSTER_MERGE,
+        mapOf(
+          EventKeys.FROM_UUID to from.personId.toString(),
+          EventKeys.TO_UUID to to.personId.toString(),
+        ),
       ),
     )
   }
@@ -98,18 +104,12 @@ class ReclusterService(
   }
 
   private fun handleExclusionsBetweenMatchedClusters(cluster: PersonKeyEntity) {
-    telemetryService.trackEvent(
-      TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
-      mapOf(EventKeys.UUID to cluster.personId.toString()),
-    )
+    publisher.publishEvent(RecordClusterTelemetry(TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS, cluster))
     setClusterAsNeedsAttention(cluster)
   }
 
   private fun handleInvalidClusterComposition(cluster: PersonKeyEntity) {
-    telemetryService.trackEvent(
-      TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
-      mapOf(EventKeys.UUID to cluster.personId.toString()),
-    )
+    publisher.publishEvent(RecordClusterTelemetry(TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED, cluster))
     setClusterAsNeedsAttention(cluster)
   }
 
