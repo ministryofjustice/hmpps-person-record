@@ -22,7 +22,7 @@ class CreateUpdateServiceIntTest : IntegrationTestBase() {
   lateinit var createUpdateService: CreateUpdateService
 
   @Test
-  fun `should not recluster when no change in matching fields`() {
+  fun `should not log record update when no change in matching fields`() {
     val person = createRandomProbationPersonDetails()
     val existingPerson = createPersonWithNewKey(person)
 
@@ -33,7 +33,7 @@ class CreateUpdateServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should recluster when change in matching fields`() {
+  fun `should log record update when change in matching fields`() {
     val cId = randomCId()
     val firstName = randomName()
     val lastName = randomName()
@@ -49,7 +49,7 @@ class CreateUpdateServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should not recluster when no change in matching fields but different order`() {
+  fun `should log record update when no change in matching fields but different order`() {
     val firstName = randomName()
     val lastName = randomName()
     val crn = randomCrn()
