@@ -101,7 +101,7 @@ class IntegrationTestBase {
 
   fun probationUrl(crn: String) = "/probation-cases/$crn"
 
-  internal fun createRandomProbationPersonDetails(): Person = Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn())))
+  internal fun createRandomProbationPersonDetails(crn: String = randomCrn()): Person = Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn)))
 
   internal fun checkTelemetry(
     event: TelemetryEventType,
