@@ -85,7 +85,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(
       CPR_RECORD_MERGED,
       mapOf(
-        "TO_UUID" to personKeyEntity.personId.toString(),
+        "TO_UUID" to personKeyEntity.personUUID.toString(),
         "FROM_UUID" to null,
         "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
         "TARGET_PRISON_NUMBER" to targetPrisonNumber,
@@ -130,8 +130,8 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
-          "TO_UUID" to personKeyEntity.personId.toString(),
-          "FROM_UUID" to personKeyEntity.personId.toString(),
+          "TO_UUID" to personKeyEntity.personUUID.toString(),
+          "FROM_UUID" to personKeyEntity.personUUID.toString(),
           "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
           "TARGET_PRISON_NUMBER" to targetPrisonNumber,
           "SOURCE_SYSTEM" to NOMIS.name,
@@ -209,8 +209,8 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
-          "TO_UUID" to personKeyEntity2.personId.toString(),
-          "FROM_UUID" to personKeyEntity1.personId.toString(),
+          "TO_UUID" to personKeyEntity2.personUUID.toString(),
+          "FROM_UUID" to personKeyEntity1.personUUID.toString(),
           "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
           "TARGET_PRISON_NUMBER" to targetPrisonNumber,
           "SOURCE_SYSTEM" to NOMIS.name,
@@ -221,10 +221,10 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
       assertThat(sourcePerson?.personKey).isNull()
 
-      val sourceCluster = personKeyRepository.findByPersonId(personKeyEntity1.personId)
+      val sourceCluster = personKeyRepository.findByPersonUUID(personKeyEntity1.personUUID)
       assertThat(sourceCluster?.personEntities?.size).isEqualTo(1)
 
-      val targetCluster = personKeyRepository.findByPersonId(personKeyEntity2.personId)
+      val targetCluster = personKeyRepository.findByPersonUUID(personKeyEntity2.personUUID)
       assertThat(targetCluster?.personEntities?.size).isEqualTo(1)
     }
 
@@ -256,7 +256,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
-          "TO_UUID" to personKeyEntity2.personId.toString(),
+          "TO_UUID" to personKeyEntity2.personUUID.toString(),
           "FROM_UUID" to null,
           "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
           "TARGET_PRISON_NUMBER" to targetPrisonNumber,
@@ -268,7 +268,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
       assertThat(sourcePerson?.personKey).isNull()
 
-      val targetCluster = personKeyRepository.findByPersonId(personKeyEntity2.personId)
+      val targetCluster = personKeyRepository.findByPersonUUID(personKeyEntity2.personUUID)
       assertThat(targetCluster?.personEntities?.size).isEqualTo(1)
     }
 
@@ -302,8 +302,8 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
-          "TO_UUID" to personKeyEntity2.personId.toString(),
-          "FROM_UUID" to personKeyEntity1.personId.toString(),
+          "TO_UUID" to personKeyEntity2.personUUID.toString(),
+          "FROM_UUID" to personKeyEntity1.personUUID.toString(),
           "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
           "TARGET_PRISON_NUMBER" to targetPrisonNumber,
           "SOURCE_SYSTEM" to NOMIS.name,
@@ -354,8 +354,8 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
-          "TO_UUID" to personKeyEntity2.personId.toString(),
-          "FROM_UUID" to personKeyEntity1.personId.toString(),
+          "TO_UUID" to personKeyEntity2.personUUID.toString(),
+          "FROM_UUID" to personKeyEntity1.personUUID.toString(),
           "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
           "TARGET_PRISON_NUMBER" to targetPrisonNumber,
           "SOURCE_SYSTEM" to NOMIS.name,

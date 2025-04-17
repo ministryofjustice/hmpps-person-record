@@ -86,8 +86,8 @@ class ReclusterService(
       RecordTelemetry(
         TelemetryEventType.CPR_RECLUSTER_MERGE,
         mapOf(
-          EventKeys.FROM_UUID to from.personId.toString(),
-          EventKeys.TO_UUID to to.personId.toString(),
+          EventKeys.FROM_UUID to from.personUUID.toString(),
+          EventKeys.TO_UUID to to.personUUID.toString(),
         ),
       ),
     )

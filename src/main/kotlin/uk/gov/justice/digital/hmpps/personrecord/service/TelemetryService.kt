@@ -71,7 +71,7 @@ class TelemetryService(private val telemetryClient: TelemetryClient) {
     elementMap: Map<EventKeys, String?> = emptyMap(),
   ) {
     val identifierMap = mapOf(
-      EventKeys.UUID to cluster.personId.toString(),
+      EventKeys.UUID to cluster.personUUID.toString(),
       EventKeys.CLUSTER_SIZE to cluster.personEntities.size.toString(),
     )
     trackEvent(eventType, identifierMap + elementMap)

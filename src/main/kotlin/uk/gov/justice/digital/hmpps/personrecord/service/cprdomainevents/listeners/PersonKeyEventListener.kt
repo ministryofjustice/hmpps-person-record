@@ -19,7 +19,7 @@ class PersonKeyEventListener(
 
   @EventListener
   fun onPersonKeyCreated(personKeyCreated: PersonKeyCreated) {
-    publisher.publishEvent(RecordPersonTelemetry(CPR_UUID_CREATED, personKeyCreated.personEntity, mapOf(EventKeys.UUID to personKeyCreated.personKeyEntity.personId.toString())))
+    publisher.publishEvent(RecordPersonTelemetry(CPR_UUID_CREATED, personKeyCreated.personEntity, mapOf(EventKeys.UUID to personKeyCreated.personKeyEntity.personUUID.toString())))
     publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_UUID_CREATED, personKeyCreated.personEntity, personKeyCreated.personKeyEntity))
   }
 
@@ -30,7 +30,7 @@ class PersonKeyEventListener(
         CPR_CANDIDATE_RECORD_FOUND_UUID,
         personKeyFound.personEntity,
         mapOf(
-          EventKeys.UUID to personKeyFound.personKeyEntity.personId?.toString(),
+          EventKeys.UUID to personKeyFound.personKeyEntity.personUUID?.toString(),
           EventKeys.CLUSTER_SIZE to personKeyFound.personKeyEntity.personEntities.size.toString(),
         ),
       ),

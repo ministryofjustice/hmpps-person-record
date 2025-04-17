@@ -42,15 +42,15 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to crn, "UUID" to personKey.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to crn, "UUID" to personKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_UUID_DELETED,
-      mapOf("CRN" to crn, "UUID" to personKey.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to crn, "UUID" to personKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
     awaitAssert { assertThat(personRepository.findByCrn(crn)).isNull() }
-    awaitAssert { assertThat(personKeyRepository.findByPersonId(personKey.personId)).isNull() }
+    awaitAssert { assertThat(personKeyRepository.findByPersonUUID(personKey.personUUID)).isNull() }
   }
 
   @Test
@@ -74,12 +74,12 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to crn, "UUID" to personKey.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to crn, "UUID" to personKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
     awaitAssert { assertThat(personRepository.findByCrn(crn)).isNull() }
 
-    val updatedCluster = personKeyRepository.findByPersonId(personKey.personId)
+    val updatedCluster = personKeyRepository.findByPersonUUID(personKey.personUUID)
     assertThat(updatedCluster?.personEntities?.size).isEqualTo(1)
     assertThat(updatedCluster?.personEntities?.first()?.crn).isNotEqualTo(crn)
   }
@@ -115,7 +115,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     awaitAssert { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
     awaitNotNullPerson { personRepository.findByCrn(recordACrn) }
-    awaitAssert { assertThat(personKeyRepository.findByPersonId(cluster.personId)).isNotNull() }
+    awaitAssert { assertThat(personKeyRepository.findByPersonUUID(cluster.personUUID)).isNotNull() }
   }
 
   @Test
@@ -144,20 +144,20 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to cluster.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordACrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to cluster.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordBCrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_UUID_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to cluster.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordBCrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
     awaitAssert { assertThat(personRepository.findByCrn(recordACrn)).isNull() }
     awaitAssert { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
-    awaitAssert { assertThat(personKeyRepository.findByPersonId(cluster.personId)).isNull() }
+    awaitAssert { assertThat(personKeyRepository.findByPersonUUID(cluster.personUUID)).isNull() }
   }
 
   @Test
@@ -188,25 +188,25 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to clusterA.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordACrn, "UUID" to clusterA.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_UUID_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to clusterA.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordACrn, "UUID" to clusterA.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to clusterB.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordBCrn, "UUID" to clusterB.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_UUID_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to clusterB.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordBCrn, "UUID" to clusterB.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
     awaitAssert { assertThat(personRepository.findByCrn(recordACrn)).isNull() }
     awaitAssert { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
-    awaitAssert { assertThat(personKeyRepository.findByPersonId(clusterA.personId)).isNull() }
-    awaitAssert { assertThat(personKeyRepository.findByPersonId(clusterB.personId)).isNull() }
+    awaitAssert { assertThat(personKeyRepository.findByPersonUUID(clusterA.personUUID)).isNull() }
+    awaitAssert { assertThat(personKeyRepository.findByPersonUUID(clusterB.personUUID)).isNull() }
   }
 
   @Test
@@ -247,26 +247,26 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to clusterA.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordACrn, "UUID" to clusterA.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_UUID_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to clusterA.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordACrn, "UUID" to clusterA.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to clusterB.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordBCrn, "UUID" to clusterB.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_UUID_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to clusterB.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordBCrn, "UUID" to clusterB.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
     awaitAssert { assertThat(personRepository.findByCrn(recordACrn)).isNull() }
     awaitAssert { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
     awaitAssert { assertThat(personRepository.findByCrn(recordCCrn)).isNull() }
-    awaitAssert { assertThat(personKeyRepository.findByPersonId(clusterA.personId)).isNull() }
-    awaitAssert { assertThat(personKeyRepository.findByPersonId(clusterB.personId)).isNull() }
+    awaitAssert { assertThat(personKeyRepository.findByPersonUUID(clusterA.personUUID)).isNull() }
+    awaitAssert { assertThat(personKeyRepository.findByPersonUUID(clusterB.personUUID)).isNull() }
   }
 
   @Test
@@ -299,11 +299,11 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to cluster.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordACrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_UUID_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to cluster.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordACrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
@@ -317,7 +317,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     awaitAssert { assertThat(personRepository.findByCrn(recordACrn)).isNull() }
     awaitAssert { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
     awaitAssert { assertThat(personRepository.findByCrn(recordCCrn)).isNull() }
-    awaitAssert { assertThat(personKeyRepository.findByPersonId(cluster.personId)).isNull() }
+    awaitAssert { assertThat(personKeyRepository.findByPersonUUID(cluster.personUUID)).isNull() }
   }
 
   @Test
@@ -351,17 +351,17 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to cluster.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordACrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to cluster.personId.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordBCrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
     awaitAssert { assertThat(personRepository.findByCrn(recordACrn)).isNull() }
     awaitAssert { assertThat(personRepository.findByCrn(recordBCrn)).isNull() }
 
-    val updatedCluster = personKeyRepository.findByPersonId(cluster.personId)
+    val updatedCluster = personKeyRepository.findByPersonUUID(cluster.personUUID)
 
     assertThat(updatedCluster?.personEntities?.size).isEqualTo(1)
     assertThat(updatedCluster?.personEntities?.first()?.crn).isEqualTo(recordCCrn)

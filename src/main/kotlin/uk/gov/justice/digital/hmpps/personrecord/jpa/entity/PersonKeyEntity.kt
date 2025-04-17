@@ -17,14 +17,14 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import java.util.*
 
 @Entity
-@Table(name = "personkey")
+@Table(name = "person_key")
 class PersonKeyEntity(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
 
-  @Column(name = "person_id")
-  val personId: UUID? = null,
+  @Column(name = "person_uuid")
+  val personUUID: UUID? = null,
 
   @Column
   @OneToMany(mappedBy = "personKey", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
@@ -49,6 +49,6 @@ class PersonKeyEntity(
   companion object {
     val empty: PersonKeyEntity? = null
 
-    fun new(): PersonKeyEntity = PersonKeyEntity(personId = UUID.randomUUID())
+    fun new(): PersonKeyEntity = PersonKeyEntity(personUUID = UUID.randomUUID())
   }
 }

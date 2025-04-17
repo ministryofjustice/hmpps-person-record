@@ -194,7 +194,7 @@ data class Person(
     }
 
     fun from(existingPersonEntity: PersonEntity): Person = Person(
-      personId = existingPersonEntity.personKey?.personId,
+      personId = existingPersonEntity.personKey?.personUUID,
       firstName = existingPersonEntity.firstName,
       middleNames = existingPersonEntity.middleNames?.split(" "),
       lastName = existingPersonEntity.lastName,
