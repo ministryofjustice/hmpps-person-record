@@ -9,8 +9,10 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import org.springframework.core.type.AnnotatedTypeMetadata
 import org.springframework.lang.NonNull
+import org.springframework.scheduling.annotation.EnableAsync
 
 @Configuration
+@EnableAsync
 @Profile("!test")
 class TelemetryConfig {
 
