@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBa
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
@@ -65,6 +66,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val sourcePerson = personRepository.findByCrn(sourceCrn)
       assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
+
+      checkEventLogExist(sourcePerson?.crn!!, CPRLogEvents.CPR_RECORD_MERGED)
     }
 
     @Test
@@ -131,6 +134,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
           "SOURCE_SYSTEM" to "DELIUS",
         ),
       )
+      checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       val sourcePerson = personRepository.findByCrn(sourceCrn)
       assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
@@ -214,6 +218,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
           "SOURCE_SYSTEM" to "DELIUS",
         ),
       )
+      checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
       val sourcePerson = personRepository.findByCrn(sourceCrn)
       assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
