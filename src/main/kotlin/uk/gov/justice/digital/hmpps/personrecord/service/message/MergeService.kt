@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.message
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -10,16 +11,18 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyReposit
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
-import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordTelemetry
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 
 @Component
 class MergeService(
-  private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   private val personKeyRepository: PersonKeyRepository,
   private val deletionService: DeletionService,
+  private val publisher: ApplicationEventPublisher,
 ) {
 
   fun processMerge(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) = runBlocking {
@@ -68,25 +71,29 @@ class MergeService(
   }
 
   private fun handleTargetRecordNotFound(mergeEvent: MergeEvent) {
-    telemetryService.trackEvent(
-      CPR_MERGE_RECORD_NOT_FOUND,
-      mapOf(
-        EventKeys.RECORD_TYPE to RecordType.TARGET.name,
-        mergeEvent.sourceSystemId.first to mergeEvent.sourceSystemId.second,
-        mergeEvent.targetSystemId.first to mergeEvent.targetSystemId.second,
-        EventKeys.SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystem.name,
+    publisher.publishEvent(
+      RecordTelemetry(
+        CPR_MERGE_RECORD_NOT_FOUND,
+        mapOf(
+          EventKeys.RECORD_TYPE to RecordType.TARGET.name,
+          mergeEvent.sourceSystemId.first to mergeEvent.sourceSystemId.second,
+          mergeEvent.targetSystemId.first to mergeEvent.targetSystemId.second,
+          EventKeys.SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystem.name,
+        ),
       ),
     )
   }
 
   private fun handleSourceRecordNotFound(mergeEvent: MergeEvent, targetPersonEntity: PersonEntity) {
-    telemetryService.trackEvent(
-      CPR_MERGE_RECORD_NOT_FOUND,
-      mapOf(
-        EventKeys.RECORD_TYPE to RecordType.SOURCE.name,
-        mergeEvent.sourceSystemId.first to mergeEvent.sourceSystemId.second,
-        mergeEvent.targetSystemId.first to mergeEvent.targetSystemId.second,
-        EventKeys.SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystem.name,
+    publisher.publishEvent(
+      RecordTelemetry(
+        CPR_MERGE_RECORD_NOT_FOUND,
+        mapOf(
+          EventKeys.RECORD_TYPE to RecordType.SOURCE.name,
+          mergeEvent.sourceSystemId.first to mergeEvent.sourceSystemId.second,
+          mergeEvent.targetSystemId.first to mergeEvent.targetSystemId.second,
+          EventKeys.SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystem.name,
+        ),
       ),
     )
     mergeRecord(mergeEvent, PersonEntity.empty, targetPersonEntity) { _, targetPerson ->
@@ -101,18 +108,21 @@ class MergeService(
     mergeAction(sourcePersonEntity, targetPersonEntity)
 
     sourcePersonEntity?.let {
+      publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_MERGED, it))
       personRepository.save(it)
     }
     personRepository.save(targetPersonEntity)
 
-    telemetryService.trackEvent(
-      CPR_RECORD_MERGED,
-      mapOf(
-        EventKeys.TO_UUID to initialTargetUuid,
-        EventKeys.FROM_UUID to initialSourceUuid,
-        mergeEvent.sourceSystemId.first to mergeEvent.sourceSystemId.second,
-        mergeEvent.targetSystemId.first to mergeEvent.targetSystemId.second,
-        EventKeys.SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystem.name,
+    publisher.publishEvent(
+      RecordTelemetry(
+        CPR_RECORD_MERGED,
+        mapOf(
+          EventKeys.TO_UUID to initialTargetUuid,
+          EventKeys.FROM_UUID to initialSourceUuid,
+          mergeEvent.sourceSystemId.first to mergeEvent.sourceSystemId.second,
+          mergeEvent.targetSystemId.first to mergeEvent.targetSystemId.second,
+          EventKeys.SOURCE_SYSTEM to mergeEvent.mergedRecord.sourceSystem.name,
+        ),
       ),
     )
   }
