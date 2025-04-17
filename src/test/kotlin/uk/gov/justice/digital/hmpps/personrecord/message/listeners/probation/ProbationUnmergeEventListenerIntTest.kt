@@ -207,7 +207,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         val reactivated = ApiResponseSetup(crn = reactivatedCrn)
         val unmerged = ApiResponseSetup(crn = unmergedCrn)
 
-        probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmerged)
+        probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmergedCrn)
 
         await.atMost(4, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
 
@@ -277,7 +277,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         val reactivated = ApiResponseSetup(crn = reactivatedCrn)
         val unmerged = ApiResponseSetup(crn = unmergedCrn)
 
-        probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmerged)
+        probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmergedCrn)
 
         await.atMost(4, SECONDS) untilAsserted { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
 
@@ -338,7 +338,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         val reactivated = ApiResponseSetup(crn = reactivatedCrn)
         val unmerged = ApiResponseSetup(crn = unmergedCrn)
 
-        probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmerged)
+        probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmergedCrn)
         awaitAssert { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
         probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
@@ -389,7 +389,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         val reactivated = ApiResponseSetup(crn = reactivatedCrn)
         val unmerged = ApiResponseSetup(crn = unmergedCrn)
 
-        probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmerged)
+        probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmergedCrn)
         awaitAssert { assertThat(personRepository.findByCrn(reactivatedCrn)?.mergedTo).isNotNull() }
         probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivated, unmerged)
 
