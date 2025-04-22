@@ -134,6 +134,11 @@ class PersonEntity(
 
 ) {
 
+  fun hasPersonKey(yes: (personKeyEntity: PersonKeyEntity) -> Unit, no: (personEntity: PersonEntity) -> Unit) = when {
+    this.personKey == PersonKeyEntity.empty -> no(this)
+    else -> yes(this.personKey!!)
+  }
+
   fun getExcludeOverrideMarkers() = this.overrideMarkers.filter { it.markerType == OverrideMarkerType.EXCLUDE }
 
   fun getIncludeOverrideMarkers() = this.overrideMarkers.filter { it.markerType == OverrideMarkerType.INCLUDE }
@@ -144,12 +149,15 @@ class PersonEntity(
     )
   }
 
+  fun mergedTo(personEntity: PersonEntity) {
+    this.mergedTo = personEntity.id
+  }
+
   fun removeMergedLink() {
     this.mergedTo = null
   }
 
   fun removePersonKeyLink() {
-    this.personKey?.personEntities?.remove(this)
     this.personKey = null
   }
 

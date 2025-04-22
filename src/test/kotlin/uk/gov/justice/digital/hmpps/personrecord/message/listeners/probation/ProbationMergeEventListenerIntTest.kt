@@ -21,10 +21,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
-    @BeforeEach
-    fun beforeEach() {
-      stubDeletePersonMatch()
-    }
 
     @Test
     fun `processes offender merge event with records with same UUID is published`() {
@@ -54,7 +50,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val mergedSourcePerson = personRepository.findByCrn(sourcePerson.crn!!)
       assertThat(mergedSourcePerson?.mergedTo).isEqualTo(targetPerson.id)
 
-      checkEventLogExist(sourcePerson?.crn!!, CPRLogEvents.CPR_RECORD_MERGED)
+      checkEventLogExist(sourcePerson.crn!!, CPRLogEvents.CPR_RECORD_MERGED)
     }
 
     @Test
@@ -299,5 +295,53 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to "DELIUS",
       ),
     )
+  }
+
+  @Nested
+  inner class EventLog {
+
+    @BeforeEach
+    fun beforeEach() {
+      stubDeletePersonMatch()
+    }
+
+    @Test
+    fun `should log merge event log with records are merged with single record on source UUID`() {
+      val sourcePerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+      val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourcePerson.crn!!, targetPerson.crn!!)
+
+      checkEventLogExist(sourcePerson.crn!!, CPRLogEvents.CPR_RECORD_MERGED)
+      checkEventLog(sourcePerson.crn!!, CPRLogEvents.CPR_UUID_MERGED) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        val eventLog = eventLogs?.first()
+        assertThat(eventLog?.uuid).isEqualTo(sourcePerson.personKey?.personUUID)
+        assertThat(eventLog?.uuidStatusType).isEqualTo(UUIDStatusType.MERGED)
+        assertThat(eventLog?.recordMergedTo).isEqualTo(targetPerson.id)
+      }
+    }
+
+    @Test
+    fun `should log merge event log with records are merged with multiple records on source UUID`() {
+      val sourceCrn = randomCrn()
+      val targetCrn = randomCrn()
+
+      createPersonKey()
+        .addPerson(createPerson(createRandomProbationPersonDetails()))
+        .addPerson(createPerson(createRandomProbationPersonDetails(sourceCrn)))
+
+      val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails(targetCrn))
+
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn)
+
+      checkEventLog(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        val eventLog = eventLogs?.first()
+        assertThat(eventLog?.uuid).isNull()
+        assertThat(eventLog?.uuidStatusType).isNull()
+        assertThat(eventLog?.recordMergedTo).isEqualTo(targetPerson.id)
+      }
+    }
   }
 }

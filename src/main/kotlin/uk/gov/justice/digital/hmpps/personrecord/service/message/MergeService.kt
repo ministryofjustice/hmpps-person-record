@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
+import jakarta.transaction.Transactional
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
@@ -25,6 +26,7 @@ class MergeService(
   private val publisher: ApplicationEventPublisher,
 ) {
 
+  @Transactional
   fun processMerge(mergeEvent: MergeEvent, sourcePersonCallback: () -> PersonEntity?, targetPersonCallback: () -> PersonEntity?) = runBlocking {
     processMergingOfRecords(mergeEvent, sourcePersonCallback, targetPersonCallback)
   }
@@ -58,8 +60,8 @@ class MergeService(
 
   private fun handleSourceUuidWithSingleRecord(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
     mergeRecord(mergeEvent, sourcePersonEntity, targetPersonEntity) { sourcePerson, targetPerson ->
-      linkSourceUuidToTargetAndMarkAsMerged(sourcePerson!!, targetPerson)
-      updateAndLinkRecords(mergeEvent, sourcePerson, targetPerson)
+      updateAndLinkRecords(mergeEvent, sourcePerson!!, targetPerson)
+      linkSourceUuidToTargetAndMarkAsMerged(sourcePerson, targetPerson)
     }
   }
 
@@ -108,10 +110,13 @@ class MergeService(
     mergeAction(sourcePersonEntity, targetPersonEntity)
 
     sourcePersonEntity?.let {
+      it.hasPersonKey(
+        yes = { personKeyEntity -> personKeyRepository.save(personKeyEntity) },
+        no = { personEntity -> personRepository.save(personEntity) },
+      )
       publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_MERGED, it))
-      personRepository.save(it)
     }
-    personRepository.save(targetPersonEntity)
+    targetPersonEntity.personKey?.let { personKeyRepository.save(it) }
 
     publisher.publishEvent(
       RecordTelemetry(
@@ -128,7 +133,7 @@ class MergeService(
   }
 
   private fun updateAndLinkRecords(mergeEvent: MergeEvent, sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
-    sourcePersonEntity.mergedTo = targetPersonEntity.id
+    sourcePersonEntity.mergedTo(targetPersonEntity)
     targetPersonEntity.update(mergeEvent.mergedRecord)
   }
 
@@ -138,7 +143,7 @@ class MergeService(
         mergedTo = targetPersonEntity.personKey?.id
         status = UUIDStatusType.MERGED
       }
-      personKeyRepository.save(it)
+      publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_UUID_MERGED, sourcePersonEntity, it))
     }
   }
 
