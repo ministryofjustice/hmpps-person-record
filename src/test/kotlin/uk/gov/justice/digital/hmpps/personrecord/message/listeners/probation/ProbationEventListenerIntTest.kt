@@ -26,7 +26,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHA
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
@@ -423,23 +422,32 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val recordA = createPersonWithNewKey(createRandomProbationPersonDetails())
     val recordB = createPersonWithNewKey(createRandomProbationPersonDetails())
 
-    stubOnePersonMatchHighConfidenceMatch(matchedRecord = recordA.matchId)
+    stubPersonMatchUpsert()
+    stubOnePersonMatchHighConfidenceMatch(matchedRecord = recordB.matchId)
 
-    //  probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordA.crn!!, recordB.crn!!)
+    probationDomainEventAndResponseSetup(
+      OFFENDER_PERSONAL_DETAILS_UPDATED,
+      ApiResponseSetup(crn = recordA.crn, firstName = recordB.firstName, lastName = recordB.lastName),
+    )
+
+    awaitAssert {
+      val findRecordA = personKeyRepository.findByPersonUUID(recordA.personKey?.personUUID)
+      val findRecordB = personKeyRepository.findByPersonUUID(recordB.personKey?.personUUID)
+      assertThat(findRecordB?.mergedTo).isEqualTo(findRecordA?.id)
+    }
+
+    stubPersonMatchUpsert()
+    stubOnePersonMatchHighConfidenceMatch(matchedRecord = recordA.matchId)
 
     probationDomainEventAndResponseSetup(
       OFFENDER_PERSONAL_DETAILS_UPDATED,
       ApiResponseSetup(crn = recordB.crn, firstName = recordA.firstName, lastName = recordA.lastName),
     )
 
-    checkTelemetry(
-      CPR_RECLUSTER_MERGE,
-      mapOf(
-        "TO_UUID" to recordA.personKey?.personUUID.toString(),
-        "FROM_UUID" to recordB.personKey?.personUUID.toString(),
-      ),
-    )
-
-    // probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordB.crn!!, recordA.crn!!)
+    awaitAssert {
+      val findRecordA = personKeyRepository.findByPersonUUID(recordA.personKey?.personUUID)
+      val findRecordB = personKeyRepository.findByPersonUUID(recordB.personKey?.personUUID)
+      assertThat(findRecordA?.mergedTo).isEqualTo(findRecordB?.id)
+    }
   }
 }
