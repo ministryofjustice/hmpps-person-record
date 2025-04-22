@@ -227,9 +227,9 @@ class PersonEntity(
 
     fun List<ReferenceEntity>.getType(type: IdentifierType): List<ReferenceEntity> = this.filter { it.identifierType == type }
 
-    fun PersonEntity?.shouldCreateOrUpdate(shouldCreate: () -> PersonEntity, shouldUpdate: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {
-      this == empty -> shouldCreate()
-      else -> shouldUpdate(this)
+    fun PersonEntity?.exists(no: () -> PersonEntity, yes: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {
+      this == empty -> no()
+      else -> yes(this)
     }
 
     fun new(person: Person): PersonEntity {
