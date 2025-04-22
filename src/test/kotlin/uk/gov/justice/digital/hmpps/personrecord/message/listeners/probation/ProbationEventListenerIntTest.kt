@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHA
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
@@ -415,5 +416,30 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       }
       checkEventLogExist(crn, CPRLogEvents.CPR_UUID_CREATED)
     }
+  }
+
+  @Test
+  fun `check for circular merge record using 2 cluster`() {
+    val recordA = createPersonWithNewKey(createRandomProbationPersonDetails())
+    val recordB = createPersonWithNewKey(createRandomProbationPersonDetails())
+
+    stubOnePersonMatchHighConfidenceMatch(matchedRecord = recordA.matchId)
+
+    //  probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordA.crn!!, recordB.crn!!)
+
+    probationDomainEventAndResponseSetup(
+      OFFENDER_PERSONAL_DETAILS_UPDATED,
+      ApiResponseSetup(crn = recordB.crn, firstName = recordA.firstName, lastName = recordA.lastName),
+    )
+
+    checkTelemetry(
+      CPR_RECLUSTER_MERGE,
+      mapOf(
+        "TO_UUID" to recordA.personKey?.personUUID.toString(),
+        "FROM_UUID" to recordB.personKey?.personUUID.toString(),
+      ),
+    )
+
+    // probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordB.crn!!, recordA.crn!!)
   }
 }

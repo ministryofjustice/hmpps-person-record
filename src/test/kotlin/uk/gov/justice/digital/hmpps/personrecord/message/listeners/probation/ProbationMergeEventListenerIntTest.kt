@@ -182,6 +182,38 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
+    fun `check for circular merge record using 2 clusters`() {
+      val sourcePerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+      val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourcePerson.crn!!, targetPerson.crn!!)
+
+      checkTelemetry(
+        MERGE_MESSAGE_RECEIVED,
+        mapOf("SOURCE_CRN" to sourcePerson.crn, "TARGET_CRN" to targetPerson.crn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_MERGED,
+        mapOf(
+          "TO_UUID" to targetPerson.personKey?.personUUID.toString(),
+          "FROM_UUID" to sourcePerson.personKey?.personUUID.toString(),
+          "SOURCE_CRN" to sourcePerson.crn,
+          "TARGET_CRN" to targetPerson.crn,
+          "SOURCE_SYSTEM" to "DELIUS",
+        ),
+      )
+
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, targetPerson.crn!!, sourcePerson.crn!!)
+
+      checkEventLogExist(sourcePerson.crn!!, CPRLogEvents.CPR_RECORD_MERGED)
+
+      val mergedSourcePerson = personRepository.findByCrn(sourcePerson.crn!!)
+      assertThat(mergedSourcePerson?.mergedTo).isEqualTo(targetPerson.id)
+      assertThat(mergedSourcePerson?.personKey?.mergedTo).isEqualTo(targetPerson.personKey?.id)
+      assertThat(mergedSourcePerson?.personKey?.status).isEqualTo(UUIDStatusType.MERGED)
+    }
+
+    @Test
     fun `should retry on 500 error`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
