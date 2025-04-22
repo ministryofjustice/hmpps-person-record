@@ -230,19 +230,19 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   fun prisonMergeEventAndResponseSetup(
     eventType: String,
     sourcePrisonNumber: String,
-    target: ApiResponseSetup,
+    targetPrisonNumber: String,
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
   ) {
-    stubPrisonResponse(target, scenario, currentScenarioState, nextScenarioState)
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = targetPrisonNumber), scenario, currentScenarioState, nextScenarioState)
 
     publishDomainEvent(
       eventType,
       DomainEvent(
         eventType = eventType,
         additionalInformation = AdditionalInformation(
-          prisonNumber = target.prisonNumber,
+          prisonNumber = targetPrisonNumber,
           sourcePrisonNumber = sourcePrisonNumber,
         ),
       ),
