@@ -16,12 +16,14 @@ class PersonKeyService(
   private val publisher: ApplicationEventPublisher,
 ) {
 
-  fun getOrCreatePersonKey(personEntity: PersonEntity): PersonKeyEntity {
+  fun getOrCreatePersonKey(personEntity: PersonEntity): PersonEntity {
     val highConfidenceRecord: PersonEntity? = personMatchService.findHighestConfidencePersonRecord(personEntity)
-    return when {
+    val key = when {
       highConfidenceRecord == PersonEntity.empty -> createPersonKey(personEntity)
       else -> retrievePersonKey(personEntity, highConfidenceRecord)
     }
+    personEntity.personKey = key
+    return personEntity
   }
 
   private fun createPersonKey(personEntity: PersonEntity): PersonKeyEntity {
