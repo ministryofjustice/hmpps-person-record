@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MERGE_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -60,7 +59,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `processes prisoner merge event when source record does not exist`() {
     val targetPrisonNumber = randomPrisonNumber()
     val sourcePrisonNumber = randomPrisonNumber()
-    val personEntity = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),)
+    val personEntity = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
     prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, targetPrisonNumber = targetPrisonNumber)
 
