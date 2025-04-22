@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClientPageParams
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.shouldCreateOrUpdate
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
@@ -50,12 +50,12 @@ class UpdateFromProbation(
         }?.cases?.forEach {
           val person = Person.from(it)
 
-          repository.findByCrn(person.crn!!).shouldCreateOrUpdate(
-            shouldCreate = {
+          repository.findByCrn(person.crn!!).exists(
+            no = {
               val personToSave = PersonEntity.new(person)
               repository.saveAndFlush(personToSave)
             },
-            shouldUpdate = {
+            yes = {
               it.update(person)
               repository.saveAndFlush(it)
             },
