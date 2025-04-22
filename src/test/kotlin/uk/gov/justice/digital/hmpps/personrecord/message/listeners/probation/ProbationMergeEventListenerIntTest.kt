@@ -183,34 +183,48 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `check for circular merge record using 2 clusters`() {
-      val sourcePerson = createPersonWithNewKey(createRandomProbationPersonDetails())
-      val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+      val personA = createPersonWithNewKey(createRandomProbationPersonDetails())
+      val personB = createPersonWithNewKey(createRandomProbationPersonDetails())
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourcePerson.crn!!, targetPerson.crn!!)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personA.crn!!, personB.crn!!)
 
       checkTelemetry(
         MERGE_MESSAGE_RECEIVED,
-        mapOf("SOURCE_CRN" to sourcePerson.crn, "TARGET_CRN" to targetPerson.crn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
+        mapOf("SOURCE_CRN" to personA.crn, "TARGET_CRN" to personB.crn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
       )
       checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
-          "TO_UUID" to targetPerson.personKey?.personUUID.toString(),
-          "FROM_UUID" to sourcePerson.personKey?.personUUID.toString(),
-          "SOURCE_CRN" to sourcePerson.crn,
-          "TARGET_CRN" to targetPerson.crn,
+          "TO_UUID" to personB.personKey?.personUUID.toString(),
+          "FROM_UUID" to personA.personKey?.personUUID.toString(),
+          "SOURCE_CRN" to personA.crn,
+          "TARGET_CRN" to personB.crn,
           "SOURCE_SYSTEM" to "DELIUS",
         ),
       )
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, targetPerson.crn!!, sourcePerson.crn!!)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personB.crn!!, personA.crn!!)
 
-      checkEventLogExist(sourcePerson.crn!!, CPRLogEvents.CPR_RECORD_MERGED)
+      // TODO find a better way of proving that message processing has finished as this event will
+      // probably not be emitted once we fix this problem
+      checkTelemetry(
+        CPR_RECORD_MERGED,
+        mapOf(
+          "TO_UUID" to personA.personKey?.personUUID.toString(),
+          "FROM_UUID" to personB.personKey?.personUUID.toString(),
+          "SOURCE_CRN" to personB.crn,
+          "TARGET_CRN" to personA.crn,
+          "SOURCE_SYSTEM" to "DELIUS",
+        ),
+      )
+      val personARecord = personRepository.findByCrn(personA.crn!!)
+      val personBRecord = personRepository.findByCrn(personB.crn!!)
 
-      val mergedSourcePerson = personRepository.findByCrn(sourcePerson.crn!!)
-      assertThat(mergedSourcePerson?.mergedTo).isEqualTo(targetPerson.id)
-      assertThat(mergedSourcePerson?.personKey?.mergedTo).isEqualTo(targetPerson.personKey?.id)
-      assertThat(mergedSourcePerson?.personKey?.status).isEqualTo(UUIDStatusType.MERGED)
+      assertThat(personARecord?.mergedTo).isEqualTo(personB.id)
+      assertThat(personBRecord?.mergedTo).isNotEqualTo(personA.id)
+      assertThat(personARecord?.personKey?.mergedTo).isEqualTo(personB.personKey?.id)
+      assertThat(personARecord?.personKey?.status).isEqualTo(UUIDStatusType.MERGED)
+      assertThat(personBRecord?.personKey?.mergedTo).isNotEqualTo(personA.personKey?.id)
     }
 
     @Test
