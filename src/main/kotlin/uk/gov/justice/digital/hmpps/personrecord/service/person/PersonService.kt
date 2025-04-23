@@ -30,9 +30,8 @@ class PersonService(
   }
 
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
-    val personKeyEntity = personKeyService.getOrCreatePersonKey(personEntity)
-    personEntity.personKey = personKeyEntity
-    return personRepository.saveAndFlush(personEntity)
+    val personEntityWithKey = personKeyService.getOrCreatePersonKey(personEntity)
+    return personRepository.saveAndFlush(personEntityWithKey)
   }
 
   private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {

@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.shouldCreateOrUpdate
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
@@ -34,11 +34,11 @@ class CreateUpdateService(
   )
   @Transactional(isolation = REPEATABLE_READ)
   fun processPerson(person: Person, findPerson: () -> PersonEntity?): PersonEntity = runBlocking {
-    return@runBlocking findPerson().shouldCreateOrUpdate(
-      shouldCreate = {
+    return@runBlocking findPerson().exists(
+      no = {
         handlePersonCreation(person)
       },
-      shouldUpdate = {
+      yes = {
         handlePersonUpdate(person, it)
       },
     )

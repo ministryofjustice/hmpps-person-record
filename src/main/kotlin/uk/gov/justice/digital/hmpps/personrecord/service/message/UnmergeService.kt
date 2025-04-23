@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.message
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.UnmergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.shouldCreateOrUpdate
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -36,29 +36,29 @@ class UnmergeService(
   }
 
   private fun retrieveUnmergedPerson(unmergeEvent: UnmergeEvent, unmergedPersonCallback: () -> PersonEntity?): PersonEntity {
-    return unmergedPersonCallback().shouldCreateOrUpdate(
-      shouldCreate = {
+    return unmergedPersonCallback().exists(
+      no = {
         val personEntity = logRecordNotFoundAndCreatePerson(unmergeEvent.unmergedRecord, UnmergeRecordType.UNMERGED)
         val linkedPersonEntity = personService.linkRecordToPersonKey(personEntity)
-        return@shouldCreateOrUpdate linkedPersonEntity
+        return@exists linkedPersonEntity
       },
-      shouldUpdate = {
+      yes = {
         val updatedPersonEntity = personService.updatePersonEntity(unmergeEvent.unmergedRecord, it)
         telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_UPDATED, updatedPersonEntity)
-        return@shouldCreateOrUpdate updatedPersonEntity
+        return@exists updatedPersonEntity
       },
     )
   }
 
   private fun retrieveReactivatedPerson(unmergeEvent: UnmergeEvent, reactivatedPersonCallback: () -> PersonEntity?): PersonEntity {
-    return reactivatedPersonCallback().shouldCreateOrUpdate(
-      shouldCreate = {
-        return@shouldCreateOrUpdate logRecordNotFoundAndCreatePerson(unmergeEvent.reactivatedRecord, UnmergeRecordType.REACTIVATED)
+    return reactivatedPersonCallback().exists(
+      no = {
+        return@exists logRecordNotFoundAndCreatePerson(unmergeEvent.reactivatedRecord, UnmergeRecordType.REACTIVATED)
       },
-      shouldUpdate = {
+      yes = {
         val updatedPersonEntity = personService.updatePersonEntity(unmergeEvent.reactivatedRecord, it)
         telemetryService.trackPersonEvent(TelemetryEventType.CPR_RECORD_UPDATED, updatedPersonEntity)
-        return@shouldCreateOrUpdate updatedPersonEntity
+        return@exists updatedPersonEntity
       },
     )
   }
