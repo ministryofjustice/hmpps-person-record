@@ -144,6 +144,10 @@ class PersonEntity(
     )
   }
 
+  fun mergeTo(personEntity: PersonEntity) {
+    this.mergedTo = personEntity.id
+  }
+
   fun removeMergedLink() {
     this.mergedTo = null
   }
