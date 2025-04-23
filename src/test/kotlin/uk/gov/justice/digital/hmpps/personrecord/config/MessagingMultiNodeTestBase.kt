@@ -122,6 +122,13 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     } matches { it == 0 }
   }
 
+  fun expectOneMessageOnDlq(queue: HmppsQueue?) {
+    expectNoMessagesOn(queue)
+    await untilCallTo {
+      queue?.sqsDlqClient?.countMessagesOnQueue(queue.dlqUrl!!)?.get()
+    } matches { it == 1 }
+  }
+
   fun publishDomainEvent(eventType: String, domainEvent: DomainEvent): String {
     val response = publishEvent(
       objectMapper.writeValueAsString(domainEvent),
