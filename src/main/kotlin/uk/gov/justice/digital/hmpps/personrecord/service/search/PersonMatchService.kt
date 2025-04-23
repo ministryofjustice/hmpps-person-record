@@ -57,10 +57,12 @@ class PersonMatchService(
     )
   }
 
+  fun saveToPersonMatch(personEntity: PersonEntity) = personMatchClient.postPerson(PersonMatchRecord.from(personEntity))
+
   private suspend fun handleNotFoundRecordsIsClusterValid(cluster: PersonKeyEntity, exception: FeignException.NotFound): IsClusterValidResponse {
     val missingRecords = handleDecodeOfNotFoundException(exception)
     missingRecords.unknownIds.forEach { matchId ->
-      personRepository.findByMatchId(UUID.fromString(matchId))?.let { personMatchClient.postPerson(PersonMatchRecord.from(it)) }
+      personRepository.findByMatchId(UUID.fromString(matchId))?.let { saveToPersonMatch(it) }
     }
     return checkClusterIsValid(cluster).getOrThrow()
   }

@@ -17,6 +17,7 @@ import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -104,8 +105,9 @@ class PersonEntity(
   @Column(name = "date_of_birth")
   var dateOfBirth: LocalDate? = null,
 
-  @Column
-  val sex: String? = null,
+  @Column(name = "sex_code")
+  @Enumerated(STRING)
+  val sexCode: SexCode? = null,
 
   @Column
   val ethnicity: String? = null,

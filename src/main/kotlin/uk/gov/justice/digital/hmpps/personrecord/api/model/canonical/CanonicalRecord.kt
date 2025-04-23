@@ -43,7 +43,7 @@ data class CanonicalRecord(
         lastName = latestPerson.lastName,
         dateOfBirth = latestPerson.dateOfBirth?.toString(),
         title = latestPerson.title,
-        sex = latestPerson.sex,
+        sex = latestPerson.sexCode?.toString(),
         religion = latestPerson.religion,
         ethnicity = latestPerson.ethnicity,
         aliases = getAliases(latestPerson),
