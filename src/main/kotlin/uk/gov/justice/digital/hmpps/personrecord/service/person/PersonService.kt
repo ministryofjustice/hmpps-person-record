@@ -2,18 +2,17 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
+import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
 class PersonService(
   private val personRepository: PersonRepository,
   private val personKeyService: PersonKeyService,
-  private val personMatchClient: PersonMatchClient,
+  private val personMatchService: PersonMatchService,
   private val retryExecutor: RetryExecutor,
 ) {
 
@@ -46,7 +45,7 @@ class PersonService(
 
   private fun sendPersonDetailsToPersonMatch(personEntity: PersonEntity) = runBlocking {
     retryExecutor.runWithRetryHTTP {
-      personMatchClient.postPerson(PersonMatchRecord.from(personEntity))
+      personMatchService.saveToPersonMatch(personEntity)
     }
   }
 }
