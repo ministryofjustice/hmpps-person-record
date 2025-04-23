@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
@@ -29,7 +30,10 @@ class PersonService(
   }
 
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
-    val personEntityWithKey = personKeyService.getOrCreatePersonKey(personEntity)
+    var personEntityWithKey = personMatchService.findHighestConfidencePersonRecord(personEntity).exists(
+      no = { personKeyService.createPersonKey(personEntity) },
+      yes = { personKeyService.retrievePersonKey(personEntity, it) },
+    )
     return personRepository.saveAndFlush(personEntityWithKey)
   }
 
