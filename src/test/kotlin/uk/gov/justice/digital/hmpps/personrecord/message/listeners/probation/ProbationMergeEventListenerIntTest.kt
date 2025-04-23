@@ -22,6 +22,11 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Nested
   inner class SuccessfulProcessing {
 
+    @BeforeEach
+    fun beforeEach() {
+      stubDeletePersonMatch()
+    }
+
     @Test
     fun `processes offender merge event with records with same UUID is published`() {
       val sourcePerson = createPerson(createRandomProbationPersonDetails())
