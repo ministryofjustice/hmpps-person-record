@@ -104,7 +104,7 @@ class PersonEntity(
   @Column(name = "date_of_birth")
   var dateOfBirth: LocalDate? = null,
 
-  @Column
+  @Column(name = "sex_code")
   val sex: String? = null,
 
   @Column
