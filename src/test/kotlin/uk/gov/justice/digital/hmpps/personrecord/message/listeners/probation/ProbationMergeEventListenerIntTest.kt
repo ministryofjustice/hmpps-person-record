@@ -340,6 +340,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn)
 
+      checkEventLogExist(sourceCrn, CPRLogEvents.CPR_UUID_MERGED, times = 0)
       checkEventLog(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs?.first()
