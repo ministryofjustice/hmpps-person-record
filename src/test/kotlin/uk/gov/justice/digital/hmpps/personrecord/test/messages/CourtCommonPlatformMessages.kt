@@ -21,7 +21,7 @@ data class CommonPlatformHearingSetup(
   val isYouth: Boolean? = false,
   val isPerson: Boolean = true,
   val address: CommonPlatformHearingSetupAddress? = null,
-
+  val gender: String? = null,
 )
 
 data class CommonPlatformHearingSetupAlias(val firstName: String, val lastName: String)

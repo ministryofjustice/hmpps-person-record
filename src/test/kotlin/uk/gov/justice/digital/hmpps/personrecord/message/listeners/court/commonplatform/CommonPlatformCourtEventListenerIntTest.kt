@@ -206,6 +206,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.pseudonyms[0].lastName).isEqualTo("alisLastName1")
     assertThat(firstPerson.pseudonyms[1].firstName).isEqualTo("aliasFirstName2")
     assertThat(firstPerson.pseudonyms[1].lastName).isEqualTo("alisLastName2")
+    assertThat(firstPerson.sexCode).isNotNull()
 
     assertThat(secondPerson.pseudonyms).isEmpty()
     assertThat(secondPerson.addresses).isNotEmpty()
@@ -226,12 +227,14 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPerson.contacts[1].contactType).isEqualTo(MOBILE)
     assertThat(secondPerson.contacts[1].contactValue).isEqualTo("078590345677")
     assertThat(secondPerson.masterDefendantId).isEqualTo(secondDefendantId)
+    assertThat(secondPerson.sexCode).isNotNull()
 
     assertThat(thirdPerson.pseudonyms).isEmpty()
     assertThat(thirdPerson.contacts.size).isEqualTo(0)
     assertThat(thirdPerson.references.getType(PNC).first().identifierValue).isEqualTo(thirdPnc)
     assertThat(thirdPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(thirdDefendantNINumber)
     assertThat(thirdPerson.masterDefendantId).isEqualTo(thirdDefendantId)
+    assertThat(thirdPerson.sexCode).isNotNull()
   }
 
   @Test
