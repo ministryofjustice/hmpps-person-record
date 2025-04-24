@@ -28,6 +28,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -116,12 +117,15 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val lastName = randomName()
     val secondPnc = randomPnc()
     val thirdPnc = randomPnc()
+    val forthPnc = randomPnc()
 
     val firstDefendantId = randomDefendantId()
     val secondDefendantId = randomDefendantId()
     val thirdDefendantId = randomDefendantId()
+    val forthDefendantId = randomDefendantId()
 
     val thirdDefendantNINumber = randomNationalInsuranceNumber()
+    val forthDefendantNINumber = randomNationalInsuranceNumber()
 
     val buildingName = randomName()
     val buildingNumber = randomBuildingNumber()
@@ -134,6 +138,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       commonPlatformHearing(
         listOf(
           CommonPlatformHearingSetup(
+            gender = "MALE",
             pnc = firstPnc,
             firstName = firstName,
             middleName = "mName1 mName2",
@@ -145,13 +150,15 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
             ),
           ),
           CommonPlatformHearingSetup(
+            gender = "FEMALE",
             pnc = secondPnc,
             defendantId = secondDefendantId,
             contact = CommonPlatformHearingSetupContact(),
             address =
             CommonPlatformHearingSetupAddress(buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown, postcode = postcode),
           ),
-          CommonPlatformHearingSetup(pnc = thirdPnc, defendantId = thirdDefendantId, nationalInsuranceNumber = thirdDefendantNINumber),
+          CommonPlatformHearingSetup(pnc = thirdPnc, defendantId = thirdDefendantId, nationalInsuranceNumber = thirdDefendantNINumber, gender = "NOT SPECIFIED"),
+          CommonPlatformHearingSetup(pnc = forthPnc, defendantId = forthDefendantId, nationalInsuranceNumber = forthDefendantNINumber, gender = "UNSUPPORTED GENDER CODE"),
         ),
       ),
 
@@ -181,6 +188,14 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
       ),
     )
+    checkTelemetry(
+      MESSAGE_RECEIVED,
+      mapOf(
+        "DEFENDANT_ID" to forthDefendantId,
+        "MESSAGE_ID" to messageId,
+        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
+      ),
+    )
     val firstPerson = awaitNotNullPerson {
       personRepository.findByDefendantId(firstDefendantId)
     }
@@ -191,6 +206,10 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val thirdPerson = awaitNotNullPerson {
       personRepository.findByDefendantId(thirdDefendantId)
+    }
+
+    val forthPerson = awaitNotNullPerson {
+      personRepository.findByDefendantId(forthDefendantId)
     }
 
     assertThat(firstPerson.references.getType(PNC).first().identifierValue).isEqualTo(firstPnc)
@@ -206,6 +225,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.pseudonyms[0].lastName).isEqualTo("alisLastName1")
     assertThat(firstPerson.pseudonyms[1].firstName).isEqualTo("aliasFirstName2")
     assertThat(firstPerson.pseudonyms[1].lastName).isEqualTo("alisLastName2")
+    assertThat(firstPerson.sexCode).isEqualTo(SexCode.M)
 
     assertThat(secondPerson.pseudonyms).isEmpty()
     assertThat(secondPerson.addresses).isNotEmpty()
@@ -226,12 +246,21 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPerson.contacts[1].contactType).isEqualTo(MOBILE)
     assertThat(secondPerson.contacts[1].contactValue).isEqualTo("078590345677")
     assertThat(secondPerson.masterDefendantId).isEqualTo(secondDefendantId)
+    assertThat(secondPerson.sexCode).isEqualTo(SexCode.F)
 
     assertThat(thirdPerson.pseudonyms).isEmpty()
     assertThat(thirdPerson.contacts.size).isEqualTo(0)
     assertThat(thirdPerson.references.getType(PNC).first().identifierValue).isEqualTo(thirdPnc)
     assertThat(thirdPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(thirdDefendantNINumber)
     assertThat(thirdPerson.masterDefendantId).isEqualTo(thirdDefendantId)
+    assertThat(thirdPerson.sexCode).isEqualTo(SexCode.NS)
+
+    assertThat(forthPerson.pseudonyms).isEmpty()
+    assertThat(forthPerson.contacts.size).isEqualTo(0)
+    assertThat(forthPerson.references.getType(PNC).first().identifierValue).isEqualTo(forthPnc)
+    assertThat(forthPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(forthDefendantNINumber)
+    assertThat(forthPerson.masterDefendantId).isEqualTo(forthDefendantId)
+    assertThat(forthPerson.sexCode).isEqualTo(SexCode.N)
   }
 
   @Test

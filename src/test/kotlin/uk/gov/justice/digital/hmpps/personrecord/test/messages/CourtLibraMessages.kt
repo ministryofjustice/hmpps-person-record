@@ -15,6 +15,7 @@ fun libraHearing(
   postcode: String = randomPostcode(),
   cId: String = randomCId(),
   defendantType: DefendantType = DefendantType.PERSON,
+  defendantSex: String? = null,
 ) = """
 {
    "cId": "$cId",
@@ -26,7 +27,7 @@ fun libraHearing(
    },
    "defendantName":"Mr $firstName $lastName",
    "defendantType": "${defendantType.value}",
-   "defendantSex":"N",
+   "defendantSex":"$defendantSex",
    "defendantDob":"$dateOfBirth",
    "defendantAge":"20",
    "defendantAddress":{
