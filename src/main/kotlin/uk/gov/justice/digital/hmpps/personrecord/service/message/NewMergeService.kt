@@ -3,7 +3,9 @@ package uk.gov.justice.digital.hmpps.personrecord.service.message
 import jakarta.transaction.Transactional
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CircularMergeException
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.ClusterMerged
@@ -27,6 +29,7 @@ class NewMergeService(
 
   private fun markClusterAsMerged(from: PersonEntity?, to: PersonEntity) {
     from?.personKey?.let {
+      it.throwIfCircularMerge(to.personKey!!)
       it.markAsMerged(to.personKey!!)
       personKeyRepository.save(it)
       publisher.publishEvent(ClusterMerged(from, to, it))
@@ -36,10 +39,23 @@ class NewMergeService(
   private fun merge(from: PersonEntity?, to: PersonEntity) {
     publisher.publishEvent(PersonMerged(from, to))
     from?.let {
+      it.throwIfCircularMerge(to)
       it.removePersonKeyLink()
       it.mergeTo(to)
       personRepository.save(it)
       deletionService.deletePersonFromPersonMatch(it)
+    }
+  }
+
+  private fun PersonKeyEntity.throwIfCircularMerge(to: PersonKeyEntity) {
+    if (to.mergedTo == this.id) {
+      throw CircularMergeException()
+    }
+  }
+
+  private fun PersonEntity.throwIfCircularMerge(to: PersonEntity) {
+    if (to.mergedTo == this.id) {
+      throw CircularMergeException()
     }
   }
 
