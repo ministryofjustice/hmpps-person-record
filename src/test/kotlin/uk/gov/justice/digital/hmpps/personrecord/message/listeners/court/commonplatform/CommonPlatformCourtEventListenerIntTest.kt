@@ -188,7 +188,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
       ),
     )
-     checkTelemetry(
+    checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
         "DEFENDANT_ID" to forthDefendantId,
