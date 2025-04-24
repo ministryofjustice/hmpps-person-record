@@ -34,17 +34,11 @@ class NewMergeServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should merge records on same UUIDs`() {
-    val from = createPerson(createRandomProbationPersonDetails())
-    val to = createPerson(createRandomProbationPersonDetails())
-
     val cluster = createPersonKey()
-      .addPerson(from)
-      .addPerson(to)
+    val from = createPerson(createRandomProbationPersonDetails(), cluster)
+    val to = createPerson(createRandomProbationPersonDetails(), cluster)
 
-    newMergeService.processMerge(
-      from = personRepository.findByMatchId(from.matchId),
-      to = personRepository.findByMatchId(to.matchId)!!,
-    )
+    newMergeService.processMerge(from, to)
 
     cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
     cluster.assertClusterIsOfSize(1)
@@ -54,21 +48,16 @@ class NewMergeServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should merge records on same different UUIDs with multiple records`() {
-    val from = createPerson(createRandomProbationPersonDetails())
+  fun `should move record from cluster with multiple records without merging the whole cluster`() {
     val fromCluster = createPersonKey()
-      .addPerson(from)
-      .addPerson(createPerson(createRandomProbationPersonDetails()))
+    val from = createPerson(createRandomProbationPersonDetails(), fromCluster)
+    createPerson(createRandomProbationPersonDetails(), fromCluster)
 
-    val to = createPerson(createRandomProbationPersonDetails())
     val toCluster = createPersonKey()
-      .addPerson(to)
-      .addPerson(createPerson(createRandomProbationPersonDetails()))
+    val to = createPerson(createRandomProbationPersonDetails(), toCluster)
+    createPerson(createRandomProbationPersonDetails(), toCluster)
 
-    newMergeService.processMerge(
-      from = personRepository.findByMatchId(from.matchId),
-      to = personRepository.findByMatchId(to.matchId)!!,
-    )
+    newMergeService.processMerge(from, to)
 
     fromCluster.assertClusterStatus(UUIDStatusType.ACTIVE)
     fromCluster.assertClusterIsOfSize(1)

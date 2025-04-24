@@ -15,8 +15,8 @@ class NewMergeService(
 
   @Transactional
   fun processMerge(from: PersonEntity?, to: PersonEntity) {
-    if (fromRecordIsAloneOnSeparateCluster(from, to)) {
-      markClusterAsMerged(from, to)
+    when {
+      fromClusterHasOneRecord(from) -> markClusterAsMerged(from, to)
     }
     merge(from, to)
   }
@@ -37,9 +37,5 @@ class NewMergeService(
     }
   }
 
-  private fun fromRecordIsAloneOnSeparateCluster(from: PersonEntity?, to: PersonEntity): Boolean = fromClusterHasOneRecord(from) and isDifferentUuid(from, to)
-
   private fun fromClusterHasOneRecord(from: PersonEntity?): Boolean = (from?.personKey?.personEntities?.size ?: 0) == 1
-
-  private fun isDifferentUuid(from: PersonEntity?, to: PersonEntity): Boolean = from?.personKey?.id != to.personKey?.id
 }
