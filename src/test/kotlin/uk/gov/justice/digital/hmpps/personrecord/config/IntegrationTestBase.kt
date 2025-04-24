@@ -138,10 +138,10 @@ class IntegrationTestBase {
     sourceSystemId: String,
     event: CPRLogEvents,
     timeout: Long = 3,
-    matchingEvents: (logEvents: List<EventLogEntity>?) -> Unit,
+    matchingEvents: (logEvents: List<EventLogEntity>) -> Unit,
   ) {
     awaitAssert(function = {
-      matchingEvents(eventLogRepository.findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(event, sourceSystemId))
+      matchingEvents(eventLogRepository.findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(event, sourceSystemId) ?: emptyList())
     }, timeout)
   }
 
