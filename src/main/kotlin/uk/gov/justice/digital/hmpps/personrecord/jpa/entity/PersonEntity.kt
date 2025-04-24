@@ -107,7 +107,7 @@ class PersonEntity(
 
   @Column(name = "sex_code")
   @Enumerated(STRING)
-  val sexCode: SexCode? = null,
+  var sexCode: SexCode? = null,
 
   @Column
   val ethnicity: String? = null,
@@ -172,6 +172,7 @@ class PersonEntity(
     this.nationality = person.nationality
     this.religion = person.religion
     this.cId = person.cId
+    this.sexCode = person.sexCode
     this.lastModified = LocalDateTime.now()
     pseudonyms.clear()
     addresses.clear()
