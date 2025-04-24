@@ -16,6 +16,7 @@ enum class SexCode(val description: String) {
         "MALE" -> M
         "FEMALE" -> F
         "NOT SPECIFIED" -> NS
+        null -> null
         else -> N
       }
       return sexCode

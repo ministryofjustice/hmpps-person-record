@@ -48,5 +48,15 @@ class SexCodeTest {
 
       assertEquals(SexCode.from(personDetails), SexCode.N)
     }
+
+    @Test
+    fun `should map from null gender to null sex code`() {
+      val personDetails = PersonDetails(
+        lastName = "",
+      )
+
+      assertEquals(SexCode.from(personDetails), null)
+    }
   }
 }
+
