@@ -1,102 +1,51 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
+import java.util.stream.Stream
 import kotlin.test.assertEquals
 
 class SexCodeTest {
 
-  @Nested
-  inner class FromCommonPlatformMessages {
+  @ParameterizedTest
+  @MethodSource("commonPlatformValues")
+  fun `should map common platform gender values`(gender: String?, sexCode: SexCode?) {
+    val personDetails = PersonDetails(
+      gender = gender,
+      lastName = "",
+    )
 
-    @Test
-    fun `should map from MALE gender to M sexCode`() {
-      val personDetails = PersonDetails(
-        gender = "MALE",
-        lastName = "",
-      )
-
-      assertEquals(SexCode.from(personDetails), SexCode.M)
-    }
-
-    @Test
-    fun `should map from FEMALE gender to F sexCode`() {
-      val personDetails = PersonDetails(
-        gender = "FEMALE",
-        lastName = "",
-      )
-
-      assertEquals(SexCode.from(personDetails), SexCode.F)
-    }
-
-    @Test
-    fun `should map from NOT SPECIFIED gender to NS sexCode`() {
-      val personDetails = PersonDetails(
-        gender = "NOT SPECIFIED",
-        lastName = "",
-      )
-
-      assertEquals(SexCode.from(personDetails), SexCode.NS)
-    }
-
-    @Test
-    fun `should map from ANYTHING ELSE gender to N sexCode`() {
-      val personDetails = PersonDetails(
-        gender = "ANYTHING ELSE",
-        lastName = "",
-      )
-
-      assertEquals(SexCode.from(personDetails), SexCode.N)
-    }
-
-    @Test
-    fun `should map from null gender to null sexCode`() {
-      val personDetails = PersonDetails(
-        lastName = "",
-      )
-
-      assertEquals(SexCode.from(personDetails), null)
-    }
+    assertEquals(SexCode.from(personDetails), sexCode)
   }
 
-  @Nested
-  inner class FromLibraCourtEvent {
+  @ParameterizedTest
+  @MethodSource("libraEventMessage")
+  fun `should map libra event values`(defendantSex: String?, sexCode: SexCode?) {
+    val libraHearingEvent = LibraHearingEvent(defendantSex = defendantSex)
 
-    @Test
-    fun `should map from M defendantSex to M sexCode`() {
-      val libraHearingEvent = LibraHearingEvent(defendantSex = "M")
+    assertEquals(SexCode.from(libraHearingEvent), sexCode)
+  }
 
-      assertEquals(SexCode.from(libraHearingEvent), SexCode.M)
-    }
+  companion object {
+    @JvmStatic
+    fun libraEventMessage(): Stream<Arguments> = Stream.of(
+      Arguments.of("M", SexCode.M),
+      Arguments.of("F", SexCode.F),
+      Arguments.of("NS", SexCode.NS),
+      Arguments.of("ANYTHING ELSE", SexCode.N),
+      Arguments.of(null, null),
+    )
 
-    @Test
-    fun `should map from F defendantSex to F sexCode`() {
-      val libraHearingEvent = LibraHearingEvent(defendantSex = "F")
-
-      assertEquals(SexCode.from(libraHearingEvent), SexCode.F)
-    }
-
-    @Test
-    fun `should map from NOT SPECIFIED defendantSex to NS sexCode`() {
-      val libraHearingEvent = LibraHearingEvent(defendantSex = "NS")
-
-      assertEquals(SexCode.from(libraHearingEvent), SexCode.NS)
-    }
-
-    @Test
-    fun `should map from ANYTHING ELSE defendantSex to N sexCode`() {
-      val libraHearingEvent = LibraHearingEvent(defendantSex = "ANYTHING ELSE")
-
-      assertEquals(SexCode.from(libraHearingEvent), SexCode.N)
-    }
-
-    @Test
-    fun `should map from null defendantSex to null sexCode`() {
-      val libraHearingEvent = LibraHearingEvent()
-
-      assertEquals(SexCode.from(libraHearingEvent), null)
-    }
+    @JvmStatic
+    fun commonPlatformValues(): Stream<Arguments> = Stream.of(
+      Arguments.of("MALE", SexCode.M),
+      Arguments.of("FEMALE", SexCode.F),
+      Arguments.of("NOT SPECIFIED", SexCode.NS),
+      Arguments.of("ANYTHING ELSE", SexCode.N),
+      Arguments.of(null, null),
+    )
   }
 }
