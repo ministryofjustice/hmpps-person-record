@@ -151,6 +151,7 @@ data class Person(
         references = references,
         sourceSystem = LIBRA,
         cId = libraHearingEvent.cId,
+        sexCode = SexCode.from(libraHearingEvent),
       )
     }
 
