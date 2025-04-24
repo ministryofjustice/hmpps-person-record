@@ -404,6 +404,9 @@ class IntegrationTestBase {
   internal fun PersonKeyEntity.assertMergedTo(mergedCluster: PersonKeyEntity) {
     awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.mergedTo).isEqualTo(mergedCluster.id) }
   }
+  internal fun PersonKeyEntity.assertNotMergedTo(mergedCluster: PersonKeyEntity) {
+    awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.mergedTo).isNotEqualTo(mergedCluster.id) }
+  }
 
   internal fun PersonEntity.assertNotLinkedToCluster() {
     awaitAssert { assertThat(personRepository.findByMatchId(this.matchId)?.personKey).isNull() }
