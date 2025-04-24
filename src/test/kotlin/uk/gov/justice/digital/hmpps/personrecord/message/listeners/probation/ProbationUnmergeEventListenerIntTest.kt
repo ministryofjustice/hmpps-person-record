@@ -226,6 +226,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         checkTelemetry(
           CPR_RECORD_UPDATED,
           mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+          times = 2,
         )
         checkTelemetry(
           CPR_UUID_CREATED,
@@ -292,6 +293,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         checkTelemetry(
           CPR_RECORD_UPDATED,
           mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+          times = 2,
         )
         checkTelemetry(
           CPR_RECORD_UPDATED,
@@ -356,6 +358,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         checkTelemetry(
           CPR_RECORD_UPDATED,
           mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+          times = 2,
         )
         checkTelemetry(
           CPR_RECORD_UPDATED,
@@ -402,6 +405,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         checkTelemetry(
           CPR_RECORD_UPDATED,
           mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+          times = 2,
         )
         checkTelemetry(
           CPR_RECORD_UPDATED,
