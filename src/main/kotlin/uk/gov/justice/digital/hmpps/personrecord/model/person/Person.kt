@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner.
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -39,6 +40,7 @@ data class Person(
   val sentences: List<SentenceInfo> = emptyList(),
   val currentlyManaged: Boolean? = null,
   val cId: String? = null,
+  val sexCode: SexCode? = null,
 ) {
 
   companion object {
@@ -130,6 +132,7 @@ data class Person(
         references = references,
         aliases = defendant.aliases?.map { Alias.from(it) } ?: emptyList(),
         sourceSystem = sourceSystemType,
+        sexCode = SexCode.from(defendant.personDefendant?.personDetails),
       )
     }
 
@@ -148,6 +151,7 @@ data class Person(
         references = references,
         sourceSystem = LIBRA,
         cId = libraHearingEvent.cId,
+        sexCode = SexCode.from(libraHearingEvent),
       )
     }
 
@@ -214,6 +218,7 @@ data class Person(
       sourceSystem = existingPersonEntity.sourceSystem,
       sentences = existingPersonEntity.sentenceInfo.map { SentenceInfo.from(it) },
       currentlyManaged = existingPersonEntity.currentlyManaged,
+      sexCode = existingPersonEntity.sexCode,
     )
   }
 

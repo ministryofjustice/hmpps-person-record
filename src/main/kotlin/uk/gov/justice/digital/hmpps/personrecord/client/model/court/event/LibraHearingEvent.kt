@@ -30,4 +30,5 @@ data class LibraHearingEvent(
   val pnc: PNCIdentifier? = PNCIdentifier.from(),
   val cId: String? = null,
   val defendantType: String? = null,
+  val defendantSex: String? = null,
 )

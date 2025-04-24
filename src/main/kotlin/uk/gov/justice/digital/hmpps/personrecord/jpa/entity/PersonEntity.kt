@@ -257,6 +257,7 @@ class PersonEntity(
         matchId = UUID.randomUUID(),
         cId = person.cId,
         lastModified = LocalDateTime.now(),
+        sexCode = person.sexCode,
       )
       personEntity.updateChildEntities(person)
       return personEntity
