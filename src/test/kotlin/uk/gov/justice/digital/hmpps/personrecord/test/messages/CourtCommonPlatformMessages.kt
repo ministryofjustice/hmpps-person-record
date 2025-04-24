@@ -21,7 +21,7 @@ data class CommonPlatformHearingSetup(
   val isYouth: Boolean? = false,
   val isPerson: Boolean = true,
   val address: CommonPlatformHearingSetupAddress? = null,
-  val gender: String? = null,
+  val gender: String? = "MALE",
 )
 
 data class CommonPlatformHearingSetupAlias(val firstName: String, val lastName: String)
@@ -137,7 +137,7 @@ private fun personDefendant(commonPlatformHearingSetup: CommonPlatformHearingSet
 } ?: ""}   
       "dateOfBirth": "${commonPlatformHearingSetup.dateOfBirth}",
       ${commonPlatformHearingSetup.firstName?.let { """ "firstName": "${commonPlatformHearingSetup.firstName}", """.trimIndent() } ?: ""}
-      "gender": "MALE",
+      "gender": "${commonPlatformHearingSetup.gender}",
       ${commonPlatformHearingSetup.middleName?.let { """ "middleName": "${commonPlatformHearingSetup.middleName}", """.trimIndent() } ?: ""}
       "lastName": "${commonPlatformHearingSetup.lastName}",
       "title": "Mr",
