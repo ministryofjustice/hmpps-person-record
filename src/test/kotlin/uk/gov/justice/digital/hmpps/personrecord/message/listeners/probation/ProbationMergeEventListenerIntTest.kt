@@ -54,7 +54,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val mergedSourcePerson = personRepository.findByCrn(sourcePerson.crn!!)
       assertThat(mergedSourcePerson?.mergedTo).isEqualTo(targetPerson.id)
 
-      checkEventLogExist(sourcePerson?.crn!!, CPRLogEvents.CPR_RECORD_MERGED)
+      checkEventLogExist(sourcePerson.crn!!, CPRLogEvents.CPR_RECORD_MERGED)
     }
 
     @Test

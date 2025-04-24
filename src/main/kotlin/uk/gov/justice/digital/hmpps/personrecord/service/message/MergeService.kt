@@ -135,7 +135,7 @@ class MergeService(
 
   private fun linkSourceUuidToTargetAndMarkAsMerged(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
     if (targetPersonEntity.mergedTo == sourcePersonEntity.id) {
-      throw CircularMergeException("Target record cannot be merged into Source record")
+      throw CircularMergeException()
     }
     sourcePersonEntity.personKey?.let {
       it.apply {

@@ -185,6 +185,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Nested
     inner class DeletesARecord {
+
       @BeforeEach
       fun beforeEach() {
         stubDeletePersonMatch()

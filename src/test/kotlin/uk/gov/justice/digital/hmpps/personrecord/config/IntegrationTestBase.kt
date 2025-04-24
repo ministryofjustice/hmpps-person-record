@@ -163,11 +163,7 @@ class IntegrationTestBase {
     return personKeyRepository.save(this)
   }
 
-  internal fun createPersonWithNewKey(person: Person): PersonEntity {
-    val personEntity = PersonEntity.new(person = person)
-    personEntity.personKey = createPersonKey()
-    return personRepository.saveAndFlush(personEntity)
-  }
+  internal fun createPersonWithNewKey(person: Person): PersonEntity = createPerson(person, createPersonKey())
 
   internal fun createPerson(person: Person, personKeyEntity: PersonKeyEntity? = null): PersonEntity {
     val personEntity = PersonEntity.new(person = person)
@@ -379,18 +375,18 @@ class IntegrationTestBase {
     )
   }
 
-  fun stub5xxResponse(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String? = BASE_SCENARIO, currentScenarioState: String = STARTED, status: Int = 500) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, url, body = "", status = status)
+  internal fun stub5xxResponse(url: String, nextScenarioState: String = "Next request will succeed", scenarioName: String? = BASE_SCENARIO, currentScenarioState: String = STARTED, status: Int = 500) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, url, body = "", status = status)
 
-  fun stubPrisonResponse(
+  internal fun stubPrisonResponse(
     apiResponseSetup: ApiResponseSetup,
     scenarioName: String? = BASE_SCENARIO,
     currentScenarioState: String? = STARTED,
     nextScenarioState: String? = STARTED,
   ) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/prisoner/${apiResponseSetup.prisonNumber}", prisonerSearchResponse(apiResponseSetup))
 
-  fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String, nextScenarioState: String) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
+  internal fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String, nextScenarioState: String) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
 
-  fun blitz(actionCount: Int, threadCount: Int, action: () -> Unit) {
+  internal fun blitz(actionCount: Int, threadCount: Int, action: () -> Unit) {
     val blitzer = Blitzer(actionCount, threadCount)
     try {
       blitzer.blitz {
@@ -399,6 +395,25 @@ class IntegrationTestBase {
     } finally {
       blitzer.shutdown()
     }
+  }
+
+  internal fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.personEntities?.size).isEqualTo(size) }
+
+  internal fun PersonKeyEntity.assertClusterStatus(status: UUIDStatusType) = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.status).isEqualTo(status) }
+
+  internal fun PersonKeyEntity.assertMergedTo(mergedCluster: PersonKeyEntity) {
+    awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.mergedTo).isEqualTo(mergedCluster.id) }
+  }
+  internal fun PersonKeyEntity.assertNotMergedTo(mergedCluster: PersonKeyEntity) {
+    awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.mergedTo).isNotEqualTo(mergedCluster.id) }
+  }
+
+  internal fun PersonEntity.assertNotLinkedToCluster() {
+    awaitAssert { assertThat(personRepository.findByMatchId(this.matchId)?.personKey).isNull() }
+  }
+
+  internal fun PersonEntity.assertMergedTo(mergedRecord: PersonEntity) {
+    awaitAssert { assertThat(personRepository.findByMatchId(this.matchId)?.mergedTo).isEqualTo(mergedRecord.id) }
   }
 
   companion object {

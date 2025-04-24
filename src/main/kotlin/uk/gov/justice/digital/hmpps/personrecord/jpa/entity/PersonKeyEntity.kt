@@ -42,6 +42,13 @@ class PersonKeyEntity(
 
 ) {
 
+  fun markAsMerged(to: PersonKeyEntity) {
+    this.apply {
+      this.mergedTo = to.id
+      this.status = UUIDStatusType.MERGED
+    }
+  }
+
   fun getRecordIds(): List<Long> = this.personEntities.mapNotNull { it.id }
 
   fun collectExcludeOverrideMarkers(): List<OverrideMarkerEntity> = this.personEntities.map { it.overrideMarkers }.flatten().filter { it.markerType == OverrideMarkerType.EXCLUDE }
