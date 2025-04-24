@@ -300,4 +300,36 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
   }
+
+  @Test
+  fun `check circular merge with 2 different UUIDS`() {
+    stubDeletePersonMatch()
+    val recordACrn = randomCrn()
+    val recordBCrn = randomCrn()
+
+    val recordA = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
+    val recordB = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
+
+    probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordACrn, recordBCrn)
+
+    checkTelemetry(
+      CPR_RECORD_MERGED,
+      mapOf(
+        "TO_UUID" to recordB.personKey?.personUUID.toString(),
+        "FROM_UUID" to recordA.personKey?.personUUID.toString(),
+        "SOURCE_CRN" to recordACrn,
+        "TARGET_CRN" to recordBCrn,
+        "SOURCE_SYSTEM" to "DELIUS",
+      ),
+    )
+
+    probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordBCrn, recordACrn)
+
+    expectOneMessageOnDlq(probationMergeEventsQueue)
+
+    awaitAssert {
+      val findRecordB = personKeyRepository.findByPersonUUID(recordB.personKey?.personUUID)
+      assertThat(findRecordB?.mergedTo).isNull()
+    }
+  }
 }
