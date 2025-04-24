@@ -38,9 +38,6 @@ class APIController(
   }
 
   private fun getCorrectPersonKeyEntity(personKeyEntity: PersonKeyEntity?, existingMergeChain: MutableSet<UUID?>): PersonKeyEntity? = personKeyEntity?.mergedTo?.let {
-    if (existingMergeChain.contains(personKeyEntity.personUUID)) {
-      error("Circular merge reference")
-    }
     existingMergeChain.add(personKeyEntity.personUUID)
     getCorrectPersonKeyEntity(personKeyRepository.findByIdOrNull(it), existingMergeChain)
   }
