@@ -5,6 +5,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CircularMergeException
 import uk.gov.justice.digital.hmpps.personrecord.client.model.merge.MergeEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -133,6 +134,9 @@ class MergeService(
   }
 
   private fun linkSourceUuidToTargetAndMarkAsMerged(sourcePersonEntity: PersonEntity, targetPersonEntity: PersonEntity) {
+    if (targetPersonEntity.mergedTo == sourcePersonEntity.id) {
+      throw CircularMergeException("Target record cannot be merged into Source record")
+    }
     sourcePersonEntity.personKey?.let {
       it.apply {
         mergedTo = targetPersonEntity.personKey?.id
