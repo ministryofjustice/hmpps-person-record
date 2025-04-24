@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -51,7 +50,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
       checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
     }
-
   }
 
   @Nested
@@ -100,7 +98,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
       checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
     }
-
   }
 
   @Nested
@@ -360,6 +357,5 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
       )
     }
-
   }
 }
