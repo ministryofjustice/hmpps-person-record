@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
 
 enum class SexCode(val description: String) {
   M("Male"),
@@ -11,10 +11,12 @@ enum class SexCode(val description: String) {
 
   companion object {
 
-    fun from(defendant: Defendant): SexCode? {
-      val sexCode = when (defendant.personDefendant?.personDetails?.gender) {
+    fun from(personDetails: PersonDetails?): SexCode? {
+      val sexCode = when (personDetails?.gender) {
         "MALE" -> M
-        else -> null
+        "FEMALE" -> F
+        "NOT SPECIFIED" -> NS
+        else -> N
       }
       return sexCode
     }

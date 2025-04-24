@@ -132,7 +132,7 @@ data class Person(
         references = references,
         aliases = defendant.aliases?.map { Alias.from(it) } ?: emptyList(),
         sourceSystem = sourceSystemType,
-        sexCode = SexCode.from(defendant),
+        sexCode = SexCode.from(defendant.personDefendant?.personDetails),
       )
     }
 
