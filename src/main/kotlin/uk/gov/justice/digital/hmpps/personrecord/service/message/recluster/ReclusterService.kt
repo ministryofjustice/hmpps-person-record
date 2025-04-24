@@ -74,7 +74,7 @@ class ReclusterService(
 
   private fun mergeClusters(from: PersonKeyEntity, to: PersonKeyEntity) {
     if (to.mergedTo == from.id) {
-      throw CircularMergeException("Target record cannot be merged into Source record")
+      throw CircularMergeException()
     }
     from.mergedTo = to.id
     from.status = UUIDStatusType.RECLUSTER_MERGE
