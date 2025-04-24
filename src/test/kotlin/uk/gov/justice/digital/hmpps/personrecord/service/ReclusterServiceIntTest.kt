@@ -2,7 +2,9 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CircularMergeException
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
@@ -362,6 +364,41 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       cluster2.assertMergedTo(cluster1)
       cluster2.checkReclusterMergeTelemetry(cluster1)
+    }
+
+    @Test
+    fun `should prevent circular merge of clusters`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+
+      val cluster2 = createPersonKey()
+        .addPerson(personB)
+
+      val personC = createPerson(createRandomProbationPersonDetails())
+      stubOnePersonMatchHighConfidenceMatch(personA.matchId, personB.matchId)
+
+      reclusterService.recluster(cluster1, changedRecord = personA)
+
+      cluster1.assertClusterIsOfSize(2)
+      cluster2.assertClusterIsOfSize(0)
+
+      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+
+      cluster2.assertMergedTo(cluster1)
+      cluster2.checkReclusterMergeTelemetry(cluster1)
+
+      val updatedCluster2 = personKeyRepository.findByPersonUUID(cluster2.personUUID)!!
+      updatedCluster2.addPerson(personC)
+      stubOnePersonMatchHighConfidenceMatch(personC.matchId, personB.matchId)
+
+      assertThrows<CircularMergeException> { reclusterService.recluster(updatedCluster2, changedRecord = personC) }
+      cluster1.assertClusterIsOfSize(2)
+      updatedCluster2.assertClusterIsOfSize(1)
+      updatedCluster2.assertMergedTo(cluster1)
+      cluster1.assertNotMergedTo(updatedCluster2)
     }
 
     @Test
