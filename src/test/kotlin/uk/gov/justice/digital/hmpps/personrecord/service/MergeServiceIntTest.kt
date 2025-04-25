@@ -8,13 +8,13 @@ import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.message.NewMergeService
+import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
-class NewMergeServiceIntTest : IntegrationTestBase() {
+class MergeServiceIntTest : IntegrationTestBase() {
 
   @Autowired
-  lateinit var newMergeService: NewMergeService
+  lateinit var mergeService: MergeService
 
   @BeforeEach
   fun beforeEach() {
@@ -28,7 +28,7 @@ class NewMergeServiceIntTest : IntegrationTestBase() {
     val fromUUID = from.personKey?.personUUID.toString()
     val toUUID = to.personKey?.personUUID.toString()
 
-    newMergeService.processMerge(from, to)
+    mergeService.processMerge(from, to)
 
     from.personKey?.assertClusterStatus(UUIDStatusType.MERGED)
     from.personKey?.assertClusterIsOfSize(0)
@@ -69,7 +69,7 @@ class NewMergeServiceIntTest : IntegrationTestBase() {
     val from = createPerson(createRandomProbationPersonDetails(), cluster)
     val to = createPerson(createRandomProbationPersonDetails(), cluster)
 
-    newMergeService.processMerge(from, to)
+    mergeService.processMerge(from, to)
 
     cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
     cluster.assertClusterIsOfSize(1)
@@ -98,7 +98,7 @@ class NewMergeServiceIntTest : IntegrationTestBase() {
     val to = createPerson(createRandomProbationPersonDetails(), toCluster)
     createPerson(createRandomProbationPersonDetails(), toCluster)
 
-    newMergeService.processMerge(from, to)
+    mergeService.processMerge(from, to)
 
     fromCluster.assertClusterStatus(UUIDStatusType.ACTIVE)
     fromCluster.assertClusterIsOfSize(1)
