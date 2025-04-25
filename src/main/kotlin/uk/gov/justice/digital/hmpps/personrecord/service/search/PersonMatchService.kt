@@ -60,7 +60,7 @@ class PersonMatchService(
 
   fun saveToPersonMatch(personEntity: PersonEntity) = runBlocking { retryExecutor.runWithRetryHTTP { personMatchClient.postPerson(PersonMatchRecord.from(personEntity)) } }
 
-  fun deleteFromPersonMatch(personEntity: PersonEntity) = runBlocking { retryExecutor.runWithRetryHTTP { personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity)) } }
+  fun deleteFromPersonMatch(personEntity: PersonEntity) = runBlocking { runCatching { retryExecutor.runWithRetryHTTP { personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity)) } } }
 
   private suspend fun handleNotFoundRecordsIsClusterValid(cluster: PersonKeyEntity, exception: FeignException.NotFound): IsClusterValidResponse {
     val missingRecords = handleDecodeOfNotFoundException(exception)
