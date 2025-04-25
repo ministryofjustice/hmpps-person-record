@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -1047,6 +1048,12 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       cluster2.checkReclusterMergeTelemetry(cluster1)
 
+      checkEventLog(personC.crn!!, CPRLogEvents.CPR_RECLUSTER_UUID_MERGED) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        val eventLog = eventLogs.first()
+        assertThat(eventLog.uuid).isEqualTo(cluster2.personUUID)
+        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
+      }
       checkEventLogExist(personC.crn!!, CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED)
       checkEventLogExist(personD.crn!!, CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED)
     }
