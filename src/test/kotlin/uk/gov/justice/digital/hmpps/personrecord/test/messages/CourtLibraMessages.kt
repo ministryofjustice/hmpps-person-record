@@ -13,6 +13,11 @@ fun libraHearing(
   dateOfBirth: String = "01/01/1975",
   cro: String = "85227/65L",
   postcode: String = randomPostcode(),
+  line1: String? = randomName(),
+  line2: String? = randomName(),
+  line3: String? = randomName(),
+  line4: String? = randomName(),
+  line5: String? = randomName(),
   cId: String = randomCId(),
   defendantType: DefendantType = DefendantType.PERSON,
   defendantSex: String? = null,
@@ -31,8 +36,11 @@ fun libraHearing(
    "defendantDob":"$dateOfBirth",
    "defendantAge":"20",
    "defendantAddress":{
-      "line1": "39 The Street",
-      "line2": "Newtown"
+      ${line1?.let { """ "line1": "$line1", """.trimIndent() } ?: ""}
+      ${line2?.let { """ "line2": "$line2", """.trimIndent() } ?: ""}
+      ${line3?.let { """ "line3": "$line3", """.trimIndent() } ?: ""}
+      ${line4?.let { """ "line4": "$line4", """.trimIndent() } ?: ""}
+      ${line5?.let { """ "line5": "$line5" """.trimIndent() } ?: ""}
       ${postcode.let { """ ,"pcode": "$postcode" """.trimIndent() } ?: ""}
    },
    "cro":"$cro",
