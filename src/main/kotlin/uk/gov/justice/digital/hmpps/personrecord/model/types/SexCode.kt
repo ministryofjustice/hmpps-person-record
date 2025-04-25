@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model.types
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 
 enum class SexCode(val description: String) {
   M("Male"),
@@ -32,6 +33,14 @@ enum class SexCode(val description: String) {
         else -> N
       }
       return sexCode
+    }
+
+    fun from(probationCase: ProbationCase?): SexCode? {
+      if (probationCase?.gender?.value == "M") {
+        return M
+      }
+
+      return null
     }
   }
 }

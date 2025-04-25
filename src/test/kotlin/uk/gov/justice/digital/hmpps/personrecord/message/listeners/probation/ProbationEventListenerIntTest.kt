@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
@@ -57,7 +58,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `creates person when when new offender created event is published`() {
+    fun `creates person when new offender created event is published`() {
       val crn = randomCrn()
       val title = randomName()
       val prisonNumber = randomPrisonNumber()
@@ -75,6 +76,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val aliasMiddleName = randomName()
       val aliasLastName = randomName()
       val aliasDateOfBirth = randomDate()
+      val gender = "M"
 
       val apiResponse = ApiResponseSetup(
         crn = crn,
@@ -93,6 +95,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         ethnicity = ethnicity,
         nationality = nationality,
         sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
+        gender = gender,
       )
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
 
@@ -136,6 +139,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.contacts[2].contactValue).isEqualTo("test@gmail.com")
       assertThat(personEntity.matchId).isNotNull()
       assertThat(personEntity.lastModified).isNotNull()
+      assertThat(personEntity.sexCode).isEqualTo(SexCode.M)
 
       checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))

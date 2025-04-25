@@ -21,7 +21,7 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
       },
       "dateOfBirth": "${probationCase.dateOfBirth ?: ""}",
       "gender": {
-          "code": "M",
+          "code": "${probationCase.gender ?: ""}",
           "description": "Male"
       },
       "aliases": [${probationCase.aliases.joinToString { alias(it) }}],
