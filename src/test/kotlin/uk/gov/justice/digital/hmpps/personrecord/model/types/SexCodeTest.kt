@@ -23,13 +23,27 @@ class SexCodeTest {
 
   @ParameterizedTest
   @MethodSource("libraEventMessage")
-  fun `should map libra event values`(defendantSex: String?, sexCode: SexCode?) {
+  fun `should map libra event defendantSex values`(defendantSex: String?, sexCode: SexCode?) {
     val libraHearingEvent = LibraHearingEvent(defendantSex = defendantSex)
 
     assertEquals(SexCode.from(libraHearingEvent), sexCode)
   }
 
+  @ParameterizedTest
+  @MethodSource("probationNdeliusEvent")
+  fun `should map from nDelius probation event gender values`(probationEvent: String?) {
+  }
+
   companion object {
+    @JvmStatic
+    fun probationNdeliusEvent(): Stream<Arguments> = Stream.of(
+      Arguments.of("M", SexCode.M),
+      Arguments.of("F", SexCode.F),
+      Arguments.of("N", SexCode.M),
+      Arguments.of("ANYTHING ELSE", SexCode.NS),
+      Arguments.of(null, null),
+    )
+
     @JvmStatic
     fun libraEventMessage(): Stream<Arguments> = Stream.of(
       Arguments.of("M", SexCode.M),

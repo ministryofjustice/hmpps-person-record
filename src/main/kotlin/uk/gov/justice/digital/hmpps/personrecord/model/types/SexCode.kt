@@ -36,11 +36,14 @@ enum class SexCode(val description: String) {
     }
 
     fun from(probationCase: ProbationCase?): SexCode? {
-      if (probationCase?.gender?.value == "M") {
-        return M
+      val sexCode = when (probationCase?.gender?.value) {
+        "M" -> M
+        "F" -> F
+        "N" -> N
+        null -> null
+        else -> NS
       }
-
-      return null
+      return sexCode
     }
   }
 }
