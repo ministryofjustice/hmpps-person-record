@@ -40,6 +40,7 @@ data class Prisoner(
   @JsonDeserialize(using = CurrentlyManagedDeserializer::class)
   val currentlyManaged: Boolean? = null,
   val allConvictedOffences: List<AllConvictedOffences>? = emptyList(),
+  val gender: String? = null,
 ) {
 
   fun getHomePhone(): String? = phoneNumbers.firstOrNull { it.type?.contains("HOME") == true }?.number
