@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
+import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -42,9 +43,32 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val pnc = randomPnc()
     val dateOfBirth = randomDate()
     val cId = randomCId()
+
+    val buildingName = randomName()
+    val buildingNumber = randomBuildingNumber()
+    val thoroughfareName = randomName()
+    val dependentLocality = randomName()
+    val postTown = randomName()
+
     stubPersonMatchUpsert()
     stubPersonMatchScores()
-    val messageId = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode, defendantSex = "NS"))
+
+    val messageId = publishLibraMessage(
+      libraHearing(
+        firstName = firstName,
+        lastName = lastName,
+        cId = cId,
+        dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+        cro = "", pncNumber = pnc,
+        postcode = postcode,
+        defendantSex = "NS",
+        line1 = buildingName,
+        line2 = buildingNumber,
+        line3 = thoroughfareName,
+        line4 = dependentLocality,
+        line5 = postTown,
+      ),
+    )
 
     checkTelemetry(
       MESSAGE_RECEIVED,
@@ -69,6 +93,15 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.references.getType(PNC).first().identifierValue).isEqualTo(pnc)
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
+    assertThat(person.addresses[0].buildingName).isEqualTo(buildingName)
+    assertThat(person.addresses[0].buildingNumber).isEqualTo(buildingNumber)
+    assertThat(person.addresses[0].thoroughfareName).isEqualTo(thoroughfareName)
+    assertThat(person.addresses[0].dependentLocality).isEqualTo(dependentLocality)
+    assertThat(person.addresses[0].postTown).isEqualTo(postTown)
+    assertThat(person.addresses[0].subBuildingName).isNull()
+    assertThat(person.addresses[0].county).isNull()
+    assertThat(person.addresses[0].country).isNull()
+    assertThat(person.addresses[0].uprn).isNull()
     assertThat(person.personKey).isNotNull()
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
     assertThat(person.sexCode).isEqualTo(SexCode.NS)

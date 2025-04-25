@@ -137,7 +137,16 @@ data class Person(
     }
 
     fun from(libraHearingEvent: LibraHearingEvent): Person {
-      val addresses = listOf(Address(postcode = libraHearingEvent.defendantAddress?.postcode))
+      val addresses = listOf(
+        Address(
+          postcode = libraHearingEvent.defendantAddress?.postcode,
+          buildingName = libraHearingEvent.defendantAddress?.buildingName,
+          buildingNumber = libraHearingEvent.defendantAddress?.buildingNumber,
+          thoroughfareName = libraHearingEvent.defendantAddress?.thoroughfareName,
+          dependentLocality = libraHearingEvent.defendantAddress?.dependentLocality,
+          postTown = libraHearingEvent.defendantAddress?.postTown,
+        ),
+      )
       val references = listOf(
         Reference(identifierType = IdentifierType.CRO, identifierValue = libraHearingEvent.cro?.toString()),
         Reference(identifierType = IdentifierType.PNC, identifierValue = libraHearingEvent.pnc?.toString()),
