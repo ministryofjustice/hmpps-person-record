@@ -1057,6 +1057,29 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       checkEventLogExist(personC.crn!!, CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED)
       checkEventLogExist(personD.crn!!, CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED)
     }
+
+    @Test
+    fun `should log needs attention when changed record has no matches`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      stubNoMatchesPersonMatch(matchId = personA.matchId)
+
+      reclusterService.recluster(cluster, changedRecord = personA)
+
+      cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
+      checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        val eventLog = eventLogs.first()
+        assertThat(eventLog.uuid).isEqualTo(cluster.personUUID)
+        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
+      }
+    }
   }
 
   private fun PersonKeyEntity.assertClusterNotChanged(size: Int) {
