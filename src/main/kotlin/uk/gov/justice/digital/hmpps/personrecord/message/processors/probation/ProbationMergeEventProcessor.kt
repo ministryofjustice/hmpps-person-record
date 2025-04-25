@@ -11,14 +11,14 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.format.EncodingService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
-import uk.gov.justice.digital.hmpps.personrecord.service.message.NewMergeService
+import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MERGE_MESSAGE_RECEIVED
 
 @Component
 class ProbationMergeEventProcessor(
   private val personRepository: PersonRepository,
   private val createUpdateService: CreateUpdateService,
-  private val newMergeService: NewMergeService,
+  private val mergeService: MergeService,
   private val encodingService: EncodingService,
   private val publisher: ApplicationEventPublisher,
 ) {
@@ -39,7 +39,7 @@ class ProbationMergeEventProcessor(
       it?.let {
         val from: PersonEntity? = personRepository.findByCrn(mergeDomainEvent.additionalInformation.sourceCrn!!)
         val to: PersonEntity = createUpdateService.processPerson(Person.from(it), shouldRecluster = false) { personRepository.findByCrn(mergeDomainEvent.additionalInformation.targetCrn) }
-        newMergeService.processMerge(from, to)
+        mergeService.processMerge(from, to)
       }
     }
   }
