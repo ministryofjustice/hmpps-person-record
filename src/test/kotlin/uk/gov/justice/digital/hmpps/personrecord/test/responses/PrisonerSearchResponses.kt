@@ -14,7 +14,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     "middleNames": "${responseSetup.middleName} ${responseSetup.middleName}",
     "lastName": "${responseSetup.lastName}",
     "dateOfBirth": "${responseSetup.dateOfBirth}",
-    "gender": "Female",
+    "gender": ${responseSetup.gender?.let {""" "${responseSetup.gender}" """}},
     ${responseSetup.ethnicity?.let { """ "ethnicity": "${responseSetup.ethnicity}", """.trimIndent() } ?: "" }
     "youthOffender": true,
     "maritalStatus": "Widowed",
