@@ -130,7 +130,7 @@ class IntegrationTestBase {
     times: Int = 1,
   ) {
     checkEventLog(sourceSystemId, event) { logEvents ->
-      assertThat(logEvents).hasSize(times)
+      assertThat(logEvents).`as`("Missing event log $event and actual data $logEvents").hasSize(times)
     }
   }
 
