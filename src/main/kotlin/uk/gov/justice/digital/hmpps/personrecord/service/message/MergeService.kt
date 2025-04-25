@@ -10,12 +10,13 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyReposit
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.ClusterMerged
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.PersonMerged
+import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
 class MergeService(
   private val personKeyRepository: PersonKeyRepository,
   private val personRepository: PersonRepository,
-  private val deletionService: DeletionService,
+  private val personMatchService: PersonMatchService,
   private val publisher: ApplicationEventPublisher,
 ) {
 
@@ -43,7 +44,7 @@ class MergeService(
       it.removePersonKeyLink()
       it.mergeTo(to)
       personRepository.save(it)
-      deletionService.deletePersonFromPersonMatch(it)
+      personMatchService.deleteFromPersonMatch(it)
     }
   }
 

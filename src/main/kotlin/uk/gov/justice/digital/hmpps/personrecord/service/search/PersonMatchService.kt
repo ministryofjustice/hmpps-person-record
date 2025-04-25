@@ -6,6 +6,7 @@ import feign.FeignException
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidMissingRecordResponse
@@ -57,7 +58,9 @@ class PersonMatchService(
     )
   }
 
-  fun saveToPersonMatch(personEntity: PersonEntity) = personMatchClient.postPerson(PersonMatchRecord.from(personEntity))
+  fun saveToPersonMatch(personEntity: PersonEntity) = runBlocking { retryExecutor.runWithRetryHTTP { personMatchClient.postPerson(PersonMatchRecord.from(personEntity)) } }
+
+  fun deleteFromPersonMatch(personEntity: PersonEntity) = runBlocking { retryExecutor.runWithRetryHTTP { personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity)) } }
 
   private suspend fun handleNotFoundRecordsIsClusterValid(cluster: PersonKeyEntity, exception: FeignException.NotFound): IsClusterValidResponse {
     val missingRecords = handleDecodeOfNotFoundException(exception)
