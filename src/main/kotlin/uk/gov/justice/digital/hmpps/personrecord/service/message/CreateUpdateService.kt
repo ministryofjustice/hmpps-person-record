@@ -29,17 +29,17 @@ class CreateUpdateService(
     retryFor = [
       OptimisticLockException::class,
       DataIntegrityViolationException::class,
-      CannotAcquireLockException::class, // Needed for tests to pass
+      CannotAcquireLockException::class,
     ],
   )
   @Transactional(isolation = REPEATABLE_READ)
-  fun processPerson(person: Person, findPerson: () -> PersonEntity?): PersonEntity = runBlocking {
+  fun processPerson(person: Person, shouldRecluster: Boolean = true, findPerson: () -> PersonEntity?): PersonEntity = runBlocking {
     return@runBlocking findPerson().exists(
       no = {
         handlePersonCreation(person)
       },
       yes = {
-        handlePersonUpdate(person, it)
+        handlePersonUpdate(person, it, shouldRecluster)
       },
     )
   }
@@ -51,12 +51,12 @@ class CreateUpdateService(
     return linkedPersonEntity
   }
 
-  private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity): PersonEntity {
+  private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, shouldRecluster: Boolean): PersonEntity {
     val oldMatchingDetails = PersonMatchRecord.from(existingPersonEntity)
     val updatedPersonEntity = personService.updatePersonEntity(person, existingPersonEntity)
     val newMatchingDetails = PersonMatchRecord.from(updatedPersonEntity)
     val matchingFieldsHaveChanged = oldMatchingDetails.matchingFieldsAreDifferent(newMatchingDetails)
-    publisher.publishEvent(PersonUpdated(updatedPersonEntity, matchingFieldsHaveChanged))
+    publisher.publishEvent(PersonUpdated(updatedPersonEntity, matchingFieldsHaveChanged, shouldRecluster))
     return updatedPersonEntity
   }
 }

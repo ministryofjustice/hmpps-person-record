@@ -30,7 +30,7 @@ class PersonService(
   }
 
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
-    var personEntityWithKey = personMatchService.findHighestConfidencePersonRecord(personEntity).exists(
+    val personEntityWithKey = personMatchService.findHighestConfidencePersonRecord(personEntity).exists(
       no = { personKeyService.createPersonKey(personEntity) },
       yes = { personKeyService.retrievePersonKey(personEntity, it) },
     )
