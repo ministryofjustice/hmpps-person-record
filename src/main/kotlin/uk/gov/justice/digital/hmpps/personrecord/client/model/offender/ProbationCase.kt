@@ -15,4 +15,5 @@ data class ProbationCase(
   val addresses: List<Address> = emptyList(),
   val sentences: List<Sentences>? = emptyList(),
   val nationality: Value? = null,
+  val gender: Value? = null,
 )

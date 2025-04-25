@@ -78,6 +78,7 @@ data class Person(
         references = references,
         sourceSystem = DELIUS,
         sentences = probationCase.sentences?.map { SentenceInfo.from(it) } ?: emptyList(),
+        sexCode = SexCode.from(probationCase),
       )
     }
 
