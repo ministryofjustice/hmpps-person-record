@@ -5,6 +5,10 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import java.util.stream.Stream
 import kotlin.test.assertEquals
 
@@ -30,16 +34,19 @@ class SexCodeTest {
   }
 
   @ParameterizedTest
-  @MethodSource("probationNdeliusEvent")
-  fun `should map from nDelius probation event gender values`(probationEvent: String?) {
+  @MethodSource("probationEvent")
+  fun `should map from probation event gender values`(genderCode: String?, sexCode: SexCode?) {
+    val probationCase = ProbationCase(name = Name(), identifiers = Identifiers(), gender = Value(genderCode))
+
+    assertEquals(SexCode.from(probationCase), sexCode)
   }
 
   companion object {
     @JvmStatic
-    fun probationNdeliusEvent(): Stream<Arguments> = Stream.of(
+    fun probationEvent(): Stream<Arguments> = Stream.of(
       Arguments.of("M", SexCode.M),
       Arguments.of("F", SexCode.F),
-      Arguments.of("N", SexCode.M),
+      Arguments.of("N", SexCode.N),
       Arguments.of("ANYTHING ELSE", SexCode.NS),
       Arguments.of(null, null),
     )
