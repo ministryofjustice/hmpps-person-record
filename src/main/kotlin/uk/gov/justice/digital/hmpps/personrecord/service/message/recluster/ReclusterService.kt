@@ -79,6 +79,7 @@ class ReclusterService(
     from.mergedTo = to.id
     from.status = UUIDStatusType.RECLUSTER_MERGE
     personKeyRepository.save(from)
+    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_UUID_MERGED, from.personEntities.first(), from))
 
     from.personEntities.forEach { personEntity ->
       personEntity.personKey = to
