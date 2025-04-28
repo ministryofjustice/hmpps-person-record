@@ -5,7 +5,7 @@ kotlin {
 }
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "8.0.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "8.1.0"
   kotlin("plugin.spring") version "2.1.20"
   kotlin("jvm") version "2.1.20"
   kotlin("plugin.jpa") version "2.1.20"
@@ -39,7 +39,7 @@ dependencies {
 
   implementation("org.springframework.cloud:spring-cloud-dependencies:2024.0.1")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-  implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.9.9")
+  implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.9.10")
 
   runtimeOnly("org.postgresql:postgresql:42.7.5")
   runtimeOnly("org.flywaydb:flyway-core")
