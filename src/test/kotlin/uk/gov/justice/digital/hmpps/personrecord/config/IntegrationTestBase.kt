@@ -130,7 +130,7 @@ class IntegrationTestBase {
     times: Int = 1,
   ) {
     checkEventLog(sourceSystemId, event) { logEvents ->
-      assertThat(logEvents).hasSize(times)
+      assertThat(logEvents).`as`("Missing event log $event and actual data $logEvents").hasSize(times)
     }
   }
 
@@ -180,13 +180,11 @@ class IntegrationTestBase {
   }
 
   internal fun mergeUuid(sourcePersonKey: PersonKeyEntity, targetPersonKeyEntity: PersonKeyEntity): PersonKeyEntity {
-    sourcePersonKey.mergedTo = targetPersonKeyEntity.id
-
-    if (sourcePersonKey.personEntities.size == 1) {
-      sourcePersonKey.status = MERGED
-    }
-
-    return personKeyRepository.saveAndFlush(sourcePersonKey)
+    val source = personKeyRepository.findByPersonUUID(sourcePersonKey.personUUID)!!
+    val target = personKeyRepository.findByPersonUUID(targetPersonKeyEntity.personUUID)!!
+    source.mergedTo = target.id
+    source.status = MERGED
+    return personKeyRepository.saveAndFlush(source)
   }
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {

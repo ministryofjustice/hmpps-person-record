@@ -9,4 +9,19 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class Address(
   @JsonProperty("pcode")
   val postcode: String? = null,
+
+  @JsonProperty("line1")
+  val buildingName: String? = null,
+
+  @JsonProperty("line2")
+  val buildingNumber: String? = null,
+
+  @JsonProperty("line3")
+  val thoroughfareName: String? = null,
+
+  @JsonProperty("line4")
+  val dependentLocality: String? = null,
+
+  @JsonProperty("line5")
+  val postTown: String? = null,
 )

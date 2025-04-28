@@ -9,6 +9,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifie
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import java.util.stream.Stream
 import kotlin.test.assertEquals
 
@@ -41,6 +43,27 @@ class SexCodeTest {
     assertEquals(SexCode.from(probationCase), sexCode)
   }
 
+  @ParameterizedTest
+  @MethodSource("prisonEvent")
+  fun `should map from prison event gender values`(gender: String?, sexCode: SexCode?) {
+    val probationCase = Prisoner(
+      prisonNumber = "", gender = gender,
+      title = "",
+      firstName = "",
+      middleNames = "",
+      lastName = "",
+      nationality = "",
+      religion = "",
+      ethnicity = "",
+      pnc = null,
+      cro = null,
+      dateOfBirth = randomDate(),
+      currentlyManaged = false,
+    )
+
+    assertEquals(SexCode.from(probationCase), sexCode)
+  }
+
   companion object {
     @JvmStatic
     fun probationEvent(): Stream<Arguments> = Stream.of(
@@ -65,6 +88,16 @@ class SexCodeTest {
       Arguments.of("MALE", SexCode.M),
       Arguments.of("FEMALE", SexCode.F),
       Arguments.of("NOT SPECIFIED", SexCode.NS),
+      Arguments.of("ANYTHING ELSE", SexCode.N),
+      Arguments.of(null, null),
+    )
+
+    @JvmStatic
+    fun prisonEvent(): Stream<Arguments> = Stream.of(
+      Arguments.of("Male", SexCode.M),
+      Arguments.of("Female", SexCode.F),
+      Arguments.of("Not Known / Not Recorded", SexCode.N),
+      Arguments.of("Not Specified (Indeterminate)", SexCode.NS),
       Arguments.of("ANYTHING ELSE", SexCode.N),
       Arguments.of(null, null),
     )
