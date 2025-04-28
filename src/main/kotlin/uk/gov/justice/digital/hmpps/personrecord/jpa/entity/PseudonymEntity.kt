@@ -54,7 +54,7 @@ class PseudonymEntity(
 
   @Column(name = "name_type")
   @Enumerated(STRING)
-  val type: NameType,
+  val nameType: NameType,
 
   @Version
   var version: Int = 0,
@@ -67,7 +67,7 @@ class PseudonymEntity(
           middleNames = alias.middleNames,
           lastName = alias.lastName,
           dateOfBirth = alias.dateOfBirth,
-          type = NameType.ALIAS,
+          nameType = NameType.ALIAS,
           title = alias.title,
         )
       else -> null
