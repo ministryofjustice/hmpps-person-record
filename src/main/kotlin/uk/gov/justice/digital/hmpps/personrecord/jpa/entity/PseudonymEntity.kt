@@ -68,7 +68,7 @@ class PseudonymEntity(
         middleNames = middleNamesAsString,
         lastName = person.lastName,
         nameType = NameType.PRIMARY,
-        title = person.title,
+        title = person.title, // TODO test for this and add DateOfBirth
       )
 
       val entities = person.aliases.mapNotNull { from(it) }.toMutableList()

@@ -189,7 +189,7 @@ class PersonEntity(
   private fun updateChildEntities(person: Person) {
     updatePersonAddresses(person)
     updatePersonContacts(person)
-    updatePseudonymEntity(person)
+    updatePseudonyms(person)
     updatePersonReferences(person)
     updatePersonSentences(person)
   }
@@ -200,7 +200,7 @@ class PersonEntity(
     this.addresses.addAll(personAddresses)
   }
 
-  private fun updatePseudonymEntity(person: Person) {
+  private fun updatePseudonyms(person: Person) {
     val entities = PseudonymEntity.from(person)
     entities.forEach { entity -> entity.person = this }
     this.pseudonyms.addAll(entities)
