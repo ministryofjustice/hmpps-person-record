@@ -16,6 +16,6 @@ class EventLogListener(
   @EventListener
   @TransactionalEventListener
   fun onEventLogEvent(eventLog: RecordEventLog) {
-    eventLogService.logEvent(eventLog.personEntity, eventLog.eventType, eventLog.personKeyEntity, eventLog.clusterComposition)
+    eventLogService.logEvent(eventLog)
   }
 }
