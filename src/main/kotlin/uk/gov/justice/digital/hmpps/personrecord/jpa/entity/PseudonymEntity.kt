@@ -14,7 +14,6 @@ import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
 import java.time.LocalDate
 
 @Entity
@@ -68,7 +67,7 @@ class PseudonymEntity(
         firstName = person.firstName,
         middleNames = middleNamesAsString,
         lastName = person.lastName,
-        nameType = PRIMARY,
+        nameType = NameType.PRIMARY,
         title = person.title,
         dateOfBirth = person.dateOfBirth,
       )
