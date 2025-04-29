@@ -72,10 +72,7 @@ class PseudonymEntity(
         dateOfBirth = person.dateOfBirth,
       )
 
-      val entities = person.aliases.mapNotNull { from(it) }.toMutableList()
-      entities.add(primary)
-
-      return entities
+      return person.aliases.mapNotNull { from(it) } + primary
     }
 
     private fun from(alias: Alias): PseudonymEntity? = when {
