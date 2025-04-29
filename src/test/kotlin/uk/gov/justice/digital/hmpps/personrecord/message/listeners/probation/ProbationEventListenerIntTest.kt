@@ -312,6 +312,27 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       assertThat(updatedLastModified).isAfter(createdLastModified)
     }
+
+    @Test
+    fun `should deduplicate sentences dates`() {
+      val crn = randomCrn()
+      val sentenceDate = randomDate()
+
+      val apiResponse = ApiResponseSetup(
+        crn = crn,
+        sentences = listOf(
+          ApiResponseSetupSentences(sentenceDate),
+          ApiResponseSetupSentences(sentenceDate),
+          ApiResponseSetupSentences(sentenceDate),
+        ),
+      )
+
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
+
+      val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
+
+      assertThat(personEntity.sentenceInfo).hasSize(1)
+    }
   }
 
   @Test
