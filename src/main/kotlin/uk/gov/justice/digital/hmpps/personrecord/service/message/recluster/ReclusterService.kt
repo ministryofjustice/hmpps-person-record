@@ -4,6 +4,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CircularMergeException
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse.Companion.result
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -103,25 +104,26 @@ class ReclusterService(
       clusterDetails.relationship.notMatchedToAnyRecord() -> handleInvalidClusterComposition(clusterDetails)
       else -> personMatchService.examineIsClusterValid(clusterDetails.cluster).result(
         isValid = { handleMergeClusters(clusterDetails) },
-        isNotValid = { handleInvalidClusterComposition(clusterDetails) },
+        isNotValid = { clusterComposition -> handleInvalidClusterComposition(clusterDetails, clusterComposition) },
       )
     }
   }
 
   private fun handleExclusionsBetweenMatchedClusters(clusterDetails: ClusterDetails) {
     publisher.publishEvent(RecordClusterTelemetry(TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS, clusterDetails.cluster))
+    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION, clusterDetails.changedRecord, clusterDetails.cluster))
     setClusterAsNeedsAttention(clusterDetails)
   }
 
-  private fun handleInvalidClusterComposition(clusterDetails: ClusterDetails) {
+  private fun handleInvalidClusterComposition(clusterDetails: ClusterDetails, clusterComposition: List<ValidCluster>? = null) {
     publisher.publishEvent(RecordClusterTelemetry(TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED, clusterDetails.cluster))
+    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION, clusterDetails.changedRecord, clusterDetails.cluster, clusterComposition))
     setClusterAsNeedsAttention(clusterDetails)
   }
 
   private fun setClusterAsNeedsAttention(clusterDetails: ClusterDetails) {
     clusterDetails.cluster.status = UUIDStatusType.NEEDS_ATTENTION
     personKeyRepository.save(clusterDetails.cluster)
-    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION, clusterDetails.changedRecord, clusterDetails.cluster))
   }
 
   private fun List<PersonKeyEntity>.removeUpdatedCluster(cluster: PersonKeyEntity) = this.filterNot { it.id == cluster.id }

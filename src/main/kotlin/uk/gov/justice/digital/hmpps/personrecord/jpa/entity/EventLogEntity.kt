@@ -13,7 +13,6 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.GeneratedColumn
 import org.hibernate.annotations.Type
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.extractSourceSystemId
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -116,7 +115,7 @@ class EventLogEntity(
     fun from(
       personEntity: PersonEntity,
       eventType: CPRLogEvents,
-      clusterComposition: List<ValidCluster>? = null,
+      clusterComposition: String? = null,
       personKeyEntity: PersonKeyEntity? = null,
     ): EventLogEntity {
       val aliases: List<PseudonymEntity> = personEntity.getAliases()
@@ -133,15 +132,19 @@ class EventLogEntity(
         lastNameAliases = aliases.mapNotNull { it.lastName }.dedupeAndSortedArray(),
         dateOfBirthAliases = aliases.mapNotNull { it.dateOfBirth }.dedupeAndSortedArray(),
         postcodes = personEntity.addresses.mapNotNull { it.postcode }.dedupeAndSortedArray(),
-        cros = personEntity.references.getType(IdentifierType.CRO).mapNotNull { it.identifierValue }.dedupeAndSortedArray(),
-        pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue }.dedupeAndSortedArray(),
+        cros = personEntity.references.getType(IdentifierType.CRO).mapNotNull { it.identifierValue }
+          .dedupeAndSortedArray(),
+        pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue }
+          .dedupeAndSortedArray(),
         sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.dedupeAndSortedArray(),
-        excludeOverrideMarkers = personEntity.getExcludeOverrideMarkers().mapNotNull { it.markerValue }.dedupeAndSortedArray(),
-        includeOverrideMarkers = personEntity.getIncludeOverrideMarkers().mapNotNull { it.markerValue }.dedupeAndSortedArray(),
+        excludeOverrideMarkers = personEntity.getExcludeOverrideMarkers().mapNotNull { it.markerValue }
+          .dedupeAndSortedArray(),
+        includeOverrideMarkers = personEntity.getIncludeOverrideMarkers().mapNotNull { it.markerValue }
+          .dedupeAndSortedArray(),
         sourceSystem = personEntity.sourceSystem,
         eventType = eventType,
         recordMergedTo = personEntity.mergedTo,
-        clusterComposition = clusterComposition?.toString(),
+        clusterComposition = clusterComposition,
       )
     }
 
