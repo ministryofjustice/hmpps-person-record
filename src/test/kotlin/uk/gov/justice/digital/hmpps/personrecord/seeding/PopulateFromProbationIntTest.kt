@@ -44,12 +44,12 @@ class PopulateFromProbationIntTest : WebTestBase() {
     assertThat(popOne.lastName).isEqualTo("POPOneLastName")
     assertThat(popOne.crn).isEqualTo(crnOne)
     assertThat(popOne.dateOfBirth).isEqualTo(LocalDate.of(1980, 8, 29))
-    assertThat(popOne.pseudonyms[0].firstName).isEqualTo("POPOneAliasOneFirstName")
-    assertThat(popOne.pseudonyms[0].middleNames).isEqualTo("POPOneAliasOneMiddleNameOne POPOneAliasOneMiddleNameTwo")
-    assertThat(popOne.pseudonyms[0].lastName).isEqualTo("POPOneAliasOneLastName")
-    assertThat(popOne.pseudonyms[1].firstName).isEqualTo("POPOneAliasTwoFirstName")
-    assertThat(popOne.pseudonyms[1].middleNames).isEqualTo("POPOneAliasTwoMiddleNameOne POPOneAliasTwoMiddleNameTwo")
-    assertThat(popOne.pseudonyms[1].lastName).isEqualTo("POPOneAliasTwoLastName")
+    assertThat(popOne.getAliases()[0].firstName).isEqualTo("POPOneAliasOneFirstName")
+    assertThat(popOne.getAliases()[0].middleNames).isEqualTo("POPOneAliasOneMiddleNameOne POPOneAliasOneMiddleNameTwo")
+    assertThat(popOne.getAliases()[0].lastName).isEqualTo("POPOneAliasOneLastName")
+    assertThat(popOne.getAliases()[1].firstName).isEqualTo("POPOneAliasTwoFirstName")
+    assertThat(popOne.getAliases()[1].middleNames).isEqualTo("POPOneAliasTwoMiddleNameOne POPOneAliasTwoMiddleNameTwo")
+    assertThat(popOne.getAliases()[1].lastName).isEqualTo("POPOneAliasTwoLastName")
     assertThat(popOne.sourceSystem).isEqualTo(DELIUS)
     assertThat(personRepository.findByCrn(crnTwo)!!.firstName).isEqualTo("POPTwoFirstName")
     assertThat(personRepository.findByCrn(crnThree)!!.firstName).isEqualTo("POPThreeFirstName")
@@ -60,7 +60,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
     assertThat(popSeven.firstName).isEqualTo("POPSevenFirstName")
     assertThat(popSeven.middleNames).isNull()
     assertThat(popSeven.references.getType(IdentifierType.CRO)).isEqualTo(emptyList<ReferenceEntity>())
-    assertThat(popSeven.pseudonyms.size).isEqualTo(0)
+    assertThat(popSeven.getAliases().size).isEqualTo(0)
   }
 
   @Test
