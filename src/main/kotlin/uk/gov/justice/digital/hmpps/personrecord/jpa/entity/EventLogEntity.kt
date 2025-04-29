@@ -148,6 +148,7 @@ class EventLogEntity(
       )
     }
 
+
     private fun List<String>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
 
     private fun List<Long>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
