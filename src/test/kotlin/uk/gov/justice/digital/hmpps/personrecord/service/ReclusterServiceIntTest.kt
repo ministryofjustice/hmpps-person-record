@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CircularMergeException
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
@@ -1078,6 +1079,40 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         val eventLog = eventLogs.first()
         assertThat(eventLog.uuid).isEqualTo(cluster.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
+      }
+    }
+
+    @Test
+    fun `should log cluster composition when isClusterValid is false`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      val clusterComposition = listOf(
+        ValidCluster(listOf(personA.matchId.toString(), personB.matchId.toString())),
+        ValidCluster(listOf(personC.matchId.toString())),
+      )
+      stubClusterIsNotValid(clusterComposition)
+      stubOnePersonMatchHighConfidenceMatch(matchId = personA.matchId, matchedRecord = personB.matchId)
+
+      reclusterService.recluster(cluster, changedRecord = personA)
+
+      checkTelemetry(
+        CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
+        mapOf("UUID" to cluster.personUUID.toString()),
+      )
+      cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
+
+      checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        val eventLog = eventLogs.first()
+        assertThat(eventLog.uuid).isEqualTo(cluster.personUUID)
+        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
+        assertThat(eventLog.clusterComposition).isEqualTo(objectMapper.writeValueAsString(clusterComposition))
       }
     }
   }
