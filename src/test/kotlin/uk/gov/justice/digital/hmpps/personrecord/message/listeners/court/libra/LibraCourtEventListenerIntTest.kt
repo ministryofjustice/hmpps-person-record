@@ -296,8 +296,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode))
 
       checkEventLog(cId, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
-        assertThat(eventLogs?.size).isEqualTo(1)
-        val createdLog = eventLogs!!.first()
+        assertThat(eventLogs.size).isEqualTo(1)
+        val createdLog = eventLogs.first()
         assertThat(createdLog.pncs).isEqualTo(arrayOf(pnc))
         assertThat(createdLog.firstName).isEqualTo(firstName)
         assertThat(createdLog.lastName).isEqualTo(lastName)

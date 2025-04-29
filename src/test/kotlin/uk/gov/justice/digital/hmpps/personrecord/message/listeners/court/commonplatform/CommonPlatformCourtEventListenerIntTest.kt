@@ -524,8 +524,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
 
       checkEventLog(defendantId, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
-        assertThat(eventLogs?.size).isEqualTo(1)
-        val createdLog = eventLogs!!.first()
+        assertThat(eventLogs.size).isEqualTo(1)
+        val createdLog = eventLogs.first()
         assertThat(createdLog.pncs).isEqualTo(arrayOf(pnc))
         assertThat(createdLog.cros).isEqualTo(arrayOf(cro))
         assertThat(createdLog.firstName).isEqualTo(firstName)
