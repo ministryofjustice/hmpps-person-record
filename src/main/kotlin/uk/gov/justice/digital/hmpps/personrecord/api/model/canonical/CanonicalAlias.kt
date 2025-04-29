@@ -23,6 +23,6 @@ data class CanonicalAlias(
       title = pseudonymEntity.title,
     )
 
-    fun from(person: PersonEntity?): List<CanonicalAlias> = person?.getAliases()?.map { from(it) } ?: emptyList()
+    fun from(person: PersonEntity?): List<CanonicalAlias>? = person?.getAliases()?.map { from(it) }
   }
 }
