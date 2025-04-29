@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
@@ -11,8 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.message.NewUnmergeService
 
-
-class NewMergeServiceIntTest: IntegrationTestBase() {
+class NewMergeServiceIntTest : IntegrationTestBase() {
 
   @Autowired
   lateinit var newUnmergeService: NewUnmergeService
@@ -60,7 +58,7 @@ class NewMergeServiceIntTest: IntegrationTestBase() {
 
   private fun PersonEntity.assertExcludedFrom(personEntity: PersonEntity) = awaitAssert {
     assertThat(
-      personRepository.findByMatchId(this.matchId)?.overrideMarkers?.filter { it.markerType == OverrideMarkerType.EXCLUDE && it.markerValue == personEntity.id }
+      personRepository.findByMatchId(this.matchId)?.overrideMarkers?.filter { it.markerType == OverrideMarkerType.EXCLUDE && it.markerValue == personEntity.id },
     ).hasSize(1)
   }
 }
