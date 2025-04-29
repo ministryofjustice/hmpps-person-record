@@ -13,7 +13,6 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.GeneratedColumn
 import org.hibernate.annotations.Type
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.extractSourceSystemId
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -116,7 +115,7 @@ class EventLogEntity(
     fun from(
       personEntity: PersonEntity,
       eventType: CPRLogEvents,
-      clusterComposition: List<ValidCluster>? = null,
+      clusterComposition: String? = null,
       personKeyEntity: PersonKeyEntity? = null,
     ): EventLogEntity = EventLogEntity(
       sourceSystemId = personEntity.extractSourceSystemId(),
@@ -139,7 +138,7 @@ class EventLogEntity(
       sourceSystem = personEntity.sourceSystem,
       eventType = eventType,
       recordMergedTo = personEntity.mergedTo,
-      clusterComposition = clusterComposition?.toString(),
+      clusterComposition = clusterComposition,
     )
 
     private fun List<String>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()

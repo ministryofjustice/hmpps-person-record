@@ -39,7 +39,7 @@ class PersonMatchRecordTest {
     val date = LocalDate.of(1970, 1, 1)
     val personEntity = PersonEntity(
       dateOfBirth = date,
-      pseudonyms = mutableListOf(PseudonymEntity(type = NameType.ALIAS, dateOfBirth = date)),
+      pseudonyms = mutableListOf(PseudonymEntity(nameType = NameType.ALIAS, dateOfBirth = date)),
       sentenceInfo = mutableListOf(SentenceInfoEntity(sentenceDate = date)),
       matchId = UUID.randomUUID(),
       sourceSystem = DELIUS,
