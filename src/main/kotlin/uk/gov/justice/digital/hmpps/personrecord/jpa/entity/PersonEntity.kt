@@ -16,6 +16,7 @@ import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -136,6 +137,9 @@ class PersonEntity(
 
 ) {
 
+  fun getAliases() = this.pseudonyms.filter { it.nameType.equals(NameType.ALIAS) }
+  fun getPrimaryName() = this.pseudonyms.first { it.nameType.equals(NameType.PRIMARY) }
+
   fun getExcludeOverrideMarkers() = this.overrideMarkers.filter { it.markerType == OverrideMarkerType.EXCLUDE }
 
   fun getIncludeOverrideMarkers() = this.overrideMarkers.filter { it.markerType == OverrideMarkerType.INCLUDE }
@@ -197,7 +201,7 @@ class PersonEntity(
   }
 
   private fun updatePersonAliases(person: Person) {
-    val personAliases = PseudonymEntity.fromList(person.aliases)
+    val personAliases = PseudonymEntity.from(person)
     personAliases.forEach { personAliasEntity -> personAliasEntity.person = this }
     this.pseudonyms.addAll(personAliases)
   }

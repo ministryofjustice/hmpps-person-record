@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
@@ -113,11 +114,17 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.nationality).isEqualTo(nationality)
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.references.getType(IdentifierType.CRO).first().identifierValue).isEqualTo(cro)
-      assertThat(personEntity.pseudonyms.size).isEqualTo(1)
-      assertThat(personEntity.pseudonyms[0].firstName).isEqualTo(aliasFirstName)
-      assertThat(personEntity.pseudonyms[0].middleNames).isEqualTo(aliasMiddleName)
-      assertThat(personEntity.pseudonyms[0].lastName).isEqualTo(aliasLastName)
-      assertThat(personEntity.pseudonyms[0].dateOfBirth).isEqualTo(aliasDateOfBirth)
+      assertThat(personEntity.getAliases().size).isEqualTo(1)
+      assertThat(personEntity.getAliases()[0].firstName).isEqualTo(aliasFirstName)
+      assertThat(personEntity.getAliases()[0].middleNames).isEqualTo(aliasMiddleName)
+      assertThat(personEntity.getAliases()[0].lastName).isEqualTo(aliasLastName)
+      assertThat(personEntity.getAliases()[0].dateOfBirth).isEqualTo(aliasDateOfBirth)
+      assertThat(personEntity.getAliases()[0].nameType).isEqualTo(NameType.ALIAS)
+      assertThat(personEntity.getPrimaryName().firstName).isEqualTo(firstName)
+      assertThat(personEntity.getPrimaryName().middleNames).isEqualTo(middleName)
+      assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
+      assertThat(personEntity.getPrimaryName().nameType).isEqualTo(NameType.PRIMARY)
+
       assertThat(personEntity.addresses.size).isEqualTo(2)
       assertThat(personEntity.addresses[0].noFixedAbode).isEqualTo(true)
       assertThat(personEntity.addresses[0].startDate).isEqualTo(addressStartDate)

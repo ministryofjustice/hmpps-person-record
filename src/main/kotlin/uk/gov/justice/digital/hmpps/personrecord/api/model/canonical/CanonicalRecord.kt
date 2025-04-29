@@ -53,7 +53,7 @@ data class CanonicalRecord(
       )
     }
 
-    private fun getAliases(person: PersonEntity?): List<CanonicalAlias> = person?.pseudonyms?.let { CanonicalAlias.fromPseudonymEntityList(it) } ?: emptyList()
+    private fun getAliases(person: PersonEntity?): List<CanonicalAlias> = person?.getAliases()?.let { CanonicalAlias.fromPseudonymEntityList(it) } ?: emptyList()
 
     private fun getAddresses(person: PersonEntity?): List<CanonicalAddress> = person?.addresses?.let { CanonicalAddress.fromAddressEntityList(it) } ?: emptyList()
   }
