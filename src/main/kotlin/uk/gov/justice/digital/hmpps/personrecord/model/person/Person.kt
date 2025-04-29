@@ -20,7 +20,7 @@ import java.util.UUID
 data class Person(
   val personId: UUID? = null,
   val firstName: String? = null,
-  val middleNames: List<String>? = null,
+  val middleNames: String? = null,
   val lastName: String? = null,
   val dateOfBirth: LocalDate? = null,
   val crn: String? = null,
@@ -66,7 +66,7 @@ data class Person(
       return Person(
         title = probationCase.title?.value,
         firstName = probationCase.name.firstName,
-        middleNames = probationCase.name.middleNames?.split(" "),
+        middleNames = probationCase.name.middleNames,
         lastName = probationCase.name.lastName,
         dateOfBirth = probationCase.dateOfBirth,
         crn = probationCase.identifiers.crn,
@@ -124,7 +124,7 @@ data class Person(
       return Person(
         firstName = defendant.personDefendant?.personDetails?.firstName,
         lastName = defendant.personDefendant?.personDetails?.lastName,
-        middleNames = defendant.personDefendant?.personDetails?.middleName?.split(" "),
+        middleNames = defendant.personDefendant?.personDetails?.middleName,
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
         defendantId = defendant.id,
         masterDefendantId = defendant.masterDefendantId,
@@ -191,7 +191,7 @@ data class Person(
         prisonNumber = prisoner.prisonNumber,
         title = prisoner.title,
         firstName = prisoner.firstName,
-        middleNames = prisoner.middleNames?.split(" "),
+        middleNames = prisoner.middleNames,
         lastName = prisoner.lastName,
         dateOfBirth = prisoner.dateOfBirth,
         ethnicity = prisoner.ethnicity,
@@ -211,7 +211,7 @@ data class Person(
     fun from(existingPersonEntity: PersonEntity): Person = Person(
       personId = existingPersonEntity.personKey?.personUUID,
       firstName = existingPersonEntity.firstName,
-      middleNames = existingPersonEntity.middleNames?.split(" "),
+      middleNames = existingPersonEntity.middleNames,
       lastName = existingPersonEntity.lastName,
       dateOfBirth = existingPersonEntity.dateOfBirth,
       crn = existingPersonEntity.crn,
