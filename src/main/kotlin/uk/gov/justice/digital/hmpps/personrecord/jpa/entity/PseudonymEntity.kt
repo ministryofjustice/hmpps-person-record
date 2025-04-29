@@ -11,6 +11,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import org.apache.commons.lang3.StringUtils.SPACE
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
@@ -62,7 +63,7 @@ class PseudonymEntity(
 ) {
   companion object {
     fun from(person: Person): List<PseudonymEntity> {
-      val middleNamesAsString = person.middleNames?.joinToString(" ") { it }
+      val middleNamesAsString = person.middleNames?.joinToString(SPACE)
       val primary = PseudonymEntity(
         firstName = person.firstName,
         middleNames = middleNamesAsString,

@@ -64,7 +64,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val title = randomName()
       val prisonNumber = randomPrisonNumber()
       val firstName = randomName()
-      val middleName = randomName()
+      val middleName = randomName() + " " + randomName()
       val lastName = randomName()
       val pnc = randomPnc()
       val cro = randomCro()
