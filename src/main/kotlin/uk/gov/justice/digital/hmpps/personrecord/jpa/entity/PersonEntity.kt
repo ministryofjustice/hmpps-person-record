@@ -215,7 +215,7 @@ class PersonEntity(
   }
 
   private fun updatePersonSentences(person: Person) {
-    val personSentences = SentenceInfoEntity.fromList(person.sentences)
+    val personSentences = SentenceInfoEntity.fromList(person.sentences).distinctBy { it.sentenceDate }
     personSentences.forEach { personSentenceInfoEntity -> personSentenceInfoEntity.person = this }
     this.sentenceInfo.addAll(personSentences)
   }
