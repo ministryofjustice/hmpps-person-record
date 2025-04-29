@@ -137,8 +137,8 @@ class PersonEntity(
 
 ) {
 
-  fun getAliases() = this.pseudonyms.filter { it.nameType.equals(NameType.ALIAS) }
-  fun getPrimaryName() = this.pseudonyms.first { it.nameType.equals(NameType.PRIMARY) }
+  fun getAliases(): List<PseudonymEntity> = this.pseudonyms.filter { it.nameType.equals(NameType.ALIAS) }
+  fun getPrimaryName(): PseudonymEntity = this.pseudonyms.first { it.nameType.equals(NameType.PRIMARY) }
 
   fun getExcludeOverrideMarkers() = this.overrideMarkers.filter { it.markerType == OverrideMarkerType.EXCLUDE }
 
