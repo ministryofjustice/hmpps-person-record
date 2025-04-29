@@ -18,12 +18,37 @@ class NewMergeServiceIntTest : IntegrationTestBase() {
   @Test
   fun `should unmerge 2 merged records that exist on same cluster`() {
     val cluster = createPersonKey()
-    val reactivatedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
     val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
 
-    stubPersonMatchScores()
+    val reactivatedRecord = createPerson(createRandomProbationPersonDetails())
+    val mergedReactivatedRecord = mergeRecord(reactivatedRecord, unmergedRecord)
 
+    stubPersonMatchScores()
+    newUnmergeService.processUnmerge(mergedReactivatedRecord, unmergedRecord)
+
+    reactivatedRecord.assertNotMerged()
+
+    reactivatedRecord.assertExcludedFrom(unmergedRecord)
+    unmergedRecord.assertExcludedFrom(reactivatedRecord)
+
+    cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
+    cluster.assertClusterIsOfSize(1)
+
+    unmergedRecord.assertLinkedToCluster(cluster)
+    reactivatedRecord.assertNotLinkedToCluster(cluster)
+  }
+
+  @Test
+  fun `should unmerge 2 records that exist on same cluster but no merge link`() {
+    val cluster = createPersonKey()
+    val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
+
+    val reactivatedRecord = createPerson(createRandomProbationPersonDetails())
+
+    stubPersonMatchScores()
     newUnmergeService.processUnmerge(reactivatedRecord, unmergedRecord)
+
+    reactivatedRecord.assertNotMerged()
 
     reactivatedRecord.assertExcludedFrom(unmergedRecord)
     unmergedRecord.assertExcludedFrom(reactivatedRecord)

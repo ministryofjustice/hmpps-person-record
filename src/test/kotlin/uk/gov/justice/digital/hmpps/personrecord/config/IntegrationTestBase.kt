@@ -414,6 +414,10 @@ class IntegrationTestBase {
     awaitAssert { assertThat(personRepository.findByMatchId(this.matchId)?.mergedTo).isEqualTo(mergedRecord.id) }
   }
 
+  internal fun PersonEntity.assertNotMerged() {
+    awaitAssert { assertThat(personRepository.findByMatchId(this.matchId)?.mergedTo).isNull() }
+  }
+
   companion object {
 
     internal const val BASE_SCENARIO = "baseScenario"
