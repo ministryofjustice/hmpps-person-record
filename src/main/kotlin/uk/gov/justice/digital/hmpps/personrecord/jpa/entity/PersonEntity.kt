@@ -201,9 +201,9 @@ class PersonEntity(
   }
 
   private fun updatePersonAliases(person: Person) {
-    val personAliases = PseudonymEntity.from(person)
-    personAliases.forEach { personAliasEntity -> personAliasEntity.person = this }
-    this.pseudonyms.addAll(personAliases)
+    val entities = PseudonymEntity.from(person)
+    entities.forEach { personAliasEntity -> personAliasEntity.person = this }
+    this.pseudonyms.addAll(entities)
   }
 
   private fun updatePersonContacts(person: Person) {

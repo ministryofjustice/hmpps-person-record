@@ -67,7 +67,6 @@ class PseudonymEntity(
         firstName = person.firstName,
         middleNames = middleNamesAsString,
         lastName = person.lastName,
-        dateOfBirth = person.dateOfBirth,
         nameType = NameType.PRIMARY,
         title = person.title,
       )
