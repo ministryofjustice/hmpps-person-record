@@ -218,7 +218,7 @@ data class Person(
       prisonNumber = existingPersonEntity.prisonNumber,
       defendantId = existingPersonEntity.defendantId,
       title = existingPersonEntity.title,
-      aliases = existingPersonEntity.pseudonyms.map { Alias.from(it) },
+      aliases = existingPersonEntity.getAliases().map { Alias.from(it) },
       masterDefendantId = existingPersonEntity.masterDefendantId,
       nationality = existingPersonEntity.nationality,
       religion = existingPersonEntity.religion,
