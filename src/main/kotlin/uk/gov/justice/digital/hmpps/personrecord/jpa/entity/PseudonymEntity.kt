@@ -14,6 +14,7 @@ import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
 import java.time.LocalDate
 
 @Entity
@@ -67,8 +68,9 @@ class PseudonymEntity(
         firstName = person.firstName,
         middleNames = middleNamesAsString,
         lastName = person.lastName,
-        nameType = NameType.PRIMARY,
-        title = person.title, // TODO test for this and add DateOfBirth
+        nameType = PRIMARY,
+        title = person.title,
+        dateOfBirth = person.dateOfBirth,
       )
 
       val entities = person.aliases.mapNotNull { from(it) }.toMutableList()

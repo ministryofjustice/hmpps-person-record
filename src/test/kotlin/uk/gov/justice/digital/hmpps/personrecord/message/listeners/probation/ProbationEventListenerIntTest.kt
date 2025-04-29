@@ -79,7 +79,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val aliasDateOfBirth = randomDate()
       val gender = "M"
 
+      val dateOfBirth = randomDate()
       val apiResponse = ApiResponseSetup(
+        dateOfBirth = dateOfBirth,
         crn = crn,
         pnc = pnc,
         title = title,
@@ -124,6 +126,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getPrimaryName().middleNames).isEqualTo(middleName)
       assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
       assertThat(personEntity.getPrimaryName().nameType).isEqualTo(NameType.PRIMARY)
+      assertThat(personEntity.getPrimaryName().title).isEqualTo(title)
+      assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
 
       assertThat(personEntity.addresses.size).isEqualTo(2)
       assertThat(personEntity.addresses[0].noFixedAbode).isEqualTo(true)
@@ -296,6 +300,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `should process OFFENDER_ALIAS_CHANGED events successfully`() {
+      // this is the only test which updates an existing probation record
       val pnc = randomPnc()
       val crn = randomCrn()
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc, gender = "M"))
@@ -307,7 +312,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val createdLastModified = personEntity.lastModified
       val changedPnc = randomPnc()
-      probationEventAndResponseSetup(OFFENDER_ALIAS_CHANGED, ApiResponseSetup(crn = crn, pnc = changedPnc, gender = "F"))
+      val changedDateOfBirth = randomDate()
+      probationEventAndResponseSetup(OFFENDER_ALIAS_CHANGED, ApiResponseSetup(crn = crn, pnc = changedPnc, gender = "F", dateOfBirth = changedDateOfBirth))
       checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to OFFENDER_ALIAS_CHANGED, "SOURCE_SYSTEM" to "DELIUS"))
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
@@ -318,6 +324,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val updatedLastModified = updatedPersonEntity.lastModified
 
       assertThat(updatedLastModified).isAfter(createdLastModified)
+      assertThat(updatedPersonEntity.getPrimaryName().dateOfBirth).isEqualTo(changedDateOfBirth)
     }
   }
 
