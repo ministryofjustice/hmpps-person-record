@@ -39,6 +39,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should create new person from Libra message`() {
     val firstName = randomName()
+    val forename2 = randomName()
+    val forename3 = randomName()
     val lastName = randomName() + "'apostrophe"
     val postcode = randomPostcode()
     val pnc = randomPnc()
@@ -57,6 +59,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val messageId = publishLibraMessage(
       libraHearing(
         firstName = firstName,
+        foreName2 = forename2,
+        foreName3 = forename3,
         lastName = lastName,
         cId = cId,
         dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
@@ -89,6 +93,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val person = awaitNotNullPerson { personRepository.findByCId(cId) }
 
     assertThat(person.title).isEqualTo("Mr")
+    assertThat(person.firstName).isEqualTo(firstName)
+    assertThat(person.middleNames).isEqualTo("$forename2 $forename3")
     assertThat(person.lastName).isEqualTo(lastName)
     assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
     assertThat(person.references.getType(PNC).first().identifierValue).isEqualTo(pnc)
@@ -131,7 +137,9 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubNoMatchesPersonMatch(matchId = personEntity.matchId)
 
     val changedFirstName = randomName()
-    val updatedMessage = publishLibraMessage(libraHearing(defendantSex = "F", firstName = changedFirstName, cId = cId, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
+    val changedForename2 = ""
+    val changedForename3 = randomName()
+    val updatedMessage = publishLibraMessage(libraHearing(defendantSex = "F", firstName = changedFirstName, foreName2 = changedForename2, foreName3 = changedForename3, cId = cId, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
@@ -151,6 +159,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     assertThat(person.title).isEqualTo("Mr")
     assertThat(person.firstName).isEqualTo(changedFirstName)
+    assertThat(person.middleNames).isEqualTo(changedForename3)
     assertThat(person.lastName).isEqualTo(lastName)
     assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
     assertThat(person.addresses.size).isEqualTo(1)
