@@ -24,7 +24,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.CO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -35,18 +34,6 @@ class PersonEntity(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   var id: Long? = null,
-
-  @Column
-  var title: String? = null,
-
-  @Column(name = "first_name")
-  var firstName: String? = null,
-
-  @Column(name = "last_name")
-  var lastName: String? = null,
-
-  @Column(name = "middle_names")
-  var middleNames: String? = null,
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "fk_person_key_id", referencedColumnName = "id", nullable = true)
@@ -102,9 +89,6 @@ class PersonEntity(
 
   @Column(name = "sexual_orientation")
   val sexualOrientation: String? = null,
-
-  @Column(name = "date_of_birth")
-  var dateOfBirth: LocalDate? = null,
 
   @Column(name = "sex_code")
   @Enumerated(STRING)
@@ -164,11 +148,6 @@ class PersonEntity(
   }
 
   fun update(person: Person) {
-    this.title = person.title
-    this.firstName = person.firstName
-    this.middleNames = person.middleNames
-    this.lastName = person.lastName
-    this.dateOfBirth = person.dateOfBirth
     this.defendantId = person.defendantId
     this.crn = person.crn
     this.prisonNumber = person.prisonNumber
@@ -245,11 +224,6 @@ class PersonEntity(
 
     fun new(person: Person): PersonEntity {
       val personEntity = PersonEntity(
-        title = person.title,
-        firstName = person.firstName,
-        middleNames = person.middleNames,
-        lastName = person.lastName,
-        dateOfBirth = person.dateOfBirth,
         defendantId = person.defendantId,
         crn = person.crn,
         prisonNumber = person.prisonNumber,
