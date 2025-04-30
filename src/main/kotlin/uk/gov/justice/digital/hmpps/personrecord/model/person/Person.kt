@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
+import org.apache.commons.lang3.StringUtils.SPACE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
@@ -155,6 +156,7 @@ data class Person(
       return Person(
         title = libraHearingEvent.name?.title,
         firstName = libraHearingEvent.name?.firstName,
+        middleNames = listOfNotNull(libraHearingEvent.name?.forename2, libraHearingEvent.name?.forename3).joinToString(SPACE),
         lastName = libraHearingEvent.name?.lastName,
         dateOfBirth = libraHearingEvent.dateOfBirth,
         addresses = addresses,
