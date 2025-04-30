@@ -185,22 +185,22 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   fun probationUnmergeEventAndResponseSetup(
     eventType: String,
-    reactivated: ApiResponseSetup,
-    unmerged: ApiResponseSetup,
+    reactivatedCrn: String,
+    unmergedCrn: String,
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
   ) {
-    stubSingleProbationResponse(unmerged, scenario, currentScenarioState, nextScenarioState)
-    stubSingleProbationResponse(reactivated, scenario, currentScenarioState, nextScenarioState)
+    stubSingleProbationResponse(ApiResponseSetup(crn = reactivatedCrn), scenario, currentScenarioState, nextScenarioState)
+    stubSingleProbationResponse(ApiResponseSetup(crn = unmergedCrn), scenario, currentScenarioState, nextScenarioState)
 
     publishDomainEvent(
       eventType,
       DomainEvent(
         eventType = eventType,
         additionalInformation = AdditionalInformation(
-          reactivatedCrn = reactivated.crn,
-          unmergedCrn = unmerged.crn,
+          reactivatedCrn = reactivatedCrn,
+          unmergedCrn = unmergedCrn,
         ),
       ),
     )

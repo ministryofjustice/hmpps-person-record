@@ -137,5 +137,22 @@ class NewMergeServiceIntTest : IntegrationTestBase() {
         assertThat(eventLog.excludeOverrideMarkers).contains(reactivatedRecord.id)
       }
     }
+
+    @Test
+    fun `should should log needs attention when multiple records on cluster`() {
+      val cluster = createPersonKey()
+      val reactivatedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
+      val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
+      createPerson(createRandomProbationPersonDetails(), cluster)
+
+      newUnmergeService.processUnmerge(reactivatedRecord, unmergedRecord)
+
+      checkEventLog(unmergedRecord.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        val eventLog = eventLogs.first()
+        assertThat(eventLog.uuid).isEqualTo(cluster.personUUID)
+        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
+      }
+    }
   }
 }

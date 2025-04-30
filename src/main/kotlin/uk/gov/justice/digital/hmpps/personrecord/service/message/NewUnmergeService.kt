@@ -4,11 +4,12 @@ import jakarta.transaction.Transactional
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.unmerge.PersonUnmerged
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Component
@@ -22,7 +23,7 @@ class NewUnmergeService(
   @Transactional
   fun processUnmerge(reactivated: PersonEntity, unmerged: PersonEntity) {
     when {
-      clusterContainsAdditionalRecords(reactivated, unmerged) -> setClusterAsNeedsAttention(unmerged.personKey)
+      clusterContainsAdditionalRecords(reactivated, unmerged) -> setClusterAsNeedsAttention(unmerged)
       else -> unmerge(reactivated, unmerged)
     }
   }
@@ -39,10 +40,11 @@ class NewUnmergeService(
     publisher.publishEvent(PersonUnmerged(reactivated, unmerged))
   }
 
-  private fun setClusterAsNeedsAttention(cluster: PersonKeyEntity?) {
-    cluster?.let {
+  private fun setClusterAsNeedsAttention(unmerged: PersonEntity) {
+    unmerged.personKey?.let {
       it.status = UUIDStatusType.NEEDS_ATTENTION
       personKeyRepository.save(it)
+      publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION, unmerged, it))
     }
   }
 
