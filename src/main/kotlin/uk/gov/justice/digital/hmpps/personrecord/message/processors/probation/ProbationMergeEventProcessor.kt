@@ -38,7 +38,7 @@ class ProbationMergeEventProcessor(
     encodingService.getProbationCase(mergeDomainEvent.additionalInformation?.targetCrn!!) {
       it?.let {
         val from: PersonEntity? = personRepository.findByCrn(mergeDomainEvent.additionalInformation.sourceCrn!!)
-        val to: PersonEntity = createUpdateService.processPerson(Person.from(it), shouldRecluster = false) { personRepository.findByCrn(mergeDomainEvent.additionalInformation.targetCrn) }
+        val to: PersonEntity = createUpdateService.processPerson(Person.from(it), shouldReclusterOnUpdate = false) { personRepository.findByCrn(mergeDomainEvent.additionalInformation.targetCrn) }
         mergeService.processMerge(from, to)
       }
     }

@@ -67,14 +67,26 @@ class NewMergeServiceIntTest : IntegrationTestBase() {
   @Test
   fun `should set to needs attention when extra records on the cluster`() {
     val cluster = createPersonKey()
-    val reactivatedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
     val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
     createPerson(createRandomProbationPersonDetails(), cluster)
 
-    newUnmergeService.processUnmerge(reactivatedRecord, unmergedRecord)
+    val reactivatedRecord = createPerson(createRandomProbationPersonDetails())
+
+    val mergedReactivatedRecord = mergeRecord(reactivatedRecord, unmergedRecord)
+
+    stubPersonMatchScores()
+    newUnmergeService.processUnmerge(mergedReactivatedRecord, unmergedRecord)
+
+    reactivatedRecord.assertNotMerged()
+
+    reactivatedRecord.assertExcludedFrom(unmergedRecord)
+    unmergedRecord.assertExcludedFrom(reactivatedRecord)
 
     cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
-    cluster.assertClusterIsOfSize(3)
+    cluster.assertClusterIsOfSize(2)
+
+    unmergedRecord.assertLinkedToCluster(cluster)
+    reactivatedRecord.assertNotLinkedToCluster(cluster)
   }
 
   @Test
@@ -141,11 +153,15 @@ class NewMergeServiceIntTest : IntegrationTestBase() {
     @Test
     fun `should should log needs attention when multiple records on cluster`() {
       val cluster = createPersonKey()
-      val reactivatedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
       val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
       createPerson(createRandomProbationPersonDetails(), cluster)
 
-      newUnmergeService.processUnmerge(reactivatedRecord, unmergedRecord)
+      val reactivatedRecord = createPerson(createRandomProbationPersonDetails())
+
+      val mergedReactivatedRecord = mergeRecord(reactivatedRecord, unmergedRecord)
+
+      stubPersonMatchScores()
+      newUnmergeService.processUnmerge(mergedReactivatedRecord, unmergedRecord)
 
       checkEventLog(unmergedRecord.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
         assertThat(eventLogs).hasSize(1)

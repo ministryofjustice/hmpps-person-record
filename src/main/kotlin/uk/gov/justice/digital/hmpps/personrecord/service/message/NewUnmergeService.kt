@@ -24,8 +24,8 @@ class NewUnmergeService(
   fun processUnmerge(reactivated: PersonEntity, unmerged: PersonEntity) {
     when {
       clusterContainsAdditionalRecords(reactivated, unmerged) -> setClusterAsNeedsAttention(unmerged)
-      else -> unmerge(reactivated, unmerged)
     }
+    unmerge(reactivated, unmerged)
   }
 
   private fun unmerge(reactivated: PersonEntity, unmerged: PersonEntity) {

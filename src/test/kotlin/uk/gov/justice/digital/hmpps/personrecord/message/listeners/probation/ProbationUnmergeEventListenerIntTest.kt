@@ -109,7 +109,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(
         CPR_UUID_CREATED,
         mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-        times = 2, // Need to not link on create for reactivated record
       )
       checkTelemetry(
         CPR_RECORD_UNMERGED,
@@ -251,12 +250,29 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         CPR_RECORD_UPDATED,
         mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
       )
+      checkTelemetry(
+        CPR_UUID_CREATED,
+        mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
+      )
+      checkTelemetry(
+        CPR_RECORD_UNMERGED,
+        mapOf(
+          "TO_SOURCE_SYSTEM_ID" to reactivatedCrn,
+          "FROM_SOURCE_SYSTEM_ID" to unmergedCrn,
+          "SOURCE_SYSTEM" to "DELIUS",
+        ),
+      )
 
       cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
       cluster.assertClusterIsOfSize(2)
 
       unmergedPerson.assertLinkedToCluster(cluster)
-      reactivatedPerson.assertMergedTo(unmergedPerson)
+      unmergedPerson.assertExcludedFrom(reactivatedPerson)
+
+      reactivatedPerson.assertNotMerged()
+      reactivatedPerson.assertHasLinkToCluster()
+      reactivatedPerson.assertNotLinkedToCluster(cluster)
+      reactivatedPerson.assertExcludedFrom(unmergedPerson)
     }
   }
 

@@ -33,30 +33,37 @@ class CreateUpdateService(
     ],
   )
   @Transactional(isolation = REPEATABLE_READ)
-  fun processPerson(person: Person, shouldRecluster: Boolean = true, findPerson: () -> PersonEntity?): PersonEntity = runBlocking {
+  fun processPerson(
+    person: Person,
+    shouldReclusterOnUpdate: Boolean = true,
+    shouldLinkOnCreate: Boolean = true,
+    findPerson: () -> PersonEntity?,
+  ): PersonEntity = runBlocking {
     return@runBlocking findPerson().exists(
       no = {
-        handlePersonCreation(person)
+        handlePersonCreation(person, shouldLinkOnCreate)
       },
       yes = {
-        handlePersonUpdate(person, it, shouldRecluster)
+        handlePersonUpdate(person, it, shouldReclusterOnUpdate)
       },
     )
   }
 
-  private fun handlePersonCreation(person: Person): PersonEntity {
+  private fun handlePersonCreation(person: Person, shouldLinkOnCreate: Boolean): PersonEntity {
     val personEntity: PersonEntity = personService.createPersonEntity(person)
-    val linkedPersonEntity = personService.linkRecordToPersonKey(personEntity)
-    publisher.publishEvent(PersonCreated(linkedPersonEntity))
-    return linkedPersonEntity
+    if (shouldLinkOnCreate) {
+      personService.linkRecordToPersonKey(personEntity)
+    }
+    publisher.publishEvent(PersonCreated(personEntity))
+    return personEntity
   }
 
-  private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, shouldRecluster: Boolean): PersonEntity {
+  private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, shouldReclusterOnUpdate: Boolean): PersonEntity {
     val oldMatchingDetails = PersonMatchRecord.from(existingPersonEntity)
     val updatedPersonEntity = personService.updatePersonEntity(person, existingPersonEntity)
     val newMatchingDetails = PersonMatchRecord.from(updatedPersonEntity)
     val matchingFieldsHaveChanged = oldMatchingDetails.matchingFieldsAreDifferent(newMatchingDetails)
-    publisher.publishEvent(PersonUpdated(updatedPersonEntity, matchingFieldsHaveChanged, shouldRecluster))
+    publisher.publishEvent(PersonUpdated(updatedPersonEntity, matchingFieldsHaveChanged, shouldReclusterOnUpdate))
     return updatedPersonEntity
   }
 }

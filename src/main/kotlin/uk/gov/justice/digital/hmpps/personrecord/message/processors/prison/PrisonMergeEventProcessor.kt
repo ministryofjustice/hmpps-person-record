@@ -38,7 +38,7 @@ class PrisonMergeEventProcessor(
     encodingService.getPrisonerDetails(domainEvent.additionalInformation?.prisonNumber!!) {
       it?.let {
         val from: PersonEntity? = personRepository.findByPrisonNumber(domainEvent.additionalInformation.sourcePrisonNumber!!)
-        val to: PersonEntity = createUpdateService.processPerson(Person.from(it), shouldRecluster = false) { personRepository.findByPrisonNumber(domainEvent.additionalInformation.prisonNumber) }
+        val to: PersonEntity = createUpdateService.processPerson(Person.from(it), shouldReclusterOnUpdate = false) { personRepository.findByPrisonNumber(domainEvent.additionalInformation.prisonNumber) }
         mergeService.processMerge(from, to)
       }
     }

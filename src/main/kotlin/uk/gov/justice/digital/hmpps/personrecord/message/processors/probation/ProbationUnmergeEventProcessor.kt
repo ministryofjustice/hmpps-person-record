@@ -35,12 +35,12 @@ class ProbationUnmergeEventProcessor(
         ),
       ),
     )
-    val unmergedPerson = encodingService.getProbationCase(domainEvent.additionalInformation?.unmergedCrn!!) {
-      createUpdateService.processPerson(Person.from(it!!)) { personRepository.findByCrn(it.identifiers.crn!!) }
-    }
-    val reactivatedPerson = encodingService.getProbationCase(domainEvent.additionalInformation.reactivatedCrn!!) {
-      createUpdateService.processPerson(Person.from(it!!)) { personRepository.findByCrn(it.identifiers.crn!!) }
-    }
-    newUnmergeService.processUnmerge(reactivatedPerson as PersonEntity, unmergedPerson as PersonEntity)
+    val unmergedPerson = getProbationPerson(domainEvent.additionalInformation?.unmergedCrn!!, true)
+    val reactivatedPerson = getProbationPerson(domainEvent.additionalInformation.reactivatedCrn!!, false)
+    newUnmergeService.processUnmerge(reactivatedPerson, unmergedPerson)
   }
+
+  private fun getProbationPerson(crn: String, shouldLinkOnCreate: Boolean): PersonEntity = encodingService.getProbationCase(crn) {
+    createUpdateService.processPerson(Person.from(it!!), shouldLinkOnCreate = shouldLinkOnCreate) { personRepository.findByCrn(it.identifiers.crn!!) }
+  } as PersonEntity
 }
