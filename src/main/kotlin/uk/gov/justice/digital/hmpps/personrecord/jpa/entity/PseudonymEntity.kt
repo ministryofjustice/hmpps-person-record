@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import java.time.LocalDate
 
@@ -60,6 +61,19 @@ class PseudonymEntity(
   var version: Int = 0,
 ) {
   companion object {
+    fun from(person: Person): List<PseudonymEntity> {
+      val primary = PseudonymEntity(
+        firstName = person.firstName,
+        middleNames = person.middleNames,
+        lastName = person.lastName,
+        nameType = NameType.PRIMARY,
+        title = person.title,
+        dateOfBirth = person.dateOfBirth,
+      )
+
+      return person.aliases.mapNotNull { from(it) } + primary
+    }
+
     private fun from(alias: Alias): PseudonymEntity? = when {
       isAliasPresent(alias.firstName, alias.middleNames, alias.lastName) ->
         PseudonymEntity(
@@ -72,8 +86,6 @@ class PseudonymEntity(
         )
       else -> null
     }
-
-    fun fromList(aliases: List<Alias>): List<PseudonymEntity> = aliases.mapNotNull { from(it) }
 
     private fun isAliasPresent(firstName: String?, middleNames: String?, surname: String?): Boolean = sequenceOf(firstName, middleNames, surname)
       .filterNotNull().any { it.isNotBlank() }
