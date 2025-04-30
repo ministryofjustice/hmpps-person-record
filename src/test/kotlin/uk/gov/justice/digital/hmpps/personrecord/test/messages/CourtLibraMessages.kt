@@ -45,7 +45,7 @@ fun libraHearing(
       ${line3?.let { """ "line3": "$line3", """.trimIndent() } ?: ""}
       ${line4?.let { """ "line4": "$line4", """.trimIndent() } ?: ""}
       ${line5?.let { """ "line5": "$line5" """.trimIndent() } ?: ""}
-      ${postcode.let { """ ,"pcode": "$postcode" """.trimIndent() } ?: ""}
+      ${postcode.let { """ ,"pcode": "$postcode" """.trimIndent() }}
    },
    "cro":"$cro",
    ${pncNumber?.let { """ "pnc": "$pncNumber", """.trimIndent() } ?: ""}
