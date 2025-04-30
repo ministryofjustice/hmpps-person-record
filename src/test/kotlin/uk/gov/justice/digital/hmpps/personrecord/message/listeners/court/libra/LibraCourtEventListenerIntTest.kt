@@ -39,6 +39,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should create new person from Libra message`() {
     val firstName = randomName()
+    val forename2 = randomName()
+    val forename3 = randomName()
     val lastName = randomName() + "'apostrophe"
     val postcode = randomPostcode()
     val pnc = randomPnc()
@@ -57,6 +59,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val messageId = publishLibraMessage(
       libraHearing(
         firstName = firstName,
+        foreName2 = forename2,
+        foreName3 = forename3,
         lastName = lastName,
         cId = cId,
         dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
@@ -88,9 +92,11 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val person = awaitNotNullPerson { personRepository.findByCId(cId) }
 
-    assertThat(person.title).isEqualTo("Mr")
-    assertThat(person.lastName).isEqualTo(lastName)
-    assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
+    assertThat(person.getPrimaryName().title).isEqualTo("Mr")
+    assertThat(person.getPrimaryName().firstName).isEqualTo(firstName)
+    assertThat(person.getPrimaryName().middleNames).isEqualTo("$forename2 $forename3")
+    assertThat(person.getPrimaryName().lastName).isEqualTo(lastName)
+    assertThat(person.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
     assertThat(person.references.getType(PNC).first().identifierValue).isEqualTo(pnc)
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
@@ -131,7 +137,9 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubNoMatchesPersonMatch(matchId = personEntity.matchId)
 
     val changedFirstName = randomName()
-    val updatedMessage = publishLibraMessage(libraHearing(defendantSex = "F", firstName = changedFirstName, cId = cId, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
+    val changedForename2 = ""
+    val changedForename3 = randomName()
+    val updatedMessage = publishLibraMessage(libraHearing(defendantSex = "F", firstName = changedFirstName, foreName2 = changedForename2, foreName3 = changedForename3, cId = cId, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
     checkTelemetry(
       MESSAGE_RECEIVED,
       mapOf(
@@ -149,10 +157,11 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       personRepository.findByCId(cId)
     }
 
-    assertThat(person.title).isEqualTo("Mr")
-    assertThat(person.firstName).isEqualTo(changedFirstName)
-    assertThat(person.lastName).isEqualTo(lastName)
-    assertThat(person.dateOfBirth).isEqualTo(dateOfBirth)
+    assertThat(person.getPrimaryName().title).isEqualTo("Mr")
+    assertThat(person.getPrimaryName().firstName).isEqualTo(changedFirstName)
+    assertThat(person.getPrimaryName().middleNames).isEqualTo(changedForename3)
+    assertThat(person.getPrimaryName().lastName).isEqualTo(lastName)
+    assertThat(person.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
@@ -296,8 +305,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = pnc, postcode = postcode))
 
       checkEventLog(cId, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
-        assertThat(eventLogs?.size).isEqualTo(1)
-        val createdLog = eventLogs!!.first()
+        assertThat(eventLogs.size).isEqualTo(1)
+        val createdLog = eventLogs.first()
         assertThat(createdLog.pncs).isEqualTo(arrayOf(pnc))
         assertThat(createdLog.firstName).isEqualTo(firstName)
         assertThat(createdLog.lastName).isEqualTo(lastName)

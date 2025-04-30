@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
+import org.apache.commons.lang3.StringUtils.SPACE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
@@ -155,6 +156,7 @@ data class Person(
       return Person(
         title = libraHearingEvent.name?.title,
         firstName = libraHearingEvent.name?.firstName,
+        middleNames = listOfNotNull(libraHearingEvent.name?.forename2, libraHearingEvent.name?.forename3).joinToString(SPACE).trim(),
         lastName = libraHearingEvent.name?.lastName,
         dateOfBirth = libraHearingEvent.dateOfBirth,
         addresses = addresses,
@@ -210,14 +212,14 @@ data class Person(
 
     fun from(existingPersonEntity: PersonEntity): Person = Person(
       personId = existingPersonEntity.personKey?.personUUID,
-      firstName = existingPersonEntity.firstName,
-      middleNames = existingPersonEntity.middleNames,
-      lastName = existingPersonEntity.lastName,
-      dateOfBirth = existingPersonEntity.dateOfBirth,
+      firstName = existingPersonEntity.getPrimaryName().firstName,
+      middleNames = existingPersonEntity.getPrimaryName().middleNames,
+      lastName = existingPersonEntity.getPrimaryName().lastName,
+      dateOfBirth = existingPersonEntity.getPrimaryName().dateOfBirth,
       crn = existingPersonEntity.crn,
       prisonNumber = existingPersonEntity.prisonNumber,
       defendantId = existingPersonEntity.defendantId,
-      title = existingPersonEntity.title,
+      title = existingPersonEntity.getPrimaryName().title,
       aliases = existingPersonEntity.getAliases().map { Alias.from(it) },
       masterDefendantId = existingPersonEntity.masterDefendantId,
       nationality = existingPersonEntity.nationality,
