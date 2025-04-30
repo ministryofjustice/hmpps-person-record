@@ -65,7 +65,7 @@ class CanonicalApiIntTest : WebTestBase() {
       Person(
         firstName = randomName(),
         lastName = randomName(),
-        middleNames = listOf(randomName()),
+        middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
         title = randomName(),
@@ -289,7 +289,7 @@ class CanonicalApiIntTest : WebTestBase() {
       Person(
         firstName = randomName(),
         lastName = randomName(),
-        middleNames = listOf(randomName()),
+        middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
         title = randomName(),
@@ -316,7 +316,7 @@ class CanonicalApiIntTest : WebTestBase() {
       Person(
         firstName = randomName(),
         lastName = randomName(),
-        middleNames = listOf(randomName()),
+        middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
         title = randomName(),
@@ -368,7 +368,7 @@ class CanonicalApiIntTest : WebTestBase() {
       Person(
         firstName = randomName(),
         lastName = randomName(),
-        middleNames = listOf(randomName()),
+        middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
         title = randomName(),

@@ -14,7 +14,6 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
-import org.apache.commons.lang3.StringUtils.SPACE
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
@@ -167,7 +166,7 @@ class PersonEntity(
   fun update(person: Person) {
     this.title = person.title
     this.firstName = person.firstName
-    this.middleNames = person.middleNames?.joinToString(SPACE)
+    this.middleNames = person.middleNames
     this.lastName = person.lastName
     this.dateOfBirth = person.dateOfBirth
     this.defendantId = person.defendantId
@@ -248,7 +247,7 @@ class PersonEntity(
       val personEntity = PersonEntity(
         title = person.title,
         firstName = person.firstName,
-        middleNames = person.middleNames?.joinToString(" ") { it },
+        middleNames = person.middleNames,
         lastName = person.lastName,
         dateOfBirth = person.dateOfBirth,
         defendantId = person.defendantId,
