@@ -16,7 +16,7 @@ class EventLogService(
     EventLogEntity.from(
       eventLog.personEntity,
       eventLog.eventType,
-      objectMapper.writeValueAsString(eventLog.clusterComposition),
+      eventLog.clusterComposition?.let { objectMapper.writeValueAsString(eventLog.clusterComposition) },
       eventLog.personKeyEntity,
     ),
   )

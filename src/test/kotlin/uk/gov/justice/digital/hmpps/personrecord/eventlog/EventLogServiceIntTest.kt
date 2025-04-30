@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.eventlog
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Address
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
@@ -17,7 +18,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.EventLogService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -26,7 +29,10 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
 
-class EventLogIntTest : IntegrationTestBase() {
+class EventLogServiceIntTest : IntegrationTestBase() {
+
+  @Autowired
+  lateinit var eventLogService: EventLogService
 
   @Test
   fun `should map person to event log`() {
@@ -48,8 +54,7 @@ class EventLogIntTest : IntegrationTestBase() {
       ),
     )
 
-    val eventLogEntity = EventLogEntity.from(personEntity, CPRLogEvents.CPR_RECORD_UPDATED)
-    val eventLog = eventLogRepository.save(eventLogEntity)
+    val eventLog = eventLogService.logEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_UPDATED, personEntity))
 
     assertThat(eventLog).isNotNull()
     assertThat(eventLog.sourceSystemId).isEqualTo(personEntity.crn)
@@ -90,8 +95,7 @@ class EventLogIntTest : IntegrationTestBase() {
 
     mergedToPerson = mergeRecord(mergedToPerson, mergedIntoPerson)
 
-    val eventLogEntity = EventLogEntity.from(mergedToPerson, CPRLogEvents.CPR_RECORD_CREATED)
-    val eventLog = eventLogRepository.save(eventLogEntity)
+    val eventLog = eventLogService.logEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_CREATED, mergedToPerson))
 
     assertThat(eventLog).isNotNull()
     assertThat(mergedToPerson.mergedTo).isEqualTo(mergedIntoPerson.id)
@@ -105,8 +109,8 @@ class EventLogIntTest : IntegrationTestBase() {
     excludeRecord(toRecord, fromRecord)
 
     val updatedToRecord = personRepository.findByMatchId(toRecord.matchId)!!
-    val eventLogEntity = EventLogEntity.from(updatedToRecord, CPRLogEvents.CPR_RECORD_CREATED)
-    val eventLog = eventLogRepository.save(eventLogEntity)
+
+    val eventLog = eventLogService.logEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_CREATED, updatedToRecord))
 
     assertThat(eventLog.excludeOverrideMarkers.size).isEqualTo(1)
     assertThat(eventLog.excludeOverrideMarkers.first()).isEqualTo(fromRecord.id)
@@ -139,8 +143,7 @@ class EventLogIntTest : IntegrationTestBase() {
       ),
     )
 
-    val eventLogEntity = EventLogEntity.from(personEntity, CPRLogEvents.CPR_RECORD_CREATED)
-    val eventLog = eventLogRepository.save(eventLogEntity)
+    val eventLog = eventLogService.logEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_CREATED, personEntity))
 
     assertThat(eventLog.postcodes.size).isEqualTo(2)
     assertThat(eventLog.postcodes[0]).isEqualTo("AB1 2BC")
