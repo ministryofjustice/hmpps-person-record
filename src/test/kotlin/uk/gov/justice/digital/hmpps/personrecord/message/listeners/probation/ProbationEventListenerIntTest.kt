@@ -106,10 +106,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       assertThat(personEntity.personKey).isNotNull()
       assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
-      assertThat(personEntity.firstName).isEqualTo(firstName)
-      assertThat(personEntity.middleNames).isEqualTo(middleName)
-      assertThat(personEntity.lastName).isEqualTo(lastName)
-      assertThat(personEntity.title).isEqualTo(title)
+      assertThat(personEntity.getPrimaryName().firstName).isEqualTo(firstName)
+      assertThat(personEntity.getPrimaryName().middleNames).isEqualTo(middleName)
+      assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
+      assertThat(personEntity.getPrimaryName().title).isEqualTo(title)
       assertThat(personEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
       assertThat(personEntity.crn).isEqualTo(crn)
       assertThat(personEntity.ethnicity).isEqualTo(ethnicity)
@@ -438,8 +438,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
 
       checkEventLog(crn, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
-        assertThat(eventLogs?.size).isEqualTo(1)
-        val createdLog = eventLogs!!.first()
+        assertThat(eventLogs.size).isEqualTo(1)
+        val createdLog = eventLogs.first()
         assertThat(createdLog.pncs).isEqualTo(arrayOf(pnc))
         assertThat(createdLog.cros).isEqualTo(arrayOf(cro))
         assertThat(createdLog.firstName).isEqualTo(firstName)

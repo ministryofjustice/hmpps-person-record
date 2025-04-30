@@ -17,11 +17,11 @@ class PersonMatchRecordTest {
     val personEntity = PersonEntity(
       matchId = UUID.randomUUID(),
       sourceSystem = DELIUS,
+      pseudonyms = mutableListOf(PseudonymEntity(nameType = NameType.PRIMARY, lastName = "MANDATORY FIELD")),
     )
     val personMatchRecord = PersonMatchRecord.from(personEntity)
     assertThat(personMatchRecord.firstName).isEmpty()
     assertThat(personMatchRecord.middleNames).isEmpty()
-    assertThat(personMatchRecord.lastName).isEmpty()
     assertThat(personMatchRecord.dateOfBirth).isEmpty()
     assertThat(personMatchRecord.firstNameAliases).isEmpty()
     assertThat(personMatchRecord.lastNameAliases).isEmpty()
@@ -38,8 +38,10 @@ class PersonMatchRecordTest {
   fun `should build dates in correct YYYY-MM-dd format`() {
     val date = LocalDate.of(1970, 1, 1)
     val personEntity = PersonEntity(
-      dateOfBirth = date,
-      pseudonyms = mutableListOf(PseudonymEntity(nameType = NameType.ALIAS, dateOfBirth = date)),
+      pseudonyms = mutableListOf(
+        PseudonymEntity(nameType = NameType.ALIAS, dateOfBirth = date),
+        PseudonymEntity(nameType = NameType.PRIMARY, dateOfBirth = date),
+      ),
       sentenceInfo = mutableListOf(SentenceInfoEntity(sentenceDate = date)),
       matchId = UUID.randomUUID(),
       sourceSystem = DELIUS,

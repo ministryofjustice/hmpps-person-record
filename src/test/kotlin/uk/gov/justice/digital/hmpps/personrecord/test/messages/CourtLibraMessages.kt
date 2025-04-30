@@ -9,6 +9,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 fun libraHearing(
   pncNumber: String? = randomPnc(),
   firstName: String? = "Arthur",
+  foreName2: String? = null,
+  foreName3: String? = null,
   lastName: String = randomName(),
   dateOfBirth: String = "01/01/1975",
   cro: String = "85227/65L",
@@ -28,6 +30,8 @@ fun libraHearing(
    "name":{
       "title":"Mr",
       ${firstName?.let { """ "forename1": "$firstName", """.trimIndent() } ?: ""}
+      ${foreName2?.let { """ "forename2": "$foreName2", """.trimIndent() } ?: ""}
+      ${foreName3?.let { """ "forename3": "$foreName3", """.trimIndent() } ?: ""}
       "surname":"$lastName"
    },
    "defendantName":"Mr $firstName $lastName",
@@ -41,7 +45,7 @@ fun libraHearing(
       ${line3?.let { """ "line3": "$line3", """.trimIndent() } ?: ""}
       ${line4?.let { """ "line4": "$line4", """.trimIndent() } ?: ""}
       ${line5?.let { """ "line5": "$line5" """.trimIndent() } ?: ""}
-      ${postcode.let { """ ,"pcode": "$postcode" """.trimIndent() } ?: ""}
+      ${postcode.let { """ ,"pcode": "$postcode" """.trimIndent() }}
    },
    "cro":"$cro",
    ${pncNumber?.let { """ "pnc": "$pncNumber", """.trimIndent() } ?: ""}
