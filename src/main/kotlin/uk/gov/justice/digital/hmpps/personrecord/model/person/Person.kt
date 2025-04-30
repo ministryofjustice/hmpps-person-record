@@ -156,7 +156,7 @@ data class Person(
       return Person(
         title = libraHearingEvent.name?.title,
         firstName = libraHearingEvent.name?.firstName,
-        middleNames = listOfNotNull(libraHearingEvent.name?.forename2, libraHearingEvent.name?.forename3).joinToString(SPACE),
+        middleNames = listOfNotNull(libraHearingEvent.name?.forename2, libraHearingEvent.name?.forename3).joinToString(SPACE).trim(),
         lastName = libraHearingEvent.name?.lastName,
         dateOfBirth = libraHearingEvent.dateOfBirth,
         addresses = addresses,
