@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.NewUnmergeService
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 class NewMergeServiceIntTest : IntegrationTestBase() {
 
@@ -24,6 +25,8 @@ class NewMergeServiceIntTest : IntegrationTestBase() {
 
     stubPersonMatchScores()
     newUnmergeService.processUnmerge(mergedReactivatedRecord, unmergedRecord)
+
+    checkTelemetry(TelemetryEventType.CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to reactivatedRecord.crn!!))
 
     reactivatedRecord.assertNotMerged()
 
@@ -46,6 +49,8 @@ class NewMergeServiceIntTest : IntegrationTestBase() {
 
     stubPersonMatchScores()
     newUnmergeService.processUnmerge(reactivatedRecord, unmergedRecord)
+
+    checkTelemetry(TelemetryEventType.CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to reactivatedRecord.crn!!))
 
     reactivatedRecord.assertNotMerged()
 
@@ -84,6 +89,8 @@ class NewMergeServiceIntTest : IntegrationTestBase() {
 
     stubOnePersonMatchHighConfidenceMatch(matchId = reactivatedRecord.matchId, matchedRecord = matchedPerson.matchId)
     newUnmergeService.processUnmerge(mergedReactivatedRecord, unmergedRecord)
+
+    checkTelemetry(TelemetryEventType.CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to reactivatedRecord.crn!!))
 
     reactivatedRecord.assertNotMerged()
 

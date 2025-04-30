@@ -8,8 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
-import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.unmerge.PersonUnmerged
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Component
@@ -37,8 +36,7 @@ class NewUnmergeService(
 
     reactivated.addExcludeOverrideMarker(excludeRecord = unmerged)
     personService.linkRecordToPersonKey(reactivated)
-    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_UNMERGED, reactivated))
-    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_UPDATED, unmerged))
+    publisher.publishEvent(PersonUnmerged(reactivated, unmerged))
   }
 
   private fun setClusterAsNeedsAttention(cluster: PersonKeyEntity?) {
