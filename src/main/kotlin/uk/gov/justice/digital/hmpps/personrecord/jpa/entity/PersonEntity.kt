@@ -16,6 +16,7 @@ import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -136,6 +137,9 @@ class PersonEntity(
 
 ) {
 
+  fun getAliases(): List<PseudonymEntity> = this.pseudonyms.filter { it.nameType.equals(NameType.ALIAS) }
+  fun getPrimaryName(): PseudonymEntity = this.pseudonyms.first { it.nameType.equals(NameType.PRIMARY) }
+
   fun getExcludeOverrideMarkers() = this.overrideMarkers.filter { it.markerType == OverrideMarkerType.EXCLUDE }
 
   fun getIncludeOverrideMarkers() = this.overrideMarkers.filter { it.markerType == OverrideMarkerType.INCLUDE }
@@ -162,7 +166,7 @@ class PersonEntity(
   fun update(person: Person) {
     this.title = person.title
     this.firstName = person.firstName
-    this.middleNames = person.middleNames?.joinToString(" ") { it }
+    this.middleNames = person.middleNames
     this.lastName = person.lastName
     this.dateOfBirth = person.dateOfBirth
     this.defendantId = person.defendantId
@@ -185,7 +189,7 @@ class PersonEntity(
   private fun updateChildEntities(person: Person) {
     updatePersonAddresses(person)
     updatePersonContacts(person)
-    updatePersonAliases(person)
+    updatePseudonyms(person)
     updatePersonReferences(person)
     updatePersonSentences(person)
   }
@@ -196,10 +200,10 @@ class PersonEntity(
     this.addresses.addAll(personAddresses)
   }
 
-  private fun updatePersonAliases(person: Person) {
-    val personAliases = PseudonymEntity.fromList(person.aliases)
-    personAliases.forEach { personAliasEntity -> personAliasEntity.person = this }
-    this.pseudonyms.addAll(personAliases)
+  private fun updatePseudonyms(person: Person) {
+    val entities = PseudonymEntity.from(person)
+    entities.forEach { entity -> entity.person = this }
+    this.pseudonyms.addAll(entities)
   }
 
   private fun updatePersonContacts(person: Person) {
@@ -215,7 +219,7 @@ class PersonEntity(
   }
 
   private fun updatePersonSentences(person: Person) {
-    val personSentences = SentenceInfoEntity.fromList(person.sentences)
+    val personSentences = SentenceInfoEntity.fromList(person.sentences).distinctBy { it.sentenceDate }
     personSentences.forEach { personSentenceInfoEntity -> personSentenceInfoEntity.person = this }
     this.sentenceInfo.addAll(personSentences)
   }
@@ -243,7 +247,7 @@ class PersonEntity(
       val personEntity = PersonEntity(
         title = person.title,
         firstName = person.firstName,
-        middleNames = person.middleNames?.joinToString(" ") { it },
+        middleNames = person.middleNames,
         lastName = person.lastName,
         dateOfBirth = person.dateOfBirth,
         defendantId = person.defendantId,
