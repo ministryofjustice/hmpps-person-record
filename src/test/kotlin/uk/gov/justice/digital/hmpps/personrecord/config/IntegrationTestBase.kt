@@ -46,6 +46,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogReposito
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType.EXCLUDE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
@@ -416,6 +417,20 @@ class IntegrationTestBase {
 
   internal fun PersonEntity.assertNotMerged() {
     awaitAssert { assertThat(personRepository.findByMatchId(this.matchId)?.mergedTo).isNull() }
+  }
+
+  internal fun PersonEntity.assertNotLinkedToCluster(cluster: PersonKeyEntity) = awaitAssert {
+    assertThat(personRepository.findByMatchId(this.matchId)?.personKey?.personUUID).isNotEqualTo(cluster.personUUID)
+  }
+
+  internal fun PersonEntity.assertLinkedToCluster(cluster: PersonKeyEntity) = awaitAssert {
+    assertThat(personRepository.findByMatchId(this.matchId)?.personKey?.personUUID).isEqualTo(cluster.personUUID)
+  }
+
+  internal fun PersonEntity.assertExcludedFrom(personEntity: PersonEntity) = awaitAssert {
+    assertThat(
+      personRepository.findByMatchId(this.matchId)?.overrideMarkers?.filter { it.markerType == OverrideMarkerType.EXCLUDE && it.markerValue == personEntity.id },
+    ).hasSize(1)
   }
 
   companion object {
