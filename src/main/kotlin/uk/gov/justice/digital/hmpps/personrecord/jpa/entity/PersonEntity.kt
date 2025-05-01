@@ -147,7 +147,7 @@ class PersonEntity(
     this.personKey = null
   }
 
-  fun update(person: Person) {
+  fun update(person: Person): PersonEntity {
     this.defendantId = person.defendantId
     this.crn = person.crn
     this.prisonNumber = person.prisonNumber
@@ -163,6 +163,7 @@ class PersonEntity(
     references.clear()
     sentenceInfo.clear()
     updateChildEntities(person)
+    return this
   }
 
   private fun updateChildEntities(person: Person) {

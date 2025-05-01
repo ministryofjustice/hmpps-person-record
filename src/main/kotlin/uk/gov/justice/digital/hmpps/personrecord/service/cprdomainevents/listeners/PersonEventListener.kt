@@ -11,17 +11,20 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.recluster.Recluster
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordPersonTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Component
 class PersonEventListener(
   private val publisher: ApplicationEventPublisher,
+  private val personMatchService: PersonMatchService,
 ) {
 
   @EventListener
   fun onPersonCreated(personCreated: PersonCreated) {
     publisher.publishEvent(RecordPersonTelemetry(TelemetryEventType.CPR_RECORD_CREATED, personCreated.personEntity))
     publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_CREATED, personCreated.personEntity))
+    personMatchService.saveToPersonMatch(personCreated.personEntity)
   }
 
   @EventListener
@@ -35,11 +38,13 @@ class PersonEventListener(
         }
       }
     }
+    personMatchService.saveToPersonMatch(personUpdated.personEntity)
   }
 
   @EventListener
   fun onPersonDeleted(personDeleted: PersonDeleted) {
     publisher.publishEvent(RecordPersonTelemetry(TelemetryEventType.CPR_RECORD_DELETED, personDeleted.personEntity, mapOf(EventKeys.UUID to personDeleted.personEntity.personKey?.let { it.personUUID.toString() })))
     publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_DELETED, personDeleted.personEntity))
+    personMatchService.deleteFromPersonMatch(personDeleted.personEntity)
   }
 }

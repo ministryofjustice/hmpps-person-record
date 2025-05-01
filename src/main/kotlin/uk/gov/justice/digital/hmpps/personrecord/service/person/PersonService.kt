@@ -14,17 +14,9 @@ class PersonService(
   private val personMatchService: PersonMatchService,
 ) {
 
-  fun createPersonEntity(person: Person): PersonEntity {
-    val personEntity = createNewPersonEntity(person)
-    personMatchService.saveToPersonMatch(personEntity)
-    return personEntity
-  }
+  fun createPersonEntity(person: Person): PersonEntity = personRepository.save(PersonEntity.new(person))
 
-  fun updatePersonEntity(person: Person, existingPersonEntity: PersonEntity): PersonEntity {
-    val updatedEntity = updateExistingPersonEntity(person, existingPersonEntity)
-    personMatchService.saveToPersonMatch(updatedEntity)
-    return updatedEntity
-  }
+  fun updatePersonEntity(person: Person, existingPersonEntity: PersonEntity): PersonEntity = personRepository.save(existingPersonEntity.update(person))
 
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
     val personEntityWithKey = personMatchService.findHighestConfidencePersonRecord(personEntity).exists(
@@ -32,15 +24,5 @@ class PersonService(
       yes = { personKeyService.retrievePersonKey(personEntity, it) },
     )
     return personRepository.saveAndFlush(personEntityWithKey)
-  }
-
-  private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
-    personEntity.update(person)
-    return personRepository.save(personEntity)
-  }
-
-  private fun createNewPersonEntity(person: Person): PersonEntity {
-    val personEntity = PersonEntity.new(person)
-    return personRepository.save(personEntity)
   }
 }
