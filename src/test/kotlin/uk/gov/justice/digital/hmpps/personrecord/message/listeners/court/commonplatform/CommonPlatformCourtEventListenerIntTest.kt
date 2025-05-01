@@ -52,6 +52,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNum
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.nio.charset.Charset
+import java.time.LocalDateTime.now
 import java.util.UUID
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -123,7 +124,21 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       sourceSystem = COMMON_PLATFORM,
     )
 
-    val personEntity = PersonEntity.newTestOnlyNoPseudonym(person)
+    val personEntity = PersonEntity(
+      defendantId = person.defendantId,
+      crn = person.crn,
+      prisonNumber = person.prisonNumber,
+      masterDefendantId = person.masterDefendantId,
+      sourceSystem = person.sourceSystem,
+      ethnicity = person.ethnicity,
+      nationality = person.nationality,
+      religion = person.religion,
+      currentlyManaged = person.currentlyManaged,
+      matchId = UUID.randomUUID(),
+      cId = person.cId,
+      lastModified = now(),
+      sexCode = person.sexCode,
+    )
     personEntity.personKey = personKey
     personKeyRepository.saveAndFlush(personKey)
     personRepository.saveAndFlush(personEntity)
