@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribu
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttributes
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.message.LARGE_CASE_EVENT_TYPE
@@ -51,6 +52,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNum
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.nio.charset.Charset
+import java.time.LocalDateTime.now
 import java.util.UUID
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -83,6 +85,64 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
 
     stubNoMatchesPersonMatch(matchId = person.matchId)
+
+    val changedLastName = randomName()
+    val messageId = publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId))),
+    )
+
+    checkTelemetry(
+      MESSAGE_RECEIVED,
+      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "DEFENDANT_ID" to defendantId),
+    )
+
+    awaitAssert {
+      val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
+      assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(changedLastName)
+      assertThat(updatedPersonEntity.references.getType(PNC).first().identifierValue).isEqualTo(pnc)
+      assertThat(updatedPersonEntity.references.getType(CRO).first().identifierValue).isEqualTo(cro)
+      assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
+    }
+
+    checkTelemetry(
+      CPR_RECORD_UPDATED,
+      mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
+    )
+  }
+
+  @Test
+  fun `should update an existing person record from common platform message with no primary name in pseudonym table`() {
+    stubPersonMatchUpsert()
+    val defendantId = randomDefendantId()
+    val pnc = randomPnc()
+    val cro = randomCro()
+    val personKey = createPersonKey()
+
+    val person = Person(
+      defendantId = defendantId,
+      references = listOf(Reference(PNC, pnc), Reference(CRO, cro)),
+      sourceSystem = COMMON_PLATFORM,
+    )
+
+    val personEntity = PersonEntity(
+      defendantId = person.defendantId,
+      crn = person.crn,
+      prisonNumber = person.prisonNumber,
+      masterDefendantId = person.masterDefendantId,
+      sourceSystem = person.sourceSystem,
+      ethnicity = person.ethnicity,
+      nationality = person.nationality,
+      religion = person.religion,
+      currentlyManaged = person.currentlyManaged,
+      matchId = UUID.randomUUID(),
+      cId = person.cId,
+      lastModified = now(),
+      sexCode = person.sexCode,
+    )
+    personEntity.personKey = personKey
+    personKeyRepository.saveAndFlush(personKey)
+    personRepository.saveAndFlush(personEntity)
+    stubNoMatchesPersonMatch(matchId = personEntity.matchId)
 
     val changedLastName = randomName()
     val messageId = publishCommonPlatformMessage(
