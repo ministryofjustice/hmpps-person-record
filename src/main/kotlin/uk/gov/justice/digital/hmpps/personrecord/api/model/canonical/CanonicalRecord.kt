@@ -38,11 +38,11 @@ data class CanonicalRecord(
       val latestPerson = personKey.personEntities.sortedByDescending { it.lastModified }.first()
       return CanonicalRecord(
         cprUUID = personKey.personUUID.toString(),
-        firstName = latestPerson.getPrimaryName().firstName,
-        middleNames = latestPerson.getPrimaryName().middleNames,
-        lastName = latestPerson.getPrimaryName().lastName,
-        dateOfBirth = latestPerson.getPrimaryName().dateOfBirth?.toString(),
-        title = latestPerson.getPrimaryName().title,
+        firstName = latestPerson.getPrimaryName()?.firstName,
+        middleNames = latestPerson.getPrimaryName()?.middleNames,
+        lastName = latestPerson.getPrimaryName()?.lastName,
+        dateOfBirth = latestPerson.getPrimaryName()?.dateOfBirth?.toString(),
+        title = latestPerson.getPrimaryName()?.title,
         sex = latestPerson.sexCode?.toString(),
         religion = latestPerson.religion,
         ethnicity = latestPerson.ethnicity,

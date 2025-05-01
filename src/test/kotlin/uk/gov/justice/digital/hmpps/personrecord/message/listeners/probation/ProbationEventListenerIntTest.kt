@@ -106,10 +106,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       assertThat(personEntity.personKey).isNotNull()
       assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
-      assertThat(personEntity.getPrimaryName().firstName).isEqualTo(firstName)
-      assertThat(personEntity.getPrimaryName().middleNames).isEqualTo(middleName)
-      assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
-      assertThat(personEntity.getPrimaryName().title).isEqualTo(title)
+      assertThat(personEntity.getPrimaryName()?.firstName).isEqualTo(firstName)
+      assertThat(personEntity.getPrimaryName()?.middleNames).isEqualTo(middleName)
+      assertThat(personEntity.getPrimaryName()?.lastName).isEqualTo(lastName)
+      assertThat(personEntity.getPrimaryName()?.title).isEqualTo(title)
       assertThat(personEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
       assertThat(personEntity.crn).isEqualTo(crn)
       assertThat(personEntity.ethnicity).isEqualTo(ethnicity)
@@ -122,12 +122,12 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getAliases()[0].lastName).isEqualTo(aliasLastName)
       assertThat(personEntity.getAliases()[0].dateOfBirth).isEqualTo(aliasDateOfBirth)
       assertThat(personEntity.getAliases()[0].nameType).isEqualTo(NameType.ALIAS)
-      assertThat(personEntity.getPrimaryName().firstName).isEqualTo(firstName)
-      assertThat(personEntity.getPrimaryName().middleNames).isEqualTo(middleName)
-      assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
-      assertThat(personEntity.getPrimaryName().nameType).isEqualTo(NameType.PRIMARY)
-      assertThat(personEntity.getPrimaryName().title).isEqualTo(title)
-      assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
+      assertThat(personEntity.getPrimaryName()?.firstName).isEqualTo(firstName)
+      assertThat(personEntity.getPrimaryName()?.middleNames).isEqualTo(middleName)
+      assertThat(personEntity.getPrimaryName()?.lastName).isEqualTo(lastName)
+      assertThat(personEntity.getPrimaryName()?.nameType).isEqualTo(NameType.PRIMARY)
+      assertThat(personEntity.getPrimaryName()?.title).isEqualTo(title)
+      assertThat(personEntity.getPrimaryName()?.dateOfBirth).isEqualTo(dateOfBirth)
 
       assertThat(personEntity.addresses.size).isEqualTo(2)
       assertThat(personEntity.addresses[0].noFixedAbode).isEqualTo(true)
@@ -324,7 +324,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val updatedLastModified = updatedPersonEntity.lastModified
 
       assertThat(updatedLastModified).isAfter(createdLastModified)
-      assertThat(updatedPersonEntity.getPrimaryName().dateOfBirth).isEqualTo(changedDateOfBirth)
+      assertThat(updatedPersonEntity.getPrimaryName()?.dateOfBirth).isEqualTo(changedDateOfBirth)
     }
 
     @Test

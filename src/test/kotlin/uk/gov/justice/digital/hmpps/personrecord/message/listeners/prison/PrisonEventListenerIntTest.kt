@@ -148,10 +148,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
         assertThat(personEntity.personKey).isNotNull()
         assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
-        assertThat(personEntity.getPrimaryName().title).isEqualTo("Ms")
-        assertThat(personEntity.getPrimaryName().firstName).isEqualTo(firstName)
-        assertThat(personEntity.getPrimaryName().middleNames).isEqualTo("$middleName $middleName")
-        assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
+        assertThat(personEntity.getPrimaryName()?.title).isEqualTo("Ms")
+        assertThat(personEntity.getPrimaryName()?.firstName).isEqualTo(firstName)
+        assertThat(personEntity.getPrimaryName()?.middleNames).isEqualTo("$middleName $middleName")
+        assertThat(personEntity.getPrimaryName()?.lastName).isEqualTo(lastName)
         assertThat(personEntity.nationality).isEqualTo(nationality)
         assertThat(personEntity.religion).isEqualTo(religion)
         assertThat(personEntity.ethnicity).isEqualTo(ethnicity)
@@ -159,7 +159,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.references.getType(IdentifierType.CRO).first().identifierValue).isEqualTo(cro)
         assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(nationalInsuranceNumber)
         assertThat(personEntity.references.getType(IdentifierType.DRIVER_LICENSE_NUMBER).first().identifierValue).isEqualTo(driverLicenseNumber)
-        assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(personDateOfBirth)
+        assertThat(personEntity.getPrimaryName()?.dateOfBirth).isEqualTo(personDateOfBirth)
         assertThat(personEntity.getAliases().size).isEqualTo(1)
         assertThat(personEntity.getAliases()[0].firstName).isEqualTo(aliasFirstName)
         assertThat(personEntity.getAliases()[0].title).isEqualTo("AliasTitle")
@@ -262,7 +262,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber = prisonNumber)!!
         assertThat(personEntity.matchId).isEqualTo(prisoner.matchId)
-        assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
+        assertThat(personEntity.getPrimaryName()?.firstName).isEqualTo(updatedFirstName)
         assertThat(personEntity.sexCode).isEqualTo(SexCode.M)
       }
     }

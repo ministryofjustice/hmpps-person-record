@@ -97,7 +97,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     awaitAssert {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
-      assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(changedLastName)
+      assertThat(updatedPersonEntity.getPrimaryName()?.lastName).isEqualTo(changedLastName)
       assertThat(updatedPersonEntity.references.getType(PNC).first().identifierValue).isEqualTo(pnc)
       assertThat(updatedPersonEntity.references.getType(CRO).first().identifierValue).isEqualTo(cro)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
@@ -141,7 +141,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     awaitAssert {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
-      assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(changedLastName)
+      assertThat(updatedPersonEntity.getPrimaryName()?.lastName).isEqualTo(changedLastName)
       assertThat(updatedPersonEntity.references.getType(PNC).first().identifierValue).isEqualTo(pnc)
       assertThat(updatedPersonEntity.references.getType(CRO).first().identifierValue).isEqualTo(cro)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
@@ -260,9 +260,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.references.getType(PNC).first().identifierValue).isEqualTo(firstPnc)
     assertThat(firstPerson.personKey).isNotNull()
     assertThat(firstPerson.masterDefendantId).isEqualTo(firstDefendantId)
-    assertThat(firstPerson.getPrimaryName().firstName).isEqualTo(firstName)
-    assertThat(firstPerson.getPrimaryName().middleNames).isEqualTo("mName1 mName2")
-    assertThat(firstPerson.getPrimaryName().lastName).isEqualTo(lastName)
+    assertThat(firstPerson.getPrimaryName()?.firstName).isEqualTo(firstName)
+    assertThat(firstPerson.getPrimaryName()?.middleNames).isEqualTo("mName1 mName2")
+    assertThat(firstPerson.getPrimaryName()?.lastName).isEqualTo(lastName)
     assertThat(firstPerson.contacts).isEmpty()
     assertThat(firstPerson.addresses).isNotEmpty()
     assertThat(firstPerson.getAliases().size).isEqualTo(2)

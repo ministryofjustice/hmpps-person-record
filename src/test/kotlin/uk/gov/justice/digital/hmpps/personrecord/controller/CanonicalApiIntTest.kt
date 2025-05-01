@@ -101,11 +101,11 @@ class CanonicalApiIntTest : WebTestBase() {
     val canonicalAddress = CanonicalAddress(noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
 
     assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personUUID.toString())
-    assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
-    assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
-    assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
-    assertThat(responseBody.dateOfBirth).isEqualTo(person.getPrimaryName().dateOfBirth.toString())
-    assertThat(responseBody.title).isEqualTo(person.getPrimaryName().title)
+    assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName()?.firstName)
+    assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName()?.middleNames)
+    assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName()?.lastName)
+    assertThat(responseBody.dateOfBirth).isEqualTo(person.getPrimaryName()?.dateOfBirth.toString())
+    assertThat(responseBody.title).isEqualTo(person.getPrimaryName()?.title)
     assertThat(responseBody.ethnicity).isEqualTo(person.ethnicity)
     assertThat(responseBody.nationalities).isEqualTo(canonicalNationality)
     assertThat(responseBody.sex).isNull()
@@ -258,9 +258,9 @@ class CanonicalApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(responseBody.firstName).isEqualTo(latestPerson.getPrimaryName().firstName)
-    assertThat(responseBody.middleNames).isEqualTo(latestPerson.getPrimaryName().middleNames)
-    assertThat(responseBody.lastName).isEqualTo(latestPerson.getPrimaryName().lastName)
+    assertThat(responseBody.firstName).isEqualTo(latestPerson.getPrimaryName()?.firstName)
+    assertThat(responseBody.middleNames).isEqualTo(latestPerson.getPrimaryName()?.middleNames)
+    assertThat(responseBody.lastName).isEqualTo(latestPerson.getPrimaryName()?.lastName)
   }
 
   @Test
@@ -423,9 +423,9 @@ class CanonicalApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
-    assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
-    assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
+    assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName()?.firstName)
+    assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName()?.middleNames)
+    assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName()?.lastName)
   }
 
   @Test

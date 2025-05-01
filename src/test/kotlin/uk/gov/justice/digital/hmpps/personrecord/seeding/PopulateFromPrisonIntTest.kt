@@ -98,11 +98,11 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumberSeven) }
 
     val prisoner1 = personRepository.findByPrisonNumber(prisonNumberOne)!!
-    assertThat(prisoner1.getPrimaryName().firstName).isEqualTo("PrisonerOneFirstName")
-    assertThat(prisoner1.getPrimaryName().middleNames).isEqualTo("PrisonerOneMiddleNameOne PrisonerOneMiddleNameTwo")
-    assertThat(prisoner1.getPrimaryName().lastName).isEqualTo("PrisonerOneLastName")
+    assertThat(prisoner1.getPrimaryName()?.firstName).isEqualTo("PrisonerOneFirstName")
+    assertThat(prisoner1.getPrimaryName()?.middleNames).isEqualTo("PrisonerOneMiddleNameOne PrisonerOneMiddleNameTwo")
+    assertThat(prisoner1.getPrimaryName()?.lastName).isEqualTo("PrisonerOneLastName")
     assertThat(prisoner1.references.getType(IdentifierType.CRO).first().identifierValue).isEqualTo("029906/12J")
-    assertThat(prisoner1.getPrimaryName().dateOfBirth).isEqualTo(LocalDate.of(1975, 4, 2))
+    assertThat(prisoner1.getPrimaryName()?.dateOfBirth).isEqualTo(LocalDate.of(1975, 4, 2))
     assertThat(prisoner1.getAliases()[0].firstName).isEqualTo("PrisonerOneAliasOneFirstName")
     assertThat(prisoner1.getAliases()[0].middleNames).isEqualTo("PrisonerOneAliasOneMiddleNameOne PrisonerOneAliasOneMiddleNameTwo")
     assertThat(prisoner1.getAliases()[0].lastName).isEqualTo("PrisonerOneAliasOneLastName")
@@ -112,23 +112,23 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     assertThat(prisoner1.sourceSystem).isEqualTo(NOMIS)
 
     val prisoner2 = personRepository.findByPrisonNumber(prisonNumberTwo)!!
-    assertThat(prisoner2.getPrimaryName().firstName).isEqualTo("PrisonerTwoFirstName")
+    assertThat(prisoner2.getPrimaryName()?.firstName).isEqualTo("PrisonerTwoFirstName")
 
     val prisoner3 = personRepository.findByPrisonNumber(prisonNumberThree)!!
-    assertThat(prisoner3.getPrimaryName().firstName).isEqualTo("PrisonerThreeFirstName")
+    assertThat(prisoner3.getPrimaryName()?.firstName).isEqualTo("PrisonerThreeFirstName")
 
     val prisoner4 = personRepository.findByPrisonNumber(prisonNumberFour)!!
-    assertThat(prisoner4.getPrimaryName().firstName).isEqualTo("PrisonerFourFirstName")
+    assertThat(prisoner4.getPrimaryName()?.firstName).isEqualTo("PrisonerFourFirstName")
 
     val prisoner5 = personRepository.findByPrisonNumber(prisonNumberFive)!!
-    assertThat(prisoner5.getPrimaryName().firstName).isEqualTo("PrisonerFiveFirstName")
+    assertThat(prisoner5.getPrimaryName()?.firstName).isEqualTo("PrisonerFiveFirstName")
 
     val prisoner6 = personRepository.findByPrisonNumber(prisonNumberSix)!!
-    assertThat(prisoner6.getPrimaryName().firstName).isEqualTo("PrisonerSixFirstName")
+    assertThat(prisoner6.getPrimaryName()?.firstName).isEqualTo("PrisonerSixFirstName")
 
     val prisoner7 = personRepository.findByPrisonNumber(prisonNumberSeven)!!
-    assertThat(prisoner7.getPrimaryName().firstName).isEqualTo("PrisonerSevenFirstName")
-    assertThat(prisoner7.getPrimaryName().middleNames).isEqualTo("")
+    assertThat(prisoner7.getPrimaryName()?.firstName).isEqualTo("PrisonerSevenFirstName")
+    assertThat(prisoner7.getPrimaryName()?.middleNames).isEqualTo("")
     assertThat(prisoner7.references.getType(IdentifierType.CRO)).isEqualTo(emptyList<ReferenceEntity>())
   }
 
@@ -259,14 +259,14 @@ class PopulateFromPrisonIntTest : WebTestBase() {
 
     awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumberSeven) }
 
-    assertThat(personRepository.findByPrisonNumber(prisonNumberOne)!!.getPrimaryName().firstName).isEqualTo("PrisonerOneFirstName")
-    assertThat(personRepository.findByPrisonNumber(prisonNumberTwo)!!.getPrimaryName().firstName).isEqualTo("PrisonerTwoFirstName")
-    assertThat(personRepository.findByPrisonNumber(prisonNumberThree)!!.getPrimaryName().firstName).isEqualTo("PrisonerThreeFirstName")
-    assertThat(personRepository.findByPrisonNumber(prisonNumberFour)!!.getPrimaryName().firstName).isEqualTo("PrisonerFourFirstName")
-    assertThat(personRepository.findByPrisonNumber(prisonNumberFive)!!.getPrimaryName().firstName).isEqualTo("PrisonerFiveFirstName")
-    assertThat(personRepository.findByPrisonNumber(prisonNumberSix)!!.getPrimaryName().firstName).isEqualTo("PrisonerSixFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberOne)!!.getPrimaryName()?.firstName).isEqualTo("PrisonerOneFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberTwo)!!.getPrimaryName()?.firstName).isEqualTo("PrisonerTwoFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberThree)!!.getPrimaryName()?.firstName).isEqualTo("PrisonerThreeFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberFour)!!.getPrimaryName()?.firstName).isEqualTo("PrisonerFourFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberFive)!!.getPrimaryName()?.firstName).isEqualTo("PrisonerFiveFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberSix)!!.getPrimaryName()?.firstName).isEqualTo("PrisonerSixFirstName")
     assertThat(personRepository.findByPrisonNumber(prisonNumberSix)!!.getAliases().size).isEqualTo(0)
-    assertThat(personRepository.findByPrisonNumber(prisonNumberSeven)!!.getPrimaryName().firstName).isEqualTo("PrisonerSevenFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberSeven)!!.getPrimaryName()?.firstName).isEqualTo("PrisonerSevenFirstName")
   }
 
   @Test
@@ -321,6 +321,6 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       personRepository.findByPrisonNumber(prisonNumberThree)
     }
 
-    assertThat(prisoner.getPrimaryName().firstName).isEqualTo("PrisonerThreeFirstName")
+    assertThat(prisoner.getPrimaryName()?.firstName).isEqualTo("PrisonerThreeFirstName")
   }
 }
