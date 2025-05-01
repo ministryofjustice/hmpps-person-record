@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDateTime
+import java.time.LocalDateTime.now
 import java.util.UUID
 
 @Entity
@@ -241,5 +242,21 @@ class PersonEntity(
       personEntity.updateChildEntities(person)
       return personEntity
     }
+
+    fun newTestOnlyNoPseudonym(person: Person) = PersonEntity(
+      defendantId = person.defendantId,
+      crn = person.crn,
+      prisonNumber = person.prisonNumber,
+      masterDefendantId = person.masterDefendantId,
+      sourceSystem = person.sourceSystem,
+      ethnicity = person.ethnicity,
+      nationality = person.nationality,
+      religion = person.religion,
+      currentlyManaged = person.currentlyManaged,
+      matchId = UUID.randomUUID(),
+      cId = person.cId,
+      lastModified = now(),
+      sexCode = person.sexCode,
+    )
   }
 }
