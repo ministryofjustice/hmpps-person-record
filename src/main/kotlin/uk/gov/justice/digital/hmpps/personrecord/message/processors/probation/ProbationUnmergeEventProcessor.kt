@@ -11,13 +11,13 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.format.EncodingService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
-import uk.gov.justice.digital.hmpps.personrecord.service.message.NewUnmergeService
+import uk.gov.justice.digital.hmpps.personrecord.service.message.UnmergeService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.UNMERGE_MESSAGE_RECEIVED
 
 @Component
 class ProbationUnmergeEventProcessor(
   private val createUpdateService: CreateUpdateService,
-  private val newUnmergeService: NewUnmergeService,
+  private val unmergeService: UnmergeService,
   private val personRepository: PersonRepository,
   private val publisher: ApplicationEventPublisher,
   private val encodingService: EncodingService,
@@ -37,7 +37,7 @@ class ProbationUnmergeEventProcessor(
     )
     val unmergedPerson = getProbationPerson(domainEvent.additionalInformation?.unmergedCrn!!, true)
     val reactivatedPerson = getProbationPerson(domainEvent.additionalInformation.reactivatedCrn!!, false)
-    newUnmergeService.processUnmerge(reactivatedPerson, unmergedPerson)
+    unmergeService.processUnmerge(reactivatedPerson, unmergedPerson)
   }
 
   private fun getProbationPerson(crn: String, shouldLinkOnCreate: Boolean): PersonEntity = encodingService.getProbationCase(crn) {

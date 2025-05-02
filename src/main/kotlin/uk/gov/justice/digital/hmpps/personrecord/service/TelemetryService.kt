@@ -20,7 +20,6 @@ enum class EventKeys {
   MATCH_ID,
 
   // Merge
-  RECORD_TYPE,
   TO_UUID,
   FROM_UUID,
   FROM_SOURCE_SYSTEM_ID,
@@ -29,15 +28,12 @@ enum class EventKeys {
   // Unmerge
   REACTIVATED_UUID,
   UNMERGED_UUID,
-  REACTIVATED_CRN,
-  UNMERGED_CRN,
 
   // Matching
   HIGH_CONFIDENCE_COUNT,
   LOW_CONFIDENCE_COUNT,
 
   // Cluster
-  CLUSTER_COMPOSITION,
   RECORD_COUNT,
   UUID_COUNT,
   UUID,

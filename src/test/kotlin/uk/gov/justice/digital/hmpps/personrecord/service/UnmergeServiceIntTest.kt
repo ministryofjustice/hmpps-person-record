@@ -7,13 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.message.NewUnmergeService
+import uk.gov.justice.digital.hmpps.personrecord.service.message.UnmergeService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
-class NewMergeServiceIntTest : IntegrationTestBase() {
+class UnmergeServiceIntTest : IntegrationTestBase() {
 
   @Autowired
-  lateinit var newUnmergeService: NewUnmergeService
+  lateinit var unmergeService: UnmergeService
 
   @Test
   fun `should unmerge 2 merged records that exist on same cluster`() {
@@ -24,7 +24,7 @@ class NewMergeServiceIntTest : IntegrationTestBase() {
     val mergedReactivatedRecord = mergeRecord(reactivatedRecord, unmergedRecord)
 
     stubPersonMatchScores()
-    newUnmergeService.processUnmerge(mergedReactivatedRecord, unmergedRecord)
+    unmergeService.processUnmerge(mergedReactivatedRecord, unmergedRecord)
 
     checkTelemetry(TelemetryEventType.CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to reactivatedRecord.crn!!))
 
@@ -48,7 +48,7 @@ class NewMergeServiceIntTest : IntegrationTestBase() {
     val reactivatedRecord = createPerson(createRandomProbationPersonDetails())
 
     stubPersonMatchScores()
-    newUnmergeService.processUnmerge(reactivatedRecord, unmergedRecord)
+    unmergeService.processUnmerge(reactivatedRecord, unmergedRecord)
 
     checkTelemetry(TelemetryEventType.CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to reactivatedRecord.crn!!))
 
@@ -75,7 +75,7 @@ class NewMergeServiceIntTest : IntegrationTestBase() {
     val mergedReactivatedRecord = mergeRecord(reactivatedRecord, unmergedRecord)
 
     stubPersonMatchScores()
-    newUnmergeService.processUnmerge(mergedReactivatedRecord, unmergedRecord)
+    unmergeService.processUnmerge(mergedReactivatedRecord, unmergedRecord)
 
     reactivatedRecord.assertNotMerged()
 
@@ -100,7 +100,7 @@ class NewMergeServiceIntTest : IntegrationTestBase() {
     val matchedPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
 
     stubOnePersonMatchHighConfidenceMatch(matchId = reactivatedRecord.matchId, matchedRecord = matchedPerson.matchId)
-    newUnmergeService.processUnmerge(mergedReactivatedRecord, unmergedRecord)
+    unmergeService.processUnmerge(mergedReactivatedRecord, unmergedRecord)
 
     checkTelemetry(TelemetryEventType.CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to reactivatedRecord.crn!!))
 
@@ -131,7 +131,7 @@ class NewMergeServiceIntTest : IntegrationTestBase() {
       val mergedReactivatedRecord = mergeRecord(reactivatedRecord, unmergedRecord)
 
       stubPersonMatchScores()
-      newUnmergeService.processUnmerge(mergedReactivatedRecord, unmergedRecord)
+      unmergeService.processUnmerge(mergedReactivatedRecord, unmergedRecord)
 
       checkEventLogExist(reactivatedRecord.crn!!, CPRLogEvents.CPR_UUID_CREATED)
       checkEventLog(reactivatedRecord.crn!!, CPRLogEvents.CPR_RECORD_UNMERGED) { eventLogs ->
@@ -161,7 +161,7 @@ class NewMergeServiceIntTest : IntegrationTestBase() {
       val mergedReactivatedRecord = mergeRecord(reactivatedRecord, unmergedRecord)
 
       stubPersonMatchScores()
-      newUnmergeService.processUnmerge(mergedReactivatedRecord, unmergedRecord)
+      unmergeService.processUnmerge(mergedReactivatedRecord, unmergedRecord)
 
       checkEventLog(unmergedRecord.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
