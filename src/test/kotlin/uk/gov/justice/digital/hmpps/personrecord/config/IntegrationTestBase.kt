@@ -427,6 +427,10 @@ class IntegrationTestBase {
     assertThat(personRepository.findByMatchId(this.matchId)?.personKey?.personUUID).isEqualTo(cluster.personUUID)
   }
 
+  internal fun PersonEntity.assertHasLinkToCluster() = awaitAssert {
+    assertThat(personRepository.findByMatchId(this.matchId)?.personKey).isNotNull()
+  }
+
   internal fun PersonEntity.assertExcludedFrom(personEntity: PersonEntity) = awaitAssert {
     assertThat(
       personRepository.findByMatchId(this.matchId)?.overrideMarkers?.filter { it.markerType == OverrideMarkerType.EXCLUDE && it.markerValue == personEntity.id },
