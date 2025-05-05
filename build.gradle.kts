@@ -29,7 +29,7 @@ dependencies {
   implementation("software.amazon.sns:sns-extended-client:2.1.0")
   implementation("com.jayway.jsonpath:json-path:2.9.0")
   implementation("io.swagger.core.v3:swagger-annotations:2.2.30")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
+  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8")
 
   constraints {
     implementation("commons-io:commons-io:2.19.0") {
