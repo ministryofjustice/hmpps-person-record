@@ -20,6 +20,8 @@ data class PersonMatchRecord(
   val sentenceDates: List<String> = listOf(),
   val crn: String? = "",
   val prisonNumber: String? = "",
+  val defendantId: String? = "",
+  val cId: String? = "",
 ) {
 
   fun matchingFieldsAreDifferent(personMatchRecord: PersonMatchRecord): Boolean = this != personMatchRecord
@@ -41,6 +43,8 @@ data class PersonMatchRecord(
       sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.map { it.toString() }.distinct().sorted(),
       crn = personEntity.crn ?: "",
       prisonNumber = personEntity.prisonNumber ?: "",
+      defendantId = personEntity.defendantId ?: "",
+      cId = personEntity.cId ?: "",
     )
   }
 }
