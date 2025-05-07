@@ -166,15 +166,15 @@ class CourtEventProcessor(
         this.dateOfBirthIsPresent()
       )
 
-  fun LibraHearingEvent.lastNameIsPresent() = this.name?.lastName?.isNotEmpty() == true
+  private fun LibraHearingEvent.lastNameIsPresent() = this.name?.lastName?.isNotEmpty() == true
 
-  fun LibraHearingEvent.dateOfBirthIsPresent() = this.dateOfBirth != null
+  private fun LibraHearingEvent.dateOfBirthIsPresent() = this.dateOfBirth != null
 
-  fun LibraHearingEvent.forename3IsPresent() = this.name?.forename3?.isNotEmpty() == true
+  private fun LibraHearingEvent.forename3IsPresent() = this.name?.forename3?.isNotEmpty() == true
 
-  fun LibraHearingEvent.forename2IsPresent() = this.name?.forename2?.isNotEmpty() == true
+  private fun LibraHearingEvent.forename2IsPresent() = this.name?.forename2?.isNotEmpty() == true
 
-  fun LibraHearingEvent.firstNameIsPresent() = this.name?.firstName?.isNotEmpty() == true
+  private fun LibraHearingEvent.firstNameIsPresent() = this.name?.firstName?.isNotEmpty() == true
 }
 
 data class LargeMessageBody(val s3Key: String, val s3BucketName: String)
