@@ -80,11 +80,15 @@ class CourtEventProcessor(
     }
   }
 
-  private fun Defendant.minimumDataIsPresent(): Boolean = this.firstNameIsPresent() ||
-    this.middleNameIsPresent() ||
-    this.dateOfBirthIsPresent()
+  private fun Defendant.minimumDataIsPresent(): Boolean = this.lastNameIsPresent() &&
+    (
+      this.firstNameIsPresent() ||
+        this.middleNameIsPresent() ||
+        this.dateOfBirthIsPresent()
+      )
 
   private fun Defendant.firstNameIsPresent(): Boolean = this.personDefendant?.personDetails?.firstName?.isNotEmpty() == true
+  private fun Defendant.lastNameIsPresent(): Boolean = this.personDefendant?.personDetails?.lastName?.isNotEmpty() == true
   private fun Defendant.middleNameIsPresent(): Boolean = this.personDefendant?.personDetails?.middleName?.isNotEmpty() == true
   private fun Defendant.dateOfBirthIsPresent(): Boolean = this.personDefendant?.personDetails?.dateOfBirth != null
 
@@ -154,7 +158,7 @@ class CourtEventProcessor(
   private fun isLibraPerson(libraHearingEvent: LibraHearingEvent): Boolean = libraHearingEvent.defendantType == PERSON.value &&
     libraHearingEvent.minimumDataIsPresent()
 
-  fun LibraHearingEvent.minimumDataIsPresent(): Boolean = this.lastNameIsPresent() &&
+  private fun LibraHearingEvent.minimumDataIsPresent(): Boolean = this.lastNameIsPresent() &&
     (
       this.firstNameIsPresent() ||
         this.forename2IsPresent() ||
