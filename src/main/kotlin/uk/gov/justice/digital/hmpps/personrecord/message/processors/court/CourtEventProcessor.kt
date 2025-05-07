@@ -157,24 +157,6 @@ class CourtEventProcessor(
 
   private fun isLibraPerson(libraHearingEvent: LibraHearingEvent): Boolean = libraHearingEvent.defendantType == PERSON.value &&
     libraHearingEvent.minimumDataIsPresent()
-
-  private fun LibraHearingEvent.minimumDataIsPresent(): Boolean = this.lastNameIsPresent() &&
-    (
-      this.firstNameIsPresent() ||
-        this.forename2IsPresent() ||
-        this.forename3IsPresent() ||
-        this.dateOfBirthIsPresent()
-      )
-
-  private fun LibraHearingEvent.lastNameIsPresent() = this.name?.lastName?.isNotEmpty() == true
-
-  private fun LibraHearingEvent.dateOfBirthIsPresent() = this.dateOfBirth != null
-
-  private fun LibraHearingEvent.forename3IsPresent() = this.name?.forename3?.isNotEmpty() == true
-
-  private fun LibraHearingEvent.forename2IsPresent() = this.name?.forename2?.isNotEmpty() == true
-
-  private fun LibraHearingEvent.firstNameIsPresent() = this.name?.firstName?.isNotEmpty() == true
 }
 
 data class LargeMessageBody(val s3Key: String, val s3BucketName: String)
