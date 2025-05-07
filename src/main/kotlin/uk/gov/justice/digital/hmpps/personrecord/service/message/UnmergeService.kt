@@ -21,37 +21,37 @@ class UnmergeService(
 ) {
 
   @Transactional
-  fun processUnmerge(reactivated: PersonEntity, unmerged: PersonEntity) {
+  fun processUnmerge(reactivated: PersonEntity, existing: PersonEntity) {
     when {
-      clusterContainsAdditionalRecords(reactivated, unmerged) -> setClusterAsNeedsAttention(unmerged)
+      clusterContainsAdditionalRecords(reactivated, existing) -> setClusterAsNeedsAttention(existing)
     }
-    unmerge(reactivated, unmerged)
+    unmerge(reactivated, existing)
   }
 
-  private fun unmerge(reactivated: PersonEntity, unmerged: PersonEntity) {
-    unmerged.addExcludeOverrideMarker(excludeRecord = reactivated)
-    personRepository.save(unmerged)
+  private fun unmerge(reactivated: PersonEntity, existing: PersonEntity) {
+    existing.addExcludeOverrideMarker(excludeRecord = reactivated)
+    personRepository.save(existing)
 
     reactivated.personKey?.let { reactivated.removePersonKeyLink() }
     reactivated.removeMergedLink()
 
-    reactivated.addExcludeOverrideMarker(excludeRecord = unmerged)
+    reactivated.addExcludeOverrideMarker(excludeRecord = existing)
     personService.linkRecordToPersonKey(reactivated)
-    publisher.publishEvent(PersonUnmerged(reactivated, unmerged))
+    publisher.publishEvent(PersonUnmerged(reactivated, existing))
   }
 
-  private fun setClusterAsNeedsAttention(unmerged: PersonEntity) {
-    unmerged.personKey?.let {
+  private fun setClusterAsNeedsAttention(existing: PersonEntity) {
+    existing.personKey?.let {
       it.status = UUIDStatusType.NEEDS_ATTENTION
       personKeyRepository.save(it)
-      publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION, unmerged, it))
+      publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION, existing, it))
     }
   }
 
-  private fun clusterContainsAdditionalRecords(reactivated: PersonEntity, unmerged: PersonEntity): Boolean {
-    val additionalRecords = unmerged.personKey?.let { cluster ->
+  private fun clusterContainsAdditionalRecords(reactivated: PersonEntity, existing: PersonEntity): Boolean {
+    val additionalRecords = existing.personKey?.let { cluster ->
       cluster.personEntities.filter {
-        listOf(unmerged.id, reactivated.id).contains(it.id).not()
+        listOf(existing.id, reactivated.id).contains(it.id).not()
       }
     }
     return (additionalRecords?.size ?: 0) > 0
