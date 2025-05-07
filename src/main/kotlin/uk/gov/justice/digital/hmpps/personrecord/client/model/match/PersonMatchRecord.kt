@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.match
 
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.extractSourceSystemId
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 
@@ -20,8 +21,7 @@ data class PersonMatchRecord(
   val sentenceDates: List<String> = listOf(),
   val crn: String? = "",
   val prisonNumber: String? = "",
-  val defendantId: String? = "",
-  val cId: String? = "",
+  val sourceSystemId: String? = "",
 ) {
 
   fun matchingFieldsAreDifferent(personMatchRecord: PersonMatchRecord): Boolean = this != personMatchRecord
@@ -43,8 +43,7 @@ data class PersonMatchRecord(
       sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.map { it.toString() }.distinct().sorted(),
       crn = personEntity.crn ?: "",
       prisonNumber = personEntity.prisonNumber ?: "",
-      defendantId = personEntity.defendantId ?: "",
-      cId = personEntity.cId ?: "",
+      sourceSystemId = personEntity.extractSourceSystemId(),
     )
   }
 }
