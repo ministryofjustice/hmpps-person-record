@@ -148,25 +148,25 @@ class CourtEventProcessor(
   }
 
   private fun isLibraPerson(libraHearingEvent: LibraHearingEvent): Boolean = libraHearingEvent.defendantType == PERSON.value &&
-    minimumDataIsPresent(libraHearingEvent)
+    libraHearingEvent.minimumDataIsPresent()
 
-  private fun minimumDataIsPresent(libraHearingEvent: LibraHearingEvent): Boolean = lastNameIsPresent(libraHearingEvent) &&
+  fun LibraHearingEvent.minimumDataIsPresent(): Boolean = this.lastNameIsPresent() &&
     (
-      firstNameIsPresent(libraHearingEvent) ||
-        forename2IsPresent(libraHearingEvent) ||
-        forename3IsPresent(libraHearingEvent) ||
-        dateOfBirthIsPresent(libraHearingEvent)
+      this.firstNameIsPresent() ||
+        this.forename2IsPresent() ||
+        this.forename3IsPresent() ||
+        this.dateOfBirthIsPresent()
       )
 
-  private fun lastNameIsPresent(libraHearingEvent: LibraHearingEvent) = libraHearingEvent.name?.lastName?.isNotEmpty() == true
+  fun LibraHearingEvent.lastNameIsPresent() = this.name?.lastName?.isNotEmpty() == true
 
-  private fun dateOfBirthIsPresent(libraHearingEvent: LibraHearingEvent) = libraHearingEvent.dateOfBirth != null
+  fun LibraHearingEvent.dateOfBirthIsPresent() = this.dateOfBirth != null
 
-  private fun forename3IsPresent(libraHearingEvent: LibraHearingEvent) = libraHearingEvent.name?.forename3?.isNotEmpty() == true
+  fun LibraHearingEvent.forename3IsPresent() = this.name?.forename3?.isNotEmpty() == true
 
-  private fun forename2IsPresent(libraHearingEvent: LibraHearingEvent) = libraHearingEvent.name?.forename2?.isNotEmpty() == true
+  fun LibraHearingEvent.forename2IsPresent() = this.name?.forename2?.isNotEmpty() == true
 
-  private fun firstNameIsPresent(libraHearingEvent: LibraHearingEvent) = libraHearingEvent.name?.firstName?.isNotEmpty() == true
+  fun LibraHearingEvent.firstNameIsPresent() = this.name?.firstName?.isNotEmpty() == true
 }
 
 data class LargeMessageBody(val s3Key: String, val s3BucketName: String)
