@@ -31,7 +31,7 @@ data class Defendant(
       this.personDefendant?.personDetails?.firstName,
       this.personDefendant?.personDetails?.middleName,
       this.personDefendant?.personDetails?.dateOfBirth,
-    ).isNotEmpty()
+    ).joinToString("").isNotEmpty()
 
   private fun lastNameIsPresent(): Boolean = this.personDefendant?.personDetails?.lastName?.isNotEmpty() == true
 }

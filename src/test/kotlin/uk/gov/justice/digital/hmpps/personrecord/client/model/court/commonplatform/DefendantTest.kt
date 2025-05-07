@@ -7,8 +7,13 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 
 class DefendantTest {
   @Test
-  fun `minimumDataIsPresent returns false if only lastname is present`() {
+  fun `minimumDataIsPresent returns false if only lastname is present and other names are null`() {
     assertThat(Defendant(personDefendant = PersonDefendant(personDetails = PersonDetails(lastName = randomName()))).isPerson()).isFalse()
+  }
+
+  @Test
+  fun `minimumDataIsPresent returns false if only lastname is present and other names are empty strings`() {
+    assertThat(Defendant(personDefendant = PersonDefendant(personDetails = PersonDetails(firstName = "", middleName = "", lastName = randomName()))).isPerson()).isFalse()
   }
 
   @Test
