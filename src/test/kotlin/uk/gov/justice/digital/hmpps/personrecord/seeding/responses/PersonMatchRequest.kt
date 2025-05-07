@@ -20,7 +20,8 @@ fun personMatchRequest(personMatchRecord: PersonMatchRecord): String = """
         "pncs": [${personMatchRecord.pncs.joinToString(", ") { "\"${it}\"" }}],     
         "sentenceDates": [${personMatchRecord.sentenceDates.joinToString(", ") { "\"${it}\"" }}],
         "crn": "${personMatchRecord.crn}",
-        "prisonNumber": "${personMatchRecord.prisonNumber}"
+        "prisonNumber": "${personMatchRecord.prisonNumber}",
+        "sourceSystemId": "${personMatchRecord.sourceSystemId}"
       }
     ]
  }
