@@ -65,7 +65,6 @@ class CourtEventProcessor(
       .flatMap { it.defendants }
       .filterNot { it.isYouth }
       .filter { it.isPerson() }
-      .filter { it.minimumDataIsPresent() }
       .distinctBy { it.id }.map { defendant ->
         processCommonPlatformPerson(defendant, sqsMessage)
       }

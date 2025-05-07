@@ -8,21 +8,21 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 class DefendantTest {
   @Test
   fun `minimumDataIsPresent returns false if only lastname is persent`() {
-    assertThat(Defendant(personDefendant = PersonDefendant(personDetails = PersonDetails(lastName = randomName()))).minimumDataIsPresent()).isFalse()
+    assertThat(Defendant(personDefendant = PersonDefendant(personDetails = PersonDetails(lastName = randomName()))).isPerson()).isFalse()
   }
 
   @Test
   fun `minimumDataIsPresent returns true if firstName and lastName are present`() {
-    assertThat(Defendant(personDefendant = PersonDefendant(personDetails = PersonDetails(firstName = randomName(), lastName = randomName()))).minimumDataIsPresent()).isTrue()
+    assertThat(Defendant(personDefendant = PersonDefendant(personDetails = PersonDetails(firstName = randomName(), lastName = randomName()))).isPerson()).isTrue()
   }
 
   @Test
   fun `minimumDataIsPresent returns true if middleName and lastName are present`() {
-    assertThat(Defendant(personDefendant = PersonDefendant(personDetails = PersonDetails(middleName = randomName(), lastName = randomName()))).minimumDataIsPresent()).isTrue()
+    assertThat(Defendant(personDefendant = PersonDefendant(personDetails = PersonDetails(middleName = randomName(), lastName = randomName()))).isPerson()).isTrue()
   }
 
   @Test
   fun `minimumDataIsPresent returns true if dateOfBirth and lastName are present`() {
-    assertThat(Defendant(personDefendant = PersonDefendant(personDetails = PersonDetails(lastName = randomName(), dateOfBirth = randomDate()))).minimumDataIsPresent()).isTrue()
+    assertThat(Defendant(personDefendant = PersonDefendant(personDetails = PersonDetails(lastName = randomName(), dateOfBirth = randomDate()))).isPerson()).isTrue()
   }
 }

@@ -26,9 +26,7 @@ data class Defendant(
   val aliases: List<DefendantAlias>? = emptyList(),
   val isYouth: Boolean = false,
 ) {
-  fun isPerson() = personDefendant != null
-
-  fun minimumDataIsPresent(): Boolean = lastNameIsPresent() &&
+  fun isPerson(): Boolean = lastNameIsPresent() &&
     (
       firstNameIsPresent() ||
         middleNameIsPresent() ||
