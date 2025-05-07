@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType.ORGANISATION
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType.PERSON
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
@@ -249,6 +250,27 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
       times = 0,
     )
+  }
+
+  @Test
+  fun `should republish defendant with no firstname, middlename and date of birth from libra without creating a person record`() {
+    val cId = randomCId()
+    val lastName = randomName()
+    publishLibraMessage(libraHearing(cId = cId, lastName = lastName, defendantType = PERSON))
+
+    expectOneMessageOn(testOnlyCourtEventsQueue)
+
+    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
+    assertThat(personRepository.findByCId(cId)).isNull()
+
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
+
+    val libraMessage: String = sqsMessage?.message!!
+
+    assertThat(libraMessage.contains(cId)).isEqualTo(true)
+    assertThat(libraMessage.contains(lastName)).isEqualTo(true)
+    assertThat(libraMessage.contains("cprUUID")).isEqualTo(false)
+    assertThat(personRepository.findByCId(cId)).isNull()
   }
 
   @Test

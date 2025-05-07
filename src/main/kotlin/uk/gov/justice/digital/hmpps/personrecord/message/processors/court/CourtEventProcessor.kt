@@ -67,9 +67,9 @@ class CourtEventProcessor(
       .filterNot { it.isYouth }
       .filter { it.isPerson() }
       .filterNot {
-        it.personDefendant?.personDetails?.firstName.isNullOrEmpty()
-          && it.personDefendant?.personDetails?.middleName.isNullOrEmpty()
-          && it.personDefendant?.personDetails?.dateOfBirth == null
+        it.personDefendant?.personDetails?.firstName.isNullOrEmpty() &&
+          it.personDefendant?.personDetails?.middleName.isNullOrEmpty() &&
+          it.personDefendant?.personDetails?.dateOfBirth == null
       }
       .distinctBy { it.id }.map { defendant ->
         processCommonPlatformPerson(defendant, sqsMessage)
@@ -147,7 +147,13 @@ class CourtEventProcessor(
     }
   }
 
-  private fun isLibraPerson(libraHearingEvent: LibraHearingEvent) = libraHearingEvent.defendantType == DefendantType.PERSON.value
+  private fun isLibraPerson(libraHearingEvent: LibraHearingEvent): Boolean = libraHearingEvent.defendantType == DefendantType.PERSON.value &&
+    !(
+      libraHearingEvent.name?.firstName.isNullOrEmpty() &&
+        libraHearingEvent.name?.forename2.isNullOrEmpty() &&
+        libraHearingEvent.name?.forename3.isNullOrEmpty() &&
+        libraHearingEvent.dateOfBirth == null
+      )
 }
 
 data class LargeMessageBody(val s3Key: String, val s3BucketName: String)
