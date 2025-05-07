@@ -32,21 +32,9 @@ data class LibraHearingEvent(
   val defendantType: String? = null,
   val defendantSex: String? = null,
 ) {
-  fun minimumDataIsPresent(): Boolean = this.lastNameIsPresent() &&
-    (
-      this.firstNameIsPresent() ||
-        this.forename2IsPresent() ||
-        this.forename3IsPresent() ||
-        this.dateOfBirthIsPresent()
-      )
+  fun minimumDataIsPresent(): Boolean = lastNameIsPresent() && anyOtherPersonalDataIsPresent()
 
-  private fun lastNameIsPresent() = this.name?.lastName?.isNotEmpty() == true
+  private fun anyOtherPersonalDataIsPresent() = listOfNotNull(name?.firstName, name?.forename2, name?.forename3, dateOfBirth).isNotEmpty()
 
-  private fun dateOfBirthIsPresent() = this.dateOfBirth != null
-
-  private fun forename3IsPresent() = this.name?.forename3?.isNotEmpty() == true
-
-  private fun forename2IsPresent() = this.name?.forename2?.isNotEmpty() == true
-
-  private fun firstNameIsPresent() = this.name?.firstName?.isNotEmpty() == true
+  private fun lastNameIsPresent() = name?.lastName?.isNotEmpty() == true
 }
