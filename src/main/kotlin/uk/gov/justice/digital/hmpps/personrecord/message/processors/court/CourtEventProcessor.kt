@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -115,7 +114,7 @@ class CourtEventProcessor(
   private fun processLibraEvent(sqsMessage: SQSMessage) {
     val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(sqsMessage.message)
     val personEntity = when {
-      isLibraPerson(libraHearingEvent) -> processLibraPerson(libraHearingEvent, sqsMessage)
+      libraHearingEvent.isPerson() -> processLibraPerson(libraHearingEvent, sqsMessage)
       else -> null
     }
     if (publishToCourtTopic) {
@@ -141,8 +140,6 @@ class CourtEventProcessor(
       }
     }
   }
-
-  private fun isLibraPerson(libraHearingEvent: LibraHearingEvent) = libraHearingEvent.defendantType == DefendantType.PERSON.value
 }
 
 data class LargeMessageBody(val s3Key: String, val s3BucketName: String)

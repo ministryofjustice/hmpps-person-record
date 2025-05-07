@@ -26,5 +26,12 @@ data class Defendant(
   val aliases: List<DefendantAlias>? = emptyList(),
   val isYouth: Boolean = false,
 ) {
-  fun isPerson() = personDefendant != null
+  fun isPerson(): Boolean = lastNameIsPresent() &&
+    listOfNotNull(
+      personDefendant?.personDetails?.firstName,
+      personDefendant?.personDetails?.middleName,
+      personDefendant?.personDetails?.dateOfBirth,
+    ).joinToString("").isNotEmpty()
+
+  private fun lastNameIsPresent(): Boolean = personDefendant?.personDetails?.lastName?.isNotEmpty() == true
 }

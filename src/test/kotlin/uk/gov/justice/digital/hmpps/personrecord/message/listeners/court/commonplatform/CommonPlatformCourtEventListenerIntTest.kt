@@ -436,6 +436,29 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
+  fun `should not store defendant with missing firstName, middleName and Date of birth`() {
+    val defendantId = randomDefendantId()
+    publishCommonPlatformMessage(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(defendantId = defendantId, firstName = "", middleName = "", lastName = randomName(), dateOfBirth = "", isPerson = true),
+        ),
+      ),
+    )
+
+    expectOneMessageOn(testOnlyCourtEventsQueue)
+
+    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
+
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }!!
+    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
+    assertThat(sqsMessage.message.contains("cprUUID")).isFalse()
+    assertThat(sqsMessage.message.contains(defendantId)).isTrue()
+
+    assertThat(personRepository.findByDefendantId(defendantId)).isNull()
+  }
+
+  @Test
   fun `should republish large message and not save when organisation`() {
     stubPersonMatchUpsert()
     stubPersonMatchScores()

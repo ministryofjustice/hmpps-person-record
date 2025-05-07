@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.messages
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType.PERSON
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
@@ -8,11 +9,11 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 
 fun libraHearing(
   pncNumber: String? = randomPnc(),
-  firstName: String? = "Arthur",
+  firstName: String? = null,
   foreName2: String? = null,
   foreName3: String? = null,
   lastName: String = randomName(),
-  dateOfBirth: String = "01/01/1975",
+  dateOfBirth: String = "",
   cro: String = "85227/65L",
   postcode: String = randomPostcode(),
   line1: String? = randomName(),
@@ -21,7 +22,7 @@ fun libraHearing(
   line4: String? = randomName(),
   line5: String? = randomName(),
   cId: String = randomCId(),
-  defendantType: DefendantType = DefendantType.PERSON,
+  defendantType: DefendantType = PERSON,
   defendantSex: String? = null,
 ) = """
 {
