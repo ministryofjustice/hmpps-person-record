@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.OptBoolean
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Address
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType.PERSON
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifierDeserializer
@@ -32,7 +33,9 @@ data class LibraHearingEvent(
   val defendantType: String? = null,
   val defendantSex: String? = null,
 ) {
-  fun minimumDataIsPresent(): Boolean = lastNameIsPresent() && anyOtherPersonalDataIsPresent()
+  fun isPerson(): Boolean = defendantType == PERSON.value && minimumDataIsPresent()
+
+  private fun minimumDataIsPresent(): Boolean = lastNameIsPresent() && anyOtherPersonalDataIsPresent()
 
   private fun anyOtherPersonalDataIsPresent() = listOfNotNull(name?.firstName, name?.forename2, name?.forename3, dateOfBirth).isNotEmpty()
 
