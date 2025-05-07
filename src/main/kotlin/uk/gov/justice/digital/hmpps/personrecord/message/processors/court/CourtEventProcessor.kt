@@ -66,7 +66,7 @@ class CourtEventProcessor(
       .flatMap { it.defendants }
       .filterNot { it.isYouth }
       .filter { it.isPerson() }
-      .filter { isCommonPlatformPerson(it) }
+      .filter { it.minimumDataIsPresent() }
       .distinctBy { it.id }.map { defendant ->
         processCommonPlatformPerson(defendant, sqsMessage)
       }
@@ -80,16 +80,13 @@ class CourtEventProcessor(
     }
   }
 
-  fun isCommonPlatformPerson(defendant: Defendant): Boolean = defendant.minimumDataIsPresent()
-
-  fun Defendant.minimumDataIsPresent(): Boolean =
-    this.firstNameIsPresent() ||
+  private fun Defendant.minimumDataIsPresent(): Boolean = this.firstNameIsPresent() ||
     this.middleNameIsPresent() ||
     this.dateOfBirthIsPresent()
 
-  fun Defendant.firstNameIsPresent(): Boolean = this.personDefendant?.personDetails?.firstName?.isNotEmpty() == true
-  fun Defendant.middleNameIsPresent(): Boolean = this.personDefendant?.personDetails?.middleName?.isNotEmpty() == true
-  fun Defendant.dateOfBirthIsPresent(): Boolean = this.personDefendant?.personDetails?.dateOfBirth != null
+  private fun Defendant.firstNameIsPresent(): Boolean = this.personDefendant?.personDetails?.firstName?.isNotEmpty() == true
+  private fun Defendant.middleNameIsPresent(): Boolean = this.personDefendant?.personDetails?.middleName?.isNotEmpty() == true
+  private fun Defendant.dateOfBirthIsPresent(): Boolean = this.personDefendant?.personDetails?.dateOfBirth != null
 
   private fun processCommonPlatformPerson(defendant: Defendant, sqsMessage: SQSMessage): PersonEntity {
     val person = Person.from(defendant)
