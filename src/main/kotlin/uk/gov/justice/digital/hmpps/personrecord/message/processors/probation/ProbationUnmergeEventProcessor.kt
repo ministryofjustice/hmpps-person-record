@@ -35,9 +35,9 @@ class ProbationUnmergeEventProcessor(
         ),
       ),
     )
-    val unmergedPerson = getProbationPerson(domainEvent.additionalInformation?.unmergedCrn!!, true)
+    val existingPerson = getProbationPerson(domainEvent.additionalInformation?.unmergedCrn!!, true)
     val reactivatedPerson = getProbationPerson(domainEvent.additionalInformation.reactivatedCrn!!, false)
-    unmergeService.processUnmerge(reactivatedPerson, unmergedPerson)
+    unmergeService.processUnmerge(reactivatedPerson, existingPerson)
   }
 
   private fun getProbationPerson(crn: String, shouldLinkOnCreate: Boolean): PersonEntity = encodingService.getProbationCase(crn) {
