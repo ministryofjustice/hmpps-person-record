@@ -37,7 +37,7 @@ data class LibraHearingEvent(
 
   private fun minimumDataIsPresent(): Boolean = lastNameIsPresent() && anyOtherPersonalDataIsPresent()
 
-  private fun anyOtherPersonalDataIsPresent() = listOfNotNull(name?.firstName, name?.forename2, name?.forename3, dateOfBirth).isNotEmpty()
+  private fun anyOtherPersonalDataIsPresent() = listOfNotNull(name?.firstName, name?.forename2, name?.forename3, dateOfBirth).joinToString("").isNotEmpty()
 
   private fun lastNameIsPresent() = name?.lastName?.isNotEmpty() == true
 }

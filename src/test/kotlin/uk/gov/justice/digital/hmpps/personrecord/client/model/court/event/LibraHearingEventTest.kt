@@ -10,8 +10,13 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 class LibraHearingEventTest {
 
   @Test
-  fun `isPerson false if only lastname is present`() {
+  fun `isPerson false if only lastname is present and other names are null`() {
     assertThat(LibraHearingEvent(defendantType = PERSON.value, name = Name(lastName = randomName())).isPerson()).isFalse()
+  }
+
+  @Test
+  fun `isPerson false if only lastname is present and other names are empty strings`() {
+    assertThat(LibraHearingEvent(defendantType = PERSON.value, name = Name(firstName = "", forename2 = "", forename3 = "", lastName = randomName())).isPerson()).isFalse()
   }
 
   @Test

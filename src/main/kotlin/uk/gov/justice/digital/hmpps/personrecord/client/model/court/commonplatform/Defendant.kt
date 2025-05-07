@@ -28,10 +28,10 @@ data class Defendant(
 ) {
   fun isPerson(): Boolean = lastNameIsPresent() &&
     listOfNotNull(
-      this.personDefendant?.personDetails?.firstName,
-      this.personDefendant?.personDetails?.middleName,
-      this.personDefendant?.personDetails?.dateOfBirth,
+      personDefendant?.personDetails?.firstName,
+      personDefendant?.personDetails?.middleName,
+      personDefendant?.personDetails?.dateOfBirth,
     ).joinToString("").isNotEmpty()
 
-  private fun lastNameIsPresent(): Boolean = this.personDefendant?.personDetails?.lastName?.isNotEmpty() == true
+  private fun lastNameIsPresent(): Boolean = personDefendant?.personDetails?.lastName?.isNotEmpty() == true
 }
