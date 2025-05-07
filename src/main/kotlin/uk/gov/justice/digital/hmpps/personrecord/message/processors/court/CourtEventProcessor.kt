@@ -66,7 +66,11 @@ class CourtEventProcessor(
       .flatMap { it.defendants }
       .filterNot { it.isYouth }
       .filter { it.isPerson() }
-      .filterNot { it.personDefendant?.personDetails?.firstName.isNullOrEmpty() }
+      .filterNot {
+        it.personDefendant?.personDetails?.firstName.isNullOrEmpty()
+          && it.personDefendant?.personDetails?.middleName.isNullOrEmpty()
+          && it.personDefendant?.personDetails?.dateOfBirth == null
+      }
       .distinctBy { it.id }.map { defendant ->
         processCommonPlatformPerson(defendant, sqsMessage)
       }
