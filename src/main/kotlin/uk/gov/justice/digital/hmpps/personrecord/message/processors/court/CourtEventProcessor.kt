@@ -82,7 +82,8 @@ class CourtEventProcessor(
 
   fun isCommonPlatformPerson(defendant: Defendant): Boolean = defendant.minimumDataIsPresent()
 
-  fun Defendant.minimumDataIsPresent(): Boolean = this.firstNameIsPresent() ||
+  fun Defendant.minimumDataIsPresent(): Boolean =
+    this.firstNameIsPresent() ||
     this.middleNameIsPresent() ||
     this.dateOfBirthIsPresent()
 
