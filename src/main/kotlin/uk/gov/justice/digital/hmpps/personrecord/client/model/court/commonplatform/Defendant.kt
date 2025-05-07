@@ -28,13 +28,12 @@ data class Defendant(
 ) {
   fun isPerson() = personDefendant != null
 
-  fun minimumDataIsPresent(): Boolean =
-    lastNameIsPresent() &&
-      (
-        firstNameIsPresent() ||
-          middleNameIsPresent() ||
-          dateOfBirthIsPresent()
-        )
+  fun minimumDataIsPresent(): Boolean = lastNameIsPresent() &&
+    (
+      firstNameIsPresent() ||
+        middleNameIsPresent() ||
+        dateOfBirthIsPresent()
+      )
 
   fun firstNameIsPresent(): Boolean = this.personDefendant?.personDetails?.firstName?.isNotEmpty() == true
   fun lastNameIsPresent(): Boolean = this.personDefendant?.personDetails?.lastName?.isNotEmpty() == true
