@@ -27,4 +27,17 @@ data class Defendant(
   val isYouth: Boolean = false,
 ) {
   fun isPerson() = personDefendant != null
+
+  fun minimumDataIsPresent(): Boolean =
+    lastNameIsPresent() &&
+      (
+        firstNameIsPresent() ||
+          middleNameIsPresent() ||
+          dateOfBirthIsPresent()
+        )
+
+  fun firstNameIsPresent(): Boolean = this.personDefendant?.personDetails?.firstName?.isNotEmpty() == true
+  fun lastNameIsPresent(): Boolean = this.personDefendant?.personDetails?.lastName?.isNotEmpty() == true
+  fun middleNameIsPresent(): Boolean = this.personDefendant?.personDetails?.middleName?.isNotEmpty() == true
+  fun dateOfBirthIsPresent(): Boolean = this.personDefendant?.personDetails?.dateOfBirth != null
 }
