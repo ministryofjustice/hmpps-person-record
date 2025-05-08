@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
 import org.apache.commons.lang3.StringUtils.SPACE
+import org.bouncycastle.asn1.x500.style.RFC4519Style.name
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
@@ -236,4 +237,11 @@ data class Person(
   }
 
   fun getIdentifiersForMatching(identifiers: List<IdentifierType>): Set<Reference> = this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }.toSet()
+  fun isPerson(): Boolean = minimumDataIsPresent()
+
+  private fun minimumDataIsPresent(): Boolean = lastNameIsPresent() && anyOtherPersonalDataIsPresent()
+
+  private fun anyOtherPersonalDataIsPresent() = listOfNotNull(firstName, middleNames, dateOfBirth).joinToString("").isNotEmpty()
+
+  private fun lastNameIsPresent() = lastName?.isNotEmpty() == true
 }

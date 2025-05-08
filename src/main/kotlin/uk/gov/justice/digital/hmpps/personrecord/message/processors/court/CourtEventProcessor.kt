@@ -110,8 +110,9 @@ class CourtEventProcessor(
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
     val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(sqsMessage.message)
+    val person = Person.from(libraHearingEvent)
     val personEntity = when {
-      libraHearingEvent.isPerson() -> processLibraPerson(libraHearingEvent, sqsMessage)
+      libraHearingEvent.isPerson() && person.isPerson() -> processLibraPerson(person, sqsMessage)
       else -> null
     }
     if (publishToCourtTopic) {
@@ -120,8 +121,7 @@ class CourtEventProcessor(
     }
   }
 
-  private fun processLibraPerson(libraHearingEvent: LibraHearingEvent, sqsMessage: SQSMessage): PersonEntity {
-    val person = Person.from(libraHearingEvent)
+  private fun processLibraPerson(person: Person, sqsMessage: SQSMessage): PersonEntity {
     telemetryService.trackEvent(
       MESSAGE_RECEIVED,
       mapOf(
