@@ -236,4 +236,11 @@ data class Person(
   }
 
   fun getIdentifiersForMatching(identifiers: List<IdentifierType>): Set<Reference> = this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }.toSet()
+  fun isPerson(): Boolean = minimumDataIsPresent()
+
+  private fun minimumDataIsPresent(): Boolean = lastNameIsPresent() && anyOtherPersonalDataIsPresent()
+
+  private fun anyOtherPersonalDataIsPresent() = listOfNotNull(firstName, middleNames, dateOfBirth).joinToString("").isNotEmpty()
+
+  private fun lastNameIsPresent() = lastName?.isNotEmpty() == true
 }

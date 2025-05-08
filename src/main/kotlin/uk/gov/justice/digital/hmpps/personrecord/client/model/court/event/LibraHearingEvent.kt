@@ -33,11 +33,5 @@ data class LibraHearingEvent(
   val defendantType: String? = null,
   val defendantSex: String? = null,
 ) {
-  fun isPerson(): Boolean = defendantType == PERSON.value && minimumDataIsPresent()
-
-  private fun minimumDataIsPresent(): Boolean = lastNameIsPresent() && anyOtherPersonalDataIsPresent()
-
-  private fun anyOtherPersonalDataIsPresent() = listOfNotNull(name?.firstName, name?.forename2, name?.forename3, dateOfBirth).joinToString("").isNotEmpty()
-
-  private fun lastNameIsPresent() = name?.lastName?.isNotEmpty() == true
+  fun isPerson(): Boolean = defendantType == PERSON.value
 }

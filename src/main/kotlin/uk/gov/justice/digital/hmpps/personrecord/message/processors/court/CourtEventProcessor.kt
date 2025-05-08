@@ -11,14 +11,12 @@ import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.message.CourtMessagePublisher
-import uk.gov.justice.digital.hmpps.personrecord.message.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
@@ -55,7 +53,7 @@ class CourtEventProcessor(
 
   private fun processCommonPlatformHearingEvent(sqsMessage: SQSMessage) {
     val commonPlatformHearing: String = when {
-      isLargeMessage(sqsMessage) -> runBlocking { getPayloadFromS3(sqsMessage) }
+      sqsMessage.isLargeMessage() -> runBlocking { getPayloadFromS3(sqsMessage) }
       else -> sqsMessage.message
     }
 
@@ -64,9 +62,11 @@ class CourtEventProcessor(
     val defendants = commonPlatformHearingEvent.hearing.prosecutionCases
       .flatMap { it.defendants }
       .filterNot { it.isYouth }
+      .distinctBy { it.id }
+      .map { defendant -> Person.from(defendant) }
       .filter { it.isPerson() }
-      .distinctBy { it.id }.map { defendant ->
-        processCommonPlatformPerson(defendant, sqsMessage)
+      .map {
+        processCommonPlatformPerson(it, sqsMessage)
       }
 
     if (publishToCourtTopic) {
@@ -78,8 +78,7 @@ class CourtEventProcessor(
     }
   }
 
-  private fun processCommonPlatformPerson(defendant: Defendant, sqsMessage: SQSMessage): PersonEntity {
-    val person = Person.from(defendant)
+  private fun processCommonPlatformPerson(person: Person, sqsMessage: SQSMessage): PersonEntity {
     telemetryService.trackEvent(
       MESSAGE_RECEIVED,
       mapOf(
@@ -96,8 +95,6 @@ class CourtEventProcessor(
     }
   }
 
-  private fun isLargeMessage(sqsMessage: SQSMessage) = sqsMessage.getEventType() == LARGE_CASE_EVENT_TYPE
-
   private fun messageLargerThanThreshold(message: String): Boolean = message.toByteArray().size >= MAX_MESSAGE_SIZE
 
   private suspend fun getPayloadFromS3(sqsMessage: SQSMessage): String {
@@ -113,8 +110,9 @@ class CourtEventProcessor(
 
   private fun processLibraEvent(sqsMessage: SQSMessage) {
     val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(sqsMessage.message)
+    val person = Person.from(libraHearingEvent)
     val personEntity = when {
-      libraHearingEvent.isPerson() -> processLibraPerson(libraHearingEvent, sqsMessage)
+      libraHearingEvent.isPerson() && person.isPerson() -> processLibraPerson(person, sqsMessage)
       else -> null
     }
     if (publishToCourtTopic) {
@@ -123,8 +121,7 @@ class CourtEventProcessor(
     }
   }
 
-  private fun processLibraPerson(libraHearingEvent: LibraHearingEvent, sqsMessage: SQSMessage): PersonEntity {
-    val person = Person.from(libraHearingEvent)
+  private fun processLibraPerson(person: Person, sqsMessage: SQSMessage): PersonEntity {
     telemetryService.trackEvent(
       MESSAGE_RECEIVED,
       mapOf(
