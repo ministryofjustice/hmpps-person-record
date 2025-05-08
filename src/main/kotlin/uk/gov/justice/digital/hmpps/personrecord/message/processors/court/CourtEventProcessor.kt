@@ -11,7 +11,6 @@ import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
@@ -63,9 +62,11 @@ class CourtEventProcessor(
     val defendants = commonPlatformHearingEvent.hearing.prosecutionCases
       .flatMap { it.defendants }
       .filterNot { it.isYouth }
+      .distinctBy { it.id }
+      .map { defendant -> Person.from(defendant) }
       .filter { it.isPerson() }
-      .distinctBy { it.id }.map { defendant ->
-        processCommonPlatformPerson(defendant, sqsMessage)
+      .map {
+        processCommonPlatformPerson(it, sqsMessage)
       }
 
     if (publishToCourtTopic) {
@@ -77,8 +78,7 @@ class CourtEventProcessor(
     }
   }
 
-  private fun processCommonPlatformPerson(defendant: Defendant, sqsMessage: SQSMessage): PersonEntity {
-    val person = Person.from(defendant)
+  private fun processCommonPlatformPerson(person: Person, sqsMessage: SQSMessage): PersonEntity {
     telemetryService.trackEvent(
       MESSAGE_RECEIVED,
       mapOf(
