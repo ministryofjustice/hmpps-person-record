@@ -50,7 +50,7 @@ class PopulateFromProbation(
         }?.cases?.forEach {
           val person = Person.from(it)
           val personToSave = PersonEntity.new(person)
-          repository.saveAndFlush(personToSave)
+          repository.save(personToSave)
         }
       }
       log.info("DELIUS seeding finished, approx records ${totalPages * pageSize}")

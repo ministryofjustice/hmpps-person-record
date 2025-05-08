@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogReposito
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_CREATED
 
-private const val LOG_EVERY_X_RECORDS = 100000
+private const val LOG_EVERY_X_RECORDS = 20000
 
 @RestController
 @Profile("seeding")
