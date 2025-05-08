@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
 import org.apache.commons.lang3.StringUtils.SPACE
-import org.bouncycastle.asn1.x500.style.RFC4519Style.name
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
