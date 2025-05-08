@@ -12,18 +12,18 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @Profile("seeding")
-class PopulateClusters {
+class PopulateEventLog {
 
   @Hidden
-  @RequestMapping(method = [POST], value = ["/populateclusters"])
+  @RequestMapping(method = [POST], value = ["/populateeventlog"])
   suspend fun populate(): String {
-    populateClusters()
+    populateEventLog()
     return "OK"
   }
 
-  suspend fun populateClusters() {
+  suspend fun populateEventLog() {
     CoroutineScope(Dispatchers.Default).launch {
-      log.info("Cluster population finished")
+      log.info("Event log population finished")
     }
   }
 

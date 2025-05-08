@@ -42,7 +42,7 @@ generic-service:
           deny all;
           return 401;
         }
-        location /populateclusters {
+        location /populateeventlog {
           deny all;
           return 401;
         }

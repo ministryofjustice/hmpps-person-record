@@ -40,7 +40,7 @@ class SecurityConfiguration {
         "/populatefromprobation",
         "/updatefromprobation",
         "/populatepersonmatch",
-        "/populateclusters",
+        "/populateeventlog",
       )
     }
   }
