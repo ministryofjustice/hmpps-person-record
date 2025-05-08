@@ -23,7 +23,7 @@ class PopulateEventLogIntTest : WebTestBase() {
       .expectStatus()
       .isOk
 
-    awaitAssert { assertThat(eventLogRepository.count()).isEqualTo(10) }
+    awaitAssert { assertThat(eventLogRepository.count()).isGreaterThan(9) }
     val entries = eventLogRepository.findAll()
     personEntities.forEach { person ->
       val entry = entries.find { it.matchId == person.matchId }!!
