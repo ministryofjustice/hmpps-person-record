@@ -11,7 +11,7 @@ class SeedingDisabledIntTest : WebTestBase() {
       .uri("/populatefromprison")
       .exchange()
       .expectStatus()
-      .isUnauthorized // strange - should be a 404 I think.
+      .isUnauthorized
   }
 
   @Test
@@ -20,6 +20,15 @@ class SeedingDisabledIntTest : WebTestBase() {
       .uri("/populatefromprobation")
       .exchange()
       .expectStatus()
-      .isUnauthorized // strange - should be a 404 I think.
+      .isUnauthorized
+  }
+
+  @Test
+  fun `populate event log endpoint not accessible when seeding is not enabled`() {
+    webTestClient.post()
+      .uri("/populateeventlog")
+      .exchange()
+      .expectStatus()
+      .isUnauthorized
   }
 }
