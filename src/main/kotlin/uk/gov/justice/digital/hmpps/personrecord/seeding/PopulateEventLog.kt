@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_CREATED
+
+private const val LOG_EVERY_X_RECORDS = 100000
 
 @RestController
 @Profile("seeding")
@@ -24,14 +26,19 @@ class PopulateEventLog(
   @Hidden
   @RequestMapping(method = [POST], value = ["/populateeventlog"])
   suspend fun populate(): String {
-    populateEventLog()
+    populateEventLogFromPersonTable()
     return "OK"
   }
 
-  suspend fun populateEventLog() {
+  suspend fun populateEventLogFromPersonTable() {
     CoroutineScope(Dispatchers.Default).launch {
-      personRepository.findAll().forEach { person ->
-        eventLogRepository.saveAndFlush(EventLogEntity.from(personEntity = person, eventType = CPRLogEvents.CPR_RECORD_CREATED, personKeyEntity = person.personKey))
+      log.info("Number of records to process is ${personRepository.count()}")
+
+      personRepository.findAll().forEachIndexed { idx, person ->
+        if (idx % LOG_EVERY_X_RECORDS == 0) {
+          log.info("Populated $idx records in event log table")
+        }
+        eventLogRepository.save(EventLogEntity.from(personEntity = person, eventType = CPR_RECORD_CREATED, personKeyEntity = person.personKey))
       }
       log.info("Event log population finished")
     }
