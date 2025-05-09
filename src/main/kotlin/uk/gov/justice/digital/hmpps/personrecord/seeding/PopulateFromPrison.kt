@@ -53,7 +53,7 @@ class PopulateFromPrison(
         }?.forEach {
           val person = Person.from(it)
           val personToSave = PersonEntity.new(person)
-          repository.saveAndFlush(personToSave)
+          repository.save(personToSave)
         }
 
         // don't really like this, but it saves 1 call to getPrisonNumbers
