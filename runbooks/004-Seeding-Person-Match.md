@@ -1,9 +1,11 @@
-# 001 - Seeding Person Match
+# 004 - Seeding Person Match
 
 This is the runbook to send person match all the person data that it needs to use to match with.
 
 ## Prerequisites
 
+* Data from person match database must clean deleted
+* Must have the `seeding` profile active
 * Must have kubernetes access to the desired namespace
 * Must have `kubectl`, which can be installed [here](https://kubernetes.io/docs/tasks/tools/#kubectl)
 
@@ -14,7 +16,12 @@ For hmpps-person-record the namespaces are listed below:
 * `hmpps-person-record-preprod`
 * `hmpps-person-record-prod`
 
-## 1. Start Seeding Person Match
+## 1. Deleting data from person match database
+```
+delete from personmatch.person
+```
+
+## 2. Start Seeding Person Match
 
 To kick off the process you must connect to the hmpps-person-record pod first, by:
 
@@ -31,7 +38,7 @@ To trigger process:
 ```shell
 curl -i -X POST http://localhost:8080/populatepersonmatch
 ```
-Once the process has completed it will output the number of pages and records to processed.
+Once the process has completed it will output the number of pages and records processed.
 It will notify once finished with: `Finished populating person-match, total pages: <totalPages>, total elements: <totalElements>, time elapsed: <time_elapsed>"`
 
 ## Troubleshooting

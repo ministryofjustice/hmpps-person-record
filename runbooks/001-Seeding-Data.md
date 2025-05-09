@@ -97,11 +97,9 @@ curl -i -X POST http://localhost:8080/populatefromprobation
 The process will output the number of pages and records to be processed.
 It will notify once finished with: `DELIUS seeding finished, approx records <number>`
 
-## 4. Record Linking
+## 4. Seeding person match
 
-To link the seeded data from a provided data cluster.
-
-Follow: [Link Cluster Data](./002-Link-Cluster-Data.md)
+Follow: [Seed hmpps-person-match](./004-Seeding-Person-Match.md)
 
 ## 5. Resume Message Consumption
  
