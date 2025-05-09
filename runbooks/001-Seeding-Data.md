@@ -37,28 +37,31 @@ Secondly, delete the already existing data (if any) from the database for specif
 
 To connect to the desired database follow these step to connect to the database [using the process defined](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/rds-external-access.html)
 
-Then to delete, run these SQL scripts to delete the desired data for the desired source system:
+Then to delete all records in the database in the order outlined below:
 
-For **NOMIS**:
+For **person table**:
 ```
-delete from personrecordservice.person p where p.source_system = 'NOMIS'
+delete from personrecordservice.person
 ```
 
-For **DELIUS**:
+For **person_key table**:
 ```
-delete from personrecordservice.person p where p.source_system = 'DELIUS'
+delete from personrecordservice.person_key
 ```
+
+Finally **event_log table**:
+```
+delete from personrecordservice.event_log
+```
+
 
 Verify data has been deleted.
 
-Cleanup empty UUIDs:
 ```
-DELETE FROM personrecordservice.personkey pk
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM personrecordservice.person p
-    WHERE p.fk_person_key_id = pk.id
-);
+select count(*) from personrecordservice.person
+select count(*) from personrecordservice.person_key
+select count(*) from personrecordservice.event_log
+
 ```
 
 ## 3. Start Reseeding
