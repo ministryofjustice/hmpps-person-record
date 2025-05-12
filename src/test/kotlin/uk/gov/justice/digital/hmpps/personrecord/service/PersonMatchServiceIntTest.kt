@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
+import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService.Companion.THRESHOLD_WEIGHT
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -287,19 +288,15 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         personMatchResponse = listOf(
           PersonMatchScore(
             candidateMatchId = highScoringRecordOne.matchId.toString(),
-            candidateMatchWeight = 1.0F,
+            candidateMatchWeight = THRESHOLD_WEIGHT,
             candidateMatchProbability = 0.9999F,
           ),
           PersonMatchScore(
             candidateMatchId = highScoringRecordTwo.matchId.toString(),
-            candidateMatchWeight = 1.0F,
+            candidateMatchWeight = THRESHOLD_WEIGHT,
             candidateMatchProbability = 0.9999999F,
           ),
-          PersonMatchScore(
-            candidateMatchId = highScoringRecordTwo.matchId.toString(),
-            candidateMatchWeight = 1.0F,
-            candidateMatchProbability = 0.9998686F,
-          ),
+
         ),
       )
 
@@ -375,14 +372,14 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       val highScoringResults = (cluster1Records + cluster2Records).map {
         PersonMatchScore(
           candidateMatchId = it.matchId.toString(),
-          candidateMatchWeight = 1.0F,
+          candidateMatchWeight = THRESHOLD_WEIGHT + 1F,
           candidateMatchProbability = 0.9999F,
         )
       }
       val lowScoringResults = cluster3Records.map {
         PersonMatchScore(
           candidateMatchId = it.matchId.toString(),
-          candidateMatchWeight = 1.0F,
+          candidateMatchWeight = THRESHOLD_WEIGHT - 1F,
           candidateMatchProbability = 0.5677F,
         )
       }
