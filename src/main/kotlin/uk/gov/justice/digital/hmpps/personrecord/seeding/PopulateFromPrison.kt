@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogReposito
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
-import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_SEEDED
 
 private const val OK = "OK"
 
@@ -58,7 +58,7 @@ class PopulateFromPrison(
           val person = Person.from(it)
           PersonEntity.new(person)
         }?.let { repository.saveAll(it) }
-          ?.map { EventLogEntity.from(it, CPR_RECORD_CREATED) }
+          ?.map { EventLogEntity.from(it, CPR_RECORD_SEEDED) }
           ?.let {
             eventLogRepository.saveAll(it)
           }
