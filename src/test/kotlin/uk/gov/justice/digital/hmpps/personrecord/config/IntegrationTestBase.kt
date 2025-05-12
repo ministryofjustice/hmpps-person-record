@@ -52,6 +52,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService.Companion.THRESHOLD_WEIGHT
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -220,7 +221,7 @@ class IntegrationTestBase {
     personMatchResponse = listOf(
       PersonMatchScore(
         candidateMatchId = matchedRecord.toString(),
-        candidateMatchWeight = 1.0F,
+        candidateMatchWeight = THRESHOLD_WEIGHT - 1F,
         candidateMatchProbability = 0.988899F,
       ),
     ),
@@ -231,7 +232,7 @@ class IntegrationTestBase {
     personMatchResponse = List(results.size) { index ->
       PersonMatchScore(
         candidateMatchId = results[index].toString(),
-        candidateMatchWeight = 1.0F,
+        candidateMatchWeight = THRESHOLD_WEIGHT + 1F,
         candidateMatchProbability = 0.999999F,
       )
     },
