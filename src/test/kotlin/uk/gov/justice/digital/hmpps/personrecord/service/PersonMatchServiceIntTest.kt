@@ -296,11 +296,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
             candidateMatchWeight = THRESHOLD_WEIGHT + 1F,
             candidateMatchProbability = 0.9999999F,
           ),
-          PersonMatchScore(
-            candidateMatchId = highScoringRecordTwo.matchId.toString(),
-            candidateMatchWeight = THRESHOLD_WEIGHT + 1F,
-            candidateMatchProbability = 0.9998686F,
-          ),
+
         ),
       )
 
