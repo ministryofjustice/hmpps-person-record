@@ -22,7 +22,6 @@ class PopulateFromPrisonIntTest : WebTestBase() {
 
   @Test
   fun `populate from prison`() {
-    eventLogRepository.deleteAll()
     val scenarioName = "populate"
     val prisonNumberOne: String = randomPrisonNumber()
     val prisonNumberTwo: String = randomPrisonNumber()
