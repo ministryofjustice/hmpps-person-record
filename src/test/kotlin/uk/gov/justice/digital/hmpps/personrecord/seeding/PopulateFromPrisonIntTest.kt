@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NO
 import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.onePrisoner
 import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.prisonNumbersResponse
 import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.twoPrisoners
-import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_SEEDED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
 
@@ -151,7 +151,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     val entry = entries.find { it.matchId == prisoner.matchId }!!
     assertThat(entry.uuid).isEqualTo(prisoner.personKey?.personUUID)
     assertThat(entry.sourceSystem).isEqualTo(NOMIS)
-    assertThat(entry.eventType).isEqualTo(CPR_RECORD_CREATED)
+    assertThat(entry.eventType).isEqualTo(CPR_RECORD_SEEDED)
     assertThat(entry.sourceSystemId).isEqualTo(prisoner.prisonNumber)
   }
 
