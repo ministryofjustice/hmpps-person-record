@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.allProbationCasesResponse
 import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.allProbationCasesSingleResponse
-import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_SEEDED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import java.time.LocalDate
 
@@ -87,7 +87,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
     val entry = entries.find { it.matchId == person.matchId }!!
     assertThat(entry.uuid).isEqualTo(person.personKey?.personUUID)
     assertThat(entry.sourceSystem).isEqualTo(DELIUS)
-    assertThat(entry.eventType).isEqualTo(CPR_RECORD_CREATED)
+    assertThat(entry.eventType).isEqualTo(CPR_RECORD_SEEDED)
     assertThat(entry.sourceSystemId).isEqualTo(person.crn)
   }
 
