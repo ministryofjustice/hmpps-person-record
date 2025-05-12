@@ -50,11 +50,10 @@ class PopulateFromPrison(
         log.info("Processing Prison seeding, page: $page / $totalPages")
         retryExecutor.runWithRetryHTTP {
           prisonerSearchClient.getPrisonNumbers(PrisonNumbers(numbers))
-        }?.forEach {
+        }?.map {
           val person = Person.from(it)
-          val personToSave = PersonEntity.new(person)
-          repository.save(personToSave)
-        }
+          PersonEntity.new(person)
+        }?.let { repository.saveAll(it) }
 
         // don't really like this, but it saves 1 call to getPrisonNumbers
         if (page < totalPages) {
