@@ -288,12 +288,12 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         personMatchResponse = listOf(
           PersonMatchScore(
             candidateMatchId = highScoringRecordOne.matchId.toString(),
-            candidateMatchWeight = THRESHOLD_WEIGHT + 1F,
+            candidateMatchWeight = THRESHOLD_WEIGHT,
             candidateMatchProbability = 0.9999F,
           ),
           PersonMatchScore(
             candidateMatchId = highScoringRecordTwo.matchId.toString(),
-            candidateMatchWeight = THRESHOLD_WEIGHT + 1F,
+            candidateMatchWeight = THRESHOLD_WEIGHT,
             candidateMatchProbability = 0.9999999F,
           ),
 

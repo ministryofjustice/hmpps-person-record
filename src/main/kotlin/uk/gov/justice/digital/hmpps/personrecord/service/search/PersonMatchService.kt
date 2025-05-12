@@ -141,7 +141,7 @@ class PersonMatchService(
   private fun List<PersonMatchResult>.collectDistinctClusters(): List<PersonKeyEntity> = this.map { it.personEntity }.groupBy { it.personKey!! }.map { it.key }.distinctBy { it.id }
 
   companion object {
-    const val THRESHOLD_WEIGHT = 24
+    const val THRESHOLD_WEIGHT = 24F
   }
 }
 
