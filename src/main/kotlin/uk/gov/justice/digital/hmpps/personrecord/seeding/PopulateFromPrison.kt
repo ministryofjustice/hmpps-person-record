@@ -58,8 +58,9 @@ class PopulateFromPrison(
           val person = Person.from(it)
           PersonEntity.new(person)
         }?.let { repository.saveAll(it) }
-          ?.forEach {
-            eventLogRepository.save(EventLogEntity.from(it, CPR_RECORD_CREATED))
+          ?.map { EventLogEntity.from(it, CPR_RECORD_CREATED) }
+          ?.let {
+            eventLogRepository.saveAll(it)
           }
 
         // don't really like this, but it saves 1 call to getPrisonNumbers
