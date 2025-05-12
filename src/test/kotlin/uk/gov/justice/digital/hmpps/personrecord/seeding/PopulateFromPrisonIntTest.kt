@@ -4,6 +4,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -11,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NO
 import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.onePrisoner
 import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.prisonNumbersResponse
 import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.twoPrisoners
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.time.LocalDate
 
@@ -19,6 +22,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
 
   @Test
   fun `populate from prison`() {
+    eventLogRepository.deleteAll()
     val scenarioName = "populate"
     val prisonNumberOne: String = randomPrisonNumber()
     val prisonNumberTwo: String = randomPrisonNumber()
@@ -130,6 +134,26 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     assertThat(prisoner7.getPrimaryName().firstName).isEqualTo("PrisonerSevenFirstName")
     assertThat(prisoner7.getPrimaryName().middleNames).isEqualTo("")
     assertThat(prisoner7.references.getType(IdentifierType.CRO)).isEqualTo(emptyList<ReferenceEntity>())
+
+    val entries = eventLogRepository.findAll()
+    checkEventLog(entries, prisoner1)
+    checkEventLog(entries, prisoner2)
+    checkEventLog(entries, prisoner3)
+    checkEventLog(entries, prisoner4)
+    checkEventLog(entries, prisoner5)
+    checkEventLog(entries, prisoner6)
+    checkEventLog(entries, prisoner7)
+  }
+
+  private fun checkEventLog(
+    entries: MutableList<EventLogEntity>,
+    prisoner: PersonEntity,
+  ) {
+    val entry = entries.find { it.matchId == prisoner.matchId }!!
+    assertThat(entry.uuid).isEqualTo(prisoner.personKey?.personUUID)
+    assertThat(entry.sourceSystem).isEqualTo(NOMIS)
+    assertThat(entry.eventType).isEqualTo(CPR_RECORD_CREATED)
+    assertThat(entry.sourceSystemId).isEqualTo(prisoner.prisonNumber)
   }
 
   @Test
