@@ -7,7 +7,7 @@
 ## Creating UUIDs
 1) Insert unique UUIDS into person_key, run this command:<br />
 ```
-INSERT INTO person_key (person_uuid) SELECT distinct uuid from temp_cluster_info;
+INSERT INTO person_key (person_uuid) SELECT distinct cluster_uuid from temp_uuids;
 ```
 
 2) Link the person to UUID, run this command: <br />
@@ -15,9 +15,10 @@ INSERT INTO person_key (person_uuid) SELECT distinct uuid from temp_cluster_info
 UPDATE person
 SET fk_person_key_id = pk.id
 FROM person_key pk
-JOIN temp_cluster_info tt ON pk.person_uuid = tt.uuid
-WHERE person.match_id = tt.match_id::UUID;
+JOIN temp_uuids tu ON pk.person_uuid = tu.cluster_uuid
+WHERE person.match_id = tu.match_id;
 ```
+
 3) Update the event log UUID value & status <br />
 ```
 UPDATE event_log as el
@@ -30,7 +31,7 @@ WHERE p.match_id = el.match_id and el.event_type = 'CPR_RECORD_SEEDED';
 ## Delete Temp table
 1) Remove the temp table, run: <br />
 ```
-DROP table IF EXISTS temp_cluster_info
+DROP table IF EXISTS temp_uuids
 ```
 
 ## Reporting on cluster data
