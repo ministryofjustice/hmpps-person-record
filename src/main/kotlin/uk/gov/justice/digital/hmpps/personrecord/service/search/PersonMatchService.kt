@@ -35,8 +35,7 @@ class PersonMatchService(
 
   fun findHighestConfidencePersonRecordsByProbabilityDesc(personEntity: PersonEntity): List<PersonMatchResult> = runBlocking {
     val personScores = handleCollectingPersonScores(personEntity).removeSelf(personEntity)
-    val highConfidenceRecords = personScores.removeLowQualityMatches()
-    val highConfidencePersonRecords = getPersonRecords(highConfidenceRecords)
+    val highConfidencePersonRecords = getPersonRecords(personScores.getHighConfidenceMatches())
       .allowMatchesWithUUID()
       .removeMergedRecords()
       .removeMatchesWhereClusterInInvalidState()
@@ -94,13 +93,13 @@ class PersonMatchService(
 
   private fun List<PersonMatchScore>.removeSelf(personEntity: PersonEntity): List<PersonMatchScore> = this.filterNot { score -> score.candidateMatchId == personEntity.matchId.toString() }
 
-  private fun List<PersonMatchScore>.removeLowQualityMatches(): List<PersonMatchScore> = this.filter { candidate -> isAboveThreshold(candidate.candidateMatchProbability) }
+  private fun List<PersonMatchScore>.getHighConfidenceMatches(): List<PersonMatchScore> = this.filter { candidate -> isHighConfidence(candidate.candidateMatchWeight) }
 
   private suspend fun getPersonScores(personEntity: PersonEntity): Result<List<PersonMatchScore>> = kotlin.runCatching {
     retryExecutor.runWithRetryHTTP { personMatchClient.getPersonScores(personEntity.matchId.toString()) }
   }
 
-  private fun isAboveThreshold(score: Float): Boolean = score >= THRESHOLD_SCORE
+  private fun isHighConfidence(score: Float): Boolean = score >= THRESHOLD_WEIGHT
 
   private fun List<PersonMatchResult>.allowMatchesWithUUID(): List<PersonMatchResult> = this.filter { it.personEntity.personKey != PersonKeyEntity.empty }
 
@@ -141,8 +140,8 @@ class PersonMatchService(
 
   private fun List<PersonMatchResult>.collectDistinctClusters(): List<PersonKeyEntity> = this.map { it.personEntity }.groupBy { it.personKey!! }.map { it.key }.distinctBy { it.id }
 
-  private companion object {
-    const val THRESHOLD_SCORE = 0.999
+  companion object {
+    const val THRESHOLD_WEIGHT = 24F
   }
 }
 
