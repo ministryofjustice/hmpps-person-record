@@ -6,9 +6,9 @@ kotlin {
 
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "8.1.0"
-  kotlin("plugin.spring") version "2.1.20"
-  kotlin("jvm") version "2.1.20"
-  kotlin("plugin.jpa") version "2.1.20"
+  kotlin("plugin.spring") version "2.1.21"
+  kotlin("jvm") version "2.1.21"
+  kotlin("plugin.jpa") version "2.1.21"
   id("io.gitlab.arturbosch.detekt") version "1.23.8"
   id("org.jetbrains.kotlinx.kover") version "0.9.1"
 }
@@ -28,7 +28,7 @@ dependencies {
   implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.2.1")
   implementation("software.amazon.sns:sns-extended-client:2.1.0")
   implementation("com.jayway.jsonpath:json-path:2.9.0")
-  implementation("io.swagger.core.v3:swagger-annotations:2.2.30")
+  implementation("io.swagger.core.v3:swagger-annotations:2.2.32")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8")
 
   constraints {
@@ -51,7 +51,7 @@ dependencies {
   testImplementation("io.jsonwebtoken:jjwt-api:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.6")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.6")
-  testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.1.20")
+  testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.1.21")
   testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
   testImplementation("org.jmock:jmock:2.13.1")
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.4.3")
