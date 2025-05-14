@@ -19,8 +19,6 @@ data class PersonMatchRecord(
   val cros: List<String> = listOf(),
   val pncs: List<String> = listOf(),
   val sentenceDates: List<String> = listOf(),
-  val crn: String? = "",
-  val prisonNumber: String? = "",
   val sourceSystemId: String? = "",
 ) {
 
@@ -41,8 +39,6 @@ data class PersonMatchRecord(
       cros = personEntity.references.getType(IdentifierType.CRO).mapNotNull { it.identifierValue }.distinct().sorted(),
       pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue }.distinct().sorted(),
       sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.map { it.toString() }.distinct().sorted(),
-      crn = personEntity.crn ?: "",
-      prisonNumber = personEntity.prisonNumber ?: "",
       sourceSystemId = personEntity.extractSourceSystemId(),
     )
   }
