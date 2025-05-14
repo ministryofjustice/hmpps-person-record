@@ -11,7 +11,7 @@ data class CanonicalAlias(
   val lastName: String? = null,
   @Schema(description = "Person alias middle names", example = "Morgain")
   val middleNames: String? = null,
-  @Schema(description = "Person alias title", example = "Mr")
+  @Schema(description = "Person alias title")
   val title: CanonicalTitle,
 ) {
   companion object {

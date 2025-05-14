@@ -102,7 +102,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .responseBody!!
 
     val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = CanonicalTitle(code = title, description = title))
-    val canonicalNationality = listOf(CanonicalNationality(nationalityCode = nationality))
+    val canonicalNationality = listOf(CanonicalNationality(code = nationality, description = nationality))
     val canonicalAddress = CanonicalAddress(noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
     val canonicalReligion = CanonicalReligion(code = religion, description = religion)
     val canonicalEthnicity = CanonicalEthnicity(code = ethnicity, description = ethnicity)
@@ -116,7 +116,8 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().title)
     assertThat(responseBody.aliases.first().title.code).isEqualTo(person.pseudonyms.first().title)
     assertThat(responseBody.aliases.first().title.description).isEqualTo(person.pseudonyms.first().title)
-    assertThat(responseBody.nationalities).isEqualTo(canonicalNationality)
+    assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
+    assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
     assertThat(responseBody.sex).isNull()
     assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
     assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
