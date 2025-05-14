@@ -7,7 +7,7 @@ generic-service:
     tlsSecretName: hmpps-person-record-cert-secret
 
   env:
-    SPRING_PROFILES_ACTIVE: "prod,seeding"
+    SPRING_PROFILES_ACTIVE: "prod"
     PERSON_MATCH_BASE_URL: https://hmpps-person-match.hmpps.service.justice.gov.uk
     MATCH_SCORE_BASE_URL: https://hmpps-person-match-score.hmpps.service.justice.gov.uk
     NOMIS_OAUTH_BASE_URL: https://sign-in.hmpps.service.justice.gov.uk
