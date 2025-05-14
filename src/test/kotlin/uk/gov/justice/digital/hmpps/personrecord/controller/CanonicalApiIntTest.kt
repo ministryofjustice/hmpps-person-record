@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
@@ -70,6 +71,7 @@ class CanonicalApiIntTest : WebTestBase() {
         sourceSystem = NOMIS,
         title = randomName(),
         crn = crn,
+        sexCode = SexCode.M,
         prisonNumber = prisonNumber,
         ethnicity = randomEthnicity(),
         nationality = nationality,
@@ -108,7 +110,8 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.title).isEqualTo(person.getPrimaryName().title)
     assertThat(responseBody.ethnicity).isEqualTo(person.ethnicity)
     assertThat(responseBody.nationalities).isEqualTo(canonicalNationality)
-    assertThat(responseBody.sex).isNull()
+    assertThat(responseBody.sex.code).isEqualTo("M")
+    assertThat(responseBody.sex.description).isEqualTo("Male")
     assertThat(responseBody.religion).isEqualTo(person.religion)
     assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
     assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
@@ -148,7 +151,8 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.dateOfBirth).isNull()
     assertThat(responseBody.title).isNull()
     assertThat(responseBody.ethnicity).isNull()
-    assertThat(responseBody.sex).isNull()
+    assertThat(responseBody.sex.code).isNull()
+    assertThat(responseBody.sex.description).isNull()
     assertThat(responseBody.religion).isNull()
     assertThat(responseBody.nationalities).isEmpty()
     assertThat(responseBody.aliases).isEmpty()
