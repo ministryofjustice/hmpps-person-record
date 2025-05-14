@@ -15,8 +15,8 @@ data class CanonicalRecord(
   val lastName: String? = null,
   @Schema(description = "Person date of birth", example = "1990-08-21")
   val dateOfBirth: String? = null,
-  @Schema(description = "Person title", example = "Mr")
-  val title: String? = null,
+  @Schema(description = "Person title")
+  val title: CanonicalTitle,
   @Schema(description = "Person sex", example = "Male")
   val sex: String? = null,
   @Schema(description = "Person religion", example = "Christian")
@@ -42,7 +42,7 @@ data class CanonicalRecord(
         middleNames = latestPerson.getPrimaryName().middleNames,
         lastName = latestPerson.getPrimaryName().lastName,
         dateOfBirth = latestPerson.getPrimaryName().dateOfBirth?.toString(),
-        title = latestPerson.getPrimaryName().title,
+        title = CanonicalTitle.from(latestPerson.getPrimaryName().title),
         sex = latestPerson.sexCode?.toString(),
         religion = latestPerson.religion,
         ethnicity = latestPerson.ethnicity,
