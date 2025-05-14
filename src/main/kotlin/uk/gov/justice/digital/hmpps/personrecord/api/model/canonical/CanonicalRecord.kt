@@ -19,10 +19,10 @@ data class CanonicalRecord(
   val title: CanonicalTitle,
   @Schema(description = "Person sex", example = "Male")
   val sex: String? = null,
-  @Schema(description = "Person religion", example = "Christian")
+  @Schema(description = "Person religion")
   val religion: CanonicalReligion,
-  @Schema(description = "Person ethnicity", example = "British")
-  val ethnicity: String? = null,
+  @Schema(description = "Person ethnicity")
+  val ethnicity: CanonicalEthnicity,
   @Schema(description = "List of person aliases")
   val aliases: List<CanonicalAlias> = emptyList(),
   @Schema(description = "List of person nationalities")
@@ -44,8 +44,8 @@ data class CanonicalRecord(
         dateOfBirth = latestPerson.getPrimaryName().dateOfBirth?.toString(),
         title = CanonicalTitle.from(latestPerson.getPrimaryName().title),
         sex = latestPerson.sexCode?.toString(),
-        religion = CanonicalReligion(code = latestPerson.religion, description = latestPerson.religion),
-        ethnicity = latestPerson.ethnicity,
+        religion = CanonicalReligion.from(latestPerson.religion),
+        ethnicity = CanonicalEthnicity.from(latestPerson.ethnicity),
         aliases = getAliases(latestPerson),
         addresses = getAddresses(latestPerson),
         identifiers = CanonicalIdentifiers.from(personKey.personEntities),
