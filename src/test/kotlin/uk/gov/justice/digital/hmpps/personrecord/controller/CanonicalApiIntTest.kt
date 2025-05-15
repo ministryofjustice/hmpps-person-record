@@ -5,8 +5,11 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReligion
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
@@ -49,6 +52,8 @@ class CanonicalApiIntTest : WebTestBase() {
     val endDate = randomDate()
     val postcode = randomPostcode()
     val nationality = randomNationality()
+    val religion = randomReligion()
+    val ethnicity = randomEthnicity()
 
     val buildingName = randomName()
     val buildingNumber = randomBuildingNumber()
@@ -73,9 +78,9 @@ class CanonicalApiIntTest : WebTestBase() {
         crn = crn,
         sexCode = SexCode.M,
         prisonNumber = prisonNumber,
-        ethnicity = randomEthnicity(),
+        ethnicity = ethnicity,
         nationality = nationality,
-        religion = randomReligion(),
+        religion = religion,
         cId = cid,
         defendantId = defendantId,
         aliases = listOf(Alias(firstName = firstName, middleNames = middleNames, lastName = lastName, dateOfBirth = randomDate(), title = title)),
@@ -98,21 +103,29 @@ class CanonicalApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = title)
-    val canonicalNationality = listOf(CanonicalNationality(nationalityCode = nationality))
+    val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = CanonicalTitle(code = title, description = title))
+    val canonicalNationality = listOf(CanonicalNationality(code = nationality, description = nationality))
     val canonicalAddress = CanonicalAddress(noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
+    val canonicalReligion = CanonicalReligion(code = religion, description = religion)
+    val canonicalEthnicity = CanonicalEthnicity(code = ethnicity, description = ethnicity)
 
     assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personUUID.toString())
     assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
     assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
     assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
     assertThat(responseBody.dateOfBirth).isEqualTo(person.getPrimaryName().dateOfBirth.toString())
-    assertThat(responseBody.title).isEqualTo(person.getPrimaryName().title)
-    assertThat(responseBody.ethnicity).isEqualTo(person.ethnicity)
-    assertThat(responseBody.nationalities).isEqualTo(canonicalNationality)
+    assertThat(responseBody.title.code).isEqualTo(person.getPrimaryName().title)
+    assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().title)
+    assertThat(responseBody.aliases.first().title.code).isEqualTo(person.pseudonyms.first().title)
+    assertThat(responseBody.aliases.first().title.description).isEqualTo(person.pseudonyms.first().title)
+    assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
+    assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
     assertThat(responseBody.sex.code).isEqualTo("M")
     assertThat(responseBody.sex.description).isEqualTo("Male")
-    assertThat(responseBody.religion).isEqualTo(person.religion)
+    assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
+    assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
+    assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
+    assertThat(responseBody.ethnicity.description).isEqualTo(canonicalEthnicity.description)
     assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
     assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
     assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
@@ -149,11 +162,22 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.middleNames).isNull()
     assertThat(responseBody.lastName).isNull()
     assertThat(responseBody.dateOfBirth).isNull()
-    assertThat(responseBody.title).isNull()
-    assertThat(responseBody.ethnicity).isNull()
+    assertThat(responseBody.title.code).isNull()
+    assertThat(responseBody.title.description).isNull()
+    assertThat(responseBody.ethnicity.code).isNull()
+    assertThat(responseBody.ethnicity.description).isNull()
     assertThat(responseBody.sex.code).isNull()
     assertThat(responseBody.sex.description).isNull()
-    assertThat(responseBody.religion).isNull()
+    assertThat(responseBody.religion.code).isNull()
+    assertThat(responseBody.religion.description).isNull()
+    assertThat(responseBody.title.code).isNull()
+    assertThat(responseBody.title.description).isNull()
+    assertThat(responseBody.ethnicity.code).isNull()
+    assertThat(responseBody.ethnicity.description).isNull()
+    assertThat(responseBody.sex.code).isNull()
+    assertThat(responseBody.sex.description).isNull()
+    assertThat(responseBody.religion.code).isNull()
+    assertThat(responseBody.religion.description).isNull()
     assertThat(responseBody.nationalities).isEmpty()
     assertThat(responseBody.aliases).isEmpty()
     assertThat(responseBody.addresses).isEmpty()
@@ -171,7 +195,7 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should return  when values are null or empty  for get canonical record aliases`() {
+  fun `should return when values are null or empty for get canonical record aliases`() {
     val crn = randomCrn()
 
     val aliasFirstName = randomName()
@@ -197,7 +221,8 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.aliases.first().firstName).isEqualTo(aliasFirstName)
     assertThat(responseBody.aliases.first().lastName).isNull()
     assertThat(responseBody.aliases.first().middleNames).isNull()
-    assertThat(responseBody.aliases.first().title).isNull()
+    assertThat(responseBody.aliases.first().title.code).isNull()
+    assertThat(responseBody.aliases.first().title.description).isNull()
   }
 
   @Test
