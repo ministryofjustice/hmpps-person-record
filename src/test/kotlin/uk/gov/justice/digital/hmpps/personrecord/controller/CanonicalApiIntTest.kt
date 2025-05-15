@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
@@ -75,6 +76,7 @@ class CanonicalApiIntTest : WebTestBase() {
         sourceSystem = NOMIS,
         title = randomName(),
         crn = crn,
+        sexCode = SexCode.M,
         prisonNumber = prisonNumber,
         ethnicity = ethnicity,
         nationality = nationality,
@@ -118,7 +120,8 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.aliases.first().title.description).isEqualTo(person.pseudonyms.first().title)
     assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
     assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
-    assertThat(responseBody.sex).isNull()
+    assertThat(responseBody.sex.code).isEqualTo("M")
+    assertThat(responseBody.sex.description).isEqualTo("Male")
     assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
     assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
     assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
@@ -164,6 +167,14 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.ethnicity.code).isNull()
     assertThat(responseBody.ethnicity.description).isNull()
     assertThat(responseBody.sex).isNull()
+    assertThat(responseBody.religion.code).isNull()
+    assertThat(responseBody.religion.description).isNull()
+    assertThat(responseBody.title.code).isNull()
+    assertThat(responseBody.title.description).isNull()
+    assertThat(responseBody.ethnicity.code).isNull()
+    assertThat(responseBody.ethnicity.description).isNull()
+    assertThat(responseBody.sex.code).isNull()
+    assertThat(responseBody.sex.description).isNull()
     assertThat(responseBody.religion.code).isNull()
     assertThat(responseBody.religion.description).isNull()
     assertThat(responseBody.nationalities).isEmpty()
