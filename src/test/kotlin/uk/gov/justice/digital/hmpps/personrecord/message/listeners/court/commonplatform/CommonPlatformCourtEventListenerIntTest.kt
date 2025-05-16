@@ -32,6 +32,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.*
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -572,10 +573,22 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    assertThat(awaitNotNullPerson { personRepository.findByDefendantId(secondDefendantId) }.personKey?.personEntities!!.size).isEqualTo(2)
+    val personKey = awaitNotNullPerson { personRepository.findByDefendantId(secondDefendantId) }.personKey
+    assertThat(personKey?.personEntities!!.size).isEqualTo(2)
+    assertThat(personKey.status).isEqualTo(ACTIVE)
 
-    // create based on  a common platform to join the cluster
-    // cluster should have 2 records and active
+    stubOnePersonMatchLowConfidenceMatch(matchedRecord = personA.matchId)
+    publishCommonPlatformMessage(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(pnc = "", cro = "", defendantId = secondDefendantId),
+        ),
+      ),
+    )
+
+    val personKeyAfterUpdate = awaitNotNullPerson { personRepository.findByDefendantId(secondDefendantId) }.personKey
+    assertThat(personKeyAfterUpdate?.personEntities!!.size).isEqualTo(2)
+    assertThat(personKeyAfterUpdate.status).isEqualTo(NEEDS_ATTENTION)
     // update one of the above created common platform records with missing cro/pnc
     // cluster should have 2 record and need attention
 
@@ -658,7 +671,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(createdLog.firstNameAliases).isEqualTo(arrayOf(aliasFirstName))
         assertThat(createdLog.lastNameAliases).isEqualTo(arrayOf(aliasLastName))
         assertThat(createdLog.uuid).isNotNull()
-        assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
+        assertThat(createdLog.uuidStatusType).isEqualTo(ACTIVE)
       }
       checkEventLogExist(defendantId, CPRLogEvents.CPR_UUID_CREATED)
     }
