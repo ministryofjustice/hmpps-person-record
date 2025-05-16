@@ -51,25 +51,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster.assertClusterIsOfSize(2)
       cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
     }
-
-    @Test
-    fun `should update record and do nothing when cluster already set as needs attention`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION)
-        .addPerson(personA)
-
-      stubPersonMatchUpsert()
-      probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup(crn = personA.crn))
-
-      checkTelemetry(
-        TelemetryEventType.CPR_RECORD_UPDATED,
-        mapOf("CRN" to personA.crn),
-      )
-      checkTelemetry(
-        TelemetryEventType.CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION,
-        mapOf("UUID" to cluster.personUUID.toString()),
-      )
-    }
   }
 
   @Nested

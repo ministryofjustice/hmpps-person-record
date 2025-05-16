@@ -546,7 +546,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should reinstate status to active where previous state was needs attention when an updated record has all the required fields`() {
-    // cluster with one common platform record
     stubPersonMatchScores()
     stubPersonMatchUpsert()
 
