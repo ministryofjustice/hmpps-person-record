@@ -29,12 +29,13 @@ class ReclusterService(
 ) {
 
   fun recluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
-    if (clusterNeedsAttention(cluster) && personMatchService.examineIsClusterValid(cluster).isClusterValid) {
-      setClusterAsActive(cluster)
-    } else {
-      return
+    if (clusterNeedsAttention(cluster)) {
+      if (personMatchService.examineIsClusterValid(cluster).isClusterValid) {
+        setClusterAsActive(cluster)
+      } else {
+        return
+      }
     }
-
     val matchesToChangeRecord: List<PersonMatchResult> =
       personMatchService.findHighestConfidencePersonRecordsByProbabilityDesc(changedRecord)
     val clusterDetails = ClusterDetails(cluster, changedRecord, matchesToChangeRecord)

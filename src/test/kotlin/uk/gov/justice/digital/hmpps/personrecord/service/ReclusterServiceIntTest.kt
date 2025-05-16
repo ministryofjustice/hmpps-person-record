@@ -152,6 +152,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       stubPersonMatchUpsert()
       stubClusterIsNotValid()
       val newPersonCrn = randomCrn()
+      stubOnePersonMatchHighConfidenceMatch(matchedRecord = personA.matchId)
       probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup(crn = newPersonCrn))
 
       checkTelemetry(
@@ -161,8 +162,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       cluster.assertClusterIsOfSize(2)
       cluster.assertClusterStatus(NEEDS_ATTENTION)
-
-      stubOnePersonMatchLowConfidenceMatch(matchedRecord = personA.matchId)
 
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = newPersonCrn))
 
@@ -1061,9 +1060,9 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster4.assertClusterIsOfSize(1)
 
       cluster1.assertClusterStatus(NEEDS_ATTENTION)
-      cluster2.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster3.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster4.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster2.assertClusterStatus(ACTIVE)
+      cluster3.assertClusterStatus(ACTIVE)
+      cluster4.assertClusterStatus(ACTIVE)
     }
 
     @Test
