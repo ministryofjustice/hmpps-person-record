@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclusterval
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
@@ -100,6 +101,25 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION)
+    }
+
+    @Test
+    fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster`() {
+      val recordA = createPerson(createRandomProbationPersonDetails())
+      val matchesA = createPerson(createRandomProbationPersonDetails())
+      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey(status = NEEDS_ATTENTION)
+        .addPerson(recordA)
+        .addPerson(matchesA)
+        .addPerson(doesNotMatch)
+
+      stubPersonMatchUpsert()
+      stubXPersonMatchHighConfidenceMatches(matchId = doesNotMatch.matchId, results = listOf(matchesA.matchId, recordA.matchId))
+
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
+
+      cluster.assertClusterIsOfSize(3)
+      cluster.assertClusterStatus(ACTIVE)
     }
 
     @Test
