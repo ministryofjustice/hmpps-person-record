@@ -543,6 +543,46 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
+  @Test
+  fun `should reinstate status to active where previous state was needs attention when an updated record has all the required fields`() {
+    // cluster with one common platform record
+    stubPersonMatchScores()
+    stubPersonMatchUpsert()
+
+    val pnc = randomPnc()
+    val cro = randomCro()
+    var firstDefendantId = randomDefendantId()
+
+    publishCommonPlatformMessage(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(pnc = pnc, cro = cro, defendantId = firstDefendantId),
+        ),
+      ),
+    )
+    val personA = awaitNotNullPerson { personRepository.findByDefendantId(firstDefendantId) }
+    stubOnePersonMatchHighConfidenceMatch(matchedRecord = personA.matchId)
+
+    var secondDefendantId = randomDefendantId()
+    publishCommonPlatformMessage(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(pnc = pnc, cro = cro, defendantId = secondDefendantId),
+        ),
+      ),
+    )
+
+    assertThat(awaitNotNullPerson { personRepository.findByDefendantId(secondDefendantId) }.personKey?.personEntities!!.size).isEqualTo(2)
+
+    // create based on  a common platform to join the cluster
+    // cluster should have 2 records and active
+    // update one of the above created common platform records with missing cro/pnc
+    // cluster should have 2 record and need attention
+
+    // update the record with missing crp/pcs
+    // cluster should have 2 records and active
+  }
+
   private fun putLargeMessageBodyIntoS3(message: String) {
     val s3Key = UUID.randomUUID().toString()
     val incomingMessageFromS3 = message.toByteArray(Charset.forName("UTF8"))
