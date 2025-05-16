@@ -32,7 +32,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
@@ -542,65 +541,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
-  }
-
-  @Test
-  fun `should reinstate status to active where previous state was needs attention when an updated record has all the required fields`() {
-    stubPersonMatchScores()
-    stubPersonMatchUpsert()
-
-    val pnc = randomPnc()
-    val cro = randomCro()
-    var firstDefendantId = randomDefendantId()
-
-    publishCommonPlatformMessage(
-      commonPlatformHearing(
-        listOf(
-          CommonPlatformHearingSetup(pnc = pnc, cro = cro, defendantId = firstDefendantId),
-        ),
-      ),
-    )
-    val personA = awaitNotNullPerson { personRepository.findByDefendantId(firstDefendantId) }
-    stubOnePersonMatchHighConfidenceMatch(matchedRecord = personA.matchId)
-
-    val secondDefendantId = randomDefendantId()
-    publishCommonPlatformMessage(
-      commonPlatformHearing(
-        listOf(
-          CommonPlatformHearingSetup(pnc = pnc, cro = cro, defendantId = secondDefendantId),
-        ),
-      ),
-    )
-
-    val personKey = awaitNotNullPerson { personRepository.findByDefendantId(secondDefendantId) }.personKey
-    assertThat(personKey?.personEntities!!.size).isEqualTo(2)
-    assertThat(personKey.status).isEqualTo(ACTIVE)
-
-    stubOnePersonMatchLowConfidenceMatch(matchedRecord = personA.matchId)
-    publishCommonPlatformMessage(
-      commonPlatformHearing(
-        listOf(
-          CommonPlatformHearingSetup(pnc = "", cro = "", defendantId = secondDefendantId),
-        ),
-      ),
-    )
-
-    val personKeyAfterUpdate = awaitNotNullPerson { personRepository.findByDefendantId(secondDefendantId) }.personKey
-    assertThat(personKeyAfterUpdate?.personEntities!!.size).isEqualTo(2)
-    assertThat(personKeyAfterUpdate.status).isEqualTo(NEEDS_ATTENTION)
-
-    stubOnePersonMatchHighConfidenceMatch(matchedRecord = personA.matchId)
-    publishCommonPlatformMessage(
-      commonPlatformHearing(
-        listOf(
-          CommonPlatformHearingSetup(pnc = pnc, cro = cro, defendantId = secondDefendantId),
-        ),
-      ),
-    )
-
-    val personKeyAfterSecondUpdate = awaitNotNullPerson { personRepository.findByDefendantId(secondDefendantId) }.personKey
-    assertThat(personKeyAfterSecondUpdate?.personEntities!!.size).isEqualTo(2)
-    assertThat(personKeyAfterSecondUpdate.status).isEqualTo(ACTIVE)
   }
 
   private fun putLargeMessageBodyIntoS3(message: String) {
