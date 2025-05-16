@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
@@ -1177,6 +1178,29 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         val eventLog = eventLogs.first()
         assertThat(eventLog.uuid).isEqualTo(cluster.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(NEEDS_ATTENTION)
+      }
+    }
+
+    @Test
+    fun `should log back to active when cluster moves from needs attention to active`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey(status = NEEDS_ATTENTION)
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      stubClusterIsValid()
+      stubXPersonMatchHighConfidenceMatches(matchId = personA.matchId, results = listOf(personB.matchId, personC.matchId))
+      reclusterService.recluster(cluster, changedRecord = personA)
+
+      cluster.assertClusterStatus(ACTIVE)
+      checkEventLog(personA.crn!!, CPR_NEEDS_ATTENTION_TO_ACTIVE) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        val eventLog = eventLogs.first()
+        assertThat(eventLog.uuid).isEqualTo(cluster.personUUID)
+        assertThat(eventLog.uuidStatusType).isEqualTo(ACTIVE)
       }
     }
 
