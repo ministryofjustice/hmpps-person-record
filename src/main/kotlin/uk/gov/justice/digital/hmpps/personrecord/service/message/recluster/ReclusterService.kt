@@ -29,12 +29,18 @@ class ReclusterService(
 ) {
 
   fun recluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
+    if (clusterNeedsAttention(cluster) && personMatchService.examineIsClusterValid(cluster).isClusterValid) {
+      setClusterAsActive(cluster)
+    } else {
+      return
+    }
+
     val matchesToChangeRecord: List<PersonMatchResult> =
       personMatchService.findHighestConfidencePersonRecordsByProbabilityDesc(changedRecord)
     val clusterDetails = ClusterDetails(cluster, changedRecord, matchesToChangeRecord)
+
     when {
       clusterDetails.relationship.isDifferent() -> handleDiscrepancyOfMatchesToExistingRecords(clusterDetails)
-      else -> setClusterAsActive(clusterDetails)
     }
   }
 
@@ -147,10 +153,10 @@ class ReclusterService(
     personKeyRepository.save(clusterDetails.cluster)
   }
 
-  private fun setClusterAsActive(clusterDetails: ClusterDetails) {
-    if (clusterNeedsAttention(clusterDetails.cluster)) {
-      clusterDetails.cluster.status = UUIDStatusType.ACTIVE
-      personKeyRepository.save(clusterDetails.cluster)
+  private fun setClusterAsActive(personKeyEntity: PersonKeyEntity) {
+    if (clusterNeedsAttention(personKeyEntity)) {
+      personKeyEntity.status = UUIDStatusType.ACTIVE
+      personKeyRepository.save(personKeyEntity)
     }
   }
 

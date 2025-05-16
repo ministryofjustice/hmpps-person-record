@@ -62,6 +62,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personA)
 
       stubPersonMatchUpsert()
+      stubClusterIsValid()
       stubOnePersonMatchHighConfidenceMatch(matchedRecord = personA.matchId)
 
       val newPersonCrn = randomCrn()
@@ -95,7 +96,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(doesNotMatch)
 
       stubPersonMatchUpsert()
-      stubOnePersonMatchHighConfidenceMatch(matchedRecord = matchesA.matchId)
       stubClusterIsNotValid()
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = recordA.crn))
 
@@ -115,11 +115,32 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubPersonMatchUpsert()
       stubXPersonMatchHighConfidenceMatches(matchId = doesNotMatch.matchId, results = listOf(matchesA.matchId, recordA.matchId))
-
+      stubClusterIsValid()
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(ACTIVE)
+    }
+
+    @Test
+    fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster plus another one which is added to the cluster`() {
+      val recordA = createPerson(createRandomProbationPersonDetails())
+      val matchesA = createPerson(createRandomProbationPersonDetails())
+      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val recordToJoinCluster = createPersonWithNewKey(createRandomProbationPersonDetails())
+      val cluster = createPersonKey(status = NEEDS_ATTENTION)
+        .addPerson(recordA)
+        .addPerson(matchesA)
+        .addPerson(doesNotMatch)
+
+      stubPersonMatchUpsert()
+      stubXPersonMatchHighConfidenceMatches(matchId = doesNotMatch.matchId, results = listOf(matchesA.matchId, recordA.matchId, recordToJoinCluster.matchId))
+      stubClusterIsValid()
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
+
+      cluster.assertClusterIsOfSize(4)
+      cluster.assertClusterStatus(ACTIVE)
+      recordToJoinCluster.personKey?.assertMergedTo(cluster)
     }
 
     @Test
@@ -129,8 +150,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personA)
 
       stubPersonMatchUpsert()
-      stubOnePersonMatchHighConfidenceMatch(matchedRecord = personA.matchId)
-
+      stubClusterIsNotValid()
       val newPersonCrn = randomCrn()
       probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup(crn = newPersonCrn))
 
@@ -142,7 +162,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster.assertClusterIsOfSize(2)
       cluster.assertClusterStatus(NEEDS_ATTENTION)
 
-      stubPersonMatchUpsert()
       stubOnePersonMatchLowConfidenceMatch(matchedRecord = personA.matchId)
 
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = newPersonCrn))
