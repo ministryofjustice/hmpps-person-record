@@ -84,6 +84,25 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
+    fun `should retain needs attention status when a record is updated which continues to match another record in the cluster`() {
+      val recordA = createPerson(createRandomProbationPersonDetails())
+      val matchesA = createPerson(createRandomProbationPersonDetails())
+      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey(status = NEEDS_ATTENTION)
+        .addPerson(recordA)
+        .addPerson(matchesA)
+        .addPerson(doesNotMatch)
+
+      stubPersonMatchUpsert()
+      stubOnePersonMatchHighConfidenceMatch(matchedRecord = matchesA.matchId)
+      stubClusterIsNotValid()
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = recordA.crn))
+
+      cluster.assertClusterIsOfSize(3)
+      cluster.assertClusterStatus(NEEDS_ATTENTION)
+    }
+
+    @Test
     fun `should not set a cluster to active if it is set to needs attention and an update does change the cluster composition`() {
       val personA = createPerson(createRandomProbationPersonDetails())
       val cluster = createPersonKey(status = NEEDS_ATTENTION)
