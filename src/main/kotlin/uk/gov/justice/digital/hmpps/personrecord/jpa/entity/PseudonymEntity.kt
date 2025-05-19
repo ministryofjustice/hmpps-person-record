@@ -47,12 +47,6 @@ class PseudonymEntity(
   @Column(name = "date_of_birth")
   val dateOfBirth: LocalDate? = null,
 
-  @Column
-  val sex: String? = null,
-
-  @Column
-  val ethnicity: String? = null,
-
   @Column(name = "name_type")
   @Enumerated(STRING)
   val nameType: NameType,

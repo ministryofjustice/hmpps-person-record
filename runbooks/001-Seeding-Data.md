@@ -115,13 +115,11 @@ Fallback idea
 
 Put clusters into hmpps-person-record (~30 minutes)
 TEST PROCESS IN DEV FOR APPROXIMATE TIMINGS
-- INSERT INTO person_key (person_UUID) SELECT distinct UUID from temp_table;
-- UPDATE person(fk_person-key_id) SELECT UUID from temp_table tt where tt.match_id = match_id;
 
-Record initial state of records and clusters in event log table - see CPR-680
-Do this by updating the record in the event log table with the UUID
+## 5. Linking Records To Clusters
+See [002-Link-Cluster-Data.md](002-Link-Cluster-Data.md)
 
-## 5. Resume Message Consumption
+## 6. Resume Message Consumption
  
 Resume message consumption by removing the profile `seeding` to the spring configuration in helm.
 This is done by removing it from the desired environment helm chart spring environment variable, which can be found at `helm_deploy/hmpps-person-record/values-<environment>.yaml`:
