@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordClusterTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -30,10 +29,10 @@ class ReclusterService(
 ) {
 
   fun recluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
-    if (clusterNeedsAttentionAndIsInvalid(cluster, changedRecord)) {
+    if (clusterNeedsAttentionAndIsInvalid(cluster)) {
       return
     }
-
+    clusterIsActive(cluster, changedRecord)
     val matchesToChangeRecord: List<PersonMatchResult> =
       personMatchService.findHighestConfidencePersonRecordsByProbabilityDesc(changedRecord)
     val clusterDetails = ClusterDetails(cluster, changedRecord, matchesToChangeRecord)
@@ -43,15 +42,7 @@ class ReclusterService(
     }
   }
 
-  private fun clusterNeedsAttentionAndIsInvalid(cluster: PersonKeyEntity, changedRecord: PersonEntity): Boolean = if (clusterNeedsAttention(cluster)) {
-    val clusterIsValid = personMatchService.examineIsClusterValid(cluster).isClusterValid
-    if (clusterIsValid) {
-      clusterIsActive(cluster, changedRecord)
-    }
-    clusterIsValid.not()
-  } else {
-    false
-  }
+  private fun clusterNeedsAttentionAndIsInvalid(cluster: PersonKeyEntity) = clusterNeedsAttention(cluster) && !personMatchService.examineIsClusterValid(cluster).isClusterValid
 
   private fun handleDiscrepancyOfMatchesToExistingRecords(clusterDetails: ClusterDetails) {
     when {
@@ -163,16 +154,18 @@ class ReclusterService(
   }
 
   private fun clusterIsActive(personKeyEntity: PersonKeyEntity, changedRecord: PersonEntity) {
-    personKeyEntity.status = UUIDStatusType.ACTIVE
-    personKeyRepository.save(personKeyEntity)
-    publisher.publishEvent(
-      RecordEventLog(
-        CPR_NEEDS_ATTENTION_TO_ACTIVE,
-        changedRecord,
-        personKeyEntity,
-        null,
-      ),
-    )
+    if (clusterNeedsAttention(personKeyEntity)) {
+      personKeyEntity.status = UUIDStatusType.ACTIVE
+      personKeyRepository.save(personKeyEntity)
+      publisher.publishEvent(
+        RecordEventLog(
+          CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE,
+          changedRecord,
+          personKeyEntity,
+          null,
+        ),
+      )
+    }
   }
 
   private fun List<PersonKeyEntity>.removeUpdatedCluster(cluster: PersonKeyEntity) = this.filterNot { it.id == cluster.id }
