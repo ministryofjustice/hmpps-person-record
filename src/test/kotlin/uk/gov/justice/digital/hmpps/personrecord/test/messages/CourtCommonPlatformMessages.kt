@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.messages
 
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomHearingId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -11,7 +12,7 @@ data class CommonPlatformHearingSetup(
   val firstName: String? = randomName(),
   val middleName: String? = null,
   val lastName: String = randomName(),
-  val dateOfBirth: String = "1975-01-01",
+  val dateOfBirth: String = randomDate().toString(),
   val cro: String = randomCro(),
   val defendantId: String = randomDefendantId(),
   val aliases: List<CommonPlatformHearingSetupAlias>? = null,
@@ -88,7 +89,7 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) = 
                     "id": "a63d9020-aa6b-4997-92fd-72a692b036de",
                     "offenceLegislation": "Contrary to section 20 of the Offences Against the    Person Act 1861.",
                     "offenceTitle": "Wound / inflict grievous bodily harm without intent",
-                    "wording": "on 01/08/2009 at  the County public house, unlawfully and maliciously wounded, John Smith",
+                    "wording": "on 01/08/2009 at  the County public house, unlawfully and maliciously wounded, REDACTED",
                     "listingNumber": 30,
                     "offenceCode": "ABC001"
                   },
@@ -96,7 +97,7 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) = 
                     "id": "ea1c2cf1-f155-483b-a908-81158a9b2f9b",
                     "offenceLegislation": "Contrary to section 20 of the Offences Against the    Person Act 1861.",
                     "offenceTitle": "Wound / inflict grievous bodily harm without intent",
-                    "wording": "on 01/08/2009 at  the County public house, unlawfully and maliciously wounded, Jane Smith",
+                    "wording": "on 01/08/2009 at  the County public house, unlawfully and maliciously wounded, REDACTED",
                     "listingNumber": 20,
                     "offenceCode": "ABC002"
                   }

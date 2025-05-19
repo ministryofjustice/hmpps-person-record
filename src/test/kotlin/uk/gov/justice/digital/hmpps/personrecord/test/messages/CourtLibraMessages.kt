@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.test.messages
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType.PERSON
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -14,7 +15,7 @@ fun libraHearing(
   foreName3: String? = null,
   lastName: String = randomName(),
   dateOfBirth: String = "",
-  cro: String = "85227/65L",
+  cro: String = randomCro(),
   postcode: String = randomPostcode(),
   line1: String? = randomName(),
   line2: String? = randomName(),

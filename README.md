@@ -11,7 +11,6 @@
 ```
 $ make test
 ```
-Some tests are a bit flaky so are automatically retried in CI. If you want this feature locally, run `CI=true make test`
 
 ## Deployment
 

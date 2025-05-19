@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import kotlin.test.assertEquals
 
 class CROIdentifierTest {
@@ -37,8 +38,9 @@ class CROIdentifierTest {
 
   @Test
   fun `should process a standard format CRO`() {
-    val identifier = CROIdentifier.from("265416/21G")
-    assertEquals("265416/21G", identifier.croId)
+    val inputCroId = randomCro()
+    val identifier = CROIdentifier.from(inputCroId)
+    assertEquals(inputCroId, identifier.croId)
   }
 
   @Test
