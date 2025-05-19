@@ -9,7 +9,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordClusterTelemetry
@@ -32,7 +34,7 @@ class ReclusterService(
     if (clusterNeedsAttentionAndIsInvalid(cluster)) {
       return
     }
-    clusterIsActive(cluster, changedRecord)
+    settingNeedsAttentionClusterToActive(cluster, changedRecord)
     val matchesToChangeRecord: List<PersonMatchResult> =
       personMatchService.findHighestConfidencePersonRecordsByProbabilityDesc(changedRecord)
     val clusterDetails = ClusterDetails(cluster, changedRecord, matchesToChangeRecord)
@@ -42,7 +44,7 @@ class ReclusterService(
     }
   }
 
-  private fun clusterNeedsAttentionAndIsInvalid(cluster: PersonKeyEntity) = clusterNeedsAttention(cluster) && !personMatchService.examineIsClusterValid(cluster).isClusterValid
+  private fun clusterNeedsAttentionAndIsInvalid(cluster: PersonKeyEntity) = cluster.isNeedsAttention() && !personMatchService.examineIsClusterValid(cluster).isClusterValid
 
   private fun handleDiscrepancyOfMatchesToExistingRecords(clusterDetails: ClusterDetails) {
     when {
@@ -79,7 +81,7 @@ class ReclusterService(
       throw CircularMergeException()
     }
     from.mergedTo = to.id
-    from.status = UUIDStatusType.RECLUSTER_MERGE
+    from.status = RECLUSTER_MERGE
     personKeyRepository.save(from)
     publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_UUID_MERGED, from.personEntities.first(), from))
 
@@ -124,7 +126,7 @@ class ReclusterService(
         clusterDetails.cluster,
       ),
     )
-    setClusterAsNeedsAttention(clusterDetails)
+    settingClusterToNeedsAttention(clusterDetails)
   }
 
   private fun handleInvalidClusterComposition(
@@ -145,24 +147,23 @@ class ReclusterService(
         clusterComposition,
       ),
     )
-    setClusterAsNeedsAttention(clusterDetails)
+    settingClusterToNeedsAttention(clusterDetails)
   }
 
-  private fun setClusterAsNeedsAttention(clusterDetails: ClusterDetails) {
-    clusterDetails.cluster.status = UUIDStatusType.NEEDS_ATTENTION
+  private fun settingClusterToNeedsAttention(clusterDetails: ClusterDetails) {
+    clusterDetails.cluster.status = NEEDS_ATTENTION
     personKeyRepository.save(clusterDetails.cluster)
   }
 
-  private fun clusterIsActive(personKeyEntity: PersonKeyEntity, changedRecord: PersonEntity) {
-    if (clusterNeedsAttention(personKeyEntity)) {
-      personKeyEntity.status = UUIDStatusType.ACTIVE
+  private fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity, changedRecord: PersonEntity) {
+    if (personKeyEntity.isNeedsAttention()) {
+      personKeyEntity.status = ACTIVE
       personKeyRepository.save(personKeyEntity)
       publisher.publishEvent(
         RecordEventLog(
           CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE,
           changedRecord,
           personKeyEntity,
-          null,
         ),
       )
     }
@@ -170,9 +171,9 @@ class ReclusterService(
 
   private fun List<PersonKeyEntity>.removeUpdatedCluster(cluster: PersonKeyEntity) = this.filterNot { it.id == cluster.id }
 
-  private fun List<PersonKeyEntity>.getActiveClusters() = this.filter { it.status == UUIDStatusType.ACTIVE }
+  private fun List<PersonKeyEntity>.getActiveClusters() = this.filter { it.status == ACTIVE }
 
   private fun List<PersonEntity>.collectDistinctClusters(): List<PersonKeyEntity> = this.groupBy { it.personKey!! }.map { it.key }.distinctBy { it.id }
 
-  private fun clusterNeedsAttention(personKeyEntity: PersonKeyEntity?): Boolean = personKeyEntity?.status == UUIDStatusType.NEEDS_ATTENTION
+  private fun PersonKeyEntity.isNeedsAttention(): Boolean = this.status == NEEDS_ATTENTION
 }
