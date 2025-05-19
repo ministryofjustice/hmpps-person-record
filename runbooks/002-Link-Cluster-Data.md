@@ -1,7 +1,7 @@
 # 002 - Link Cluster Data
 
 ## Importing Data
-1) Get CSV file from Robin
+1) Get CSV file from Data Science
 2) Using Import Wizard to create temp table 'temp_cluster_info', ensure it contains uuid & match_id columns
 
 ## Creating UUIDs

@@ -102,11 +102,10 @@ It will notify once finished with: `DELIUS seeding finished, approx records <num
 Follow: [Seed hmpps-person-match](./004-Seeding-Person-Match.md)
 
 Generate clusters (~2 hours)
-- inform Robin once hmpps-person-match seeding is done
+- inform Data Science once hmpps-person-match seeding is done
 - he will verify all records are present
 - he will run a script to generate UUIDs for every record - output to be a UUID and the MATCH_ID of each record
-- data will now be on Robin's laptop
-- Robin will transfer data to hmpps-person-record database in a temporary table,
+- Data Science will transfer data to hmpps-person-record database in a temporary table,
   - use postgres import to create a temporary table in hmpps-person-record from the csv
 
 
