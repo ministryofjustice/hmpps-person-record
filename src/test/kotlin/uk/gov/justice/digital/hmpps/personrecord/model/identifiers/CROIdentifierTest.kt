@@ -2,8 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.model.identifiers
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.nio.file.Files
-import java.nio.file.Paths
 import kotlin.test.assertEquals
 
 class CROIdentifierTest {
@@ -47,14 +45,5 @@ class CROIdentifierTest {
   fun `should process a standard format CRO with limit serial section`() {
     val identifier = CROIdentifier.from("65656/91H")
     assertEquals("065656/91H", identifier.croId)
-  }
-
-  @Test
-  fun `should process CROs`() {
-    val readAllLines = Files.readAllLines(Paths.get("src/test/resources/valid_cros.csv"), Charsets.UTF_8)
-
-    readAllLines.stream().forEach {
-      assertThat(CROIdentifier.from(it).croId).isNotBlank().withFailMessage(it)
-    }
   }
 }

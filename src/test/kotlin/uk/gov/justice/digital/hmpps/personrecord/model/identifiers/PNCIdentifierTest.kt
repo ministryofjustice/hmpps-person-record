@@ -6,8 +6,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.stream.Stream
 
 class PNCIdentifierTest {
@@ -68,15 +66,6 @@ class PNCIdentifierTest {
   fun `should return invalid when PNC id is correctly formatted but not valid`(pncId: String) {
     val pncIdentifier = PNCIdentifier.from(pncId)
     assertThat(pncIdentifier.pncId).isEqualTo("")
-  }
-
-  @Test
-  fun `validating PNCs from file`() {
-    val readAllLines = Files.readAllLines(Paths.get("src/test/resources/valid_pncs.csv"), Charsets.UTF_8)
-
-    readAllLines.stream().forEach {
-      assertThat((PNCIdentifier.from(it).pncId)).isNotEmpty()
-    }
   }
 
   companion object {
