@@ -34,6 +34,14 @@ class ReclusterService(
     if (clusterNeedsAttentionAndIsInvalid(cluster)) {
       return
     }
+
+    performRecluster(cluster, changedRecord)
+  }
+
+  private fun performRecluster(
+    cluster: PersonKeyEntity,
+    changedRecord: PersonEntity,
+  ) {
     settingNeedsAttentionClusterToActive(cluster, changedRecord)
     val matchesToChangeRecord: List<PersonMatchResult> =
       personMatchService.findHighestConfidencePersonRecordsByProbabilityDesc(changedRecord)
