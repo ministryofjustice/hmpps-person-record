@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import kotlin.collections.groupBy
 
 @Component
 class ReclusterService(
@@ -31,28 +30,13 @@ class ReclusterService(
 ) {
 
   fun recluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
-    if (clusterNeedsAttentionAndIsInvalid(cluster)) {
-      return
-    }
-
-    performRecluster(cluster, changedRecord)
-  }
-
-  private fun performRecluster(
-    cluster: PersonKeyEntity,
-    changedRecord: PersonEntity,
-  ) {
-    settingNeedsAttentionClusterToActive(cluster, changedRecord)
     val matchesToChangeRecord: List<PersonMatchResult> =
       personMatchService.findHighestConfidencePersonRecordsByProbabilityDesc(changedRecord)
     val clusterDetails = ClusterDetails(cluster, changedRecord, matchesToChangeRecord)
-
     when {
       clusterDetails.relationship.isDifferent() -> handleDiscrepancyOfMatchesToExistingRecords(clusterDetails)
     }
   }
-
-  private fun clusterNeedsAttentionAndIsInvalid(cluster: PersonKeyEntity) = cluster.isNeedsAttention() && !personMatchService.examineIsClusterValid(cluster).isClusterValid
 
   private fun handleDiscrepancyOfMatchesToExistingRecords(clusterDetails: ClusterDetails) {
     when {
@@ -163,25 +147,9 @@ class ReclusterService(
     personKeyRepository.save(clusterDetails.cluster)
   }
 
-  private fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity, changedRecord: PersonEntity) {
-    if (personKeyEntity.isNeedsAttention()) {
-      personKeyEntity.status = ACTIVE
-      personKeyRepository.save(personKeyEntity)
-      publisher.publishEvent(
-        RecordEventLog(
-          CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE,
-          changedRecord,
-          personKeyEntity,
-        ),
-      )
-    }
-  }
-
   private fun List<PersonKeyEntity>.removeUpdatedCluster(cluster: PersonKeyEntity) = this.filterNot { it.id == cluster.id }
 
   private fun List<PersonKeyEntity>.getActiveClusters() = this.filter { it.status == ACTIVE }
 
   private fun List<PersonEntity>.collectDistinctClusters(): List<PersonKeyEntity> = this.groupBy { it.personKey!! }.map { it.key }.distinctBy { it.id }
-
-  private fun PersonKeyEntity.isNeedsAttention(): Boolean = this.status == NEEDS_ATTENTION
 }
