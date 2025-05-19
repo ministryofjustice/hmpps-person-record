@@ -56,7 +56,7 @@ class ListenersDisabledIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should not have PrisonMargeEventListener bean when seeding profile is active`() {
+  fun `should not have PrisonMergeEventListener bean when seeding profile is active`() {
     assertFailsWith<NoSuchBeanDefinitionException>(
       block = { applicationContext.getBean(PrisonMergeEventListener::class.java) },
     )

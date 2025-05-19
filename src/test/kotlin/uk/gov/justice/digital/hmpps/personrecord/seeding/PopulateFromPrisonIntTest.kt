@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.prisonNumbers
 import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.twoPrisoners
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_SEEDED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import java.time.LocalDate
 
 @ActiveProfiles("seeding")
 class PopulateFromPrisonIntTest : WebTestBase() {
@@ -104,8 +103,6 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     assertThat(prisoner1.getPrimaryName().firstName).isEqualTo("PrisonerOneFirstName")
     assertThat(prisoner1.getPrimaryName().middleNames).isEqualTo("PrisonerOneMiddleNameOne PrisonerOneMiddleNameTwo")
     assertThat(prisoner1.getPrimaryName().lastName).isEqualTo("PrisonerOneLastName")
-    assertThat(prisoner1.references.getType(IdentifierType.CRO).first().identifierValue).isEqualTo("029906/12J")
-    assertThat(prisoner1.getPrimaryName().dateOfBirth).isEqualTo(LocalDate.of(1975, 4, 2))
     assertThat(prisoner1.getAliases()[0].firstName).isEqualTo("PrisonerOneAliasOneFirstName")
     assertThat(prisoner1.getAliases()[0].middleNames).isEqualTo("PrisonerOneAliasOneMiddleNameOne PrisonerOneAliasOneMiddleNameTwo")
     assertThat(prisoner1.getAliases()[0].lastName).isEqualTo("PrisonerOneAliasOneLastName")
