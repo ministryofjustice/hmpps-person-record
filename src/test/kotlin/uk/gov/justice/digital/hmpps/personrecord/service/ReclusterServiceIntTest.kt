@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationEventPublisher
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CircularMergeException
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
@@ -13,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.recluster.Recluster
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
@@ -33,9 +31,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
   @Autowired
   private lateinit var reclusterService: ReclusterService
-
-  @Autowired
-  private lateinit var eventPublisher: ApplicationEventPublisher
 
   @Nested
   inner class ClusterAlreadySetAsNeedsAttention {
@@ -1196,9 +1191,10 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personB)
         .addPerson(personC)
 
+      stubPersonMatchUpsert()
       stubClusterIsValid()
       stubXPersonMatchHighConfidenceMatches(matchId = personA.matchId, results = listOf(personB.matchId, personC.matchId))
-      eventPublisher.publishEvent(Recluster(cluster, personA))
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = personA.crn))
 
       cluster.assertClusterStatus(ACTIVE)
       checkEventLog(personA.crn!!, CPR_NEEDS_ATTENTION_TO_ACTIVE) { eventLogs ->

@@ -41,16 +41,18 @@ class PersonService(
       ),
     )
 
-    val shouldRecluster = when (clusterNeedsAttentionAndIsInvalid(existingPersonEntity.personKey!!)) {
+    val shouldRecluster = when (clusterNeedsAttentionAndIsInvalid(updatedEntity.personKey)) {
       true -> false
-      else -> shouldReclusterOnUpdate
+      else -> {
+        settingNeedsAttentionClusterToActive(updatedEntity.personKey, updatedEntity)
+        shouldReclusterOnUpdate
+      }
     }
-    settingNeedsAttentionClusterToActive(updatedEntity.personKey!!, updatedEntity)
     return PersonUpdated(updatedEntity, matchingFieldsHaveChanged, shouldRecluster)
   }
 
-  private fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity, changedRecord: PersonEntity) {
-    if (personKeyEntity.isNeedsAttention()) {
+  private fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity?, changedRecord: PersonEntity) {
+    if (personKeyEntity?.isNeedsAttention() == true) {
       personKeyEntity.status = ACTIVE
       personKeyRepository.save(personKeyEntity)
       eventPublisher.publishEvent(
@@ -62,7 +64,7 @@ class PersonService(
       )
     }
   }
-  private fun clusterNeedsAttentionAndIsInvalid(cluster: PersonKeyEntity) = cluster.isNeedsAttention() && !personMatchService.examineIsClusterValid(cluster).isClusterValid
+  private fun clusterNeedsAttentionAndIsInvalid(cluster: PersonKeyEntity?): Boolean = cluster?.let { it.isNeedsAttention() && personMatchService.examineIsClusterValid(cluster).isClusterValid.not() } == true
   private fun PersonKeyEntity.isNeedsAttention(): Boolean = this.status == NEEDS_ATTENTION
 
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
