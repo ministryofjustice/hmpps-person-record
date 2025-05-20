@@ -37,5 +37,4 @@ class ProbationDeletionEventListener(
     val crn = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }!!.value
     probationDeleteProcessor.processEvent(crn, domainEvent.eventType)
   }
-
 }
