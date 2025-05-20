@@ -1147,8 +1147,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster2.assertMergedTo(cluster1)
 
       cluster2.checkReclusterMergeTelemetry(cluster1)
-
-      checkEventLog(personC.crn!!, CPRLogEvents.CPR_RECLUSTER_UUID_MERGED, timeout = 6) { eventLogs ->
+      checkEventLogByUUID(cluster2.personUUID!!, CPRLogEvents.CPR_RECLUSTER_UUID_MERGED, timeout = 6) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
         assertThat(eventLog.uuid).isEqualTo(cluster2.personUUID)
