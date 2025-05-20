@@ -15,7 +15,6 @@ enum class TelemetryEventType(val eventName: String) {
   CPR_RECORD_UNMERGED("CprRecordUnmerged"),
   CPR_RECORD_DELETED("CprRecordHardDeleted"),
   CPR_UUID_DELETED("CprUUIDHardDeleted"),
-  CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION("CprUuidReclusterNeedsAttention"),
   CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED("CprReclusterClusterRecordsNotLinked"),
   CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS("CprReclusterMatchedClustersHasExclusions"),
   CPR_RECLUSTER_MERGE("CprReclusterMerge"),
