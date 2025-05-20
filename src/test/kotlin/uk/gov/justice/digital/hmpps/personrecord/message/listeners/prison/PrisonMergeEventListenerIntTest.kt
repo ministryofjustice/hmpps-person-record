@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MERGE_MESSAGE_RECEIVED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
 class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -325,7 +324,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   inner class ErrorHandling {
 
     @Test
-    fun `should log when message processing fails`() {
+    fun `should put on dlq when message processing fails`() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
       stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure")
@@ -336,9 +335,8 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         AdditionalInformation(prisonNumber = targetPrisonNumber, sourcePrisonNumber = sourcePrisonNumber)
       val domainEvent =
         DomainEvent(eventType = PRISONER_MERGED, personReference = null, additionalInformation = additionalInformation)
-      val messageId = publishDomainEvent(PRISONER_MERGED, domainEvent)
+      publishDomainEvent(PRISONER_MERGED, domainEvent)
 
-      purgeQueueAndDlq(prisonMergeEventsQueue)
       checkTelemetry(
         MERGE_MESSAGE_RECEIVED,
         mapOf(
@@ -348,14 +346,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
-      checkTelemetry(
-        MESSAGE_PROCESSING_FAILED,
-        mapOf(
-          "MESSAGE_ID" to messageId,
-          "SOURCE_SYSTEM" to NOMIS.name,
-          "EVENT_TYPE" to "prisoner-offender-events.prisoner.merged",
-        ),
-      )
+      expectOneMessageOnDlq(prisonMergeEventsQueue)
     }
   }
 }

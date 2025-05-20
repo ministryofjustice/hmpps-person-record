@@ -12,16 +12,10 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationMergeEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationUnmergeEventProcessor
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
-import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
-import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
-import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
-import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 
 @Component
 @Profile("!seeding")
@@ -29,7 +23,6 @@ class ProbationMergeEventListener(
   private val mergeEventProcessor: ProbationMergeEventProcessor,
   private val unmergeEventProcessor: ProbationUnmergeEventProcessor,
   private val objectMapper: ObjectMapper,
-  private val telemetryService: TelemetryService,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -42,47 +35,26 @@ class ProbationMergeEventListener(
       NOTIFICATION -> {
         val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
         when (sqsMessage.messageAttributes?.eventType?.value) {
-          OFFENDER_MERGED -> handleMergeEvent(domainEvent, sqsMessage.messageId)
-          OFFENDER_UNMERGED -> handleUnmergeEvent(domainEvent, sqsMessage.messageId)
+          OFFENDER_MERGED -> handleMergeEvent(domainEvent)
+          OFFENDER_UNMERGED -> handleUnmergeEvent(domainEvent)
         }
       }
-      else -> log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
     }
   }
 
-  private fun handleMergeEvent(domainEvent: DomainEvent, messageId: String?) {
+  private fun handleMergeEvent(domainEvent: DomainEvent) {
     try {
       mergeEventProcessor.processEvent(domainEvent)
     } catch (e: FeignException.NotFound) {
       log.info("Discarding merge message for status code: ${e.status()}")
-    } catch (e: Exception) {
-      telemetryService.trackEvent(
-        MESSAGE_PROCESSING_FAILED,
-        mapOf(
-          EVENT_TYPE to domainEvent.eventType,
-          SOURCE_SYSTEM to SourceSystemType.DELIUS.name,
-          MESSAGE_ID to messageId,
-        ),
-      )
-      throw e
     }
   }
 
-  private fun handleUnmergeEvent(domainEvent: DomainEvent, messageId: String?) {
+  private fun handleUnmergeEvent(domainEvent: DomainEvent) {
     try {
       unmergeEventProcessor.processEvent(domainEvent)
     } catch (e: FeignException.NotFound) {
       log.info("Discarding unmerge message for status code: ${e.status()}")
-    } catch (e: Exception) {
-      telemetryService.trackEvent(
-        MESSAGE_PROCESSING_FAILED,
-        mapOf(
-          EVENT_TYPE to domainEvent.eventType,
-          SOURCE_SYSTEM to SourceSystemType.DELIUS.name,
-          MESSAGE_ID to messageId,
-        ),
-      )
-      throw e
     }
   }
 }

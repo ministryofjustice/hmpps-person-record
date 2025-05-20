@@ -12,22 +12,15 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationEventProcessor
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
-import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.EVENT_TYPE
-import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.MESSAGE_ID
-import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
-import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.PROBATION_EVENT_QUEUE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 
 @Component
 @Profile("!seeding")
 class ProbationEventListener(
   private val eventProcessor: ProbationEventProcessor,
   private val objectMapper: ObjectMapper,
-  private val telemetryService: TelemetryService,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -43,37 +36,26 @@ class ProbationEventListener(
           else -> handleDomainEvent(sqsMessage)
         }
       }
-      else -> log.info("Received a message I wasn't expecting Type: ${sqsMessage.type}")
     }
   }
 
   private fun handleDomainEvent(sqsMessage: SQSMessage) {
     val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
     val crn = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }!!.value
-    processEvent(crn, domainEvent.eventType, sqsMessage.messageId)
+    processEvent(crn, domainEvent.eventType)
   }
 
   private fun handleAliasUpdate(sqsMessage: SQSMessage) {
     val probationEvent = objectMapper.readValue<ProbationEvent>(sqsMessage.message)
     val eventType = sqsMessage.messageAttributes?.eventType?.value!!
-    processEvent(probationEvent.crn, eventType, sqsMessage.messageId)
+    processEvent(probationEvent.crn, eventType)
   }
 
-  private fun processEvent(crn: String, eventType: String, messageId: String?) {
+  private fun processEvent(crn: String, eventType: String) {
     try {
       eventProcessor.processEvent(crn, eventType)
     } catch (e: FeignException.NotFound) {
       log.info("Discarding message for status code: ${e.status()}")
-    } catch (e: Exception) {
-      telemetryService.trackEvent(
-        MESSAGE_PROCESSING_FAILED,
-        mapOf(
-          EVENT_TYPE to eventType,
-          SOURCE_SYSTEM to DELIUS.name,
-          MESSAGE_ID to messageId,
-        ),
-      )
-      throw e
     }
   }
 }

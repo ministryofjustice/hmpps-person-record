@@ -4,7 +4,6 @@ enum class TelemetryEventType(val eventName: String) {
   MESSAGE_RECEIVED("CprDomainEventReceived"),
   MERGE_MESSAGE_RECEIVED("CprMergeEventReceived"),
   UNMERGE_MESSAGE_RECEIVED("CprUnmergeEventReceived"),
-  MESSAGE_PROCESSING_FAILED("CprMessageProcessingFailed"),
   CPR_RECORD_CREATED("CprRecordCreated"),
   CPR_RECORD_UPDATED("CprRecordUpdated"),
   CPR_CANDIDATE_RECORD_SEARCH("CprCandidateRecordSearch"),
