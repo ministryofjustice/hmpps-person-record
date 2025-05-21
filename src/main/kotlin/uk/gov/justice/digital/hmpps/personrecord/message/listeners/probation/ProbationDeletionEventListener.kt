@@ -23,12 +23,7 @@ class ProbationDeletionEventListener(
   fun onDomainEvent(rawMessage: String) = sqsListenerService.processSQSMessage(rawMessage) {
     val domainEvent = objectMapper.readValue<DomainEvent>(it.message)
     when (it.getEventType()) {
-      OFFENDER_GDPR_DELETION -> handleDeleteEvent(domainEvent)
+      OFFENDER_GDPR_DELETION -> probationDeleteProcessor.processEvent(domainEvent)
     }
-  }
-
-  private fun handleDeleteEvent(domainEvent: DomainEvent) {
-    val crn = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }!!.value
-    probationDeleteProcessor.processEvent(crn, domainEvent.eventType)
   }
 }
