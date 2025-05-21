@@ -35,7 +35,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTI
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAddress
@@ -324,15 +323,10 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should log Message Processing Failed telemetry event when an exception is thrown`() {
-    val messageId = publishCommonPlatformMessage(
-      "notAValidMessage",
-    )
+  fun `should put message on dlq when an exception is thrown`() {
+    publishCommonPlatformMessage("notAValidMessage")
 
-    checkTelemetry(
-      MESSAGE_PROCESSING_FAILED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name),
-    )
+    expectOneMessageOnDlq(courtEventsQueue)
   }
 
   @Test
