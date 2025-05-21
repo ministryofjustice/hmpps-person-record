@@ -33,7 +33,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -66,8 +65,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
     val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
     publishDomainEvent(PRISONER_CREATED, domainEvent)
-
-    checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to SourceSystemType.NOMIS.name))
 
     expectOneMessageOnDlq(prisonEventsQueue)
   }
@@ -133,8 +130,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
       publishDomainEvent(PRISONER_CREATED, domainEvent)
 
-      checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to SourceSystemType.NOMIS.name))
-
+      checkTelemetry(
+        CPR_RECORD_CREATED,
+        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+      )
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
         assertThat(personEntity.personKey).isNotNull()
@@ -174,10 +173,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.sexCode).isEqualTo(SexCode.F)
       }
 
-      checkTelemetry(
-        CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
-      )
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
 
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber))
@@ -194,7 +189,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
       publishDomainEvent(PRISONER_CREATED, domainEvent)
 
-      checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to SourceSystemType.NOMIS.name))
+      checkTelemetry(
+        CPR_RECORD_CREATED,
+        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+      )
 
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
@@ -218,7 +216,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
       publishDomainEvent(PRISONER_CREATED, domainEvent)
 
-      checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to SourceSystemType.NOMIS.name))
+      checkTelemetry(
+        CPR_RECORD_CREATED,
+        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+      )
 
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
@@ -241,8 +242,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
       val domainEvent = DomainEvent(eventType = PRISONER_UPDATED, personReference = null, additionalInformation = additionalInformation)
       publishDomainEvent(PRISONER_UPDATED, domainEvent)
-
-      checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_UPDATED, "SOURCE_SYSTEM" to SourceSystemType.NOMIS.name))
 
       checkTelemetry(
         CPR_RECORD_UPDATED,
@@ -267,8 +266,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
       val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
       publishDomainEvent(PRISONER_CREATED, domainEvent)
-
-      checkTelemetry(MESSAGE_RECEIVED, mapOf("PRISON_NUMBER" to prisonNumber, "EVENT_TYPE" to PRISONER_CREATED, "SOURCE_SYSTEM" to SourceSystemType.NOMIS.name))
 
       checkTelemetry(
         CPR_RECORD_CREATED,

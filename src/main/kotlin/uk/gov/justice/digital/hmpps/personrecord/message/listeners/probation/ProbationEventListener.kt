@@ -42,18 +42,17 @@ class ProbationEventListener(
   private fun handleDomainEvent(sqsMessage: SQSMessage) {
     val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
     val crn = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }!!.value
-    processEvent(crn, domainEvent.eventType)
+    processEvent(crn)
   }
 
   private fun handleAliasUpdate(sqsMessage: SQSMessage) {
     val probationEvent = objectMapper.readValue<ProbationEvent>(sqsMessage.message)
-    val eventType = sqsMessage.messageAttributes?.eventType?.value!!
-    processEvent(probationEvent.crn, eventType)
+    processEvent(probationEvent.crn)
   }
 
-  private fun processEvent(crn: String, eventType: String) {
+  private fun processEvent(crn: String) {
     try {
-      eventProcessor.processEvent(crn, eventType)
+      eventProcessor.processEvent(crn)
     } catch (e: FeignException.NotFound) {
       log.info("Discarding message for status code: ${e.status()}")
     }
