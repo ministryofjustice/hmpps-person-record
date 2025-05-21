@@ -7,16 +7,15 @@ import io.awspring.cloud.sqs.annotation.SqsListener
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonEventProcessor
-import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSListenerService
 
 @Component
 @Profile("!seeding")
 class PrisonEventListener(
+  private val sqsListenerService: SQSListenerService,
   private val objectMapper: ObjectMapper,
   private val prisonEventProcessor: PrisonEventProcessor,
 ) {
@@ -25,14 +24,9 @@ class PrisonEventListener(
   }
 
   @SqsListener(Queues.PRISON_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = TimeoutExecutor.runWithTimeout {
-    val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-    when (sqsMessage.type) {
-      NOTIFICATION -> {
-        val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
-        handleEvent(domainEvent)
-      }
-    }
+  fun onDomainEvent(rawMessage: String) = sqsListenerService.processSQSMessage(rawMessage) {
+    val domainEvent = objectMapper.readValue<DomainEvent>(it.message)
+    handleEvent(domainEvent)
   }
 
   private fun handleEvent(domainEvent: DomainEvent) {
