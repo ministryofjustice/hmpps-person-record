@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.message
+package uk.gov.justice.digital.hmpps.personrecord.service.queue
 
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value

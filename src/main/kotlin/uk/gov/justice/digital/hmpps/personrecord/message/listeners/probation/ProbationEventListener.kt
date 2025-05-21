@@ -8,17 +8,17 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationEventProcessor
-import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.PROBATION_EVENT_QUEUE_ID
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSListenerService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
 
 @Component
 @Profile("!seeding")
 class ProbationEventListener(
+  private val sqsListenerService: SQSListenerService,
   private val eventProcessor: ProbationEventProcessor,
   private val objectMapper: ObjectMapper,
 ) {
@@ -27,15 +27,10 @@ class ProbationEventListener(
   }
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = TimeoutExecutor.runWithTimeout {
-    val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-    when (sqsMessage.type) {
-      NOTIFICATION -> {
-        when (sqsMessage.messageAttributes?.eventType?.value) {
-          OFFENDER_ALIAS_CHANGED -> handleAliasUpdate(sqsMessage)
-          else -> handleDomainEvent(sqsMessage)
-        }
-      }
+  fun onDomainEvent(rawMessage: String) = sqsListenerService.processSQSMessage(rawMessage) {
+    when (it.getEventType()) {
+      OFFENDER_ALIAS_CHANGED -> handleAliasUpdate(it)
+      else -> handleDomainEvent(it)
     }
   }
 

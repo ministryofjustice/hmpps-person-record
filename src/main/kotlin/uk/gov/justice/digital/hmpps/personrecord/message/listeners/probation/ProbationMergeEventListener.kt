@@ -7,19 +7,18 @@ import io.awspring.cloud.sqs.annotation.SqsListener
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationMergeEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationUnmergeEventProcessor
-import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSListenerService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 
 @Component
 @Profile("!seeding")
 class ProbationMergeEventListener(
+  private val sqsListenerService: SQSListenerService,
   private val mergeEventProcessor: ProbationMergeEventProcessor,
   private val unmergeEventProcessor: ProbationUnmergeEventProcessor,
   private val objectMapper: ObjectMapper,
@@ -29,16 +28,11 @@ class ProbationMergeEventListener(
   }
 
   @SqsListener(Queues.PROBATION_MERGE_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = TimeoutExecutor.runWithTimeout {
-    val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-    when (sqsMessage.type) {
-      NOTIFICATION -> {
-        val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
-        when (sqsMessage.messageAttributes?.eventType?.value) {
-          OFFENDER_MERGED -> handleMergeEvent(domainEvent)
-          OFFENDER_UNMERGED -> handleUnmergeEvent(domainEvent)
-        }
-      }
+  fun onDomainEvent(rawMessage: String) = sqsListenerService.processSQSMessage(rawMessage) {
+    val domainEvent = objectMapper.readValue<DomainEvent>(it.message)
+    when (it.getEventType()) {
+      OFFENDER_MERGED -> handleMergeEvent(domainEvent)
+      OFFENDER_UNMERGED -> handleUnmergeEvent(domainEvent)
     }
   }
 
