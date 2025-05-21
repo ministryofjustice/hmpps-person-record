@@ -31,7 +31,7 @@ class SQSListenerService(
       try {
         action(this)
       } catch (e: FeignException.NotFound) {
-        log.info("Discarding unmerge message for status code: ${e.status()}")
+        log.info("Discarding message for status code: ${e.status()}")
       }
       return this
     }
