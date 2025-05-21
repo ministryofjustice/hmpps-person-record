@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MERGE_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
 class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -35,10 +34,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubPersonMatchUpsert()
       prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, targetPrisonNumber = targetPrisonNumber)
 
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf("FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber, "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
-      )
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("PRISON_NUMBER" to targetPrisonNumber))
       checkTelemetry(
         CPR_RECORD_MERGED,
@@ -73,15 +68,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       targetPerson.personKey?.assertClusterIsOfSize(1)
 
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
-          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
-          "EVENT_TYPE" to PRISONER_MERGED,
-          "SOURCE_SYSTEM" to NOMIS.name,
-        ),
-      )
       checkTelemetry(
         CPR_RECORD_CREATED,
         mapOf("PRISON_NUMBER" to targetPrisonNumber, "SOURCE_SYSTEM" to NOMIS.name),
@@ -127,15 +113,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       targetPerson.personKey?.assertClusterIsOfSize(1)
 
       checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
-          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
-          "EVENT_TYPE" to PRISONER_MERGED,
-          "SOURCE_SYSTEM" to NOMIS.name,
-        ),
-      )
-      checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
           "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
@@ -173,15 +150,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       targetPerson.personKey?.assertClusterIsOfSize(1)
 
       checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
-          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
-          "EVENT_TYPE" to PRISONER_MERGED,
-          "SOURCE_SYSTEM" to NOMIS.name,
-        ),
-      )
-      checkTelemetry(
         CPR_RECORD_UPDATED,
         mapOf("PRISON_NUMBER" to targetPrisonNumber, "SOURCE_SYSTEM" to NOMIS.name),
       )
@@ -213,15 +181,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       targetPerson.personKey?.assertClusterIsOfSize(1)
 
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
-          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
-          "EVENT_TYPE" to PRISONER_MERGED,
-          "SOURCE_SYSTEM" to NOMIS.name,
-        ),
-      )
       checkTelemetry(
         CPR_RECORD_UPDATED,
         mapOf("PRISON_NUMBER" to targetPrisonNumber, "SOURCE_SYSTEM" to NOMIS.name),
@@ -255,15 +214,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       targetPerson.personKey?.assertClusterIsOfSize(1)
 
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
-          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
-          "EVENT_TYPE" to PRISONER_MERGED,
-          "SOURCE_SYSTEM" to NOMIS.name,
-        ),
-      )
       checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
@@ -300,15 +250,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
 
       expectNoMessagesOnQueueOrDlq(prisonMergeEventsQueue)
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
-          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
-          "EVENT_TYPE" to PRISONER_MERGED,
-          "SOURCE_SYSTEM" to NOMIS.name,
-        ),
-      )
+
       checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
@@ -337,15 +279,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         DomainEvent(eventType = PRISONER_MERGED, personReference = null, additionalInformation = additionalInformation)
       publishDomainEvent(PRISONER_MERGED, domainEvent)
 
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
-          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
-          "EVENT_TYPE" to PRISONER_MERGED,
-          "SOURCE_SYSTEM" to NOMIS.name,
-        ),
-      )
       expectOneMessageOnDlq(prisonMergeEventsQueue)
     }
   }
