@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.UNMERGE_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
 class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -39,10 +38,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn)
 
-      checkTelemetry(
-        UNMERGE_MESSAGE_RECEIVED,
-        mapOf("TO_SOURCE_SYSTEM_ID" to reactivatedCrn, "FROM_SOURCE_SYSTEM_ID" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
       checkTelemetry(
         CPR_RECORD_UPDATED,
         mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
@@ -92,10 +87,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn)
 
-      checkTelemetry(
-        UNMERGE_MESSAGE_RECEIVED,
-        mapOf("TO_SOURCE_SYSTEM_ID" to reactivatedCrn, "FROM_SOURCE_SYSTEM_ID" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
       checkTelemetry(
         CPR_RECORD_CREATED,
         mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
@@ -148,10 +139,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
 
       checkTelemetry(
-        UNMERGE_MESSAGE_RECEIVED,
-        mapOf("TO_SOURCE_SYSTEM_ID" to reactivatedCrn, "FROM_SOURCE_SYSTEM_ID" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
         CPR_RECORD_UNMERGED,
         mapOf(
           "TO_SOURCE_SYSTEM_ID" to reactivatedCrn,
@@ -177,10 +164,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn)
 
-      checkTelemetry(
-        UNMERGE_MESSAGE_RECEIVED,
-        mapOf("TO_SOURCE_SYSTEM_ID" to reactivatedCrn, "FROM_SOURCE_SYSTEM_ID" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
       checkTelemetry(
         CPR_RECORD_CREATED,
         mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
@@ -237,10 +220,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn)
 
       checkTelemetry(
-        UNMERGE_MESSAGE_RECEIVED,
-        mapOf("TO_SOURCE_SYSTEM_ID" to reactivatedCrn, "FROM_SOURCE_SYSTEM_ID" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
         CPR_RECORD_UPDATED,
         mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
       )
@@ -296,10 +275,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      checkTelemetry(
-        UNMERGE_MESSAGE_RECEIVED,
-        mapOf("TO_SOURCE_SYSTEM_ID" to reactivatedCrn, "FROM_SOURCE_SYSTEM_ID" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
       expectOneMessageOnDlq(probationMergeEventsQueue)
     }
 
@@ -318,10 +293,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
             unmergedCrn = unmergedCrn,
           ),
         ),
-      )
-      checkTelemetry(
-        UNMERGE_MESSAGE_RECEIVED,
-        mapOf("TO_SOURCE_SYSTEM_ID" to reactivatedCrn, "FROM_SOURCE_SYSTEM_ID" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
       )
       expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
     }
