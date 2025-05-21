@@ -27,12 +27,13 @@ class SQSListenerService(
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun DomainEvent.discardWhenNotFoundException(action: (domainEvent: DomainEvent) -> Unit) {
+    fun DomainEvent.discardWhenNotFoundException(action: (domainEvent: DomainEvent) -> Unit): DomainEvent {
       try {
         action(this)
       } catch (e: FeignException.NotFound) {
         log.info("Discarding unmerge message for status code: ${e.status()}")
       }
+      return this
     }
 
     fun DomainEvent.whenEvent(eventType: String, action: (domainEvent: DomainEvent) -> Unit): DomainEvent {
