@@ -13,7 +13,7 @@ class ProbationDeleteProcessor(
 
   fun processEvent(domainEvent: DomainEvent) {
     val crn = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }!!.value
-    deletionService.processDelete(domainEvent.eventType) {
+    deletionService.processDelete {
       personRepository.findByCrn(crn)
     }
   }
