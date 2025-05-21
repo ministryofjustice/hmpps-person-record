@@ -30,7 +30,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -150,7 +149,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.lastModified).isNotNull()
       assertThat(personEntity.sexCode).isEqualTo(SexCode.M)
 
-      checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
@@ -188,7 +186,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
 
-      checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
       checkTelemetry(
         CPR_CANDIDATE_RECORD_SEARCH,
         mapOf(
@@ -223,7 +220,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       assertThat(personEntity.references.getType(IdentifierType.PNC)).isEqualTo(emptyList<ReferenceEntity>())
 
-      checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
@@ -255,7 +251,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       assertThat(personEntity.references.getType(IdentifierType.PNC)).isEqualTo(emptyList<ReferenceEntity>())
 
-      checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
     }
@@ -267,7 +262,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = randomPnc()), scenario = "retry", currentScenarioState = "next request will succeed")
       expectNoMessagesOnQueueOrDlq(probationEventsQueue)
 
-      checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"), 1)
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
     }
@@ -305,14 +299,12 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
       assertThat(personEntity.references.getType(IdentifierType.PNC).first().identifierValue).isEqualTo(pnc)
       assertThat(personEntity.sexCode).isEqualTo(SexCode.M)
-      checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"))
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
       val createdLastModified = personEntity.lastModified
       val changedPnc = randomPnc()
       val changedDateOfBirth = randomDate()
       probationEventAndResponseSetup(OFFENDER_ALIAS_CHANGED, ApiResponseSetup(crn = crn, pnc = changedPnc, gender = "F", dateOfBirth = changedDateOfBirth))
-      checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to OFFENDER_ALIAS_CHANGED, "SOURCE_SYSTEM" to "DELIUS"))
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
       val updatedPersonEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
@@ -369,7 +361,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
     expectNoMessagesOnQueueOrDlq(probationEventsQueue)
-    checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"), 1)
   }
 
   @Test
@@ -388,7 +379,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
     publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
-    checkTelemetry(MESSAGE_RECEIVED, mapOf("CRN" to crn, "EVENT_TYPE" to NEW_OFFENDER_CREATED, "SOURCE_SYSTEM" to "DELIUS"), 1)
     expectOneMessageOnDlq(probationEventsQueue)
   }
 
