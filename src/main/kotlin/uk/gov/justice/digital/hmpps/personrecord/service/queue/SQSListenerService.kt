@@ -18,5 +18,4 @@ class SQSListenerService(
       NOTIFICATION -> action(sqsMessage)
     }
   }
-
 }
