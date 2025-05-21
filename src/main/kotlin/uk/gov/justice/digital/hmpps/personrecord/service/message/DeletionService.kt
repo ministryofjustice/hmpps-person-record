@@ -20,22 +20,22 @@ class DeletionService(
 ) {
 
   @Transactional
-  fun processDelete(event: String?, personCallback: () -> PersonEntity?) = fetchRecordAndDelete(event, personCallback)
+  fun processDelete(personCallback: () -> PersonEntity?) = fetchRecordAndDelete(personCallback)
 
-  private fun fetchRecordAndDelete(event: String?, personCallback: () -> PersonEntity?) = personCallback()?.let { handleDeletion(event, it) }
+  private fun fetchRecordAndDelete(personCallback: () -> PersonEntity?) = personCallback()?.let { handleDeletion(it) }
 
-  private fun handleDeletion(event: String?, personEntity: PersonEntity) {
+  private fun handleDeletion(personEntity: PersonEntity) {
     handlePersonKeyDeletion(personEntity)
     deletePersonRecord(personEntity)
     personMatchService.deleteFromPersonMatch(personEntity)
-    handleMergedRecords(event, personEntity)
+    handleMergedRecords(personEntity)
   }
 
-  private fun handleMergedRecords(event: String?, personEntity: PersonEntity) {
+  private fun handleMergedRecords(personEntity: PersonEntity) {
     personEntity.id?.let {
       val mergedRecords: List<PersonEntity?> = personRepository.findByMergedTo(it)
       mergedRecords.forEach { mergedRecord ->
-        fetchRecordAndDelete(event) { mergedRecord }
+        fetchRecordAndDelete { mergedRecord }
       }
     }
   }
