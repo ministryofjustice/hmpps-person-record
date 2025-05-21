@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import feign.FeignException
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.slf4j.LoggerFactory
@@ -16,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSListenerServic
 @Profile("!seeding")
 class PrisonEventListener(
   private val sqsListenerService: SQSListenerService,
-  private val objectMapper: ObjectMapper,
   private val prisonEventProcessor: PrisonEventProcessor,
 ) {
   private companion object {
@@ -24,9 +21,8 @@ class PrisonEventListener(
   }
 
   @SqsListener(Queues.PRISON_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = sqsListenerService.processSQSMessage(rawMessage) {
-    val domainEvent = objectMapper.readValue<DomainEvent>(it.message)
-    handleEvent(domainEvent)
+  fun onDomainEvent(rawMessage: String) = sqsListenerService.processDomainEvent(rawMessage) {
+    handleEvent(it)
   }
 
   private fun handleEvent(domainEvent: DomainEvent) {

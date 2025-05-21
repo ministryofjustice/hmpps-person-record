@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import feign.FeignException
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.slf4j.LoggerFactory
@@ -12,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.Pr
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationUnmergeEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSListenerService
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSListenerService.Companion.whenEvent
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 
@@ -21,19 +20,16 @@ class ProbationMergeEventListener(
   private val sqsListenerService: SQSListenerService,
   private val mergeEventProcessor: ProbationMergeEventProcessor,
   private val unmergeEventProcessor: ProbationUnmergeEventProcessor,
-  private val objectMapper: ObjectMapper,
 ) {
   private companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 
   @SqsListener(Queues.PROBATION_MERGE_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = sqsListenerService.processSQSMessage(rawMessage) {
-    val domainEvent = objectMapper.readValue<DomainEvent>(it.message)
-    when (it.getEventType()) {
-      OFFENDER_MERGED -> handleMergeEvent(domainEvent)
-      OFFENDER_UNMERGED -> handleUnmergeEvent(domainEvent)
-    }
+  fun onDomainEvent(rawMessage: String) = sqsListenerService.processDomainEvent(rawMessage) { domainEvent ->
+    domainEvent
+      .whenEvent(OFFENDER_MERGED) { handleMergeEvent(it) }
+      .whenEvent(OFFENDER_UNMERGED) { handleUnmergeEvent(it) }
   }
 
   private fun handleMergeEvent(domainEvent: DomainEvent) {
