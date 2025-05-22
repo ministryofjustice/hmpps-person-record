@@ -16,19 +16,14 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraH
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.message.CourtMessagePublisher
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
-import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
-import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.CourtMessagePublisher
 
 @Component
 class CourtEventProcessor(
   private val objectMapper: ObjectMapper,
   private val createUpdateService: CreateUpdateService,
-  private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   @Value("\${publish-to-court-topic:false}")
   private val publishToCourtTopic: Boolean,
@@ -66,7 +61,7 @@ class CourtEventProcessor(
       .map { defendant -> Person.from(defendant) }
       .filter { it.isPerson() }
       .map {
-        processCommonPlatformPerson(it, sqsMessage)
+        processCommonPlatformPerson(it)
       }
 
     if (publishToCourtTopic) {
@@ -78,20 +73,9 @@ class CourtEventProcessor(
     }
   }
 
-  private fun processCommonPlatformPerson(person: Person, sqsMessage: SQSMessage): PersonEntity {
-    telemetryService.trackEvent(
-      MESSAGE_RECEIVED,
-      mapOf(
-        EventKeys.DEFENDANT_ID to person.defendantId,
-        EventKeys.EVENT_TYPE to COMMON_PLATFORM_HEARING.name,
-        EventKeys.MESSAGE_ID to sqsMessage.messageId,
-        EventKeys.SOURCE_SYSTEM to SourceSystemType.COMMON_PLATFORM.name,
-      ),
-    )
-    return createUpdateService.processPerson(person) {
-      person.defendantId?.let {
-        personRepository.findByDefendantId(it)
-      }
+  private fun processCommonPlatformPerson(person: Person): PersonEntity = createUpdateService.processPerson(person) {
+    person.defendantId?.let {
+      personRepository.findByDefendantId(it)
     }
   }
 
@@ -112,7 +96,7 @@ class CourtEventProcessor(
     val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(sqsMessage.message)
     val person = Person.from(libraHearingEvent)
     val personEntity = when {
-      libraHearingEvent.isPerson() && person.isPerson() -> processLibraPerson(person, sqsMessage)
+      libraHearingEvent.isPerson() && person.isPerson() -> processLibraPerson(person)
       else -> null
     }
     if (publishToCourtTopic) {
@@ -121,20 +105,9 @@ class CourtEventProcessor(
     }
   }
 
-  private fun processLibraPerson(person: Person, sqsMessage: SQSMessage): PersonEntity {
-    telemetryService.trackEvent(
-      MESSAGE_RECEIVED,
-      mapOf(
-        EventKeys.C_ID to person.cId,
-        EventKeys.EVENT_TYPE to LIBRA_COURT_CASE.name,
-        EventKeys.MESSAGE_ID to sqsMessage.messageId,
-        EventKeys.SOURCE_SYSTEM to SourceSystemType.LIBRA.name,
-      ),
-    )
-    return createUpdateService.processPerson(person) {
-      person.cId?.let {
-        personRepository.findByCId(it)
-      }
+  private fun processLibraPerson(person: Person): PersonEntity = createUpdateService.processPerson(person) {
+    person.cId?.let {
+      personRepository.findByCId(it)
     }
   }
 }

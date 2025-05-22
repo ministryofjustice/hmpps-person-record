@@ -8,15 +8,12 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
-import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MERGE_MESSAGE_RECEIVED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
 class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -33,10 +30,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubPersonMatchUpsert()
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn)
 
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf("FROM_SOURCE_SYSTEM_ID" to sourceCrn, "TO_SOURCE_SYSTEM_ID" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
       checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
@@ -64,10 +57,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val targetPerson = awaitNotNullPerson { personRepository.findByCrn(targetCrn) }
       sourcePerson.assertMergedTo(targetPerson)
 
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf("FROM_SOURCE_SYSTEM_ID" to sourcePerson.crn, "TO_SOURCE_SYSTEM_ID" to targetPerson.crn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
       checkTelemetry(
         CPR_RECORD_CREATED,
         mapOf(
@@ -110,10 +99,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       sourcePerson.assertMergedTo(targetPerson)
 
       checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf("FROM_SOURCE_SYSTEM_ID" to sourcePerson.crn!!, "TO_SOURCE_SYSTEM_ID" to targetPerson.crn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
           "FROM_SOURCE_SYSTEM_ID" to sourcePerson.crn,
@@ -138,10 +123,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn)
 
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf("FROM_SOURCE_SYSTEM_ID" to sourceCrn, "TO_SOURCE_SYSTEM_ID" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
       checkTelemetry(
         CPR_RECORD_UPDATED,
         mapOf(
@@ -181,10 +162,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn)
 
       checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf("FROM_SOURCE_SYSTEM_ID" to sourceCrn, "TO_SOURCE_SYSTEM_ID" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
           "FROM_SOURCE_SYSTEM_ID" to sourceCrn,
@@ -209,10 +186,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourcePerson.crn!!, targetPerson.crn!!)
 
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf("FROM_SOURCE_SYSTEM_ID" to sourcePerson.crn, "TO_SOURCE_SYSTEM_ID" to targetPerson.crn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
       checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
@@ -262,10 +235,6 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
 
       checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf("FROM_SOURCE_SYSTEM_ID" to sourceCrn, "TO_SOURCE_SYSTEM_ID" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
           "FROM_SOURCE_SYSTEM_ID" to sourceCrn,
@@ -301,14 +270,14 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   inner class ErrorHandling {
 
     @Test
-    fun `should log when message processing fails`() {
+    fun `should put message on dlq when message processing fails`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
       stub5xxResponse(probationUrl(targetCrn), nextScenarioState = "next request will fail", "failure")
       stub5xxResponse(probationUrl(targetCrn), nextScenarioState = "next request will fail", currentScenarioState = "next request will fail", scenarioName = "failure")
       stub5xxResponse(probationUrl(targetCrn), nextScenarioState = "next request will fail", currentScenarioState = "next request will fail", scenarioName = "failure")
 
-      val messageId = publishDomainEvent(
+      publishDomainEvent(
         OFFENDER_MERGED,
         DomainEvent(
           eventType = OFFENDER_MERGED,
@@ -319,20 +288,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      purgeQueueAndDlq(probationMergeEventsQueue)
-
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf("FROM_SOURCE_SYSTEM_ID" to sourceCrn, "TO_SOURCE_SYSTEM_ID" to targetCrn, "EVENT_TYPE" to OFFENDER_MERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
-        MESSAGE_PROCESSING_FAILED,
-        mapOf(
-          "SOURCE_SYSTEM" to "DELIUS",
-          EventKeys.EVENT_TYPE.toString() to OFFENDER_MERGED,
-          EventKeys.MESSAGE_ID.toString() to messageId,
-        ),
-      )
+      expectOneMessageOnDlq(probationMergeEventsQueue)
     }
 
     @Test

@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_GDPR_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
 class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
@@ -32,10 +31,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("CRN" to crn, "EVENT_TYPE" to OFFENDER_GDPR_DELETION, "SOURCE_SYSTEM" to "DELIUS"),
-    )
     checkTelemetry(
       CPR_RECORD_DELETED,
       mapOf("CRN" to crn, "UUID" to person.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
@@ -72,10 +67,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
     checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("CRN" to crn, "EVENT_TYPE" to OFFENDER_GDPR_DELETION, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
       CPR_RECORD_DELETED,
       mapOf("CRN" to crn, "UUID" to personKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
@@ -105,10 +96,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
     checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("CRN" to recordBCrn, "EVENT_TYPE" to OFFENDER_GDPR_DELETION, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
       CPR_RECORD_DELETED,
       mapOf("CRN" to recordBCrn, "UUID" to null, "SOURCE_SYSTEM" to "DELIUS"),
     )
@@ -136,10 +123,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("CRN" to recordACrn, "EVENT_TYPE" to OFFENDER_GDPR_DELETION, "SOURCE_SYSTEM" to "DELIUS"),
-    )
     checkTelemetry(
       CPR_RECORD_DELETED,
       mapOf("CRN" to recordACrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
@@ -174,10 +157,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("CRN" to recordACrn, "EVENT_TYPE" to OFFENDER_GDPR_DELETION, "SOURCE_SYSTEM" to "DELIUS"),
-    )
     checkTelemetry(
       CPR_RECORD_DELETED,
       mapOf("CRN" to recordACrn, "UUID" to mergedTo.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
@@ -227,10 +206,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
     checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("CRN" to recordACrn, "EVENT_TYPE" to OFFENDER_GDPR_DELETION, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
       CPR_RECORD_DELETED,
       mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
@@ -278,10 +253,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
     checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("CRN" to recordACrn, "EVENT_TYPE" to OFFENDER_GDPR_DELETION, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
       CPR_RECORD_DELETED,
       mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
@@ -328,10 +299,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("CRN" to recordACrn, "EVENT_TYPE" to OFFENDER_GDPR_DELETION, "SOURCE_SYSTEM" to "DELIUS"),
-    )
     checkTelemetry(
       CPR_RECORD_DELETED,
       mapOf("CRN" to recordACrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),

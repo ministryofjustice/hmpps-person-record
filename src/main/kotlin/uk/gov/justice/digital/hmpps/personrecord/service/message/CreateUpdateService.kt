@@ -10,13 +10,11 @@ import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.PersonProcessorFactory
 
@@ -67,11 +65,8 @@ class CreateUpdateService(
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, shouldReclusterOnUpdate: Boolean): PersonEntity {
-    val oldMatchingDetails = PersonMatchRecord.from(existingPersonEntity)
-    val updatedPersonEntity = personService.updatePersonEntity(person, existingPersonEntity)
-    val newMatchingDetails = PersonMatchRecord.from(updatedPersonEntity)
-    val matchingFieldsHaveChanged = oldMatchingDetails.matchingFieldsAreDifferent(newMatchingDetails)
-    publisher.publishEvent(PersonUpdated(updatedPersonEntity, matchingFieldsHaveChanged, shouldReclusterOnUpdate))
-    return updatedPersonEntity
+    val personUpdated = personService.updatePersonEntity(person, existingPersonEntity, shouldReclusterOnUpdate)
+    publisher.publishEvent(personUpdated)
+    return personUpdated.personEntity
   }
 }
