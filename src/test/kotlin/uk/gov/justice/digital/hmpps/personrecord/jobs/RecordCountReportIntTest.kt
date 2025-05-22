@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
-class RecordCountReportIntTest: WebTestBase() {
+class RecordCountReportIntTest : WebTestBase() {
 
   @BeforeEach
   fun beforeEach() {
@@ -25,11 +25,14 @@ class RecordCountReportIntTest: WebTestBase() {
       .expectStatus()
       .isOk
 
-    checkTelemetry(TelemetryEventType.CPR_RECORD_COUNT_REPORT, mapOf(
-      "NOMIS" to "1",
-      "DELIUS" to "1",
-      "COMMON_PLATFORM" to "1",
-      "LIBRA" to "1",
-    ))
+    checkTelemetry(
+      TelemetryEventType.CPR_RECORD_COUNT_REPORT,
+      mapOf(
+        "NOMIS" to "1",
+        "DELIUS" to "1",
+        "COMMON_PLATFORM" to "1",
+        "LIBRA" to "1",
+      ),
+    )
   }
 }
