@@ -14,15 +14,16 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.PersonProcessorFactory
+import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.PersonProcessorChain
 
 @Component
 class CreateUpdateService(
   private val personService: PersonService,
   private val publisher: ApplicationEventPublisher,
-  private val personProcessorFactory: PersonProcessorFactory,
+  private val personProcessor: PersonProcessorChain,
 ) {
 
   @Retryable(
@@ -51,8 +52,10 @@ class CreateUpdateService(
   }
 
   fun processPerson(): PersonEntity {
-    val personEntity = personProcessorFactory.init()
-      .findByCrn("123").
+    val personEntity = personProcessor
+      .find { it.findByCrn("1234") }
+      .onCreate { it.createPersonEntity(Person(sourceSystem = SourceSystemType.NOMIS)) }
+      .onUpdate { it.update() }
   }
 
   private fun handlePersonCreation(person: Person, shouldLinkOnCreate: Boolean): PersonEntity {
