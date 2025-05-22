@@ -32,12 +32,18 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.test.context.ActiveProfiles
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name as OffenderName
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name as LibraName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -45,6 +51,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType.EXCLUDE
@@ -55,8 +63,16 @@ import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService.Companion.THRESHOLD_WEIGHT
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNationality
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
@@ -103,7 +119,17 @@ class IntegrationTestBase {
 
   fun probationUrl(crn: String) = "/probation-cases/$crn"
 
-  internal fun createRandomProbationPersonDetails(crn: String = randomCrn()): Person = Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn)))
+  internal fun createRandomProbationPersonDetails(crn: String = randomCrn()): Person = Person.from(ProbationCase(name = OffenderName(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn)))
+
+  internal fun createRandomPrisonPersonDetails(prisonNumber: String = randomPrisonNumber()): Person = Person.from(
+    Prisoner(prisonNumber = prisonNumber, firstName = randomName(), lastName = randomName(), dateOfBirth = randomDate()),
+  )
+
+  internal fun createRandomLibraPersonDetails(cId: String = randomCId()): Person = Person.from(LibraHearingEvent(name = LibraName(firstName = randomName(), lastName = randomName()), cId = cId))
+
+  internal fun createRandomCommonPlatformPersonDetails(defendantId: String = randomDefendantId()): Person = Person.from(
+    Defendant(id = defendantId, personDefendant = PersonDefendant(personDetails = PersonDetails(firstName = randomName(), lastName = randomName())))
+  )
 
   internal fun checkTelemetry(
     event: TelemetryEventType,
@@ -445,7 +471,7 @@ class IntegrationTestBase {
 
   internal fun PersonEntity.assertExcludedFrom(personEntity: PersonEntity) = awaitAssert {
     assertThat(
-      personRepository.findByMatchId(this.matchId)?.overrideMarkers?.filter { it.markerType == OverrideMarkerType.EXCLUDE && it.markerValue == personEntity.id },
+      personRepository.findByMatchId(this.matchId)?.overrideMarkers?.filter { it.markerType == EXCLUDE && it.markerValue == personEntity.id },
     ).hasSize(1)
   }
 
