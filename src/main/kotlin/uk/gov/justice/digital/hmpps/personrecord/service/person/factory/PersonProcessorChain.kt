@@ -1,44 +1,41 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person.factory
 
-import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.processors.CreatePersonProcessor
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.empty
+import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.processors.PersonClusterProcessor
+import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.processors.PersonCreateProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.processors.PersonSearchProcessor
-import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.processors.UpdatePersonProcessor
+import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.processors.PersonUpdateProcessor
 
-@Component
 class PersonProcessorChain(
-  private val createPersonProcessor: CreatePersonProcessor,
-  private val updatePersonProcessor: UpdatePersonProcessor,
-  private val personSearchProcessor: PersonSearchProcessor
+  val context: PersonContext,
+  private val personCreateProcessor: PersonCreateProcessor,
+  private val personUpdateProcessor: PersonUpdateProcessor,
+  private val personSearchProcessor: PersonSearchProcessor,
+  private val personClusterProcessor: PersonClusterProcessor,
 ) {
-
-  private var context = PersonContext()
 
   fun find(block: (PersonSearchProcessor) -> PersonEntity?): PersonProcessorChain {
     context.personEntity = block(personSearchProcessor)
     return this
   }
 
-  fun onCreate(block: (CreatePersonProcessor) -> PersonEntity?): PersonProcessorChain {
+  fun exists(
+    no: (PersonCreateProcessor, PersonContext) -> Unit = { _, _ -> },
+    yes: (PersonUpdateProcessor, PersonContext) -> Unit = { _, _ -> }
+  ): PersonProcessorChain {
     when {
-      context.personEntity == PersonEntity.empty -> {
-        context.personEntity = block(createPersonProcessor)
-      }
+      context.personEntity == empty -> no(personCreateProcessor, context)
+      else -> yes(personUpdateProcessor, context)
     }
     return this
   }
 
-  fun onUpdate(block: (UpdatePersonProcessor) -> PersonEntity?): PersonProcessorChain {
-    when {
-      context.personEntity != PersonEntity.empty -> {
-        context.personEntity = block(updatePersonProcessor)
-      }
-    }
+  fun link(): PersonProcessorChain {
+    personClusterProcessor.linkRecordToPersonKey(context)
     return this
   }
 
-  fun result(): PersonEntity? = context.personEntity
+  fun result(): PersonEntity = context.personEntity!!
 
 }

@@ -12,18 +12,17 @@ import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.PersonProcessorChain
+import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.PersonFactory
 
 @Component
 class CreateUpdateService(
   private val personService: PersonService,
   private val publisher: ApplicationEventPublisher,
-  private val personProcessor: PersonProcessorChain,
+  private val personFactory: PersonFactory,
 ) {
 
   @Retryable(
@@ -49,13 +48,6 @@ class CreateUpdateService(
         handlePersonUpdate(person, it, shouldReclusterOnUpdate)
       },
     )
-  }
-
-  fun processPerson(): PersonEntity {
-    val personEntity = personProcessor
-      .find { it.findByCrn("1234") }
-      .onCreate { it.createPersonEntity(Person(sourceSystem = SourceSystemType.NOMIS)) }
-      .onUpdate { it.update() }
   }
 
   private fun handlePersonCreation(person: Person, shouldLinkOnCreate: Boolean): PersonEntity {
