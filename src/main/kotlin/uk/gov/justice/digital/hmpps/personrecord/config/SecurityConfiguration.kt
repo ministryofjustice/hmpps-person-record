@@ -41,6 +41,7 @@ class SecurityConfiguration {
         "/updatefromprobation",
         "/populatepersonmatch",
         "/populateeventlog",
+        "/jobs/recordcountreport",
       )
     }
   }
