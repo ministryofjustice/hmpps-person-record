@@ -2,17 +2,15 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.jayway.jsonpath.JsonPath
 import kotlinx.coroutines.runBlocking
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.LargeMessageBody
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -21,32 +19,21 @@ import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateSer
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.CourtMessagePublisher
 
 @Component
-class CourtEventProcessor(
+class CommonPlatformEventProcessor(
+  private val personRepository: PersonRepository,
   private val objectMapper: ObjectMapper,
   private val createUpdateService: CreateUpdateService,
-  private val personRepository: PersonRepository,
-  @Value("\${publish-to-court-topic:false}")
-  private val publishToCourtTopic: Boolean,
   private val courtMessagePublisher: CourtMessagePublisher,
   private val s3AsyncClient: S3AsyncClient,
+  @Value("\${publish-to-court-topic:false}")
+  private val publishToCourtTopic: Boolean,
 ) {
 
   companion object {
     const val MAX_MESSAGE_SIZE = 256 * 1024
-    private val log = LoggerFactory.getLogger(this::class.java)
   }
 
   fun processEvent(sqsMessage: SQSMessage) {
-    when (val messageType = sqsMessage.getMessageType()) {
-      COMMON_PLATFORM_HEARING.name -> processCommonPlatformHearingEvent(sqsMessage)
-      LIBRA_COURT_CASE.name -> processLibraEvent(sqsMessage)
-      else -> {
-        log.debug("Received case type $messageType")
-      }
-    }
-  }
-
-  private fun processCommonPlatformHearingEvent(sqsMessage: SQSMessage) {
     val commonPlatformHearing: String = when {
       sqsMessage.isLargeMessage() -> runBlocking { getPayloadFromS3(sqsMessage) }
       else -> sqsMessage.message
@@ -92,24 +79,20 @@ class CourtEventProcessor(
     ).join().asUtf8String()
   }
 
-  private fun processLibraEvent(sqsMessage: SQSMessage) {
-    val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(sqsMessage.message)
-    val person = Person.from(libraHearingEvent)
-    val personEntity = when {
-      libraHearingEvent.isPerson() && person.isPerson() -> processLibraPerson(person)
-      else -> null
+  private fun addCprUUIDToCommonPlatform(
+    message: String,
+    processedDefendants: List<PersonEntity>?,
+  ): String {
+    val messageParser = JsonPath.parse(message)
+    processedDefendants?.forEach { defendant ->
+      val defendantId = defendant.defendantId
+      val cprUUID = defendant.personKey?.personUUID.toString()
+      messageParser.put(
+        "$.hearing.prosecutionCases[?(@.defendants[?(@.id == '$defendantId')])].defendants[?(@.id == '$defendantId')]",
+        "cprUUID",
+        cprUUID,
+      )
     }
-    if (publishToCourtTopic) {
-      val updatedMessage = addCprUUIDToLibra(sqsMessage.message, personEntity)
-      courtMessagePublisher.publishMessage(sqsMessage, updatedMessage)
-    }
-  }
-
-  private fun processLibraPerson(person: Person): PersonEntity = createUpdateService.processPerson(person) {
-    person.cId?.let {
-      personRepository.findByCId(it)
-    }
+    return messageParser.jsonString()
   }
 }
-
-data class LargeMessageBody(val s3Key: String, val s3BucketName: String)
