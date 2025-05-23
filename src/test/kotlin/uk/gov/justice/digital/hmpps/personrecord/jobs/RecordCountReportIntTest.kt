@@ -10,6 +10,7 @@ class RecordCountReportIntTest : WebTestBase() {
   @BeforeEach
   fun beforeEach() {
     personRepository.deleteAllInBatch()
+    telemetryRepository.deleteAll()
   }
 
   @Test
