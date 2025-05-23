@@ -17,19 +17,19 @@ data class Prisoner(
   @NotBlank
   @JsonProperty("prisonerNumber")
   val prisonNumber: String,
-  val title: String?,
+  val title: String? = null,
   val firstName: String,
-  val middleNames: String?,
+  val middleNames: String? = null,
   val lastName: String,
-  val nationality: String?,
-  val religion: String?,
-  val ethnicity: String?,
+  val nationality: String? = null,
+  val religion: String? = null,
+  val ethnicity: String? = null,
   @JsonProperty("pncNumberCanonicalLong")
   @JsonDeserialize(using = PNCIdentifierDeserializer::class)
-  val pnc: PNCIdentifier?,
+  val pnc: PNCIdentifier? = null,
   @JsonProperty("croNumber")
   @JsonDeserialize(using = CROIdentifierDeserializer::class)
-  val cro: CROIdentifier?,
+  val cro: CROIdentifier? = null,
   val dateOfBirth: LocalDate,
   val aliases: List<PrisonerAlias> = emptyList(),
   val emailAddresses: List<EmailAddress> = emptyList(),
