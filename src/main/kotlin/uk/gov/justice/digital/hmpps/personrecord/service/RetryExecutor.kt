@@ -4,8 +4,9 @@ import kotlinx.coroutines.delay
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.WebClientResponseException.BadGateway
+import org.springframework.web.reactive.function.client.WebClientResponseException.InternalServerError
+import org.springframework.web.reactive.function.client.WebClientResponseException.ServiceUnavailable
 import kotlin.math.min
 import kotlin.random.Random
 import kotlin.reflect.KClass
@@ -59,5 +60,5 @@ class RetryExecutor(@Value("\${retry.delay}") val delayMillis: Long) {
     throw lastException ?: RuntimeException("Unexpected error")
   }
 
-  private val httpRetryExceptions = listOf(WebClientResponseException.InternalServerError::class, BadGateway::class, WebClientResponseException.ServiceUnavailable::class)
+  private val httpRetryExceptions = listOf(InternalServerError::class, BadGateway::class, ServiceUnavailable::class)
 }
