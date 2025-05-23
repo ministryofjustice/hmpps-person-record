@@ -25,7 +25,7 @@ dependencies {
   implementation("jakarta.validation:jakarta.validation-api:3.1.1")
   implementation("com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4")
   implementation("com.microsoft.azure:applicationinsights-logging-logback:2.6.4")
-  implementation("org.springframework.cloud:spring-cloud-starter-openfeign:4.2.1")
+
   implementation("software.amazon.sns:sns-extended-client:2.1.0")
   implementation("com.jayway.jsonpath:json-path:2.9.0")
   implementation("io.swagger.core.v3:swagger-annotations:2.2.32")

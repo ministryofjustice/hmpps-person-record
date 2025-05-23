@@ -1,10 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
-import feign.FeignException
 import kotlinx.coroutines.delay
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.client.WebClientResponseException
+import org.springframework.web.reactive.function.client.WebClientResponseException.BadGateway
 import kotlin.math.min
 import kotlin.random.Random
 import kotlin.reflect.KClass
@@ -58,5 +59,5 @@ class RetryExecutor(@Value("\${retry.delay}") val delayMillis: Long) {
     throw lastException ?: RuntimeException("Unexpected error")
   }
 
-  private val httpRetryExceptions = listOf(feign.RetryableException::class, FeignException.InternalServerError::class, FeignException.ServiceUnavailable::class, FeignException.BadGateway::class)
+  private val httpRetryExceptions = listOf(WebClientResponseException.InternalServerError::class, BadGateway::class, WebClientResponseException.ServiceUnavailable::class)
 }
