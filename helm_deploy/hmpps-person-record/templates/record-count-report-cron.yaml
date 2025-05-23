@@ -23,3 +23,4 @@ spec:
                 - /bin/sh
                 - -c
                 - curl --fail --retry 2 -X POST http://hmpps-person-record/jobs/recordcountreport
+                - curl --fail --retry 2 -X POST http://hmpps-person-match/jobs/recordcountreport
