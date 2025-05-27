@@ -67,6 +67,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
+import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 import java.time.Duration
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name as LibraName
@@ -74,6 +75,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name as O
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
+@WithMockAuthUser
 class IntegrationTestBase {
 
   @Autowired
