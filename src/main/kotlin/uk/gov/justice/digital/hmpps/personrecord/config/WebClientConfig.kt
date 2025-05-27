@@ -26,6 +26,7 @@ class WebClientConfig(
     authorizedClientManager = authorizedClientManager,
     registrationId = "person-match",
     url = personMatchUrl,
+    timeout = Duration.ofMillis(timeout),
   )
 
   @Bean
