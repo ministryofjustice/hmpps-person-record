@@ -111,12 +111,12 @@ class UpdateFromProbationIntTest : WebTestBase() {
   }
 
   private fun stubResponse(firstCrn: String, firstPrefix: String, secondCrn: String, secondPrefix: String, page: Int) = stubGetRequest(
-    url = "/all-probation-cases?size=2&page=$page&sort=id%2Casc",
+    url = "/all-probation-cases?size=2&page=$page&sort=id,asc",
     body = allProbationCasesResponse(firstCrn, firstPrefix, secondCrn, secondPrefix, 4),
   )
 
   private fun stubSingleResponse(firstCrn: String, firstPrefix: String, page: Int) = stubGetRequest(
-    url = "/all-probation-cases?size=2&page=$page&sort=id%2Casc",
+    url = "/all-probation-cases?size=2&page=$page&sort=id,asc",
     body = allProbationCasesSingleResponse(firstCrn, firstPrefix),
   )
 }
