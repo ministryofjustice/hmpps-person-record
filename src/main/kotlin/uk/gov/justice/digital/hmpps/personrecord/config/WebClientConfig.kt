@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager
 import org.springframework.web.reactive.function.client.WebClient
 import uk.gov.justice.hmpps.kotlin.auth.authorisedWebClient
+import java.time.Duration
 
 @Configuration
 class WebClientConfig(
@@ -13,6 +14,8 @@ class WebClientConfig(
   @Value("\${prisoner-search.base-url}") val prisonerSearchUrl: String,
   @Value("\${prison-service.base-url}") val prisonServiceUrl: String,
   @Value("\${core-person-record-and-delius.base-url}") val corePersonRecordAndDeliusUrl: String,
+  @Value("\${retry.timeout}") val timeout: Long,
+
 ) {
 
   @Bean
@@ -43,6 +46,7 @@ class WebClientConfig(
     authorizedClientManager = authorizedClientManager,
     registrationId = "prisoner-search",
     url = prisonerSearchUrl,
+    timeout = Duration.ofMillis(timeout),
   )
 
   @Bean

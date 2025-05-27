@@ -12,7 +12,7 @@ class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebCl
     .uri("/probation-cases/$crn").retrieve().bodyToMono(ProbationCase::class.java).block()!!
 
   fun getProbationCases(pageParams: CorePersonRecordAndDeliusClientPageParams): ProbationCases? = corePersonRecordAndDeliusWebClient.get()
-    .uri("/all-probation-cases") { it.queryParam("page", pageParams.page).queryParam("size", pageParams.size).queryParam("id", "asc").build() }.retrieve().bodyToMono(ProbationCases::class.java).block()!!
+    .uri("/all-probation-cases") { it.queryParam("size", pageParams.size).queryParam("page", pageParams.page).queryParam("sort", "id,asc").build() }.retrieve().bodyToMono(ProbationCases::class.java).block()!!
 }
 
 class CorePersonRecordAndDeliusClientPageParams(val page: Int, val size: Int)

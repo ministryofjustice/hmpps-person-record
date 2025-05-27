@@ -165,7 +165,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     val scenarioName = "retry get prisoners"
 
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${0}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=0",
       scenarioName = scenarioName,
       body = prisonNumbersResponse(listOf<String?>(prisonNumberOne, prisonNumberTwo)),
     )
@@ -188,7 +188,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       currentScenarioState = "next request will time out",
       nextScenarioState = "next request will succeed",
       responseBody = "{}",
-      fixedDelay = 210,
+      fixedDelay = 2100,
     )
 
     // Third call succeeds

@@ -96,6 +96,7 @@ management:
 
 retry:
   delay: 2000
+  timeout: 10000
 
 populate-from-nomis:
   page-size: 1000

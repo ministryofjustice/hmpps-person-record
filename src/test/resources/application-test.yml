@@ -25,6 +25,7 @@ core-person-record-and-delius:
 
 retry:
   delay: 120
+  timeout: 200
 
 hmpps.sqs:
   enabled: true
