@@ -207,7 +207,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     )
 
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${1}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=1",
       scenarioName = scenarioName,
       currentScenarioState = "next request will succeed",
       nextScenarioState = "next request will succeed",
@@ -229,7 +229,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     )
 
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${2}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=2",
       scenarioName = scenarioName,
       currentScenarioState = "next request will succeed",
       nextScenarioState = "next request will succeed",
@@ -251,7 +251,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     )
 
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${3}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=3",
       scenarioName = scenarioName,
       currentScenarioState = "next request will succeed",
       nextScenarioState = "next request will succeed",
