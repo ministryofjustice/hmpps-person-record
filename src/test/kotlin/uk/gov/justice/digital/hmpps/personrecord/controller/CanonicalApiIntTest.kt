@@ -515,7 +515,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .expectStatus()
       .isEqualTo(301)
       .expectHeader()
-      .valueEquals("Location", "/person/${targetPersonKey.personUUID.toString()}")
+      .valueEquals("Location", "/person/${targetPersonKey.personUUID}")
   }
 
   @Test
@@ -551,7 +551,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .expectStatus()
       .isEqualTo(301)
       .expectHeader()
-      .valueEquals("Location", "/person/${newTargetPersonKey.personUUID.toString()}")
+      .valueEquals("Location", "/person/${newTargetPersonKey.personUUID}")
   }
 
   @Test
