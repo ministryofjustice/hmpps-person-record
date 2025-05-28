@@ -30,7 +30,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     val prisonNumberSix: String = randomPrisonNumber()
     val prisonNumberSeven: String = randomPrisonNumber()
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${0}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=0",
       scenarioName = scenarioName,
       body = prisonNumbersResponse(listOf<String?>(prisonNumberOne, prisonNumberTwo)),
     )
@@ -47,7 +47,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       ),
     )
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${1}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=1",
       scenarioName = scenarioName,
       body = prisonNumbersResponse(listOf<String?>(prisonNumberThree, prisonNumberFour)),
     )
@@ -63,7 +63,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       ),
     )
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${2}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=2",
       scenarioName = scenarioName,
       body = prisonNumbersResponse(listOf<String?>(prisonNumberFive, prisonNumberSix)),
     )
@@ -80,7 +80,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     )
 
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${3}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=3",
       scenarioName = scenarioName,
       body = prisonNumbersResponse(listOf(prisonNumberSeven, null)),
     )
@@ -165,7 +165,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     val scenarioName = "retry get prisoners"
 
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${0}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=0",
       scenarioName = scenarioName,
       body = prisonNumbersResponse(listOf<String?>(prisonNumberOne, prisonNumberTwo)),
     )
@@ -188,7 +188,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       currentScenarioState = "next request will time out",
       nextScenarioState = "next request will succeed",
       responseBody = "{}",
-      fixedDelay = 210,
+      fixedDelay = 410,
     )
 
     // Third call succeeds
@@ -207,7 +207,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     )
 
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${1}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=1",
       scenarioName = scenarioName,
       currentScenarioState = "next request will succeed",
       nextScenarioState = "next request will succeed",
@@ -229,7 +229,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     )
 
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${2}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=2",
       scenarioName = scenarioName,
       currentScenarioState = "next request will succeed",
       nextScenarioState = "next request will succeed",
@@ -251,7 +251,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     )
 
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${3}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=3",
       scenarioName = scenarioName,
       currentScenarioState = "next request will succeed",
       nextScenarioState = "next request will succeed",
