@@ -38,10 +38,10 @@ class APIController(
     @PathVariable(name = "uuid") uuid: UUID,
   ): ResponseEntity<*> {
     val personKeyEntity = getCorrectPersonKeyEntity(personKeyRepository.findByPersonUUID(uuid), mutableSetOf())
-    when {
-      personKeyEntity == PersonKeyEntity.empty -> throw CanonicalRecordNotFoundException(uuid)
-      personKeyEntity?.personUUID != uuid -> return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).location(URI("/person/${personKeyEntity?.personUUID}")).build<Void>()
-      else -> return ResponseEntity.ok(buildCanonicalRecord(personKeyEntity, uuid))
+    return when {
+      personKeyEntity == null -> throw CanonicalRecordNotFoundException(uuid)
+      personKeyEntity.isNotRequestedUuid(uuid) -> ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).location(URI("/person/${personKeyEntity.personUUID}")).build<Void>()
+      else -> ResponseEntity.ok(CanonicalRecord.from(personKeyEntity))
     }
   }
 
@@ -51,8 +51,5 @@ class APIController(
   }
     ?: personKeyEntity
 
-  private fun buildCanonicalRecord(personKeyEntity: PersonKeyEntity?, uuid: UUID): CanonicalRecord = when {
-    personKeyEntity?.personEntities?.isNotEmpty() == true -> CanonicalRecord.from(personKeyEntity)
-    else -> throw CanonicalRecordNotFoundException(uuid)
-  }
+  private fun PersonKeyEntity.isNotRequestedUuid(uuid: UUID): Boolean = this.personUUID != uuid
 }
