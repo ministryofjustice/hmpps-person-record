@@ -30,7 +30,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     val prisonNumberSix: String = randomPrisonNumber()
     val prisonNumberSeven: String = randomPrisonNumber()
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${0}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=0",
       scenarioName = scenarioName,
       body = prisonNumbersResponse(listOf<String?>(prisonNumberOne, prisonNumberTwo)),
     )
@@ -47,7 +47,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       ),
     )
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${1}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=1",
       scenarioName = scenarioName,
       body = prisonNumbersResponse(listOf<String?>(prisonNumberThree, prisonNumberFour)),
     )
@@ -63,7 +63,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       ),
     )
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${2}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=2",
       scenarioName = scenarioName,
       body = prisonNumbersResponse(listOf<String?>(prisonNumberFive, prisonNumberSix)),
     )
@@ -80,7 +80,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     )
 
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${3}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=3",
       scenarioName = scenarioName,
       body = prisonNumbersResponse(listOf(prisonNumberSeven, null)),
     )
