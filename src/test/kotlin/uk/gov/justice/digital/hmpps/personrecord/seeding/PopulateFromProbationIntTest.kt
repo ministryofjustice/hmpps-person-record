@@ -97,9 +97,9 @@ class PopulateFromProbationIntTest : WebTestBase() {
     val crnOne: String = randomCrn()
     val crnTwo: String = randomCrn()
 
-    stub5xxResponse("/all-probation-cases?size=2&page=0&sort=id%2Casc", nextScenarioState = "next request will time out", scenarioName = scenarioName, status = 503)
+    stub5xxResponse("/all-probation-cases?size=2&page=0&sort=id,asc", nextScenarioState = "next request will time out", scenarioName = scenarioName, status = 503)
 
-    stubGetRequestWithTimeout("/all-probation-cases?size=2&page=0&sort=id%2Casc", "next request will time out", "next request will succeed")
+    stubGetRequestWithTimeout("/all-probation-cases?size=2&page=0&sort=id,asc", "next request will time out", "next request will succeed")
 
     stubResponse(crnOne, "POPOne", crnTwo, "POPTwo", 0, scenarioName, 1)
 
@@ -124,13 +124,13 @@ class PopulateFromProbationIntTest : WebTestBase() {
     scenarioName: String,
     totalPages: Int = 4,
   ) = stubGetRequest(
-    url = "/all-probation-cases?size=2&page=$page&sort=id%2Casc",
+    url = "/all-probation-cases?size=2&page=$page&sort=id,asc",
     scenarioName = scenarioName,
     body = allProbationCasesResponse(firstCrn, firstPrefix, secondCrn, secondPrefix, totalPages),
   )
 
   private fun stubSingleResponse(firstCrn: String, firstPrefix: String, page: Int, scenarioName: String) = stubGetRequest(
-    url = "/all-probation-cases?size=2&page=$page&sort=id%2Casc",
+    url = "/all-probation-cases?size=2&page=$page&sort=id,asc",
     scenarioName = scenarioName,
     body = allProbationCasesSingleResponse(firstCrn, firstPrefix),
   )

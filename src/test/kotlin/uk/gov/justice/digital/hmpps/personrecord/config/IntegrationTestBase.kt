@@ -32,12 +32,16 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.test.context.ActiveProfiles
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -46,7 +50,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogReposito
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType.EXCLUDE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
@@ -55,13 +58,22 @@ import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService.Companion.THRESHOLD_WEIGHT
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.prisonerSearchResponse
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseResponse
 import java.time.Duration
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name as LibraName
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name as OffenderName
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -82,18 +94,38 @@ class IntegrationTestBase {
   @Autowired
   lateinit var eventLogRepository: EventLogRepository
 
+  fun authSetup() {
+    wiremock.stubFor(
+      WireMock.post("/auth/oauth/token")
+        .willReturn(
+          WireMock.aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(200)
+            .withBody(
+              """
+                {
+                  "token_type": "bearer",
+                  "access_token": "SOME_TOKEN",
+                  "expires_in": ${LocalDateTime.now().truncatedTo(ChronoUnit.HOURS).toEpochSecond(ZoneOffset.UTC)}
+                }
+              """.trimIndent(),
+            ),
+        ),
+    )
+  }
+
   @AfterEach
   fun after() {
     wiremock.stubMappings.forEach {
       when (it.request.method) {
-        GET -> {
-          if (it.request.url != null) {
-            wiremock.verify(getRequestedFor(urlEqualTo(it.request.url)))
-          } else {
-            wiremock.verify(getRequestedFor(urlMatching(it.request.urlPathPattern)))
-          }
+        GET -> if (it.request.url != null) {
+          wiremock.verify(getRequestedFor(urlEqualTo(it.request.url)))
+        } else {
+          wiremock.verify(getRequestedFor(urlMatching(it.request.urlPathPattern)))
         }
-        POST -> wiremock.verify(postRequestedFor(urlEqualTo(it.request.url)))
+        POST -> if (it.request.url != "/auth/oauth/token") {
+          wiremock.verify(postRequestedFor(urlEqualTo(it.request.url)))
+        }
         DELETE -> wiremock.verify(deleteRequestedFor(urlEqualTo(it.request.url)))
         PUT -> wiremock.verify(putRequestedFor(urlEqualTo(it.request.url)))
         else -> fail()
@@ -103,7 +135,17 @@ class IntegrationTestBase {
 
   fun probationUrl(crn: String) = "/probation-cases/$crn"
 
-  internal fun createRandomProbationPersonDetails(crn: String = randomCrn()): Person = Person.from(ProbationCase(name = Name(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn)))
+  internal fun createRandomProbationPersonDetails(crn: String = randomCrn()): Person = Person.from(ProbationCase(name = OffenderName(firstName = randomName(), lastName = randomName()), identifiers = Identifiers(crn = crn)))
+
+  internal fun createRandomPrisonPersonDetails(prisonNumber: String = randomPrisonNumber()): Person = Person.from(
+    Prisoner(prisonNumber = prisonNumber, firstName = randomName(), lastName = randomName(), dateOfBirth = randomDate()),
+  )
+
+  internal fun createRandomLibraPersonDetails(cId: String = randomCId()): Person = Person.from(LibraHearingEvent(name = LibraName(firstName = randomName(), lastName = randomName()), cId = cId))
+
+  internal fun createRandomCommonPlatformPersonDetails(defendantId: String = randomDefendantId()): Person = Person.from(
+    Defendant(id = defendantId, personDefendant = PersonDefendant(personDetails = PersonDetails(firstName = randomName(), lastName = randomName()))),
+  )
 
   internal fun checkTelemetry(
     event: TelemetryEventType,
@@ -251,6 +293,7 @@ class IntegrationTestBase {
 
   internal fun stubPersonMatchScores(matchId: UUID? = null, personMatchResponse: List<PersonMatchScore> = emptyList(), scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200) {
     val matchIdUrlPattern: UrlPattern = matchId?.let { urlEqualTo("/person/score/$it") } ?: urlPathMatching("/person/score/.*") // Regex to match any matchId, as not known on create
+    authSetup()
     stubGetRequest(
       scenario,
       currentScenarioState,
@@ -277,6 +320,7 @@ class IntegrationTestBase {
   internal fun stubClusterIsNotValid(clusters: List<ValidCluster> = listOf()) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = false, clusters = clusters.map { cluster -> cluster.records }))
 
   internal fun stubPersonMatchUpsert(scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200, body: String = "{}") {
+    authSetup()
     stubPostRequest(
       scenario,
       currentScenarioState,
@@ -295,6 +339,7 @@ class IntegrationTestBase {
   }
 
   fun stub404Response(url: String) {
+    authSetup()
     wiremock.stubFor(
       WireMock.get(url)
         .willReturn(
@@ -306,6 +351,7 @@ class IntegrationTestBase {
   }
 
   fun stubGetRequestWithTimeout(url: String, currentScenarioState: String, nextScenarioState: String) {
+    authSetup()
     wiremock.stubFor(
       WireMock.get(url)
         .inScenario(BASE_SCENARIO)
@@ -325,6 +371,7 @@ class IntegrationTestBase {
   }
 
   internal fun stubGetRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, urlPattern: UrlPattern, body: String, status: Int = 200) {
+    authSetup()
     wiremock.stubFor(
       WireMock.get(urlPattern)
         .inScenario(scenarioName)
@@ -340,6 +387,7 @@ class IntegrationTestBase {
   }
 
   internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, responseBody: String, status: Int = 200) {
+    authSetup()
     wiremock.stubFor(
       WireMock.post(url)
         .inScenario(scenarioName)
@@ -355,6 +403,7 @@ class IntegrationTestBase {
   }
 
   internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, responseBody: String, status: Int = 200, requestBody: String, fixedDelay: Int = 0) {
+    authSetup()
     wiremock.stubFor(
       WireMock.post(url)
         .withRequestBody(equalToJson(requestBody))
@@ -372,6 +421,7 @@ class IntegrationTestBase {
   }
 
   internal fun stubDeleteRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String = "{}", status: Int = 200) {
+    authSetup()
     wiremock.stubFor(
       WireMock.delete(url)
         .inScenario(scenarioName)
@@ -445,7 +495,7 @@ class IntegrationTestBase {
 
   internal fun PersonEntity.assertExcludedFrom(personEntity: PersonEntity) = awaitAssert {
     assertThat(
-      personRepository.findByMatchId(this.matchId)?.overrideMarkers?.filter { it.markerType == OverrideMarkerType.EXCLUDE && it.markerValue == personEntity.id },
+      personRepository.findByMatchId(this.matchId)?.overrideMarkers?.filter { it.markerType == EXCLUDE && it.markerValue == personEntity.id },
     ).hasSize(1)
   }
 

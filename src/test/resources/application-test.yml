@@ -25,6 +25,7 @@ core-person-record-and-delius:
 
 retry:
   delay: 120
+  timeout: 200
 
 hmpps.sqs:
   enabled: true
@@ -74,12 +75,6 @@ hmpps.sqs:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
 
 spring:
-  cloud.openfeign.client.config:
-    default:
-      connect-timeout: 5000
-      read-timeout: 200
-      default-request-headers:
-        Accept: application/json
   flyway:
     out-of-order: true
   datasource:
