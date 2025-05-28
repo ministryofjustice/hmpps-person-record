@@ -490,7 +490,7 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should return merged to record`() {
+  fun `should redirect to merged to record`() {
     val sourcePersonFirstName = randomName()
     val targetPersonFirstName = randomName()
 
@@ -514,10 +514,12 @@ class CanonicalApiIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isEqualTo(301)
+      .expectHeader()
+      .valueEquals("Location", "/person/${targetPersonKey.personUUID.toString()}")
   }
 
   @Test
-  fun `should return the top node of a merged to record`() {
+  fun `should redirect to the top node of a merged to record`() {
     val sourcePersonFirstName = randomName()
     val targetPersonFirstName = randomName()
     val newTargetPersonFirstName = randomName()
@@ -548,6 +550,8 @@ class CanonicalApiIntTest : WebTestBase() {
       .exchange()
       .expectStatus()
       .isEqualTo(301)
+      .expectHeader()
+      .valueEquals("Location", "/person/${newTargetPersonKey.personUUID.toString()}")
   }
 
   @Test

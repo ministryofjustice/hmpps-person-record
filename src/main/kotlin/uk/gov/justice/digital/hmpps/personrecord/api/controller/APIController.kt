@@ -40,7 +40,7 @@ class APIController(
     val personKeyEntity = getCorrectPersonKeyEntity(personKeyRepository.findByPersonUUID(uuid), mutableSetOf())
     when {
       personKeyEntity == PersonKeyEntity.empty -> throw CanonicalRecordNotFoundException(uuid)
-      personKeyEntity?.personUUID != uuid -> return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).location(URI("/person/$uuid")).build<Void>()
+      personKeyEntity?.personUUID != uuid -> return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).location(URI("/person/${personKeyEntity?.personUUID}")).build<Void>()
       else -> return ResponseEntity.ok(buildCanonicalRecord(personKeyEntity, uuid))
     }
   }
