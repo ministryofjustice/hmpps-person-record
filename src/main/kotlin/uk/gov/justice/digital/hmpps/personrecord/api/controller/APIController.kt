@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -14,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.Canon
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
+import java.net.URI
 import java.util.UUID
 
 @Tag(name = "HMPPS Person API")
@@ -29,12 +32,17 @@ class APIController(
   @GetMapping("/person/{uuid}")
   @ApiResponses(
     ApiResponse(responseCode = "200", description = "OK"),
+    ApiResponse(responseCode = "301", description = "Permanent Redirect"),
   )
   fun getCanonicalRecord(
     @PathVariable(name = "uuid") uuid: UUID,
-  ): CanonicalRecord {
+  ): ResponseEntity<*> {
     val personKeyEntity = getCorrectPersonKeyEntity(personKeyRepository.findByPersonUUID(uuid), mutableSetOf())
-    return buildCanonicalRecord(personKeyEntity, uuid)
+    when {
+      personKeyEntity == PersonKeyEntity.empty -> throw CanonicalRecordNotFoundException(uuid)
+      personKeyEntity?.personUUID != uuid -> return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).location(URI("/person/$uuid")).build<Void>()
+      else -> return ResponseEntity.ok(buildCanonicalRecord(personKeyEntity, uuid))
+    }
   }
 
   private fun getCorrectPersonKeyEntity(personKeyEntity: PersonKeyEntity?, existingMergeChain: MutableSet<UUID?>): PersonKeyEntity? = personKeyEntity?.mergedTo?.let {

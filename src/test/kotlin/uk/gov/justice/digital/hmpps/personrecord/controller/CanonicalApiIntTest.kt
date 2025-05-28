@@ -508,18 +508,12 @@ class CanonicalApiIntTest : WebTestBase() {
 
     mergeUuid(sourcePersonKey, targetPersonKey)
 
-    val responseBody = webTestClient.get()
+    webTestClient.get()
       .uri(canonicalAPIUrl(sourcePersonKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
-      .isOk
-      .expectBody(CanonicalRecord::class.java)
-      .returnResult()
-      .responseBody!!
-
-    assertThat(responseBody.firstName).isEqualTo(targetPersonFirstName)
-    assertThat(responseBody.cprUUID).isEqualTo(targetPersonKey.personUUID.toString())
+      .isEqualTo(301)
   }
 
   @Test
@@ -548,18 +542,12 @@ class CanonicalApiIntTest : WebTestBase() {
     mergeUuid(sourcePersonKey, targetPersonKey)
     mergeUuid(targetPersonKey, newTargetPersonKey)
 
-    val responseBody = webTestClient.get()
+    webTestClient.get()
       .uri(canonicalAPIUrl(sourcePersonKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
-      .isOk
-      .expectBody(CanonicalRecord::class.java)
-      .returnResult()
-      .responseBody!!
-
-    assertThat(responseBody.firstName).isEqualTo(newTargetPersonFirstName)
-    assertThat(responseBody.cprUUID).isEqualTo(newTargetPersonKey.personUUID.toString())
+      .isEqualTo(301)
   }
 
   @Test
