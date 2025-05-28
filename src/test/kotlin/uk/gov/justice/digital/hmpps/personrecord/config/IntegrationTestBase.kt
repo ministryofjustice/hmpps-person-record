@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.client.WireMock.urlMatching
@@ -69,6 +70,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.probationCaseRes
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name as LibraName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name as OffenderName
@@ -104,7 +106,7 @@ class IntegrationTestBase {
                 {
                   "token_type": "bearer",
                   "access_token": "SOME_TOKEN",
-                  "expires_in": ${LocalDateTime.now().plusHours(2).toEpochSecond(ZoneOffset.UTC)}
+                  "expires_in": ${LocalDateTime.now().truncatedTo(ChronoUnit.HOURS).toEpochSecond(ZoneOffset.UTC)}
                 }
               """.trimIndent(),
             ),
@@ -116,14 +118,14 @@ class IntegrationTestBase {
   fun after() {
     wiremock.stubMappings.forEach {
       when (it.request.method) {
-        GET -> {
-          if (it.request.url != null) {
-            wiremock.verify(getRequestedFor(urlEqualTo(it.request.url)))
-          } else {
-            wiremock.verify(getRequestedFor(urlMatching(it.request.urlPathPattern)))
-          }
+        GET -> if (it.request.url != null) {
+          wiremock.verify(getRequestedFor(urlEqualTo(it.request.url)))
+        } else {
+          wiremock.verify(getRequestedFor(urlMatching(it.request.urlPathPattern)))
         }
-        POST -> Unit // wiremock.verify(postRequestedFor(urlEqualTo(it.request.url)))
+        POST -> if (it.request.url != "/auth/oauth/token") {
+          wiremock.verify(postRequestedFor(urlEqualTo(it.request.url)))
+        }
         DELETE -> wiremock.verify(deleteRequestedFor(urlEqualTo(it.request.url)))
         PUT -> wiremock.verify(putRequestedFor(urlEqualTo(it.request.url)))
         else -> fail()
