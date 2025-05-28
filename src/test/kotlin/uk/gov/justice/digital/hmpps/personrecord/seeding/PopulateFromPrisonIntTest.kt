@@ -188,7 +188,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       currentScenarioState = "next request will time out",
       nextScenarioState = "next request will succeed",
       responseBody = "{}",
-      fixedDelay = 2100,
+      fixedDelay = 410,
     )
 
     // Third call succeeds

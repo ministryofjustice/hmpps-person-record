@@ -15,7 +15,6 @@ class WebClientConfig(
   @Value("\${prison-service.base-url}") val prisonServiceUrl: String,
   @Value("\${core-person-record-and-delius.base-url}") val corePersonRecordAndDeliusUrl: String,
   @Value("\${retry.timeout}") val timeout: Long,
-
 ) {
 
   @Bean
@@ -37,6 +36,7 @@ class WebClientConfig(
     authorizedClientManager = authorizedClientManager,
     registrationId = "prison-service",
     url = prisonServiceUrl,
+    timeout = Duration.ofMillis(timeout),
   )
 
   @Bean
@@ -58,5 +58,6 @@ class WebClientConfig(
     authorizedClientManager = authorizedClientManager,
     registrationId = "core-person-record-and-delius",
     url = corePersonRecordAndDeliusUrl,
+    timeout = Duration.ofMillis(timeout),
   )
 }
