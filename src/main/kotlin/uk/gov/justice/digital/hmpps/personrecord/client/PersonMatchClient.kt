@@ -4,7 +4,6 @@ import org.springframework.http.HttpMethod
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchStatus
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchMigrateRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
@@ -23,6 +22,4 @@ class PersonMatchClient(private val personMatchWebClient: WebClient) {
   fun deletePerson(personMatchIdentifier: PersonMatchIdentifier) = personMatchWebClient.method(HttpMethod.DELETE).uri("/person").bodyValue(personMatchIdentifier).retrieve().toBodilessEntity().block()
 
   fun postPersonMigrate(personMatchMigrateRequest: PersonMatchMigrateRequest) = personMatchWebClient.post().uri("/person/migrate").bodyValue(personMatchMigrateRequest).retrieve().toBodilessEntity().block()
-
-  fun getHealth(): MatchStatus? = personMatchWebClient.get().uri("/health").retrieve().bodyToMono(MatchStatus::class.java).block()
 }
