@@ -31,12 +31,6 @@ dependencies {
   implementation("io.swagger.core.v3:swagger-annotations:2.2.32")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8")
 
-  constraints {
-    implementation("commons-io:commons-io:2.19.0") {
-      because("2.13.0 has CVEs")
-    }
-  }
-
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
   implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.9.10")
 
