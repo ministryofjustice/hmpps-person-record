@@ -129,8 +129,8 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     } matches { it == 1 }
   }
 
-  fun publishDomainEvent(eventType: String, domainEvent: DomainEvent): String {
-    val response = publishEvent(
+  fun publishDomainEvent(eventType: String, domainEvent: DomainEvent) {
+    publishEvent(
       objectMapper.writeValueAsString(domainEvent),
       domainEventsTopic,
       mapOf(
@@ -143,7 +143,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     expectNoMessagesOn(probationMergeEventsQueue)
     expectNoMessagesOn(prisonMergeEventsQueue)
     expectNoMessagesOn(prisonEventsQueue)
-    return response!!
   }
 
   fun publishProbationEvent(eventType: String, probationEvent: ProbationEvent) {
