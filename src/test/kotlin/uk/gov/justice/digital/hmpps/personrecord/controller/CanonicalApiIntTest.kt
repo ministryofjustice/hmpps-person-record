@@ -490,7 +490,7 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should return merged to record`() {
+  fun `should redirect to merged to record`() {
     val sourcePersonFirstName = randomName()
     val targetPersonFirstName = randomName()
 
@@ -508,22 +508,18 @@ class CanonicalApiIntTest : WebTestBase() {
 
     mergeUuid(sourcePersonKey, targetPersonKey)
 
-    val responseBody = webTestClient.get()
+    webTestClient.get()
       .uri(canonicalAPIUrl(sourcePersonKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
-      .isOk
-      .expectBody(CanonicalRecord::class.java)
-      .returnResult()
-      .responseBody!!
-
-    assertThat(responseBody.firstName).isEqualTo(targetPersonFirstName)
-    assertThat(responseBody.cprUUID).isEqualTo(targetPersonKey.personUUID.toString())
+      .isEqualTo(301)
+      .expectHeader()
+      .valueEquals("Location", "/person/${targetPersonKey.personUUID}")
   }
 
   @Test
-  fun `should return the top node of a merged to record`() {
+  fun `should redirect to the top node of a merged to record`() {
     val sourcePersonFirstName = randomName()
     val targetPersonFirstName = randomName()
     val newTargetPersonFirstName = randomName()
@@ -548,18 +544,14 @@ class CanonicalApiIntTest : WebTestBase() {
     mergeUuid(sourcePersonKey, targetPersonKey)
     mergeUuid(targetPersonKey, newTargetPersonKey)
 
-    val responseBody = webTestClient.get()
+    webTestClient.get()
       .uri(canonicalAPIUrl(sourcePersonKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
-      .isOk
-      .expectBody(CanonicalRecord::class.java)
-      .returnResult()
-      .responseBody!!
-
-    assertThat(responseBody.firstName).isEqualTo(newTargetPersonFirstName)
-    assertThat(responseBody.cprUUID).isEqualTo(newTargetPersonKey.personUUID.toString())
+      .isEqualTo(301)
+      .expectHeader()
+      .valueEquals("Location", "/person/${newTargetPersonKey.personUUID}")
   }
 
   @Test
