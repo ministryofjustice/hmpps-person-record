@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.format.EncodingService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.PersonFactory
+import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.PersonProcessorChain
 
 @Component
 class ProbationMergeEventProcessor(
@@ -27,7 +28,11 @@ class ProbationMergeEventProcessor(
             no = { createProcessor, ctx -> createProcessor.createPersonEntity(ctx) },
             yes = { updateProcessor, ctx -> updateProcessor.updatePersonEntity(ctx) }
           )
-          .result()
+          .hasClusterLink(
+            no = { clusterProcessor, ctx -> clusterProcessor.linkRecordToPersonKey(ctx)}
+          )
+          .log()
+          .get()
         mergeService.processMerge(from, to)
       }
     }

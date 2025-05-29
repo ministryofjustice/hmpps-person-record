@@ -22,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.PersonFa
 class CreateUpdateService(
   private val personService: PersonService,
   private val publisher: ApplicationEventPublisher,
-  private val personFactory: PersonFactory,
 ) {
 
   @Retryable(
