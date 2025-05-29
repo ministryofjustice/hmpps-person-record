@@ -1,14 +1,19 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CircularMergeException
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.isMerged
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.format.EncodingService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.PersonContext
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.PersonFactory
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.PersonProcessorChain
+import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.processors.PersonClusterProcessor
 
 @Component
 class ProbationMergeEventProcessor(
@@ -29,12 +34,19 @@ class ProbationMergeEventProcessor(
             yes = { updateProcessor, ctx -> updateProcessor.updatePersonEntity(ctx) }
           )
           .hasClusterLink(
-            no = { clusterProcessor, ctx -> clusterProcessor.linkRecordToPersonKey(ctx)}
+            no = { clusterProcessor, ctx -> handleCircularMerge(clusterProcessor, ctx)}
           )
-          .log()
+          .recordEventLog()
           .get()
         mergeService.processMerge(from, to)
       }
+    }
+  }
+
+  private fun handleCircularMerge(clusterProcessor: PersonClusterProcessor, ctx: PersonContext) {
+    when {
+      ctx.personEntity!!.isMerged()-> throw CircularMergeException()
+      else -> clusterProcessor.linkRecordToPersonKey(ctx)
     }
   }
 }

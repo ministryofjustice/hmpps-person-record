@@ -12,4 +12,5 @@ data class PersonContext(
   val person: Person,
   var personEntity: PersonEntity? = null,
   var operation: PersonOperation? = null,
+  var hasMatchingFieldsChanged: Boolean = false,
 )

@@ -31,7 +31,7 @@ class SQSListenerService(
       try {
         action(this)
       } catch (e: WebClientResponseException.NotFound) {
-        log.info("Discarding message for status code: ${e.statusCode}")
+        log.info("Discarding message for status code: ${e.statusCode} ${e.request?.uri}")
       }
       return this
     }

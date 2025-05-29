@@ -1,16 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person.factory
 
-import jakarta.persistence.OptimisticLockException
-import kotlinx.coroutines.runBlocking
-import org.springframework.dao.CannotAcquireLockException
-import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.retry.annotation.Backoff
-import org.springframework.retry.annotation.Retryable
-import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
-import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.empty
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.processors.PersonClusterProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.processors.PersonCreateProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.processors.PersonLogProcessor
@@ -57,13 +48,16 @@ class PersonProcessorChain(
     return this
   }
 
-  fun log(): PersonProcessorChain {
-    context.personEntity?.let {
-      when (context.operation) {
-        PersonOperation.CREATE -> personLogProcessor.logCreate(it)
-        else -> personLogProcessor.logUpdate(it)
-      }
+  fun recordEventLog(): PersonProcessorChain {
+    when (context.operation) {
+      PersonOperation.CREATE -> personLogProcessor.logCreate(context)
+      else -> personLogProcessor.logUpdate(context)
     }
+    return this
+  }
+
+  fun recluster(): PersonProcessorChain {
+    personClusterProcessor.recluster(context)
     return this
   }
 

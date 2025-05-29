@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyReposit
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyFound
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.PersonContext
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
@@ -17,8 +18,15 @@ class PersonClusterProcessor(
   private val publisher: ApplicationEventPublisher,
   private val personKeyRepository: PersonKeyRepository,
   private val personMatchService: PersonMatchService,
+  private val reclusterService: ReclusterService,
 ) {
 
+  fun recluster(context: PersonContext): PersonClusterProcessor {
+    context.personEntity?.personKey?.let{
+      reclusterService.recluster(it, context.personEntity!!)
+    }
+    return this
+  }
 
   fun linkRecordToPersonKey(context: PersonContext): PersonClusterProcessor {
     val personEntityWithKey = personMatchService.findHighestConfidencePersonRecord(context.personEntity!!).exists(
