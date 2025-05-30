@@ -146,7 +146,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     prisoner: PersonEntity,
   ) {
     val entry = entries.find { it.matchId == prisoner.matchId }!!
-    assertThat(entry.uuid).isEqualTo(prisoner.personKey?.personUUID)
+    assertThat(entry.personUUID).isEqualTo(prisoner.personKey?.personUUID)
     assertThat(entry.sourceSystem).isEqualTo(NOMIS)
     assertThat(entry.eventType).isEqualTo(CPR_RECORD_SEEDED)
     assertThat(entry.sourceSystemId).isEqualTo(prisoner.prisonNumber)

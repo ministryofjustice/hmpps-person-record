@@ -555,7 +555,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(createdLog.sourceSystem).isEqualTo(COMMON_PLATFORM)
         assertThat(createdLog.firstNameAliases).isEqualTo(arrayOf(aliasFirstName))
         assertThat(createdLog.lastNameAliases).isEqualTo(arrayOf(aliasLastName))
-        assertThat(createdLog.uuid).isNotNull()
+        assertThat(createdLog.personUUID).isNotNull()
         assertThat(createdLog.uuidStatusType).isEqualTo(ACTIVE)
       }
       checkEventLogExist(defendantId, CPRLogEvents.CPR_UUID_CREATED)

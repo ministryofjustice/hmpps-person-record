@@ -42,12 +42,12 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     checkEventLog(crn, CPRLogEvents.CPR_UUID_DELETED) { eventLogs ->
       assertThat(eventLogs).hasSize(1)
       val eventLog = eventLogs.first()
-      assertThat(eventLog.uuid).isEqualTo(person.personKey?.personUUID)
+      assertThat(eventLog.personUUID).isEqualTo(person.personKey?.personUUID)
     }
     checkEventLog(crn, CPRLogEvents.CPR_RECORD_DELETED) { eventLogs ->
       assertThat(eventLogs).hasSize(1)
       val eventLog = eventLogs.first()
-      assertThat(eventLog.uuid).isEqualTo(person.personKey?.personUUID)
+      assertThat(eventLog.personUUID).isEqualTo(person.personKey?.personUUID)
     }
 
     person.assertPersonDeleted()
