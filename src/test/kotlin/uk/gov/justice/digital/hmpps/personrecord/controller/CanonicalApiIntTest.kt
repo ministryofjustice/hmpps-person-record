@@ -5,8 +5,11 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReligion
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
@@ -16,6 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
@@ -48,6 +52,8 @@ class CanonicalApiIntTest : WebTestBase() {
     val endDate = randomDate()
     val postcode = randomPostcode()
     val nationality = randomNationality()
+    val religion = randomReligion()
+    val ethnicity = randomEthnicity()
 
     val buildingName = randomName()
     val buildingNumber = randomBuildingNumber()
@@ -65,15 +71,16 @@ class CanonicalApiIntTest : WebTestBase() {
       Person(
         firstName = randomName(),
         lastName = randomName(),
-        middleNames = listOf(randomName()),
+        middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
         title = randomName(),
         crn = crn,
+        sexCode = SexCode.M,
         prisonNumber = prisonNumber,
-        ethnicity = randomEthnicity(),
+        ethnicity = ethnicity,
         nationality = nationality,
-        religion = randomReligion(),
+        religion = religion,
         cId = cid,
         defendantId = defendantId,
         aliases = listOf(Alias(firstName = firstName, middleNames = middleNames, lastName = lastName, dateOfBirth = randomDate(), title = title)),
@@ -87,7 +94,7 @@ class CanonicalApiIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(person.personKey?.personId.toString()))
+      .uri(canonicalAPIUrl(person.personKey?.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -96,20 +103,29 @@ class CanonicalApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = title)
-    val canonicalNationality = listOf(CanonicalNationality(nationalityCode = nationality))
+    val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = CanonicalTitle(code = title, description = title))
+    val canonicalNationality = listOf(CanonicalNationality(code = nationality, description = nationality))
     val canonicalAddress = CanonicalAddress(noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
+    val canonicalReligion = CanonicalReligion(code = religion, description = religion)
+    val canonicalEthnicity = CanonicalEthnicity(code = ethnicity, description = ethnicity)
 
-    assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personId.toString())
-    assertThat(responseBody.firstName).isEqualTo(person.firstName)
-    assertThat(responseBody.middleNames).isEqualTo(person.middleNames)
-    assertThat(responseBody.lastName).isEqualTo(person.lastName)
-    assertThat(responseBody.dateOfBirth).isEqualTo(person.dateOfBirth.toString())
-    assertThat(responseBody.title).isEqualTo(person.title)
-    assertThat(responseBody.ethnicity).isEqualTo(person.ethnicity)
-    assertThat(responseBody.nationalities).isEqualTo(canonicalNationality)
-    assertThat(responseBody.sex).isNull()
-    assertThat(responseBody.religion).isEqualTo(person.religion)
+    assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personUUID.toString())
+    assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
+    assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
+    assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
+    assertThat(responseBody.dateOfBirth).isEqualTo(person.getPrimaryName().dateOfBirth.toString())
+    assertThat(responseBody.title.code).isEqualTo(person.getPrimaryName().title)
+    assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().title)
+    assertThat(responseBody.aliases.first().title.code).isEqualTo(person.pseudonyms.first().title)
+    assertThat(responseBody.aliases.first().title.description).isEqualTo(person.pseudonyms.first().title)
+    assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
+    assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
+    assertThat(responseBody.sex.code).isEqualTo("M")
+    assertThat(responseBody.sex.description).isEqualTo("Male")
+    assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
+    assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
+    assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
+    assertThat(responseBody.ethnicity.description).isEqualTo(canonicalEthnicity.description)
     assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
     assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
     assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
@@ -132,7 +148,7 @@ class CanonicalApiIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(person.personKey?.personId.toString()))
+      .uri(canonicalAPIUrl(person.personKey?.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -141,15 +157,27 @@ class CanonicalApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personId.toString())
+    assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personUUID.toString())
     assertThat(responseBody.firstName).isNull()
     assertThat(responseBody.middleNames).isNull()
     assertThat(responseBody.lastName).isNull()
     assertThat(responseBody.dateOfBirth).isNull()
-    assertThat(responseBody.title).isNull()
-    assertThat(responseBody.ethnicity).isNull()
-    assertThat(responseBody.sex).isNull()
-    assertThat(responseBody.religion).isNull()
+    assertThat(responseBody.title.code).isNull()
+    assertThat(responseBody.title.description).isNull()
+    assertThat(responseBody.ethnicity.code).isNull()
+    assertThat(responseBody.ethnicity.description).isNull()
+    assertThat(responseBody.sex.code).isNull()
+    assertThat(responseBody.sex.description).isNull()
+    assertThat(responseBody.religion.code).isNull()
+    assertThat(responseBody.religion.description).isNull()
+    assertThat(responseBody.title.code).isNull()
+    assertThat(responseBody.title.description).isNull()
+    assertThat(responseBody.ethnicity.code).isNull()
+    assertThat(responseBody.ethnicity.description).isNull()
+    assertThat(responseBody.sex.code).isNull()
+    assertThat(responseBody.sex.description).isNull()
+    assertThat(responseBody.religion.code).isNull()
+    assertThat(responseBody.religion.description).isNull()
     assertThat(responseBody.nationalities).isEmpty()
     assertThat(responseBody.aliases).isEmpty()
     assertThat(responseBody.addresses).isEmpty()
@@ -167,7 +195,7 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should return  when values are null or empty  for get canonical record aliases`() {
+  fun `should return when values are null or empty for get canonical record aliases`() {
     val crn = randomCrn()
 
     val aliasFirstName = randomName()
@@ -181,7 +209,7 @@ class CanonicalApiIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(person.personKey?.personId.toString()))
+      .uri(canonicalAPIUrl(person.personKey?.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -193,7 +221,8 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.aliases.first().firstName).isEqualTo(aliasFirstName)
     assertThat(responseBody.aliases.first().lastName).isNull()
     assertThat(responseBody.aliases.first().middleNames).isNull()
-    assertThat(responseBody.aliases.first().title).isNull()
+    assertThat(responseBody.aliases.first().title.code).isNull()
+    assertThat(responseBody.aliases.first().title.description).isNull()
   }
 
   @Test
@@ -211,7 +240,7 @@ class CanonicalApiIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(person.personKey?.personId.toString()))
+      .uri(canonicalAPIUrl(person.personKey?.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -249,7 +278,7 @@ class CanonicalApiIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(personKey.personId.toString()))
+      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -258,9 +287,9 @@ class CanonicalApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(responseBody.firstName).isEqualTo(latestPerson.firstName)
-    assertThat(responseBody.middleNames).isEqualTo(latestPerson.middleNames)
-    assertThat(responseBody.lastName).isEqualTo(latestPerson.lastName)
+    assertThat(responseBody.firstName).isEqualTo(latestPerson.getPrimaryName().firstName)
+    assertThat(responseBody.middleNames).isEqualTo(latestPerson.getPrimaryName().middleNames)
+    assertThat(responseBody.lastName).isEqualTo(latestPerson.getPrimaryName().lastName)
   }
 
   @Test
@@ -289,7 +318,7 @@ class CanonicalApiIntTest : WebTestBase() {
       Person(
         firstName = randomName(),
         lastName = randomName(),
-        middleNames = listOf(randomName()),
+        middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
         title = randomName(),
@@ -316,7 +345,7 @@ class CanonicalApiIntTest : WebTestBase() {
       Person(
         firstName = randomName(),
         lastName = randomName(),
-        middleNames = listOf(randomName()),
+        middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
         title = randomName(),
@@ -340,7 +369,7 @@ class CanonicalApiIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(personKey.personId.toString()))
+      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -368,7 +397,7 @@ class CanonicalApiIntTest : WebTestBase() {
       Person(
         firstName = randomName(),
         lastName = randomName(),
-        middleNames = listOf(randomName()),
+        middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
         title = randomName(),
@@ -381,7 +410,7 @@ class CanonicalApiIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(personKey.personId.toString()))
+      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -414,7 +443,7 @@ class CanonicalApiIntTest : WebTestBase() {
     personRepository.saveAndFlush(latestPerson)
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(personKey.personId.toString()))
+      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -423,9 +452,9 @@ class CanonicalApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(responseBody.firstName).isEqualTo(person.firstName)
-    assertThat(responseBody.middleNames).isEqualTo(person.middleNames)
-    assertThat(responseBody.lastName).isEqualTo(person.lastName)
+    assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
+    assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
+    assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
   }
 
   @Test
@@ -448,7 +477,7 @@ class CanonicalApiIntTest : WebTestBase() {
     personRepository.saveAndFlush(person)
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(personKey.personId.toString()))
+      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -461,7 +490,7 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should return merged to record`() {
+  fun `should redirect to merged to record`() {
     val sourcePersonFirstName = randomName()
     val targetPersonFirstName = randomName()
 
@@ -479,22 +508,18 @@ class CanonicalApiIntTest : WebTestBase() {
 
     mergeUuid(sourcePersonKey, targetPersonKey)
 
-    val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(sourcePersonKey.personId.toString()))
+    webTestClient.get()
+      .uri(canonicalAPIUrl(sourcePersonKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
-      .isOk
-      .expectBody(CanonicalRecord::class.java)
-      .returnResult()
-      .responseBody!!
-
-    assertThat(responseBody.firstName).isEqualTo(targetPersonFirstName)
-    assertThat(responseBody.cprUUID).isEqualTo(targetPersonKey.personId.toString())
+      .isEqualTo(301)
+      .expectHeader()
+      .valueEquals("Location", "/person/${targetPersonKey.personUUID}")
   }
 
   @Test
-  fun `should return the top node of a merged to record`() {
+  fun `should redirect to the top node of a merged to record`() {
     val sourcePersonFirstName = randomName()
     val targetPersonFirstName = randomName()
     val newTargetPersonFirstName = randomName()
@@ -519,50 +544,14 @@ class CanonicalApiIntTest : WebTestBase() {
     mergeUuid(sourcePersonKey, targetPersonKey)
     mergeUuid(targetPersonKey, newTargetPersonKey)
 
-    val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(sourcePersonKey.personId.toString()))
-      .authorised(listOf(API_READ_ONLY))
-      .exchange()
-      .expectStatus()
-      .isOk
-      .expectBody(CanonicalRecord::class.java)
-      .returnResult()
-      .responseBody!!
-
-    assertThat(responseBody.firstName).isEqualTo(newTargetPersonFirstName)
-    assertThat(responseBody.cprUUID).isEqualTo(newTargetPersonKey.personId.toString())
-  }
-
-  @Test
-  fun `should return 500 error when records are merged in a loop`() {
-    val record1 = createPersonKey()
-    val record2 = createPersonKey()
-    val record3 = createPersonKey()
-
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName()), identifiers = Identifiers())),
-      personKeyEntity = record1,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName()), identifiers = Identifiers())),
-      personKeyEntity = record2,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName()), identifiers = Identifiers())),
-      personKeyEntity = record3,
-    )
-
-    // merge UUIDS 1 -> 2 -> 3 -> 1
-    mergeUuid(record1, record2)
-    mergeUuid(record2, record3)
-    mergeUuid(record3, record1)
-
     webTestClient.get()
-      .uri(canonicalAPIUrl(record1.personId.toString()))
+      .uri(canonicalAPIUrl(sourcePersonKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
-      .is5xxServerError
+      .isEqualTo(301)
+      .expectHeader()
+      .valueEquals("Location", "/person/${newTargetPersonKey.personUUID}")
   }
 
   @Test

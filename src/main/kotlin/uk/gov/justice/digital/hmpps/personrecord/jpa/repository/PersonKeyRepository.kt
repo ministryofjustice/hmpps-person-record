@@ -7,5 +7,5 @@ import java.util.*
 
 @Repository
 interface PersonKeyRepository : JpaRepository<PersonKeyEntity, Long> {
-  fun findByPersonId(personId: UUID?): PersonKeyEntity?
+  fun findByPersonUUID(personUUID: UUID?): PersonKeyEntity?
 }

@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.constraints.NotBlank
-import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
@@ -49,11 +48,12 @@ class SysconSyncController {
     prisonNumber: String,
     @RequestBody prisoner: Prisoner,
   ): CreateResponse {
-    log.info("Prisoner record received for noms number {} with a status of {}", prisonNumber, prisoner.status)
+    useInputs(prisonNumber, prisoner)
     return CreateResponse()
   }
 
-  private companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-  }
+  private fun useInputs(
+    prisonNumber: String,
+    prisoner: Prisoner,
+  ): String = prisoner.status + prisonNumber
 }

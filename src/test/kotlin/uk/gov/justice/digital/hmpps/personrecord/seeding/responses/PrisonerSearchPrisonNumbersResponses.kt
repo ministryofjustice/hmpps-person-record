@@ -1,11 +1,16 @@
 package uk.gov.justice.digital.hmpps.personrecord.seeding.responses
 
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
+
 fun onePrisoner(prisonNumber: String, prefix: String) = """
   [{
     "prisonerNumber": "$prisonNumber",
-    "pncNumber": "12/394773H",
-    "pncNumberCanonicalShort": "12/394773H",
-    "pncNumberCanonicalLong": "2012/394773H",
+    "pncNumber": "${randomPnc()}",
+    "pncNumberCanonicalShort": "",
+    "pncNumberCanonicalLong": "${randomPnc()}",
     "croNumber": "",
     "bookingId": "0001200924",
     "bookNumber": "38412A",
@@ -132,16 +137,16 @@ fun onePrisoner(prisonNumber: String, prefix: String) = """
 fun twoPrisoners(prisonNumberOne: String, prefixOne: String, prisonNumberTwo: String, prefixTwo: String) = """
   [{
     "prisonerNumber": "$prisonNumberOne",
-    "pncNumber": "12/394773H",
-    "pncNumberCanonicalShort": "12/394773H",
-    "pncNumberCanonicalLong": "2012/394773H",
-    "croNumber": "29906/12J",
+    "pncNumber": "${randomPnc()}",
+    "pncNumberCanonicalShort": "",
+    "pncNumberCanonicalLong": "${randomPnc()}",
+    "croNumber": "${randomCro()}",
     "bookingId": "0001200924",
     "bookNumber": "38412A",
     "firstName": "${prefixOne}FirstName",
     "middleNames": "${prefixOne}MiddleNameOne ${prefixOne}MiddleNameTwo",
     "lastName": "${prefixOne}LastName",
-    "dateOfBirth": "1975-04-02",
+    "dateOfBirth": "${randomDate()}",
     "gender": "Female",
     "ethnicity": "White: Eng./Welsh/Scot./N.Irish/British",
     "youthOffender": true,
@@ -161,7 +166,7 @@ fun twoPrisoners(prisonNumberOne: String, prefixOne: String, prisonNumberTwo: St
         "firstName": "${prefixOne}AliasOneFirstName",
         "middleNames": "${prefixOne}AliasOneMiddleNameOne ${prefixOne}AliasOneMiddleNameTwo",
         "lastName": "${prefixOne}AliasOneLastName",
-        "dateOfBirth": "1975-04-02",
+        "dateOfBirth": "${randomDate()}",
         "gender": "Male",
         "ethnicity": "White : Irish"
       },
@@ -169,7 +174,7 @@ fun twoPrisoners(prisonNumberOne: String, prefixOne: String, prisonNumberTwo: St
         "firstName": "${prefixOne}AliasTwoFirstName",
         "middleNames": "${prefixOne}AliasTwoMiddleNameOne ${prefixOne}AliasTwoMiddleNameTwo",
         "lastName": "${prefixOne}AliasTwoLastName",
-        "dateOfBirth": "1975-04-02",
+        "dateOfBirth": "${randomDate()}",
         "gender": "Male",
         "ethnicity": "White : Irish"
       }
@@ -255,15 +260,15 @@ fun twoPrisoners(prisonNumberOne: String, prefixOne: String, prisonNumberTwo: St
     ]
   },{
     "prisonerNumber": "$prisonNumberTwo",
-    "pncNumber": "12/394773H",
-    "pncNumberCanonicalShort": "12/394773H",
-    "pncNumberCanonicalLong": "2012/394773H",
-    "croNumber": "29906/12J",
+    "pncNumber": "${randomPnc()}",
+    "pncNumberCanonicalShort": "",
+    "pncNumberCanonicalLong": "${randomPnc()}",
+    "croNumber": "${randomCro()}",
     "bookingId": "0001200924",
     "bookNumber": "38412A",
     "firstName": "${prefixTwo}FirstName",
     "middleNames": "John James",
-    "lastName": "Larsen",
+    "lastName": "${randomName()}",
     "dateOfBirth": "1975-04-02",
     "gender": "Female",
     "ethnicity": "White: Eng./Welsh/Scot./N.Irish/British",

@@ -15,14 +15,14 @@ data class CanonicalRecord(
   val lastName: String? = null,
   @Schema(description = "Person date of birth", example = "1990-08-21")
   val dateOfBirth: String? = null,
-  @Schema(description = "Person title", example = "Mr")
-  val title: String? = null,
-  @Schema(description = "Person sex", example = "Male")
-  val sex: String? = null,
-  @Schema(description = "Person religion", example = "Christian")
-  val religion: String? = null,
-  @Schema(description = "Person ethnicity", example = "British")
-  val ethnicity: String? = null,
+  @Schema(description = "Person title")
+  val title: CanonicalTitle,
+  @Schema(description = "Person sex")
+  val sex: CanonicalSex,
+  @Schema(description = "Person religion")
+  val religion: CanonicalReligion,
+  @Schema(description = "Person ethnicity")
+  val ethnicity: CanonicalEthnicity,
   @Schema(description = "List of person aliases")
   val aliases: List<CanonicalAlias> = emptyList(),
   @Schema(description = "List of person nationalities")
@@ -37,15 +37,15 @@ data class CanonicalRecord(
     fun from(personKey: PersonKeyEntity): CanonicalRecord {
       val latestPerson = personKey.personEntities.sortedByDescending { it.lastModified }.first()
       return CanonicalRecord(
-        cprUUID = personKey.personId.toString(),
-        firstName = latestPerson.firstName,
-        middleNames = latestPerson.middleNames.takeIf { it?.isNotEmpty()!! },
-        lastName = latestPerson.lastName,
-        dateOfBirth = latestPerson.dateOfBirth?.toString(),
-        title = latestPerson.title,
-        sex = latestPerson.sex,
-        religion = latestPerson.religion,
-        ethnicity = latestPerson.ethnicity,
+        cprUUID = personKey.personUUID.toString(),
+        firstName = latestPerson.getPrimaryName().firstName,
+        middleNames = latestPerson.getPrimaryName().middleNames,
+        lastName = latestPerson.getPrimaryName().lastName,
+        dateOfBirth = latestPerson.getPrimaryName().dateOfBirth?.toString(),
+        title = CanonicalTitle.from(latestPerson.getPrimaryName().title),
+        sex = CanonicalSex.from(latestPerson.sexCode),
+        religion = CanonicalReligion.from(latestPerson.religion),
+        ethnicity = CanonicalEthnicity.from(latestPerson.ethnicity),
         aliases = getAliases(latestPerson),
         addresses = getAddresses(latestPerson),
         identifiers = CanonicalIdentifiers.from(personKey.personEntities),
@@ -53,7 +53,7 @@ data class CanonicalRecord(
       )
     }
 
-    private fun getAliases(person: PersonEntity?): List<CanonicalAlias> = person?.pseudonyms?.let { CanonicalAlias.fromPseudonymEntityList(it) } ?: emptyList()
+    private fun getAliases(person: PersonEntity?): List<CanonicalAlias> = CanonicalAlias.from(person) ?: emptyList()
 
     private fun getAddresses(person: PersonEntity?): List<CanonicalAddress> = person?.addresses?.let { CanonicalAddress.fromAddressEntityList(it) } ?: emptyList()
   }

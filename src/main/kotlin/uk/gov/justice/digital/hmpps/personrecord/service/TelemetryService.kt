@@ -3,13 +3,16 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import com.microsoft.applicationinsights.TelemetryClient
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 enum class EventKeys {
   // Message
-  MESSAGE_ID,
+  COMMON_PLATFORM,
+  LIBRA,
+  NOMIS,
+  DELIUS,
   SOURCE_SYSTEM,
-  EVENT_TYPE,
 
   // Identifiers
   CRN,
@@ -19,26 +22,20 @@ enum class EventKeys {
   MATCH_ID,
 
   // Merge
-  RECORD_TYPE,
-  SOURCE_CRN,
-  TARGET_CRN,
   TO_UUID,
   FROM_UUID,
-  SOURCE_PRISON_NUMBER,
-  TARGET_PRISON_NUMBER,
+  FROM_SOURCE_SYSTEM_ID,
+  TO_SOURCE_SYSTEM_ID,
 
   // Unmerge
   REACTIVATED_UUID,
   UNMERGED_UUID,
-  REACTIVATED_CRN,
-  UNMERGED_CRN,
 
   // Matching
   HIGH_CONFIDENCE_COUNT,
   LOW_CONFIDENCE_COUNT,
 
   // Cluster
-  CLUSTER_COMPOSITION,
   RECORD_COUNT,
   UUID_COUNT,
   UUID,
@@ -60,6 +57,18 @@ class TelemetryService(private val telemetryClient: TelemetryClient) {
       EventKeys.C_ID to personEntity.cId,
       EventKeys.CRN to personEntity.crn,
       EventKeys.PRISON_NUMBER to personEntity.prisonNumber,
+    )
+    trackEvent(eventType, identifierMap + elementMap)
+  }
+
+  fun trackClusterEvent(
+    eventType: TelemetryEventType,
+    cluster: PersonKeyEntity,
+    elementMap: Map<EventKeys, String?> = emptyMap(),
+  ) {
+    val identifierMap = mapOf(
+      EventKeys.UUID to cluster.personUUID.toString(),
+      EventKeys.CLUSTER_SIZE to cluster.personEntities.size.toString(),
     )
     trackEvent(eventType, identifierMap + elementMap)
   }

@@ -37,28 +37,31 @@ Secondly, delete the already existing data (if any) from the database for specif
 
 To connect to the desired database follow these step to connect to the database [using the process defined](https://user-guide.cloud-platform.service.justice.gov.uk/documentation/other-topics/rds-external-access.html)
 
-Then to delete, run these SQL scripts to delete the desired data for the desired source system:
+Then to delete all records in the database in the order outlined below:
 
-For **NOMIS**:
+For **person table**:
 ```
-delete from personrecordservice.person p where p.source_system = 'NOMIS'
+delete from personrecordservice.person
 ```
 
-For **DELIUS**:
+For **person_key table**:
 ```
-delete from personrecordservice.person p where p.source_system = 'DELIUS'
+delete from personrecordservice.person_key
 ```
+
+Finally **event_log table**:
+```
+delete from personrecordservice.event_log
+```
+
 
 Verify data has been deleted.
 
-Cleanup empty UUIDs:
 ```
-DELETE FROM personrecordservice.personkey pk
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM personrecordservice.person p
-    WHERE p.fk_person_key_id = pk.id
-);
+select count(*) from personrecordservice.person
+select count(*) from personrecordservice.person_key
+select count(*) from personrecordservice.event_log
+
 ```
 
 ## 3. Start Reseeding
@@ -94,13 +97,28 @@ curl -i -X POST http://localhost:8080/populatefromprobation
 The process will output the number of pages and records to be processed.
 It will notify once finished with: `DELIUS seeding finished, approx records <number>`
 
-## 4. Record Linking
+## 4. Seeding person match
 
-To link the seeded data from a provided data cluster.
+Follow: [Seed hmpps-person-match](./004-Seeding-Person-Match.md)
 
-Follow: [Link Cluster Data](./002-Link-Cluster-Data.md)
+Generate clusters (~2 hours)
+- inform Data Science once hmpps-person-match seeding is done
+- he will verify all records are present
+- he will run a script to generate UUIDs for every record - output to be a UUID and the MATCH_ID of each record
+- Data Science will transfer data to hmpps-person-record database in a temporary table,
+  - use postgres import to create a temporary table in hmpps-person-record from the csv
 
-## 5. Resume Message Consumption
+
+Fallback idea  
+- onedrive will be used to transfer a csv with ~4 million columns with UUID and the MATCH_ID
+
+Put clusters into hmpps-person-record (~30 minutes)
+TEST PROCESS IN DEV FOR APPROXIMATE TIMINGS
+
+## 5. Linking Records To Clusters
+See [002-Link-Cluster-Data.md](002-Link-Cluster-Data.md)
+
+## 6. Resume Message Consumption
  
 Resume message consumption by removing the profile `seeding` to the spring configuration in helm.
 This is done by removing it from the desired environment helm chart spring environment variable, which can be found at `helm_deploy/hmpps-person-record/values-<environment>.yaml`:

@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.commonplatform
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -13,14 +13,14 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.LargeMessageBody
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttributes
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
-import uk.gov.justice.digital.hmpps.personrecord.message.LARGE_CASE_EVENT_TYPE
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.court.LargeMessageBody
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
@@ -28,11 +28,13 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAlias
@@ -43,12 +45,12 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatfo
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
-import uk.gov.justice.digital.hmpps.personrecord.test.randomHearingId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.nio.charset.Charset
+import java.time.LocalDateTime.now
 import java.util.UUID
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -58,50 +60,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Value("\${aws.court-message-bucket-name}")
   lateinit var s3Bucket: String
-
-  @Test
-  fun `FIFO queue and topic remove duplicate messages`() {
-    stubPersonMatchUpsert()
-    stubNoMatchesPersonMatch()
-    val pnc = randomPnc()
-    val defendantId = randomDefendantId()
-    val firstName = randomName()
-    val lastName = randomName()
-    val nationalInsuranceNumber = randomNationalInsuranceNumber()
-    val hearingId = randomHearingId()
-    blitz(30, 6) {
-      publishCommonPlatformMessage(
-        commonPlatformHearing(
-          listOf(
-            CommonPlatformHearingSetup(
-              pnc = pnc,
-              defendantId = defendantId,
-              firstName = firstName,
-              lastName = lastName,
-              cro = "",
-              nationalInsuranceNumber = nationalInsuranceNumber,
-              hearingId = hearingId,
-            ),
-          ),
-        ),
-      )
-    }
-
-    expectNoMessagesOnQueueOrDlq(courtEventsQueue)
-
-    checkTelemetry(
-      CPR_RECORD_CREATED,
-      mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
-    )
-    checkTelemetry(
-      CPR_RECORD_UPDATED,
-      mapOf(
-        "SOURCE_SYSTEM" to "COMMON_PLATFORM",
-        "DEFENDANT_ID" to defendantId,
-      ),
-      0,
-    )
-  }
 
   @Test
   fun `should update an existing person record from common platform message`() {
@@ -127,18 +85,66 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubNoMatchesPersonMatch(matchId = person.matchId)
 
     val changedLastName = randomName()
-    val messageId = publishCommonPlatformMessage(
+    publishCommonPlatformMessage(
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId))),
-    )
-
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "DEFENDANT_ID" to defendantId),
     )
 
     awaitAssert {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
-      assertThat(updatedPersonEntity.lastName).isEqualTo(changedLastName)
+      assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(changedLastName)
+      assertThat(updatedPersonEntity.references.getType(PNC).first().identifierValue).isEqualTo(pnc)
+      assertThat(updatedPersonEntity.references.getType(CRO).first().identifierValue).isEqualTo(cro)
+      assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
+    }
+
+    checkTelemetry(
+      CPR_RECORD_UPDATED,
+      mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
+    )
+  }
+
+  @Test
+  fun `should update an existing person record from common platform message with no primary name in pseudonym table`() {
+    stubPersonMatchUpsert()
+    val defendantId = randomDefendantId()
+    val pnc = randomPnc()
+    val cro = randomCro()
+    val personKey = createPersonKey()
+
+    val person = Person(
+      defendantId = defendantId,
+      references = listOf(Reference(PNC, pnc), Reference(CRO, cro)),
+      sourceSystem = COMMON_PLATFORM,
+    )
+
+    val personEntity = PersonEntity(
+      defendantId = person.defendantId,
+      crn = person.crn,
+      prisonNumber = person.prisonNumber,
+      masterDefendantId = person.masterDefendantId,
+      sourceSystem = person.sourceSystem,
+      ethnicity = person.ethnicity,
+      nationality = person.nationality,
+      religion = person.religion,
+      currentlyManaged = person.currentlyManaged,
+      matchId = UUID.randomUUID(),
+      cId = person.cId,
+      lastModified = now(),
+      sexCode = person.sexCode,
+    )
+    personEntity.personKey = personKey
+    personKeyRepository.saveAndFlush(personKey)
+    personRepository.saveAndFlush(personEntity)
+    stubNoMatchesPersonMatch(matchId = personEntity.matchId)
+
+    val changedLastName = randomName()
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId))),
+    )
+
+    awaitAssert {
+      val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
+      assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(changedLastName)
       assertThat(updatedPersonEntity.references.getType(PNC).first().identifierValue).isEqualTo(pnc)
       assertThat(updatedPersonEntity.references.getType(CRO).first().identifierValue).isEqualTo(cro)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
@@ -159,12 +165,15 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val lastName = randomName()
     val secondPnc = randomPnc()
     val thirdPnc = randomPnc()
+    val forthPnc = randomPnc()
 
     val firstDefendantId = randomDefendantId()
     val secondDefendantId = randomDefendantId()
     val thirdDefendantId = randomDefendantId()
+    val forthDefendantId = randomDefendantId()
 
     val thirdDefendantNINumber = randomNationalInsuranceNumber()
+    val forthDefendantNINumber = randomNationalInsuranceNumber()
 
     val buildingName = randomName()
     val buildingNumber = randomBuildingNumber()
@@ -173,10 +182,11 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val postTown = randomName()
     val postcode = randomPostcode()
 
-    val messageId = publishCommonPlatformMessage(
+    publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
           CommonPlatformHearingSetup(
+            gender = "MALE",
             pnc = firstPnc,
             firstName = firstName,
             middleName = "mName1 mName2",
@@ -188,42 +198,20 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
             ),
           ),
           CommonPlatformHearingSetup(
+            gender = "FEMALE",
             pnc = secondPnc,
             defendantId = secondDefendantId,
             contact = CommonPlatformHearingSetupContact(),
             address =
             CommonPlatformHearingSetupAddress(buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown, postcode = postcode),
           ),
-          CommonPlatformHearingSetup(pnc = thirdPnc, defendantId = thirdDefendantId, nationalInsuranceNumber = thirdDefendantNINumber),
+          CommonPlatformHearingSetup(pnc = thirdPnc, defendantId = thirdDefendantId, nationalInsuranceNumber = thirdDefendantNINumber, gender = "NOT SPECIFIED"),
+          CommonPlatformHearingSetup(pnc = forthPnc, defendantId = forthDefendantId, nationalInsuranceNumber = forthDefendantNINumber, gender = "UNSUPPORTED GENDER CODE"),
         ),
       ),
 
     )
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf(
-        "DEFENDANT_ID" to firstDefendantId,
-        "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
-      ),
-    )
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf(
-        "DEFENDANT_ID" to secondDefendantId,
-        "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
-      ),
-    )
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf(
-        "DEFENDANT_ID" to thirdDefendantId,
-        "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
-      ),
-    )
     val firstPerson = awaitNotNullPerson {
       personRepository.findByDefendantId(firstDefendantId)
     }
@@ -236,21 +224,26 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       personRepository.findByDefendantId(thirdDefendantId)
     }
 
+    val forthPerson = awaitNotNullPerson {
+      personRepository.findByDefendantId(forthDefendantId)
+    }
+
     assertThat(firstPerson.references.getType(PNC).first().identifierValue).isEqualTo(firstPnc)
     assertThat(firstPerson.personKey).isNotNull()
     assertThat(firstPerson.masterDefendantId).isEqualTo(firstDefendantId)
-    assertThat(firstPerson.firstName).isEqualTo(firstName)
-    assertThat(firstPerson.middleNames).isEqualTo("mName1 mName2")
-    assertThat(firstPerson.lastName).isEqualTo(lastName)
+    assertThat(firstPerson.getPrimaryName().firstName).isEqualTo(firstName)
+    assertThat(firstPerson.getPrimaryName().middleNames).isEqualTo("mName1 mName2")
+    assertThat(firstPerson.getPrimaryName().lastName).isEqualTo(lastName)
     assertThat(firstPerson.contacts).isEmpty()
     assertThat(firstPerson.addresses).isNotEmpty()
-    assertThat(firstPerson.pseudonyms.size).isEqualTo(2)
-    assertThat(firstPerson.pseudonyms[0].firstName).isEqualTo("aliasFirstName1")
-    assertThat(firstPerson.pseudonyms[0].lastName).isEqualTo("alisLastName1")
-    assertThat(firstPerson.pseudonyms[1].firstName).isEqualTo("aliasFirstName2")
-    assertThat(firstPerson.pseudonyms[1].lastName).isEqualTo("alisLastName2")
+    assertThat(firstPerson.getAliases().size).isEqualTo(2)
+    assertThat(firstPerson.getAliases()[0].firstName).isEqualTo("aliasFirstName1")
+    assertThat(firstPerson.getAliases()[0].lastName).isEqualTo("alisLastName1")
+    assertThat(firstPerson.getAliases()[1].firstName).isEqualTo("aliasFirstName2")
+    assertThat(firstPerson.getAliases()[1].lastName).isEqualTo("alisLastName2")
+    assertThat(firstPerson.sexCode).isEqualTo(SexCode.M)
 
-    assertThat(secondPerson.pseudonyms).isEmpty()
+    assertThat(secondPerson.getAliases()).isEmpty()
     assertThat(secondPerson.addresses).isNotEmpty()
     assertThat(secondPerson.addresses[0].postcode).isEqualTo(postcode)
     assertThat(secondPerson.addresses[0].subBuildingName).isNull()
@@ -269,50 +262,28 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPerson.contacts[1].contactType).isEqualTo(MOBILE)
     assertThat(secondPerson.contacts[1].contactValue).isEqualTo("078590345677")
     assertThat(secondPerson.masterDefendantId).isEqualTo(secondDefendantId)
+    assertThat(secondPerson.sexCode).isEqualTo(SexCode.F)
 
-    assertThat(thirdPerson.pseudonyms).isEmpty()
+    assertThat(thirdPerson.getAliases()).isEmpty()
     assertThat(thirdPerson.contacts.size).isEqualTo(0)
     assertThat(thirdPerson.references.getType(PNC).first().identifierValue).isEqualTo(thirdPnc)
     assertThat(thirdPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(thirdDefendantNINumber)
     assertThat(thirdPerson.masterDefendantId).isEqualTo(thirdDefendantId)
+    assertThat(thirdPerson.sexCode).isEqualTo(SexCode.NS)
+
+    assertThat(forthPerson.getAliases()).isEmpty()
+    assertThat(forthPerson.contacts.size).isEqualTo(0)
+    assertThat(forthPerson.references.getType(PNC).first().identifierValue).isEqualTo(forthPnc)
+    assertThat(forthPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(forthDefendantNINumber)
+    assertThat(forthPerson.masterDefendantId).isEqualTo(forthDefendantId)
+    assertThat(forthPerson.sexCode).isEqualTo(SexCode.N)
   }
 
   @Test
-  fun `should log Message Processing Failed telemetry event when an exception is thrown`() {
-    val messageId = publishCommonPlatformMessage(
-      "notAValidMessage",
+  fun `should put message on dlq when an exception is thrown`() {
+    publishCommonPlatformMessage("notAValidMessage")
 
-    )
-
-    checkTelemetry(
-      MESSAGE_PROCESSING_FAILED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name),
-    )
-  }
-
-  @Test
-  fun `should process large messages`() {
-    stubPersonMatchScores()
-    stubPersonMatchUpsert()
-    val defendantId = randomDefendantId()
-
-    val s3Key = UUID.randomUUID().toString()
-
-    val request =
-      PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
-
-    runBlocking {
-      s3AsyncClient.putObject(request, AsyncRequestBody.fromString(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId)))))
-    }
-    val messageId = publishLargeCommonPlatformMessage(
-      largeCommonPlatformMessage(s3Key, s3Bucket),
-    )
-
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
-    )
-    awaitNotNullPerson { personRepository.findByDefendantId(defendantId) }
+    expectOneMessageOnDlq(courtEventsQueue)
   }
 
   @Test
@@ -322,7 +293,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val firstDefendantId = randomDefendantId()
     val secondDefendantId = randomDefendantId()
 
-    val messageId = publishCommonPlatformMessage(
+    publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
           CommonPlatformHearingSetup(pnc = "", defendantId = firstDefendantId),
@@ -332,11 +303,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     )
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
-      times = 2,
-    )
     val personWithEmptyPnc = awaitNotNullPerson {
       personRepository.findByDefendantId(firstDefendantId)
     }
@@ -347,22 +313,25 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should not process youth cases`() {
+  fun `should republish youth cases without saving or adding a UUID`() {
     val youthDefendantId = randomDefendantId()
-    val messageId = publishCommonPlatformMessage(
+    publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
           CommonPlatformHearingSetup(defendantId = youthDefendantId, isYouth = true),
         ),
       ),
-
     )
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
-      times = 0,
-    )
+    expectOneMessageOn(testOnlyCourtEventsQueue)
+
+    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
+
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }!!
+    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
+    assertThat(sqsMessage.message.contains("cprUUID")).isFalse()
+    assertThat(sqsMessage.message.contains(youthDefendantId)).isTrue()
+    assertThat(personRepository.findByDefendantId(youthDefendantId)).isNull()
   }
 
   @Test
@@ -370,28 +339,19 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubPersonMatchScores()
     stubPersonMatchUpsert()
     val defendantId = randomDefendantId()
-    val messageId = publishCommonPlatformMessage(
+    publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
           CommonPlatformHearingSetup(defendantId = defendantId, isYouth = null),
         ),
       ),
-
     )
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf(
-        "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
-        "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name,
-        "DEFENDANT_ID" to defendantId,
-      ),
-    )
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("DEFENDANT_ID" to defendantId))
   }
 
   @Test
-  fun `should not process when is organisation`() {
+  fun `should republish message and not save when organisation`() {
     val defendantId = randomDefendantId()
     publishCommonPlatformMessage(
       commonPlatformHearing(
@@ -401,11 +361,68 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    awaitAssert { assertThat(personRepository.findByDefendantId(defendantId)).isNull() }
+    expectOneMessageOn(testOnlyCourtEventsQueue)
+
+    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
+
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }!!
+    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
+    assertThat(sqsMessage.message.contains("cprUUID")).isFalse()
+    assertThat(sqsMessage.message.contains(defendantId)).isTrue()
+
+    assertThat(personRepository.findByDefendantId(defendantId)).isNull()
   }
 
   @Test
-  fun `should publish incoming event to court topic`() {
+  fun `should not store defendant with missing firstName, middleName and Date of birth`() {
+    val defendantId = randomDefendantId()
+    publishCommonPlatformMessage(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(defendantId = defendantId, firstName = "", middleName = "", lastName = randomName(), dateOfBirth = "", isPerson = true),
+        ),
+      ),
+    )
+
+    expectOneMessageOn(testOnlyCourtEventsQueue)
+
+    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
+
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }!!
+    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
+    assertThat(sqsMessage.message.contains("cprUUID")).isFalse()
+    assertThat(sqsMessage.message.contains(defendantId)).isTrue()
+
+    assertThat(personRepository.findByDefendantId(defendantId)).isNull()
+  }
+
+  @Test
+  fun `should republish large message and not save when organisation`() {
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+
+    val organizationDefendantId = randomDefendantId()
+    val defendantId = randomDefendantId()
+    val organisations = (1..250).map { CommonPlatformHearingSetup(isPerson = false) }
+    val person = CommonPlatformHearingSetup(defendantId = defendantId)
+    val organization = CommonPlatformHearingSetup(defendantId = organizationDefendantId, isPerson = false)
+    val largeMessage = commonPlatformHearing(organisations + person + organization)
+
+    val (messageStoredInS3) = publishAndReceiveLargeMessage(largeMessage)
+
+    val occurrenceOfCprUUId = messageStoredInS3.split("cprUUID").size - 1
+
+    val defendant = awaitNotNullPerson {
+      personRepository.findByDefendantId(defendantId)
+    }
+
+    assertThat(personRepository.findByDefendantId(organizationDefendantId)).isNull()
+    assertThat(occurrenceOfCprUUId).isEqualTo(1)
+    assertThat(messageStoredInS3.contains(defendant.personKey?.personUUID.toString())).isEqualTo(true)
+  }
+
+  @Test
+  fun `should republish message to court topic including the cpr uuid`() {
     val defendantId = randomDefendantId()
     stubPersonMatchUpsert()
     stubPersonMatchScores()
@@ -426,6 +443,12 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     assertThat(commonPlatformHearing.contains(defendantId)).isEqualTo(true)
 
+    val person = awaitNotNullPerson {
+      personRepository.findByDefendantId(defendantId)
+    }
+    assertThat(commonPlatformHearing.contains("cprUUID")).isEqualTo(true)
+    assertThat(commonPlatformHearing.contains(person.personKey?.personUUID.toString())).isEqualTo(true)
+
     assertThat(commonPlatformHearingAttributes?.messageType?.value).isEqualTo(COMMON_PLATFORM_HEARING.name)
 
     checkTelemetry(
@@ -435,51 +458,107 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should publish incoming large message to CPR court topic`() {
-    val defendantId = randomDefendantId()
+  fun `should publish large message to CPR court topic including the cpr uuid`() {
     stubPersonMatchUpsert()
     stubPersonMatchScores()
-    val s3Key = UUID.randomUUID().toString()
 
-    val incomingMessageFromS3 =
-      largeCommonPlatformHearing(defendantId).toByteArray(Charset.forName("UTF8"))
+    val defendantId = randomDefendantId()
 
-    assertThat(incomingMessageFromS3.size).isGreaterThan(256 * 1024)
-
-    val putObjectRequest = PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
-
-    runBlocking {
-      s3AsyncClient.putObject(putObjectRequest, AsyncRequestBody.fromBytes(incomingMessageFromS3))
+    val (messageBody, sqsMessage) = publishAndReceiveLargeMessage(largeCommonPlatformHearing(defendantId))
+    val person = awaitNotNullPerson {
+      personRepository.findByDefendantId(defendantId)
     }
 
-    publishLargeCommonPlatformMessage(
-      largeCommonPlatformMessage(s3Key, s3Bucket),
-    )
-
-    expectOneMessageOn(testOnlyCourtEventsQueue)
-
-    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
-
-    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
-
-    val messageBody = objectMapper.readValue(sqsMessage?.message, ArrayList::class.java)
-    val message = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
     assertThat(sqsMessage?.messageAttributes?.eventType).isEqualTo(MessageAttribute(LARGE_CASE_EVENT_TYPE))
     assertThat(sqsMessage?.messageAttributes?.hearingEventType).isEqualTo(MessageAttribute("ConfirmedOrUpdated"))
-    val getRequest =
-      GetObjectRequest.builder().key(message.s3Key).bucket(message.s3BucketName).build()
-
-    val body = runBlocking {
-      s3AsyncClient.getObject(
-        getRequest,
-        AsyncResponseTransformer.toBytes(),
-      ).join().asUtf8String()
-    }
-    assertThat(body.contains(defendantId)).isEqualTo(true)
+    assertThat(messageBody.contains(defendantId)).isEqualTo(true)
+    assertThat(messageBody.contains("cprUUID")).isEqualTo(true)
+    assertThat(messageBody.contains(person.personKey?.personUUID.toString())).isEqualTo(true)
 
     checkTelemetry(
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
     )
+  }
+
+  private fun putLargeMessageBodyIntoS3(message: String) {
+    val s3Key = UUID.randomUUID().toString()
+    val incomingMessageFromS3 = message.toByteArray(Charset.forName("UTF8"))
+    val putObjectRequest = PutObjectRequest.builder().bucket(s3Bucket).key(s3Key).build()
+    s3AsyncClient.putObject(putObjectRequest, AsyncRequestBody.fromBytes(incomingMessageFromS3)).get()
+
+    assertThat(incomingMessageFromS3.size).isGreaterThan(256 * 1024)
+
+    publishLargeCommonPlatformMessage(
+      largeCommonPlatformMessage(s3Key, s3Bucket),
+    )
+  }
+
+  private fun publishAndReceiveLargeMessage(message: String): Pair<String, SQSMessage?> {
+    putLargeMessageBodyIntoS3(message)
+
+    expectOneMessageOn(testOnlyCourtEventsQueue)
+
+    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
+    val messageBody = objectMapper.readValue(sqsMessage?.message, ArrayList::class.java)
+    val (s3Key, s3BucketName) = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
+    val body = s3AsyncClient.getObject(
+      GetObjectRequest.builder().key(s3Key).bucket(s3BucketName).build(),
+      AsyncResponseTransformer.toBytes(),
+    ).join().asUtf8String()
+
+    return Pair(body, sqsMessage)
+  }
+
+  @Nested
+  inner class EventLog {
+
+    @Test
+    fun `should save details to event log on defendant create`() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+
+      val pnc = randomPnc()
+      val cro = randomCro()
+      val defendantId = randomDefendantId()
+      val firstName = randomName()
+      val lastName = randomName()
+      val aliasFirstName = randomName()
+      val aliasLastName = randomName()
+
+      publishCommonPlatformMessage(
+        commonPlatformHearing(
+          listOf(
+            CommonPlatformHearingSetup(
+              pnc = pnc,
+              firstName = firstName,
+              lastName = lastName,
+              cro = cro,
+              defendantId = defendantId,
+              aliases = listOf(
+                CommonPlatformHearingSetupAlias(firstName = aliasFirstName, lastName = aliasLastName),
+              ),
+            ),
+          ),
+        ),
+      )
+
+      checkEventLog(defendantId, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
+        assertThat(eventLogs.size).isEqualTo(1)
+        val createdLog = eventLogs.first()
+        assertThat(createdLog.pncs).isEqualTo(arrayOf(pnc))
+        assertThat(createdLog.cros).isEqualTo(arrayOf(cro))
+        assertThat(createdLog.firstName).isEqualTo(firstName)
+        assertThat(createdLog.lastName).isEqualTo(lastName)
+        assertThat(createdLog.sourceSystemId).isEqualTo(defendantId)
+        assertThat(createdLog.sourceSystem).isEqualTo(COMMON_PLATFORM)
+        assertThat(createdLog.firstNameAliases).isEqualTo(arrayOf(aliasFirstName))
+        assertThat(createdLog.lastNameAliases).isEqualTo(arrayOf(aliasLastName))
+        assertThat(createdLog.uuid).isNotNull()
+        assertThat(createdLog.uuidStatusType).isEqualTo(ACTIVE)
+      }
+      checkEventLogExist(defendantId, CPRLogEvents.CPR_UUID_CREATED)
+    }
   }
 }

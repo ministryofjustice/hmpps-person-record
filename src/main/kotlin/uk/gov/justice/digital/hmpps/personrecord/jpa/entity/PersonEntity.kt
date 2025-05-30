@@ -16,13 +16,14 @@ import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -33,18 +34,6 @@ class PersonEntity(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   var id: Long? = null,
-
-  @Column
-  var title: String? = null,
-
-  @Column(name = "first_name")
-  var firstName: String? = null,
-
-  @Column(name = "last_name")
-  var lastName: String? = null,
-
-  @Column(name = "middle_names")
-  var middleNames: String? = null,
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "fk_person_key_id", referencedColumnName = "id", nullable = true)
@@ -101,11 +90,9 @@ class PersonEntity(
   @Column(name = "sexual_orientation")
   val sexualOrientation: String? = null,
 
-  @Column(name = "date_of_birth")
-  var dateOfBirth: LocalDate? = null,
-
-  @Column
-  val sex: String? = null,
+  @Column(name = "sex_code")
+  @Enumerated(STRING)
+  var sexCode: SexCode? = null,
 
   @Column
   val ethnicity: String? = null,
@@ -134,10 +121,21 @@ class PersonEntity(
 
 ) {
 
+  fun getAliases(): List<PseudonymEntity> = this.pseudonyms.filter { it.nameType.equals(NameType.ALIAS) }
+  fun getPrimaryName(): PseudonymEntity = this.pseudonyms.firstOrNull { it.nameType.equals(NameType.PRIMARY) } ?: PseudonymEntity(nameType = NameType.PRIMARY)
+
+  fun getExcludeOverrideMarkers() = this.overrideMarkers.filter { it.markerType == OverrideMarkerType.EXCLUDE }
+
+  fun getIncludeOverrideMarkers() = this.overrideMarkers.filter { it.markerType == OverrideMarkerType.INCLUDE }
+
   fun addExcludeOverrideMarker(excludeRecord: PersonEntity) {
     this.overrideMarkers.add(
       OverrideMarkerEntity(markerType = OverrideMarkerType.EXCLUDE, markerValue = excludeRecord.id, person = this),
     )
+  }
+
+  fun mergeTo(personEntity: PersonEntity) {
+    this.mergedTo = personEntity.id
   }
 
   fun removeMergedLink() {
@@ -150,11 +148,6 @@ class PersonEntity(
   }
 
   fun update(person: Person) {
-    this.title = person.title
-    this.firstName = person.firstName
-    this.middleNames = person.middleNames?.joinToString(" ") { it }
-    this.lastName = person.lastName
-    this.dateOfBirth = person.dateOfBirth
     this.defendantId = person.defendantId
     this.crn = person.crn
     this.prisonNumber = person.prisonNumber
@@ -162,6 +155,7 @@ class PersonEntity(
     this.nationality = person.nationality
     this.religion = person.religion
     this.cId = person.cId
+    this.sexCode = person.sexCode
     this.lastModified = LocalDateTime.now()
     pseudonyms.clear()
     addresses.clear()
@@ -174,7 +168,7 @@ class PersonEntity(
   private fun updateChildEntities(person: Person) {
     updatePersonAddresses(person)
     updatePersonContacts(person)
-    updatePersonAliases(person)
+    updatePseudonyms(person)
     updatePersonReferences(person)
     updatePersonSentences(person)
   }
@@ -185,10 +179,10 @@ class PersonEntity(
     this.addresses.addAll(personAddresses)
   }
 
-  private fun updatePersonAliases(person: Person) {
-    val personAliases = PseudonymEntity.fromList(person.aliases)
-    personAliases.forEach { personAliasEntity -> personAliasEntity.person = this }
-    this.pseudonyms.addAll(personAliases)
+  private fun updatePseudonyms(person: Person) {
+    val entities = PseudonymEntity.from(person)
+    entities.forEach { entity -> entity.person = this }
+    this.pseudonyms.addAll(entities)
   }
 
   private fun updatePersonContacts(person: Person) {
@@ -204,7 +198,7 @@ class PersonEntity(
   }
 
   private fun updatePersonSentences(person: Person) {
-    val personSentences = SentenceInfoEntity.fromList(person.sentences)
+    val personSentences = SentenceInfoEntity.fromList(person.sentences).distinctBy { it.sentenceDate }
     personSentences.forEach { personSentenceInfoEntity -> personSentenceInfoEntity.person = this }
     this.sentenceInfo.addAll(personSentences)
   }
@@ -217,24 +211,19 @@ class PersonEntity(
       DELIUS -> this.crn
       NOMIS -> this.prisonNumber
       COMMON_PLATFORM -> this.defendantId
-      LIBRA -> this.defendantId
+      LIBRA -> this.cId
       else -> null
     }
 
     fun List<ReferenceEntity>.getType(type: IdentifierType): List<ReferenceEntity> = this.filter { it.identifierType == type }
 
-    fun PersonEntity?.shouldCreateOrUpdate(shouldCreate: () -> PersonEntity, shouldUpdate: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {
-      this == empty -> shouldCreate()
-      else -> shouldUpdate(this)
+    fun PersonEntity?.exists(no: () -> PersonEntity, yes: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {
+      this == empty -> no()
+      else -> yes(this)
     }
 
     fun new(person: Person): PersonEntity {
       val personEntity = PersonEntity(
-        title = person.title,
-        firstName = person.firstName,
-        middleNames = person.middleNames?.joinToString(" ") { it },
-        lastName = person.lastName,
-        dateOfBirth = person.dateOfBirth,
         defendantId = person.defendantId,
         crn = person.crn,
         prisonNumber = person.prisonNumber,
@@ -247,6 +236,7 @@ class PersonEntity(
         matchId = UUID.randomUUID(),
         cId = person.cId,
         lastModified = LocalDateTime.now(),
+        sexCode = person.sexCode,
       )
       personEntity.updateChildEntities(person)
       return personEntity

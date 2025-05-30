@@ -14,10 +14,13 @@ import uk.gov.justice.digital.hmpps.personrecord.client.PageParams
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonNumbers
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonServiceClient
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_SEEDED
 
 private const val OK = "OK"
 
@@ -29,6 +32,7 @@ class PopulateFromPrison(
   @Value("\${populate-from-nomis.page-size}") val pageSize: Int,
   private val repository: PersonRepository,
   private val retryExecutor: RetryExecutor,
+  private val eventLogRepository: EventLogRepository,
 ) {
 
   @Hidden
@@ -50,11 +54,14 @@ class PopulateFromPrison(
         log.info("Processing Prison seeding, page: $page / $totalPages")
         retryExecutor.runWithRetryHTTP {
           prisonerSearchClient.getPrisonNumbers(PrisonNumbers(numbers))
-        }?.forEach {
+        }?.map {
           val person = Person.from(it)
-          val personToSave = PersonEntity.new(person)
-          repository.saveAndFlush(personToSave)
-        }
+          PersonEntity.new(person)
+        }?.let { repository.saveAll(it) }
+          ?.map { EventLogEntity.from(it, CPR_RECORD_SEEDED) }
+          ?.let {
+            eventLogRepository.saveAll(it)
+          }
 
         // don't really like this, but it saves 1 call to getPrisonNumbers
         if (page < totalPages) {

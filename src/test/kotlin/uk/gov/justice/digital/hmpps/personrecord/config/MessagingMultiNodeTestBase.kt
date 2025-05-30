@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.message.LARGE_CASE_EVENT_TYPE
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.HmppsQueue
@@ -122,8 +122,15 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     } matches { it == 0 }
   }
 
-  fun publishDomainEvent(eventType: String, domainEvent: DomainEvent): String {
-    val response = publishEvent(
+  fun expectOneMessageOnDlq(queue: HmppsQueue?) {
+    expectNoMessagesOn(queue)
+    await untilCallTo {
+      queue?.sqsDlqClient?.countMessagesOnQueue(queue.dlqUrl!!)?.get()
+    } matches { it == 1 }
+  }
+
+  fun publishDomainEvent(eventType: String, domainEvent: DomainEvent) {
+    publishEvent(
       objectMapper.writeValueAsString(domainEvent),
       domainEventsTopic,
       mapOf(
@@ -136,7 +143,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     expectNoMessagesOn(probationMergeEventsQueue)
     expectNoMessagesOn(prisonMergeEventsQueue)
     expectNoMessagesOn(prisonEventsQueue)
-    return response!!
   }
 
   fun publishProbationEvent(eventType: String, probationEvent: ProbationEvent) {
@@ -157,12 +163,12 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   fun probationMergeEventAndResponseSetup(
     eventType: String,
     sourceCrn: String,
-    target: ApiResponseSetup,
+    targetCrn: String,
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
   ) {
-    stubSingleProbationResponse(target, scenario, currentScenarioState, nextScenarioState)
+    stubSingleProbationResponse(ApiResponseSetup(crn = targetCrn), scenario, currentScenarioState, nextScenarioState)
 
     publishDomainEvent(
       eventType,
@@ -170,7 +176,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
         eventType = eventType,
         additionalInformation = AdditionalInformation(
           sourceCrn = sourceCrn,
-          targetCrn = target.crn,
+          targetCrn = targetCrn,
         ),
       ),
     )
@@ -178,22 +184,22 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
   fun probationUnmergeEventAndResponseSetup(
     eventType: String,
-    reactivated: ApiResponseSetup,
-    unmerged: ApiResponseSetup,
+    reactivatedCrn: String,
+    unmergedCrn: String,
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
   ) {
-    stubSingleProbationResponse(unmerged, scenario, currentScenarioState, nextScenarioState)
-    stubSingleProbationResponse(reactivated, scenario, currentScenarioState, nextScenarioState)
+    stubSingleProbationResponse(ApiResponseSetup(crn = reactivatedCrn), scenario, currentScenarioState, nextScenarioState)
+    stubSingleProbationResponse(ApiResponseSetup(crn = unmergedCrn), scenario, currentScenarioState, nextScenarioState)
 
     publishDomainEvent(
       eventType,
       DomainEvent(
         eventType = eventType,
         additionalInformation = AdditionalInformation(
-          reactivatedCrn = reactivated.crn,
-          unmergedCrn = unmerged.crn,
+          reactivatedCrn = reactivatedCrn,
+          unmergedCrn = unmergedCrn,
         ),
       ),
     )
@@ -230,19 +236,19 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   fun prisonMergeEventAndResponseSetup(
     eventType: String,
     sourcePrisonNumber: String,
-    target: ApiResponseSetup,
+    targetPrisonNumber: String,
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
   ) {
-    stubPrisonResponse(target, scenario, currentScenarioState, nextScenarioState)
+    stubPrisonResponse(ApiResponseSetup(prisonNumber = targetPrisonNumber), scenario, currentScenarioState, nextScenarioState)
 
     publishDomainEvent(
       eventType,
       DomainEvent(
         eventType = eventType,
         additionalInformation = AdditionalInformation(
-          prisonNumber = target.prisonNumber,
+          prisonNumber = targetPrisonNumber,
           sourcePrisonNumber = sourcePrisonNumber,
         ),
       ),

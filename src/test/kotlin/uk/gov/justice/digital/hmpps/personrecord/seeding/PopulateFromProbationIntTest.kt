@@ -4,12 +4,15 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.allProbationCasesResponse
 import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.allProbationCasesSingleResponse
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_SEEDED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import java.time.LocalDate
 
@@ -39,28 +42,53 @@ class PopulateFromProbationIntTest : WebTestBase() {
 
     awaitNotNullPerson { personRepository.findByCrn(crnSeven) }
     val popOne = personRepository.findByCrn(crnOne)!!
-    assertThat(popOne.firstName).isEqualTo("POPOneFirstName")
-    assertThat(popOne.middleNames).isEqualTo("POPOneMiddleNameOne POPOneMiddleNameTwo")
-    assertThat(popOne.lastName).isEqualTo("POPOneLastName")
+    assertThat(popOne.getPrimaryName().firstName).isEqualTo("POPOneFirstName")
+    assertThat(popOne.getPrimaryName().middleNames).isEqualTo("POPOneMiddleNameOne POPOneMiddleNameTwo")
+    assertThat(popOne.getPrimaryName().lastName).isEqualTo("POPOneLastName")
     assertThat(popOne.crn).isEqualTo(crnOne)
-    assertThat(popOne.dateOfBirth).isEqualTo(LocalDate.of(1980, 8, 29))
-    assertThat(popOne.pseudonyms[0].firstName).isEqualTo("POPOneAliasOneFirstName")
-    assertThat(popOne.pseudonyms[0].middleNames).isEqualTo("POPOneAliasOneMiddleNameOne POPOneAliasOneMiddleNameTwo")
-    assertThat(popOne.pseudonyms[0].lastName).isEqualTo("POPOneAliasOneLastName")
-    assertThat(popOne.pseudonyms[1].firstName).isEqualTo("POPOneAliasTwoFirstName")
-    assertThat(popOne.pseudonyms[1].middleNames).isEqualTo("POPOneAliasTwoMiddleNameOne POPOneAliasTwoMiddleNameTwo")
-    assertThat(popOne.pseudonyms[1].lastName).isEqualTo("POPOneAliasTwoLastName")
+    assertThat(popOne.getPrimaryName().dateOfBirth).isEqualTo(LocalDate.of(1980, 8, 29))
+    assertThat(popOne.getAliases()[0].firstName).isEqualTo("POPOneAliasOneFirstName")
+    assertThat(popOne.getAliases()[0].middleNames).isEqualTo("POPOneAliasOneMiddleNameOne POPOneAliasOneMiddleNameTwo")
+    assertThat(popOne.getAliases()[0].lastName).isEqualTo("POPOneAliasOneLastName")
+    assertThat(popOne.getAliases()[1].firstName).isEqualTo("POPOneAliasTwoFirstName")
+    assertThat(popOne.getAliases()[1].middleNames).isEqualTo("POPOneAliasTwoMiddleNameOne POPOneAliasTwoMiddleNameTwo")
+    assertThat(popOne.getAliases()[1].lastName).isEqualTo("POPOneAliasTwoLastName")
     assertThat(popOne.sourceSystem).isEqualTo(DELIUS)
-    assertThat(personRepository.findByCrn(crnTwo)!!.firstName).isEqualTo("POPTwoFirstName")
-    assertThat(personRepository.findByCrn(crnThree)!!.firstName).isEqualTo("POPThreeFirstName")
-    assertThat(personRepository.findByCrn(crnFour)!!.firstName).isEqualTo("POPFourFirstName")
-    assertThat(personRepository.findByCrn(crnFive)!!.firstName).isEqualTo("POPFiveFirstName")
-    assertThat(personRepository.findByCrn(crnSix)!!.firstName).isEqualTo("POPSixFirstName")
+    val popTwo = personRepository.findByCrn(crnTwo)!!
+    assertThat(popTwo.getPrimaryName().firstName).isEqualTo("POPTwoFirstName")
+    val popThree = personRepository.findByCrn(crnThree)!!
+    assertThat(popThree.getPrimaryName().firstName).isEqualTo("POPThreeFirstName")
+    val popFour = personRepository.findByCrn(crnFour)!!
+    assertThat(popFour.getPrimaryName().firstName).isEqualTo("POPFourFirstName")
+    val popFive = personRepository.findByCrn(crnFive)!!
+    assertThat(popFive.getPrimaryName().firstName).isEqualTo("POPFiveFirstName")
+    val popSix = personRepository.findByCrn(crnSix)!!
+    assertThat(popSix.getPrimaryName().firstName).isEqualTo("POPSixFirstName")
     val popSeven = personRepository.findByCrn(crnSeven)!!
-    assertThat(popSeven.firstName).isEqualTo("POPSevenFirstName")
-    assertThat(popSeven.middleNames).isEqualTo("")
+    assertThat(popSeven.getPrimaryName().firstName).isEqualTo("POPSevenFirstName")
+    assertThat(popSeven.getPrimaryName().middleNames).isNull()
     assertThat(popSeven.references.getType(IdentifierType.CRO)).isEqualTo(emptyList<ReferenceEntity>())
-    assertThat(popSeven.pseudonyms.size).isEqualTo(0)
+    assertThat(popSeven.getAliases().size).isEqualTo(0)
+
+    val entries = eventLogRepository.findAll()
+    checkEventLog(entries, popOne)
+    checkEventLog(entries, popTwo)
+    checkEventLog(entries, popThree)
+    checkEventLog(entries, popFour)
+    checkEventLog(entries, popFive)
+    checkEventLog(entries, popSix)
+    checkEventLog(entries, popSeven)
+  }
+
+  private fun checkEventLog(
+    entries: MutableList<EventLogEntity>,
+    person: PersonEntity,
+  ) {
+    val entry = entries.find { it.matchId == person.matchId }!!
+    assertThat(entry.uuid).isEqualTo(person.personKey?.personUUID)
+    assertThat(entry.sourceSystem).isEqualTo(DELIUS)
+    assertThat(entry.eventType).isEqualTo(CPR_RECORD_SEEDED)
+    assertThat(entry.sourceSystemId).isEqualTo(person.crn)
   }
 
   @Test
@@ -69,9 +97,9 @@ class PopulateFromProbationIntTest : WebTestBase() {
     val crnOne: String = randomCrn()
     val crnTwo: String = randomCrn()
 
-    stub5xxResponse("/all-probation-cases?size=2&page=0&sort=id%2Casc", nextScenarioState = "next request will time out", scenarioName = scenarioName, status = 503)
+    stub5xxResponse("/all-probation-cases?size=2&page=0&sort=id,asc", nextScenarioState = "next request will time out", scenarioName = scenarioName, status = 503)
 
-    stubGetRequestWithTimeout("/all-probation-cases?size=2&page=0&sort=id%2Casc", "next request will time out", "next request will succeed")
+    stubGetRequestWithTimeout("/all-probation-cases?size=2&page=0&sort=id,asc", "next request will time out", "next request will succeed")
 
     stubResponse(crnOne, "POPOne", crnTwo, "POPTwo", 0, scenarioName, 1)
 
@@ -83,8 +111,8 @@ class PopulateFromProbationIntTest : WebTestBase() {
 
     awaitNotNullPerson { personRepository.findByCrn(crnTwo) }
 
-    assertThat(personRepository.findByCrn(crnOne)!!.firstName).isEqualTo("POPOneFirstName")
-    assertThat(personRepository.findByCrn(crnTwo)!!.firstName).isEqualTo("POPTwoFirstName")
+    assertThat(personRepository.findByCrn(crnOne)!!.getPrimaryName().firstName).isEqualTo("POPOneFirstName")
+    assertThat(personRepository.findByCrn(crnTwo)!!.getPrimaryName().firstName).isEqualTo("POPTwoFirstName")
   }
 
   private fun stubResponse(
@@ -96,13 +124,13 @@ class PopulateFromProbationIntTest : WebTestBase() {
     scenarioName: String,
     totalPages: Int = 4,
   ) = stubGetRequest(
-    url = "/all-probation-cases?size=2&page=$page&sort=id%2Casc",
+    url = "/all-probation-cases?size=2&page=$page&sort=id,asc",
     scenarioName = scenarioName,
     body = allProbationCasesResponse(firstCrn, firstPrefix, secondCrn, secondPrefix, totalPages),
   )
 
   private fun stubSingleResponse(firstCrn: String, firstPrefix: String, page: Int, scenarioName: String) = stubGetRequest(
-    url = "/all-probation-cases?size=2&page=$page&sort=id%2Casc",
+    url = "/all-probation-cases?size=2&page=$page&sort=id,asc",
     scenarioName = scenarioName,
     body = allProbationCasesSingleResponse(firstCrn, firstPrefix),
   )

@@ -12,18 +12,22 @@ import org.springframework.web.bind.annotation.RequestMethod.POST
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClientPageParams
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_SEEDED
 
 @RestController
 @Profile("seeding")
 class PopulateFromProbation(
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
   @Value("\${populate-from-probation.page-size}") val pageSize: Int,
-  private val repository: PersonRepository,
   private val retryExecutor: RetryExecutor,
+  private val personRepository: PersonRepository,
+  private val eventLogRepository: EventLogRepository,
 ) {
 
   @Hidden
@@ -47,11 +51,12 @@ class PopulateFromProbation(
         log.info("Processing DELIUS seeding, page: $page / $totalPages")
         retryExecutor.runWithRetryHTTP {
           corePersonRecordAndDeliusClient.getProbationCases(CorePersonRecordAndDeliusClientPageParams(page, pageSize))
-        }?.cases?.forEach {
+        }?.cases?.map {
           val person = Person.from(it)
-          val personToSave = PersonEntity.new(person)
-          repository.saveAndFlush(personToSave)
-        }
+          PersonEntity.new(person)
+        }?.let { personRepository.saveAll(it) }
+          ?.map { EventLogEntity.from(it, CPR_RECORD_SEEDED) }
+          ?.let { eventLogRepository.saveAll(it) }
       }
       log.info("DELIUS seeding finished, approx records ${totalPages * pageSize}")
     }

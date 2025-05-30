@@ -1,39 +1,25 @@
 package uk.gov.justice.digital.hmpps.personrecord.client
 
-import org.springframework.cloud.openfeign.FeignClient
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.MatchStatus
+import org.springframework.http.HttpMethod
+import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchMigrateRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 
-@FeignClient(
-  name = "person-match",
-  url = "\${person-match.base-url}",
-)
-interface PersonMatchClient {
+@Component
+class PersonMatchClient(private val personMatchWebClient: WebClient) {
 
-  @PostMapping("/is-cluster-valid")
-  fun isClusterValid(@RequestBody requestBody: List<String>): IsClusterValidResponse
+  fun isClusterValid(requestBody: List<String>): IsClusterValidResponse = personMatchWebClient.post().uri("/is-cluster-valid").bodyValue(requestBody).retrieve().bodyToMono(IsClusterValidResponse::class.java).block()!!
 
-  @GetMapping("/person/score/{matchId}")
-  fun getPersonScores(@PathVariable matchId: String): List<PersonMatchScore>
+  fun getPersonScores(matchId: String): List<PersonMatchScore> = personMatchWebClient.get().uri("/person/score/$matchId").retrieve().bodyToMono<List<PersonMatchScore>>().block()!!
 
-  @PostMapping("/person")
-  fun postPerson(@RequestBody personMatchRecord: PersonMatchRecord)
+  fun postPerson(personMatchRecord: PersonMatchRecord) = personMatchWebClient.post().uri("/person").bodyValue(personMatchRecord).retrieve().toBodilessEntity().block()
 
-  @DeleteMapping("/person")
-  fun deletePerson(@RequestBody personMatchIdentifier: PersonMatchIdentifier)
+  fun deletePerson(personMatchIdentifier: PersonMatchIdentifier) = personMatchWebClient.method(HttpMethod.DELETE).uri("/person").bodyValue(personMatchIdentifier).retrieve().toBodilessEntity().block()
 
-  @PostMapping("/person/migrate")
-  fun postPersonMigrate(@RequestBody personMatchMigrateRequest: PersonMatchMigrateRequest)
-
-  @GetMapping("/health")
-  fun getHealth(): MatchStatus?
+  fun postPersonMigrate(personMatchMigrateRequest: PersonMatchMigrateRequest) = personMatchWebClient.post().uri("/person/migrate").bodyValue(personMatchMigrateRequest).retrieve().toBodilessEntity().block()
 }

@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
+import org.apache.commons.lang3.StringUtils.SPACE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
@@ -8,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner.
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -19,7 +21,7 @@ import java.util.UUID
 data class Person(
   val personId: UUID? = null,
   val firstName: String? = null,
-  val middleNames: List<String>? = emptyList(),
+  val middleNames: String? = null,
   val lastName: String? = null,
   val dateOfBirth: LocalDate? = null,
   val crn: String? = null,
@@ -39,19 +41,10 @@ data class Person(
   val sentences: List<SentenceInfo> = emptyList(),
   val currentlyManaged: Boolean? = null,
   val cId: String? = null,
+  val sexCode: SexCode? = null,
 ) {
 
-  fun getPostcodesForMatching(): Set<String> = this.addresses.mapNotNull { it.postcode }.toSet()
-
   companion object {
-
-    fun Person?.extractSourceSystemId(): String? = when (this?.sourceSystem) {
-      DELIUS -> this.crn
-      NOMIS -> this.prisonNumber
-      COMMON_PLATFORM -> this.defendantId
-      LIBRA -> this.cId
-      else -> null
-    }
 
     fun List<Reference>.getType(type: IdentifierType): List<Reference> = this.filter { it.identifierType == type }
 
@@ -74,7 +67,7 @@ data class Person(
       return Person(
         title = probationCase.title?.value,
         firstName = probationCase.name.firstName,
-        middleNames = probationCase.name.middleNames?.split(" ") ?: emptyList(),
+        middleNames = probationCase.name.middleNames,
         lastName = probationCase.name.lastName,
         dateOfBirth = probationCase.dateOfBirth,
         crn = probationCase.identifiers.crn,
@@ -86,6 +79,7 @@ data class Person(
         references = references,
         sourceSystem = DELIUS,
         sentences = probationCase.sentences?.map { SentenceInfo.from(it) } ?: emptyList(),
+        sexCode = SexCode.from(probationCase),
       )
     }
 
@@ -131,7 +125,7 @@ data class Person(
       return Person(
         firstName = defendant.personDefendant?.personDetails?.firstName,
         lastName = defendant.personDefendant?.personDetails?.lastName,
-        middleNames = defendant.personDefendant?.personDetails?.middleName?.split(" "),
+        middleNames = defendant.personDefendant?.personDetails?.middleName,
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
         defendantId = defendant.id,
         masterDefendantId = defendant.masterDefendantId,
@@ -140,11 +134,21 @@ data class Person(
         references = references,
         aliases = defendant.aliases?.map { Alias.from(it) } ?: emptyList(),
         sourceSystem = sourceSystemType,
+        sexCode = SexCode.from(defendant.personDefendant?.personDetails),
       )
     }
 
     fun from(libraHearingEvent: LibraHearingEvent): Person {
-      val addresses = listOf(Address(postcode = libraHearingEvent.defendantAddress?.postcode))
+      val addresses = listOf(
+        Address(
+          postcode = libraHearingEvent.defendantAddress?.postcode,
+          buildingName = libraHearingEvent.defendantAddress?.buildingName,
+          buildingNumber = libraHearingEvent.defendantAddress?.buildingNumber,
+          thoroughfareName = libraHearingEvent.defendantAddress?.thoroughfareName,
+          dependentLocality = libraHearingEvent.defendantAddress?.dependentLocality,
+          postTown = libraHearingEvent.defendantAddress?.postTown,
+        ),
+      )
       val references = listOf(
         Reference(identifierType = IdentifierType.CRO, identifierValue = libraHearingEvent.cro?.toString()),
         Reference(identifierType = IdentifierType.PNC, identifierValue = libraHearingEvent.pnc?.toString()),
@@ -152,12 +156,14 @@ data class Person(
       return Person(
         title = libraHearingEvent.name?.title,
         firstName = libraHearingEvent.name?.firstName,
+        middleNames = listOfNotNull(libraHearingEvent.name?.forename2, libraHearingEvent.name?.forename3).joinToString(SPACE).trim(),
         lastName = libraHearingEvent.name?.lastName,
         dateOfBirth = libraHearingEvent.dateOfBirth,
         addresses = addresses,
         references = references,
         sourceSystem = LIBRA,
         cId = libraHearingEvent.cId,
+        sexCode = SexCode.from(libraHearingEvent),
       )
     }
 
@@ -187,7 +193,7 @@ data class Person(
         prisonNumber = prisoner.prisonNumber,
         title = prisoner.title,
         firstName = prisoner.firstName,
-        middleNames = prisoner.middleNames?.split(" ") ?: emptyList(),
+        middleNames = prisoner.middleNames,
         lastName = prisoner.lastName,
         dateOfBirth = prisoner.dateOfBirth,
         ethnicity = prisoner.ethnicity,
@@ -200,20 +206,21 @@ data class Person(
         religion = prisoner.religion,
         sentences = prisoner.allConvictedOffences?.map { SentenceInfo.from(it) } ?: emptyList(),
         currentlyManaged = prisoner.currentlyManaged,
+        sexCode = SexCode.from(prisoner),
       )
     }
 
     fun from(existingPersonEntity: PersonEntity): Person = Person(
-      personId = existingPersonEntity.personKey?.personId,
-      firstName = existingPersonEntity.firstName,
-      middleNames = existingPersonEntity.middleNames?.split(" ") ?: emptyList(),
-      lastName = existingPersonEntity.lastName,
-      dateOfBirth = existingPersonEntity.dateOfBirth,
+      personId = existingPersonEntity.personKey?.personUUID,
+      firstName = existingPersonEntity.getPrimaryName().firstName,
+      middleNames = existingPersonEntity.getPrimaryName().middleNames,
+      lastName = existingPersonEntity.getPrimaryName().lastName,
+      dateOfBirth = existingPersonEntity.getPrimaryName().dateOfBirth,
       crn = existingPersonEntity.crn,
       prisonNumber = existingPersonEntity.prisonNumber,
       defendantId = existingPersonEntity.defendantId,
-      title = existingPersonEntity.title,
-      aliases = existingPersonEntity.pseudonyms.map { Alias.from(it) },
+      title = existingPersonEntity.getPrimaryName().title,
+      aliases = existingPersonEntity.getAliases().map { Alias.from(it) },
       masterDefendantId = existingPersonEntity.masterDefendantId,
       nationality = existingPersonEntity.nationality,
       religion = existingPersonEntity.religion,
@@ -224,8 +231,16 @@ data class Person(
       sourceSystem = existingPersonEntity.sourceSystem,
       sentences = existingPersonEntity.sentenceInfo.map { SentenceInfo.from(it) },
       currentlyManaged = existingPersonEntity.currentlyManaged,
+      sexCode = existingPersonEntity.sexCode,
     )
   }
 
   fun getIdentifiersForMatching(identifiers: List<IdentifierType>): Set<Reference> = this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }.toSet()
+  fun isPerson(): Boolean = minimumDataIsPresent()
+
+  private fun minimumDataIsPresent(): Boolean = lastNameIsPresent() && anyOtherPersonalDataIsPresent()
+
+  private fun anyOtherPersonalDataIsPresent() = listOfNotNull(firstName, middleNames, dateOfBirth).joinToString("").isNotEmpty()
+
+  private fun lastNameIsPresent() = lastName?.isNotEmpty() == true
 }

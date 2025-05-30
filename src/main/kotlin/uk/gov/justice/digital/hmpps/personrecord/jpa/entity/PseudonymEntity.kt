@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import java.time.LocalDate
 
@@ -46,20 +47,27 @@ class PseudonymEntity(
   @Column(name = "date_of_birth")
   val dateOfBirth: LocalDate? = null,
 
-  @Column
-  val sex: String? = null,
-
-  @Column
-  val ethnicity: String? = null,
-
   @Column(name = "name_type")
   @Enumerated(STRING)
-  val type: NameType,
+  val nameType: NameType,
 
   @Version
   var version: Int = 0,
 ) {
   companion object {
+    fun from(person: Person): List<PseudonymEntity> {
+      val primary = PseudonymEntity(
+        firstName = person.firstName,
+        middleNames = person.middleNames,
+        lastName = person.lastName,
+        nameType = NameType.PRIMARY,
+        title = person.title,
+        dateOfBirth = person.dateOfBirth,
+      )
+
+      return person.aliases.mapNotNull { from(it) } + primary
+    }
+
     private fun from(alias: Alias): PseudonymEntity? = when {
       isAliasPresent(alias.firstName, alias.middleNames, alias.lastName) ->
         PseudonymEntity(
@@ -67,13 +75,11 @@ class PseudonymEntity(
           middleNames = alias.middleNames,
           lastName = alias.lastName,
           dateOfBirth = alias.dateOfBirth,
-          type = NameType.ALIAS,
+          nameType = NameType.ALIAS,
           title = alias.title,
         )
       else -> null
     }
-
-    fun fromList(aliases: List<Alias>): List<PseudonymEntity> = aliases.mapNotNull { from(it) }
 
     private fun isAliasPresent(firstName: String?, middleNames: String?, surname: String?): Boolean = sequenceOf(firstName, middleNames, surname)
       .filterNotNull().any { it.isNotBlank() }

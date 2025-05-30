@@ -16,7 +16,7 @@ class EncodingService(
   private val retryExecutor: RetryExecutor,
 ) {
 
-  fun getProbationCase(crn: String, onSuccess: (value: ProbationCase?) -> Unit?) = runCatching {
+  fun getProbationCase(crn: String, onSuccess: (value: ProbationCase?) -> Any?) = runCatching {
     runBlocking {
       retryExecutor.runWithRetryHTTP {
         corePersonRecordAndDeliusClient.getProbationCase(crn)
@@ -24,7 +24,7 @@ class EncodingService(
     }
   }.fold(onSuccess, failedToRetrieveProbationCase())
 
-  fun getPrisonerDetails(prisonNumber: String, onSuccess: (value: Prisoner?) -> Unit?) = runCatching {
+  fun getPrisonerDetails(prisonNumber: String, onSuccess: (value: Prisoner?) -> Any?) = runCatching {
     runBlocking {
       retryExecutor.runWithRetryHTTP {
         prisonerSearchClient.getPrisoner(prisonNumber)

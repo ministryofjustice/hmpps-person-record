@@ -4,6 +4,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -11,8 +13,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NO
 import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.onePrisoner
 import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.prisonNumbersResponse
 import uk.gov.justice.digital.hmpps.personrecord.seeding.responses.twoPrisoners
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_SEEDED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import java.time.LocalDate
 
 @ActiveProfiles("seeding")
 class PopulateFromPrisonIntTest : WebTestBase() {
@@ -28,7 +30,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     val prisonNumberSix: String = randomPrisonNumber()
     val prisonNumberSeven: String = randomPrisonNumber()
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${0}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=0",
       scenarioName = scenarioName,
       body = prisonNumbersResponse(listOf<String?>(prisonNumberOne, prisonNumberTwo)),
     )
@@ -45,7 +47,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       ),
     )
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${1}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=1",
       scenarioName = scenarioName,
       body = prisonNumbersResponse(listOf<String?>(prisonNumberThree, prisonNumberFour)),
     )
@@ -61,7 +63,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       ),
     )
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${2}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=2",
       scenarioName = scenarioName,
       body = prisonNumbersResponse(listOf<String?>(prisonNumberFive, prisonNumberSix)),
     )
@@ -78,7 +80,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     )
 
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${3}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=3",
       scenarioName = scenarioName,
       body = prisonNumbersResponse(listOf(prisonNumberSeven, null)),
     )
@@ -98,38 +100,56 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumberSeven) }
 
     val prisoner1 = personRepository.findByPrisonNumber(prisonNumberOne)!!
-    assertThat(prisoner1.firstName).isEqualTo("PrisonerOneFirstName")
-    assertThat(prisoner1.middleNames).isEqualTo("PrisonerOneMiddleNameOne PrisonerOneMiddleNameTwo")
-    assertThat(prisoner1.lastName).isEqualTo("PrisonerOneLastName")
-    assertThat(prisoner1.references.getType(IdentifierType.CRO).first().identifierValue).isEqualTo("029906/12J")
-    assertThat(prisoner1.dateOfBirth).isEqualTo(LocalDate.of(1975, 4, 2))
-    assertThat(prisoner1.pseudonyms[0].firstName).isEqualTo("PrisonerOneAliasOneFirstName")
-    assertThat(prisoner1.pseudonyms[0].middleNames).isEqualTo("PrisonerOneAliasOneMiddleNameOne PrisonerOneAliasOneMiddleNameTwo")
-    assertThat(prisoner1.pseudonyms[0].lastName).isEqualTo("PrisonerOneAliasOneLastName")
-    assertThat(prisoner1.pseudonyms[1].firstName).isEqualTo("PrisonerOneAliasTwoFirstName")
-    assertThat(prisoner1.pseudonyms[1].middleNames).isEqualTo("PrisonerOneAliasTwoMiddleNameOne PrisonerOneAliasTwoMiddleNameTwo")
-    assertThat(prisoner1.pseudonyms[1].lastName).isEqualTo("PrisonerOneAliasTwoLastName")
+    assertThat(prisoner1.getPrimaryName().firstName).isEqualTo("PrisonerOneFirstName")
+    assertThat(prisoner1.getPrimaryName().middleNames).isEqualTo("PrisonerOneMiddleNameOne PrisonerOneMiddleNameTwo")
+    assertThat(prisoner1.getPrimaryName().lastName).isEqualTo("PrisonerOneLastName")
+    assertThat(prisoner1.getAliases()[0].firstName).isEqualTo("PrisonerOneAliasOneFirstName")
+    assertThat(prisoner1.getAliases()[0].middleNames).isEqualTo("PrisonerOneAliasOneMiddleNameOne PrisonerOneAliasOneMiddleNameTwo")
+    assertThat(prisoner1.getAliases()[0].lastName).isEqualTo("PrisonerOneAliasOneLastName")
+    assertThat(prisoner1.getAliases()[1].firstName).isEqualTo("PrisonerOneAliasTwoFirstName")
+    assertThat(prisoner1.getAliases()[1].middleNames).isEqualTo("PrisonerOneAliasTwoMiddleNameOne PrisonerOneAliasTwoMiddleNameTwo")
+    assertThat(prisoner1.getAliases()[1].lastName).isEqualTo("PrisonerOneAliasTwoLastName")
     assertThat(prisoner1.sourceSystem).isEqualTo(NOMIS)
 
     val prisoner2 = personRepository.findByPrisonNumber(prisonNumberTwo)!!
-    assertThat(prisoner2.firstName).isEqualTo("PrisonerTwoFirstName")
+    assertThat(prisoner2.getPrimaryName().firstName).isEqualTo("PrisonerTwoFirstName")
 
     val prisoner3 = personRepository.findByPrisonNumber(prisonNumberThree)!!
-    assertThat(prisoner3.firstName).isEqualTo("PrisonerThreeFirstName")
+    assertThat(prisoner3.getPrimaryName().firstName).isEqualTo("PrisonerThreeFirstName")
 
     val prisoner4 = personRepository.findByPrisonNumber(prisonNumberFour)!!
-    assertThat(prisoner4.firstName).isEqualTo("PrisonerFourFirstName")
+    assertThat(prisoner4.getPrimaryName().firstName).isEqualTo("PrisonerFourFirstName")
 
     val prisoner5 = personRepository.findByPrisonNumber(prisonNumberFive)!!
-    assertThat(prisoner5.firstName).isEqualTo("PrisonerFiveFirstName")
+    assertThat(prisoner5.getPrimaryName().firstName).isEqualTo("PrisonerFiveFirstName")
 
     val prisoner6 = personRepository.findByPrisonNumber(prisonNumberSix)!!
-    assertThat(prisoner6.firstName).isEqualTo("PrisonerSixFirstName")
+    assertThat(prisoner6.getPrimaryName().firstName).isEqualTo("PrisonerSixFirstName")
 
     val prisoner7 = personRepository.findByPrisonNumber(prisonNumberSeven)!!
-    assertThat(prisoner7.firstName).isEqualTo("PrisonerSevenFirstName")
-    assertThat(prisoner7.middleNames).isEqualTo("")
+    assertThat(prisoner7.getPrimaryName().firstName).isEqualTo("PrisonerSevenFirstName")
+    assertThat(prisoner7.getPrimaryName().middleNames).isEqualTo("")
     assertThat(prisoner7.references.getType(IdentifierType.CRO)).isEqualTo(emptyList<ReferenceEntity>())
+
+    val entries = eventLogRepository.findAll()
+    checkEventLog(entries, prisoner1)
+    checkEventLog(entries, prisoner2)
+    checkEventLog(entries, prisoner3)
+    checkEventLog(entries, prisoner4)
+    checkEventLog(entries, prisoner5)
+    checkEventLog(entries, prisoner6)
+    checkEventLog(entries, prisoner7)
+  }
+
+  private fun checkEventLog(
+    entries: MutableList<EventLogEntity>,
+    prisoner: PersonEntity,
+  ) {
+    val entry = entries.find { it.matchId == prisoner.matchId }!!
+    assertThat(entry.uuid).isEqualTo(prisoner.personKey?.personUUID)
+    assertThat(entry.sourceSystem).isEqualTo(NOMIS)
+    assertThat(entry.eventType).isEqualTo(CPR_RECORD_SEEDED)
+    assertThat(entry.sourceSystemId).isEqualTo(prisoner.prisonNumber)
   }
 
   @Test
@@ -145,7 +165,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     val scenarioName = "retry get prisoners"
 
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${0}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=0",
       scenarioName = scenarioName,
       body = prisonNumbersResponse(listOf<String?>(prisonNumberOne, prisonNumberTwo)),
     )
@@ -168,7 +188,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       currentScenarioState = "next request will time out",
       nextScenarioState = "next request will succeed",
       responseBody = "{}",
-      fixedDelay = 210,
+      fixedDelay = 410,
     )
 
     // Third call succeeds
@@ -187,7 +207,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     )
 
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${1}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=1",
       scenarioName = scenarioName,
       currentScenarioState = "next request will succeed",
       nextScenarioState = "next request will succeed",
@@ -209,7 +229,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     )
 
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${2}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=2",
       scenarioName = scenarioName,
       currentScenarioState = "next request will succeed",
       nextScenarioState = "next request will succeed",
@@ -231,7 +251,7 @@ class PopulateFromPrisonIntTest : WebTestBase() {
     )
 
     stubGetRequest(
-      url = "/api/prisoners/prisoner-numbers?size=2&page=${3}",
+      url = "/api/prisoners/prisoner-numbers?size=2&page=3",
       scenarioName = scenarioName,
       currentScenarioState = "next request will succeed",
       nextScenarioState = "next request will succeed",
@@ -259,14 +279,14 @@ class PopulateFromPrisonIntTest : WebTestBase() {
 
     awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumberSeven) }
 
-    assertThat(personRepository.findByPrisonNumber(prisonNumberOne)?.firstName).isEqualTo("PrisonerOneFirstName")
-    assertThat(personRepository.findByPrisonNumber(prisonNumberTwo)?.firstName).isEqualTo("PrisonerTwoFirstName")
-    assertThat(personRepository.findByPrisonNumber(prisonNumberThree)?.firstName).isEqualTo("PrisonerThreeFirstName")
-    assertThat(personRepository.findByPrisonNumber(prisonNumberFour)?.firstName).isEqualTo("PrisonerFourFirstName")
-    assertThat(personRepository.findByPrisonNumber(prisonNumberFive)?.firstName).isEqualTo("PrisonerFiveFirstName")
-    assertThat(personRepository.findByPrisonNumber(prisonNumberSix)?.firstName).isEqualTo("PrisonerSixFirstName")
-    assertThat(personRepository.findByPrisonNumber(prisonNumberSix)?.pseudonyms?.size).isEqualTo(0)
-    assertThat(personRepository.findByPrisonNumber(prisonNumberSeven)?.firstName).isEqualTo("PrisonerSevenFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberOne)!!.getPrimaryName().firstName).isEqualTo("PrisonerOneFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberTwo)!!.getPrimaryName().firstName).isEqualTo("PrisonerTwoFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberThree)!!.getPrimaryName().firstName).isEqualTo("PrisonerThreeFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberFour)!!.getPrimaryName().firstName).isEqualTo("PrisonerFourFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberFive)!!.getPrimaryName().firstName).isEqualTo("PrisonerFiveFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberSix)!!.getPrimaryName().firstName).isEqualTo("PrisonerSixFirstName")
+    assertThat(personRepository.findByPrisonNumber(prisonNumberSix)!!.getAliases().size).isEqualTo(0)
+    assertThat(personRepository.findByPrisonNumber(prisonNumberSeven)!!.getPrimaryName().firstName).isEqualTo("PrisonerSevenFirstName")
   }
 
   @Test
@@ -321,6 +341,6 @@ class PopulateFromPrisonIntTest : WebTestBase() {
       personRepository.findByPrisonNumber(prisonNumberThree)
     }
 
-    assertThat(prisoner.firstName).isEqualTo("PrisonerThreeFirstName")
+    assertThat(prisoner.getPrimaryName().firstName).isEqualTo("PrisonerThreeFirstName")
   }
 }

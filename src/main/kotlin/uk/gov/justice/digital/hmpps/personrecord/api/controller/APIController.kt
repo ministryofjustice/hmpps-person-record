@@ -5,49 +5,51 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CanonicalRecordNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
+import java.net.URI
 import java.util.UUID
 
 @Tag(name = "HMPPS Person API")
 @RestController
-@PreAuthorize("hasRole('${Roles.API_READ_ONLY}')")
+@PreAuthorize("hasRole('$API_READ_ONLY')")
 class APIController(
   private val personKeyRepository: PersonKeyRepository,
 ) {
   @Operation(
-    description = "Retrieve person record by UUID. Role required is **${Roles.API_READ_ONLY}**",
+    description = "Retrieve person record by UUID. Role required is **$API_READ_ONLY**",
     security = [io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "api-role")],
   )
   @GetMapping("/person/{uuid}")
   @ApiResponses(
     ApiResponse(responseCode = "200", description = "OK"),
+    ApiResponse(responseCode = "301", description = "Permanent Redirect"),
   )
   fun getCanonicalRecord(
     @PathVariable(name = "uuid") uuid: UUID,
-  ): CanonicalRecord {
-    val personKeyEntity = getCorrectPersonKeyEntity(personKeyRepository.findByPersonId(uuid), mutableSetOf())
-    return buildCanonicalRecord(personKeyEntity, uuid)
+  ): ResponseEntity<*> {
+    val personKeyEntity = getCorrectPersonKeyEntity(personKeyRepository.findByPersonUUID(uuid), mutableSetOf())
+    return when {
+      personKeyEntity == null -> throw CanonicalRecordNotFoundException(uuid)
+      personKeyEntity.isNotRequestedUuid(uuid) -> ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).location(URI("/person/${personKeyEntity.personUUID}")).build<Void>()
+      else -> ResponseEntity.ok(CanonicalRecord.from(personKeyEntity))
+    }
   }
 
   private fun getCorrectPersonKeyEntity(personKeyEntity: PersonKeyEntity?, existingMergeChain: MutableSet<UUID?>): PersonKeyEntity? = personKeyEntity?.mergedTo?.let {
-    if (existingMergeChain.contains(personKeyEntity.personId)) {
-      error("Circular merge reference")
-    }
-    existingMergeChain.add(personKeyEntity.personId)
+    existingMergeChain.add(personKeyEntity.personUUID)
     getCorrectPersonKeyEntity(personKeyRepository.findByIdOrNull(it), existingMergeChain)
   }
     ?: personKeyEntity
 
-  private fun buildCanonicalRecord(personKeyEntity: PersonKeyEntity?, uuid: UUID): CanonicalRecord = when {
-    personKeyEntity?.personEntities?.isNotEmpty() == true -> CanonicalRecord.from(personKeyEntity)
-    else -> throw CanonicalRecordNotFoundException(uuid)
-  }
+  private fun PersonKeyEntity.isNotRequestedUuid(uuid: UUID): Boolean = this.personUUID != uuid
 }

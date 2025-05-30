@@ -10,95 +10,87 @@ import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBa
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_MERGE_RECORD_NOT_FOUND
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MERGE_MESSAGE_RECEIVED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
-import java.time.LocalDateTime
 
 class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   private fun prisonURL(prisonNumber: String) = "/prisoner/$prisonNumber"
 
-  @Test
-  fun `should log when message processing fails`() {
-    val targetPrisonNumber = randomPrisonNumber()
-    val sourcePrisonNumber = randomPrisonNumber()
-    stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure")
-    stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
-    stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
+  @Nested
+  inner class MissingFromRecord {
 
-    val additionalInformation =
-      AdditionalInformation(prisonNumber = targetPrisonNumber, sourcePrisonNumber = sourcePrisonNumber)
-    val domainEvent =
-      DomainEvent(eventType = PRISONER_MERGED, personReference = null, additionalInformation = additionalInformation)
-    val messageId = publishDomainEvent(PRISONER_MERGED, domainEvent)
+    @Test
+    fun `processes prisoner merge event when source record does not exist`() {
+      val targetPrisonNumber = randomPrisonNumber()
+      val sourcePrisonNumber = randomPrisonNumber()
 
-    purgeQueueAndDlq(prisonMergeEventsQueue)
-    checkTelemetry(
-      MERGE_MESSAGE_RECEIVED,
-      mapOf(
-        "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
-        "TARGET_PRISON_NUMBER" to targetPrisonNumber,
-        "EVENT_TYPE" to PRISONER_MERGED,
-        "SOURCE_SYSTEM" to NOMIS.name,
-      ),
-    )
-    checkTelemetry(
-      MESSAGE_PROCESSING_FAILED,
-      mapOf(
-        "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to NOMIS.name,
-        "EVENT_TYPE" to "prisoner-offender-events.prisoner.merged",
-      ),
-    )
-  }
+      createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
-  @Test
-  fun `processes prisoner merge event when source record does not exist`() {
-    val targetPrisonNumber = randomPrisonNumber()
-    val sourcePrisonNumber = randomPrisonNumber()
-    val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
-    val personKeyEntity = createPersonKey()
-    createPerson(
-      Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
-      personKeyEntity = personKeyEntity,
-    )
+      stubPersonMatchUpsert()
+      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, targetPrisonNumber = targetPrisonNumber)
 
-    prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
-
-    checkTelemetry(
-      MERGE_MESSAGE_RECEIVED,
-      mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
-    )
-    checkTelemetry(
-      CPR_MERGE_RECORD_NOT_FOUND,
-      mapOf(
-        "RECORD_TYPE" to "SOURCE",
-        "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
-        "TARGET_PRISON_NUMBER" to targetPrisonNumber,
-        "SOURCE_SYSTEM" to NOMIS.name,
-      ),
-    )
-    checkTelemetry(
-      CPR_RECORD_MERGED,
-      mapOf(
-        "TO_UUID" to personKeyEntity.personId.toString(),
-        "FROM_UUID" to null,
-        "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
-        "TARGET_PRISON_NUMBER" to targetPrisonNumber,
-        "SOURCE_SYSTEM" to NOMIS.name,
-      ),
-    )
+      checkTelemetry(CPR_RECORD_UPDATED, mapOf("PRISON_NUMBER" to targetPrisonNumber))
+      checkTelemetry(
+        CPR_RECORD_MERGED,
+        mapOf(
+          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
+          "SOURCE_SYSTEM" to NOMIS.name,
+        ),
+      )
+      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
+    }
   }
 
   @Nested
-  inner class SourceIsDeleted {
+  inner class MissingToRecord {
+
+    @Test
+    fun `processes prisoner merge event when target record does not exist`() {
+      val targetPrisonNumber = randomPrisonNumber()
+      val sourcePrisonNumber = randomPrisonNumber()
+      val sourcePerson = createPersonWithNewKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
+
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+      stubDeletePersonMatch()
+      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber)
+
+      val targetPerson = awaitNotNullPerson { personRepository.findByPrisonNumber(targetPrisonNumber) }
+
+      sourcePerson.assertMergedTo(targetPerson)
+      sourcePerson.assertNotLinkedToCluster()
+
+      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      targetPerson.personKey?.assertClusterIsOfSize(1)
+
+      checkTelemetry(
+        CPR_RECORD_CREATED,
+        mapOf("PRISON_NUMBER" to targetPrisonNumber, "SOURCE_SYSTEM" to NOMIS.name),
+      )
+      checkTelemetry(
+        CPR_RECORD_MERGED,
+        mapOf(
+          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
+          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
+          "SOURCE_SYSTEM" to NOMIS.name,
+        ),
+      )
+      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
+      checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
+    }
+  }
+
+  @Nested
+  inner class SuccessfulProcessing {
+
     @BeforeEach
     fun beforeEach() {
+      stubPersonMatchUpsert()
       stubDeletePersonMatch()
     }
 
@@ -106,262 +98,188 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `processes prisoner merge event with records with same UUID is published`() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
-      val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
-      val personKeyEntity = createPersonKey()
-      createPerson(
-        Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity,
-      )
-      val targetPerson = createPerson(
-        Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity,
-      )
 
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
+      val sourcePerson = createPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
+      val targetPerson = createPerson(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
+      createPersonKey()
+        .addPerson(sourcePerson)
+        .addPerson(targetPerson)
 
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
-      )
+      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, targetPrisonNumber = targetPrisonNumber)
+
+      sourcePerson.assertNotLinkedToCluster()
+      sourcePerson.assertMergedTo(targetPerson)
+      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      targetPerson.personKey?.assertClusterIsOfSize(1)
+
       checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
-          "TO_UUID" to personKeyEntity.personId.toString(),
-          "FROM_UUID" to personKeyEntity.personId.toString(),
-          "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
-          "TARGET_PRISON_NUMBER" to targetPrisonNumber,
+          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
+          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
-
-      val sourcePerson = personRepository.findByPrisonNumber(sourcePrisonNumber)
-      assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
-    }
-
-    @Test
-    fun `processes prisoner merge event when target record does not exist`() {
-      val targetPrisonNumber = randomPrisonNumber()
-      val sourcePrisonNumber = randomPrisonNumber()
-      val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
-      val personKeyEntity = createPersonKey()
-      createPerson(
-        Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity,
-      )
-
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
-
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
-      )
-      checkTelemetry(
-        CPR_MERGE_RECORD_NOT_FOUND,
-        mapOf(
-          "RECORD_TYPE" to "TARGET",
-          "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
-          "TARGET_PRISON_NUMBER" to targetPrisonNumber,
-          "SOURCE_SYSTEM" to NOMIS.name,
-        ),
-      )
+      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
+      checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
     }
 
     @Test
     fun `processes prisoner merge event with different UUIDs where source has multiple records`() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
-      val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
-      val personKeyEntity1 = createPersonKey()
-      val personKeyEntity2 = createPersonKey()
-      createPerson(
-        Person(prisonNumber = randomPrisonNumber(), sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity1,
-      )
-      createPerson(
-        Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity1,
-      )
-      val targetPerson = createPerson(
-        Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity2,
-      )
 
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
+      val sourcePerson = createPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
+      val sourceCluster = createPersonKey()
+        .addPerson(createPerson(Person(prisonNumber = randomPrisonNumber(), sourceSystem = NOMIS)))
+        .addPerson(sourcePerson)
+      val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
+
+      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber)
+
+      sourcePerson.assertNotLinkedToCluster()
+      sourcePerson.assertMergedTo(targetPerson)
+
+      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      targetPerson.personKey?.assertClusterIsOfSize(1)
+
+      sourceCluster.assertClusterIsOfSize(1)
+      sourceCluster.assertClusterStatus(UUIDStatusType.ACTIVE)
+
+      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      targetPerson.personKey?.assertClusterIsOfSize(1)
 
       checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
+        CPR_RECORD_UPDATED,
+        mapOf("PRISON_NUMBER" to targetPrisonNumber, "SOURCE_SYSTEM" to NOMIS.name),
       )
       checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
-          "TO_UUID" to personKeyEntity2.personId.toString(),
-          "FROM_UUID" to personKeyEntity1.personId.toString(),
-          "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
-          "TARGET_PRISON_NUMBER" to targetPrisonNumber,
+          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
+          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
-
-      val sourcePerson = personRepository.findByPrisonNumber(sourcePrisonNumber)
-      assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
-      assertThat(sourcePerson?.personKey).isNull()
-
-      val sourceCluster = personKeyRepository.findByPersonId(personKeyEntity1.personId)
-      assertThat(sourceCluster?.personEntities?.size).isEqualTo(1)
-
-      val targetCluster = personKeyRepository.findByPersonId(personKeyEntity2.personId)
-      assertThat(targetCluster?.personEntities?.size).isEqualTo(1)
+      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
+      checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
     }
 
     @Test
     fun `processes prisoner merge event with different UUIDs where source doesn't have an UUID`() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
-      val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
-      val personKeyEntity2 = createPersonKey()
-      createPerson(
-        Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
-      )
-      val targetPerson = createPerson(
-        Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity2,
-      )
 
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
+      val sourcePerson = createPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
+      val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
+
+      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber)
+
+      sourcePerson.assertNotLinkedToCluster()
+      sourcePerson.assertMergedTo(targetPerson)
+
+      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      targetPerson.personKey?.assertClusterIsOfSize(1)
 
       checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
+        CPR_RECORD_UPDATED,
+        mapOf("PRISON_NUMBER" to targetPrisonNumber, "SOURCE_SYSTEM" to NOMIS.name),
       )
       checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
-          "TO_UUID" to personKeyEntity2.personId.toString(),
-          "FROM_UUID" to null,
-          "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
-          "TARGET_PRISON_NUMBER" to targetPrisonNumber,
+          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
+          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
-
-      val sourcePerson = personRepository.findByPrisonNumber(sourcePrisonNumber)
-      assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
-      assertThat(sourcePerson?.personKey).isNull()
-
-      val targetCluster = personKeyRepository.findByPersonId(personKeyEntity2.personId)
-      assertThat(targetCluster?.personEntities?.size).isEqualTo(1)
+      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
+      checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
     }
 
     @Test
     fun `processes prisoner merge event with different UUIDs where source has a single record`() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
-      val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
-      val personKeyEntity1 = createPersonKey()
-      val personKeyEntity2 = createPersonKey()
-      createPerson(
-        Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity1,
-      )
-      val targetPerson = createPerson(
-        Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity2,
-      )
+      val sourcePerson = createPersonWithNewKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
+      val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
+      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber)
 
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
-      )
+      sourcePerson.assertNotLinkedToCluster()
+      sourcePerson.assertMergedTo(targetPerson)
+      sourcePerson.personKey?.assertClusterStatus(UUIDStatusType.MERGED)
+      sourcePerson.personKey?.assertClusterIsOfSize(0)
+
+      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      targetPerson.personKey?.assertClusterIsOfSize(1)
+
       checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
-          "TO_UUID" to personKeyEntity2.personId.toString(),
-          "FROM_UUID" to personKeyEntity1.personId.toString(),
-          "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
-          "TARGET_PRISON_NUMBER" to targetPrisonNumber,
+          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
+          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
-
-      val sourcePerson = personRepository.findByPrisonNumber(sourcePrisonNumber)
-      assertThat(sourcePerson?.mergedTo).isEqualTo(targetPerson.id)
-      assertThat(sourcePerson?.personKey?.mergedTo).isEqualTo(targetPerson.personKey?.id)
-      assertThat(sourcePerson?.personKey?.status).isEqualTo(UUIDStatusType.MERGED)
+      checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
+      checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
+      checkEventLog(sourcePrisonNumber, CPRLogEvents.CPR_UUID_MERGED) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        val event = eventLogs.first()
+        assertThat(event.uuid).isEqualTo(sourcePerson.personKey?.personUUID)
+        assertThat(event.uuidStatusType).isEqualTo(UUIDStatusType.MERGED)
+      }
     }
 
     @Test
     fun `should retry on 500 error`() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
-      val personKeyEntity1 = createPersonKey()
-      val personKeyEntity2 = createPersonKey()
-      createPerson(
-        Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity1,
-      )
-      createPerson(
-        Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity2,
-      )
+      createPersonWithNewKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
+      createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
+
       stub5xxResponse(prisonURL(targetPrisonNumber), "next request will succeed", "retry")
 
-      val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, target, scenario = "retry", currentScenarioState = "next request will succeed")
+      prisonMergeEventAndResponseSetup(
+        PRISONER_MERGED,
+        sourcePrisonNumber,
+        targetPrisonNumber,
+        scenario = "retry",
+        currentScenarioState = "next request will succeed",
+      )
 
       expectNoMessagesOnQueueOrDlq(prisonMergeEventsQueue)
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf("SOURCE_PRISON_NUMBER" to sourcePrisonNumber, "TARGET_PRISON_NUMBER" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
-      )
+
       checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
-          "TO_UUID" to personKeyEntity2.personId.toString(),
-          "FROM_UUID" to personKeyEntity1.personId.toString(),
-          "SOURCE_PRISON_NUMBER" to sourcePrisonNumber,
-          "TARGET_PRISON_NUMBER" to targetPrisonNumber,
+          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
+          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
           "SOURCE_SYSTEM" to NOMIS.name,
         ),
       )
     }
+  }
+
+  @Nested
+  inner class ErrorHandling {
 
     @Test
-    fun `processes prisoner merge event maps to EventLogging table`() {
+    fun `should put on dlq when message processing fails`() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
-      val target = ApiResponseSetup(prisonNumber = targetPrisonNumber)
-      val personKeyEntity = createPersonKey()
-      createPerson(
-        Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity,
-      )
-      createPerson(
-        Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS),
-        personKeyEntity = personKeyEntity,
-      )
+      stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure")
+      stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
+      stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
 
-      prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, target = target)
+      val additionalInformation =
+        AdditionalInformation(prisonNumber = targetPrisonNumber, sourcePrisonNumber = sourcePrisonNumber)
+      val domainEvent =
+        DomainEvent(eventType = PRISONER_MERGED, personReference = null, additionalInformation = additionalInformation)
+      publishDomainEvent(PRISONER_MERGED, domainEvent)
 
-      val loggedEvent = awaitNotNullEventLog(targetPrisonNumber, PRISONER_MERGED)
-
-      val sourcePerson = personRepository.findByPrisonNumber(sourcePrisonNumber)
-      val targetPerson = personRepository.findByPrisonNumber(targetPrisonNumber)
-
-      val beforeDataDTO = sourcePerson?.let { Person.from(it) }
-      val beforeData = objectMapper.writeValueAsString(beforeDataDTO)
-
-      val processedDataDTO = targetPerson?.let { Person.from(it) }
-      val processedData = objectMapper.writeValueAsString(processedDataDTO)
-
-      assertThat(loggedEvent.sourceSystem).isEqualTo(targetPerson?.sourceSystem.toString())
-      assertThat(loggedEvent.eventTimestamp).isBefore(LocalDateTime.now())
-      assertThat(loggedEvent.beforeData).isEqualTo(beforeData)
-      assertThat(loggedEvent.processedData).isEqualTo(processedData)
-
-      assertThat(loggedEvent.uuid).isEqualTo(sourcePerson?.personKey?.personId.toString())
+      expectOneMessageOnDlq(prisonMergeEventsQueue)
     }
   }
 }

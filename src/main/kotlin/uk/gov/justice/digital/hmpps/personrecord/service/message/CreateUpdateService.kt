@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.message
 
 import jakarta.persistence.OptimisticLockException
 import kotlinx.coroutines.runBlocking
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.dao.CannotAcquireLockException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.retry.annotation.Backoff
@@ -10,17 +11,15 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.shouldCreateOrUpdate
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.EventLoggingService
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Component
 class CreateUpdateService(
   private val personService: PersonService,
-  private val reclusterService: ReclusterService,
-  private val eventLoggingService: EventLoggingService,
+  private val publisher: ApplicationEventPublisher,
 ) {
 
   @Retryable(
@@ -28,53 +27,38 @@ class CreateUpdateService(
     retryFor = [
       OptimisticLockException::class,
       DataIntegrityViolationException::class,
-      CannotAcquireLockException::class, // Needed for tests to pass
+      CannotAcquireLockException::class,
     ],
   )
   @Transactional(isolation = REPEATABLE_READ)
-  fun processPerson(person: Person, event: String?, callback: () -> PersonEntity?) {
-    runBlocking {
-      val existingPersonEntitySearch: PersonEntity? = callback()
-      existingPersonEntitySearch.shouldCreateOrUpdate(
-        shouldCreate = {
-          handlePersonCreation(person, event)
-        },
-        shouldUpdate = {
-          handlePersonUpdate(person, it, event)
-        },
-      )
-    }
+  fun processPerson(
+    person: Person,
+    shouldReclusterOnUpdate: Boolean = true,
+    shouldLinkOnCreate: Boolean = true,
+    findPerson: () -> PersonEntity?,
+  ): PersonEntity = runBlocking {
+    return@runBlocking findPerson().exists(
+      no = {
+        handlePersonCreation(person, shouldLinkOnCreate)
+      },
+      yes = {
+        handlePersonUpdate(person, it, shouldReclusterOnUpdate)
+      },
+    )
   }
 
-  private fun handlePersonCreation(person: Person, event: String?): PersonEntity {
+  private fun handlePersonCreation(person: Person, shouldLinkOnCreate: Boolean): PersonEntity {
     val personEntity: PersonEntity = personService.createPersonEntity(person)
-    personService.linkRecordToPersonKey(personEntity)
-
-    val processedDataDTO = Person.from(personEntity)
-
-    eventLoggingService.recordEventLog(
-      beforePerson = null,
-      processedPerson = processedDataDTO,
-      uuid = personEntity.personKey?.personId?.toString(),
-      eventType = event,
-    )
-
+    if (shouldLinkOnCreate) {
+      personService.linkRecordToPersonKey(personEntity)
+    }
+    publisher.publishEvent(PersonCreated(personEntity))
     return personEntity
   }
 
-  private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, event: String?): PersonEntity {
-    val beforeDataDTO = Person.from(existingPersonEntity)
-    val updatedPerson = personService.updatePersonEntity(person, existingPersonEntity)
-    val processedDataDTO = Person.from(updatedPerson)
-
-    eventLoggingService.recordEventLog(
-      beforePerson = beforeDataDTO,
-      processedPerson = processedDataDTO,
-      uuid = existingPersonEntity.personKey?.personId?.toString(),
-      eventType = event,
-    )
-
-    updatedPerson.personKey?.let { reclusterService.recluster(it, changedRecord = updatedPerson) }
-    return updatedPerson
+  private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, shouldReclusterOnUpdate: Boolean): PersonEntity {
+    val personUpdated = personService.updatePersonEntity(person, existingPersonEntity, shouldReclusterOnUpdate)
+    publisher.publishEvent(personUpdated)
+    return personUpdated.personEntity
   }
 }

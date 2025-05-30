@@ -1,20 +1,30 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.messages
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType.PERSON
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 
 fun libraHearing(
   pncNumber: String? = randomPnc(),
-  firstName: String? = "Arthur",
+  firstName: String? = null,
+  foreName2: String? = null,
+  foreName3: String? = null,
   lastName: String = randomName(),
-  dateOfBirth: String = "01/01/1975",
-  cro: String = "85227/65L",
+  dateOfBirth: String = "",
+  cro: String = randomCro(),
   postcode: String = randomPostcode(),
+  line1: String? = randomName(),
+  line2: String? = randomName(),
+  line3: String? = randomName(),
+  line4: String? = randomName(),
+  line5: String? = randomName(),
   cId: String = randomCId(),
-  defendantType: DefendantType = DefendantType.PERSON,
+  defendantType: DefendantType = PERSON,
+  defendantSex: String? = null,
 ) = """
 {
    "cId": "$cId",
@@ -22,17 +32,22 @@ fun libraHearing(
    "name":{
       "title":"Mr",
       ${firstName?.let { """ "forename1": "$firstName", """.trimIndent() } ?: ""}
+      ${foreName2?.let { """ "forename2": "$foreName2", """.trimIndent() } ?: ""}
+      ${foreName3?.let { """ "forename3": "$foreName3", """.trimIndent() } ?: ""}
       "surname":"$lastName"
    },
    "defendantName":"Mr $firstName $lastName",
    "defendantType": "${defendantType.value}",
-   "defendantSex":"N",
+   "defendantSex":"$defendantSex",
    "defendantDob":"$dateOfBirth",
    "defendantAge":"20",
    "defendantAddress":{
-      "line1": "39 The Street",
-      "line2": "Newtown"
-      ${postcode.let { """ ,"pcode": "$postcode" """.trimIndent() } ?: ""}
+      ${line1?.let { """ "line1": "$line1", """.trimIndent() } ?: ""}
+      ${line2?.let { """ "line2": "$line2", """.trimIndent() } ?: ""}
+      ${line3?.let { """ "line3": "$line3", """.trimIndent() } ?: ""}
+      ${line4?.let { """ "line4": "$line4", """.trimIndent() } ?: ""}
+      ${line5?.let { """ "line5": "$line5" """.trimIndent() } ?: ""}
+      ${postcode.let { """ ,"pcode": "$postcode" """.trimIndent() }}
    },
    "cro":"$cro",
    ${pncNumber?.let { """ "pnc": "$pncNumber", """.trimIndent() } ?: ""}
