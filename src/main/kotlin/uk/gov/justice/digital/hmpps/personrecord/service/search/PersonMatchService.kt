@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.search
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
@@ -56,7 +57,7 @@ class PersonMatchService(
     )
   }
 
-  fun saveToPersonMatch(personEntity: PersonEntity) = runBlocking { retryExecutor.runWithRetryHTTP { personMatchClient.postPerson(PersonMatchRecord.from(personEntity)) } }
+  fun saveToPersonMatch(personEntity: PersonEntity): ResponseEntity<Void> = runBlocking { retryExecutor.runWithRetryHTTP { personMatchClient.postPerson(PersonMatchRecord.from(personEntity)) } }
 
   fun deleteFromPersonMatch(personEntity: PersonEntity) = runBlocking { runCatching { retryExecutor.runWithRetryHTTP { personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity)) } } }
 
