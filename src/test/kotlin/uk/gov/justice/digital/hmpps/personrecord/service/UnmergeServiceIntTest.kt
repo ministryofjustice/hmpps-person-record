@@ -137,14 +137,14 @@ class UnmergeServiceIntTest : IntegrationTestBase() {
       checkEventLog(reactivatedRecord.crn!!, CPRLogEvents.CPR_RECORD_UNMERGED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
-        assertThat(eventLog.uuid).isNotEqualTo(cluster.personUUID)
+        assertThat(eventLog.personUUID).isNotEqualTo(cluster.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
         assertThat(eventLog.excludeOverrideMarkers).contains(unmergedRecord.id)
       }
       checkEventLog(unmergedRecord.crn!!, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
-        assertThat(eventLog.uuid).isEqualTo(cluster.personUUID)
+        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
         assertThat(eventLog.excludeOverrideMarkers).contains(reactivatedRecord.id)
       }
@@ -166,7 +166,7 @@ class UnmergeServiceIntTest : IntegrationTestBase() {
       checkEventLog(unmergedRecord.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
-        assertThat(eventLog.uuid).isEqualTo(cluster.personUUID)
+        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
       }
     }

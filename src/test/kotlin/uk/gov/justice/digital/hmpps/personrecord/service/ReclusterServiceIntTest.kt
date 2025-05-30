@@ -1150,7 +1150,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       checkEventLogByUUID(cluster2.personUUID!!, CPRLogEvents.CPR_RECLUSTER_UUID_MERGED, timeout = 6) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
-        assertThat(eventLog.uuid).isEqualTo(cluster2.personUUID)
+        assertThat(eventLog.personUUID).isEqualTo(cluster2.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
       }
       checkEventLogExist(personC.crn!!, CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED)
@@ -1175,7 +1175,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
-        assertThat(eventLog.uuid).isEqualTo(cluster.personUUID)
+        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(NEEDS_ATTENTION)
       }
     }
@@ -1199,7 +1199,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       checkEventLog(personA.crn!!, CPR_NEEDS_ATTENTION_TO_ACTIVE) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
-        assertThat(eventLog.uuid).isEqualTo(cluster.personUUID)
+        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(ACTIVE)
       }
     }
@@ -1232,7 +1232,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
-        assertThat(eventLog.uuid).isEqualTo(cluster.personUUID)
+        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(NEEDS_ATTENTION)
         assertThat(eventLog.clusterComposition).isEqualTo(objectMapper.writeValueAsString(clusterComposition))
       }

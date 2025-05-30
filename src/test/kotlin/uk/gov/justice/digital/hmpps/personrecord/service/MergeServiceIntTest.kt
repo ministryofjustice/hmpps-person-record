@@ -40,7 +40,7 @@ class MergeServiceIntTest : IntegrationTestBase() {
     checkEventLog(from.crn!!, CPRLogEvents.CPR_UUID_MERGED) { eventLogs ->
       assertThat(eventLogs).hasSize(1)
       val event = eventLogs.first()
-      assertThat(event.uuid.toString()).isEqualTo(fromUUID)
+      assertThat(event.personUUID.toString()).isEqualTo(fromUUID)
       assertThat(event.uuidStatusType).isEqualTo(UUIDStatusType.MERGED)
     }
     checkEventLogExist(from.crn!!, CPRLogEvents.CPR_RECORD_MERGED)

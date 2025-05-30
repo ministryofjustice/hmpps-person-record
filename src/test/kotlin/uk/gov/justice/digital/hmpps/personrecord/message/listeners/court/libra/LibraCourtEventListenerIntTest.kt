@@ -296,7 +296,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(createdLog.dateOfBirth).isEqualTo(dateOfBirth)
         assertThat(createdLog.sourceSystem).isEqualTo(LIBRA)
         assertThat(createdLog.postcodes).isEqualTo(arrayOf(postcode))
-        assertThat(createdLog.uuid).isNotNull()
+        assertThat(createdLog.personUUID).isNotNull()
         assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
       }
       checkEventLogExist(cId, CPRLogEvents.CPR_UUID_CREATED)

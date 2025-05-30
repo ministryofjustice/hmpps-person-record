@@ -59,7 +59,7 @@ class EventLogServiceIntTest : IntegrationTestBase() {
     assertThat(eventLog.sourceSystemId).isEqualTo(personEntity.crn)
     assertThat(eventLog.sourceSystem).isEqualTo(SourceSystemType.DELIUS)
     assertThat(eventLog.matchId).isEqualTo(personEntity.matchId)
-    assertThat(eventLog.uuid).isEqualTo(personEntity.personKey?.personUUID)
+    assertThat(eventLog.personUUID).isEqualTo(personEntity.personKey?.personUUID)
     assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
     assertThat(eventLog.firstName).isEqualTo(personEntity.getPrimaryName().firstName)
     assertThat(eventLog.middleNames).isEqualTo(personEntity.getPrimaryName().middleNames)
