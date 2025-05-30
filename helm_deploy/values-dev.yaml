@@ -1,7 +1,10 @@
 # Per environment values which override defaults in hmpps-person-record/values.yaml
 
 generic-service:
-  replicaCount: 1
+
+  autoscaling:
+    minReplicas: 1
+    maxReplicas: 1
 
   image:
     repository: quay.io/hmpps/hmpps-person-record
