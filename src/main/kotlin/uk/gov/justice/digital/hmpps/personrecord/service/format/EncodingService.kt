@@ -26,9 +26,7 @@ class EncodingService(
 
   fun getPrisonerDetails(prisonNumber: String, onSuccess: (value: Prisoner?) -> Any?) = runCatching {
     runBlocking {
-      retryExecutor.runWithRetryHTTP {
-        prisonerSearchClient.getPrisoner(prisonNumber)
-      }
+      prisonerSearchClient.getPrisoner(prisonNumber)
     }
   }.fold(onSuccess, failedToRetrievePrisoner())
 
