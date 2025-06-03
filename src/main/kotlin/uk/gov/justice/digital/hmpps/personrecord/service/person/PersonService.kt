@@ -25,12 +25,15 @@ class PersonService(
   fun updatePersonEntity(person: Person, existingPersonEntity: PersonEntity, shouldReclusterOnUpdate: Boolean): PersonUpdated {
     val oldMatchingDetails = PersonMatchRecord.from(existingPersonEntity)
     val updatedEntity = updateExistingPersonEntity(person, existingPersonEntity)
-    personMatchService.saveToPersonMatch(updatedEntity)
     val matchingFieldsHaveChanged = oldMatchingDetails.matchingFieldsAreDifferent(
       PersonMatchRecord.from(
         updatedEntity,
       ),
     )
+
+    when {
+      matchingFieldsHaveChanged -> personMatchService.saveToPersonMatch(updatedEntity)
+    }
 
     val shouldRecluster = when (personKeyService.clusterNeedsAttentionAndIsInvalid(updatedEntity.personKey)) {
       true -> false
