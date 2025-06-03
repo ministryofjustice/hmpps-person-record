@@ -24,7 +24,7 @@ class PersonProcessorChain(
 
   fun exists(
     no: (PersonCreateProcessor, PersonContext) -> Unit = { _, _ -> },
-    yes: (PersonUpdateProcessor, PersonContext) -> Unit = { _, _ -> }
+    yes: (PersonUpdateProcessor, PersonContext) -> Unit = { _, _ -> },
   ): PersonProcessorChain {
     when {
       context.personEntity == empty -> {
@@ -62,5 +62,4 @@ class PersonProcessorChain(
   }
 
   fun get(): PersonEntity = context.personEntity!!
-
 }

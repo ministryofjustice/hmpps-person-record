@@ -222,7 +222,7 @@ class PersonEntity(
       else -> yes(this)
     }
 
-    fun PersonEntity.isMerged() = this.mergedTo != null
+    fun PersonEntity.isNotMerged() = this.mergedTo == null
 
     fun new(person: Person): PersonEntity {
       val personEntity = PersonEntity(

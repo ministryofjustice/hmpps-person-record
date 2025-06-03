@@ -1,12 +1,22 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person
 
+import jakarta.persistence.OptimisticLockException
+import kotlinx.coroutines.runBlocking
+import org.springframework.dao.CannotAcquireLockException
+import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.retry.annotation.Backoff
+import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
+import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.PersonFactory
+import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.processors.PersonSearchProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
@@ -14,7 +24,34 @@ class PersonService(
   private val personRepository: PersonRepository,
   private val personKeyService: PersonKeyService,
   private val personMatchService: PersonMatchService,
+  private val personFactory: PersonFactory,
 ) {
+
+  @Retryable(
+    backoff = Backoff(random = true, delay = 1000, maxDelay = 2000, multiplier = 1.5),
+    retryFor = [
+      OptimisticLockException::class,
+      DataIntegrityViolationException::class,
+      CannotAcquireLockException::class,
+    ],
+  )
+  @Transactional(isolation = REPEATABLE_READ)
+  fun processPerson(
+    person: Person,
+    find: (PersonSearchProcessor) -> PersonEntity?,
+  ): PersonEntity = runBlocking {
+    personFactory.from(person)
+      .find { searchProcessor -> find(searchProcessor) }
+      .exists(
+        no = { createProcessor, ctx -> createProcessor.createPersonEntity(ctx) },
+        yes = { updateProcessor, ctx -> updateProcessor.updatePersonEntity(ctx) },
+      )
+      .hasClusterLink(
+        no = { clusterProcessor, ctx -> clusterProcessor.linkRecordToPersonKey(ctx) },
+      )
+      .recordEventLog()
+      .get()
+  }
 
   fun createPersonEntity(person: Person): PersonEntity {
     val personEntity = createNewPersonEntity(person)

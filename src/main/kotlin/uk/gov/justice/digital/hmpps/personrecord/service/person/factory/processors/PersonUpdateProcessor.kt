@@ -23,5 +23,4 @@ class PersonUpdateProcessor(
     }
     return this
   }
-
 }

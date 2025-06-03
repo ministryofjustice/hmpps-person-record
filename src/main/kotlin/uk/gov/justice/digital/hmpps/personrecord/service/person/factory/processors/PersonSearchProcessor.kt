@@ -16,5 +16,4 @@ class PersonSearchProcessor(
   fun findByCId(cId: String): PersonEntity? = personRepository.findByCId(cId)
 
   fun findByDefendantId(defendantId: String): PersonEntity? = personRepository.findByDefendantId(defendantId)
-
 }

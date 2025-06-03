@@ -1,15 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person.factory
 
-import jakarta.persistence.OptimisticLockException
-import kotlinx.coroutines.runBlocking
-import org.springframework.dao.CannotAcquireLockException
-import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.retry.annotation.Backoff
-import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
-import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.processors.PersonClusterProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.processors.PersonCreateProcessor
@@ -34,5 +25,4 @@ class PersonFactory(
     personClusterProcessor = personClusterProcessor,
     personLogProcessor = personLogProcessor,
   )
-
 }

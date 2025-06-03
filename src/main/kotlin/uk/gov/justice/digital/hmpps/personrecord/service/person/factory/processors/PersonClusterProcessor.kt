@@ -4,9 +4,9 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.isNotMerged
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyFound
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
@@ -22,18 +22,22 @@ class PersonClusterProcessor(
 ) {
 
   fun recluster(context: PersonContext): PersonClusterProcessor {
-    context.personEntity?.personKey?.let{
+    context.personEntity?.personKey?.let {
       reclusterService.recluster(it, context.personEntity!!)
     }
     return this
   }
 
   fun linkRecordToPersonKey(context: PersonContext): PersonClusterProcessor {
-    val personEntityWithKey = personMatchService.findHighestConfidencePersonRecord(context.personEntity!!).exists(
-      no = { createPersonKey(context.personEntity!!) },
-      yes = { retrievePersonKey(context.personEntity!!, it) },
-    )
-    context.personEntity = personEntityWithKey
+    when {
+      context.personEntity?.isNotMerged()!! -> {
+        val personEntityWithKey = personMatchService.findHighestConfidencePersonRecord(context.personEntity!!).exists(
+          no = { createPersonKey(context.personEntity!!) },
+          yes = { retrievePersonKey(context.personEntity!!, it) },
+        )
+        context.personEntity = personEntityWithKey
+      }
+    }
     return this
   }
 
