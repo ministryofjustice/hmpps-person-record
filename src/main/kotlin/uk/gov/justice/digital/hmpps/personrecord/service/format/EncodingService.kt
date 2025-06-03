@@ -25,9 +25,7 @@ class EncodingService(
   }.fold(onSuccess, failedToRetrieveProbationCase())
 
   fun getPrisonerDetails(prisonNumber: String, onSuccess: (value: Prisoner?) -> Any?) = runCatching {
-    runBlocking {
-      prisonerSearchClient.getPrisoner(prisonNumber)
-    }
+    prisonerSearchClient.getPrisoner(prisonNumber)
   }.fold(onSuccess, failedToRetrievePrisoner())
 
   private fun failedToRetrievePrisoner(): (exception: Throwable) -> Unit? = {
