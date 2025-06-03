@@ -21,8 +21,18 @@ class ProbationMergeEventProcessor(
     encodingService.getProbationCase(mergeDomainEvent.additionalInformation?.targetCrn!!) {
       it?.let {
         val from: PersonEntity? = personRepository.findByCrn(mergeDomainEvent.additionalInformation.sourceCrn!!)
-        val to: PersonEntity = personService.processPerson(Person.from(it)) { searchProcessor ->
-          searchProcessor.findByCrn(mergeDomainEvent.additionalInformation.targetCrn)
+        val to: PersonEntity = personService.processPerson(Person.from(it)) { personProcessor ->
+          personProcessor
+            .find { searchProcessor -> searchProcessor.findByCrn(it.identifiers.crn!!) }
+            .exists(
+              no = { createProcessor, ctx -> createProcessor.createPersonEntity(ctx) },
+              yes = { updateProcessor, ctx -> updateProcessor.updatePersonEntity(ctx) },
+            )
+            .hasClusterLink(
+              no = { clusterProcessor, ctx -> clusterProcessor.linkRecordToPersonKey(ctx) },
+            )
+            .recordEventLog()
+            .get()
         }
         mergeService.processMerge(from, to)
       }

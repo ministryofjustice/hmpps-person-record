@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.PersonFactory
-import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.processors.PersonSearchProcessor
+import uk.gov.justice.digital.hmpps.personrecord.service.person.factory.PersonProcessorChain
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
@@ -38,19 +38,9 @@ class PersonService(
   @Transactional(isolation = REPEATABLE_READ)
   fun processPerson(
     person: Person,
-    find: (PersonSearchProcessor) -> PersonEntity?,
+    processor: (PersonProcessorChain) -> PersonEntity,
   ): PersonEntity = runBlocking {
-    personFactory.from(person)
-      .find { searchProcessor -> find(searchProcessor) }
-      .exists(
-        no = { createProcessor, ctx -> createProcessor.createPersonEntity(ctx) },
-        yes = { updateProcessor, ctx -> updateProcessor.updatePersonEntity(ctx) },
-      )
-      .hasClusterLink(
-        no = { clusterProcessor, ctx -> clusterProcessor.linkRecordToPersonKey(ctx) },
-      )
-      .recordEventLog()
-      .get()
+    processor(personFactory.from(person))
   }
 
   fun createPersonEntity(person: Person): PersonEntity {

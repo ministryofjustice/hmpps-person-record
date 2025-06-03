@@ -48,6 +48,17 @@ class PersonProcessorChain(
     return this
   }
 
+  fun matchingFieldsChanged(
+    yes: (PersonProcessorChain, PersonContext) -> Unit = { _, _ -> },
+  ): PersonProcessorChain {
+    when {
+      context.hasMatchingFieldsChanged -> {
+        yes(this, context)
+      }
+    }
+    return this
+  }
+
   fun recordEventLog(): PersonProcessorChain {
     when (context.operation) {
       PersonOperation.CREATE -> personLogProcessor.logCreate(context)
