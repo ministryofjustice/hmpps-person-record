@@ -10,5 +10,5 @@ import java.util.UUID
 interface EventLogRepository : JpaRepository<EventLogEntity, Long> {
 
   fun findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(eventType: CPRLogEvents, sourceSystemId: String): List<EventLogEntity>?
-  fun findAllByEventTypeAndUuidOrderByEventTimestampDesc(eventType: CPRLogEvents, cluster: UUID): List<EventLogEntity>?
+  fun findAllByEventTypeAndPersonUUIDOrderByEventTimestampDesc(eventType: CPRLogEvents, personUUID: UUID): List<EventLogEntity>?
 }

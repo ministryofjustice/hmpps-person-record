@@ -85,7 +85,7 @@ class PopulateFromProbationIntTest : WebTestBase() {
     person: PersonEntity,
   ) {
     val entry = entries.find { it.matchId == person.matchId }!!
-    assertThat(entry.uuid).isEqualTo(person.personKey?.personUUID)
+    assertThat(entry.personUUID).isEqualTo(person.personKey?.personUUID)
     assertThat(entry.sourceSystem).isEqualTo(DELIUS)
     assertThat(entry.eventType).isEqualTo(CPR_RECORD_SEEDED)
     assertThat(entry.sourceSystemId).isEqualTo(person.crn)

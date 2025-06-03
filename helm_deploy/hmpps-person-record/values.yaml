@@ -3,13 +3,21 @@ generic-service:
 
   serviceAccountName: "person-record-service"
 
-  replicaCount: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+    targetCPUUtilizationPercentage: 75
+    targetMemoryUtilizationPercentage: 75
 
   resources:
     limits:
+      cpu: 2
       memory: 4Gi
     requests:
+      cpu: 2
       memory: 4Gi
+
   image:
     repository: quay.io/hmpps/hmpps-person-record
     tag: app_version # override at deployment time

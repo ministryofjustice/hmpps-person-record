@@ -24,5 +24,5 @@ interface PersonRepository : JpaRepository<PersonEntity, Long> {
 
   fun findByMatchId(matchId: UUID): PersonEntity?
 
-  fun countBySourceSystem(sourceSystem: SourceSystemType): Long
+  fun countBySourceSystemAndMergedToIsNull(sourceSystem: SourceSystemType): Long
 }

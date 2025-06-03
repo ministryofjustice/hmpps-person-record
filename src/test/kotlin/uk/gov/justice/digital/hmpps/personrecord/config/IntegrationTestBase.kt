@@ -196,7 +196,7 @@ class IntegrationTestBase {
     matchingEvents: (logEvents: List<EventLogEntity>) -> Unit,
   ) {
     awaitAssert(function = {
-      matchingEvents(eventLogRepository.findAllByEventTypeAndUuidOrderByEventTimestampDesc(event, cluster) ?: emptyList())
+      matchingEvents(eventLogRepository.findAllByEventTypeAndPersonUUIDOrderByEventTimestampDesc(event, cluster) ?: emptyList())
     }, timeout)
   }
 
