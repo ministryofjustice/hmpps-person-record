@@ -13,13 +13,12 @@ enum class SexCode(val description: String) {
   ;
 
   companion object {
-
-    fun from(libraHearingEvent: LibraHearingEvent?): SexCode? = when (libraHearingEvent?.defendantSex) {
-      "M" -> M
-      "F" -> F
-      "NS" -> NS
-      null -> null
-      else -> N
+    fun from(libraHearingEvent: LibraHearingEvent?): SexCode? = libraHearingEvent?.defendantSex?.let {
+      mapOf(
+        "M" to M,
+        "F" to F,
+        "NS" to NS,
+      ).getOrDefault(it, N)
     }
 
     fun from(personDetails: PersonDetails?): SexCode? = when (personDetails?.gender) {
