@@ -270,12 +270,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(
         CPR_RECORD_CREATED,
         mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
-        timeout = 100,
       )
       checkTelemetry(
         CPR_UUID_CREATED,
         mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
-        timeout = 100,
       )
     }
 
