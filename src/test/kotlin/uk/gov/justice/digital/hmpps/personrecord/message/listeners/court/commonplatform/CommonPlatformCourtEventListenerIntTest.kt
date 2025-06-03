@@ -93,8 +93,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
             lastName = changedLastName,
             cro = cro,
             defendantId = defendantId,
-            pncMissing = true,
-            croMissing = true,
           ),
         ),
       ),
@@ -157,8 +155,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
             lastName = changedLastName,
             cro = cro,
             defendantId = defendantId,
-            pncMissing = true,
-            croMissing = true,
           ),
         ),
       ),
@@ -218,8 +214,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
               CommonPlatformHearingSetupAlias(firstName = "aliasFirstName2", lastName = "alisLastName2"),
             ),
             gender = "MALE",
-            pncMissing = true,
-            croMissing = true,
           ),
           CommonPlatformHearingSetup(
             pnc = secondPnc,
@@ -228,24 +222,18 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
             address =
             CommonPlatformHearingSetupAddress(buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown, postcode = postcode),
             gender = "FEMALE",
-            pncMissing = true,
-            croMissing = true,
           ),
           CommonPlatformHearingSetup(
             pnc = thirdPnc,
             defendantId = thirdDefendantId,
             nationalInsuranceNumber = thirdDefendantNINumber,
             gender = "NOT SPECIFIED",
-            pncMissing = true,
-            croMissing = true,
           ),
           CommonPlatformHearingSetup(
             pnc = forthPnc,
             defendantId = forthDefendantId,
             nationalInsuranceNumber = forthDefendantNINumber,
             gender = "UNSUPPORTED GENDER CODE",
-            pncMissing = true,
-            croMissing = true,
           ),
         ),
       ),
@@ -336,8 +324,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
-          CommonPlatformHearingSetup(pnc = "", defendantId = firstDefendantId, pncMissing = true, croMissing = true),
-          CommonPlatformHearingSetup(pnc = null, defendantId = secondDefendantId, pncMissing = true, croMissing = true),
+          CommonPlatformHearingSetup(pnc = "", defendantId = firstDefendantId),
+          CommonPlatformHearingSetup(pnc = null, defendantId = secondDefendantId),
         ),
       ),
     )
@@ -380,8 +368,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
           CommonPlatformHearingSetup(
             defendantId = youthDefendantId,
             isYouth = true,
-            pncMissing = true,
-            croMissing = true,
           ),
         ),
       ),
@@ -406,7 +392,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
-          CommonPlatformHearingSetup(defendantId = defendantId, isYouth = null, pncMissing = true, croMissing = true),
+          CommonPlatformHearingSetup(defendantId = defendantId, isYouth = null),
         ),
       ),
     )
@@ -420,7 +406,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
-          CommonPlatformHearingSetup(defendantId = defendantId, isPerson = false, pncMissing = true, croMissing = true),
+          CommonPlatformHearingSetup(defendantId = defendantId, isPerson = false),
         ),
       ),
     )
@@ -450,8 +436,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
             dateOfBirth = "",
             defendantId = defendantId,
             isPerson = true,
-            pncMissing = true,
-            croMissing = true,
           ),
         ),
       ),
@@ -479,16 +463,12 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val organisations = (1..250).map {
       CommonPlatformHearingSetup(
         isPerson = false,
-        pncMissing = true,
-        croMissing = true,
       )
     }
-    val person = CommonPlatformHearingSetup(defendantId = defendantId, pncMissing = true, croMissing = true)
+    val person = CommonPlatformHearingSetup(defendantId = defendantId)
     val organization = CommonPlatformHearingSetup(
       defendantId = organizationDefendantId,
       isPerson = false,
-      pncMissing = true,
-      croMissing = true,
     )
     val largeMessage = commonPlatformHearing(organisations + person + organization)
 
@@ -516,8 +496,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         listOf(
           CommonPlatformHearingSetup(
             defendantId = defendantId,
-            pncMissing = true,
-            croMissing = true,
           ),
         ),
       ),
@@ -631,8 +609,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
               aliases = listOf(
                 CommonPlatformHearingSetupAlias(firstName = aliasFirstName, lastName = aliasLastName),
               ),
-              pncMissing = true,
-              croMissing = true,
             ),
           ),
         ),
