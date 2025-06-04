@@ -58,7 +58,6 @@ class SexCodeTest {
       pnc = null,
       cro = null,
       dateOfBirth = randomDate(),
-      currentlyManaged = false,
     )
 
     assertEquals(SexCode.from(probationCase), sexCode)

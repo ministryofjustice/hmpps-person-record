@@ -4,9 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.AllConvictedOffences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.EmailAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Identifier
@@ -52,7 +49,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupIdentifier
 import java.time.LocalDate
-import java.util.stream.Stream
 
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -67,28 +63,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     publishDomainEvent(PRISONER_CREATED, domainEvent)
 
     expectOneMessageOnDlq(prisonEventsQueue)
-  }
-
-  @ParameterizedTest
-  @MethodSource("currentlyManagedParameters")
-  fun `should map currently managed field correctly`(status: String?, result: Boolean?) {
-    stubPersonMatchUpsert()
-    stubPersonMatchScores()
-    val prisonNumber = randomPrisonNumber()
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, currentlyManaged = status))
-
-    val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber)
-    val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
-
-    publishDomainEvent(PRISONER_CREATED, domainEvent)
-
-    checkTelemetry(
-      CPR_RECORD_CREATED,
-      mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
-    )
-
-    val personEntity = awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumber) }
-    assertThat(personEntity.currentlyManaged).isEqualTo(result)
   }
 
   @Nested
@@ -124,7 +98,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val aliasDateOfBirth = randomDate()
 
       stubNoMatchesPersonMatch()
-      stubPrisonResponse(ApiResponseSetup(gender = "Female", aliases = listOf(ApiResponseSetupAlias(aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, currentlyManaged = "ACTIVE IN", identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
+      stubPrisonResponse(ApiResponseSetup(gender = "Female", aliases = listOf(ApiResponseSetupAlias(aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
 
       val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = emptyList())
       val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
@@ -168,7 +142,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.contacts[1].contactValue).isEqualTo("01141234567")
         assertThat(personEntity.contacts[2].contactType).isEqualTo(MOBILE)
         assertThat(personEntity.contacts[2].contactValue).isEqualTo("01141234567")
-        assertThat(personEntity.currentlyManaged).isEqualTo(true)
         assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceStartDate)
         assertThat(personEntity.sexCode).isEqualTo(SexCode.F)
       }
@@ -362,17 +335,5 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       }
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_UUID_CREATED)
     }
-  }
-
-  companion object {
-    @JvmStatic
-    fun currentlyManagedParameters(): Stream<Arguments> = Stream.of(
-      Arguments.of("ACTIVE IN", true),
-      Arguments.of("ACTIVE OUT", true),
-      Arguments.of("INACTIVE TRN", true),
-      Arguments.of("INACTIVE OUT", false),
-      Arguments.of("INACTIVE IN", null),
-      Arguments.of(null, null),
-    )
   }
 }
