@@ -18,12 +18,15 @@ class ProbationMergeEventProcessor(
 ) {
 
   fun processEvent(mergeDomainEvent: DomainEvent) {
-    corePersonRecordAndDeliusClient.getProbationCase(mergeDomainEvent.additionalInformation?.targetCrn!!).let {
-      val from: PersonEntity? = personRepository.findByCrn(mergeDomainEvent.additionalInformation.sourceCrn!!)
+    val toCrn = mergeDomainEvent.additionalInformation?.targetCrn!!
+    val fromCrn = mergeDomainEvent.additionalInformation.sourceCrn!!
+
+    corePersonRecordAndDeliusClient.getProbationCase(toCrn).let {
+      val from: PersonEntity? = personRepository.findByCrn(fromCrn)
       val to: PersonEntity = createUpdateService.processPerson(
         Person.from(it),
         shouldReclusterOnUpdate = false,
-      ) { personRepository.findByCrn(mergeDomainEvent.additionalInformation.targetCrn) }
+      ) { personRepository.findByCrn(toCrn) }
       mergeService.processMerge(from, to)
     }
   }
