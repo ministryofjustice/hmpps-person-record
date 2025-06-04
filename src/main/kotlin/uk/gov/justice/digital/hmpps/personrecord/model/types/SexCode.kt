@@ -37,13 +37,14 @@ enum class SexCode(val description: String) {
       ).getOrDefault(it, NS)
     }
 
-    fun from(prisoner: Prisoner): SexCode? = when (prisoner.gender) {
-      "Male" -> M
-      "Female" -> F
-      "Not Known / Not Recorded" -> N
-      "Not Specified (Indeterminate)" -> NS
-      null -> null
-      else -> N
+    fun from(prisoner: Prisoner): SexCode? = prisoner.gender?.let {
+      mapOf(
+        "Male" to M,
+        "Female" to F,
+        "Not Known / Not Recorded" to N,
+        "Not Specified (Indeterminate)" to NS,
+      )
+        .getOrDefault(it, N)
     }
   }
 }
