@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.prison
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -17,11 +16,9 @@ class PrisonEventProcessor(
 
   fun processEvent(domainEvent: DomainEvent) {
     val prisonNumber = domainEvent.additionalInformation?.prisonNumber!!
-    prisonerSearchClient.getPrisoner(prisonNumber).let<Prisoner?, Any?> { it: Prisoner? ->
-      it?.let {
-        createUpdateService.processPerson(Person.from(it)) {
-          personRepository.findByPrisonNumber(prisonNumber)
-        }
+    prisonerSearchClient.getPrisoner(prisonNumber)?.let {
+      createUpdateService.processPerson(Person.from(it)) {
+        personRepository.findByPrisonNumber(prisonNumber)
       }
     }
   }
