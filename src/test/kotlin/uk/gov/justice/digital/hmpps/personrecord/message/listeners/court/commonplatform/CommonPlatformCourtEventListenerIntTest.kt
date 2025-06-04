@@ -126,7 +126,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ethnicity = person.ethnicity,
       nationality = person.nationality,
       religion = person.religion,
-      currentlyManaged = person.currentlyManaged,
       matchId = UUID.randomUUID(),
       cId = person.cId,
       lastModified = now(),
