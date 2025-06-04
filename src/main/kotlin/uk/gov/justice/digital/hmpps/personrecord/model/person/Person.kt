@@ -39,7 +39,6 @@ data class Person(
   var selfMatchScore: Double? = null,
   val sourceSystem: SourceSystemType,
   val sentences: List<SentenceInfo> = emptyList(),
-  val currentlyManaged: Boolean? = null,
   val cId: String? = null,
   val sexCode: SexCode? = null,
 ) {
@@ -205,7 +204,6 @@ data class Person(
         nationality = prisoner.nationality,
         religion = prisoner.religion,
         sentences = prisoner.allConvictedOffences?.map { SentenceInfo.from(it) } ?: emptyList(),
-        currentlyManaged = prisoner.currentlyManaged,
         sexCode = SexCode.from(prisoner),
       )
     }
@@ -230,12 +228,10 @@ data class Person(
       references = existingPersonEntity.references.map { Reference.from(it) },
       sourceSystem = existingPersonEntity.sourceSystem,
       sentences = existingPersonEntity.sentenceInfo.map { SentenceInfo.from(it) },
-      currentlyManaged = existingPersonEntity.currentlyManaged,
       sexCode = existingPersonEntity.sexCode,
     )
   }
 
-  fun getIdentifiersForMatching(identifiers: List<IdentifierType>): Set<Reference> = this.references.filter { identifiers.contains(it.identifierType) && !it.identifierValue.isNullOrEmpty() }.toSet()
   fun isPerson(): Boolean = minimumDataIsPresent()
 
   private fun minimumDataIsPresent(): Boolean = lastNameIsPresent() && anyOtherPersonalDataIsPresent()

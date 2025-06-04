@@ -23,7 +23,7 @@ class CreateUpdateService(
 ) {
 
   @Retryable(
-    backoff = Backoff(random = true, delay = 1000, maxDelay = 2000, multiplier = 1.5),
+    backoff = Backoff(delay = 200, random = true, multiplier = 3.0),
     retryFor = [
       OptimisticLockException::class,
       DataIntegrityViolationException::class,
