@@ -96,6 +96,3 @@ aws:
   court-message-bucket-name: local-court-message-bucket
   cpr-court-message-bucket-name: cpr-local-court-message-bucket
   region: eu-west-2
-
-publish-to-court-topic: true
-

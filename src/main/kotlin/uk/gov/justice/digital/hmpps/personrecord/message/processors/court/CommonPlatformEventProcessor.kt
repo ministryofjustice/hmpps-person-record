@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.jayway.jsonpath.JsonPath
 import kotlinx.coroutines.runBlocking
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.services.s3.S3AsyncClient
@@ -25,8 +24,6 @@ class CommonPlatformEventProcessor(
   private val createUpdateService: CreateUpdateService,
   private val courtMessagePublisher: CourtMessagePublisher,
   private val s3AsyncClient: S3AsyncClient,
-  @Value("\${publish-to-court-topic:false}")
-  private val publishToCourtTopic: Boolean,
 ) {
 
   companion object {
@@ -42,6 +39,7 @@ class CommonPlatformEventProcessor(
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
 
     val defendants = commonPlatformHearingEvent.hearing.prosecutionCases
+      .asSequence()
       .flatMap { it.defendants }
       .filterNot { it.isYouth }
       .distinctBy { it.id }
@@ -50,13 +48,12 @@ class CommonPlatformEventProcessor(
       .map {
         processCommonPlatformPerson(it)
       }
+      .toList()
 
-    if (publishToCourtTopic) {
-      val updatedMessage = addCprUUIDToCommonPlatform(commonPlatformHearing, defendants)
-      when (messageLargerThanThreshold(commonPlatformHearing)) {
-        true -> courtMessagePublisher.publishLargeMessage(sqsMessage, updatedMessage)
-        else -> courtMessagePublisher.publishMessage(sqsMessage, updatedMessage)
-      }
+    val updatedMessage = addCprUUIDToCommonPlatform(commonPlatformHearing, defendants)
+    when (messageLargerThanThreshold(commonPlatformHearing)) {
+      true -> courtMessagePublisher.publishLargeMessage(sqsMessage, updatedMessage)
+      else -> courtMessagePublisher.publishMessage(sqsMessage, updatedMessage)
     }
   }
 
