@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -31,8 +33,23 @@ class APIController(
   )
   @GetMapping("/person/{uuid}")
   @ApiResponses(
-    ApiResponse(responseCode = "200", description = "OK"),
-    ApiResponse(responseCode = "301", description = "Permanent Redirect"),
+    ApiResponse(
+      responseCode = "200",
+      description = "OK",
+      content = [
+        Content(
+          mediaType = "application/json",
+          schema = Schema(implementation = CanonicalRecord::class),
+        ),
+      ],
+    ),
+    ApiResponse(
+      responseCode = "301",
+      description = "Permanent Redirect",
+      content = [
+        Content(schema = Schema(hidden = true)),
+      ],
+    ),
   )
   fun getCanonicalRecord(
     @PathVariable(name = "uuid") uuid: UUID,
