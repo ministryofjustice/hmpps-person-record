@@ -21,12 +21,12 @@ enum class SexCode(val description: String) {
       ).getOrDefault(it, N)
     }
 
-    fun from(personDetails: PersonDetails?): SexCode? = when (personDetails?.gender) {
-      "MALE" -> M
-      "FEMALE" -> F
-      "NOT SPECIFIED" -> NS
-      null -> null
-      else -> N
+    fun from(personDetails: PersonDetails?): SexCode? = personDetails?.gender?.let {
+      mapOf(
+        "MALE" to M,
+        "FEMALE" to F,
+        "NOT SPECIFIED" to NS,
+      ).getOrDefault(it, N)
     }
 
     fun from(probationCase: ProbationCase?): SexCode? = when (probationCase?.gender?.value) {
