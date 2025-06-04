@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.jayway.jsonpath.JsonPath
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
@@ -19,8 +18,6 @@ class LibraEventProcessor(
   private val courtMessagePublisher: CourtMessagePublisher,
   private val createUpdateService: CreateUpdateService,
   private val personRepository: PersonRepository,
-  @Value("\${publish-to-court-topic:false}")
-  private val publishToCourtTopic: Boolean,
 ) {
 
   fun processEvent(sqsMessage: SQSMessage) {
@@ -30,10 +27,8 @@ class LibraEventProcessor(
       libraHearingEvent.isPerson() && person.isPerson() -> processLibraPerson(person)
       else -> null
     }
-    if (publishToCourtTopic) {
-      val updatedMessage = addCprUUIDToLibra(sqsMessage.message, personEntity)
-      courtMessagePublisher.publishMessage(sqsMessage, updatedMessage)
-    }
+    val updatedMessage = addCprUUIDToLibra(sqsMessage.message, personEntity)
+    courtMessagePublisher.publishMessage(sqsMessage, updatedMessage)
   }
 
   private fun processLibraPerson(person: Person): PersonEntity = createUpdateService.processPerson(person) {
