@@ -24,8 +24,6 @@ generic-service:
     PRISONER_SEARCH_BASE_URL: https://prisoner-search-dev.prison.service.justice.gov.uk
     PRISON_SERVICE_BASE_URL: https://prison-api-dev.prison.service.justice.gov.uk
     CORE_PERSON_RECORD_AND_DELIUS_BASE_URL: https://core-person-record-and-delius-dev.hmpps.service.justice.gov.uk
-    PUBLISH_TO_COURT_TOPIC: "true"
-
 
   scheduledDowntime:
     enabled: true
