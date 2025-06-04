@@ -30,19 +30,19 @@ class PersonService(
         updatedEntity,
       ),
     )
-
     when {
       matchingFieldsHaveChanged -> personMatchService.saveToPersonMatch(updatedEntity)
     }
-
-    val shouldRecluster = when (personKeyService.clusterNeedsAttentionAndIsInvalid(updatedEntity.personKey)) {
-      true -> false
-      else -> {
-        personKeyService.settingNeedsAttentionClusterToActive(updatedEntity.personKey, updatedEntity)
-        shouldReclusterOnUpdate
-      }
-    }
+    val shouldRecluster = shouldReclusterOnUpdate && matchingFieldsHaveChanged && hasClusterSetBackToActive(updatedEntity)
     return PersonUpdated(updatedEntity, matchingFieldsHaveChanged, shouldRecluster)
+  }
+
+  private fun hasClusterSetBackToActive(updatedEntity: PersonEntity) = when (personKeyService.clusterNeedsAttentionAndIsInvalid(updatedEntity.personKey)) {
+    true -> false
+    else -> {
+      personKeyService.settingNeedsAttentionClusterToActive(updatedEntity.personKey, updatedEntity)
+      true
+    }
   }
 
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
