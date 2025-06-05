@@ -31,6 +31,7 @@ class SQSListenerService(
       try {
         action(this)
       } catch (e: WebClientResponseException.NotFound) {
+        // this should only apply to calls to core-preson-record-and-delius or prisonter-search NOT person-match.
         log.info("Discarding message for status code: ${e.statusCode}")
       }
       return this
