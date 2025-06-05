@@ -331,10 +331,12 @@ class IntegrationTestBase {
     )
   }
 
-  internal fun stubDeletePersonMatch(status: Int = 200) {
+  internal fun stubDeletePersonMatch(status: Int = 200, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED) {
     stubDeleteRequest(
       url = "/person",
       status = status,
+      currentScenarioState = currentScenarioState,
+      nextScenarioState = nextScenarioState,
     )
   }
 
