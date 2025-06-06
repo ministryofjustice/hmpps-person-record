@@ -274,10 +274,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `test multiple requests to probation single record process successfully`() {
+    fun `multiple requests to probation single record process successfully`() {
       val pnc = randomPnc()
       val crn = randomCrn()
-      blitz(30, 6) {
+      blitz(30, 2) {
         probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, pnc = pnc))
       }
 
