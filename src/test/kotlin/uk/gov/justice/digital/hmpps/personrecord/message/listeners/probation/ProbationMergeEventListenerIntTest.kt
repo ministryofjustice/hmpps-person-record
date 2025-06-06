@@ -47,7 +47,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     @Test
     fun `processes offender merge event with target record does not exist`() {
       val targetCrn = randomCrn()
-      val sourcePerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+      var sourcePerson = createPersonWithNewKey(createRandomProbationPersonDetails())
 
       stubPersonMatchUpsert()
       stubPersonMatchScores()
@@ -55,6 +55,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourcePerson.crn!!, targetCrn)
 
       val targetPerson = awaitNotNullPerson { personRepository.findByCrn(targetCrn) }
+      sourcePerson = awaitNotNullPerson { personRepository.findByCrn(sourcePerson.crn!!) }
+
       sourcePerson.assertMergedTo(targetPerson)
 
       checkTelemetry(

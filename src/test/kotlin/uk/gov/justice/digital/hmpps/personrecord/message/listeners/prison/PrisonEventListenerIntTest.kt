@@ -65,6 +65,17 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     expectOneMessageOnDlq(prisonEventsQueue)
   }
 
+  @Test
+  fun `should discard message if prisoner search returns 404`() {
+    val prisonNumber = randomPrisonNumber()
+    stub404Response("/prisoner/$prisonNumber")
+    val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
+    val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
+    publishDomainEvent(PRISONER_CREATED, domainEvent)
+    waitForMessageToBeProcessedAndDiscarded()
+    expectNoMessagesOnQueueOrDlq(prisonEventsQueue)
+  }
+
   @Nested
   inner class SuccessfulProcessing {
 

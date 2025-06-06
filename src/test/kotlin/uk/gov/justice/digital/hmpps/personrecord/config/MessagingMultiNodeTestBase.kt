@@ -25,6 +25,7 @@ import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.HmppsTopic
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import uk.gov.justice.hmpps.sqs.publish
+import java.lang.Thread.sleep
 import java.util.UUID
 
 @ExtendWith(MultiApplicationContextExtension::class)
@@ -273,5 +274,9 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueue.sqsDlqClient!!.purgeQueue(
       PurgeQueueRequest.builder().queueUrl(hmppsQueue.dlqUrl).build(),
     ).get()
+  }
+
+  fun waitForMessageToBeProcessedAndDiscarded() {
+    sleep(1000)
   }
 }

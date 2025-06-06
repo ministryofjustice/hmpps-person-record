@@ -1,19 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
-import jakarta.persistence.OptimisticLockException
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.dao.CannotAcquireLockException
-import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.retry.annotation.Backoff
-import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
-import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.reactive.function.client.WebClientRequestException
-import org.springframework.web.reactive.function.client.WebClientResponseException.BadGateway
-import org.springframework.web.reactive.function.client.WebClientResponseException.InternalServerError
-import org.springframework.web.reactive.function.client.WebClientResponseException.ServiceUnavailable
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -26,19 +15,6 @@ class CreateUpdateService(
   private val publisher: ApplicationEventPublisher,
 ) {
 
-  @Retryable(
-    backoff = Backoff(delay = 200, random = true, multiplier = 3.0),
-    retryFor = [
-      OptimisticLockException::class,
-      DataIntegrityViolationException::class,
-      CannotAcquireLockException::class,
-      InternalServerError::class,
-      BadGateway::class,
-      ServiceUnavailable::class,
-      WebClientRequestException::class,
-    ],
-  )
-  @Transactional(isolation = REPEATABLE_READ)
   fun processPerson(
     person: Person,
     shouldReclusterOnUpdate: Boolean = true,

@@ -46,26 +46,31 @@ hmpps.sqs:
       dlqName: cpr_delius_offender_events_queue_dlq
       subscribeTopicId: domainevents
       subscribeFilter: '{"eventType":[ "probation-case.engagement.created", "probation-case.address.created", "probation-case.address.updated", "probation-case.address.deleted","probation-case.personal-details.updated", "OFFENDER_ALIAS_CHANGED", "probation-case.engagement.recovered" ] }'
+      dlqMaxReceiveCount: 1
     cprdeliusmergeeventsqueue:
       queueName: cpr_delius_merge_events_queue
       dlqName: cpr_delius_merge_events_queue_dlq
       subscribeTopicId: domainevents
       subscribeFilter: '{"eventType":[ "probation-case.merge.completed", "probation-case.unmerge.completed"] }'
+      dlqMaxReceiveCount: 1
     cprdeliusdeleteeventsqueue:
       queueName: cpr_delius_delete_events_queue
       dlqName: cpr_delius_delete_events_queue_dlq
       subscribeTopicId: domainevents
       subscribeFilter: '{"eventType":[ "probation-case.deleted.gdpr", "probation-case.engagement.deleted" ] }'
+      dlqMaxReceiveCount: 1
     cprnomiseventsqueue:
       queueName: cpr_nomis_events_queue
       dlqName: cpr_nomis_events_dlq
       subscribeTopicId: domainevents
       subscribeFilter: '{"eventType":["prisoner-offender-search.prisoner.created", "prisoner-offender-search.prisoner.updated"] }'
+      dlqMaxReceiveCount: 1
     cprnomismergeeventsqueue:
       queueName: cpr_nomis_merge_events_queue
       dlqName: cpr_nomis_merge_events_queue_dlq
       subscribeTopicId: domainevents
       subscribeFilter: '{"eventType":[ "prisoner-offender-events.prisoner.merged"] }'
+      dlqMaxReceiveCount: 1
   topics:
     courtcasestopic:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}.fifo
