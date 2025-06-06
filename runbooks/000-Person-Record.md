@@ -4,17 +4,22 @@ This is a runbook to document how this service is supported, as described in: [M
 
 ## Table of Contents
 1. [Introduction](#Introduction)
-   1. [Dependant Services](#Dependant-Services)
+   1. [Dependent Services](#Dependent-Services)
 2. [Service URLs](#Service-URLs)
 3. [Incident Response Hours](#Incident-Response-Hours)
 4. [Incident Contact Details](#Incident-Contact-Details)
 5. [Service Team Contact](#service-team-contact)
 6. [Expected Speed and Frequency of Releases](#expected-speed-and-frequency-of-releases)
 7. [Automatic alerts](#automatic-alerts)
-8. [Monitoring](#monitoring)
+8. [Impact of an outage](#impact-of-an-outage)
+9. [Monitoring](#monitoring)
    1. [Development (Dev)](#development-dev)
    2. [Pre-Production (PreProd)](#pre-production-preprod)
    3. [Production (Prod)](#production-prod)
+10. [Logs](#logs)
+    1. [Through Kubernetes](#through-kubernetes)
+    2. [Through AppInsights](#through-appinsights)
+11. [How to resolve specific issues](#how-to-resolve-specific-issues)
 
 ## Introduction
 
@@ -23,20 +28,21 @@ A service for managing identity data about the people we look after in HMPPS.
 This Kotlin application integrates with a PostgreSQL database to manage and store person-related information.
 It consumes messages from AWS SQS queues and republishes them to a designated topic. Additionally, it exposes a RESTful API for accessing and managing person records, built using Spring Boot.
 
-### Dependant Services
+### Dependent Services
 
 * [hmpps-person-match](https://github.com/ministryofjustice/hmpps-person-match): This is a Python application built with FastAPI that accepts and stores person information for the purpose of matching and scoring records against one another.
     It integrates with a PostgreSQL database to manage and retrieve relevant data.
 * [cloud-platform-environments](https://github.com/ministryofjustice/cloud-platform-environments): This is where we define and manage the infrastructure for this service. Maintained by the cloud-platform team. We use prebuilt terraform templates to define and provision AWS / Kubernetes resources.
 
 ## Service URLs
+
 - Development: https://hmpps-person-record-dev.hmpps.service.justice.gov.uk
 - Pre-Production: https://hmpps-person-record-preprod.hmpps.service.justice.gov.uk
 - Production: https://hmpps-person-record.hmpps.service.justice.gov.uk
 
 ## Incident Response Hours
 
-Office hours, usually 9am-6pm on working days.
+Office hours, usually 9am-5pm on working days.
 
 ## Incident Contact Details
 
@@ -61,7 +67,7 @@ These include:
 
 ## Impact of an outage
 
-Since we have one consumer (in a beta phase), the impact across the organisation is minimal. In all cases it would prevent civil servants from doing their work and the impact would be quite significant.
+Since we have one consumer (in a beta phase), the impact across the organisation is minimal.
 
 ## Monitoring
 
@@ -147,6 +153,35 @@ See environment specific monitoring links:
             * [Nomis Merge Events DLQ](https://grafana.live.cloud-platform.service.justice.gov.uk/d/AWSSQS000/aws-sqs?orgId=1&var-datasource=P896B4444D3F0DAB8&var-region=default&var-queue=hmpps-person-record-prod-cpr_nomis_merge_events_dlq&from=now-2d&to=now)
     * **Topics**:
         * [CPR Court Case Topic](https://grafana.live.cloud-platform.service.justice.gov.uk/d/AWSSNS001/aws-sns?from=now-12h&to=now&timezone=browser&var-datasource=P896B4444D3F0DAB8&var-region=default&var-topic=cloud-platform-hmpps-person-record-7fe9dbb1391a89724dd2459be10708c2)
+
+## Logs
+
+How to access the application logs.
+
+### Through Kubernetes
+
+You can read the logs using [kubectl](https://kubernetes.io/docs/reference/kubectl/). 
+To view logs from the currently deployed application:
+
+```shell
+kubectl logs deployment/hmpps-person-record -n hmpps-person-record-<namespace>
+```
+
+### Through AppInsights
+
+To view logs in AppInsights use these environment indexes.
+
+**Environment**:
+* [Development (nomisapi-t3)](https://portal.azure.com/#@nomsdigitechoutlook.onmicrosoft.com/resource/subscriptions/c27cfedb-f5e9-45e6-9642-0fad1a5c94e7/resourceGroups/nomisapi-t3-rg/providers/Microsoft.Insights/components/nomisapi-t3/logs)
+* [Pre Production (nomisapi-preprod)](https://portal.azure.com/#@nomsdigitechoutlook.onmicrosoft.com/resource/subscriptions/a5ddf257-3b21-4ba9-a28c-ab30f751b383/resourceGroups/nomisapi-preprod-rg/providers/Microsoft.Insights/components/nomisapi-preprod/logs)
+* [Production (nomisapi-prod)](https://portal.azure.com/#@nomsdigitechoutlook.onmicrosoft.com/resource/subscriptions/a5ddf257-3b21-4ba9-a28c-ab30f751b383/resourceGroups/nomisapi-prod-rg/providers/Microsoft.Insights/components/nomisapi-prod/logs)
+
+You can view logs through Azure AppInsights. To filter this application use:
+
+```
+AppTraces
+| where AppRoleName == 'hmpps-person-record'
+```
 
 ## How to resolve specific issues
 TODO:
