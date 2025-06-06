@@ -1,9 +1,18 @@
-# HMPPS Person Record
+# HMPPS Person Record Runbook
 
 ## Table of Contents
 1. [Introduction](#Introduction)
    1. [Dependant Services](#Dependant-Services)
-2. [Application Data Flow](#Application-Data-Flow)
+2. [Service URLs](#Service-URLs)
+3. [Incident Response Hours](#Incident-Response-Hours)
+4. [Incident Contact Details](#Incident-Contact-Details)
+5. [Service Team Contact](#service-team-contact)
+6. [Expected Speed and Frequency of Releases](#expected-speed-and-frequency-of-releases)
+7. [Automatic alerts](#automatic-alerts)
+8. [Monitoring](#monitoring)
+   1. [Development (Dev)](#development-dev)
+   2. [Pre-Production (PreProd)](#pre-production-preprod)
+   3. [Production (Prod)](#production-prod)
 
 ## Introduction
 
@@ -16,12 +25,37 @@ It consumes messages from AWS SQS queues and republishes them to a designated to
 
 * [hmpps-person-match](https://github.com/ministryofjustice/hmpps-person-match): This is a Python application built with FastAPI that accepts and stores person information for the purpose of matching and scoring records against one another.
     It integrates with a PostgreSQL database to manage and retrieve relevant data.
+* [cloud-platform-environments](https://github.com/ministryofjustice/cloud-platform-environments): This is where we define and manage the infrastructure for this service. Maintained by the cloud-platform team. We use prebuilt terraform templates to define and provision AWS / Kubernetes resources.
 
-## Application Data Flow
+## Service URLs
+- Development: https://hmpps-person-record-dev.hmpps.service.justice.gov.uk
+- Pre-Production: https://hmpps-person-record-preprod.hmpps.service.justice.gov.uk
+- Production: https://hmpps-person-record.hmpps.service.justice.gov.uk
 
-This diagram shows the flow of data through the application from its source systems to the consumers. Inclusive of the data flow to its dependant services and integration with external systems:
+## Incident Response Hours
 
-![data-flow.png](resources/data-flow.png)
+Office hours, usually 9am-6pm on working days.
+
+## Incident Contact Details
+
+Email: [hmpps-person-record@digital.justice.gov.uk](mailto:hmpps-person-record@digital.justice.gov.uk)
+
+## Service Team Contact
+
+The service team can be reached on MOJ Slack: [#hmpps-person-record](https://moj.enterprise.slack.com/archives/C04AQPM3A73)
+
+## Expected Speed and Frequency of Releases
+
+Trunk based development and continuous integration is practiced on this service. If changes pass all automated tests, they are deployed all the way to production.
+There is no change request process and the delivery team pushes to production regularly (multiple times a day on average).
+
+## Automatic alerts
+
+These include:
+- Security scan results (Trivy, OWASP, Veracode)
+- Healthcheck Alerts
+- SQS DLQ Messages Alerts
+- Deployments
 
 ## Monitoring
 
@@ -54,7 +88,7 @@ See environment specific monitoring links:
   * **Topics**:
     * [CPR Court Case Topic](https://grafana.live.cloud-platform.service.justice.gov.uk/d/AWSSNS001/aws-sns?from=now-12h&to=now&timezone=browser&var-datasource=P896B4444D3F0DAB8&var-region=default&var-topic=cloud-platform-hmpps-person-record-6db24f48dcd80b9e5d946f554d5e931f)
 
-### Preproduction (Preprod)
+### Pre-Production (Preprod)
 
 * **Application**:
     * [Memory and CPU for hmpps-person-record](https://grafana.live.cloud-platform.service.justice.gov.uk/d/a164a7f0339f99e89cea5cb47e9be617/kubernetes-compute-resources-workload?orgId=1&refresh=10s&from=now-1h&to=now&var-datasource=default&var-cluster=&var-namespace=hmpps-person-record-preprod&var-workload=hmpps-person-record&var-type=deployment)
