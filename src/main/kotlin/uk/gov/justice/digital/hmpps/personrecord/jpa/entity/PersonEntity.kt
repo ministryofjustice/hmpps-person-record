@@ -204,12 +204,13 @@ class PersonEntity(
 
     val empty = null
 
-    fun PersonEntity?.extractSourceSystemId(): String? = when (this?.sourceSystem) {
-      DELIUS -> this.crn
-      NOMIS -> this.prisonNumber
-      COMMON_PLATFORM -> this.defendantId
-      LIBRA -> this.cId
-      else -> null
+    fun PersonEntity?.extractSourceSystemId(): String? = this?.sourceSystem?.let {
+      mapOf(
+        DELIUS to this.crn,
+        NOMIS to this.prisonNumber,
+        COMMON_PLATFORM to this.defendantId,
+        LIBRA to this.cId,
+      )[it]
     }
 
     fun List<ReferenceEntity>.getType(type: IdentifierType): List<ReferenceEntity> = this.filter { it.identifierType == type }
