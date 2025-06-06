@@ -4,7 +4,7 @@ This is a runbook to document how this service is supported, as described in: [M
 
 ## Table of Contents
 1. [Introduction](#Introduction)
-   1. [Dependant Services](#Dependant-Services)
+   1. [Dependent Services](#Dependent-Services)
 2. [Service URLs](#Service-URLs)
 3. [Incident Response Hours](#Incident-Response-Hours)
 4. [Incident Contact Details](#Incident-Contact-Details)
@@ -23,7 +23,7 @@ A service for managing identity data about the people we look after in HMPPS.
 This Kotlin application integrates with a PostgreSQL database to manage and store person-related information.
 It consumes messages from AWS SQS queues and republishes them to a designated topic. Additionally, it exposes a RESTful API for accessing and managing person records, built using Spring Boot.
 
-### Dependant Services
+### Dependent Services
 
 * [hmpps-person-match](https://github.com/ministryofjustice/hmpps-person-match): This is a Python application built with FastAPI that accepts and stores person information for the purpose of matching and scoring records against one another.
     It integrates with a PostgreSQL database to manage and retrieve relevant data.
@@ -36,7 +36,7 @@ It consumes messages from AWS SQS queues and republishes them to a designated to
 
 ## Incident Response Hours
 
-Office hours, usually 9am-6pm on working days.
+Office hours, usually 9am-5pm on working days.
 
 ## Incident Contact Details
 
@@ -61,7 +61,7 @@ These include:
 
 ## Impact of an outage
 
-Since we have one consumer (in a beta phase), the impact across the organisation is minimal. In all cases it would prevent civil servants from doing their work and the impact would be quite significant.
+Since we have one consumer (in a beta phase), the impact across the organisation is minimal.
 
 ## Monitoring
 
