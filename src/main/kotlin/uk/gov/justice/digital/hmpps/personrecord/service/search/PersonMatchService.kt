@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
-import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import java.util.UUID
@@ -25,7 +24,6 @@ import java.util.UUID
 @Component
 class PersonMatchService(
   private val personMatchClient: PersonMatchClient,
-  private val retryExecutor: RetryExecutor,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   private val objectMapper: ObjectMapper,
@@ -34,7 +32,7 @@ class PersonMatchService(
   fun findHighestConfidencePersonRecord(personEntity: PersonEntity) = findHighestConfidencePersonRecordsByProbabilityDesc(personEntity).firstOrNull()?.personEntity
 
   fun findHighestConfidencePersonRecordsByProbabilityDesc(personEntity: PersonEntity): List<PersonMatchResult> = runBlocking {
-    val personScores = handleCollectingPersonScores(personEntity).removeSelf(personEntity)
+    val personScores = personMatchClient.getPersonScores(personEntity.matchId.toString()).removeSelf(personEntity)
     val highConfidencePersonRecords = getPersonRecords(personScores.getHighConfidenceMatches())
       .allowMatchesWithUUID()
       .removeMergedRecords()
@@ -57,11 +55,14 @@ class PersonMatchService(
     )
   }
 
-  fun saveToPersonMatch(personEntity: PersonEntity): ResponseEntity<Void> = runBlocking { retryExecutor.runWithRetryHTTP { personMatchClient.postPerson(PersonMatchRecord.from(personEntity)) } }
+  fun saveToPersonMatch(personEntity: PersonEntity): ResponseEntity<Void>? = personMatchClient.postPerson(PersonMatchRecord.from(personEntity))
 
-  fun deleteFromPersonMatch(personEntity: PersonEntity) = runBlocking { runCatching { retryExecutor.runWithRetryHTTP { personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity)) } } }
+  fun deleteFromPersonMatch(personEntity: PersonEntity): ResponseEntity<Void>? = personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity))
 
-  private suspend fun handleNotFoundRecordsIsClusterValid(cluster: PersonKeyEntity, exception: NotFound): IsClusterValidResponse {
+  private suspend fun handleNotFoundRecordsIsClusterValid(
+    cluster: PersonKeyEntity,
+    exception: NotFound,
+  ): IsClusterValidResponse {
     val missingRecords = handleDecodeOfNotFoundException(exception)
     missingRecords.unknownIds.forEach { matchId ->
       personRepository.findByMatchId(UUID.fromString(matchId))?.let { saveToPersonMatch(it) }
@@ -83,20 +84,9 @@ class PersonMatchService(
     }
   }
 
-  private fun handleCollectingPersonScores(personEntity: PersonEntity): List<PersonMatchScore> = runBlocking {
-    getPersonScores(personEntity).fold(
-      onSuccess = { it },
-      onFailure = { throw it },
-    )
-  }
-
   private fun List<PersonMatchScore>.removeSelf(personEntity: PersonEntity): List<PersonMatchScore> = this.filterNot { score -> score.candidateMatchId == personEntity.matchId.toString() }
 
   private fun List<PersonMatchScore>.getHighConfidenceMatches(): List<PersonMatchScore> = this.filter { candidate -> isHighConfidence(candidate.candidateMatchWeight) }
-
-  private suspend fun getPersonScores(personEntity: PersonEntity): Result<List<PersonMatchScore>> = kotlin.runCatching {
-    retryExecutor.runWithRetryHTTP { personMatchClient.getPersonScores(personEntity.matchId.toString()) }
-  }
 
   private fun isHighConfidence(score: Float): Boolean = score >= THRESHOLD_WEIGHT
 
@@ -117,7 +107,10 @@ class PersonMatchService(
     return this.filter { candidate -> validStatuses.contains(candidate.personEntity.personKey?.status) }
   }
 
-  private fun List<PersonMatchResult>.logCandidateSearchSummary(personEntity: PersonEntity, totalNumberOfScores: Int): List<PersonMatchResult> {
+  private fun List<PersonMatchResult>.logCandidateSearchSummary(
+    personEntity: PersonEntity,
+    totalNumberOfScores: Int,
+  ): List<PersonMatchResult> {
     telemetryService.trackPersonEvent(
       CPR_CANDIDATE_RECORD_SEARCH,
       personEntity,
