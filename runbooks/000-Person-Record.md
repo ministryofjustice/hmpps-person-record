@@ -1,5 +1,7 @@
 # HMPPS Person Record Runbook
 
+This is a runbook to document how this service is supported, as described in: [MOJ Runbooks](https://technical-guidance.service.justice.gov.uk/documentation/standards/documenting-how-your-service-is-supported.html#what-you-should-include-in-your-service-39-s-runbook)
+
 ## Table of Contents
 1. [Introduction](#Introduction)
    1. [Dependant Services](#Dependant-Services)
@@ -56,6 +58,10 @@ These include:
 - Healthcheck Alerts
 - SQS DLQ Messages Alerts
 - Deployments
+
+## Impact of an outage
+
+Since we have one consumer (in a beta phase), the impact across the organisation is minimal. In all cases it would prevent civil servants from doing their work and the impact would be quite significant.
 
 ## Monitoring
 
@@ -141,3 +147,6 @@ See environment specific monitoring links:
             * [Nomis Merge Events DLQ](https://grafana.live.cloud-platform.service.justice.gov.uk/d/AWSSQS000/aws-sqs?orgId=1&var-datasource=P896B4444D3F0DAB8&var-region=default&var-queue=hmpps-person-record-prod-cpr_nomis_merge_events_dlq&from=now-2d&to=now)
     * **Topics**:
         * [CPR Court Case Topic](https://grafana.live.cloud-platform.service.justice.gov.uk/d/AWSSNS001/aws-sns?from=now-12h&to=now&timezone=browser&var-datasource=P896B4444D3F0DAB8&var-region=default&var-topic=cloud-platform-hmpps-person-record-7fe9dbb1391a89724dd2459be10708c2)
+
+## How to resolve specific issues
+TODO:
