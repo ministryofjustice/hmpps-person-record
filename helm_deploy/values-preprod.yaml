@@ -1,4 +1,3 @@
----
 # Per environment values which override defaults in hmpps-person-record/values.yaml
 
 generic-service:
