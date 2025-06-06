@@ -23,6 +23,8 @@ data class CommonPlatformHearingSetup(
   val isPerson: Boolean = true,
   val address: CommonPlatformHearingSetupAddress? = null,
   val gender: String? = "MALE",
+  val pncMissing: Boolean = false,
+  val croMissing: Boolean = false,
 )
 
 data class CommonPlatformHearingSetupAlias(val firstName: String, val lastName: String)
@@ -81,8 +83,8 @@ fun commonPlatformHearing(commonPlatformHearingSetup: List<CommonPlatformHearing
 private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) = """{ 
                 "id": "${commonPlatformHearingSetup.defendantId}",
                 "masterDefendantId": "${commonPlatformHearingSetup.defendantId}",
-                "pncId": ${commonPlatformHearingSetup.pnc?.let { """ "${commonPlatformHearingSetup.pnc}" """.trimIndent() } ?: "null" },
-                "croNumber": "${commonPlatformHearingSetup.cro}",
+                ${pncId(commonPlatformHearingSetup)}
+                ${croNumber(commonPlatformHearingSetup)}
                 ${commonPlatformHearingSetup.isYouth.let { """ "isYouth": ${commonPlatformHearingSetup.isYouth}, """.trimIndent() }}
                 "offences": [
                   {
@@ -114,6 +116,16 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) = 
                 "prosecutionCaseId": "D2B61C8A-0684-4764-B401-F0A788BC7CCF"
               }
 """.trimIndent()
+
+private fun croNumber(commonPlatformHearingSetup: CommonPlatformHearingSetup) = when (commonPlatformHearingSetup.croMissing) {
+  false -> """"croNumber": "${commonPlatformHearingSetup.cro}","""
+  else -> ""
+}
+
+private fun pncId(commonPlatformHearingSetup: CommonPlatformHearingSetup) = when (commonPlatformHearingSetup.pncMissing) {
+  false -> """"pncId": ${commonPlatformHearingSetup.pnc?.let { """ "${commonPlatformHearingSetup.pnc}" """.trimIndent() } ?: "null"},""".trimIndent()
+  else -> ""
+}
 
 private fun personDefendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) = """
   "personDefendant": {
