@@ -366,7 +366,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val personReference = PersonReference(listOf(crnType))
     val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, personReference = personReference, additionalInformation = null)
     publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
-
+    waitForMessageToBeProcessedAndDiscarded()
     expectNoMessagesOnQueueOrDlq(probationEventsQueue)
   }
 

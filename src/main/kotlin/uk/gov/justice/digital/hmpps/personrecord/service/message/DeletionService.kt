@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
-import jakarta.transaction.Transactional
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -19,7 +18,6 @@ class DeletionService(
   private val publisher: ApplicationEventPublisher,
 ) {
 
-  @Transactional
   fun processDelete(personCallback: () -> PersonEntity?) = fetchRecordAndDelete(personCallback)
 
   private fun fetchRecordAndDelete(personCallback: () -> PersonEntity?) = personCallback()?.let { handleDeletion(it) }
