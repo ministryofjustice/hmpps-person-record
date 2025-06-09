@@ -204,7 +204,7 @@ One request is handled while the other throws an error as that record has been l
 ### Internal APIs HTTP 502 Errors
 
 This is a known problem with the common nginx configuration component used by cloud-platform across services. 
-Which under heavy load we see HTTP 502 errors being return by NGINX, even though the service is running fine.
+Under heavy load we see HTTP 502 errors returned by NGINX, even though the service is running fine.
 These effect internal APIs, such as `hmpps-person-match`.
 
 **Solution**: is to retry through the queue re-drive policy when such 502 errors occurs due to the unlikely event they are return from internal APIs.
