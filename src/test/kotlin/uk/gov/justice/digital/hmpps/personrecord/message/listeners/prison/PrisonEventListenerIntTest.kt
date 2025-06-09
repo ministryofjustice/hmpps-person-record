@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.AllConvictedOffences
@@ -267,15 +266,19 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    @Disabled
     fun `should retry message if person-match returns 404`() {
       val prisonNumber = randomPrisonNumber()
       stubPrisonResponse(ApiResponseSetup(gender = "Male", prisonNumber = prisonNumber))
       stubPersonMatchScores(status = 404, nextScenarioState = "will succeed")
+
+      stubPrisonResponse(ApiResponseSetup(gender = "Male", prisonNumber = prisonNumber), currentScenarioState = "will succeed")
+      stubPersonMatchUpsert(currentScenarioState = "will succeed")
       stubPersonMatchScores(currentScenarioState = "will succeed")
+
       val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
       val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
       publishDomainEvent(PRISONER_CREATED, domainEvent)
+      awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumber = prisonNumber) }
       checkTelemetry(
         CPR_RECORD_CREATED,
         mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
