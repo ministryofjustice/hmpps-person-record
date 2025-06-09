@@ -246,7 +246,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should retry on retryable error`() {
+    fun `should retry on retryable 500 error from prisoner search`() {
       val prisonNumber = randomPrisonNumber()
       stubNoMatchesPersonMatch()
       stub5xxResponse("/prisoner/$prisonNumber", nextScenarioState = "next request will succeed", scenarioName = "retry")
@@ -263,6 +263,22 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         CPR_UUID_CREATED,
         mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
+    }
+
+    @Test
+    fun `should retry message if person-match returns 404`() {
+      val prisonNumber = randomPrisonNumber()
+      stubPrisonResponse(ApiResponseSetup(gender = "Male", prisonNumber = prisonNumber))
+      stubPersonMatchScores(status = 404, nextScenarioState = "will succeed")
+      stubPersonMatchScores(currentScenarioState = "will succeed")
+      val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
+      val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
+      publishDomainEvent(PRISONER_CREATED, domainEvent)
+      checkTelemetry(
+        CPR_RECORD_CREATED,
+        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+      )
+      expectNoMessagesOnQueueOrDlq(prisonEventsQueue)
     }
 
     @Test
