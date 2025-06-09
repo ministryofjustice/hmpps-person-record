@@ -31,4 +31,22 @@ class SeedingDisabledIntTest : WebTestBase() {
       .expectStatus()
       .isUnauthorized
   }
+
+  @Test
+  fun `populate person match endpoint not accessible when seeding is not enabled`() {
+    webTestClient.post()
+      .uri("/populatepersonmatch")
+      .exchange()
+      .expectStatus()
+      .isUnauthorized
+  }
+
+  @Test
+  fun `update from probation endpoint not accessible when seeding is not enabled`() {
+    webTestClient.post()
+      .uri("/updatefromprobation")
+      .exchange()
+      .expectStatus()
+      .isUnauthorized
+  }
 }
