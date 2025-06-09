@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.Pr
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationUnmergeEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSListenerService
-import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSListenerService.Companion.discardWhenNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSListenerService.Companion.whenEvent
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
@@ -21,11 +20,9 @@ class ProbationMergeEventListener(
 ) {
 
   @SqsListener(Queues.PROBATION_MERGE_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = sqsListenerService.processDomainEvent(rawMessage) { domainEvent ->
-    domainEvent.discardWhenNotFoundException { event ->
-      event
-        .whenEvent(OFFENDER_MERGED) { mergeEventProcessor.processEvent(domainEvent) }
-        .whenEvent(OFFENDER_UNMERGED) { unmergeEventProcessor.processEvent(domainEvent) }
-    }
+  fun onDomainEvent(rawMessage: String) = sqsListenerService.processDomainEvent(rawMessage) {
+    it
+      .whenEvent(OFFENDER_MERGED) { mergeEventProcessor.processEvent(it) }
+      .whenEvent(OFFENDER_UNMERGED) { unmergeEventProcessor.processEvent(it) }
   }
 }

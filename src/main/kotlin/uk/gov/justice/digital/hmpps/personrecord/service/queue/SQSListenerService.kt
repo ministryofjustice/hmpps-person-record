@@ -21,22 +21,17 @@ class SQSListenerService(
 
   fun processSQSMessage(rawMessage: String, action: (sqsMessage: SQSMessage) -> Unit) = TimeoutExecutor.runWithTimeout {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
-    when (sqsMessage.type) {
-      NOTIFICATION -> action(sqsMessage)
+    try {
+      when (sqsMessage.type) {
+        NOTIFICATION -> action(sqsMessage)
+      }
+    } catch (_: DiscardableNotFoundException) {
+      log.info("Discarding message for status code")
     }
   }
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
-
-    fun DomainEvent.discardWhenNotFoundException(action: (domainEvent: DomainEvent) -> Unit): DomainEvent {
-      try {
-        action(this)
-      } catch (_: DiscardableNotFoundException) {
-        log.info("Discarding message for status code")
-      }
-      return this
-    }
 
     fun DomainEvent.whenEvent(eventType: String, action: (domainEvent: DomainEvent) -> Unit): DomainEvent {
       when {
