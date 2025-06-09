@@ -33,6 +33,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.CO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_COMMON_PLATFORM_MISSING_KEYS
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
@@ -474,6 +475,26 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(messageBody.contains("cprUUID")).isEqualTo(true)
     assertThat(messageBody.contains(person.personKey?.personUUID.toString())).isEqualTo(true)
 
+    checkTelemetry(
+      CPR_RECORD_CREATED,
+      mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
+    )
+  }
+
+  @Test
+  fun `should log when no CRO, no PNC and no isYouth`() {
+    stubPersonMatchScores()
+    stubPersonMatchUpsert()
+    val defendantId = randomDefendantId()
+    publishCommonPlatformMessage(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(defendantId = defendantId, isYouthMissing = true, croMissing = true, pncMissing = true),
+        ),
+      ),
+    )
+
+    checkTelemetry(CPR_COMMON_PLATFORM_MISSING_KEYS, mapOf("DEFENDANT_ID" to defendantId))
     checkTelemetry(
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
