@@ -19,7 +19,10 @@ This is a runbook to document how this service is supported, as described in: [M
 10. [Logs](#logs)
     1. [Through Kubernetes](#through-kubernetes)
     2. [Through AppInsights](#through-appinsights)
-11. [How to resolve specific issues](#how-to-resolve-specific-issues)
+11. [Known Problems](#known-problems)
+    1. [Concurrent Update Errors](#concurrent-update-errors)
+    2. [Internal APIs HTTP 502 Errors](#internal-apis-http-502-errors)
+12. [How to resolve specific issues](#how-to-resolve-specific-issues)
 
 ## Introduction
 
@@ -182,6 +185,29 @@ You can view logs through Azure AppInsights. To filter this application use:
 AppTraces
 | where AppRoleName == 'hmpps-person-record'
 ```
+
+## Known Problems
+
+### Concurrent Update Errors
+
+The error that is observed in the application logs and in AppInsights:
+
+```shell
+ERROR: could not serialize access due to concurrent update
+```
+
+This is a problem that is gracefully handled, which is due to the fact that when we receive messages for the same person in short succession for an update / create for that record at the same time. 
+One request is handled while the other throws an error as that record has been locked while the other message is processed.
+
+**Solution**: Implemented a database retry functionality that catches and retries after a delay which then processes the record as normal.
+
+### Internal APIs HTTP 502 Errors
+
+This is a known problem with the nginx configuration used by cloud-platform. 
+Which under heavy load we see HTTP 502 errors being return by NGINX, even though the service is running fine.
+These effect internal APIs, such as `hmpps-person-match`.
+
+**Solution**: is to retry through the queue re-drive policy when such 502 errors occurs due to the unlikely event they are return from internal APIs.
 
 ## How to resolve specific issues
 TODO:
