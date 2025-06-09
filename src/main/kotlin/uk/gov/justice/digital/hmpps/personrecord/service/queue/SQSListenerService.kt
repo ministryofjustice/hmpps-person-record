@@ -3,8 +3,10 @@ package uk.gov.justice.digital.hmpps.personrecord.service.queue
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClientResponseException
+import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
@@ -30,8 +32,8 @@ class SQSListenerService(
     fun DomainEvent.discardWhenNotFoundException(action: (domainEvent: DomainEvent) -> Unit): DomainEvent {
       try {
         action(this)
-      } catch (e: WebClientResponseException.NotFound) {
-        log.info("Discarding message for status code: ${e.statusCode}")
+      } catch (_: DiscardableNotFoundException) {
+        log.info("Discarding message for status code")
       }
       return this
     }
@@ -42,5 +44,15 @@ class SQSListenerService(
       }
       return this
     }
+  }
+}
+
+class DiscardableNotFoundException : RuntimeException()
+
+fun <T> Mono<out T>.discardNotFoundException(): Mono<out T> = this.onErrorResume(WebClientResponseException::class.java) {
+  if (it.statusCode == NOT_FOUND) {
+    throw DiscardableNotFoundException()
+  } else {
+    Mono.error(it)
   }
 }
