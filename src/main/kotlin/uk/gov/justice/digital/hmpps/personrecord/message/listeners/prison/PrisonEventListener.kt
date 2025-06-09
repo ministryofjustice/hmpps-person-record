@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSListenerService
-import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSListenerService.Companion.discardWhenNotFoundException
 
 @Component
 @Profile("!seeding")
@@ -16,9 +15,7 @@ class PrisonEventListener(
 ) {
 
   @SqsListener(Queues.PRISON_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = sqsListenerService.processDomainEvent(rawMessage) { domainEvent ->
-    domainEvent.discardWhenNotFoundException { event ->
-      prisonEventProcessor.processEvent(event)
-    }
+  fun onDomainEvent(rawMessage: String) = sqsListenerService.processDomainEvent(rawMessage) {
+    prisonEventProcessor.processEvent(it)
   }
 }
