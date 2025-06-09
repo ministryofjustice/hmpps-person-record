@@ -48,9 +48,13 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupIdentifier
+import java.lang.Thread.sleep
 import java.time.LocalDate
 
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
+  fun waitForMessageToBeProcessedAndDiscarded() {
+    sleep(1000)
+  }
 
   @Test
   fun `should put message on dlq when exception thrown`() {
@@ -63,6 +67,17 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     publishDomainEvent(PRISONER_CREATED, domainEvent)
 
     expectOneMessageOnDlq(prisonEventsQueue)
+  }
+
+  @Test
+  fun `should discard message if prisoner search returns 404`() {
+    val prisonNumber = randomPrisonNumber()
+    stub404Response("/prisoner/$prisonNumber")
+    val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
+    val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
+    publishDomainEvent(PRISONER_CREATED, domainEvent)
+    waitForMessageToBeProcessedAndDiscarded()
+    expectNoMessagesOnQueueOrDlq(prisonEventsQueue)
   }
 
   @Nested
