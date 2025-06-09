@@ -94,7 +94,11 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         .addPerson(sourcePerson)
         .addPerson(targetPerson)
 
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn = sourcePerson.crn!!, targetCrn = targetPerson.crn!!)
+      probationMergeEventAndResponseSetup(
+        OFFENDER_MERGED,
+        sourceCrn = sourcePerson.crn!!,
+        targetCrn = targetPerson.crn!!,
+      )
 
       sourcePerson.assertMergedTo(targetPerson)
 
@@ -219,63 +223,84 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       targetPerson.personKey?.assertClusterIsOfSize(1)
     }
+  }
+
+  @Nested
+  inner class RecoverableErrorHandling {
 
     @Test
-    fun `should retry on 500 error`() {
+    fun `should retry on 500 error from core person record and delius`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
       stub5xxResponse(probationUrl(targetCrn), "next request will succeed", "retry")
-
+      stubPersonMatchUpsert()
+      stubDeletePersonMatch()
+      val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
+      val targetPerson = createPerson(createRandomProbationPersonDetails(targetCrn))
       createPersonKey()
-        .addPerson(createPerson(createRandomProbationPersonDetails(sourceCrn)))
-        .addPerson(createPerson(createRandomProbationPersonDetails(targetCrn)))
+        .addPerson(sourcePerson)
+        .addPerson(targetPerson)
 
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn, scenario = "retry", currentScenarioState = "next request will succeed")
 
       expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
+      sourcePerson.assertMergedTo(targetPerson)
+    }
 
-      checkTelemetry(
-        CPR_RECORD_MERGED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourceCrn,
-          "TO_SOURCE_SYSTEM_ID" to targetCrn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
+    @Test
+    fun `should retry on a 500 error from person match delete`() {
+      val sourceCrn = randomCrn()
+      val targetCrn = randomCrn()
+      val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
+      val targetPerson = createPerson(createRandomProbationPersonDetails(targetCrn))
+      createPersonKey()
+        .addPerson(sourcePerson)
+        .addPerson(targetPerson)
+
+      stubDeletePersonMatch(status = 500, nextScenarioState = "deleteWillWork")
+      stubDeletePersonMatch(currentScenarioState = "deleteWillWork")
+      stubPersonMatchUpsert()
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn)
+      sourcePerson.assertMergedTo(targetPerson)
     }
 
     @Test
     fun `should not throw error if person match returns a 404 on delete`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
+      val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
+      val targetPerson = createPerson(createRandomProbationPersonDetails(targetCrn))
       createPersonKey()
-        .addPerson(createPerson(createRandomProbationPersonDetails(sourceCrn)))
-        .addPerson(createPerson(createRandomProbationPersonDetails(targetCrn)))
+        .addPerson(sourcePerson)
+        .addPerson(targetPerson)
 
       stubDeletePersonMatch(status = 404)
+      stubPersonMatchUpsert()
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn)
-
-      checkTelemetry(
-        CPR_RECORD_MERGED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourceCrn,
-          "TO_SOURCE_SYSTEM_ID" to targetCrn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
+      sourcePerson.assertMergedTo(targetPerson)
     }
   }
 
   @Nested
-  inner class ErrorHandling {
+  inner class UnrecoverableErrorHandling {
 
     @Test
     fun `should put message on dlq when message processing fails`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
       stub5xxResponse(probationUrl(targetCrn), nextScenarioState = "next request will fail", "failure")
-      stub5xxResponse(probationUrl(targetCrn), nextScenarioState = "next request will fail", currentScenarioState = "next request will fail", scenarioName = "failure")
-      stub5xxResponse(probationUrl(targetCrn), nextScenarioState = "next request will fail", currentScenarioState = "next request will fail", scenarioName = "failure")
+      stub5xxResponse(
+        probationUrl(targetCrn),
+        nextScenarioState = "next request will fail",
+        currentScenarioState = "next request will fail",
+        scenarioName = "failure",
+      )
+      stub5xxResponse(
+        probationUrl(targetCrn),
+        nextScenarioState = "next request will fail",
+        currentScenarioState = "next request will fail",
+        scenarioName = "failure",
+      )
 
       publishDomainEvent(
         OFFENDER_MERGED,
