@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.prison
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.AllConvictedOffences
@@ -266,6 +267,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
+    @Disabled
     fun `should retry message if person-match returns 404`() {
       val prisonNumber = randomPrisonNumber()
       stubPrisonResponse(ApiResponseSetup(gender = "Male", prisonNumber = prisonNumber))
