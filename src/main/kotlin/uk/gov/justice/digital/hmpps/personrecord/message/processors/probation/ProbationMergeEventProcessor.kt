@@ -5,7 +5,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliu
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
 
@@ -24,7 +23,7 @@ class ProbationMergeEventProcessor(
     corePersonRecordAndDeliusClient.getProbationCase(toCrn).let {
       val from: PersonEntity? = personRepository.findByCrn(fromCrn)
       val to: PersonEntity = createUpdateService.processPerson(
-        Person.from(it),
+        it,
         shouldReclusterOnUpdate = false,
       ) { personRepository.findByCrn(toCrn) }
       mergeService.processMerge(from, to)
