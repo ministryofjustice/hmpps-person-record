@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.jayway.jsonpath.JsonPath
@@ -43,13 +44,15 @@ class CommonPlatformEventProcessor(
 
     val commonPlatformHearingNode = objectMapper.readTree(commonPlatformHearing)
 
-    commonPlatformHearingNode.path("hearing").path("prosecutionCases")
+    val defendantNodes = commonPlatformHearingNode.path("hearing").path("prosecutionCases")
       .flatMap { it.path("defendants") }
+
+    defendantNodes
       .filter {
-        it.path("isYouth").isMissingNode or
+        (it.path("isYouth").isMissingOrNullOrEmpty()) or
           (
-            it.path("croNumber").isMissingNode and
-              it.path("pncId").isMissingNode
+            (it.path("croNumber").isMissingOrNullOrEmpty()) and
+              (it.path("pncId").isMissingOrNullOrEmpty())
             )
       }
       .forEach {
@@ -89,6 +92,8 @@ class CommonPlatformEventProcessor(
       personRepository.findByDefendantId(it)
     }
   }
+
+  private fun JsonNode.isMissingOrNullOrEmpty() = this.isMissingNode || this.isNull || (this.isTextual && this.asText().trim().isBlank())
 
   private fun messageLargerThanThreshold(message: String): Boolean = message.toByteArray().size >= MAX_MESSAGE_SIZE
 

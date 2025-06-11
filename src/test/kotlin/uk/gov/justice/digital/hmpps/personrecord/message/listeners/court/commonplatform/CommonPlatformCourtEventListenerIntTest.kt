@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.common
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -481,46 +482,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
-  @Test
-  fun `should log when no CRO, no PNC`() {
-    stubPersonMatchScores()
-    stubPersonMatchUpsert()
-    val defendantId = randomDefendantId()
-    publishCommonPlatformMessage(
-      commonPlatformHearing(
-        listOf(
-          CommonPlatformHearingSetup(defendantId = defendantId, croMissing = true, pncMissing = true),
-        ),
-      ),
-    )
-
-    checkTelemetry(CPR_COMMON_PLATFORM_MISSING_KEYS, mapOf("DEFENDANT_ID" to defendantId))
-    checkTelemetry(
-      CPR_RECORD_CREATED,
-      mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
-    )
-  }
-
-  @Test
-  fun `should log when no isYouth`() {
-    stubPersonMatchScores()
-    stubPersonMatchUpsert()
-    val defendantId = randomDefendantId()
-    publishCommonPlatformMessage(
-      commonPlatformHearing(
-        listOf(
-          CommonPlatformHearingSetup(defendantId = defendantId, isYouthMissing = true),
-        ),
-      ),
-    )
-
-    checkTelemetry(CPR_COMMON_PLATFORM_MISSING_KEYS, mapOf("DEFENDANT_ID" to defendantId))
-    checkTelemetry(
-      CPR_RECORD_CREATED,
-      mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
-    )
-  }
-
   private fun putLargeMessageBodyIntoS3(message: String) {
     val s3Key = UUID.randomUUID().toString()
     val incomingMessageFromS3 = message.toByteArray(Charset.forName("UTF8"))
@@ -549,6 +510,72 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     ).join().asUtf8String()
 
     return Pair(body, sqsMessage)
+  }
+
+  @Nested
+  inner class MissingKeys {
+
+    @BeforeEach
+    fun beforeEach() {
+      stubPersonMatchScores()
+      stubPersonMatchUpsert()
+    }
+
+    @Test
+    fun `should log when no CRO or PNC not in payload`() {
+      val defendantId = randomDefendantId()
+      publishCommonPlatformMessage(
+        commonPlatformHearing(
+          listOf(
+            CommonPlatformHearingSetup(defendantId = defendantId, croMissing = true, pncMissing = true),
+          ),
+        ),
+      )
+
+      checkTelemetry(CPR_COMMON_PLATFORM_MISSING_KEYS, mapOf("DEFENDANT_ID" to defendantId))
+      checkTelemetry(
+        CPR_RECORD_CREATED,
+        mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
+      )
+    }
+
+    @Test
+    fun `should log when no CRO or PNC are blank`() {
+      val defendantId = randomDefendantId()
+      publishCommonPlatformMessage(
+        commonPlatformHearing(
+          listOf(
+            CommonPlatformHearingSetup(defendantId = defendantId, cro = "", pnc = ""),
+          ),
+        ),
+      )
+
+      checkTelemetry(CPR_COMMON_PLATFORM_MISSING_KEYS, mapOf("DEFENDANT_ID" to defendantId))
+      checkTelemetry(
+        CPR_RECORD_CREATED,
+        mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
+      )
+    }
+
+    @Test
+    fun `should log when no isYouth in payload`() {
+      stubPersonMatchScores()
+      stubPersonMatchUpsert()
+      val defendantId = randomDefendantId()
+      publishCommonPlatformMessage(
+        commonPlatformHearing(
+          listOf(
+            CommonPlatformHearingSetup(defendantId = defendantId, isYouthMissing = true),
+          ),
+        ),
+      )
+
+      checkTelemetry(CPR_COMMON_PLATFORM_MISSING_KEYS, mapOf("DEFENDANT_ID" to defendantId))
+      checkTelemetry(
+        CPR_RECORD_CREATED,
+        mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
+      )
+    }
   }
 
   @Nested
