@@ -43,14 +43,14 @@ class CommonPlatformEventProcessor(
 
     val commonPlatformHearingNode = objectMapper.readTree(commonPlatformHearing)
 
-    commonPlatformHearingNode.path("hearing").path("prosecutionCases")
+    val defendantNodes = commonPlatformHearingNode.path("hearing").path("prosecutionCases")
       .flatMap { it.path("defendants") }
+
+    defendantNodes
       .filter {
         it.path("isYouth").isMissingNode or
-          (
-            it.path("croNumber").isMissingNode and
-              it.path("pncId").isMissingNode
-            )
+          it.path("croNumber").isMissingNode or
+          it.path("pncId").isMissingNode
       }
       .forEach {
         publisher.publishEvent(
