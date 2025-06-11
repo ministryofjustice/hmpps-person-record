@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.seeding
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
@@ -15,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import java.time.LocalDate
 
+@ActiveProfiles("seeding")
 class UpdateFromProbationIntTest : WebTestBase() {
 
   @Test
