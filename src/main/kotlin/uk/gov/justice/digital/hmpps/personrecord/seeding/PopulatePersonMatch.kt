@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchM
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import kotlin.time.Duration
 import kotlin.time.measureTime
 
