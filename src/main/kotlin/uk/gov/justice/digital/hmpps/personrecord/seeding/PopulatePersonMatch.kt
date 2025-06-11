@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Profile
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.web.bind.annotation.RequestMapping
@@ -25,6 +26,7 @@ import kotlin.time.measureTime
 private const val OK = "OK"
 
 @RestController
+@Profile("seeding")
 class PopulatePersonMatch(
   private val personRepository: PersonRepository,
   @Value("\${populate-person-match.batch-size}") val batchSize: Int,

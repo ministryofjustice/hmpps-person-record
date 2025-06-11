@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
-import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import java.util.UUID
@@ -25,7 +24,6 @@ import java.util.UUID
 @Component
 class PersonMatchService(
   private val personMatchClient: PersonMatchClient,
-  private val retryExecutor: RetryExecutor,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   private val objectMapper: ObjectMapper,
@@ -57,9 +55,9 @@ class PersonMatchService(
     )
   }
 
-  fun saveToPersonMatch(personEntity: PersonEntity): ResponseEntity<Void> = runBlocking { retryExecutor.runWithRetryHTTP { personMatchClient.postPerson(PersonMatchRecord.from(personEntity)) } }
+  fun saveToPersonMatch(personEntity: PersonEntity): ResponseEntity<Void>? = runBlocking { personMatchClient.postPerson(PersonMatchRecord.from(personEntity)) }
 
-  fun deleteFromPersonMatch(personEntity: PersonEntity) = runBlocking { runCatching { retryExecutor.runWithRetryHTTP { personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity)) } } }
+  fun deleteFromPersonMatch(personEntity: PersonEntity) = runBlocking { runCatching { personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity)) } }
 
   private suspend fun handleNotFoundRecordsIsClusterValid(cluster: PersonKeyEntity, exception: NotFound): IsClusterValidResponse {
     val missingRecords = handleDecodeOfNotFoundException(exception)
@@ -95,7 +93,7 @@ class PersonMatchService(
   private fun List<PersonMatchScore>.getHighConfidenceMatches(): List<PersonMatchScore> = this.filter { candidate -> isHighConfidence(candidate.candidateMatchWeight) }
 
   private suspend fun getPersonScores(personEntity: PersonEntity): Result<List<PersonMatchScore>> = kotlin.runCatching {
-    retryExecutor.runWithRetryHTTP { personMatchClient.getPersonScores(personEntity.matchId.toString()) }
+    personMatchClient.getPersonScores(personEntity.matchId.toString())
   }
 
   private fun isHighConfidence(score: Float): Boolean = score >= THRESHOLD_WEIGHT

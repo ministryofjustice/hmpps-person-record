@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import kotlinx.coroutines.delay
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClientRequestException
 import org.springframework.web.reactive.function.client.WebClientResponseException.BadGateway
@@ -20,6 +21,7 @@ private const val JITTER_MAX = 1.2
 private const val MAX_DELAY_MILLIS: Long = 1000
 
 @Component
+@Profile("seeding")
 class RetryExecutor(@Value("\${retry.delay}") val delayMillis: Long) {
 
   suspend fun <T> runWithRetryHTTP(
