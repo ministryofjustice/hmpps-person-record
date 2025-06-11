@@ -46,9 +46,11 @@ class CommonPlatformEventProcessor(
     commonPlatformHearingNode.path("hearing").path("prosecutionCases")
       .flatMap { it.path("defendants") }
       .filter {
-        it.path("isYouth").isMissingNode and
-          it.path("croNumber").isMissingNode and
-          it.path("pncId").isMissingNode
+        it.path("isYouth").isMissingNode or
+          (
+            it.path("croNumber").isMissingNode and
+              it.path("pncId").isMissingNode
+            )
       }
       .forEach {
         publisher.publishEvent(
