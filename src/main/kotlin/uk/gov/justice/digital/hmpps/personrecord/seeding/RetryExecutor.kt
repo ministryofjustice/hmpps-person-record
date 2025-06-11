@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.service
+package uk.gov.justice.digital.hmpps.personrecord.seeding
 
 import kotlinx.coroutines.delay
 import org.slf4j.LoggerFactory
