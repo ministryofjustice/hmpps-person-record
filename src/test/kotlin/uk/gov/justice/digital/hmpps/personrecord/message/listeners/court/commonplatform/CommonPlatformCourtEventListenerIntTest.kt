@@ -482,14 +482,34 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should log when no CRO, no PNC and no isYouth`() {
+  fun `should log when no CRO, no PNC`() {
     stubPersonMatchScores()
     stubPersonMatchUpsert()
     val defendantId = randomDefendantId()
     publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
-          CommonPlatformHearingSetup(defendantId = defendantId, isYouthMissing = true, croMissing = true, pncMissing = true),
+          CommonPlatformHearingSetup(defendantId = defendantId, croMissing = true, pncMissing = true),
+        ),
+      ),
+    )
+
+    checkTelemetry(CPR_COMMON_PLATFORM_MISSING_KEYS, mapOf("DEFENDANT_ID" to defendantId))
+    checkTelemetry(
+      CPR_RECORD_CREATED,
+      mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
+    )
+  }
+
+  @Test
+  fun `should log when no isYouth`() {
+    stubPersonMatchScores()
+    stubPersonMatchUpsert()
+    val defendantId = randomDefendantId()
+    publishCommonPlatformMessage(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(defendantId = defendantId, isYouthMissing = true),
         ),
       ),
     )

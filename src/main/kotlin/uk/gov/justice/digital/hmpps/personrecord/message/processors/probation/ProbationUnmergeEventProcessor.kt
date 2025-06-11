@@ -5,7 +5,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliu
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.UnmergeService
 
@@ -24,11 +23,11 @@ class ProbationUnmergeEventProcessor(
   }
 
   private fun getProbationPerson(crn: String, shouldLinkOnCreate: Boolean): PersonEntity = corePersonRecordAndDeliusClient
-    .getProbationCase(crn)
+    .getPerson(crn)
     .let {
       createUpdateService.processPerson(
-        Person.from(it),
+        it,
         shouldLinkOnCreate = shouldLinkOnCreate,
-      ) { personRepository.findByCrn(it.identifiers.crn!!) }
+      ) { personRepository.findByCrn(crn) }
     }
 }
