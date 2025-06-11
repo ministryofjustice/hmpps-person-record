@@ -48,9 +48,13 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupIdentifier
+import java.lang.Thread.sleep
 import java.time.LocalDate
 
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
+  fun waitForMessageToBeProcessedAndDiscarded() {
+    sleep(1000)
+  }
 
   @Test
   fun `should put message on dlq when exception thrown`() {
@@ -63,6 +67,17 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     publishDomainEvent(PRISONER_CREATED, domainEvent)
 
     expectOneMessageOnDlq(prisonEventsQueue)
+  }
+
+  @Test
+  fun `should discard message if prisoner search returns 404`() {
+    val prisonNumber = randomPrisonNumber()
+    stub404Response("/prisoner/$prisonNumber")
+    val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
+    val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
+    publishDomainEvent(PRISONER_CREATED, domainEvent)
+    waitForMessageToBeProcessedAndDiscarded()
+    expectNoMessagesOnQueueOrDlq(prisonEventsQueue)
   }
 
   @Nested
@@ -231,7 +246,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should retry on retryable error`() {
+    fun `should retry on retryable 500 error from prisoner search`() {
       val prisonNumber = randomPrisonNumber()
       stubNoMatchesPersonMatch()
       stub5xxResponse("/prisoner/$prisonNumber", nextScenarioState = "next request will succeed", scenarioName = "retry")
@@ -248,6 +263,27 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         CPR_UUID_CREATED,
         mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
+    }
+
+    @Test
+    fun `should retry message if person-match returns 404`() {
+      val prisonNumber = randomPrisonNumber()
+      stubPrisonResponse(ApiResponseSetup(gender = "Male", prisonNumber = prisonNumber))
+      stubPersonMatchScores(status = 404, nextScenarioState = "will succeed")
+
+      stubPrisonResponse(ApiResponseSetup(gender = "Male", prisonNumber = prisonNumber), currentScenarioState = "will succeed")
+      stubPersonMatchUpsert(currentScenarioState = "will succeed")
+      stubPersonMatchScores(currentScenarioState = "will succeed")
+
+      val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber, categoriesChanged = listOf("SENTENCE"))
+      val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = null, additionalInformation = additionalInformation)
+      publishDomainEvent(PRISONER_CREATED, domainEvent)
+      awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumber = prisonNumber) }
+      checkTelemetry(
+        CPR_RECORD_CREATED,
+        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+      )
+      expectNoMessagesOnQueueOrDlq(prisonEventsQueue)
     }
 
     @Test

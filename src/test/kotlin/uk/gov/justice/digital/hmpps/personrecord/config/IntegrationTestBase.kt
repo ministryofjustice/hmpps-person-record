@@ -291,7 +291,14 @@ class IntegrationTestBase {
     },
   )
 
-  internal fun stubPersonMatchScores(matchId: UUID? = null, personMatchResponse: List<PersonMatchScore> = emptyList(), scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200) {
+  internal fun stubPersonMatchScores(
+    matchId: UUID? = null,
+    personMatchResponse: List<PersonMatchScore> = emptyList(),
+    scenario: String = BASE_SCENARIO,
+    currentScenarioState: String = STARTED,
+    nextScenarioState: String = currentScenarioState,
+    status: Int = 200,
+  ) {
     val matchIdUrlPattern: UrlPattern = matchId?.let { urlEqualTo("/person/score/$it") } ?: urlPathMatching("/person/score/.*") // Regex to match any matchId, as not known on create
     authSetup()
     stubGetRequest(
@@ -319,7 +326,13 @@ class IntegrationTestBase {
 
   internal fun stubClusterIsNotValid(clusters: List<ValidCluster> = listOf()) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = false, clusters = clusters.map { cluster -> cluster.records }))
 
-  internal fun stubPersonMatchUpsert(scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200, body: String = "{}") {
+  internal fun stubPersonMatchUpsert(
+    scenario: String = BASE_SCENARIO,
+    currentScenarioState: String = STARTED,
+    nextScenarioState: String = currentScenarioState,
+    status: Int = 200,
+    body: String = "{}",
+  ) {
     authSetup()
     stubPostRequest(
       scenario,
@@ -331,10 +344,12 @@ class IntegrationTestBase {
     )
   }
 
-  internal fun stubDeletePersonMatch(status: Int = 200) {
+  internal fun stubDeletePersonMatch(status: Int = 200, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED) {
     stubDeleteRequest(
       url = "/person",
       status = status,
+      currentScenarioState = currentScenarioState,
+      nextScenarioState = nextScenarioState,
     )
   }
 
@@ -442,7 +457,7 @@ class IntegrationTestBase {
     apiResponseSetup: ApiResponseSetup,
     scenarioName: String? = BASE_SCENARIO,
     currentScenarioState: String? = STARTED,
-    nextScenarioState: String? = STARTED,
+    nextScenarioState: String? = currentScenarioState,
   ) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/prisoner/${apiResponseSetup.prisonNumber}", prisonerSearchResponse(apiResponseSetup))
 
   internal fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String, nextScenarioState: String) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))

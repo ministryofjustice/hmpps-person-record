@@ -1,18 +1,7 @@
 # Per environment values which override defaults in hmpps-person-record/values.yaml
 
 generic-service:
-
-  autoscaling:
-    minReplicas: 1
-    maxReplicas: 1
-
-  image:
-    repository: quay.io/hmpps/hmpps-person-record
-    tag: latest
-    port: 8080
-
   ingress:
-    enabled: true
     host: hmpps-person-record-dev.hmpps.service.justice.gov.uk
     tlsSecretName: hmpps-person-record-dev-cert-secret
 
@@ -29,6 +18,10 @@ generic-service:
     enabled: true
     # Start at 6:35am UTC Monday-Friday - 5 minutes after hmpps-person-match
     startup: '35 6 * * 1-5'
+
+  autoscaling:
+    minReplicas: 1
+    maxReplicas: 1
 
 generic-prometheus-alerts:
   businessHoursOnly: true
