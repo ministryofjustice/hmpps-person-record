@@ -522,12 +522,12 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should log when no PNC in payload`() {
+    fun `should log when no CRO or PNC not in payload`() {
       val defendantId = randomDefendantId()
       publishCommonPlatformMessage(
         commonPlatformHearing(
           listOf(
-            CommonPlatformHearingSetup(defendantId = defendantId, pncMissing = true),
+            CommonPlatformHearingSetup(defendantId = defendantId, croMissing = true, pncMissing = true),
           ),
         ),
       )
@@ -540,12 +540,12 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should log when no CRO in payload`() {
+    fun `should log when no CRO or PNC are blank`() {
       val defendantId = randomDefendantId()
       publishCommonPlatformMessage(
         commonPlatformHearing(
           listOf(
-            CommonPlatformHearingSetup(defendantId = defendantId, croMissing = true),
+            CommonPlatformHearingSetup(defendantId = defendantId, cro = "", pnc = ""),
           ),
         ),
       )
@@ -576,7 +576,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId),
       )
     }
-
   }
 
   @Nested
