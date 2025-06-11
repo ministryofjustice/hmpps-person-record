@@ -10,7 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.discardNotFoundEx
 @Component
 class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebClient: WebClient) {
 
-  fun getProbationCase(crn: String): Person {
+  fun getPerson(crn: String): Person {
     val probationCase = corePersonRecordAndDeliusWebClient
       .get()
       .uri("/probation-cases/$crn")

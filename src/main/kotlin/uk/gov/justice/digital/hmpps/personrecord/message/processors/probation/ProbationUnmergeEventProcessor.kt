@@ -23,7 +23,7 @@ class ProbationUnmergeEventProcessor(
   }
 
   private fun getProbationPerson(crn: String, shouldLinkOnCreate: Boolean): PersonEntity = corePersonRecordAndDeliusClient
-    .getProbationCase(crn)
+    .getPerson(crn)
     .let {
       createUpdateService.processPerson(
         it,

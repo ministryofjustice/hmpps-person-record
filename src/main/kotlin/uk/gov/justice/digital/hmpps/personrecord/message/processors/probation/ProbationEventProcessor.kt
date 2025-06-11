@@ -13,7 +13,7 @@ class ProbationEventProcessor(
 ) {
 
   fun processEvent(crn: String) {
-    corePersonRecordAndDeliusClient.getProbationCase(crn).let {
+    corePersonRecordAndDeliusClient.getPerson(crn).let {
       createUpdateService.processPerson(it) {
         personRepository.findByCrn(crn)
       }

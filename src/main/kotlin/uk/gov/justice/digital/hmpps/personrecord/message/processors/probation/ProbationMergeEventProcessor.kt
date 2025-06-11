@@ -20,7 +20,7 @@ class ProbationMergeEventProcessor(
     val toCrn = mergeDomainEvent.additionalInformation?.targetCrn!!
     val fromCrn = mergeDomainEvent.additionalInformation.sourceCrn!!
 
-    corePersonRecordAndDeliusClient.getProbationCase(toCrn).let {
+    corePersonRecordAndDeliusClient.getPerson(toCrn).let {
       val from: PersonEntity? = personRepository.findByCrn(fromCrn)
       val to: PersonEntity = createUpdateService.processPerson(
         it,
