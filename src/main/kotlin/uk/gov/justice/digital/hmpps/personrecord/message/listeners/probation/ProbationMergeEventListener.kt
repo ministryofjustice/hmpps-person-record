@@ -19,7 +19,7 @@ class ProbationMergeEventListener(
   private val unmergeEventProcessor: ProbationUnmergeEventProcessor,
 ) {
 
-  @SqsListener(Queues.PROBATION_MERGE_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
+  @SqsListener(Queues.PROBATION_MERGE_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy", messageVisibilitySeconds = "30")
   fun onDomainEvent(rawMessage: String) = sqsListenerService.processDomainEvent(rawMessage) {
     it
       .whenEvent(OFFENDER_MERGED) { mergeEventProcessor.processEvent(it) }

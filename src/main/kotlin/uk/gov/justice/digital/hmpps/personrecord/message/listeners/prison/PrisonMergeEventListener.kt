@@ -14,7 +14,7 @@ class PrisonMergeEventListener(
   private val mergeEventProcessor: PrisonMergeEventProcessor,
 ) {
 
-  @SqsListener(Queues.PRISON_MERGE_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
+  @SqsListener(Queues.PRISON_MERGE_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy", messageVisibilitySeconds = "30")
   fun onDomainEvent(rawMessage: String) = sqsListenerService.processDomainEvent(rawMessage) {
     mergeEventProcessor.processEvent(it)
   }

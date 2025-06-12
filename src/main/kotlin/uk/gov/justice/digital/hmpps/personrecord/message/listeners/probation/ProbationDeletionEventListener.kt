@@ -14,7 +14,7 @@ class ProbationDeletionEventListener(
   private val probationDeleteProcessor: ProbationDeleteProcessor,
 ) {
 
-  @SqsListener(Queues.PROBATION_DELETION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
+  @SqsListener(Queues.PROBATION_DELETION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy", messageVisibilitySeconds = "30")
   fun onDomainEvent(rawMessage: String) = sqsListenerService.processDomainEvent(rawMessage) {
     probationDeleteProcessor.processEvent(it)
   }

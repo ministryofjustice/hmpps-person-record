@@ -18,7 +18,7 @@ class CourtEventListener(
   private val sqsListenerService: SQSListenerService,
 ) {
 
-  @SqsListener(Queues.COURT_CASES_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
+  @SqsListener(Queues.COURT_CASES_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy", messageVisibilitySeconds = "30")
   fun onMessage(rawMessage: String) = sqsListenerService.processSQSMessage(rawMessage) { sqsMessage ->
     when (sqsMessage.getMessageType()) {
       COMMON_PLATFORM_HEARING.name -> commonPlatformEventProcessor.processEvent(sqsMessage)

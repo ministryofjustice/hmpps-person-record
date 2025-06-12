@@ -21,7 +21,7 @@ class ProbationEventListener(
   private val objectMapper: ObjectMapper,
 ) {
 
-  @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
+  @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy", messageVisibilitySeconds = "30")
   fun onDomainEvent(rawMessage: String) = sqsListenerService.processSQSMessage(rawMessage) {
     when (it.getEventType()) {
       OFFENDER_ALIAS_CHANGED -> handleAliasUpdate(it)

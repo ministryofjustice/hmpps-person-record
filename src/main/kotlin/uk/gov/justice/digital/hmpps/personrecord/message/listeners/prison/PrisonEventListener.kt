@@ -14,7 +14,7 @@ class PrisonEventListener(
   private val prisonEventProcessor: PrisonEventProcessor,
 ) {
 
-  @SqsListener(Queues.PRISON_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
+  @SqsListener(Queues.PRISON_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy", messageVisibilitySeconds = "30")
   fun onDomainEvent(rawMessage: String) = sqsListenerService.processDomainEvent(rawMessage) {
     prisonEventProcessor.processEvent(it)
   }
