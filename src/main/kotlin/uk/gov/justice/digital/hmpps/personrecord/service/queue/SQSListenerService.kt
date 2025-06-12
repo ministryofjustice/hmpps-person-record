@@ -2,9 +2,16 @@ package uk.gov.justice.digital.hmpps.personrecord.service.queue
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import jakarta.persistence.OptimisticLockException
 import org.slf4j.LoggerFactory
+import org.springframework.dao.CannotAcquireLockException
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus.NOT_FOUND
+import org.springframework.retry.annotation.Backoff
+import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
@@ -16,8 +23,16 @@ class SQSListenerService(
   private val objectMapper: ObjectMapper,
 ) {
 
-  fun processDomainEvent(rawMessage: String, action: (domainEvent: DomainEvent) -> Unit) = processSQSMessage(rawMessage) { action(objectMapper.readValue<DomainEvent>(it.message)) }
-
+  @Retryable(
+    maxAttempts = 5,
+    backoff = Backoff(delay = 200, random = true, multiplier = 3.0),
+    retryFor = [
+      OptimisticLockException::class,
+      DataIntegrityViolationException::class,
+      CannotAcquireLockException::class,
+    ],
+  )
+  @Transactional(isolation = REPEATABLE_READ, timeout = 30)
   fun processSQSMessage(rawMessage: String, action: (sqsMessage: SQSMessage) -> Unit) {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     try {
