@@ -23,6 +23,7 @@ class CreateUpdateService(
 ) {
 
   @Retryable(
+    maxAttempts = 5,
     backoff = Backoff(delay = 200, random = true, multiplier = 3.0),
     retryFor = [
       OptimisticLockException::class,
