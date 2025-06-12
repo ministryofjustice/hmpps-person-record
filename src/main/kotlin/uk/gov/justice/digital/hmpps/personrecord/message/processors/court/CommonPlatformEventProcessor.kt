@@ -1,11 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.jayway.jsonpath.JsonPath
 import kotlinx.coroutines.runBlocking
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.services.s3.S3AsyncClient
@@ -16,11 +14,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.CourtMessagePublisher
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Component
 class CommonPlatformEventProcessor(
@@ -29,7 +24,6 @@ class CommonPlatformEventProcessor(
   private val createUpdateService: CreateUpdateService,
   private val courtMessagePublisher: CourtMessagePublisher,
   private val s3AsyncClient: S3AsyncClient,
-  private val publisher: ApplicationEventPublisher,
 ) {
 
   companion object {
@@ -41,30 +35,6 @@ class CommonPlatformEventProcessor(
       sqsMessage.isLargeMessage() -> runBlocking { getPayloadFromS3(sqsMessage) }
       else -> sqsMessage.message
     }
-
-    val commonPlatformHearingNode = objectMapper.readTree(commonPlatformHearing)
-
-    val defendantNodes = commonPlatformHearingNode.path("hearing").path("prosecutionCases")
-      .flatMap { it.path("defendants") }
-
-    defendantNodes
-      .filter {
-        (it.path("isYouth").isMissingOrNullOrEmpty()) or
-          (
-            (it.path("croNumber").isMissingOrNullOrEmpty()) and
-              (it.path("pncId").isMissingOrNullOrEmpty())
-            )
-      }
-      .forEach {
-        publisher.publishEvent(
-          RecordTelemetry(
-            TelemetryEventType.CPR_COMMON_PLATFORM_MISSING_KEYS,
-            mapOf(
-              EventKeys.DEFENDANT_ID to it.get("id").asText(),
-            ),
-          ),
-        )
-      }
 
     val commonPlatformHearingEvent = objectMapper.readValue<CommonPlatformHearingEvent>(commonPlatformHearing)
 
@@ -92,8 +62,6 @@ class CommonPlatformEventProcessor(
       personRepository.findByDefendantId(it)
     }
   }
-
-  private fun JsonNode.isMissingOrNullOrEmpty() = this.isMissingNode || this.isNull || (this.isTextual && this.asText().trim().isBlank())
 
   private fun messageLargerThanThreshold(message: String): Boolean = message.toByteArray().size >= MAX_MESSAGE_SIZE
 
