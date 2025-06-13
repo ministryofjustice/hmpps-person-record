@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
-import jakarta.transaction.Transactional
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -20,7 +19,6 @@ class UnmergeService(
   private val publisher: ApplicationEventPublisher,
 ) {
 
-  @Transactional
   fun processUnmerge(reactivated: PersonEntity, existing: PersonEntity) {
     when {
       clusterContainsAdditionalRecords(reactivated, existing) -> setClusterAsNeedsAttention(existing)
