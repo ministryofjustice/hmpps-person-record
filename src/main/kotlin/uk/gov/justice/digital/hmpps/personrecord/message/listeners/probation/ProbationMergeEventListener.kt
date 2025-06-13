@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.awspring.cloud.sqs.annotation.SqsListener
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationMergeEventProcessor
@@ -15,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 
 @Component
-@Profile("!seeding")
 class ProbationMergeEventListener(
   private val sqsListenerService: SQSListenerService,
   private val mergeEventProcessor: ProbationMergeEventProcessor,

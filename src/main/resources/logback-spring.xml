@@ -28,6 +28,10 @@
         <appender-ref ref="consoleAppender"/>
     </logger>
 
+    <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" additivity="false" level="ERROR">
+        <appender-ref ref="consoleAppender"/>
+    </logger>
+
     <root level="INFO">
         <appender-ref ref="consoleAppender"/>
     </root>
