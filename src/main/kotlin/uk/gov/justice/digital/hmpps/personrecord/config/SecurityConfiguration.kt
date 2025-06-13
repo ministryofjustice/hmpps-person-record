@@ -12,11 +12,6 @@ class SecurityConfiguration {
     unauthorizedRequestPaths {
       addPaths = setOf(
         "/queue-admin/retry-all-dlqs",
-        "/populatefromprison",
-        "/populatefromprobation",
-        "/updatefromprobation",
-        "/populatepersonmatch",
-        "/populateeventlog",
         "/jobs/recordcountreport",
       )
     }

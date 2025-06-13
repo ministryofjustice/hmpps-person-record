@@ -34,26 +34,6 @@ generic-service:
           deny all;
           return 401;
         }
-        location /populatefromprison {
-          deny all;
-          return 401;
-        }
-        location /populatefromprobation {
-          deny all;
-          return 401;
-        }
-        location /updatefromprobation {
-          deny all;
-          return 401;
-        }
-        location /populatepersonmatch {
-          deny all;
-          return 401;
-        }
-        location /populateeventlog {
-          deny all;
-          return 401;
-        }
         location /jobs/recordcountreport {
           deny all;
           return 401;
