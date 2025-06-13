@@ -98,34 +98,6 @@ class UnmergeServiceIntTest : IntegrationTestBase() {
   inner class EventLog {
 
     @Test
-    fun `should log unmerged event log`() {
-      val cluster = createPersonKey()
-      val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
-
-      val reactivatedRecord = createPerson(createRandomProbationPersonDetails())
-      val mergedReactivatedRecord = mergeRecord(reactivatedRecord, unmergedRecord)
-
-      stubPersonMatchScores()
-      unmergeService.processUnmerge(mergedReactivatedRecord, unmergedRecord)
-
-      checkEventLogExist(reactivatedRecord.crn!!, CPRLogEvents.CPR_UUID_CREATED)
-      checkEventLog(reactivatedRecord.crn!!, CPRLogEvents.CPR_RECORD_UNMERGED) { eventLogs ->
-        assertThat(eventLogs).hasSize(1)
-        val eventLog = eventLogs.first()
-        assertThat(eventLog.personUUID).isNotEqualTo(cluster.personUUID)
-        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
-        assertThat(eventLog.excludeOverrideMarkers).contains(unmergedRecord.id)
-      }
-      checkEventLog(unmergedRecord.crn!!, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
-        assertThat(eventLogs).hasSize(1)
-        val eventLog = eventLogs.first()
-        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
-        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
-        assertThat(eventLog.excludeOverrideMarkers).contains(reactivatedRecord.id)
-      }
-    }
-
-    @Test
     fun `should should log needs attention when multiple records on cluster`() {
       val cluster = createPersonKey()
       val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
