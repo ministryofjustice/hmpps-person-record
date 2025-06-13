@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.Common
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.LargeMessageBody
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
@@ -25,6 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 @Component
 class CommonPlatformEventProcessor(
   private val personRepository: PersonRepository,
+  private val personKeyRepository: PersonKeyRepository,
   private val objectMapper: ObjectMapper,
   private val createUpdateService: CreateUpdateService,
   private val courtMessagePublisher: CourtMessagePublisher,
@@ -87,10 +89,15 @@ class CommonPlatformEventProcessor(
     }
   }
 
-  private fun processCommonPlatformPerson(person: Person): PersonEntity = createUpdateService.processPerson(person) {
-    person.defendantId?.let {
-      personRepository.findByDefendantId(it)
+  private fun processCommonPlatformPerson(person: Person): PersonEntity {
+    val entity = createUpdateService.processPerson(person) {
+      person.defendantId?.let {
+        personRepository.findByDefendantId(it)
+      }
     }
+    entity.personKey?.let { personKeyRepository.save(it) }
+    personRepository.save(entity)
+    return entity
   }
 
   private fun JsonNode.isMissingOrNullOrEmpty() = this.isMissingNode || this.isNull || (this.isTextual && this.asText().trim().isBlank())

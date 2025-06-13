@@ -32,7 +32,7 @@ class SQSListenerService(
       CannotAcquireLockException::class,
     ],
   )
-  @Transactional(isolation = REPEATABLE_READ, timeout = 30)
+  @Transactional(isolation = REPEATABLE_READ, timeout = 300)
   fun processSQSMessage(rawMessage: String, action: (sqsMessage: SQSMessage) -> Unit) {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     try {

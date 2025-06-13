@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
 
@@ -9,14 +10,18 @@ import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateSer
 class ProbationEventProcessor(
   private val createUpdateService: CreateUpdateService,
   private val personRepository: PersonRepository,
+  private val personKeyRepository: PersonKeyRepository,
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
 ) {
 
   fun processEvent(crn: String) {
-    corePersonRecordAndDeliusClient.getPerson(crn).let {
+    val personEntity = corePersonRecordAndDeliusClient.getPerson(crn).let {
       createUpdateService.processPerson(it) {
         personRepository.findByCrn(crn)
       }
     }
+
+    personEntity.personKey?.let { personKeyRepository.save(it) }
+    personRepository.save(personEntity)
   }
 }
