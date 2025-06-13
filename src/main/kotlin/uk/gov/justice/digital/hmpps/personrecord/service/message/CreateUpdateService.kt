@@ -35,10 +35,10 @@ class CreateUpdateService(
 
   private fun handlePersonCreation(person: Person, shouldLinkOnCreate: Boolean): PersonEntity {
     val personEntity: PersonEntity = personService.createPersonEntity(person)
-    personRepository.save(personEntity)
     if (shouldLinkOnCreate) {
       personService.linkRecordToPersonKey(personEntity)
     }
+    personRepository.save(personEntity)
     publisher.publishEvent(PersonCreated(personEntity))
     return personEntity
   }

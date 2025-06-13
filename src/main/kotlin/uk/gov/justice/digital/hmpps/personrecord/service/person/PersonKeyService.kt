@@ -4,6 +4,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
@@ -16,12 +17,14 @@ import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchServi
 class PersonKeyService(
   private val publisher: ApplicationEventPublisher,
   private val personMatchService: PersonMatchService,
+  private val personKeyRepository: PersonKeyRepository,
 ) {
 
   fun createPersonKey(personEntity: PersonEntity): PersonEntity {
     val personKey = PersonKeyEntity.new()
     publisher.publishEvent(PersonKeyCreated(personEntity, personKey))
     personEntity.personKey = personKey
+    personKeyRepository.save(personKey)
     return personEntity
   }
 
