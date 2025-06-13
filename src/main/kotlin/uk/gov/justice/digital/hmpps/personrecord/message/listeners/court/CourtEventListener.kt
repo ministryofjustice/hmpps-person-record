@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court
 
 import io.awspring.cloud.sqs.annotation.SqsListener
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
@@ -11,7 +10,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSListenerService
 
 @Component
-@Profile("!seeding")
 class CourtEventListener(
   private val commonPlatformEventProcessor: CommonPlatformEventProcessor,
   private val libraEventProcessor: LibraEventProcessor,
