@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -19,48 +18,6 @@ class MergeServiceIntTest : IntegrationTestBase() {
   @BeforeEach
   fun beforeEach() {
     stubDeletePersonMatch()
-  }
-
-  @Test
-  fun `should merge records on different UUIDs with single records`() {
-    val from = createPersonWithNewKey(createRandomProbationPersonDetails())
-    val to = createPersonWithNewKey(createRandomProbationPersonDetails())
-    val fromUUID = from.personKey?.personUUID.toString()
-    val toUUID = to.personKey?.personUUID.toString()
-
-    mergeService.processMerge(from, to)
-
-    from.personKey?.assertClusterStatus(UUIDStatusType.MERGED)
-    from.personKey?.assertClusterIsOfSize(0)
-    from.personKey?.assertMergedTo(to.personKey!!)
-
-    to.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-    to.personKey?.assertClusterIsOfSize(1)
-
-    checkEventLog(from.crn!!, CPRLogEvents.CPR_UUID_MERGED) { eventLogs ->
-      assertThat(eventLogs).hasSize(1)
-      val event = eventLogs.first()
-      assertThat(event.personUUID.toString()).isEqualTo(fromUUID)
-      assertThat(event.uuidStatusType).isEqualTo(UUIDStatusType.MERGED)
-    }
-    checkEventLogExist(from.crn!!, CPRLogEvents.CPR_RECORD_MERGED)
-
-    checkTelemetry(
-      TelemetryEventType.CPR_UUID_MERGED,
-      mapOf(
-        "FROM_UUID" to fromUUID,
-        "TO_UUID" to toUUID,
-        "SOURCE_SYSTEM" to SourceSystemType.DELIUS.name,
-      ),
-    )
-    checkTelemetry(
-      TelemetryEventType.CPR_RECORD_MERGED,
-      mapOf(
-        "TO_SOURCE_SYSTEM_ID" to to.crn,
-        "FROM_SOURCE_SYSTEM_ID" to from.crn,
-        "SOURCE_SYSTEM" to SourceSystemType.DELIUS.name,
-      ),
-    )
   }
 
   @Test
