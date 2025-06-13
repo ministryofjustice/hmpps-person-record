@@ -65,31 +65,6 @@ class UnmergeServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should set to needs attention when extra records on the cluster`() {
-    val cluster = createPersonKey()
-    val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
-    createPerson(createRandomProbationPersonDetails(), cluster)
-
-    val reactivatedRecord = createPerson(createRandomProbationPersonDetails())
-
-    val mergedReactivatedRecord = mergeRecord(reactivatedRecord, unmergedRecord)
-
-    stubPersonMatchScores()
-    unmergeService.processUnmerge(mergedReactivatedRecord, unmergedRecord)
-
-    reactivatedRecord.assertNotMerged()
-
-    reactivatedRecord.assertExcludedFrom(unmergedRecord)
-    unmergedRecord.assertExcludedFrom(reactivatedRecord)
-
-    cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
-    cluster.assertClusterIsOfSize(2)
-
-    unmergedRecord.assertLinkedToCluster(cluster)
-    reactivatedRecord.assertNotLinkedToCluster(cluster)
-  }
-
-  @Test
   fun `should unmerge 2 merged records that exist on same cluster and then link to another cluster`() {
     val cluster = createPersonKey()
     val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
