@@ -38,6 +38,10 @@ generic-service:
           deny all;
           return 401;
         }
+        location /admin/recluster {
+          deny all;
+          return 401;
+        }
 
   # Environment variables to load into the deployment
   env:
