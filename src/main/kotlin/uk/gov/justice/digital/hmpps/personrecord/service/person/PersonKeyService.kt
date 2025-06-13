@@ -15,16 +15,16 @@ import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchServi
 
 @Component
 class PersonKeyService(
-  private val personKeyRepository: PersonKeyRepository,
   private val publisher: ApplicationEventPublisher,
   private val personMatchService: PersonMatchService,
+  private val personKeyRepository: PersonKeyRepository,
 ) {
 
   fun createPersonKey(personEntity: PersonEntity): PersonEntity {
     val personKey = PersonKeyEntity.new()
     publisher.publishEvent(PersonKeyCreated(personEntity, personKey))
-    personKeyRepository.save(personKey)
     personEntity.personKey = personKey
+    personKeyRepository.save(personKey)
     return personEntity
   }
 
@@ -39,7 +39,6 @@ class PersonKeyService(
   fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity?, changedRecord: PersonEntity) {
     if (personKeyEntity?.isNeedsAttention() == true) {
       personKeyEntity.status = ACTIVE
-      personKeyRepository.save(personKeyEntity)
       publisher.publishEvent(
         RecordEventLog(
           CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE,

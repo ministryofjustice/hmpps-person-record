@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
@@ -18,6 +19,7 @@ class LibraEventProcessor(
   private val courtMessagePublisher: CourtMessagePublisher,
   private val createUpdateService: CreateUpdateService,
   private val personRepository: PersonRepository,
+  private val personKeyRepository: PersonKeyRepository,
 ) {
 
   fun processEvent(sqsMessage: SQSMessage) {
@@ -27,14 +29,20 @@ class LibraEventProcessor(
       libraHearingEvent.isPerson() && person.isPerson() -> processLibraPerson(person)
       else -> null
     }
+
     val updatedMessage = addCprUUIDToLibra(sqsMessage.message, personEntity)
     courtMessagePublisher.publishMessage(sqsMessage, updatedMessage)
   }
 
-  private fun processLibraPerson(person: Person): PersonEntity = createUpdateService.processPerson(person) {
-    person.cId?.let {
-      personRepository.findByCId(it)
+  private fun processLibraPerson(person: Person): PersonEntity {
+    val personEntity = createUpdateService.processPerson(person) {
+      person.cId?.let {
+        personRepository.findByCId(it)
+      }
     }
+    personEntity.personKey?.let { personKeyRepository.save(it) }
+    personRepository.save(personEntity)
+    return personEntity
   }
 
   private fun addCprUUIDToLibra(

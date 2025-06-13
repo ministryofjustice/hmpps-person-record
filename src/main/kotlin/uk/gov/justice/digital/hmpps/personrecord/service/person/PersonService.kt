@@ -4,14 +4,12 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
 class PersonService(
-  private val personRepository: PersonRepository,
   private val personKeyService: PersonKeyService,
   private val personMatchService: PersonMatchService,
 ) {
@@ -50,16 +48,16 @@ class PersonService(
       no = { personKeyService.createPersonKey(personEntity) },
       yes = { personKeyService.retrievePersonKey(personEntity, it) },
     )
-    return personRepository.saveAndFlush(personEntityWithKey)
+    return personEntityWithKey
   }
 
   private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
     personEntity.update(person)
-    return personRepository.save(personEntity)
+    return personEntity
   }
 
   private fun createNewPersonEntity(person: Person): PersonEntity {
     val personEntity = PersonEntity.new(person)
-    return personRepository.save(personEntity)
+    return personEntity
   }
 }

@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.UnmergeService
@@ -13,6 +14,7 @@ class ProbationUnmergeEventProcessor(
   private val createUpdateService: CreateUpdateService,
   private val unmergeService: UnmergeService,
   private val personRepository: PersonRepository,
+  private val personKeyRepository: PersonKeyRepository,
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
 ) {
 
@@ -20,6 +22,11 @@ class ProbationUnmergeEventProcessor(
     val existingPerson = getProbationPerson(domainEvent.additionalInformation?.unmergedCrn!!, true)
     val reactivatedPerson = getProbationPerson(domainEvent.additionalInformation.reactivatedCrn!!, false)
     unmergeService.processUnmerge(reactivatedPerson, existingPerson)
+
+    personRepository.save(reactivatedPerson)
+    personRepository.save(existingPerson)
+    reactivatedPerson.personKey?.let { personKeyRepository.save(it) }
+    existingPerson.personKey?.let { personKeyRepository.save(it) }
   }
 
   private fun getProbationPerson(crn: String, shouldLinkOnCreate: Boolean): PersonEntity = corePersonRecordAndDeliusClient
