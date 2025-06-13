@@ -31,7 +31,7 @@ class CreateUpdateService(
       CannotAcquireLockException::class,
     ],
   )
-  @Transactional(isolation = REPEATABLE_READ)
+  @Transactional(isolation = REPEATABLE_READ, timeout = 30)
   fun processPerson(
     person: Person,
     shouldReclusterOnUpdate: Boolean = true,
