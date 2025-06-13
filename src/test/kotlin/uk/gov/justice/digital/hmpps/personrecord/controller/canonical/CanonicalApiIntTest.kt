@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.controller
+package uk.gov.justice.digital.hmpps.personrecord.controller.canonical
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

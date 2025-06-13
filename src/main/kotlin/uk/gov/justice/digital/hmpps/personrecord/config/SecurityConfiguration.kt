@@ -13,6 +13,7 @@ class SecurityConfiguration {
       addPaths = setOf(
         "/queue-admin/retry-all-dlqs",
         "/jobs/recordcountreport",
+        "/admin/recluster",
       )
     }
   }
