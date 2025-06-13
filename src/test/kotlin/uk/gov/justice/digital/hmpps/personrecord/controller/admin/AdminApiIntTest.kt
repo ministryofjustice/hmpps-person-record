@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import java.util.UUID
 
-class AdminApiIntTest: WebTestBase() {
+class AdminApiIntTest : WebTestBase() {
 
   @Test
   fun `should throw not found error when cluster not found in list`() {
@@ -53,7 +53,7 @@ class AdminApiIntTest: WebTestBase() {
   fun `should recluster list of clusters`() {
     val clusters = List(5) {
       createPersonKey()
-      .addPerson(createPerson(createRandomProbationPersonDetails()))
+        .addPerson(createPerson(createRandomProbationPersonDetails()))
     }
     val request = AdminReclusterRequest(clusters = clusters.map { it.personUUID!! })
 

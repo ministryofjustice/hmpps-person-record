@@ -1,14 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller
 
 import io.swagger.v3.oas.annotations.Hidden
-import jakarta.persistence.OptimisticLockException
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.dao.CannotAcquireLockException
-import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.retry.annotation.Backoff
-import org.springframework.retry.annotation.Retryable
-import org.springframework.transaction.annotation.Isolation
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -31,7 +24,7 @@ class AdminController(
   @Hidden
   @PostMapping("/recluster")
   fun postRecluster(
-    @RequestBody adminReclusterRequest: AdminReclusterRequest
+    @RequestBody adminReclusterRequest: AdminReclusterRequest,
   ) {
     adminReclusterRequest.clusters.forEach {
       personKeyRepository.findByPersonUUID(it)?.let { cluster ->
@@ -40,5 +33,4 @@ class AdminController(
       } ?: throw ClusterNotFoundException(it)
     }
   }
-
 }
