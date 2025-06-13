@@ -5,6 +5,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
@@ -13,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 class CreateUpdateService(
   private val personService: PersonService,
   private val publisher: ApplicationEventPublisher,
+  private val personRepository: PersonRepository,
 ) {
 
   fun processPerson(
@@ -33,6 +35,7 @@ class CreateUpdateService(
 
   private fun handlePersonCreation(person: Person, shouldLinkOnCreate: Boolean): PersonEntity {
     val personEntity: PersonEntity = personService.createPersonEntity(person)
+    personRepository.save(personEntity)
     if (shouldLinkOnCreate) {
       personService.linkRecordToPersonKey(personEntity)
     }
