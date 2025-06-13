@@ -21,7 +21,6 @@ class ProbationEventProcessor(
       }
     }
 
-    personEntity.personKey?.let { personKeyRepository.save(it) }
-    personRepository.save(personEntity)
+    personKeyRepository.save(personEntity.personKey!!)
   }
 }

@@ -24,7 +24,6 @@ class PrisonEventProcessor(
       }
     }
 
-    personEntity?.personKey?.let { personKeyRepository.save(it) }
-    personEntity?.let { personRepository.save(it) }
+    personKeyRepository.save(personEntity!!.personKey!!)
   }
 }
