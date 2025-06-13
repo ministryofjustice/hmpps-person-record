@@ -316,9 +316,16 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         .addPerson(unmergedPerson)
         .addPerson(createPerson(createRandomProbationPersonDetails()))
 
-      mergeRecord(reactivatedPerson, unmergedPerson)
+      val mergedReactivatedRecord = mergeRecord(reactivatedPerson, unmergedPerson)
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn)
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, mergedReactivatedRecord.crn!!, unmergedCrn)
+
+      checkEventLog(unmergedPerson.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
+        assertThat(eventLogs).hasSize(2)
+        val eventLog = eventLogs.first()
+        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
+        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
+      }
 
       checkTelemetry(
         CPR_RECORD_UPDATED,
