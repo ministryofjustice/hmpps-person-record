@@ -28,11 +28,11 @@ dependencies {
 
   implementation("software.amazon.sns:sns-extended-client:2.1.0")
   implementation("com.jayway.jsonpath:json-path:2.9.0")
-  implementation("io.swagger.core.v3:swagger-annotations:2.2.32")
+  implementation("io.swagger.core.v3:swagger-annotations:2.2.33")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-  implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.10.0")
+  implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.10.1")
 
   runtimeOnly("org.postgresql:postgresql:42.7.7")
   runtimeOnly("org.flywaydb:flyway-core")
