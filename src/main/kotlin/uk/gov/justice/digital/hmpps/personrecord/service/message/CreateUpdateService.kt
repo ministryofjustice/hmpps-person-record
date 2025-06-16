@@ -1,12 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
-import jakarta.persistence.OptimisticLockException
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.dao.CannotAcquireLockException
-import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.retry.annotation.Backoff
-import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
 import org.springframework.transaction.annotation.Transactional
@@ -22,15 +17,6 @@ class CreateUpdateService(
   private val publisher: ApplicationEventPublisher,
 ) {
 
-  @Retryable(
-    maxAttempts = 5,
-    backoff = Backoff(delay = 200, random = true, multiplier = 3.0),
-    retryFor = [
-      OptimisticLockException::class,
-      DataIntegrityViolationException::class,
-      CannotAcquireLockException::class,
-    ],
-  )
   @Transactional(isolation = REPEATABLE_READ)
   fun processPerson(
     person: Person,
