@@ -5,5 +5,4 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 data class PersonUpdated(
   val personEntity: PersonEntity,
   val matchingFieldsHaveChanged: Boolean = false,
-  val shouldRecluster: Boolean,
 )

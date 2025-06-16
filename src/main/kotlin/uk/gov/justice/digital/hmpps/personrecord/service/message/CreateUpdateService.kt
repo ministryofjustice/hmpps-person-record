@@ -9,12 +9,14 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Component
 class CreateUpdateService(
   private val personService: PersonService,
   private val publisher: ApplicationEventPublisher,
+  private val reclusterService: ReclusterService,
 ) {
 
   @Transactional(isolation = REPEATABLE_READ)
@@ -44,8 +46,15 @@ class CreateUpdateService(
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, shouldReclusterOnUpdate: Boolean): PersonEntity {
-    val personUpdated = personService.updatePersonEntity(person, existingPersonEntity, shouldReclusterOnUpdate)
+    val personUpdated = personService.updatePersonEntity(person, existingPersonEntity)
     publisher.publishEvent(personUpdated)
+
+    val shouldRecluster = shouldReclusterOnUpdate && personUpdated.matchingFieldsHaveChanged && personService.hasClusterSetBackToActive(personUpdated.personEntity)
+    if (shouldRecluster) {
+      personUpdated.personEntity.personKey?.let {
+        reclusterService.recluster(it, personUpdated.personEntity)
+      }
+    }
     return personUpdated.personEntity
   }
 }
