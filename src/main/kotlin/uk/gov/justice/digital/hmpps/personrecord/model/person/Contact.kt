@@ -10,7 +10,6 @@ class Contact(
   companion object {
     fun from(contactType: ContactType, contactValue: String?): Contact = Contact(contactType = contactType, contactValue = contactValue)
     fun convertEntityToContact(contactEntity: ContactEntity): Contact = Contact(
-
       contactType = contactEntity.contactType,
       contactValue = contactEntity.contactValue,
     )
