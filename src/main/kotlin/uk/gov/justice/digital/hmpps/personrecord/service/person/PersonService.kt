@@ -22,7 +22,7 @@ class PersonService(
     return personEntity
   }
 
-  fun updatePersonEntity(person: Person, existingPersonEntity: PersonEntity, shouldReclusterOnUpdate: Boolean): PersonUpdated {
+  fun updatePersonEntity(person: Person, existingPersonEntity: PersonEntity): PersonUpdated {
     val oldMatchingDetails = PersonMatchRecord.from(existingPersonEntity)
     val updatedEntity = updateExistingPersonEntity(person, existingPersonEntity)
     val matchingFieldsHaveChanged = oldMatchingDetails.matchingFieldsAreDifferent(
@@ -33,11 +33,10 @@ class PersonService(
     when {
       matchingFieldsHaveChanged -> personMatchService.saveToPersonMatch(updatedEntity)
     }
-    val shouldRecluster = shouldReclusterOnUpdate && matchingFieldsHaveChanged && hasClusterSetBackToActive(updatedEntity)
-    return PersonUpdated(updatedEntity, matchingFieldsHaveChanged, shouldRecluster)
+    return PersonUpdated(updatedEntity, matchingFieldsHaveChanged)
   }
 
-  private fun hasClusterSetBackToActive(updatedEntity: PersonEntity) = when (personKeyService.clusterNeedsAttentionAndIsInvalid(updatedEntity.personKey)) {
+  fun hasClusterSetBackToActive(updatedEntity: PersonEntity) = when (personKeyService.clusterNeedsAttentionAndIsInvalid(updatedEntity.personKey)) {
     true -> false
     else -> {
       personKeyService.settingNeedsAttentionClusterToActive(updatedEntity.personKey, updatedEntity)
