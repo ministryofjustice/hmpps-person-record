@@ -10,13 +10,12 @@ import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.NOTIFICATION
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.service.TimeoutExecutor
 
 @Component
 class SQSListenerService(
@@ -34,7 +33,6 @@ class SQSListenerService(
       CannotAcquireLockException::class,
     ],
   )
-
   fun processSQSMessage(rawMessage: String, action: (sqsMessage: SQSMessage) -> Unit) = TimeoutExecutor.runWithTimeout {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     try {
