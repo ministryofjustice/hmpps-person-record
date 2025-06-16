@@ -20,7 +20,7 @@ class PersonKeyService(
   private val personMatchService: PersonMatchService,
 ) {
 
-  fun createPersonKey(personEntity: PersonEntity): PersonEntity {
+  fun assignPersonToNewPersonKey(personEntity: PersonEntity): PersonEntity {
     val personKey = PersonKeyEntity.new()
     publisher.publishEvent(PersonKeyCreated(personEntity, personKey))
     personKeyRepository.save(personKey)
@@ -28,7 +28,7 @@ class PersonKeyService(
     return personEntity
   }
 
-  fun retrievePersonKey(personEntity: PersonEntity, highConfidenceRecord: PersonEntity): PersonEntity {
+  fun assignToPersonKeyOfHighestConfidencePerson(personEntity: PersonEntity, highConfidenceRecord: PersonEntity): PersonEntity {
     publisher.publishEvent(PersonKeyFound(personEntity, highConfidenceRecord.personKey!!))
     personEntity.personKey = highConfidenceRecord.personKey!!
     return personEntity

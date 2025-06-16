@@ -47,8 +47,8 @@ class PersonService(
 
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
     val personEntityWithKey = personMatchService.findHighestConfidencePersonRecord(personEntity).exists(
-      no = { personKeyService.createPersonKey(personEntity) },
-      yes = { personKeyService.retrievePersonKey(personEntity, it) },
+      no = { personKeyService.assignPersonToNewPersonKey(personEntity) },
+      yes = { personKeyService.assignToPersonKeyOfHighestConfidencePerson(personEntity, it) },
     )
     return personRepository.saveAndFlush(personEntityWithKey)
   }
