@@ -37,7 +37,7 @@ To check if a port forward pod exists, which will be named either:
 Run the following command:
 
 ```shell
-kubectl get pods -n <namespace>
+kubectl get pods -n <namespace> | grep port-forward
 ```
 
 If the required pod does not exist, follow the steps defined in [Creating the Port Forward Pod](#creating-the-port-forward-pod).
@@ -54,19 +54,21 @@ To get the secrets run:
 kubectl get secrets -n <namespace>
 ```
 
-Then for `hmpps-person-record` database credentials run the command:
+Then for `hmpps-person-record` database credentials, run the command:
+
+> **_NOTE:_** This is a read replica, meaning you can only do read-only operations with this database connection which is suitable for almost all purposes.
 
 ```shell
-cloud-platform decode-secret -s hmpps-person-record-rds-read-replica-instance-output -n <namespace>
+cloud-platform decode-secret -s hmpps-person-record-rds-read-replica-instance-output -n <namespace> | jq -r '.data.rds_instance_address'
 ```
 
 For `hmpps-person-match` database credentials, run the command:
 
 ```shell
-cloud-platform decode-secret -s hmpps-person-match-rds-instance-output -n <namespace>
+cloud-platform decode-secret -s hmpps-person-match-rds-instance-output -n <namespace> | jq -r '.data.rds_instance_address'
 ```
 
-Which you need to get the `rds_instance_address` value which says which database to port forward to.
+Which gets the `rds_instance_address` value which says which database to port forward to.
 
 Then to create the port forward pod using the credentials from the steps above, run the command:
 
