@@ -17,6 +17,7 @@ class CreateUpdateService(
   private val personRepository: PersonRepository,
 ) {
 
+  @Transactional(isolation = REPEATABLE_READ)
   fun processPerson(
     person: Person,
     shouldReclusterOnUpdate: Boolean = true,

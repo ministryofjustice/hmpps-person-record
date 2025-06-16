@@ -23,6 +23,8 @@ class SQSListenerService(
   private val objectMapper: ObjectMapper,
 ) {
 
+  fun processDomainEvent(rawMessage: String, action: (domainEvent: DomainEvent) -> Unit) = processSQSMessage(rawMessage) { action(objectMapper.readValue<DomainEvent>(it.message)) }
+
   @Retryable(
     maxAttempts = 5,
     backoff = Backoff(delay = 200, random = true, multiplier = 3.0),
@@ -32,8 +34,8 @@ class SQSListenerService(
       CannotAcquireLockException::class,
     ],
   )
-  @Transactional(isolation = REPEATABLE_READ, timeout = 300)
-  fun processSQSMessage(rawMessage: String, action: (sqsMessage: SQSMessage) -> Unit) {
+
+  fun processSQSMessage(rawMessage: String, action: (sqsMessage: SQSMessage) -> Unit) = TimeoutExecutor.runWithTimeout {
     val sqsMessage = objectMapper.readValue<SQSMessage>(rawMessage)
     try {
       when (sqsMessage.type) {

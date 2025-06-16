@@ -50,7 +50,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       }
       checkEventLog(unmergedPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
         assertThat(eventLogs).hasSize(2)
-        val eventLog = eventLogs[1]
+        val eventLog = eventLogs.first()
         assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
         assertThat(eventLog.excludeOverrideMarkers).contains(reactivatedPerson.id)
