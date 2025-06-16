@@ -56,16 +56,6 @@ class ExceptionHandler {
       ),
     )
 
-  @ExceptionHandler(ClusterNotFoundException::class)
-  fun handleKeyNotFoundException(e: ClusterNotFoundException): ResponseEntity<ErrorResponse> = ResponseEntity
-    .status(NOT_FOUND)
-    .body(
-      ErrorResponse(
-        status = NOT_FOUND,
-        userMessage = "Not found: ${e.message}",
-      ),
-    )
-
   @ExceptionHandler(AuthenticationException::class)
   fun handleUnauthorizedException(e: AuthenticationException): ResponseEntity<ErrorResponse?>? = ResponseEntity
     .status(UNAUTHORIZED)

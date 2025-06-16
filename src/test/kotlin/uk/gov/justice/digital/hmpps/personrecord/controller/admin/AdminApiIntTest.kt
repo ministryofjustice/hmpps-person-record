@@ -12,7 +12,6 @@ class AdminApiIntTest : WebTestBase() {
   @Test
   fun `should throw not found error when cluster not found in list`() {
     val uuid = UUID.randomUUID()
-    val expectedErrorMessage = "Not found: $uuid"
     val request = AdminReclusterRequest(clusters = listOf(uuid))
 
     webTestClient.post()
@@ -21,10 +20,13 @@ class AdminApiIntTest : WebTestBase() {
       .bodyValue(request)
       .exchange()
       .expectStatus()
-      .isNotFound
-      .expectBody()
-      .jsonPath("userMessage")
-      .isEqualTo(expectedErrorMessage)
+      .isOk
+
+    checkTelemetry(
+      TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED,
+      mapOf("UUID" to uuid.toString()),
+      times = 0
+    )
   }
 
   @Test
