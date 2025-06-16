@@ -8,9 +8,11 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 enum class EventKeys {
   // Message
-  MESSAGE_ID,
+  COMMON_PLATFORM,
+  LIBRA,
+  NOMIS,
+  DELIUS,
   SOURCE_SYSTEM,
-  EVENT_TYPE,
 
   // Identifiers
   CRN,

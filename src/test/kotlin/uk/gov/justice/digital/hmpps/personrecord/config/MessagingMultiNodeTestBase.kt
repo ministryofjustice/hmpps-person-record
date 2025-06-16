@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
-import uk.gov.justice.digital.hmpps.personrecord.message.LARGE_CASE_EVENT_TYPE
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.hmpps.sqs.HmppsQueue
@@ -129,8 +129,8 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     } matches { it == 1 }
   }
 
-  fun publishDomainEvent(eventType: String, domainEvent: DomainEvent): String {
-    val response = publishEvent(
+  fun publishDomainEvent(eventType: String, domainEvent: DomainEvent) {
+    publishEvent(
       objectMapper.writeValueAsString(domainEvent),
       domainEventsTopic,
       mapOf(
@@ -143,7 +143,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     expectNoMessagesOn(probationMergeEventsQueue)
     expectNoMessagesOn(prisonMergeEventsQueue)
     expectNoMessagesOn(prisonEventsQueue)
-    return response!!
   }
 
   fun publishProbationEvent(eventType: String, probationEvent: ProbationEvent) {

@@ -23,6 +23,14 @@
     <logger name="com.microsoft.applicationinsights" additivity="false" level="INFO">
         <appender-ref ref="consoleAppender"/>
     </logger>
+    
+    <logger name="org.flywaydb.core.FlywayExecutor" additivity="false" level="WARN">
+        <appender-ref ref="consoleAppender"/>
+    </logger>
+
+    <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" additivity="false" level="ERROR">
+        <appender-ref ref="consoleAppender"/>
+    </logger>
 
     <logger name="org.flywaydb.core.FlywayExecutor" additivity="false" level="WARN">
         <appender-ref ref="consoleAppender"/>

@@ -37,8 +37,8 @@ class EventLogEntity(
   @Column(name = "match_id")
   val matchId: UUID? = null,
 
-  @Column
-  val uuid: UUID? = null,
+  @Column(name = "person_uuid")
+  val personUUID: UUID? = null,
 
   @Column(name = "uuid_status_type")
   @Enumerated(STRING)
@@ -122,7 +122,7 @@ class EventLogEntity(
       return EventLogEntity(
         sourceSystemId = personEntity.extractSourceSystemId(),
         matchId = personEntity.matchId,
-        uuid = personKeyEntity?.personUUID ?: personEntity.personKey?.personUUID,
+        personUUID = personKeyEntity?.personUUID ?: personEntity.personKey?.personUUID,
         uuidStatusType = personKeyEntity?.status ?: personEntity.personKey?.status,
         firstName = personEntity.getPrimaryName().firstName,
         middleNames = personEntity.getPrimaryName().middleNames,

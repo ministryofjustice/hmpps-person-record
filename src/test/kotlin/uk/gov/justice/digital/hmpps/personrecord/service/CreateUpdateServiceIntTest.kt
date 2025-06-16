@@ -26,7 +26,6 @@ class CreateUpdateServiceIntTest : IntegrationTestBase() {
     val person = createRandomProbationPersonDetails()
     val existingPerson = createPersonWithNewKey(person)
 
-    stubPersonMatchUpsert()
     createUpdateService.processPerson(person) { existingPerson }
 
     checkEventLogExist(existingPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED, times = 0)
@@ -49,7 +48,7 @@ class CreateUpdateServiceIntTest : IntegrationTestBase() {
   }
 
   @Test
-  fun `should log record update when no change in matching fields but different order`() {
+  fun `should not log record update when no change in matching fields but different order`() {
     val firstName = randomName()
     val lastName = randomName()
     val crn = randomCrn()
@@ -72,7 +71,6 @@ class CreateUpdateServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    stubPersonMatchUpsert()
     createUpdateService.processPerson(updatedPerson) { existingPerson }
 
     checkEventLogExist(existingPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED, times = 0)

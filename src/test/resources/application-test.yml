@@ -25,6 +25,7 @@ core-person-record-and-delius:
 
 retry:
   delay: 120
+  timeout: 200
 
 hmpps.sqs:
   enabled: true
@@ -34,37 +35,42 @@ hmpps.sqs:
       queueName: cpr_court_cases_queue.fifo
       subscribeTopicId: courtcasestopic
       dlqName: cpr_court_cases_queue_dlq.fifo
-      dlqMaxReceiveCount: 1
+      dlqMaxReceiveCount: 2
     testcourtcasesqueue:
       queueName: test_only_cpr_court_cases_queue
       subscribeTopicId: cprcourtcasestopic
       dlqName: test_only_cpr_court_cases_queue_dlq
-      dlqMaxReceiveCount: 1
+      dlqMaxReceiveCount: 2
     cprdeliusoffendereventsqueue:
       queueName: cpr_delius_offender_events_queue
       dlqName: cpr_delius_offender_events_queue_dlq
       subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ "probation-case.engagement.created", "probation-case.address.created", "probation-case.address.updated", "probation-case.address.deleted","probation-case.personal-details.updated", "OFFENDER_ALIAS_CHANGED"] }'
+      subscribeFilter: '{"eventType":[ "probation-case.engagement.created", "probation-case.address.created", "probation-case.address.updated", "probation-case.address.deleted","probation-case.personal-details.updated", "OFFENDER_ALIAS_CHANGED", "probation-case.engagement.recovered" ] }'
+      dlqMaxReceiveCount: 2
     cprdeliusmergeeventsqueue:
       queueName: cpr_delius_merge_events_queue
       dlqName: cpr_delius_merge_events_queue_dlq
       subscribeTopicId: domainevents
       subscribeFilter: '{"eventType":[ "probation-case.merge.completed", "probation-case.unmerge.completed"] }'
+      dlqMaxReceiveCount: 2
     cprdeliusdeleteeventsqueue:
       queueName: cpr_delius_delete_events_queue
       dlqName: cpr_delius_delete_events_queue_dlq
       subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ "probation-case.deleted.gdpr" ] }'
+      subscribeFilter: '{"eventType":[ "probation-case.deleted.gdpr", "probation-case.engagement.deleted" ] }'
+      dlqMaxReceiveCount: 2
     cprnomiseventsqueue:
       queueName: cpr_nomis_events_queue
       dlqName: cpr_nomis_events_dlq
       subscribeTopicId: domainevents
       subscribeFilter: '{"eventType":["prisoner-offender-search.prisoner.created", "prisoner-offender-search.prisoner.updated"] }'
+      dlqMaxReceiveCount: 2
     cprnomismergeeventsqueue:
       queueName: cpr_nomis_merge_events_queue
       dlqName: cpr_nomis_merge_events_queue_dlq
       subscribeTopicId: domainevents
       subscribeFilter: '{"eventType":[ "prisoner-offender-events.prisoner.merged"] }'
+      dlqMaxReceiveCount: 2
   topics:
     courtcasestopic:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}.fifo
@@ -74,12 +80,6 @@ hmpps.sqs:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
 
 spring:
-  cloud.openfeign.client.config:
-    default:
-      connect-timeout: 5000
-      read-timeout: 200
-      default-request-headers:
-        Accept: application/json
   flyway:
     out-of-order: true
   datasource:
@@ -101,6 +101,3 @@ aws:
   court-message-bucket-name: local-court-message-bucket
   cpr-court-message-bucket-name: cpr-local-court-message-bucket
   region: eu-west-2
-
-publish-to-court-topic: true
-

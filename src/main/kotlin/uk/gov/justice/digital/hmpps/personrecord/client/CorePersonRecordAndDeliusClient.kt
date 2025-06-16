@@ -1,27 +1,28 @@
 package uk.gov.justice.digital.hmpps.personrecord.client
 
-import org.springframework.cloud.openfeign.FeignClient
-import org.springframework.cloud.openfeign.SpringQueryMap
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.client.WebClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.ProbationCases
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
-import uk.gov.justice.digital.hmpps.personrecord.config.CorePersonRecordAndDeliusClientOAuth2Config
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.discardNotFoundException
 
-@FeignClient(
-  name = "core-person-record-and-delius",
-  url = "\${core-person-record-and-delius.base-url}",
-  configuration = [CorePersonRecordAndDeliusClientOAuth2Config::class],
-)
-interface CorePersonRecordAndDeliusClient {
+@Component
+class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebClient: WebClient) {
 
-  @GetMapping("probation-cases/{crn}")
-  fun getProbationCase(@PathVariable("crn") crn: String): ProbationCase
+  fun getPerson(crn: String): Person {
+    val probationCase = corePersonRecordAndDeliusWebClient
+      .get()
+      .uri("/probation-cases/$crn")
+      .retrieve()
+      .bodyToMono(ProbationCase::class.java)
+      .discardNotFoundException()
+      .block()!!
+    return Person.from(probationCase)
+  }
 
-  @GetMapping("all-probation-cases")
-  fun getProbationCases(@SpringQueryMap params: CorePersonRecordAndDeliusClientPageParams): ProbationCases?
+  fun getProbationCases(pageParams: CorePersonRecordAndDeliusClientPageParams): ProbationCases? = corePersonRecordAndDeliusWebClient.get()
+    .uri("/all-probation-cases") { it.queryParam("size", pageParams.size).queryParam("page", pageParams.page).queryParam("sort", "id,asc").build() }.retrieve().bodyToMono(ProbationCases::class.java).block()!!
 }
 
-class CorePersonRecordAndDeliusClientPageParams(val page: Int, val size: Int) {
-  val sort: String = "id,asc"
-}
+class CorePersonRecordAndDeliusClientPageParams(val page: Int, val size: Int)

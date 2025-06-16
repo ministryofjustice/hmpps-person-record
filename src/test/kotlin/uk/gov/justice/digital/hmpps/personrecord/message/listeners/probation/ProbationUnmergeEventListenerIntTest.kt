@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -7,14 +8,12 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
-import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.UNMERGE_MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
 class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -41,10 +40,21 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn)
 
-      checkTelemetry(
-        UNMERGE_MESSAGE_RECEIVED,
-        mapOf("TO_SOURCE_SYSTEM_ID" to reactivatedCrn, "FROM_SOURCE_SYSTEM_ID" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
+      checkEventLogExist(reactivatedPerson.crn!!, CPRLogEvents.CPR_UUID_CREATED)
+      checkEventLog(reactivatedPerson.crn!!, CPRLogEvents.CPR_RECORD_UNMERGED) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        val eventLog = eventLogs.first()
+        assertThat(eventLog.personUUID).isNotEqualTo(cluster.personUUID)
+        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
+        assertThat(eventLog.excludeOverrideMarkers).contains(unmergedPerson.id)
+      }
+      checkEventLog(unmergedPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
+        assertThat(eventLogs).hasSize(2)
+        val eventLog = eventLogs.first()
+        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
+        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
+        assertThat(eventLog.excludeOverrideMarkers).contains(reactivatedPerson.id)
+      }
       checkTelemetry(
         CPR_RECORD_UPDATED,
         mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
@@ -95,10 +105,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn)
 
       checkTelemetry(
-        UNMERGE_MESSAGE_RECEIVED,
-        mapOf("TO_SOURCE_SYSTEM_ID" to reactivatedCrn, "FROM_SOURCE_SYSTEM_ID" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
         CPR_RECORD_CREATED,
         mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
       )
@@ -145,14 +151,17 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       stub5xxResponse(probationUrl(unmergedCrn), "next request will succeed", "retry")
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn, scenario = "retry", currentScenarioState = "next request will succeed", nextScenarioState = "next request will succeed")
+      probationUnmergeEventAndResponseSetup(
+        OFFENDER_UNMERGED,
+        reactivatedCrn,
+        unmergedCrn,
+        scenario = "retry",
+        currentScenarioState = "next request will succeed",
+        nextScenarioState = "next request will succeed",
+      )
 
       expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
 
-      checkTelemetry(
-        UNMERGE_MESSAGE_RECEIVED,
-        mapOf("TO_SOURCE_SYSTEM_ID" to reactivatedCrn, "FROM_SOURCE_SYSTEM_ID" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
       checkTelemetry(
         CPR_RECORD_UNMERGED,
         mapOf(
@@ -179,10 +188,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn)
 
-      checkTelemetry(
-        UNMERGE_MESSAGE_RECEIVED,
-        mapOf("TO_SOURCE_SYSTEM_ID" to reactivatedCrn, "FROM_SOURCE_SYSTEM_ID" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
       checkTelemetry(
         CPR_RECORD_CREATED,
         mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
@@ -212,6 +217,83 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       reactivatedPerson.assertNotLinkedToCluster(unmergedPerson.personKey!!)
       reactivatedPerson.assertExcludedFrom(unmergedPerson)
     }
+
+    @Test
+    fun `should unmerge 2 merged records that exist on same cluster`() {
+      val cluster = createPersonKey()
+      val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
+
+      val reactivatedRecord = createPerson(createRandomProbationPersonDetails())
+      val mergedReactivatedRecord = mergeRecord(reactivatedRecord, unmergedRecord)
+
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, mergedReactivatedRecord.crn!!, unmergedRecord.crn!!)
+
+      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to reactivatedRecord.crn!!))
+
+      reactivatedRecord.assertNotMerged()
+
+      reactivatedRecord.assertExcludedFrom(unmergedRecord)
+      unmergedRecord.assertExcludedFrom(reactivatedRecord)
+
+      cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster.assertClusterIsOfSize(1)
+
+      unmergedRecord.assertLinkedToCluster(cluster)
+      reactivatedRecord.assertNotLinkedToCluster(cluster)
+    }
+
+    @Test
+    fun `should unmerge 2 records that exist on same cluster but no merge link`() {
+      val cluster = createPersonKey()
+      val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
+
+      val reactivatedRecord = createPerson(createRandomProbationPersonDetails())
+
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedRecord.crn!!, unmergedRecord.crn!!)
+
+      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to reactivatedRecord.crn!!))
+
+      reactivatedRecord.assertNotMerged()
+
+      reactivatedRecord.assertExcludedFrom(unmergedRecord)
+      unmergedRecord.assertExcludedFrom(reactivatedRecord)
+
+      cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster.assertClusterIsOfSize(1)
+
+      unmergedRecord.assertLinkedToCluster(cluster)
+      reactivatedRecord.assertNotLinkedToCluster(cluster)
+    }
+
+    @Test
+    fun `should unmerge 2 merged records that exist on same cluster and then link to another cluster`() {
+      val cluster = createPersonKey()
+      val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
+
+      val reactivatedRecord = createPerson(createRandomProbationPersonDetails())
+      val mergedReactivatedRecord = mergeRecord(reactivatedRecord, unmergedRecord)
+
+      val matchedPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+
+      stubOnePersonMatchHighConfidenceMatch(matchId = reactivatedRecord.matchId, matchedRecord = matchedPerson.matchId)
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, mergedReactivatedRecord.crn!!, unmergedRecord.crn!!)
+
+      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to reactivatedRecord.crn!!))
+
+      reactivatedRecord.assertNotMerged()
+
+      reactivatedRecord.assertExcludedFrom(unmergedRecord)
+      unmergedRecord.assertExcludedFrom(reactivatedRecord)
+
+      cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster.assertClusterIsOfSize(1)
+
+      unmergedRecord.assertLinkedToCluster(cluster)
+      reactivatedRecord.assertLinkedToCluster(matchedPerson.personKey!!)
+
+      matchedPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      matchedPerson.personKey?.assertClusterIsOfSize(2)
+    }
   }
 
   @Nested
@@ -234,14 +316,17 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         .addPerson(unmergedPerson)
         .addPerson(createPerson(createRandomProbationPersonDetails()))
 
-      mergeRecord(reactivatedPerson, unmergedPerson)
+      val mergedReactivatedRecord = mergeRecord(reactivatedPerson, unmergedPerson)
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn)
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, mergedReactivatedRecord.crn!!, unmergedCrn)
 
-      checkTelemetry(
-        UNMERGE_MESSAGE_RECEIVED,
-        mapOf("TO_SOURCE_SYSTEM_ID" to reactivatedCrn, "FROM_SOURCE_SYSTEM_ID" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
+      checkEventLog(unmergedPerson.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
+        assertThat(eventLogs).hasSize(2)
+        val eventLog = eventLogs.first()
+        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
+        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
+      }
+
       checkTelemetry(
         CPR_RECORD_UPDATED,
         mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
@@ -280,14 +365,14 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   inner class ErrorHandling {
 
     @Test
-    fun `should log when message processing fails`() {
+    fun `should put message on dlq when message processing fails`() {
       val reactivatedCrn = randomCrn()
       val unmergedCrn = randomCrn()
       stub5xxResponse(probationUrl(unmergedCrn), "next request will fail", "failure")
       stub5xxResponse(probationUrl(unmergedCrn), "next request will fail", "failure", "next request will fail")
       stub5xxResponse(probationUrl(unmergedCrn), "next request will fail", "failure", "next request will fail")
 
-      val messageId = publishDomainEvent(
+      publishDomainEvent(
         OFFENDER_UNMERGED,
         DomainEvent(
           eventType = OFFENDER_UNMERGED,
@@ -298,20 +383,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      purgeQueueAndDlq(probationMergeEventsQueue)
-
-      checkTelemetry(
-        UNMERGE_MESSAGE_RECEIVED,
-        mapOf("TO_SOURCE_SYSTEM_ID" to reactivatedCrn, "FROM_SOURCE_SYSTEM_ID" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
-        MESSAGE_PROCESSING_FAILED,
-        mapOf(
-          "SOURCE_SYSTEM" to "DELIUS",
-          EventKeys.EVENT_TYPE.toString() to OFFENDER_UNMERGED,
-          EventKeys.MESSAGE_ID.toString() to messageId,
-        ),
-      )
+      expectOneMessageOnDlq(probationMergeEventsQueue)
     }
 
     @Test
@@ -329,10 +401,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
             unmergedCrn = unmergedCrn,
           ),
         ),
-      )
-      checkTelemetry(
-        UNMERGE_MESSAGE_RECEIVED,
-        mapOf("TO_SOURCE_SYSTEM_ID" to reactivatedCrn, "FROM_SOURCE_SYSTEM_ID" to unmergedCrn, "EVENT_TYPE" to OFFENDER_UNMERGED, "SOURCE_SYSTEM" to "DELIUS"),
       )
       expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
     }

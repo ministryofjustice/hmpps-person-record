@@ -1,10 +1,12 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
@@ -20,10 +22,26 @@ class PersonService(
     return personEntity
   }
 
-  fun updatePersonEntity(person: Person, existingPersonEntity: PersonEntity): PersonEntity {
+  fun updatePersonEntity(person: Person, existingPersonEntity: PersonEntity): PersonUpdated {
+    val oldMatchingDetails = PersonMatchRecord.from(existingPersonEntity)
     val updatedEntity = updateExistingPersonEntity(person, existingPersonEntity)
-    personMatchService.saveToPersonMatch(updatedEntity)
-    return updatedEntity
+    val matchingFieldsHaveChanged = oldMatchingDetails.matchingFieldsAreDifferent(
+      PersonMatchRecord.from(
+        updatedEntity,
+      ),
+    )
+    when {
+      matchingFieldsHaveChanged -> personMatchService.saveToPersonMatch(updatedEntity)
+    }
+    return PersonUpdated(updatedEntity, matchingFieldsHaveChanged)
+  }
+
+  fun hasClusterSetBackToActive(updatedEntity: PersonEntity) = when (personKeyService.clusterNeedsAttentionAndIsInvalid(updatedEntity.personKey)) {
+    true -> false
+    else -> {
+      personKeyService.settingNeedsAttentionClusterToActive(updatedEntity.personKey, updatedEntity)
+      true
+    }
   }
 
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {

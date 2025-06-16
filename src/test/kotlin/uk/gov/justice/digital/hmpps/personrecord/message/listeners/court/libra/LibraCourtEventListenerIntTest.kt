@@ -25,7 +25,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -57,7 +56,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubPersonMatchUpsert()
     stubPersonMatchScores()
 
-    val messageId = publishLibraMessage(
+    publishLibraMessage(
       libraHearing(
         firstName = firstName,
         foreName2 = forename2,
@@ -73,16 +72,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         line3 = thoroughfareName,
         line4 = dependentLocality,
         line5 = postTown,
-      ),
-    )
-
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf(
-        "C_ID" to cId,
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to LIBRA.name,
       ),
     )
 
@@ -140,16 +129,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val changedFirstName = randomName()
     val changedForename2 = ""
     val changedForename3 = randomName()
-    val updatedMessage = publishLibraMessage(libraHearing(defendantSex = "F", firstName = changedFirstName, foreName2 = changedForename2, foreName3 = changedForename3, cId = cId, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf(
-        "C_ID" to cId,
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "MESSAGE_ID" to updatedMessage,
-        "SOURCE_SYSTEM" to LIBRA.name,
-      ),
-    )
+    publishLibraMessage(libraHearing(defendantSex = "F", firstName = changedFirstName, foreName2 = changedForename2, foreName3 = changedForename3, cId = cId, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
 
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
     checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_UPDATED)
@@ -188,16 +168,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubPersonMatchUpsert()
     stubOnePersonMatchHighConfidenceMatch(matchedRecord = existingPerson.matchId)
 
-    val messageId = publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = ""))
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf(
-        "C_ID" to cId,
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to LIBRA.name,
-      ),
-    )
+    publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = ""))
 
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
     checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_CREATED)
@@ -240,16 +211,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     assertThat(libraMessage.contains(cId)).isEqualTo(true)
     assertThat(libraMessage.contains("cprUUID")).isEqualTo(false)
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf(
-        "C_ID" to cId,
-        "EVENT_TYPE" to LIBRA_COURT_CASE.name,
-        "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to LIBRA.name,
-      ),
-      times = 0,
-    )
   }
 
   @Test
@@ -335,7 +296,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(createdLog.dateOfBirth).isEqualTo(dateOfBirth)
         assertThat(createdLog.sourceSystem).isEqualTo(LIBRA)
         assertThat(createdLog.postcodes).isEqualTo(arrayOf(postcode))
-        assertThat(createdLog.uuid).isNotNull()
+        assertThat(createdLog.personUUID).isNotNull()
         assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
       }
       checkEventLogExist(cId, CPRLogEvents.CPR_UUID_CREATED)

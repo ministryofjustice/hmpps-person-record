@@ -29,7 +29,7 @@ hmpps.sqs:
       queueName: cpr_delius_offender_events_queue
       dlqName: cpr_delius_offender_events_queue_dlq
       subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ "probation-case.engagement.created", "probation-case.address.created", "probation-case.address.updated", "probation-case.address.deleted", "probation-case.personal-details.updated", "OFFENDER_ALIAS_CHANGED"] }'
+      subscribeFilter: '{"eventType":[ "probation-case.engagement.created", "probation-case.address.created", "probation-case.address.updated", "probation-case.address.deleted", "probation-case.personal-details.updated", "OFFENDER_ALIAS_CHANGED", "probation-case.engagement.recovered" ] }'
     cprdeliusmergeeventsqueue:
       queueName: cpr_delius_merge_events_queue
       dlqName: cpr_delius_merge_events_queue_dlq
@@ -39,7 +39,7 @@ hmpps.sqs:
       queueName: cpr_delius_delete_events_queue
       dlqName: cpr_delius_delete_events_queue_dlq
       subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ "probation-case.deleted.gdpr" ] }'
+      subscribeFilter: '{"eventType":[ "probation-case.deleted.gdpr", "probation-case.engagement.deleted" ] }'
     cprnomiseventsqueue:
       queueName: cpr_nomis_events_queue
       dlqName: cpr_nomis_events_dlq

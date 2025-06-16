@@ -3,13 +3,21 @@ generic-service:
 
   serviceAccountName: "person-record-service"
 
-  replicaCount: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+    targetCPUUtilizationPercentage: 75
+    targetMemoryUtilizationPercentage: 75
 
   resources:
     limits:
+      cpu: 2
       memory: 4Gi
     requests:
+      cpu: 2
       memory: 4Gi
+
   image:
     repository: quay.io/hmpps/hmpps-person-record
     tag: app_version # override at deployment time
@@ -26,23 +34,7 @@ generic-service:
           deny all;
           return 401;
         }
-        location /populatefromprison {
-          deny all;
-          return 401;
-        }
-        location /populatefromprobation {
-          deny all;
-          return 401;
-        }
-        location /updatefromprobation {
-          deny all;
-          return 401;
-        }
-        location /populatepersonmatch {
-          deny all;
-          return 401;
-        }
-        location /populateeventlog {
+        location /jobs/recordcountreport {
           deny all;
           return 401;
         }
@@ -64,6 +56,8 @@ generic-service:
   namespace_secrets:
     hmpps-person-record:
       APPINSIGHTS_INSTRUMENTATIONKEY: "APPINSIGHTS_INSTRUMENTATIONKEY"
+      PERSON_MATCH_CLIENT_ID: "NOMIS_OAUTH_CLIENT_ID"
+      PERSON_MATCH_CLIENT_SECRET: "NOMIS_OAUTH_CLIENT_SECRET"
       PRISONER_SEARCH_CLIENT_ID: "NOMIS_OAUTH_CLIENT_ID"
       PRISONER_SEARCH_CLIENT_SECRET: "NOMIS_OAUTH_CLIENT_SECRET"
       PRISON_SERVICE_CLIENT_ID: "NOMIS_OAUTH_CLIENT_ID"
@@ -119,3 +113,6 @@ generic-service:
 generic-prometheus-alerts:
   targetApplication: hmpps-person-record
   alertSeverity: hmpps-person-record-alerts-prod
+
+cron:
+  recordCountReportJob: "0 0-23 * * *"

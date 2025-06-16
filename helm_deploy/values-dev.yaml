@@ -1,15 +1,7 @@
 # Per environment values which override defaults in hmpps-person-record/values.yaml
 
 generic-service:
-  replicaCount: 1
-
-  image:
-    repository: quay.io/hmpps/hmpps-person-record
-    tag: latest
-    port: 8080
-
   ingress:
-    enabled: true
     host: hmpps-person-record-dev.hmpps.service.justice.gov.uk
     tlsSecretName: hmpps-person-record-dev-cert-secret
 
@@ -21,13 +13,15 @@ generic-service:
     PRISONER_SEARCH_BASE_URL: https://prisoner-search-dev.prison.service.justice.gov.uk
     PRISON_SERVICE_BASE_URL: https://prison-api-dev.prison.service.justice.gov.uk
     CORE_PERSON_RECORD_AND_DELIUS_BASE_URL: https://core-person-record-and-delius-dev.hmpps.service.justice.gov.uk
-    PUBLISH_TO_COURT_TOPIC: "true"
-
 
   scheduledDowntime:
     enabled: true
     # Start at 6:35am UTC Monday-Friday - 5 minutes after hmpps-person-match
     startup: '35 6 * * 1-5'
+
+  autoscaling:
+    minReplicas: 1
+    maxReplicas: 1
 
 generic-prometheus-alerts:
   businessHoursOnly: true
@@ -41,3 +35,6 @@ generic-prometheus-alerts:
   sqsAlertsTotalMessagesThreshold: 1
   rdsAlertsDatabases:
     cloud-platform-21758fcf16e3a488: "hmpps-person-record-database"
+
+cron:
+  recordCountReportJob: "0 8-17 * * 1-5"

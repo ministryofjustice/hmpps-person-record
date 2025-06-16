@@ -2,9 +2,10 @@ package uk.gov.justice.digital.hmpps.personrecord.service.search
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import feign.FeignException
 import kotlinx.coroutines.runBlocking
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
@@ -16,16 +17,13 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
-import uk.gov.justice.digital.hmpps.personrecord.service.RetryExecutor
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
-import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 @Component
 class PersonMatchService(
   private val personMatchClient: PersonMatchClient,
-  private val retryExecutor: RetryExecutor,
   private val telemetryService: TelemetryService,
   private val personRepository: PersonRepository,
   private val objectMapper: ObjectMapper,
@@ -50,18 +48,18 @@ class PersonMatchService(
       onSuccess = { it },
       onFailure = { exception ->
         when {
-          exception is FeignException.NotFound -> handleNotFoundRecordsIsClusterValid(cluster, exception)
+          exception is NotFound -> handleNotFoundRecordsIsClusterValid(cluster, exception)
           else -> throw exception
         }
       },
     )
   }
 
-  fun saveToPersonMatch(personEntity: PersonEntity) = runBlocking { retryExecutor.runWithRetryHTTP { personMatchClient.postPerson(PersonMatchRecord.from(personEntity)) } }
+  fun saveToPersonMatch(personEntity: PersonEntity): ResponseEntity<Void>? = runBlocking { personMatchClient.postPerson(PersonMatchRecord.from(personEntity)) }
 
-  fun deleteFromPersonMatch(personEntity: PersonEntity) = runBlocking { runCatching { retryExecutor.runWithRetryHTTP { personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity)) } } }
+  fun deleteFromPersonMatch(personEntity: PersonEntity) = runBlocking { runCatching { personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity)) } }
 
-  private suspend fun handleNotFoundRecordsIsClusterValid(cluster: PersonKeyEntity, exception: FeignException.NotFound): IsClusterValidResponse {
+  private suspend fun handleNotFoundRecordsIsClusterValid(cluster: PersonKeyEntity, exception: NotFound): IsClusterValidResponse {
     val missingRecords = handleDecodeOfNotFoundException(exception)
     missingRecords.unknownIds.forEach { matchId ->
       personRepository.findByMatchId(UUID.fromString(matchId))?.let { saveToPersonMatch(it) }
@@ -69,10 +67,9 @@ class PersonMatchService(
     return checkClusterIsValid(cluster).getOrThrow()
   }
 
-  private fun handleDecodeOfNotFoundException(exception: FeignException.NotFound): IsClusterValidMissingRecordResponse {
-    val responseBody = exception.responseBody().orElseThrow { throw exception }
-    val decodedBody = StandardCharsets.UTF_8.decode(responseBody).toString()
-    return objectMapper.readValue<IsClusterValidMissingRecordResponse>(decodedBody)
+  private fun handleDecodeOfNotFoundException(exception: NotFound): IsClusterValidMissingRecordResponse {
+    val responseBody = exception.responseBodyAsString
+    return objectMapper.readValue<IsClusterValidMissingRecordResponse>(responseBody)
   }
 
   private fun getPersonRecords(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.mapNotNull {
@@ -96,7 +93,7 @@ class PersonMatchService(
   private fun List<PersonMatchScore>.getHighConfidenceMatches(): List<PersonMatchScore> = this.filter { candidate -> isHighConfidence(candidate.candidateMatchWeight) }
 
   private suspend fun getPersonScores(personEntity: PersonEntity): Result<List<PersonMatchScore>> = kotlin.runCatching {
-    retryExecutor.runWithRetryHTTP { personMatchClient.getPersonScores(personEntity.matchId.toString()) }
+    personMatchClient.getPersonScores(personEntity.matchId.toString())
   }
 
   private fun isHighConfidence(score: Float): Boolean = score >= THRESHOLD_WEIGHT

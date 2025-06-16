@@ -9,7 +9,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordClusterTelemetry
@@ -18,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import kotlin.collections.groupBy
 
 @Component
 class ReclusterService(
@@ -29,14 +30,8 @@ class ReclusterService(
 ) {
 
   fun recluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
-    when {
-      clusterNeedsAttention(cluster) -> publisher.publishEvent(RecordClusterTelemetry(TelemetryEventType.CPR_RECLUSTER_UUID_MARKED_NEEDS_ATTENTION, cluster))
-      else -> handleRecluster(cluster, changedRecord)
-    }
-  }
-
-  private fun handleRecluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
-    val matchesToChangeRecord: List<PersonMatchResult> = personMatchService.findHighestConfidencePersonRecordsByProbabilityDesc(changedRecord)
+    val matchesToChangeRecord: List<PersonMatchResult> =
+      personMatchService.findHighestConfidencePersonRecordsByProbabilityDesc(changedRecord)
     val clusterDetails = ClusterDetails(cluster, changedRecord, matchesToChangeRecord)
     when {
       clusterDetails.relationship.isDifferent() -> handleDiscrepancyOfMatchesToExistingRecords(clusterDetails)
@@ -78,7 +73,7 @@ class ReclusterService(
       throw CircularMergeException()
     }
     from.mergedTo = to.id
-    from.status = UUIDStatusType.RECLUSTER_MERGE
+    from.status = RECLUSTER_MERGE
     personKeyRepository.save(from)
     publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_UUID_MERGED, from.personEntities.first(), from))
 
@@ -110,27 +105,51 @@ class ReclusterService(
   }
 
   private fun handleExclusionsBetweenMatchedClusters(clusterDetails: ClusterDetails) {
-    publisher.publishEvent(RecordClusterTelemetry(TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS, clusterDetails.cluster))
-    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION, clusterDetails.changedRecord, clusterDetails.cluster))
-    setClusterAsNeedsAttention(clusterDetails)
+    publisher.publishEvent(
+      RecordClusterTelemetry(
+        TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
+        clusterDetails.cluster,
+      ),
+    )
+    publisher.publishEvent(
+      RecordEventLog(
+        CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION,
+        clusterDetails.changedRecord,
+        clusterDetails.cluster,
+      ),
+    )
+    settingClusterToNeedsAttention(clusterDetails)
   }
 
-  private fun handleInvalidClusterComposition(clusterDetails: ClusterDetails, clusterComposition: List<ValidCluster>? = null) {
-    publisher.publishEvent(RecordClusterTelemetry(TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED, clusterDetails.cluster))
-    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION, clusterDetails.changedRecord, clusterDetails.cluster, clusterComposition))
-    setClusterAsNeedsAttention(clusterDetails)
+  private fun handleInvalidClusterComposition(
+    clusterDetails: ClusterDetails,
+    clusterComposition: List<ValidCluster>? = null,
+  ) {
+    publisher.publishEvent(
+      RecordClusterTelemetry(
+        TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
+        clusterDetails.cluster,
+      ),
+    )
+    publisher.publishEvent(
+      RecordEventLog(
+        CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION,
+        clusterDetails.changedRecord,
+        clusterDetails.cluster,
+        clusterComposition,
+      ),
+    )
+    settingClusterToNeedsAttention(clusterDetails)
   }
 
-  private fun setClusterAsNeedsAttention(clusterDetails: ClusterDetails) {
-    clusterDetails.cluster.status = UUIDStatusType.NEEDS_ATTENTION
+  private fun settingClusterToNeedsAttention(clusterDetails: ClusterDetails) {
+    clusterDetails.cluster.status = NEEDS_ATTENTION
     personKeyRepository.save(clusterDetails.cluster)
   }
 
   private fun List<PersonKeyEntity>.removeUpdatedCluster(cluster: PersonKeyEntity) = this.filterNot { it.id == cluster.id }
 
-  private fun List<PersonKeyEntity>.getActiveClusters() = this.filter { it.status == UUIDStatusType.ACTIVE }
+  private fun List<PersonKeyEntity>.getActiveClusters() = this.filter { it.status == ACTIVE }
 
   private fun List<PersonEntity>.collectDistinctClusters(): List<PersonKeyEntity> = this.groupBy { it.personKey!! }.map { it.key }.distinctBy { it.id }
-
-  private fun clusterNeedsAttention(personKeyEntity: PersonKeyEntity?): Boolean = personKeyEntity?.status == UUIDStatusType.NEEDS_ATTENTION
 }

@@ -1,37 +1,24 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
-import jakarta.persistence.OptimisticLockException
 import kotlinx.coroutines.runBlocking
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.dao.CannotAcquireLockException
-import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.retry.annotation.Backoff
-import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Component
 class CreateUpdateService(
   private val personService: PersonService,
   private val publisher: ApplicationEventPublisher,
+  private val reclusterService: ReclusterService,
 ) {
 
-  @Retryable(
-    backoff = Backoff(random = true, delay = 1000, maxDelay = 2000, multiplier = 1.5),
-    retryFor = [
-      OptimisticLockException::class,
-      DataIntegrityViolationException::class,
-      CannotAcquireLockException::class,
-    ],
-  )
   @Transactional(isolation = REPEATABLE_READ)
   fun processPerson(
     person: Person,
@@ -59,11 +46,15 @@ class CreateUpdateService(
   }
 
   private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, shouldReclusterOnUpdate: Boolean): PersonEntity {
-    val oldMatchingDetails = PersonMatchRecord.from(existingPersonEntity)
-    val updatedPersonEntity = personService.updatePersonEntity(person, existingPersonEntity)
-    val newMatchingDetails = PersonMatchRecord.from(updatedPersonEntity)
-    val matchingFieldsHaveChanged = oldMatchingDetails.matchingFieldsAreDifferent(newMatchingDetails)
-    publisher.publishEvent(PersonUpdated(updatedPersonEntity, matchingFieldsHaveChanged, shouldReclusterOnUpdate))
-    return updatedPersonEntity
+    val personUpdated = personService.updatePersonEntity(person, existingPersonEntity)
+    publisher.publishEvent(personUpdated)
+
+    val shouldRecluster = shouldReclusterOnUpdate && personUpdated.matchingFieldsHaveChanged && personService.hasClusterSetBackToActive(personUpdated.personEntity)
+    if (shouldRecluster) {
+      personUpdated.personEntity.personKey?.let {
+        reclusterService.recluster(it, personUpdated.personEntity)
+      }
+    }
+    return personUpdated.personEntity
   }
 }

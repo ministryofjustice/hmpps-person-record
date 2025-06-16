@@ -97,9 +97,6 @@ class PersonEntity(
   @Column
   val ethnicity: String? = null,
 
-  @Column(name = "currently_managed")
-  var currentlyManaged: Boolean? = null,
-
   @Column(name = "merged_to")
   var mergedTo: Long? = null,
 
@@ -232,7 +229,6 @@ class PersonEntity(
         ethnicity = person.ethnicity,
         nationality = person.nationality,
         religion = person.religion,
-        currentlyManaged = person.currentlyManaged,
         matchId = UUID.randomUUID(),
         cId = person.cId,
         lastModified = LocalDateTime.now(),

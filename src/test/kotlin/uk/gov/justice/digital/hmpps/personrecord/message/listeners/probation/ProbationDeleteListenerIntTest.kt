@@ -11,10 +11,10 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_GDPR_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
 class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
@@ -25,17 +25,36 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
+  fun `should process offender GDPR delete`() {
+    val crn = randomCrn()
+    val domainEvent = buildDomainEvent(crn, eventType = OFFENDER_GDPR_DELETION)
+
+    val person = createPerson(createRandomProbationPersonDetails(crn))
+    val personKey = createPersonKey()
+      .addPerson(person)
+      .addPerson(createPerson(createRandomProbationPersonDetails()))
+
+    publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
+
+    checkTelemetry(
+      CPR_RECORD_DELETED,
+      mapOf("CRN" to crn, "UUID" to personKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_DELETED)
+
+    person.assertPersonDeleted()
+    personKey.assertClusterStatus(UUIDStatusType.ACTIVE)
+    personKey.assertClusterIsOfSize(1)
+  }
+
+  @Test
   fun `should process offender delete with 1 record on single UUID`() {
     val crn = randomCrn()
     val domainEvent = buildDomainEvent(crn)
     val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
 
-    publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
+    publishDomainEvent(OFFENDER_DELETION, domainEvent)
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("CRN" to crn, "EVENT_TYPE" to OFFENDER_GDPR_DELETION, "SOURCE_SYSTEM" to "DELIUS"),
-    )
     checkTelemetry(
       CPR_RECORD_DELETED,
       mapOf("CRN" to crn, "UUID" to person.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
@@ -47,12 +66,12 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     checkEventLog(crn, CPRLogEvents.CPR_UUID_DELETED) { eventLogs ->
       assertThat(eventLogs).hasSize(1)
       val eventLog = eventLogs.first()
-      assertThat(eventLog.uuid).isEqualTo(person.personKey?.personUUID)
+      assertThat(eventLog.personUUID).isEqualTo(person.personKey?.personUUID)
     }
     checkEventLog(crn, CPRLogEvents.CPR_RECORD_DELETED) { eventLogs ->
       assertThat(eventLogs).hasSize(1)
       val eventLog = eventLogs.first()
-      assertThat(eventLog.uuid).isEqualTo(person.personKey?.personUUID)
+      assertThat(eventLog.personUUID).isEqualTo(person.personKey?.personUUID)
     }
 
     person.assertPersonDeleted()
@@ -69,12 +88,8 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
       .addPerson(person)
       .addPerson(createPerson(createRandomProbationPersonDetails()))
 
-    publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
+    publishDomainEvent(OFFENDER_DELETION, domainEvent)
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("CRN" to crn, "EVENT_TYPE" to OFFENDER_GDPR_DELETION, "SOURCE_SYSTEM" to "DELIUS"),
-    )
     checkTelemetry(
       CPR_RECORD_DELETED,
       mapOf("CRN" to crn, "UUID" to personKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
@@ -102,12 +117,8 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     mergeRecord(recordB, recordA)
 
-    publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
+    publishDomainEvent(OFFENDER_DELETION, domainEvent)
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("CRN" to recordBCrn, "EVENT_TYPE" to OFFENDER_GDPR_DELETION, "SOURCE_SYSTEM" to "DELIUS"),
-    )
     checkTelemetry(
       CPR_RECORD_DELETED,
       mapOf("CRN" to recordBCrn, "UUID" to null, "SOURCE_SYSTEM" to "DELIUS"),
@@ -134,12 +145,8 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     mergeRecord(recordB, recordA)
 
-    publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
+    publishDomainEvent(OFFENDER_DELETION, domainEvent)
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("CRN" to recordACrn, "EVENT_TYPE" to OFFENDER_GDPR_DELETION, "SOURCE_SYSTEM" to "DELIUS"),
-    )
     checkTelemetry(
       CPR_RECORD_DELETED,
       mapOf("CRN" to recordACrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
@@ -172,12 +179,8 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     mergeRecord(mergedFrom, mergedTo)
     mergeUuid(mergedFrom.personKey!!, mergedTo.personKey!!)
 
-    publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
+    publishDomainEvent(OFFENDER_DELETION, domainEvent)
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("CRN" to recordACrn, "EVENT_TYPE" to OFFENDER_GDPR_DELETION, "SOURCE_SYSTEM" to "DELIUS"),
-    )
     checkTelemetry(
       CPR_RECORD_DELETED,
       mapOf("CRN" to recordACrn, "UUID" to mergedTo.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
@@ -224,12 +227,8 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     mergeRecord(recordB, recordA)
     mergeUuid(recordB.personKey!!, recordA.personKey!!)
 
-    publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
+    publishDomainEvent(OFFENDER_DELETION, domainEvent)
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("CRN" to recordACrn, "EVENT_TYPE" to OFFENDER_GDPR_DELETION, "SOURCE_SYSTEM" to "DELIUS"),
-    )
     checkTelemetry(
       CPR_RECORD_DELETED,
       mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
@@ -275,12 +274,8 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     mergeRecord(recordB, recordA)
     mergeRecord(recordC, recordA)
 
-    publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
+    publishDomainEvent(OFFENDER_DELETION, domainEvent)
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("CRN" to recordACrn, "EVENT_TYPE" to OFFENDER_GDPR_DELETION, "SOURCE_SYSTEM" to "DELIUS"),
-    )
     checkTelemetry(
       CPR_RECORD_DELETED,
       mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
@@ -326,12 +321,8 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     mergeRecord(recordB, recordA)
 
-    publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
+    publishDomainEvent(OFFENDER_DELETION, domainEvent)
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("CRN" to recordACrn, "EVENT_TYPE" to OFFENDER_GDPR_DELETION, "SOURCE_SYSTEM" to "DELIUS"),
-    )
     checkTelemetry(
       CPR_RECORD_DELETED,
       mapOf("CRN" to recordACrn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
@@ -353,7 +344,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
   private fun PersonKeyEntity.assertPersonKeyDeleted() = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)).isNull() }
 
-  private fun buildDomainEvent(crn: String, eventType: String = OFFENDER_GDPR_DELETION): DomainEvent {
+  private fun buildDomainEvent(crn: String, eventType: String = OFFENDER_DELETION): DomainEvent {
     val crnType = PersonIdentifier("CRN", crn)
     val personReference = PersonReference(listOf(crnType))
 

@@ -1,19 +1,15 @@
 package uk.gov.justice.digital.hmpps.personrecord.client
 
-import org.springframework.cloud.openfeign.FeignClient
-import org.springframework.cloud.openfeign.SpringQueryMap
-import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.client.WebClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.PrisonNumbers
-import uk.gov.justice.digital.hmpps.personrecord.config.PrisonServiceOAuth2Config
 
-@FeignClient(
-  name = "prison-service",
-  url = "\${prison-service.base-url}",
-  configuration = [PrisonServiceOAuth2Config::class],
-)
-interface PrisonServiceClient {
+@Component
+class PrisonServiceClient(private val prisonServiceWebClient: WebClient) {
 
-  @GetMapping(value = ["/api/prisoners/prisoner-numbers"])
-  fun getPrisonNumbers(@SpringQueryMap params: PageParams): PrisonNumbers?
+  fun getPrisonNumbers(pageParams: PageParams): PrisonNumbers? = prisonServiceWebClient.get()
+    .uri("/api/prisoners/prisoner-numbers") { it.queryParam("size", pageParams.size).queryParam("page", pageParams.page).build() }
+    .retrieve().bodyToMono(PrisonNumbers::class.java).block()!!
 }
+
 class PageParams(val page: Int, val size: Int)

@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.LargeMessageBody
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribute
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttributes
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
@@ -20,8 +21,6 @@ import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBa
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
-import uk.gov.justice.digital.hmpps.personrecord.message.LARGE_CASE_EVENT_TYPE
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.court.LargeMessageBody
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
@@ -31,12 +30,11 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_RECEIVED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAlias
@@ -87,13 +85,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubNoMatchesPersonMatch(matchId = person.matchId)
 
     val changedLastName = randomName()
-    val messageId = publishCommonPlatformMessage(
+    publishCommonPlatformMessage(
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId))),
-    )
-
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "DEFENDANT_ID" to defendantId),
     )
 
     awaitAssert {
@@ -133,7 +126,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ethnicity = person.ethnicity,
       nationality = person.nationality,
       religion = person.religion,
-      currentlyManaged = person.currentlyManaged,
       matchId = UUID.randomUUID(),
       cId = person.cId,
       lastModified = now(),
@@ -145,13 +137,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubNoMatchesPersonMatch(matchId = personEntity.matchId)
 
     val changedLastName = randomName()
-    val messageId = publishCommonPlatformMessage(
+    publishCommonPlatformMessage(
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId))),
-    )
-
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "DEFENDANT_ID" to defendantId),
     )
 
     awaitAssert {
@@ -194,7 +181,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val postTown = randomName()
     val postcode = randomPostcode()
 
-    val messageId = publishCommonPlatformMessage(
+    publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
           CommonPlatformHearingSetup(
@@ -224,38 +211,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     )
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf(
-        "DEFENDANT_ID" to firstDefendantId,
-        "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
-      ),
-    )
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf(
-        "DEFENDANT_ID" to secondDefendantId,
-        "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
-      ),
-    )
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf(
-        "DEFENDANT_ID" to thirdDefendantId,
-        "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
-      ),
-    )
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf(
-        "DEFENDANT_ID" to forthDefendantId,
-        "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
-      ),
-    )
     val firstPerson = awaitNotNullPerson {
       personRepository.findByDefendantId(firstDefendantId)
     }
@@ -324,15 +279,10 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should log Message Processing Failed telemetry event when an exception is thrown`() {
-    val messageId = publishCommonPlatformMessage(
-      "notAValidMessage",
-    )
+  fun `should put message on dlq when an exception is thrown`() {
+    publishCommonPlatformMessage("notAValidMessage")
 
-    checkTelemetry(
-      MESSAGE_PROCESSING_FAILED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name),
-    )
+    expectOneMessageOnDlq(courtEventsQueue)
   }
 
   @Test
@@ -342,7 +292,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val firstDefendantId = randomDefendantId()
     val secondDefendantId = randomDefendantId()
 
-    val messageId = publishCommonPlatformMessage(
+    publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
           CommonPlatformHearingSetup(pnc = "", defendantId = firstDefendantId),
@@ -352,11 +302,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     )
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf("MESSAGE_ID" to messageId, "SOURCE_SYSTEM" to COMMON_PLATFORM.name, "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name),
-      times = 2,
-    )
     val personWithEmptyPnc = awaitNotNullPerson {
       personRepository.findByDefendantId(firstDefendantId)
     }
@@ -393,7 +338,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubPersonMatchScores()
     stubPersonMatchUpsert()
     val defendantId = randomDefendantId()
-    val messageId = publishCommonPlatformMessage(
+    publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
           CommonPlatformHearingSetup(defendantId = defendantId, isYouth = null),
@@ -401,15 +346,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
     )
 
-    checkTelemetry(
-      MESSAGE_RECEIVED,
-      mapOf(
-        "MESSAGE_ID" to messageId,
-        "SOURCE_SYSTEM" to COMMON_PLATFORM.name,
-        "EVENT_TYPE" to COMMON_PLATFORM_HEARING.name,
-        "DEFENDANT_ID" to defendantId,
-      ),
-    )
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("DEFENDANT_ID" to defendantId))
   }
 
   @Test
@@ -617,8 +554,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(createdLog.sourceSystem).isEqualTo(COMMON_PLATFORM)
         assertThat(createdLog.firstNameAliases).isEqualTo(arrayOf(aliasFirstName))
         assertThat(createdLog.lastNameAliases).isEqualTo(arrayOf(aliasLastName))
-        assertThat(createdLog.uuid).isNotNull()
-        assertThat(createdLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
+        assertThat(createdLog.personUUID).isNotNull()
+        assertThat(createdLog.uuidStatusType).isEqualTo(ACTIVE)
       }
       checkEventLogExist(defendantId, CPRLogEvents.CPR_UUID_CREATED)
     }

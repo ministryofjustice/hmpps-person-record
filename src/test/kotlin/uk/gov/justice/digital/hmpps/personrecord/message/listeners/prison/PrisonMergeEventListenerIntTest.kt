@@ -15,8 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MERGE_MESSAGE_RECEIVED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.MESSAGE_PROCESSING_FAILED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
 class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
@@ -36,10 +34,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubPersonMatchUpsert()
       prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, targetPrisonNumber = targetPrisonNumber)
 
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf("FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber, "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber, "EVENT_TYPE" to PRISONER_MERGED, "SOURCE_SYSTEM" to NOMIS.name),
-      )
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("PRISON_NUMBER" to targetPrisonNumber))
       checkTelemetry(
         CPR_RECORD_MERGED,
@@ -74,15 +68,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       targetPerson.personKey?.assertClusterIsOfSize(1)
 
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
-          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
-          "EVENT_TYPE" to PRISONER_MERGED,
-          "SOURCE_SYSTEM" to NOMIS.name,
-        ),
-      )
       checkTelemetry(
         CPR_RECORD_CREATED,
         mapOf("PRISON_NUMBER" to targetPrisonNumber, "SOURCE_SYSTEM" to NOMIS.name),
@@ -128,15 +113,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       targetPerson.personKey?.assertClusterIsOfSize(1)
 
       checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
-          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
-          "EVENT_TYPE" to PRISONER_MERGED,
-          "SOURCE_SYSTEM" to NOMIS.name,
-        ),
-      )
-      checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
           "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
@@ -174,15 +150,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       targetPerson.personKey?.assertClusterIsOfSize(1)
 
       checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
-          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
-          "EVENT_TYPE" to PRISONER_MERGED,
-          "SOURCE_SYSTEM" to NOMIS.name,
-        ),
-      )
-      checkTelemetry(
         CPR_RECORD_UPDATED,
         mapOf("PRISON_NUMBER" to targetPrisonNumber, "SOURCE_SYSTEM" to NOMIS.name),
       )
@@ -214,15 +181,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       targetPerson.personKey?.assertClusterIsOfSize(1)
 
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
-          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
-          "EVENT_TYPE" to PRISONER_MERGED,
-          "SOURCE_SYSTEM" to NOMIS.name,
-        ),
-      )
       checkTelemetry(
         CPR_RECORD_UPDATED,
         mapOf("PRISON_NUMBER" to targetPrisonNumber, "SOURCE_SYSTEM" to NOMIS.name),
@@ -257,15 +215,6 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       targetPerson.personKey?.assertClusterIsOfSize(1)
 
       checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
-          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
-          "EVENT_TYPE" to PRISONER_MERGED,
-          "SOURCE_SYSTEM" to NOMIS.name,
-        ),
-      )
-      checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
           "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
@@ -278,7 +227,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkEventLog(sourcePrisonNumber, CPRLogEvents.CPR_UUID_MERGED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val event = eventLogs.first()
-        assertThat(event.uuid).isEqualTo(sourcePerson.personKey?.personUUID)
+        assertThat(event.personUUID).isEqualTo(sourcePerson.personKey?.personUUID)
         assertThat(event.uuidStatusType).isEqualTo(UUIDStatusType.MERGED)
       }
     }
@@ -301,15 +250,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
 
       expectNoMessagesOnQueueOrDlq(prisonMergeEventsQueue)
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
-          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
-          "EVENT_TYPE" to PRISONER_MERGED,
-          "SOURCE_SYSTEM" to NOMIS.name,
-        ),
-      )
+
       checkTelemetry(
         CPR_RECORD_MERGED,
         mapOf(
@@ -325,7 +266,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
   inner class ErrorHandling {
 
     @Test
-    fun `should log when message processing fails`() {
+    fun `should put on dlq when message processing fails`() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
       stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure")
@@ -336,26 +277,9 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         AdditionalInformation(prisonNumber = targetPrisonNumber, sourcePrisonNumber = sourcePrisonNumber)
       val domainEvent =
         DomainEvent(eventType = PRISONER_MERGED, personReference = null, additionalInformation = additionalInformation)
-      val messageId = publishDomainEvent(PRISONER_MERGED, domainEvent)
+      publishDomainEvent(PRISONER_MERGED, domainEvent)
 
-      purgeQueueAndDlq(prisonMergeEventsQueue)
-      checkTelemetry(
-        MERGE_MESSAGE_RECEIVED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to sourcePrisonNumber,
-          "TO_SOURCE_SYSTEM_ID" to targetPrisonNumber,
-          "EVENT_TYPE" to PRISONER_MERGED,
-          "SOURCE_SYSTEM" to NOMIS.name,
-        ),
-      )
-      checkTelemetry(
-        MESSAGE_PROCESSING_FAILED,
-        mapOf(
-          "MESSAGE_ID" to messageId,
-          "SOURCE_SYSTEM" to NOMIS.name,
-          "EVENT_TYPE" to "prisoner-offender-events.prisoner.merged",
-        ),
-      )
+      expectOneMessageOnDlq(prisonMergeEventsQueue)
     }
   }
 }

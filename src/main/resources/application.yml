@@ -10,6 +10,12 @@ spring:
           jwk-set-uri: ${nomis-oauth.base-url}/auth/.well-known/jwks.json
       client:
         registration:
+          person-match:
+            provider: nomis-oauth-service
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: client_credentials
+            client-id: ${person-match.client-id}
+            client-secret: ${person-match.client-secret}
           prisoner-search:
             provider: nomis-oauth-service
             client-authentication-method: client_secret_basic
@@ -31,15 +37,6 @@ spring:
         provider:
           nomis-oauth-service:
             token-uri: ${nomis-oauth.base-url}/auth/oauth/token
-
-  cloud.openfeign.client.config:
-    default:
-      logger-level: basic
-      connect-timeout: 5000
-      read-timeout: 30000
-      default-request-headers:
-        Accept: application/json
-        Content-Type: application/json
 
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"
@@ -99,6 +96,7 @@ management:
 
 retry:
   delay: 2000
+  timeout: 10000
 
 populate-from-nomis:
   page-size: 1000
@@ -112,4 +110,3 @@ populate-person-match:
 aws:
   region-name: eu-west-2
 
-publish-to-court-topic: ${PUBLISH_TO_COURT_TOPIC:false}
