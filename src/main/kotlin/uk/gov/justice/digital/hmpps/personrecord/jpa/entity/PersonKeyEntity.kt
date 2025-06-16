@@ -27,7 +27,7 @@ class PersonKeyEntity(
   val personUUID: UUID? = null,
 
   @Column
-  @OneToMany(mappedBy = "personKey", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "personKey", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
   var personEntities: MutableList<PersonEntity> = mutableListOf(),
 
   @Column(name = "merged_to")
