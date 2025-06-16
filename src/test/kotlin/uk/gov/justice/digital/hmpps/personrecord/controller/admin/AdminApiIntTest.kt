@@ -25,7 +25,7 @@ class AdminApiIntTest : WebTestBase() {
     checkTelemetry(
       TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED,
       mapOf("UUID" to uuid.toString()),
-      times = 0
+      times = 0,
     )
   }
 
