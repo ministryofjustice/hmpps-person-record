@@ -19,6 +19,9 @@ The goal is to ensure that all clusters are returned to a valid and reliable sta
 3. [Rollback Changes](#2-rollback-changes)
 4. [Identify effected clusters and records](#3-identify-effected-clusters-and-records)
 5. [Reprocess effected clusters](#4-reprocess-effected-clusters)
+6. [Assess Business Impact](#5-assess-business-impact)
+7. [Resolve Outstanding Need Attention Clusters](#5-assess-business-impact)
+8. [Optional: Cluster sanity checking](#7-optional-cluster-sanity-checking)
 
 ## Dependencies
 
