@@ -88,7 +88,7 @@ This can be saved into a file e.g. `effected-clusters.json`
 
 This can be done in the DBeaver data exporter [guide](https://dbeaver.com/docs/dbeaver/Data-export/).
 
-## 4. Reprocess effected clusters
+## 4. Re-process effected clusters
 
 This can now be sent to the admin endpoint to reprocess and recluster the effected clusters.
 
@@ -120,7 +120,22 @@ curl -X POST http://localhost:9090/admin/recluster \
 
 Once triggered, monitor the processing of the cluster in the logs. To see logs follow the [guide](002-Accessing-The-Logs.md).
 
+## 5. Assess Business Impact
 
+Now that the changes have been rolled back and the effected clusters been reprocessed.
 
+This is a good time to analyze the impact the unwanted change has had on the business.
+If any communication with the wider organisation needs to happen, communicate this out.
 
+## 6. Resolve Outstanding Need Attention Clusters
+
+Even after reprocessing, there can be still clusters left in an `NEEDS_ATTENTION` state which needs a manual intervention to resolve.
+
+This needs to be evaluated and prioritised to resolve these erroneous clusters / records. 
+Following the defined manual process of resolving the clusters, TODO.
+
+## 7. Optional: Cluster sanity checking
+
+To ensure that the clusters we have reprocessed are correct, we can optionally request that the data science team run a
+sanity check on the cluster data to ensure that none of the clusters have been mistakenly merged.
 
