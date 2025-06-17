@@ -136,6 +136,7 @@ Following the defined manual process of resolving the clusters, TODO.
 
 ## 7. Optional: Cluster sanity checking
 
-To ensure that the clusters we have reprocessed are correct, we can optionally request that the data science team run a
-sanity check on the cluster data to ensure that none of the clusters have been mistakenly merged.
+To validate the accuracy of the reprocessed clusters, we can optionally ask the data science team to perform a sanity check to ensure that no clusters were mistakenly merged.
+
+This is to prevent any false positives being introduced into the system.
 
