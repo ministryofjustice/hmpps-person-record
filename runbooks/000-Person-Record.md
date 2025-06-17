@@ -159,6 +159,8 @@ See environment specific monitoring links:
 
 1. [Connecting to the database](001-Connecting-To-The-Database.md)
 2. [Access the logs](002-Accessing-The-Logs.md)
+3. [Rollback](003-Rollback.md)
+4. [Connect to a Pod](004-Connect-To-A-Pod.md)
 
 ## Known Problems
 
