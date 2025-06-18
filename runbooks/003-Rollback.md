@@ -15,10 +15,10 @@ The goal is to ensure that all clusters are returned to a valid and reliable sta
 ## Table of contents
 
 1. [Dependencies](#dependencies)
-2. [Identify the effected version](#1-identify-the-effected-version)
+2. [Identify the affected version](#1-identify-the-affected-version)
 3. [Rollback Changes](#2-rollback-changes)
-4. [Identify effected clusters and records](#3-identify-effected-clusters-and-records)
-5. [Reprocess effected clusters](#4-reprocess-effected-clusters)
+4. [Identify affected clusters and records](#3-identify-affected-clusters-and-records)
+5. [Reprocess affected clusters](#4-reprocess-affected-clusters)
 6. [Assess Business Impact](#5-assess-business-impact)
 7. [Resolve Outstanding Need Attention Clusters](#5-assess-business-impact)
 8. [Optional: Cluster sanity checking](#7-optional-cluster-sanity-checking)
@@ -28,20 +28,19 @@ The goal is to ensure that all clusters are returned to a valid and reliable sta
 * You need a database connection to the read-replica database of `hmpps-person-record`. To do this see:
   * [Connecting to the database](001-Connecting-To-The-Database.md)
 
-* This service is tightly coupled `hmpps-person-match` as it is responsible for matching:
+* This service is tightly coupled to `hmpps-person-match` which is responsible for matching:
   * [hmpps-person-match](https://github.com/ministryofjustice/hmpps-person-match)
 
-## 1. Identify the effected version
+## 1. Identify the affected version
 
-Firstly, identify the deployment that has caused the unwanted behaviour, regardless whether it has 
-originated from `hmpps-person-match` or `hmpps-person-record`. 
+Firstly, identify the deployment of  `hmpps-person-match` or `hmpps-person-record` that has caused the unwanted behaviour. 
 
-Once identified, then locate the deployment time that change has been running from. This will be in the format:
+Once identified, then locate the deployment time that change has been running from. You can find this by looking in CircleCI or Github at the deployment. This will be in the format:
 ```
 yyyy-MM-dd HH:mm:ss
 ```
 
-We can use this to identify any clusters + records that have been updated and processed with the unwanted changes.
+We can use this to identify any clusters and records that have been updated and processed with the unwanted changes.
 
 ## 2. Rollback Changes
 
@@ -52,13 +51,13 @@ Ensure the pull request is reviewed and approved by a team member before merging
 
 Once merged, release the rollback as appropriate and verify that the system is functioning as expected.
 
-## 3. Identify effected clusters and records
+## 3. Identify affected clusters and records
 
-Once, the rollback is in place and processing messages as normal. We can now being to identify the 
-clusters that have been effected due to the unwanted change. 
+Once the rollback is in place and processing messages as normal, the next step is to identify the 
+clusters that have been affected due to the unwanted change. 
 
-To do this, the timestamp of the deployment identified in [step one](#1-identify-the-effected-version) can be 
-used to interrogate the event log to identify effected clusters and records.
+To do this, the timestamp of the deployment identified in [step one](#1-identify-the-affected-version) can be 
+used to interrogate the event log to identify affected clusters and records.
 
 To can this list run the following SQL with the identified SQL:
 
@@ -87,52 +86,44 @@ Then you need to export the data as a json into the format:
 ]
 ```
 
-This can be saved into a file e.g. `effected-clusters.json`
+This can be saved into a file e.g. `affected-clusters.json`
 
 This can be done in the DBeaver data exporter [guide](https://dbeaver.com/docs/dbeaver/Data-export/).
 
-## 4. Re-process effected clusters
+## 4. Re-process affected clusters
 
-This can now be sent to the admin endpoint to reprocess and recluster the effected clusters.
+This can now be sent to the admin endpoint to reprocess and recluster the affected clusters.
 
-To do this you must first port-forward to `hmpps-person-record` pod.
+To do this you must first port-forward to a `hmpps-person-record` pod.
 
-Once a connection to the `hmpps-person-record` pod has been established you can then trigger the reprocessing of the effected clusters.
+Once a connection to the `hmpps-person-record` pod has been established you can then trigger the reprocessing of the affected clusters.
 
-Run the command, to find the pod name of a `hmpps-person-record` pod.
-
-```shell
-kubectl get pods -n <namespace> --field-selector=status.phase=Running | grep 'hmpps-person-record'
-```
-
-Then port forward to that pod, to allow for us to call the admin endpoint with our json file. Using the command:
+This command forwards port 9090 to the application.
 
 ```shell
-kubectl -n <namespace> port-forward <pod-name> 8080:9090
+kubectl -n <namespace> port-forward deployment/hmpps-person-record 8080:9090
 ```
 
-Which opens port on 9090 to the application.
-
-Using the saved file `effected-clusters.json` from [step three](#3-identify-effected-clusters-and-records), trigger the recluster endpoint, run the command:
+Using the saved file `affected-clusters.json` from [step three](#3-identify-affected-clusters-and-records), trigger the recluster endpoint by running the command:
 
 ```shell
 curl -X POST http://localhost:9090/admin/recluster \
      -H "Content-Type: application/json" \
-     -F "file=@</path/to/your/file/effected-recluster.json>"
+     -F "file=@</path/to/your/file/affected-recluster.json>"
 ```
 
 Once triggered, monitor the processing of the cluster in the logs. To see logs follow the [guide](002-Accessing-The-Logs.md).
 
 ## 5. Assess Business Impact
 
-Now that the changes have been rolled back and the effected clusters been reprocessed.
+Now that the changes have been rolled back and the affected clusters been reprocessed.
 
 This is a good time to analyze the impact the unwanted change has had on the business.
 If any communication with the wider organisation needs to happen, communicate this out.
 
-## 6. Resolve Outstanding Need Attention Clusters
+## 6. Resolve Outstanding Needs Attention Clusters
 
-Even after reprocessing, there can be still clusters left in an `NEEDS_ATTENTION` state which needs a manual intervention to resolve.
+Even after reprocessing, there can be still clusters left in an `NEEDS_ATTENTION` state which need a manual intervention to resolve.
 
 This needs to be evaluated and prioritised to resolve these erroneous clusters / records. 
 Following the defined manual process of resolving the clusters, TODO.
