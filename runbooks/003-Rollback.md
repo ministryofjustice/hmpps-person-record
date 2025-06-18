@@ -80,7 +80,6 @@ Then you need to export the data as a json into the format:
 ```json
 [
   {
-    "person_uuid" : "782a5cbe-5a10-4694-a046-0be9e82f0591",
     "source_system" : "COMMON_PLATFORM",
     "source_system_id" : "6d6fa987-c680-4f18-ba58-ec507463a75c"
   }
