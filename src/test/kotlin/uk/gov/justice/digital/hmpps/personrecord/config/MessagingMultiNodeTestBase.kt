@@ -69,13 +69,13 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     hmppsQueueService.findByQueueId(Queues.PRISON_MERGE_EVENT_QUEUE_ID)
   }
 
-  internal fun publishLibraMessage(message: String): String = publishCourtMessage(message, LIBRA_COURT_CASE, "libra.case.received", null)
+  internal fun publishLibraMessage(message: String) = publishCourtMessage(message, LIBRA_COURT_CASE, "libra.case.received", null)
 
-  internal fun publishCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.case.received", "ConfirmedOrUpdated")
+  internal fun publishCommonPlatformMessage(message: String) = publishCourtMessage(message, COMMON_PLATFORM_HEARING, "commonplatform.case.received", "ConfirmedOrUpdated")
 
-  internal fun publishLargeCommonPlatformMessage(message: String): String = publishCourtMessage(message, COMMON_PLATFORM_HEARING, LARGE_CASE_EVENT_TYPE, "ConfirmedOrUpdated")
+  internal fun publishLargeCommonPlatformMessage(message: String) = publishCourtMessage(message, COMMON_PLATFORM_HEARING, LARGE_CASE_EVENT_TYPE, "ConfirmedOrUpdated")
 
-  private fun publishCourtMessage(message: String, messageType: MessageType, eventType: String, hearingEventType: String?): String {
+  private fun publishCourtMessage(message: String, messageType: MessageType, eventType: String, hearingEventType: String?) {
     val attributes = mutableMapOf(
       "messageType" to MessageAttributeValue.builder().dataType("String")
         .stringValue(messageType.name).build(),
@@ -92,7 +92,7 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
           .build()
       attributes.put("hearingEventType", hearingEventTypeValue)
     }
-    val publishResponse = courtEventsTopic?.publish(
+    courtEventsTopic?.publish(
       eventType = messageType.name,
       event = message,
       attributes = attributes,
@@ -100,7 +100,6 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
     )
 
     expectNoMessagesOn(courtEventsQueue)
-    return publishResponse!!.messageId()
   }
 
   fun expectOneMessageOn(queue: HmppsQueue?) {
