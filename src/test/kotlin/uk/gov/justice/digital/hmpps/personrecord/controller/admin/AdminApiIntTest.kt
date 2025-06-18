@@ -1,79 +1,116 @@
 package uk.gov.justice.digital.hmpps.personrecord.controller.admin
 
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
-import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminReclusterRequest
+import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminReclusterRecord
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import java.util.UUID
 
 class AdminApiIntTest : WebTestBase() {
 
-  @Test
-  fun `should throw not found error when cluster not found in list`() {
-    val uuid = UUID.randomUUID()
-    val request = AdminReclusterRequest(clusters = listOf(uuid))
+  @Nested
+  inner class MissingRecord {
 
-    webTestClient.post()
-      .uri(ADMIN_RECLUSTER_URL)
-      .contentType(MediaType.APPLICATION_JSON)
-      .bodyValue(request)
-      .exchange()
-      .expectStatus()
-      .isOk
+    @Test
+    fun `should throw not found error when cluster not found in list`() {
+      val uuid = UUID.randomUUID()
+      val request = listOf(AdminReclusterRecord(SourceSystemType.COMMON_PLATFORM, uuid.toString()))
 
-    checkTelemetry(
-      TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED,
-      mapOf("UUID" to uuid.toString()),
-      times = 0,
-    )
-  }
+      webTestClient.post()
+        .uri(ADMIN_RECLUSTER_URL)
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(request)
+        .exchange()
+        .expectStatus()
+        .isOk
 
-  @Test
-  fun `should recluster single cluster`() {
-    val cluster = createPersonKey()
-      .addPerson(createPerson(createRandomProbationPersonDetails()))
-    val request = AdminReclusterRequest(clusters = listOf(cluster.personUUID!!))
-
-    stubPersonMatchScores()
-
-    webTestClient.post()
-      .uri(ADMIN_RECLUSTER_URL)
-      .contentType(MediaType.APPLICATION_JSON)
-      .bodyValue(request)
-      .exchange()
-      .expectStatus()
-      .isOk
-
-    checkTelemetry(
-      TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED,
-      mapOf("UUID" to cluster.personUUID.toString()),
-    )
-  }
-
-  @Test
-  fun `should recluster list of clusters`() {
-    val clusters = List(5) {
-      createPersonKey()
-        .addPerson(createPerson(createRandomProbationPersonDetails()))
-    }
-    val request = AdminReclusterRequest(clusters = clusters.map { it.personUUID!! })
-
-    stubPersonMatchScores()
-
-    webTestClient.post()
-      .uri(ADMIN_RECLUSTER_URL)
-      .contentType(MediaType.APPLICATION_JSON)
-      .bodyValue(request)
-      .exchange()
-      .expectStatus()
-      .isOk
-
-    clusters.forEach {
       checkTelemetry(
         TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED,
-        mapOf("UUID" to it.personUUID.toString()),
+        mapOf("UUID" to uuid.toString()),
+        times = 0,
       )
+    }
+
+    @Test
+    fun `should not recluster records that have been merged`() {
+      val person = createPersonWithNewKey(createRandomProbationPersonDetails())
+      val mergedPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+
+      mergeRecord(mergedPerson, person)
+
+      mergedPerson.assertMergedTo(person)
+
+      val request = listOf(AdminReclusterRecord(SourceSystemType.COMMON_PLATFORM, mergedPerson.crn!!))
+
+      webTestClient.post()
+        .uri(ADMIN_RECLUSTER_URL)
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(request)
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      checkTelemetry(
+        TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED,
+        mapOf("UUID" to person.personKey?.toString()),
+        times = 0,
+      )
+    }
+  }
+
+  @Nested
+  inner class SuccessfulProcessing {
+
+    @BeforeEach
+    fun beforeEach() {
+      stubPersonMatchUpsert()
+      stubPersonMatchScores()
+    }
+
+    @Test
+    fun `should recluster single cluster`() {
+      val person = createPersonWithNewKey(createRandomProbationPersonDetails())
+      val request = listOf(AdminReclusterRecord(SourceSystemType.DELIUS, person.crn!!))
+
+      webTestClient.post()
+        .uri(ADMIN_RECLUSTER_URL)
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(request)
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      checkTelemetry(
+        TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED,
+        mapOf("UUID" to person.personKey?.personUUID.toString()),
+      )
+    }
+
+    @Test
+    fun `should recluster list of clusters`() {
+      val recordsWithCluster = List(5) {
+        createPersonWithNewKey(createRandomProbationPersonDetails())
+      }
+      val request = recordsWithCluster.map { AdminReclusterRecord(it.sourceSystem, it.crn!!) }
+
+      webTestClient.post()
+        .uri(ADMIN_RECLUSTER_URL)
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(request)
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      recordsWithCluster.forEach {
+        checkTelemetry(
+          TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED,
+          mapOf("UUID" to it.personKey?.personUUID.toString()),
+        )
+      }
     }
   }
 
