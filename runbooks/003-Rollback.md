@@ -62,17 +62,18 @@ used to interrogate the event log to identify affected clusters and records.
 To can this list run the following SQL with the identified SQL:
 
 ```sql
-select el.person_uuid, el.source_system, el.source_system_id
+select el.source_system_id, el.source_system
 from personrecordservice.event_log el
 where el.event_type in ('CPR_RECORD_CREATED', 'CPR_RECORD_UPDATED') and el.event_timestamp >= '<timestamp>'
+group by el.source_system_id, el.source_system 
 ```
 
 Which will return a table as such:
 
-| person_uuid                          | source_system   | source_system_id                     |
-|--------------------------------------|-----------------|--------------------------------------|
-| 782a5cbe-5a10-4694-a046-0be9e82f0591 | COMMON_PLATFORM | 6d6fa987-c680-4f18-ba58-ec507463a75c |
-| ...                                  | ...             | ...                                  |
+| source_system   | source_system_id                     |
+|-----------------|--------------------------------------|
+| COMMON_PLATFORM | 6d6fa987-c680-4f18-ba58-ec507463a75c |
+| ...             | ...                                  |
 
 Then you need to export the data as a json into the format:
 
