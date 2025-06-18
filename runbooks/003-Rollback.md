@@ -51,13 +51,13 @@ Ensure the pull request is reviewed and approved by a team member before merging
 
 Once merged, release the rollback as appropriate and verify that the system is functioning as expected.
 
-## 3. Identify affected clusters and records
+## 3. Identify affected records
 
 Once the rollback is in place and processing messages as normal, the next step is to identify the 
-clusters that have been affected due to the unwanted change. 
+records that have been affected due to the unwanted change. 
 
 To do this, the timestamp of the deployment identified in [step one](#1-identify-the-affected-version) can be 
-used to interrogate the event log to identify affected clusters and records.
+used to interrogate the event log to identify affected records.
 
 To can this list run the following SQL with the identified SQL:
 
@@ -86,13 +86,13 @@ Then you need to export the data as a json into the format:
 ]
 ```
 
-This can be saved into a file e.g. `affected-clusters.json`
+This can be saved into a file e.g. `affected-records.json`
 
 This can be done in the DBeaver data exporter [guide](https://dbeaver.com/docs/dbeaver/Data-export/).
 
-## 4. Re-process affected clusters
+## 4. Re-process affected records
 
-This can now be sent to the admin endpoint to reprocess and recluster the affected clusters.
+This can now be sent to the admin endpoint to reprocess and recluster the affected records.
 
 To do this you must first port-forward to a `hmpps-person-record` pod.
 
@@ -104,7 +104,8 @@ This command forwards port 9090 to the application.
 kubectl -n <namespace> port-forward deployment/hmpps-person-record 8080:9090
 ```
 
-Using the saved file `affected-clusters.json` from [step three](#3-identify-affected-clusters-and-records), trigger the recluster endpoint by running the command:
+This process will take the cluster that the record is currently in and determine whether it is still valid or it needs looking at.
+Using the saved file `affected-records.json` from [step three](#3-identify-affected-records), trigger the recluster endpoint by running the command:
 
 ```shell
 curl -X POST http://localhost:9090/admin/recluster \
@@ -116,7 +117,7 @@ Once triggered, monitor the processing of the cluster in the logs. To see logs f
 
 ## 5. Assess Business Impact
 
-Now that the changes have been rolled back and the affected clusters been reprocessed.
+Now that the changes have been rolled back and the affected records been reprocessed.
 
 This is a good time to analyze the impact the unwanted change has had on the business.
 If any communication with the wider organisation needs to happen, communicate this out.
