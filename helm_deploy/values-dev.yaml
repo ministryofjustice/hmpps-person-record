@@ -7,7 +7,7 @@ generic-service:
 
   env:
     SPRING_PROFILES_ACTIVE: "dev"
-    PERSON_MATCH_BASE_URL: http://hmpps-person-match
+    PERSON_MATCH_BASE_URL: https://hmpps-person-match-dev.hmpps.service.justice.gov.uk
     MATCH_SCORE_BASE_URL: https://hmpps-person-match-score-dev.hmpps.service.justice.gov.uk
     NOMIS_OAUTH_BASE_URL: https://sign-in-dev.hmpps.service.justice.gov.uk
     PRISONER_SEARCH_BASE_URL: https://prisoner-search-dev.prison.service.justice.gov.uk
