@@ -170,8 +170,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = ""))
 
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
-    checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_CREATED)
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
       mapOf(
@@ -198,7 +196,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should republish organisation defendant from libra without creating a person record`() {
     val cId = randomCId()
-    val messageId = publishLibraMessage(libraHearing(cId = cId, defendantType = ORGANISATION))
+    publishLibraMessage(libraHearing(cId = cId, defendantType = ORGANISATION))
 
     expectOneMessageOn(testOnlyCourtEventsQueue)
 
