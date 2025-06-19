@@ -41,6 +41,7 @@ data class Person(
   val sentences: List<SentenceInfo> = emptyList(),
   val cId: String? = null,
   val sexCode: SexCode? = null,
+  var reclusterOnUpdate: Boolean = true,
 ) {
 
   companion object {
@@ -232,6 +233,10 @@ data class Person(
     )
   }
 
+  fun doNotReclusterOnUpdate(): Person {
+    reclusterOnUpdate = false
+    return this
+  }
   fun isPerson(): Boolean = minimumDataIsPresent()
 
   private fun minimumDataIsPresent(): Boolean = lastNameIsPresent() && anyOtherPersonalDataIsPresent()
