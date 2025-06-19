@@ -65,7 +65,7 @@ class AdminController(
         reclusterResultMap[key] = reclusterResultMap.getOrPut(key) { 0 } + 1
       }
     }
-    reclusterResultMap[NOT_FOUND] = notFoundCount
+    reclusterResultMap[NOT_FOUND_RECORDS] = notFoundCount
     return reclusterResultMap.toMap()
   }
 
@@ -97,7 +97,7 @@ class AdminController(
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    private const val NOT_FOUND = "NOT FOUND"
+    private const val NOT_FOUND_RECORDS = "NOT_FOUND_RECORDS"
     private const val RECLUSTER_PROCESS_PREFIX = "ADMIN RECLUSTER: "
     private const val UPSERT_PROCESS_NAME = "Upsert Person Records"
     private const val RECLUSTER_PROCESS_NAME = "Recluster Person Records"
