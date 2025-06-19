@@ -35,7 +35,7 @@ class AdminApiIntTest : WebTestBase() {
 
       checkTelemetry(
         TelemetryEventType.CPR_ADMIN_RECLUSTER_SUMMARY,
-        mapOf("NOT FOUND" to "1")
+        mapOf("NOT FOUND" to "1"),
       )
     }
 
@@ -60,7 +60,7 @@ class AdminApiIntTest : WebTestBase() {
 
       checkTelemetry(
         TelemetryEventType.CPR_ADMIN_RECLUSTER_SUMMARY,
-        mapOf("NOT FOUND" to "1")
+        mapOf("NOT FOUND" to "1"),
       )
     }
   }
@@ -91,7 +91,7 @@ class AdminApiIntTest : WebTestBase() {
         TelemetryEventType.CPR_ADMIN_RECLUSTER_SUMMARY,
         mapOf(
           "ACTIVE -> ACTIVE" to "1",
-          "NOT FOUND" to "0"
+          "NOT FOUND" to "0",
         ),
       )
     }
@@ -115,7 +115,7 @@ class AdminApiIntTest : WebTestBase() {
         TelemetryEventType.CPR_ADMIN_RECLUSTER_SUMMARY,
         mapOf(
           "ACTIVE -> ACTIVE" to "5",
-          "NOT FOUND" to "0"
+          "NOT FOUND" to "0",
         ),
       )
     }
