@@ -101,8 +101,16 @@ Once a connection to the `hmpps-person-record` pod has been established you can 
 This command forwards port 9090 to the application.
 
 ```shell
-kubectl -n <namespace> port-forward deployment/hmpps-person-record 8080:9090
+kubectl -n <namespace> port-forward deployment/hmpps-person-record 9090:8080
 ```
+
+To test the connection to the pod, run the command:
+
+```shell
+curl -i http://localhost:9090/health
+```
+
+This should return an HTTP 200.
 
 This process will take the cluster that the record is currently in and determine whether it is still valid or it needs looking at.
 Using the saved file `affected-records.json` from [step three](#3-identify-affected-records), trigger the recluster endpoint by running the command:
@@ -110,10 +118,12 @@ Using the saved file `affected-records.json` from [step three](#3-identify-affec
 ```shell
 curl -X POST http://localhost:9090/admin/recluster \
      -H "Content-Type: application/json" \
-     -F "file=@</path/to/your/file/affected-recluster.json>"
+     -d @</path/to/your/file/affected-recluster.json>
 ```
 
 Once triggered, monitor the processing of the cluster in the logs. To see logs follow the [guide](002-Accessing-The-Logs.md).
+
+During testing, it took approximately three minutes to process 500 records in the development environment.
 
 ## 5. Assess Business Impact
 
