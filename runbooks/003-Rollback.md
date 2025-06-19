@@ -115,6 +115,8 @@ curl -X POST http://localhost:9090/admin/recluster \
 
 Once triggered, monitor the processing of the cluster in the logs. To see logs follow the [guide](002-Accessing-The-Logs.md).
 
+During testing, it took approximately three minutes to process 500 records in the development environment.
+
 ## 5. Assess Business Impact
 
 Now that the changes have been rolled back and the affected records been reprocessed.
