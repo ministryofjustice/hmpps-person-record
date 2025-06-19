@@ -12,6 +12,11 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 
 class AdminApiIntTest : WebTestBase() {
 
+  @BeforeEach
+  fun beforeEach() {
+    telemetryRepository.deleteAllInBatch()
+  }
+
   @Nested
   inner class MissingRecord {
 
@@ -29,9 +34,8 @@ class AdminApiIntTest : WebTestBase() {
         .isOk
 
       checkTelemetry(
-        TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED,
-        mapOf("UUID" to defendantId),
-        times = 0,
+        TelemetryEventType.CPR_ADMIN_RECLUSTER_SUMMARY,
+        mapOf("NOT FOUND" to "1")
       )
     }
 
@@ -55,9 +59,8 @@ class AdminApiIntTest : WebTestBase() {
         .isOk
 
       checkTelemetry(
-        TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED,
-        mapOf("UUID" to person.personKey?.toString()),
-        times = 0,
+        TelemetryEventType.CPR_ADMIN_RECLUSTER_SUMMARY,
+        mapOf("NOT FOUND" to "1")
       )
     }
   }
@@ -85,8 +88,11 @@ class AdminApiIntTest : WebTestBase() {
         .isOk
 
       checkTelemetry(
-        TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED,
-        mapOf("UUID" to person.personKey?.personUUID.toString()),
+        TelemetryEventType.CPR_ADMIN_RECLUSTER_SUMMARY,
+        mapOf(
+          "ACTIVE -> ACTIVE" to "1",
+          "NOT FOUND" to "0"
+        ),
       )
     }
 
@@ -105,12 +111,13 @@ class AdminApiIntTest : WebTestBase() {
         .expectStatus()
         .isOk
 
-      recordsWithCluster.forEach {
-        checkTelemetry(
-          TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED,
-          mapOf("UUID" to it.personKey?.personUUID.toString()),
-        )
-      }
+      checkTelemetry(
+        TelemetryEventType.CPR_ADMIN_RECLUSTER_SUMMARY,
+        mapOf(
+          "ACTIVE -> ACTIVE" to "5",
+          "NOT FOUND" to "0"
+        ),
+      )
     }
   }
 

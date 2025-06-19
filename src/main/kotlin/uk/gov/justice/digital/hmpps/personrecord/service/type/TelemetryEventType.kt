@@ -15,5 +15,5 @@ enum class TelemetryEventType(val eventName: String) {
   CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS("CprReclusterMatchedClustersHasExclusions"),
   CPR_RECLUSTER_MERGE("CprReclusterMerge"),
   CPR_RECORD_COUNT_REPORT("CprRecordCountReport"),
-  CPR_ADMIN_RECLUSTER_TRIGGERED("CprAdminReclusterTriggered"),
+  CPR_ADMIN_RECLUSTER_SUMMARY("CprAdminReclusterSummary"),
 }
