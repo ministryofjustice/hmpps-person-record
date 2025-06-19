@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.controller
+package uk.gov.justice.digital.hmpps.personrecord.controller.canonical
 
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doThrow
