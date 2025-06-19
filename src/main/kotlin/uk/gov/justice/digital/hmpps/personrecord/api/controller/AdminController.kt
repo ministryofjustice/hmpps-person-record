@@ -71,7 +71,7 @@ class AdminController(
     this.forEachIndexed { idx, record ->
       val itemNumber = idx + 1
       log.info("Processing $processName, item: $itemNumber/$total")
-      searchForPersonByIdentifier(record)?.let{
+      searchForPersonByIdentifier(record)?.let {
         action(it)
       } ?: log.info("Error $processName, record not found. id: ${record.sourceSystemId} item: $itemNumber/$total")
     }

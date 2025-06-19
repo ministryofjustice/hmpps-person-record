@@ -16,7 +16,7 @@ class AdminApiIntTest : WebTestBase() {
   inner class MissingRecord {
 
     @Test
-    fun `should throw not found error when cluster not found in list`() {
+    fun `should throw not found error when person record not found in list`() {
       val defendantId = randomDefendantId()
       val request = listOf(AdminReclusterRecord(SourceSystemType.COMMON_PLATFORM, defendantId))
 
