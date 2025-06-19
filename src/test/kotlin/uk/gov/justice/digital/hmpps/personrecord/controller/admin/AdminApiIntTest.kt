@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminReclusterR
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import java.util.UUID
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 
 class AdminApiIntTest : WebTestBase() {
 
@@ -17,8 +17,8 @@ class AdminApiIntTest : WebTestBase() {
 
     @Test
     fun `should throw not found error when cluster not found in list`() {
-      val uuid = UUID.randomUUID()
-      val request = listOf(AdminReclusterRecord(SourceSystemType.COMMON_PLATFORM, uuid.toString()))
+      val defendantId = randomDefendantId()
+      val request = listOf(AdminReclusterRecord(SourceSystemType.COMMON_PLATFORM, defendantId))
 
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_URL)
@@ -30,7 +30,7 @@ class AdminApiIntTest : WebTestBase() {
 
       checkTelemetry(
         TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED,
-        mapOf("UUID" to uuid.toString()),
+        mapOf("UUID" to defendantId),
         times = 0,
       )
     }
@@ -72,7 +72,7 @@ class AdminApiIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should recluster single cluster`() {
+    fun `should recluster single person record`() {
       val person = createPersonWithNewKey(createRandomProbationPersonDetails())
       val request = listOf(AdminReclusterRecord(SourceSystemType.DELIUS, person.crn!!))
 
@@ -91,7 +91,7 @@ class AdminApiIntTest : WebTestBase() {
     }
 
     @Test
-    fun `should recluster list of clusters`() {
+    fun `should recluster multiple person records`() {
       val recordsWithCluster = List(5) {
         createPersonWithNewKey(createRandomProbationPersonDetails())
       }

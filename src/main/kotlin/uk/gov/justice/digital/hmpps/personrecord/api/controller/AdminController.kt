@@ -43,20 +43,16 @@ class AdminController(
   }
 
   private fun upsertRecords(adminReclusterRecords: List<AdminReclusterRecord>) {
-    adminReclusterRecords.forEach {
-      searchForPersonByIdentifier(it)?.let { person ->
-        personMatchService.saveToPersonMatch(person)
-      }
+    adminReclusterRecords.forEachPersonAndLog(UPSERT_PROCESS_NAME) { person ->
+      personMatchService.saveToPersonMatch(person)
     }
   }
 
   private fun triggerRecluster(adminReclusterRecords: List<AdminReclusterRecord>) {
-    adminReclusterRecords.forEach {
-      searchForPersonByIdentifier(it)?.let { person ->
-        person.personKey?.let { cluster ->
-          publisher.publishEvent(RecordClusterTelemetry(TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED, cluster))
-          reclusterService.recluster(cluster, person)
-        }
+    adminReclusterRecords.forEachPersonAndLog(RECLUSTER_PROCESS_NAME) { person ->
+      person.personKey?.let { cluster ->
+        publisher.publishEvent(RecordClusterTelemetry(TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED, cluster))
+        reclusterService.recluster(cluster, person)
       }
     }
   }
@@ -69,8 +65,22 @@ class AdminController(
     else -> null
   }
 
+  private fun List<AdminReclusterRecord>.forEachPersonAndLog(processName: String, action: (PersonEntity) -> Unit) {
+    val total = this.count()
+    log.info("Starting $processName, count: $total")
+    this.forEachIndexed { idx, record ->
+      val itemNumber = idx + 1
+      log.info("Processing $processName, item: $itemNumber/$total")
+      searchForPersonByIdentifier(record)?.let{
+        action(it)
+      } ?: log.info("Error $processName, record not found. id: ${record.sourceSystemId} item: $itemNumber/$total")
+    }
+  }
+
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
     private const val RECLUSTER_PROCESS_PREFIX = "ADMIN RECLUSTER: "
+    private const val UPSERT_PROCESS_NAME = "Upsert Person Records"
+    private const val RECLUSTER_PROCESS_NAME = "Recluster Person Records"
   }
 }
