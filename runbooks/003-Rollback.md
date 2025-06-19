@@ -101,7 +101,7 @@ Once a connection to the `hmpps-person-record` pod has been established you can 
 This command forwards port 9090 to the application.
 
 ```shell
-kubectl -n <namespace> port-forward deployment/hmpps-person-record  9090:8080
+kubectl -n <namespace> port-forward deployment/hmpps-person-record 9090:8080
 ```
 
 To test the connection to the pod, run the command:
