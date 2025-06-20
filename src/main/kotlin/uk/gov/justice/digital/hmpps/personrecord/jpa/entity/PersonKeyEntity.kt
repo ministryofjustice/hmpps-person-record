@@ -42,6 +42,10 @@ class PersonKeyEntity(
 
 ) {
 
+  fun isActive(): Boolean = status == UUIDStatusType.ACTIVE
+
+  fun isNeedsAttention(): Boolean = status == UUIDStatusType.NEEDS_ATTENTION
+
   fun markAsMerged(to: PersonKeyEntity) {
     this.apply {
       this.mergedTo = to.id
