@@ -38,7 +38,7 @@ class ReclusterService(
       personKeyService.clusterIsNeedsAttentionAndCanBecomeActive(cluster) -> personKeyService.settingNeedsAttentionClusterToActive(cluster, changedRecord)
     }
     when {
-      cluster.isActive()-> processRecluster(cluster, changedRecord)
+      cluster.isActive() -> processRecluster(cluster, changedRecord)
     }
   }
 

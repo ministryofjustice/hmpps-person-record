@@ -3,9 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CircularMergeException
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
