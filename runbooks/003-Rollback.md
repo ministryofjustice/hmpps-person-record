@@ -61,7 +61,7 @@ records that have been affected due to the unwanted change.
 To do this, the timestamp of the deployment identified in [step one](#1-identify-the-affected-version) can be 
 used to interrogate the event log to identify affected records.
 
-To can this list run the following SQL with the identified SQL:
+You can run the SQL below to list the affected records:
 
 ```sql
 select distinct el.source_system_id, el.source_system
