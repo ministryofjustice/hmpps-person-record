@@ -7,6 +7,8 @@ import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminReclusterRecord
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 
@@ -111,6 +113,28 @@ class AdminApiIntTest : WebTestBase() {
           mapOf("UUID" to it.personKey?.personUUID.toString()),
         )
       }
+    }
+
+    @Test
+    fun `should set needs attention to active when cluster is valid`() {
+      val person = createPersonWithNewKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION)
+      val request = listOf(AdminReclusterRecord(SourceSystemType.DELIUS, person.crn!!))
+
+      stubClusterIsValid()
+
+      webTestClient.post()
+        .uri(ADMIN_RECLUSTER_URL)
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(request)
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      checkTelemetry(
+        TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED,
+        mapOf("UUID" to person.personKey?.personUUID.toString()),
+      )
+      person.personKey?.assertClusterStatus(ACTIVE)
     }
   }
 
