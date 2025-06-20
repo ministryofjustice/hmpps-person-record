@@ -36,14 +36,6 @@ class PersonService(
     return PersonUpdated(updatedEntity, matchingFieldsHaveChanged)
   }
 
-  fun hasClusterSetBackToActive(updatedEntity: PersonEntity) = when (personKeyService.clusterNeedsAttentionAndIsInvalid(updatedEntity.personKey)) {
-    true -> false
-    else -> {
-      personKeyService.settingNeedsAttentionClusterToActive(updatedEntity.personKey, updatedEntity)
-      true
-    }
-  }
-
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
     val personEntityWithKey = personMatchService.findHighestConfidencePersonRecord(personEntity).exists(
       no = { personKeyService.assignPersonToNewPersonKey(personEntity) },

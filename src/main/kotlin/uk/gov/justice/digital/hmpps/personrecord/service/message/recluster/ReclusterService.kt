@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.message.recluster
 
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CircularMergeException
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse.Companion.result
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
@@ -17,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordClusterTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -27,9 +29,20 @@ class ReclusterService(
   private val personKeyRepository: PersonKeyRepository,
   private val personRepository: PersonRepository,
   private val publisher: ApplicationEventPublisher,
+  private val personKeyService: PersonKeyService,
 ) {
 
+  @Transactional
   fun recluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
+    when {
+      personKeyService.clusterIsNeedsAttentionAndCanBecomeActive(cluster) -> personKeyService.settingNeedsAttentionClusterToActive(cluster, changedRecord)
+    }
+    when {
+      cluster.isActive() -> processRecluster(cluster, changedRecord)
+    }
+  }
+
+  private fun processRecluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
     val matchesToChangeRecord: List<PersonMatchResult> =
       personMatchService.findHighestConfidencePersonRecordsByProbabilityDesc(changedRecord)
     val clusterDetails = ClusterDetails(cluster, changedRecord, matchesToChangeRecord)
