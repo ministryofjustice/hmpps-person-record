@@ -22,8 +22,7 @@ class PrisonMergeEventProcessor(
       val from: PersonEntity? =
         personRepository.findByPrisonNumber(domainEvent.additionalInformation.sourcePrisonNumber!!)
       val to: PersonEntity = createUpdateService.processPerson(
-        Person.from(it),
-        shouldReclusterOnUpdate = false,
+        Person.from(it).doNotReclusterOnUpdate(),
       ) { personRepository.findByPrisonNumber(domainEvent.additionalInformation.prisonNumber) }
       mergeService.processMerge(from, to)
     }
