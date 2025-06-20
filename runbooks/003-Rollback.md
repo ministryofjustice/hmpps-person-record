@@ -98,17 +98,18 @@ The query below will provide a count of the number of ACTIVE & NEEDS_ATTENTION r
 
 We want to run this before we do the manual reclustering and run this again later (store these values somewhere for comparison)
 ```sql
-with effected_records as (
+with affected_records as (
   select distinct el.source_system_id, el.source_system, el.match_id
   from personrecordservice.event_log el
   where el.event_type in ('CPR_RECORD_CREATED', 'CPR_RECORD_UPDATED') and el.event_timestamp >= '2025-06-09 13:21:55.463'
   group by el.source_system_id, el.source_system, el.match_id
 )
 select pk.status, count(pk.status)
-from effected_records ef, personrecordservice.person p
-                            join personrecordservice.person_key pk
-                                 on pk.id = p.fk_person_key_id
-where ef.match_id = p.match_id
+from affected_records af
+		join  personrecordservice.person p
+		on af.match_id = p.match_id
+        join personrecordservice.person_key pk
+        on pk.id = p.fk_person_key_id
 group by pk.status
 ```
 
