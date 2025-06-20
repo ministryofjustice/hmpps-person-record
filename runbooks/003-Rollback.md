@@ -12,19 +12,6 @@ This rollback may be required due to:
 
 The goal is to ensure that all clusters are returned to a valid and reliable state.
 
-## Table of contents
-
-1. [Dependencies](#dependencies)
-2. [Identify the affected version](#1-identify-the-affected-version)
-3. [Rollback Changes](#2-rollback-changes)
-4. [Identify affected clusters and records](#3-identify-affected-records)
-5. [Check cluster status statistics](#4-Check-cluster-status-statistics)
-6. [Reprocess affected clusters](#5-re-process-affected-records)
-7. [Re-Check cluster status statistics](#6-Re-Check-cluster-status-statistics)
-8. [Assess Business Impact](#7-assess-business-impact)
-9. [Resolve Outstanding Need Attention Clusters](#8-resolve-outstanding-needs-attention-clusters)
-10. [Optional: Cluster sanity checking](#9-optional-cluster-sanity-checking)
-
 ## Dependencies
 
 * You need a database connection to the read-replica database of `hmpps-person-record`. To do this see:
@@ -32,6 +19,18 @@ The goal is to ensure that all clusters are returned to a valid and reliable sta
 
 * This service is tightly coupled to `hmpps-person-match` which is responsible for matching:
   * [hmpps-person-match](https://github.com/ministryofjustice/hmpps-person-match)
+
+## Table of contents
+
+1. [Identify the affected version](#1-identify-the-affected-version)
+2. [Rollback Changes](#2-rollback-changes)
+3. [Identify affected clusters and records](#3-identify-affected-records)
+4. [Check cluster status statistics](#4-Check-cluster-status-statistics)
+5. [Reprocess affected clusters](#5-re-process-affected-records)
+6. [Re-Check cluster status statistics](#6-Re-Check-cluster-status-statistics)
+7. [Assess Business Impact](#7-assess-business-impact)
+8. [Resolve Outstanding Need Attention Clusters](#8-resolve-outstanding-needs-attention-clusters)
+9. [Optional: Cluster sanity checking](#9-optional-cluster-sanity-checking)
 
 ## 1. Identify the affected version
 
