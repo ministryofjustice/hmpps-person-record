@@ -493,9 +493,10 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       val updatedCluster2 = personKeyRepository.findByPersonUUID(cluster2.personUUID)!!
       updatedCluster2.addPerson(personC)
-      stubOnePersonMatchHighConfidenceMatch(personC.matchId, personB.matchId)
 
-      assertThrows<CircularMergeException> { reclusterService.recluster(updatedCluster2, changedRecord = personC) }
+      reclusterService.recluster(updatedCluster2, changedRecord = personC)
+
+      // does nothing as cluster set for re-clustering is RECLUSTER_MERGE
       cluster1.assertClusterIsOfSize(2)
       updatedCluster2.assertClusterIsOfSize(1)
       updatedCluster2.assertMergedTo(cluster1)
