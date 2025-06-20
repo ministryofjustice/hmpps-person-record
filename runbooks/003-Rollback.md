@@ -12,17 +12,6 @@ This rollback may be required due to:
 
 The goal is to ensure that all clusters are returned to a valid and reliable state.
 
-## Table of contents
-
-1. [Dependencies](#dependencies)
-2. [Identify the affected version](#1-identify-the-affected-version)
-3. [Rollback Changes](#2-rollback-changes)
-4. [Identify affected clusters and records](#3-identify-affected-clusters-and-records)
-5. [Reprocess affected clusters](#4-reprocess-affected-clusters)
-6. [Assess Business Impact](#5-assess-business-impact)
-7. [Resolve Outstanding Need Attention Clusters](#5-assess-business-impact)
-8. [Optional: Cluster sanity checking](#7-optional-cluster-sanity-checking)
-
 ## Dependencies
 
 * You need a database connection to the read-replica database of `hmpps-person-record`. To do this see:
@@ -30,6 +19,18 @@ The goal is to ensure that all clusters are returned to a valid and reliable sta
 
 * This service is tightly coupled to `hmpps-person-match` which is responsible for matching:
   * [hmpps-person-match](https://github.com/ministryofjustice/hmpps-person-match)
+
+## Table of contents
+
+1. [Identify the affected version](#1-identify-the-affected-version)
+2. [Rollback Changes](#2-rollback-changes)
+3. [Identify affected clusters and records](#3-identify-affected-records)
+4. [Check cluster status statistics](#4-Check-cluster-status-statistics)
+5. [Reprocess affected clusters](#5-re-process-affected-records)
+6. [Re-Check cluster status statistics](#6-Re-Check-cluster-status-statistics)
+7. [Assess Business Impact](#7-assess-business-impact)
+8. [Resolve Outstanding Need Attention Clusters](#8-resolve-outstanding-needs-attention-clusters)
+9. [Optional: Cluster sanity checking](#9-optional-cluster-sanity-checking)
 
 ## 1. Identify the affected version
 
@@ -59,10 +60,10 @@ records that have been affected due to the unwanted change.
 To do this, the timestamp of the deployment identified in [step one](#1-identify-the-affected-version) can be 
 used to interrogate the event log to identify affected records.
 
-To can this list run the following SQL with the identified SQL:
+You can run the SQL below to list the affected records:
 
 ```sql
-select el.source_system_id, el.source_system
+select distinct el.source_system_id, el.source_system
 from personrecordservice.event_log el
 where el.event_type in ('CPR_RECORD_CREATED', 'CPR_RECORD_UPDATED') and el.event_timestamp >= '<timestamp>'
 group by el.source_system_id, el.source_system 
@@ -90,7 +91,29 @@ This can be saved into a file e.g. `affected-records.json`
 
 This can be done in the DBeaver data exporter [guide](https://dbeaver.com/docs/dbeaver/Data-export/).
 
-## 4. Re-process affected records
+## 4. Check cluster status statistics
+
+The query below will provide a count of the number of ACTIVE & NEEDS_ATTENTION records. 
+
+We want to run this before we do the manual reclustering and run this again later (store these values somewhere for comparison)
+```sql
+with affected_records as (
+  select distinct el.source_system_id, el.source_system, el.match_id
+  from personrecordservice.event_log el
+  where el.event_type in ('CPR_RECORD_CREATED', 'CPR_RECORD_UPDATED') and el.event_timestamp >= '2025-06-09 13:21:55.463'
+  group by el.source_system_id, el.source_system, el.match_id
+)
+select pk.status, count(pk.status)
+from affected_records af
+		join  personrecordservice.person p
+		on af.match_id = p.match_id
+        join personrecordservice.person_key pk
+        on pk.id = p.fk_person_key_id
+group by pk.status
+```
+
+
+## 5. Re-process affected records
 
 This can now be sent to the admin endpoint to reprocess and recluster the affected records.
 
@@ -125,21 +148,39 @@ Once triggered, monitor the processing of the cluster in the logs. To see logs f
 
 During testing, it took approximately three minutes to process 500 records in the development environment.
 
-## 5. Assess Business Impact
+## 6. Re-Check cluster status statistics
+Run the following query again to check number of ACTIVE & NEEDS_ATTENTION records to compare with values before manual
+recluster.
+```sql
+with affected_records as (
+  select distinct el.source_system_id, el.source_system, el.match_id
+  from personrecordservice.event_log el
+  where el.event_type in ('CPR_RECORD_CREATED', 'CPR_RECORD_UPDATED') and el.event_timestamp >= '2025-06-09 13:21:55.463'
+  group by el.source_system_id, el.source_system, el.match_id
+)
+select pk.status, count(pk.status)
+from affected_records af
+	join  personrecordservice.person p
+	on af.match_id = p.match_id
+        join personrecordservice.person_key pk
+        on pk.id = p.fk_person_key_id
+group by pk.status
+```
+## 7. Assess Business Impact
 
 Now that the changes have been rolled back and the affected records been reprocessed.
 
 This is a good time to analyze the impact the unwanted change has had on the business.
 If any communication with the wider organisation needs to happen, communicate this out.
 
-## 6. Resolve Outstanding Needs Attention Clusters
+## 8. Resolve Outstanding Needs Attention Clusters
 
 Even after reprocessing, there can be still clusters left in an `NEEDS_ATTENTION` state which need a manual intervention to resolve.
 
 This needs to be evaluated and prioritised to resolve these erroneous clusters / records. 
 Following the defined manual process of resolving the clusters, TODO.
 
-## 7. Optional: Cluster sanity checking
+## 9. Optional: Cluster sanity checking
 
 To validate the accuracy of the reprocessed clusters, we can optionally ask the data science team to perform a sanity check to ensure that no clusters were mistakenly merged.
 
