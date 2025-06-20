@@ -112,6 +112,14 @@ from affected_records af
 group by pk.status
 ```
 
+Which will return a table like so:
+
+| status              | count       |
+|---------------------|-------------|
+| ACTIVE              | 1234        |
+| NEEDS_ATTENTION     | 1234        |
+| ...                 | ...         |
+
 
 ## 5. Re-process affected records
 
@@ -149,8 +157,10 @@ Once triggered, monitor the processing of the cluster in the logs. To see logs f
 During testing, it took approximately three minutes to process 500 records in the development environment.
 
 ## 6. Re-Check cluster status statistics
-Run the following query again to check number of ACTIVE & NEEDS_ATTENTION records to compare with values before manual
+
+Re-run the following query again to check number of ACTIVE & NEEDS_ATTENTION records to compare with values before manual
 recluster.
+
 ```sql
 with affected_records as (
   select distinct el.source_system_id, el.source_system, el.match_id
@@ -166,6 +176,7 @@ from affected_records af
         on pk.id = p.fk_person_key_id
 group by pk.status
 ```
+
 ## 7. Assess Business Impact
 
 Now that the changes have been rolled back and the affected records been reprocessed.
