@@ -103,13 +103,16 @@ with affected_records as (
   where el.event_type in ('CPR_RECORD_CREATED', 'CPR_RECORD_UPDATED') and el.event_timestamp >= '2025-06-09 13:21:55.463'
   group by el.source_system_id, el.source_system, el.match_id
 )
-select pk.status, count(pk.status)
-from affected_records af
-		join  personrecordservice.person p
-		on af.match_id = p.match_id
-        join personrecordservice.person_key pk
-        on pk.id = p.fk_person_key_id
-group by pk.status
+select effected_clusters.status, count(effected_clusters.status)
+from (
+       select distinct pk.id, pk.status
+       from affected_records af
+              join  personrecordservice.person p
+                    on af.match_id = p.match_id
+              join personrecordservice.person_key pk
+                   on pk.id = p.fk_person_key_id
+     ) as effected_clusters
+group by effected_clusters.status
 ```
 
 Which will return a table like so:
@@ -168,13 +171,16 @@ with affected_records as (
   where el.event_type in ('CPR_RECORD_CREATED', 'CPR_RECORD_UPDATED') and el.event_timestamp >= '2025-06-09 13:21:55.463'
   group by el.source_system_id, el.source_system, el.match_id
 )
-select pk.status, count(pk.status)
-from affected_records af
-	join  personrecordservice.person p
-	on af.match_id = p.match_id
-        join personrecordservice.person_key pk
-        on pk.id = p.fk_person_key_id
-group by pk.status
+select effected_clusters.status, count(effected_clusters.status)
+from (
+       select distinct pk.id, pk.status
+       from affected_records af
+              join  personrecordservice.person p
+                    on af.match_id = p.match_id
+              join personrecordservice.person_key pk
+                   on pk.id = p.fk_person_key_id
+     ) as effected_clusters
+group by effected_clusters.status
 ```
 
 ## 7. Assess Business Impact
