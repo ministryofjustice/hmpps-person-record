@@ -9,4 +9,8 @@ data class PersonMatchScore(
   val candidateMatchProbability: Float,
   @JsonProperty("candidate_match_weight")
   val candidateMatchWeight: Float,
+  @JsonProperty("candidate_should_join")
+  val candidateShouldJoin: Boolean,
+  @JsonProperty("candidate_should_fracture")
+  val candidateShouldFracture: Boolean,
 )

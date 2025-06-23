@@ -290,11 +290,15 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
             candidateMatchId = highScoringRecordOne.matchId.toString(),
             candidateMatchWeight = THRESHOLD_WEIGHT,
             candidateMatchProbability = 0.9999F,
+            candidateShouldJoin = true,
+            candidateShouldFracture = false,
           ),
           PersonMatchScore(
             candidateMatchId = highScoringRecordTwo.matchId.toString(),
             candidateMatchWeight = THRESHOLD_WEIGHT,
             candidateMatchProbability = 0.9999999F,
+            candidateShouldJoin = true,
+            candidateShouldFracture = false,
           ),
 
         ),
@@ -374,6 +378,8 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
           candidateMatchId = it.matchId.toString(),
           candidateMatchWeight = THRESHOLD_WEIGHT + 1F,
           candidateMatchProbability = 0.9999F,
+          candidateShouldJoin = true,
+          candidateShouldFracture = false,
         )
       }
       val lowScoringResults = cluster3Records.map {
@@ -381,6 +387,8 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
           candidateMatchId = it.matchId.toString(),
           candidateMatchWeight = THRESHOLD_WEIGHT - 1F,
           candidateMatchProbability = 0.5677F,
+          candidateShouldJoin = false,
+          candidateShouldFracture = false,
         )
       }
       stubPersonMatchScores(
