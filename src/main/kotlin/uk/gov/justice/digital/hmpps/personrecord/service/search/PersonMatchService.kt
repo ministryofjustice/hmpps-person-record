@@ -29,18 +29,20 @@ class PersonMatchService(
   private val objectMapper: ObjectMapper,
 ) {
 
-  fun findHighestConfidencePersonRecord(personEntity: PersonEntity) = findHighestConfidencePersonRecordsByProbabilityDesc(personEntity).firstOrNull()?.personEntity
+  fun findHighestMatchThatPersonRecordCanJoin(personEntity: PersonEntity) = findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity)
+    .getClustersThatItCanJoin()
+    .firstOrNull()?.personEntity
 
-  fun findHighestConfidencePersonRecordsByProbabilityDesc(personEntity: PersonEntity): List<PersonMatchResult> = runBlocking {
+  fun findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity: PersonEntity): List<PersonMatchResult> = runBlocking {
     val personScores = handleCollectingPersonScores(personEntity).removeSelf(personEntity)
-    val highConfidencePersonRecords = getPersonRecords(personScores.getHighConfidenceMatches())
+    val aboveFractureThresholdPersonRecords = getPersonRecords(personScores.getClustersAboveFractureThreshold())
       .allowMatchesWithUUID()
       .removeMergedRecords()
       .removeMatchesWhereClusterInInvalidState()
       .removeMatchesWhereClusterHasExcludeMarker(personEntity)
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
-      .sortedByDescending { it.probability }
-    return@runBlocking highConfidencePersonRecords
+      .sortedByDescending { it.matchWeight }
+    return@runBlocking aboveFractureThresholdPersonRecords
   }
 
   fun examineIsClusterValid(cluster: PersonKeyEntity): IsClusterValidResponse = runBlocking {
@@ -75,7 +77,8 @@ class PersonMatchService(
   private fun getPersonRecords(personScores: List<PersonMatchScore>): List<PersonMatchResult> = personScores.mapNotNull {
     personRepository.findByMatchId(UUID.fromString(it.candidateMatchId))?.let { person ->
       PersonMatchResult(
-        probability = it.candidateMatchProbability,
+        shouldJoin = it.candidateShouldJoin,
+        matchWeight = it.candidateMatchWeight,
         personEntity = person,
       )
     }
@@ -90,13 +93,13 @@ class PersonMatchService(
 
   private fun List<PersonMatchScore>.removeSelf(personEntity: PersonEntity): List<PersonMatchScore> = this.filterNot { score -> score.candidateMatchId == personEntity.matchId.toString() }
 
-  private fun List<PersonMatchScore>.getHighConfidenceMatches(): List<PersonMatchScore> = this.filter { candidate -> isHighConfidence(candidate.candidateMatchWeight) }
+  private fun List<PersonMatchResult>.getClustersThatItCanJoin(): List<PersonMatchResult> = this.filter { it.shouldJoin }
+
+  private fun List<PersonMatchScore>.getClustersAboveFractureThreshold(): List<PersonMatchScore> = this.filter { candidate -> candidate.candidateShouldFracture.not() }
 
   private suspend fun getPersonScores(personEntity: PersonEntity): Result<List<PersonMatchScore>> = kotlin.runCatching {
     personMatchClient.getPersonScores(personEntity.matchId.toString())
   }
-
-  private fun isHighConfidence(score: Float): Boolean = score >= THRESHOLD_WEIGHT
 
   private fun List<PersonMatchResult>.allowMatchesWithUUID(): List<PersonMatchResult> = this.filter { it.personEntity.personKey != PersonKeyEntity.empty }
 
@@ -116,14 +119,16 @@ class PersonMatchService(
   }
 
   private fun List<PersonMatchResult>.logCandidateSearchSummary(personEntity: PersonEntity, totalNumberOfScores: Int): List<PersonMatchResult> {
+    val canJoinCount = this.getClustersThatItCanJoin()
     telemetryService.trackPersonEvent(
       CPR_CANDIDATE_RECORD_SEARCH,
       personEntity,
       mapOf(
         EventKeys.RECORD_COUNT to totalNumberOfScores.toString(),
         EventKeys.UUID_COUNT to this.groupBy { match -> match.personEntity.personKey?.personUUID?.toString() }.size.toString(),
-        EventKeys.HIGH_CONFIDENCE_COUNT to this.count().toString(),
-        EventKeys.LOW_CONFIDENCE_COUNT to (totalNumberOfScores - this.count()).toString(),
+        EventKeys.ABOVE_JOIN_THRESHOLD_COUNT to canJoinCount.count().toString(),
+        EventKeys.ABOVE_FRACTURE_THRESHOLD_COUNT to (this.count() - canJoinCount.count()).toString(),
+        EventKeys.BELOW_FRACTURE_THRESHOLD_COUNT to (totalNumberOfScores - this.count()).toString(),
       ),
     )
     return this
@@ -137,12 +142,10 @@ class PersonMatchService(
 
   private fun List<PersonMatchResult>.collectDistinctClusters(): List<PersonKeyEntity> = this.map { it.personEntity }.groupBy { it.personKey!! }.map { it.key }.distinctBy { it.id }
 
-  companion object {
-    const val THRESHOLD_WEIGHT = 24F
-  }
 }
 
 class PersonMatchResult(
-  val probability: Float,
+  val shouldJoin: Boolean,
+  val matchWeight: Float,
   val personEntity: PersonEntity,
 )

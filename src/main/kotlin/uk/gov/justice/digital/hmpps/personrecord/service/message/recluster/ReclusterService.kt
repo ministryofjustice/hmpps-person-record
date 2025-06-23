@@ -44,7 +44,7 @@ class ReclusterService(
 
   private fun processRecluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
     val matchesToChangeRecord: List<PersonMatchResult> =
-      personMatchService.findHighestConfidencePersonRecordsByProbabilityDesc(changedRecord)
+      personMatchService.findPersonRecordsAboveFractureThresholdByMatchWeightDesc(changedRecord)
     val clusterDetails = ClusterDetails(cluster, changedRecord, matchesToChangeRecord)
     when {
       clusterDetails.relationship.isDifferent() -> handleDiscrepancyOfMatchesToExistingRecords(clusterDetails)
@@ -59,6 +59,7 @@ class ReclusterService(
   }
 
   private fun handleMergeClusters(clusterDetails: ClusterDetails) {
+    // TODO: Only merge records above weight of 24
     val matchedRecordsClusters: List<PersonKeyEntity> =
       clusterDetails.matchedRecords
         .collectDistinctClusters()

@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
-import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService.Companion.THRESHOLD_WEIGHT
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -112,7 +111,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
       val person = personRepository.findByMatchId(searchingRecord.matchId)!!
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(person)
+      val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(person)
 
       noCandidateFound(highConfidenceMatch)
     }
@@ -132,7 +131,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
       val person = personRepository.findByMatchId(searchingRecord.matchId)!!
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(person)
+      val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(person)
 
       noCandidateFound(highConfidenceMatch)
     }
@@ -144,7 +143,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
+      val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(searchingRecord)
       assertThat(highConfidenceMatch?.matchId).isEqualTo(foundRecord.matchId)
     }
 
@@ -155,7 +154,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
+      val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(searchingRecord)
       assertThat(highConfidenceMatch?.matchId).isEqualTo(foundRecord.matchId)
     }
 
@@ -174,7 +173,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         results = foundRecords.map { it.matchId },
       )
 
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
+      val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(searchingRecord)
       assertThat(highConfidenceMatch?.matchId).isEqualTo(foundRecords[0].matchId)
     }
 
@@ -188,7 +187,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         matchedRecord = lowConfidenceRecord.matchId,
       )
 
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
+      val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(searchingRecord)
 
       noCandidateFound(highConfidenceMatch)
     }
@@ -200,7 +199,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
+      val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(searchingRecord)
 
       noCandidateFound(highConfidenceMatch)
     }
@@ -221,7 +220,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
+      val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(searchingRecord)
 
       noCandidateFound(highConfidenceMatch)
     }
@@ -232,7 +231,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       stubOnePersonMatchHighConfidenceMatch(matchId = record.matchId, matchedRecord = record.matchId)
 
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(record)
+      val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(record)
 
       noCandidateFound(highConfidenceMatch)
     }
@@ -247,7 +246,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = excludedRecord.matchId)
 
       val person = personRepository.findByMatchId(searchingRecord.matchId)!!
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(person)
+      val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(person)
 
       noCandidateFound(highConfidenceMatch)
     }
@@ -271,7 +270,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       )
 
       val person = personRepository.findByMatchId(searchingRecord.matchId)!!
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(person)
+      val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(person)
 
       noCandidateFound(highConfidenceMatch)
     }
@@ -288,15 +287,15 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         personMatchResponse = listOf(
           PersonMatchScore(
             candidateMatchId = highScoringRecordOne.matchId.toString(),
-            candidateMatchWeight = THRESHOLD_WEIGHT,
+            candidateMatchWeight = JOIN_THRESHOLD - 1,
             candidateMatchProbability = 0.9999F,
             candidateShouldJoin = true,
             candidateShouldFracture = false,
           ),
           PersonMatchScore(
             candidateMatchId = highScoringRecordTwo.matchId.toString(),
-            candidateMatchWeight = THRESHOLD_WEIGHT,
-            candidateMatchProbability = 0.9999999F,
+            candidateMatchWeight = JOIN_THRESHOLD + 1,
+            candidateMatchProbability = 0.9999F,
             candidateShouldJoin = true,
             candidateShouldFracture = false,
           ),
@@ -304,7 +303,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         ),
       )
 
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
+      val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(searchingRecord)
 
       assertThat(highConfidenceMatch?.matchId).isEqualTo(highScoringRecordTwo.matchId)
     }
@@ -325,7 +324,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
+      val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(searchingRecord)
 
       noCandidateFound(highConfidenceMatch)
     }
@@ -342,7 +341,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
+      val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(searchingRecord)
 
       noCandidateFound(highConfidenceMatch)
     }
@@ -373,30 +372,39 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         createPerson(createExamplePerson(), personKeyEntity = cluster3),
       )
 
-      val highScoringResults = (cluster1Records + cluster2Records).map {
+      val aboveJoinThresholdResults = cluster1Records.map {
         PersonMatchScore(
           candidateMatchId = it.matchId.toString(),
-          candidateMatchWeight = THRESHOLD_WEIGHT + 1F,
+          candidateMatchWeight = JOIN_THRESHOLD + 1F,
           candidateMatchProbability = 0.9999F,
           candidateShouldJoin = true,
           candidateShouldFracture = false,
         )
       }
-      val lowScoringResults = cluster3Records.map {
+      val belowJoinThresholdResults = cluster2Records.map {
         PersonMatchScore(
           candidateMatchId = it.matchId.toString(),
-          candidateMatchWeight = THRESHOLD_WEIGHT - 1F,
-          candidateMatchProbability = 0.5677F,
+          candidateMatchWeight = JOIN_THRESHOLD - 1F,
+          candidateMatchProbability = 0.9999F,
           candidateShouldJoin = false,
           candidateShouldFracture = false,
         )
       }
+      val belowFractureThresholdResults = cluster3Records.map {
+        PersonMatchScore(
+          candidateMatchId = it.matchId.toString(),
+          candidateMatchWeight = FRACTURE_THRESHOLD - 1F,
+          candidateMatchProbability = 0.5677F,
+          candidateShouldJoin = false,
+          candidateShouldFracture = true,
+        )
+      }
       stubPersonMatchScores(
         matchId = searchingRecord.matchId,
-        personMatchResponse = highScoringResults + lowScoringResults,
+        personMatchResponse = aboveJoinThresholdResults + belowJoinThresholdResults + belowFractureThresholdResults
       )
 
-      val highConfidenceMatch = personMatchService.findHighestConfidencePersonRecord(searchingRecord)
+      val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(searchingRecord)
 
       assertThat(highConfidenceMatch?.matchId).isNotNull()
 
@@ -407,8 +415,9 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
           "SOURCE_SYSTEM" to LIBRA.name,
           "RECORD_COUNT" to "6",
           "UUID_COUNT" to "2",
-          "HIGH_CONFIDENCE_COUNT" to "4",
-          "LOW_CONFIDENCE_COUNT" to "2",
+          "ABOVE_JOIN_THRESHOLD_COUNT" to "2",
+          "ABOVE_FRACTURE_THRESHOLD_COUNT" to "2",
+          "BELOW_FRACTURE_THRESHOLD_COUNT" to "2",
         ),
       )
     }

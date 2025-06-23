@@ -55,7 +55,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService.Companion.THRESHOLD_WEIGHT
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -274,7 +273,7 @@ class IntegrationTestBase {
     personMatchResponse = listOf(
       PersonMatchScore(
         candidateMatchId = matchedRecord.toString(),
-        candidateMatchWeight = THRESHOLD_WEIGHT - 1F,
+        candidateMatchWeight = JOIN_THRESHOLD - 1F,
         candidateMatchProbability = 0.988899F,
         candidateShouldFracture = false,
         candidateShouldJoin = false,
@@ -287,7 +286,7 @@ class IntegrationTestBase {
     personMatchResponse = List(results.size) { index ->
       PersonMatchScore(
         candidateMatchId = results[index].toString(),
-        candidateMatchWeight = THRESHOLD_WEIGHT + 1F,
+        candidateMatchWeight = JOIN_THRESHOLD + 1F,
         candidateMatchProbability = 0.999999F,
         candidateShouldFracture = false,
         candidateShouldJoin = true,
@@ -528,5 +527,8 @@ class IntegrationTestBase {
       .options(wireMockConfig().port(8090))
       .failOnUnmatchedRequests(true)
       .build()
+
+    internal const val JOIN_THRESHOLD = 24F
+    internal const val FRACTURE_THRESHOLD = 18F
   }
 }
