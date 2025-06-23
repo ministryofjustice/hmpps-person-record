@@ -14,6 +14,7 @@ class SecurityConfiguration {
         "/queue-admin/retry-all-dlqs",
         "/jobs/recordcountreport",
         "/admin/recluster",
+        "/admin/delete",
       )
     }
   }
