@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 
-class AdminApiIntTest : WebTestBase() {
+class ReclusterApiIntTest : WebTestBase() {
 
   @Nested
   inner class MissingRecord {
