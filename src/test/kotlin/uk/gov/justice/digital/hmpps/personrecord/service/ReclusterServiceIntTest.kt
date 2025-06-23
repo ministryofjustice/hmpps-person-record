@@ -3,9 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CircularMergeException
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -493,9 +491,10 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       val updatedCluster2 = personKeyRepository.findByPersonUUID(cluster2.personUUID)!!
       updatedCluster2.addPerson(personC)
-      stubOnePersonMatchHighConfidenceMatch(personC.matchId, personB.matchId)
 
-      assertThrows<CircularMergeException> { reclusterService.recluster(updatedCluster2, changedRecord = personC) }
+      reclusterService.recluster(updatedCluster2, changedRecord = personC)
+
+      // does nothing as cluster set for re-clustering is RECLUSTER_MERGE
       cluster1.assertClusterIsOfSize(2)
       updatedCluster2.assertClusterIsOfSize(1)
       updatedCluster2.assertMergedTo(cluster1)

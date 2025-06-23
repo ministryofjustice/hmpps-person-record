@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyFound
@@ -34,21 +33,17 @@ class PersonKeyService(
     return personEntity
   }
 
-  fun clusterNeedsAttentionAndIsInvalid(cluster: PersonKeyEntity?): Boolean = cluster?.let { it.isNeedsAttention() && personMatchService.examineIsClusterValid(cluster).isClusterValid.not() } == true
+  fun clusterIsNeedsAttentionAndCanBecomeActive(cluster: PersonKeyEntity): Boolean = cluster.isNeedsAttention() && personMatchService.examineIsClusterValid(cluster).isClusterValid
 
-  fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity?, changedRecord: PersonEntity) {
-    if (personKeyEntity?.isNeedsAttention() == true) {
-      personKeyEntity.status = ACTIVE
-      personKeyRepository.save(personKeyEntity)
-      publisher.publishEvent(
-        RecordEventLog(
-          CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE,
-          changedRecord,
-          personKeyEntity,
-        ),
-      )
-    }
+  fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity, changedRecord: PersonEntity) {
+    personKeyEntity.status = ACTIVE
+    personKeyRepository.save(personKeyEntity)
+    publisher.publishEvent(
+      RecordEventLog(
+        CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE,
+        changedRecord,
+        personKeyEntity,
+      ),
+    )
   }
-
-  private fun PersonKeyEntity.isNeedsAttention(): Boolean = this.status == NEEDS_ATTENTION
 }
