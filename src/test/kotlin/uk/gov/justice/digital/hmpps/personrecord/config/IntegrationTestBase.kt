@@ -276,6 +276,8 @@ class IntegrationTestBase {
         candidateMatchId = matchedRecord.toString(),
         candidateMatchWeight = THRESHOLD_WEIGHT - 1F,
         candidateMatchProbability = 0.988899F,
+        candidateShouldFracture = false,
+        candidateShouldJoin = false,
       ),
     ),
   )
@@ -287,6 +289,8 @@ class IntegrationTestBase {
         candidateMatchId = results[index].toString(),
         candidateMatchWeight = THRESHOLD_WEIGHT + 1F,
         candidateMatchProbability = 0.999999F,
+        candidateShouldFracture = false,
+        candidateShouldJoin = true,
       )
     },
   )

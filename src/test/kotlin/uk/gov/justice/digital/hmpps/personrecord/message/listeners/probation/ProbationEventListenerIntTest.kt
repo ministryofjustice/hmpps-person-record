@@ -351,7 +351,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val crn = randomCrn()
     stubPersonMatchUpsert()
     val matchIdWhichExistsInPersonMatchButNotInCPR = UUID.randomUUID().toString()
-    val highConfidenceMatchWhichDoesNotExistInCPR = PersonMatchScore(matchIdWhichExistsInPersonMatchButNotInCPR, 0.99999F, 0.9999F)
+    val highConfidenceMatchWhichDoesNotExistInCPR = PersonMatchScore(matchIdWhichExistsInPersonMatchButNotInCPR, 0.99999F, 24F, candidateShouldJoin = true, candidateShouldFracture = false)
     stubPersonMatchScores(personMatchResponse = listOf(highConfidenceMatchWhichDoesNotExistInCPR))
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn))
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
