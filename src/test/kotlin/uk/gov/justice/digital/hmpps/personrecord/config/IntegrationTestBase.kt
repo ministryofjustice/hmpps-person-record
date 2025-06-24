@@ -263,19 +263,19 @@ class IntegrationTestBase {
 
   internal fun stubNoMatchesPersonMatch(matchId: UUID? = null) = stubPersonMatchScores(matchId = matchId, personMatchResponse = emptyList())
 
-  internal fun stubOnePersonMatchAboveJoinThresholdMatch(matchId: UUID? = null, matchedRecord: UUID) = stubXPersonMatchHighConfidenceMatches(
+  internal fun stubOnePersonMatchAboveJoinThreshold(matchId: UUID? = null, matchedRecord: UUID) = stubXPersonMatchHighThresholdMatches(
     matchId = matchId,
     aboveJoin = listOf(matchedRecord),
     aboveFracture = emptyList(),
   )
 
-  internal fun stubOnePersonMatchAboveFractureThresholdMatch(matchId: UUID? = null, matchedRecord: UUID) = stubXPersonMatchHighConfidenceMatches(
+  internal fun stubOnePersonMatchAboveFractureThreshold(matchId: UUID? = null, matchedRecord: UUID) = stubXPersonMatchHighThresholdMatches(
     matchId = matchId,
     aboveJoin = emptyList(),
     aboveFracture = listOf(matchedRecord),
   )
 
-  internal fun stubOnePersonMatchBelowFractureThresholdMatch(matchId: UUID? = null, matchedRecord: UUID) = stubPersonMatchScores(
+  internal fun stubOnePersonMatchBelowFractureThreshold(matchId: UUID? = null, matchedRecord: UUID) = stubPersonMatchScores(
     matchId = matchId,
     personMatchResponse = listOf(
       PersonMatchScore(
@@ -288,7 +288,7 @@ class IntegrationTestBase {
     ),
   )
 
-  internal fun stubXPersonMatchHighConfidenceMatches(matchId: UUID? = null, aboveJoin: List<UUID> = emptyList(), aboveFracture: List<UUID> = emptyList()) = stubPersonMatchScores(
+  internal fun stubXPersonMatchHighThresholdMatches(matchId: UUID? = null, aboveJoin: List<UUID> = emptyList(), aboveFracture: List<UUID> = emptyList()) = stubPersonMatchScores(
     matchId = matchId,
     personMatchResponse = List(aboveJoin.size) { index ->
       PersonMatchScore(

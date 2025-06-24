@@ -166,7 +166,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val existingPerson = createPerson(personFromProbation, personKeyEntity = personKeyEntity)
 
     stubPersonMatchUpsert()
-    stubOnePersonMatchAboveJoinThresholdMatch(matchedRecord = existingPerson.matchId)
+    stubOnePersonMatchAboveJoinThreshold(matchedRecord = existingPerson.matchId)
 
     publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = ""))
 
