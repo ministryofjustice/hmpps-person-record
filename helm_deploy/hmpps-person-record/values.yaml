@@ -38,7 +38,7 @@ generic-service:
           deny all;
           return 401;
         }
-        location /admin/recluster {
+        location /admin/** {
           deny all;
           return 401;
         }
