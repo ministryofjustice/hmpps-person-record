@@ -20,16 +20,16 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @RestController
 class ReclusterController(
-    private val reclusterService: ReclusterService,
-    private val personRepository: PersonRepository,
-    private val personMatchService: PersonMatchService,
-    private val publisher: ApplicationEventPublisher,
+  private val reclusterService: ReclusterService,
+  private val personRepository: PersonRepository,
+  private val personMatchService: PersonMatchService,
+  private val publisher: ApplicationEventPublisher,
 ) {
 
   @Hidden
   @PostMapping("/admin/recluster")
   suspend fun postRecluster(
-      @RequestBody adminReclusterRecords: List<AdminReclusterRecord>,
+    @RequestBody adminReclusterRecords: List<AdminReclusterRecord>,
   ) {
     CoroutineScope(Dispatchers.Default).launch {
       log.info("$RECLUSTER_PROCESS_PREFIX Triggered. Number of records: ${adminReclusterRecords.size}.")

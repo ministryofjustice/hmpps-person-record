@@ -27,7 +27,7 @@ class DeleteController(
           personRepository.findByCrn(r.sourceSystemId)
         }
       } catch (e: PersonToDeleteNotFoundException) {
-        log.error("Could not find person to delete with crn ${r.sourceSystemId}")
+        log.error("Could not find person to delete with crn ${r.sourceSystemId} - ${e.message}")
       }
     }
   }
