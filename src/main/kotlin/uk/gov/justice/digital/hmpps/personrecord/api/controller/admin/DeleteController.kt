@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminDeleteRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.message.DeletionService
-import uk.gov.justice.digital.hmpps.personrecord.service.message.PersonToDeleteNotFoundException
 
 @RestController
 class DeleteController(
@@ -24,7 +23,7 @@ class DeleteController(
     records.forEach { r ->
       personRepository.findByCrn(r.sourceSystemId)?.let {
         deleteService.processDelete { it }
-      } ?:log.error("Could not find person to delete with crn ${r.sourceSystemId}")
+      } ?: log.error("Could not find person to delete with crn ${r.sourceSystemId}")
     }
   }
 
