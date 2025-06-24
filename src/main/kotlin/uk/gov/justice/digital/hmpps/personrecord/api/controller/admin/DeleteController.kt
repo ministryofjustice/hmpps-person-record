@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.admin
 
 import io.swagger.v3.oas.annotations.Hidden
 import kotlinx.coroutines.CoroutineScope
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class AdminDeleteController(
+class DeleteController(
 ) {
 
   @Hidden
@@ -22,6 +22,6 @@ class AdminDeleteController(
   }
 
   companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
+//    private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
