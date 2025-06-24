@@ -22,10 +22,7 @@ class DeletionService(
   @Transactional
   fun processDelete(personCallback: () -> PersonEntity?) = fetchRecordAndDelete(personCallback)
 
-  private fun fetchRecordAndDelete(personCallback: () -> PersonEntity?) {
-    val person = personCallback() ?: throw PersonToDeleteNotFoundException("Could not find person to delete")
-    handleDeletion(person)
-  }
+  private fun fetchRecordAndDelete(personCallback: () -> PersonEntity?) = personCallback()?.let { handleDeletion(it) }
 
   private fun handleDeletion(personEntity: PersonEntity) {
     handlePersonKeyDeletion(personEntity)

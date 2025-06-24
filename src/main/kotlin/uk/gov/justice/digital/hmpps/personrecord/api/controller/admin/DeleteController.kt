@@ -22,13 +22,9 @@ class DeleteController(
     @RequestBody records: List<AdminDeleteRecord>,
   ) {
     records.forEach { r ->
-      try {
-        deleteService.processDelete {
-          personRepository.findByCrn(r.sourceSystemId)
-        }
-      } catch (e: PersonToDeleteNotFoundException) {
-        log.error("Could not find person to delete with crn ${r.sourceSystemId} - ${e.message}")
-      }
+      personRepository.findByCrn(r.sourceSystemId)?.let {
+        deleteService.processDelete { it }
+      } ?:log.error("Could not find person to delete with crn ${r.sourceSystemId}")
     }
   }
 
