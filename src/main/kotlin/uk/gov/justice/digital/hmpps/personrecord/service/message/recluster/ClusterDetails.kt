@@ -11,6 +11,8 @@ class ClusterDetails(
 ) {
 
   val matchedRecords: List<PersonEntity> = matchesToChangeRecord.map { it.personEntity }
+  val shouldJoinRecords: List<PersonEntity> = matchesToChangeRecord.filter { it.shouldJoin }.map { it.personEntity }
+
   private val existingRecordsInCluster: List<PersonEntity> = cluster.personEntities.filterNot { it.id == changedRecord.id }
 
   val relationship = ClusterRelationship(matchedRecords, existingRecordsInCluster)
