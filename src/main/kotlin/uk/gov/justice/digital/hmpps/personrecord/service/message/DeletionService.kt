@@ -33,9 +33,8 @@ class DeletionService(
 
   private fun handleMergedRecords(personEntity: PersonEntity) {
     personEntity.id?.let {
-      val mergedRecords: List<PersonEntity?> = personRepository.findByMergedTo(it)
-      mergedRecords.forEach { mergedRecord ->
-        fetchRecordAndDelete { mergedRecord }
+      personRepository.findByMergedTo(it).forEach {
+        fetchRecordAndDelete { it }
       }
     }
   }

@@ -7,8 +7,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
@@ -339,10 +337,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
     cluster.assertClusterIsOfSize(1)
   }
-
-  private fun PersonEntity.assertPersonDeleted() = awaitAssert { assertThat(personRepository.findByMatchId(this.matchId)).isNull() }
-
-  private fun PersonKeyEntity.assertPersonKeyDeleted() = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)).isNull() }
 
   private fun buildDomainEvent(crn: String, eventType: String = OFFENDER_DELETION): DomainEvent {
     val crnType = PersonIdentifier("CRN", crn)
