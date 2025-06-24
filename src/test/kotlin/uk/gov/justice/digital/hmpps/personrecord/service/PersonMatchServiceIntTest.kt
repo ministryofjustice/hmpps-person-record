@@ -108,7 +108,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       excludeRecord(overridesRecord, excludingRecord = searchingRecord)
 
-      stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
+      stubOnePersonMatchAboveJoinThresholdMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
       val person = personRepository.findByMatchId(searchingRecord.matchId)!!
       val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(person)
@@ -128,7 +128,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       excludeRecord(overridesRecord, excludingRecord = foundRecord)
 
-      stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
+      stubOnePersonMatchAboveJoinThresholdMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
       val person = personRepository.findByMatchId(searchingRecord.matchId)!!
       val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(person)
@@ -141,7 +141,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       val searchingRecord = createPerson(createExamplePerson())
       val foundRecord = createPersonWithNewKey(createExamplePerson())
 
-      stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
+      stubOnePersonMatchAboveJoinThresholdMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
       val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(searchingRecord)
       assertThat(highConfidenceMatch?.matchId).isEqualTo(foundRecord.matchId)
@@ -152,7 +152,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       val searchingRecord = createPersonWithNewKey(createExamplePerson())
       val foundRecord = createPersonWithNewKey(createExamplePerson())
 
-      stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
+      stubOnePersonMatchAboveJoinThresholdMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
       val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(searchingRecord)
       assertThat(highConfidenceMatch?.matchId).isEqualTo(foundRecord.matchId)
@@ -182,7 +182,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       val searchingRecord = createPersonWithNewKey(createExamplePerson())
       val lowConfidenceRecord = createPersonWithNewKey(createExamplePerson())
 
-      stubOnePersonMatchLowConfidenceMatch(
+      stubOnePersonMatchBelowFractureThresholdMatch(
         matchId = searchingRecord.matchId,
         matchedRecord = lowConfidenceRecord.matchId,
       )
@@ -197,7 +197,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       val searchingRecord = createPerson(createExamplePerson())
       val foundRecord = createPerson(createExamplePerson())
 
-      stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
+      stubOnePersonMatchAboveJoinThresholdMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
       val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(searchingRecord)
 
@@ -218,7 +218,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       mergeRecord(sourcePersonEntity = foundRecord, targetPersonEntity = mergedToRecord)
 
-      stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
+      stubOnePersonMatchAboveJoinThresholdMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
       val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(searchingRecord)
 
@@ -229,7 +229,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
     fun `should not return its self if person match sends it back`() {
       val record = createPersonWithNewKey(createExamplePerson())
 
-      stubOnePersonMatchHighConfidenceMatch(matchId = record.matchId, matchedRecord = record.matchId)
+      stubOnePersonMatchAboveJoinThresholdMatch(matchId = record.matchId, matchedRecord = record.matchId)
 
       val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(record)
 
@@ -243,7 +243,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       excludeRecord(searchingRecord, excludingRecord = excludedRecord)
 
-      stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = excludedRecord.matchId)
+      stubOnePersonMatchAboveJoinThresholdMatch(matchId = searchingRecord.matchId, matchedRecord = excludedRecord.matchId)
 
       val person = personRepository.findByMatchId(searchingRecord.matchId)!!
       val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(person)
@@ -322,7 +322,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       createPersonKey(UUIDStatusType.RECLUSTER_MERGE)
         .addPerson(foundRecord)
 
-      stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
+      stubOnePersonMatchAboveJoinThresholdMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
       val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(searchingRecord)
 
@@ -339,7 +339,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       createPersonKey(UUIDStatusType.MERGED)
         .addPerson(foundRecord)
 
-      stubOnePersonMatchHighConfidenceMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
+      stubOnePersonMatchAboveJoinThresholdMatch(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
       val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(searchingRecord)
 
@@ -401,7 +401,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       }
       stubPersonMatchScores(
         matchId = searchingRecord.matchId,
-        personMatchResponse = aboveJoinThresholdResults + belowJoinThresholdResults + belowFractureThresholdResults
+        personMatchResponse = aboveJoinThresholdResults + belowJoinThresholdResults + belowFractureThresholdResults,
       )
 
       val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(searchingRecord)

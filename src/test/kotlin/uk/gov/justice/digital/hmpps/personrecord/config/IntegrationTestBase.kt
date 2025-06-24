@@ -263,33 +263,48 @@ class IntegrationTestBase {
 
   internal fun stubNoMatchesPersonMatch(matchId: UUID? = null) = stubPersonMatchScores(matchId = matchId, personMatchResponse = emptyList())
 
-  internal fun stubOnePersonMatchHighConfidenceMatch(matchId: UUID? = null, matchedRecord: UUID) = stubXPersonMatchHighConfidenceMatches(
+  internal fun stubOnePersonMatchAboveJoinThresholdMatch(matchId: UUID? = null, matchedRecord: UUID) = stubXPersonMatchHighConfidenceMatches(
     matchId = matchId,
-    results = listOf(matchedRecord),
+    aboveJoin = listOf(matchedRecord),
+    aboveFracture = emptyList(),
   )
 
-  internal fun stubOnePersonMatchLowConfidenceMatch(matchId: UUID? = null, matchedRecord: UUID) = stubPersonMatchScores(
+  internal fun stubOnePersonMatchAboveFractureThresholdMatch(matchId: UUID? = null, matchedRecord: UUID) = stubXPersonMatchHighConfidenceMatches(
+    matchId = matchId,
+    aboveJoin = emptyList(),
+    aboveFracture = listOf(matchedRecord),
+  )
+
+  internal fun stubOnePersonMatchBelowFractureThresholdMatch(matchId: UUID? = null, matchedRecord: UUID) = stubPersonMatchScores(
     matchId = matchId,
     personMatchResponse = listOf(
       PersonMatchScore(
         candidateMatchId = matchedRecord.toString(),
-        candidateMatchWeight = JOIN_THRESHOLD - 1F,
+        candidateMatchWeight = FRACTURE_THRESHOLD - 1F,
         candidateMatchProbability = 0.988899F,
-        candidateShouldFracture = false,
+        candidateShouldFracture = true,
         candidateShouldJoin = false,
       ),
     ),
   )
 
-  internal fun stubXPersonMatchHighConfidenceMatches(matchId: UUID? = null, results: List<UUID>) = stubPersonMatchScores(
+  internal fun stubXPersonMatchHighConfidenceMatches(matchId: UUID? = null, aboveJoin: List<UUID>, aboveFracture: List<UUID>) = stubPersonMatchScores(
     matchId = matchId,
-    personMatchResponse = List(results.size) { index ->
+    personMatchResponse = List(aboveJoin.size) { index ->
       PersonMatchScore(
-        candidateMatchId = results[index].toString(),
+        candidateMatchId = aboveJoin[index].toString(),
         candidateMatchWeight = JOIN_THRESHOLD + 1F,
         candidateMatchProbability = 0.999999F,
         candidateShouldFracture = false,
         candidateShouldJoin = true,
+      )
+    } + List(aboveFracture.size) { index ->
+      PersonMatchScore(
+        candidateMatchId = aboveFracture[index].toString(),
+        candidateMatchWeight = FRACTURE_THRESHOLD + 1F,
+        candidateMatchProbability = 0.999999F,
+        candidateShouldFracture = false,
+        candidateShouldJoin = false,
       )
     },
   )

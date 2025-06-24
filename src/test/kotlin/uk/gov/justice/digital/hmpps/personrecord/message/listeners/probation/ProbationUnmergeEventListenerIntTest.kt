@@ -275,7 +275,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val matchedPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
 
-      stubOnePersonMatchHighConfidenceMatch(matchId = reactivatedRecord.matchId, matchedRecord = matchedPerson.matchId)
+      stubOnePersonMatchAboveJoinThresholdMatch(matchId = reactivatedRecord.matchId, matchedRecord = matchedPerson.matchId)
       probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, mergedReactivatedRecord.crn!!, unmergedRecord.crn!!)
 
       checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to reactivatedRecord.crn!!))

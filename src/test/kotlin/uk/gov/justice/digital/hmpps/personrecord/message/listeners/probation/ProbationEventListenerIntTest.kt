@@ -181,7 +181,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val personKeyEntity = createPersonKey()
       val existingPerson = createPerson(existingPrisoner, personKeyEntity = personKeyEntity)
 
-      stubOnePersonMatchHighConfidenceMatch(matchedRecord = existingPerson.matchId)
+      stubOnePersonMatchAboveJoinThresholdMatch(matchedRecord = existingPerson.matchId)
 
       val apiResponse = ApiResponseSetup(
         crn = crn,
