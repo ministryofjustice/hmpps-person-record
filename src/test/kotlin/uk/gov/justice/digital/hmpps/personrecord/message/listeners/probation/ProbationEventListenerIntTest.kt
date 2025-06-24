@@ -181,7 +181,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val personKeyEntity = createPersonKey()
       val existingPerson = createPerson(existingPrisoner, personKeyEntity = personKeyEntity)
 
-      stubOnePersonMatchHighConfidenceMatch(matchedRecord = existingPerson.matchId)
+      stubOnePersonMatchAboveJoinThreshold(matchedRecord = existingPerson.matchId)
 
       val apiResponse = ApiResponseSetup(
         crn = crn,
@@ -200,8 +200,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
           "RECORD_COUNT" to "1",
           "UUID_COUNT" to "1",
           "CRN" to crn,
-          "HIGH_CONFIDENCE_COUNT" to "1",
-          "LOW_CONFIDENCE_COUNT" to "0",
+          "ABOVE_JOIN_THRESHOLD_COUNT" to "1",
+          "ABOVE_FRACTURE_THRESHOLD_COUNT" to "0",
+          "BELOW_FRACTURE_THRESHOLD_COUNT" to "0",
         ),
       )
       checkTelemetry(
