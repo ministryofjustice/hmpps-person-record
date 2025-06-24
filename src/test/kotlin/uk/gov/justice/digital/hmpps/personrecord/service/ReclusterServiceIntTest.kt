@@ -104,7 +104,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster`() {
+    fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster above the join threshold`() {
       val recordA = createPerson(createRandomProbationPersonDetails())
       val matchesA = createPerson(createRandomProbationPersonDetails())
       val doesNotMatch = createPerson(createRandomProbationPersonDetails())
@@ -114,7 +114,26 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(doesNotMatch)
 
       stubPersonMatchUpsert()
-      stubXPersonMatchHighThresholdMatches(matchId = doesNotMatch.matchId, aboveJoin = listOf(matchesA.matchId, recordA.matchId))
+      stubXPersonMatches(matchId = doesNotMatch.matchId, aboveJoin = listOf(matchesA.matchId, recordA.matchId))
+      stubClusterIsValid()
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
+
+      cluster.assertClusterIsOfSize(3)
+      cluster.assertClusterStatus(ACTIVE)
+    }
+
+    @Test
+    fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster above the fracture threshold`() {
+      val recordA = createPerson(createRandomProbationPersonDetails())
+      val matchesA = createPerson(createRandomProbationPersonDetails())
+      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey(status = NEEDS_ATTENTION)
+        .addPerson(recordA)
+        .addPerson(matchesA)
+        .addPerson(doesNotMatch)
+
+      stubPersonMatchUpsert()
+      stubXPersonMatches(matchId = doesNotMatch.matchId, aboveFracture = listOf(matchesA.matchId, recordA.matchId))
       stubClusterIsValid()
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
 
@@ -134,7 +153,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(doesNotMatch)
 
       stubPersonMatchUpsert()
-      stubXPersonMatchHighThresholdMatches(matchId = doesNotMatch.matchId, aboveJoin = listOf(matchesA.matchId, recordA.matchId, recordToJoinCluster.matchId))
+      stubXPersonMatches(matchId = doesNotMatch.matchId, aboveJoin = listOf(matchesA.matchId, recordA.matchId, recordToJoinCluster.matchId))
       stubClusterIsValid()
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
 
@@ -187,7 +206,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       excludeRecord(personA, personC)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -216,7 +235,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       excludeRecord(personB, personC)
 
       stubPersonMatchUpsert()
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -245,7 +264,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       excludeRecord(personA, personB)
       excludeRecord(personA, personC)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -273,7 +292,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should do nothing when match return same items from cluster with multiple records`() {
+    fun `should do nothing when match return same items from cluster with multiple records which are above join threshold`() {
       val personA = createPerson(createRandomProbationPersonDetails())
       val personB = createPerson(createRandomProbationPersonDetails())
       val cluster = createPersonKey()
@@ -285,6 +304,42 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       reclusterService.recluster(cluster, changedRecord = personA)
 
       cluster.assertClusterNotChanged(size = 2)
+    }
+
+    @Test
+    fun `should do nothing when match return same items from cluster with multiple records which are above fracture threshold`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+
+      stubOnePersonMatchAboveFractureThreshold(matchId = personA.matchId, matchedRecord = personB.matchId)
+
+      reclusterService.recluster(cluster, changedRecord = personA)
+
+      cluster.assertClusterNotChanged(size = 2)
+    }
+
+    @Test
+    fun `should do nothing when match return same items from cluster with multiple records above join and above fracture`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      stubXPersonMatches(
+        matchId = personA.matchId,
+        aboveJoin = listOf(personB.matchId),
+        aboveFracture = listOf(personC.matchId),
+      )
+
+      reclusterService.recluster(cluster, changedRecord = personA)
+
+      cluster.assertClusterNotChanged(size = 3)
     }
 
     @Test
@@ -301,7 +356,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personD)
         .addPerson(personE)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -333,6 +388,31 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       cluster.assertClusterNotChanged(size = 3)
     }
+
+    @Test
+    fun `should do nothing when cluster is valid but matches to other clusters below the join threshold`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster2 = createPersonKey()
+        .addPerson(personC)
+
+      stubXPersonMatches(
+        matchId = personA.matchId,
+        aboveFracture = listOf(personB.matchId, personC.matchId),
+      )
+
+      reclusterService.recluster(cluster1, changedRecord = personA)
+
+      cluster1.assertClusterNotChanged(size = 2)
+      cluster2.assertClusterNotChanged(size = 1)
+
+      cluster2.assertNotMergedTo(cluster1)
+    }
   }
 
   @Nested
@@ -350,6 +430,28 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubClusterIsNotValid()
       stubOnePersonMatchAboveJoinThreshold(matchId = personA.matchId, matchedRecord = personB.matchId)
+
+      reclusterService.recluster(cluster, changedRecord = personA)
+
+      checkTelemetry(
+        CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
+        mapOf("UUID" to cluster.personUUID.toString()),
+      )
+      cluster.assertClusterStatus(NEEDS_ATTENTION)
+    }
+
+    @Test
+    fun `should mark as need attention when only matches one above fracture threshold cluster with multiple records`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      stubClusterIsNotValid()
+      stubXPersonMatches(matchId = personA.matchId, aboveFracture = listOf(personB.matchId), belowFracture = listOf(personC.matchId))
 
       reclusterService.recluster(cluster, changedRecord = personA)
 
@@ -446,7 +548,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val cluster2 = createPersonKey()
         .addPerson(personC)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -467,7 +569,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should merge clusters when record in a cluster only match above fracture threshold`() {
+    fun `should merge clusters when record in a cluster only match above fracture threshold and match another cluster above join`() {
       val personA = createPerson(createRandomProbationPersonDetails())
       val personB = createPerson(createRandomProbationPersonDetails())
       val cluster1 = createPersonKey()
@@ -478,14 +580,14 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val cluster2 = createPersonKey()
         .addPerson(personC)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personC.matchId,
         ),
         aboveFracture = listOf(
           personB.matchId,
-        )
+        ),
       )
 
       reclusterService.recluster(cluster1, changedRecord = personA)
@@ -550,7 +652,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personC)
         .addPerson(personD)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -584,7 +686,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val cluster3 = createPersonKey()
         .addPerson(personC)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -622,7 +724,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personC)
         .addPerson(personD)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -663,7 +765,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personE)
         .addPerson(personF)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -707,7 +809,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       excludeRecord(personB, personD)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -754,7 +856,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       excludeRecord(personD, personE)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -790,7 +892,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val cluster2 = createPersonKey(NEEDS_ATTENTION)
         .addPerson(personB)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -820,7 +922,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val cluster3 = createPersonKey()
         .addPerson(personC)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -857,7 +959,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personD)
 
       stubClusterIsValid()
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personC.matchId,
@@ -896,7 +998,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personE)
 
       stubClusterIsValid()
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personC.matchId,
@@ -933,7 +1035,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val cluster2 = createPersonKey(UUIDStatusType.RECLUSTER_MERGE)
         .addPerson(personB)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -959,7 +1061,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val cluster2 = createPersonKey(UUIDStatusType.MERGED)
         .addPerson(personB)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -998,7 +1100,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       excludeRecord(personB, personD)
       val updatedPersonA = personRepository.findByMatchId(personA.matchId)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -1034,7 +1136,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       excludeRecord(personA, personC)
       excludeRecord(personB, personC)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -1073,7 +1175,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       excludeRecord(personB, personD)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -1121,7 +1223,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       excludeRecord(personB, personC)
       excludeRecord(personC, personD)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -1166,7 +1268,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personC)
         .addPerson(personD)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
           personB.matchId,
@@ -1226,7 +1328,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubPersonMatchUpsert()
       stubClusterIsValid()
-      stubXPersonMatchHighThresholdMatches(matchId = personA.matchId, aboveJoin = listOf(personB.matchId, personC.matchId))
+      stubXPersonMatches(matchId = personA.matchId, aboveJoin = listOf(personB.matchId, personC.matchId))
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = personA.crn))
 
       cluster.assertClusterStatus(ACTIVE)

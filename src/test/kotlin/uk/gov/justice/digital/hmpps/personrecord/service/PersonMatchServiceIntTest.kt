@@ -168,7 +168,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         createPersonWithNewKey(createExamplePerson()),
       )
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = searchingRecord.matchId,
         aboveJoin = foundRecords.map { it.matchId },
       )
@@ -261,7 +261,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       excludeRecord(searchingRecord, excludingRecord = excludedRecord)
 
-      stubXPersonMatchHighThresholdMatches(
+      stubXPersonMatches(
         matchId = searchingRecord.matchId,
         aboveJoin = listOf(
           excludedRecord.matchId,
