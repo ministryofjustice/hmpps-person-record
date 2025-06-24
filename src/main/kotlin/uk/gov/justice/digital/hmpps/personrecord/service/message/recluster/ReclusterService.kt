@@ -59,13 +59,11 @@ class ReclusterService(
   }
 
   private fun handleMergeClusters(clusterDetails: ClusterDetails) {
-    // TODO: Only merge records above weight of 24
     val matchedRecordsClusters: List<PersonKeyEntity> =
-      clusterDetails.matchedRecords
+      clusterDetails.shouldJoinRecords
         .collectDistinctClusters()
         .removeUpdatedCluster(cluster = clusterDetails.cluster)
         .getActiveClusters()
-
     when {
       hasExcludeMarkerBetweenClusters(matchedRecordsClusters) -> handleExclusionsBetweenMatchedClusters(clusterDetails)
       else -> matchedRecordsClusters.forEach {

@@ -113,7 +113,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(doesNotMatch)
 
       stubPersonMatchUpsert()
-      stubXPersonMatchHighConfidenceMatches(matchId = doesNotMatch.matchId, results = listOf(matchesA.matchId, recordA.matchId))
+      stubXPersonMatchHighConfidenceMatches(matchId = doesNotMatch.matchId, aboveJoin = listOf(matchesA.matchId, recordA.matchId))
       stubClusterIsValid()
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
 
@@ -133,7 +133,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(doesNotMatch)
 
       stubPersonMatchUpsert()
-      stubXPersonMatchHighConfidenceMatches(matchId = doesNotMatch.matchId, results = listOf(matchesA.matchId, recordA.matchId, recordToJoinCluster.matchId))
+      stubXPersonMatchHighConfidenceMatches(matchId = doesNotMatch.matchId, aboveJoin = listOf(matchesA.matchId, recordA.matchId, recordToJoinCluster.matchId))
       stubClusterIsValid()
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
 
@@ -188,7 +188,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
           personC.matchId,
         ),
@@ -217,7 +217,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       stubPersonMatchUpsert()
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
           personC.matchId,
         ),
@@ -246,7 +246,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
           personC.matchId,
         ),
@@ -302,7 +302,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
           personC.matchId,
           personD.matchId,
@@ -447,7 +447,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
           personC.matchId,
         ),
@@ -517,7 +517,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
           personC.matchId,
         ),
@@ -551,7 +551,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
           personC.matchId,
         ),
@@ -589,7 +589,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
           personC.matchId,
           personD.matchId,
@@ -630,7 +630,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
           personE.matchId,
         ),
@@ -674,7 +674,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
           personC.matchId,
         ),
@@ -721,7 +721,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
           personC.matchId,
         ),
@@ -757,7 +757,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
         ),
       )
@@ -787,7 +787,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
           personC.matchId,
         ),
@@ -824,7 +824,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       stubClusterIsValid()
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personC.matchId,
           personD.matchId,
         ),
@@ -863,7 +863,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       stubClusterIsValid()
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personC.matchId,
           personD.matchId,
           personE.matchId,
@@ -900,7 +900,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
         ),
       )
@@ -926,7 +926,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
         ),
       )
@@ -965,7 +965,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
           personC.matchId,
           personD.matchId,
@@ -1001,7 +1001,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
           personC.matchId,
         ),
@@ -1040,7 +1040,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
           personC.matchId,
           personD.matchId,
@@ -1088,7 +1088,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
           personC.matchId,
           personD.matchId,
@@ -1133,7 +1133,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = personA.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           personB.matchId,
           personC.matchId,
           personD.matchId,
@@ -1191,7 +1191,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubPersonMatchUpsert()
       stubClusterIsValid()
-      stubXPersonMatchHighConfidenceMatches(matchId = personA.matchId, results = listOf(personB.matchId, personC.matchId))
+      stubXPersonMatchHighConfidenceMatches(matchId = personA.matchId, aboveJoin = listOf(personB.matchId, personC.matchId))
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = personA.crn))
 
       cluster.assertClusterStatus(ACTIVE)

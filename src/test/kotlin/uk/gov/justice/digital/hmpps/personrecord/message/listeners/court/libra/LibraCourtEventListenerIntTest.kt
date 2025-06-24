@@ -175,8 +175,9 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
         "RECORD_COUNT" to "1",
-        "HIGH_CONFIDENCE_COUNT" to "1",
-        "LOW_CONFIDENCE_COUNT" to "0",
+        "ABOVE_JOIN_THRESHOLD_COUNT" to "1",
+        "ABOVE_FRACTURE_THRESHOLD_COUNT" to "0",
+        "BELOW_FRACTURE_THRESHOLD_COUNT" to "0",
         "C_ID" to cId,
       ),
     )

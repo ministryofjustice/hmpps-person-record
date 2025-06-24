@@ -288,7 +288,7 @@ class IntegrationTestBase {
     ),
   )
 
-  internal fun stubXPersonMatchHighConfidenceMatches(matchId: UUID? = null, aboveJoin: List<UUID>, aboveFracture: List<UUID>) = stubPersonMatchScores(
+  internal fun stubXPersonMatchHighConfidenceMatches(matchId: UUID? = null, aboveJoin: List<UUID> = emptyList(), aboveFracture: List<UUID> = emptyList()) = stubPersonMatchScores(
     matchId = matchId,
     personMatchResponse = List(aboveJoin.size) { index ->
       PersonMatchScore(

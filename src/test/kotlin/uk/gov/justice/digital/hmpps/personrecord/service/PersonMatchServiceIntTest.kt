@@ -170,7 +170,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = searchingRecord.matchId,
-        results = foundRecords.map { it.matchId },
+        aboveJoin = foundRecords.map { it.matchId },
       )
 
       val highConfidenceMatch = personMatchService.findHighestMatchThatPersonRecordCanJoin(searchingRecord)
@@ -263,7 +263,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       stubXPersonMatchHighConfidenceMatches(
         matchId = searchingRecord.matchId,
-        results = listOf(
+        aboveJoin = listOf(
           excludedRecord.matchId,
           matchRecordOnSameCluster.matchId,
         ),
