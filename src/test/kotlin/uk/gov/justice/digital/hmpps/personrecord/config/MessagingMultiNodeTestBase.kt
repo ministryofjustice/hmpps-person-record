@@ -246,8 +246,8 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
       eventType,
       DomainEvent(
         eventType = eventType,
+        personReference = PersonReference(listOf(PersonIdentifier("NOMS", targetPrisonNumber))),
         additionalInformation = AdditionalInformation(
-          prisonNumber = targetPrisonNumber,
           sourcePrisonNumber = sourcePrisonNumber,
         ),
       ),
