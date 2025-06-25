@@ -1,9 +1,6 @@
 person-match:
   base-url: https://hmpps-person-match-dev.hmpps.service.justice.gov.uk
 
-match-score:
-  base-url: https://hmpps-person-match-score-dev.hmpps.service.justice.gov.uk
-
 nomis-oauth:
   base-url: https://sign-in-dev.hmpps.service.justice.gov.uk
 
