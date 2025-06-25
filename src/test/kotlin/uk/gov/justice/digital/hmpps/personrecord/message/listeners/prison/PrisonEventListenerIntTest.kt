@@ -253,6 +253,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
       checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
+
+      awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumber) }
     }
 
     @Test

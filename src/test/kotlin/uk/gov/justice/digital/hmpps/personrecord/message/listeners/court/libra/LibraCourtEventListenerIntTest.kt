@@ -282,6 +282,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
     checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_CREATED)
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
+
+    awaitNotNullPerson { personRepository.findByCId(cId) }
   }
 
   @Nested

@@ -331,6 +331,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId))
     checkEventLogExist(defendantId, CPRLogEvents.CPR_RECORD_CREATED)
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId))
+
+    awaitNotNullPerson { personRepository.findByDefendantId(defendantId) }
   }
 
   @Test
