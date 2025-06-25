@@ -221,6 +221,21 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
+    fun `should not link a new probation record to a cluster if its not above the join threshold`() {
+      val crn = randomCrn()
+
+      val existingPerson = createPersonWithNewKey(createRandomProbationPersonDetails(randomCrn()))
+
+      stubOnePersonMatchAboveFractureThreshold(matchedRecord = existingPerson.matchId)
+
+      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn))
+
+      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+      checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
+      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+    }
+
+    @Test
     fun `should write offender without PNC if PNC is missing`() {
       val crn = randomCrn()
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = null))

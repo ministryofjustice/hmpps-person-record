@@ -269,6 +269,21 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
+  @Test
+  fun `should not link a new defendant from libra to a cluster that is below the join threshold`() {
+    val cId = randomCId()
+    val existingPerson = createPersonWithNewKey(createRandomLibraPersonDetails(randomCId()))
+
+    stubPersonMatchUpsert()
+    stubOnePersonMatchAboveFractureThreshold(matchedRecord = existingPerson.matchId)
+
+    publishLibraMessage(libraHearing(firstName = randomName(), lastName = randomName(), cId = cId, dateOfBirth = randomDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
+
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
+    checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_CREATED)
+    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
+  }
+
   @Nested
   inner class EventLog {
 

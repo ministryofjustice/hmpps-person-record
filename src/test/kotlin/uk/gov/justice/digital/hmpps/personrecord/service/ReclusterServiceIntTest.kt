@@ -7,8 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -82,7 +82,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = newPersonCrn))
 
       cluster.assertClusterIsOfSize(2)
-      cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster.assertClusterStatus(ACTIVE)
     }
 
     @Test
@@ -529,7 +529,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         mapOf("UUID" to cluster1.personUUID.toString()),
       )
       cluster1.assertClusterStatus(NEEDS_ATTENTION)
-      cluster2.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster2.assertClusterStatus(ACTIVE)
     }
   }
 
@@ -620,8 +620,8 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster1.assertClusterIsOfSize(2)
       cluster2.assertClusterIsOfSize(0)
 
-      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(RECLUSTER_MERGE)
 
       cluster2.assertMergedTo(cluster1)
       cluster2.checkReclusterMergeTelemetry(cluster1)
@@ -665,8 +665,8 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster1.assertClusterIsOfSize(4)
       cluster2.assertClusterIsOfSize(0)
 
-      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(RECLUSTER_MERGE)
 
       cluster2.assertMergedTo(cluster1)
       cluster2.checkReclusterMergeTelemetry(cluster1)
@@ -700,9 +700,9 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster2.assertClusterIsOfSize(0)
       cluster3.assertClusterIsOfSize(0)
 
-      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
-      cluster3.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(RECLUSTER_MERGE)
+      cluster3.assertClusterStatus(RECLUSTER_MERGE)
 
       cluster2.assertMergedTo(cluster1)
       cluster2.checkReclusterMergeTelemetry(cluster1)
@@ -738,8 +738,8 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster1.assertClusterIsOfSize(4)
       cluster2.assertClusterIsOfSize(0)
 
-      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(RECLUSTER_MERGE)
 
       cluster2.assertMergedTo(cluster1)
       cluster2.checkReclusterMergeTelemetry(cluster1)
@@ -779,9 +779,9 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster2.assertClusterIsOfSize(0)
       cluster3.assertClusterIsOfSize(0)
 
-      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
-      cluster3.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(RECLUSTER_MERGE)
+      cluster3.assertClusterStatus(RECLUSTER_MERGE)
 
       cluster2.assertMergedTo(cluster1)
       cluster2.checkReclusterMergeTelemetry(cluster1)
@@ -824,10 +824,10 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster3.assertClusterIsOfSize(0)
       cluster4.assertClusterIsOfSize(1)
 
-      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
-      cluster3.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
-      cluster4.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(RECLUSTER_MERGE)
+      cluster3.assertClusterStatus(RECLUSTER_MERGE)
+      cluster4.assertClusterStatus(ACTIVE)
 
       cluster2.assertMergedTo(cluster1)
       cluster2.checkReclusterMergeTelemetry(cluster1)
@@ -871,10 +871,10 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster3.assertClusterIsOfSize(0)
       cluster4.assertClusterIsOfSize(1)
 
-      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
-      cluster3.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
-      cluster4.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(RECLUSTER_MERGE)
+      cluster3.assertClusterStatus(RECLUSTER_MERGE)
+      cluster4.assertClusterStatus(ACTIVE)
 
       cluster2.assertMergedTo(cluster1)
       cluster2.checkReclusterMergeTelemetry(cluster1)
@@ -904,7 +904,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster1.assertClusterIsOfSize(1)
       cluster2.assertClusterIsOfSize(1)
 
-      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster1.assertClusterStatus(ACTIVE)
       cluster2.assertClusterStatus(NEEDS_ATTENTION)
     }
 
@@ -936,9 +936,9 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster2.assertClusterIsOfSize(1)
       cluster3.assertClusterIsOfSize(0)
 
-      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster1.assertClusterStatus(ACTIVE)
       cluster2.assertClusterStatus(NEEDS_ATTENTION)
-      cluster3.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+      cluster3.assertClusterStatus(RECLUSTER_MERGE)
 
       cluster3.assertMergedTo(cluster1)
       cluster3.checkReclusterMergeTelemetry(cluster1)
@@ -972,8 +972,8 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster1.assertClusterIsOfSize(4)
       cluster2.assertClusterIsOfSize(0)
 
-      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(RECLUSTER_MERGE)
 
       cluster2.assertMergedTo(cluster1)
       cluster2.checkReclusterMergeTelemetry(cluster1)
@@ -1013,8 +1013,8 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster2.assertClusterIsOfSize(0)
       cluster3.assertClusterIsOfSize(1)
 
-      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(RECLUSTER_MERGE)
       cluster3.assertClusterStatus(NEEDS_ATTENTION)
 
       cluster2.assertMergedTo(cluster1)
@@ -1032,7 +1032,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personA)
 
       val personB = createPerson(createRandomProbationPersonDetails())
-      val cluster2 = createPersonKey(UUIDStatusType.RECLUSTER_MERGE)
+      val cluster2 = createPersonKey(RECLUSTER_MERGE)
         .addPerson(personB)
 
       stubXPersonMatches(
@@ -1047,8 +1047,8 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster1.assertClusterIsOfSize(1)
       cluster2.assertClusterIsOfSize(1)
 
-      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(RECLUSTER_MERGE)
     }
 
     @Test
@@ -1058,7 +1058,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personA)
 
       val personB = createPerson(createRandomProbationPersonDetails())
-      val cluster2 = createPersonKey(UUIDStatusType.MERGED)
+      val cluster2 = createPersonKey(MERGED)
         .addPerson(personB)
 
       stubXPersonMatches(
@@ -1073,8 +1073,8 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster1.assertClusterIsOfSize(1)
       cluster2.assertClusterIsOfSize(1)
 
-      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster2.assertClusterStatus(UUIDStatusType.MERGED)
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(MERGED)
     }
   }
 
@@ -1115,8 +1115,8 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster1.assertClusterIsOfSize(3)
       cluster2.assertClusterIsOfSize(2)
 
-      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster2.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(ACTIVE)
     }
 
     @Test
@@ -1150,9 +1150,9 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster2.assertClusterIsOfSize(0)
       cluster3.assertClusterIsOfSize(1)
 
-      cluster1.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster2.assertClusterStatus(UUIDStatusType.RECLUSTER_MERGE)
-      cluster3.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(RECLUSTER_MERGE)
+      cluster3.assertClusterStatus(ACTIVE)
     }
 
     @Test
@@ -1245,9 +1245,9 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster4.assertClusterIsOfSize(1)
 
       cluster1.assertClusterStatus(NEEDS_ATTENTION)
-      cluster2.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster3.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster4.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster2.assertClusterStatus(ACTIVE)
+      cluster3.assertClusterStatus(ACTIVE)
+      cluster4.assertClusterStatus(ACTIVE)
     }
   }
 
@@ -1287,7 +1287,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
         assertThat(eventLog.personUUID).isEqualTo(cluster2.personUUID)
-        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.RECLUSTER_MERGE)
+        assertThat(eventLog.uuidStatusType).isEqualTo(RECLUSTER_MERGE)
       }
       checkEventLogExist(personC.crn!!, CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED)
       checkEventLogExist(personD.crn!!, CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED)
@@ -1376,7 +1376,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
   }
 
   private fun PersonKeyEntity.assertClusterNotChanged(size: Int) {
-    assertClusterStatus(UUIDStatusType.ACTIVE)
+    assertClusterStatus(ACTIVE)
     assertClusterIsOfSize(size)
   }
 
