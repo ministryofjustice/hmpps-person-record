@@ -4,19 +4,12 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.AllConvictedOffences
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.EmailAddress
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Identifier
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
@@ -250,9 +243,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `should receive the message successfully when prisoner updated event published`() {
-      val prisoner = createPrisoner()
+      val prisonNumber = randomPrisonNumber()
+      val prisoner = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
-      val prisonNumber = prisoner.prisonNumber!!
       val updatedFirstName = randomName()
 
       stubNoMatchesPersonMatch(matchId = prisoner.matchId)
@@ -280,6 +273,26 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
         assertThat(personEntity.sexCode).isEqualTo(SexCode.M)
       }
+    }
+
+    @Test
+    fun `should not link a new prison record to a cluster if its not above the join threshold`() {
+      val prisonNumber = randomPrisonNumber()
+
+      val existingPerson = createPersonWithNewKey(createRandomPrisonPersonDetails(randomPrisonNumber()))
+
+      stubOnePersonMatchAboveFractureThreshold(matchedRecord = existingPerson.matchId)
+      stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
+
+      val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber)
+      val domainEvent = DomainEvent(eventType = PRISONER_CREATED, additionalInformation = additionalInformation)
+      publishDomainEvent(PRISONER_CREATED, domainEvent)
+
+      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
+      checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
+      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
+
+      awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumber) }
     }
 
     @Test
@@ -358,27 +371,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
     }
-
-    private fun createPrisoner(): PersonEntity = createPersonWithNewKey(
-      Person.from(
-        Prisoner(
-          prisonNumber = randomPrisonNumber(),
-          title = "Ms",
-          firstName = randomName(),
-          middleNames = "${randomName()} ${randomName()}",
-          lastName = randomName(),
-          cro = CROIdentifier.from(randomCro()),
-          pnc = PNCIdentifier.from(randomPnc()),
-          dateOfBirth = randomDate(),
-          emailAddresses = listOf(EmailAddress(randomEmail())),
-          nationality = randomNationality(),
-          religion = randomReligion(),
-          identifiers = listOf(Identifier(type = "NINO", randomNationalInsuranceNumber()), Identifier(type = "DL", randomDriverLicenseNumber())),
-          ethnicity = randomEthnicity(),
-          allConvictedOffences = listOf(AllConvictedOffences(randomDate())),
-        ),
-      ),
-    )
   }
 
   @Nested
