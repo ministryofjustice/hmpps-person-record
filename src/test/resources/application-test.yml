@@ -8,9 +8,6 @@ management.endpoint:
 person-match:
   base-url: http://localhost:8090
 
-match-score:
-  base-url: http://localhost:8090
-
 nomis-oauth:
   base-url: http://localhost:8090
 
