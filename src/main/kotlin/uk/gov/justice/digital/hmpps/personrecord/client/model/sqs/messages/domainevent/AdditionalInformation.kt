@@ -5,8 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AdditionalInformation(
-  @JsonProperty("categoriesChanged")
-  val categoriesChanged: List<String>? = emptyList(),
 
   @JsonProperty("sourceCRN")
   val sourceCrn: String? = null,
