@@ -71,7 +71,7 @@ class ReclusterController(
       log.info("Processing $processName, item: $itemNumber/$total")
       searchForPersonByIdentifier(record)?.let {
         when {
-          it.hasMergedLink().not() -> action(it)
+          it.isNotMerged() -> action(it)
           else -> log.info("Skipping $processName, item: $itemNumber/$total it has been merged")
         }
       } ?: log.info("Error $processName, record not found. id: ${record.sourceSystemId} item: $itemNumber/$total")
