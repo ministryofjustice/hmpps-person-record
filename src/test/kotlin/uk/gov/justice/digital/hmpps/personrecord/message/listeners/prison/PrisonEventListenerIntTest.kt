@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
@@ -284,8 +283,11 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubOnePersonMatchAboveFractureThreshold(matchedRecord = existingPerson.matchId)
       stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
 
-      val additionalInformation = AdditionalInformation(prisonNumber = prisonNumber)
-      val domainEvent = DomainEvent(eventType = PRISONER_CREATED, additionalInformation = additionalInformation)
+      val domainEvent = DomainEvent(eventType = PRISONER_CREATED, personReference = PersonReference(
+        listOf(
+          PersonIdentifier("NOMS", prisonNumber),
+        ),
+      ))
       publishDomainEvent(PRISONER_CREATED, domainEvent)
 
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
