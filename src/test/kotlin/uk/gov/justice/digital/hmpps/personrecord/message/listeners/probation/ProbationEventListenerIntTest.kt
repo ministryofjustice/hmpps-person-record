@@ -8,9 +8,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
@@ -379,10 +376,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should not push 404 to dead letter queue but discard message instead`() {
     val crn = randomCrn()
     stub404Response(probationUrl(crn))
-
-    val crnType = PersonIdentifier("CRN", crn)
-    val personReference = PersonReference(listOf(crnType))
-    val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, personReference = personReference, additionalInformation = null)
+    val domainEvent = probationDomainEvent(NEW_OFFENDER_CREATED, crn)
     publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
     expectNoMessagesOnQueueOrDlq(probationEventsQueue)
@@ -394,14 +388,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     stub5xxResponse(probationUrl(crn), nextScenarioState = "request will fail", "failure")
     stub5xxResponse(probationUrl(crn), currentScenarioState = "request will fail", nextScenarioState = "request will fail", scenarioName = "failure")
     stub5xxResponse(probationUrl(crn), currentScenarioState = "request will fail", nextScenarioState = "request will fail", scenarioName = "failure")
-    val crnType = PersonIdentifier("CRN", crn)
-    val personReference = PersonReference(listOf(crnType))
-
-    val domainEvent = DomainEvent(
-      eventType = NEW_OFFENDER_CREATED,
-      personReference = personReference,
-      additionalInformation = null,
-    )
+    val domainEvent = probationDomainEvent(NEW_OFFENDER_CREATED, crn)
     publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
     expectOneMessageOnDlq(probationEventsQueue)

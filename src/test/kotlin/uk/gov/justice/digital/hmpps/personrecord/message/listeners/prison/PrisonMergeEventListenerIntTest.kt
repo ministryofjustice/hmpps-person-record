@@ -5,7 +5,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
@@ -274,9 +273,8 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stub5xxResponse(prisonURL(targetPrisonNumber), "PrisonMergeEventProcessingWillFail", "failure", "PrisonMergeEventProcessingWillFail")
 
       val additionalInformation =
-        AdditionalInformation(prisonNumber = targetPrisonNumber, sourcePrisonNumber = sourcePrisonNumber)
-      val domainEvent =
-        DomainEvent(eventType = PRISONER_MERGED, personReference = null, additionalInformation = additionalInformation)
+        AdditionalInformation(sourcePrisonNumber = sourcePrisonNumber)
+      val domainEvent = prisonDomainEvent(PRISONER_MERGED, targetPrisonNumber, additionalInformation)
       publishDomainEvent(PRISONER_MERGED, domainEvent)
 
       expectOneMessageOnDlq(prisonMergeEventsQueue)

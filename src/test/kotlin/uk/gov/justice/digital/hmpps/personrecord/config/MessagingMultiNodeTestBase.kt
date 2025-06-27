@@ -214,16 +214,11 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   ) {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
 
-    val crnType = PersonIdentifier("CRN", apiResponseSetup.crn!!)
-    val personReference = PersonReference(listOf(crnType))
-
-    val domainEvent = DomainEvent(
-      eventType = eventType,
-      personReference = personReference,
-      additionalInformation = additionalInformation,
-    )
-    publishDomainEvent(eventType, domainEvent)
+    publishDomainEvent(eventType, probationDomainEvent(eventType, apiResponseSetup.crn!!, additionalInformation))
   }
+
+  fun probationDomainEvent(eventType: String, crn: String, additionalInformation: AdditionalInformation? = null) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("CRN", crn))), additionalInformation)
+  fun prisonDomainEvent(eventType: String, prisonNumber: String, additionalInformation: AdditionalInformation? = null) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))), additionalInformation)
 
   fun probationEventAndResponseSetup(eventType: String, apiResponseSetup: ApiResponseSetup, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
@@ -244,10 +239,10 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
     publishDomainEvent(
       eventType,
-      DomainEvent(
-        eventType = eventType,
-        additionalInformation = AdditionalInformation(
-          prisonNumber = targetPrisonNumber,
+      prisonDomainEvent(
+        eventType,
+        targetPrisonNumber,
+        AdditionalInformation(
           sourcePrisonNumber = sourcePrisonNumber,
         ),
       ),
