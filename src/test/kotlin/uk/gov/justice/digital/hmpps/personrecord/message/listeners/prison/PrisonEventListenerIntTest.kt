@@ -112,15 +112,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       stubNoMatchesPersonMatch()
       stubPrisonResponse(ApiResponseSetup(gender = "Female", aliases = listOf(ApiResponseSetupAlias(aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
-      val domainEvent = DomainEvent(
-        eventType = PRISONER_CREATED,
-        personReference = PersonReference(
-          listOf(
-            PersonIdentifier("NOMS", prisonNumber),
-          ),
-        ),
-      )
-
+      val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
       publishDomainEvent(PRISONER_CREATED, domainEvent)
 
       checkTelemetry(
@@ -176,15 +168,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       stubNoMatchesPersonMatch()
       stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomPnc(), email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = randomFullAddress())), dateOfBirth = randomDate(), nationality = null, religion = null))
-      val domainEvent = DomainEvent(
-        eventType = PRISONER_CREATED,
-        personReference = PersonReference(
-          listOf(
-            PersonIdentifier("NOMS", prisonNumber),
-          ),
-        ),
-      )
-
+      val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
       publishDomainEvent(PRISONER_CREATED, domainEvent)
 
       checkTelemetry(
@@ -209,14 +193,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       stubNoMatchesPersonMatch()
       stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomPnc(), sentenceStartDate = sentenceStartDate, primarySentence = false, email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = randomFullAddress())), dateOfBirth = randomDate(), nationality = null, religion = null))
-      val domainEvent = DomainEvent(
-        eventType = PRISONER_CREATED,
-        personReference = PersonReference(
-          listOf(
-            PersonIdentifier("NOMS", prisonNumber),
-          ),
-        ),
-      )
+      val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
       publishDomainEvent(PRISONER_CREATED, domainEvent)
 
       checkTelemetry(
@@ -241,14 +218,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       stubNoMatchesPersonMatch(matchId = prisoner.matchId)
       stubPrisonResponse(ApiResponseSetup(gender = "Male", prisonNumber = prisonNumber, firstName = updatedFirstName))
-      val domainEvent = DomainEvent(
-        eventType = PRISONER_UPDATED,
-        personReference = PersonReference(
-          listOf(
-            PersonIdentifier("NOMS", prisonNumber),
-          ),
-        ),
-      )
+      val domainEvent = prisonDomainEvent(PRISONER_UPDATED, prisonNumber)
       publishDomainEvent(PRISONER_UPDATED, domainEvent)
 
       checkTelemetry(
@@ -274,14 +244,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubOnePersonMatchAboveFractureThreshold(matchedRecord = existingPerson.matchId)
       stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
 
-      val domainEvent = DomainEvent(
-        eventType = PRISONER_CREATED,
-        personReference = PersonReference(
-          listOf(
-            PersonIdentifier("NOMS", prisonNumber),
-          ),
-        ),
-      )
+      val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
       publishDomainEvent(PRISONER_CREATED, domainEvent)
 
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
