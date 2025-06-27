@@ -4,9 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
@@ -55,14 +52,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     stub5xxResponse("/prisoner/$prisonNumber", currentScenarioState = "next request will fail", nextScenarioState = "next request will fail", scenarioName = "processing fail")
     stub5xxResponse("/prisoner/$prisonNumber", "next request will fail", scenarioName = "processing fail")
     stub5xxResponse("/prisoner/$prisonNumber", "next request will fail", scenarioName = "processing fail")
-    val domainEvent = DomainEvent(
-      eventType = PRISONER_CREATED,
-      personReference = PersonReference(
-        listOf(
-          PersonIdentifier("NOMS", prisonNumber),
-        ),
-      ),
-    )
+    val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
     publishDomainEvent(PRISONER_CREATED, domainEvent)
 
     expectOneMessageOnDlq(prisonEventsQueue)
@@ -261,14 +251,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       stub5xxResponse("/prisoner/$prisonNumber", nextScenarioState = "next request will succeed", scenarioName = "retry")
       stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber), scenarioName = "retry", currentScenarioState = "next request will succeed")
 
-      val domainEvent = DomainEvent(
-        eventType = PRISONER_CREATED,
-        personReference = PersonReference(
-          listOf(
-            PersonIdentifier("NOMS", prisonNumber),
-          ),
-        ),
-      )
+      val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
       publishDomainEvent(PRISONER_CREATED, domainEvent)
 
       checkTelemetry(
@@ -290,14 +273,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubPrisonResponse(ApiResponseSetup(gender = "Male", prisonNumber = prisonNumber), currentScenarioState = "will succeed")
       stubPersonMatchUpsert(currentScenarioState = "will succeed")
       stubPersonMatchScores(currentScenarioState = "will succeed")
-      val domainEvent = DomainEvent(
-        eventType = PRISONER_CREATED,
-        personReference = PersonReference(
-          listOf(
-            PersonIdentifier("NOMS", prisonNumber),
-          ),
-        ),
-      )
+      val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
       publishDomainEvent(PRISONER_CREATED, domainEvent)
       awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumber = prisonNumber) }
       checkTelemetry(
@@ -312,14 +288,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val prisonNumber = randomPrisonNumber()
       stubNoMatchesPersonMatch()
       probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup(pnc = randomPnc(), prisonNumber = prisonNumber, crn = randomCrn()))
-      val domainEvent = DomainEvent(
-        eventType = PRISONER_CREATED,
-        personReference = PersonReference(
-          listOf(
-            PersonIdentifier("NOMS", prisonNumber),
-          ),
-        ),
-      )
+      val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
       stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
       publishDomainEvent(PRISONER_CREATED, domainEvent)
       checkTelemetry(
@@ -351,14 +320,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubPersonMatchUpsert()
       stubNoMatchesPersonMatch()
       stubPrisonResponse(ApiResponseSetup(aliases = listOf(ApiResponseSetupAlias(aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, sentenceStartDate = sentenceStartDate, primarySentence = true, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true, fullAddress = "")), dateOfBirth = personDateOfBirth))
-      val domainEvent = DomainEvent(
-        eventType = PRISONER_CREATED,
-        personReference = PersonReference(
-          listOf(
-            PersonIdentifier("NOMS", prisonNumber),
-          ),
-        ),
-      )
+      val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
       publishDomainEvent(PRISONER_CREATED, domainEvent)
 
       checkEventLog(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
