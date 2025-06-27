@@ -239,10 +239,10 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
 
     publishDomainEvent(
       eventType,
-      DomainEvent(
-        eventType = eventType,
-        personReference = PersonReference(listOf(PersonIdentifier("NOMS", targetPrisonNumber))),
-        additionalInformation = AdditionalInformation(
+      prisonDomainEvent(
+        eventType,
+        targetPrisonNumber,
+        AdditionalInformation(
           sourcePrisonNumber = sourcePrisonNumber,
         ),
       ),
