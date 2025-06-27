@@ -214,16 +214,10 @@ abstract class MessagingMultiNodeTestBase : IntegrationTestBase() {
   ) {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
 
-    val crnType = PersonIdentifier("CRN", apiResponseSetup.crn!!)
-    val personReference = PersonReference(listOf(crnType))
-
-    val domainEvent = DomainEvent(
-      eventType = eventType,
-      personReference = personReference,
-      additionalInformation = additionalInformation,
-    )
-    publishDomainEvent(eventType, domainEvent)
+    publishDomainEvent(eventType, probationDomainEvent(eventType, apiResponseSetup.crn!!, additionalInformation))
   }
+
+  private fun probationDomainEvent(eventType: String, crn: String, additionalInformation: AdditionalInformation?) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("CRN", crn))), additionalInformation)
 
   fun probationEventAndResponseSetup(eventType: String, apiResponseSetup: ApiResponseSetup, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
