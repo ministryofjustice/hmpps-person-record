@@ -18,7 +18,7 @@ class PrisonMergeEventProcessor(
 ) {
 
   fun processEvent(domainEvent: DomainEvent) {
-    val prisonNumber = domainEvent.personReference?.identifiers?.first { it.type == "NOMS" }?.value!!
+    val prisonNumber = domainEvent.getPrisonNumber()
     prisonerSearchClient.getPrisoner(prisonNumber)?.let {
       val from: PersonEntity? =
         personRepository.findByPrisonNumber(domainEvent.additionalInformation?.sourcePrisonNumber!!)

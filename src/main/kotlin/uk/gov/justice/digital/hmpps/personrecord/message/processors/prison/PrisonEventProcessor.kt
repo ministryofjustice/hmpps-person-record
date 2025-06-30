@@ -15,7 +15,7 @@ class PrisonEventProcessor(
 ) {
 
   fun processEvent(domainEvent: DomainEvent) {
-    val prisonNumber = domainEvent.personReference?.identifiers?.first { it.type == "NOMS" }?.value!!
+    val prisonNumber = domainEvent.getPrisonNumber()
     prisonerSearchClient.getPrisoner(prisonNumber)?.let {
       createUpdateService.processPerson(Person.from(it)) {
         personRepository.findByPrisonNumber(prisonNumber)
