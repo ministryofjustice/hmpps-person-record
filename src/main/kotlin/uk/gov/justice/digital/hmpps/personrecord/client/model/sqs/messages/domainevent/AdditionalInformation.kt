@@ -6,9 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AdditionalInformation(
 
-  @JsonProperty("nomsNumber")
-  val prisonNumber: String? = null,
-
   @JsonProperty("sourceCRN")
   val sourceCrn: String? = null,
 
