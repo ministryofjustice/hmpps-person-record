@@ -26,24 +26,21 @@ class CreateUpdateService(
   ): PersonEntity = runBlocking {
     return@runBlocking findPerson().exists(
       no = {
-        handlePersonCreation(person)
+        create(person)
       },
       yes = {
-        handlePersonUpdate(person, it)
+        update(person, it)
       },
     )
   }
 
-  private fun handlePersonCreation(person: Person): PersonEntity {
+  private fun create(person: Person): PersonEntity {
     val personEntity: PersonEntity = personService.createPersonEntity(person)
-    if (person.linkOnCreate) {
-      personService.linkRecordToPersonKey(personEntity)
-    }
     publisher.publishEvent(PersonCreated(personEntity))
     return personEntity
   }
 
-  private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity): PersonEntity {
+  private fun update(person: Person, existingPersonEntity: PersonEntity): PersonEntity {
     val personUpdated = personService.updatePersonEntity(person, existingPersonEntity)
     publisher.publishEvent(personUpdated)
 

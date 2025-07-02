@@ -18,6 +18,9 @@ class PersonService(
 
   fun createPersonEntity(person: Person): PersonEntity {
     val personEntity = createNewPersonEntity(person)
+    if (person.linkOnCreate) {
+      linkRecordToPersonKey(personEntity)
+    }
     personMatchService.saveToPersonMatch(personEntity)
     return personEntity
   }
