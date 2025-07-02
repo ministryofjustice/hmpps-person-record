@@ -10,13 +10,11 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyFound
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
 class PersonKeyService(
   private val personKeyRepository: PersonKeyRepository,
   private val publisher: ApplicationEventPublisher,
-  private val personMatchService: PersonMatchService,
 ) {
 
   fun assignPersonToNewPersonKey(personEntity: PersonEntity): PersonEntity {
@@ -32,8 +30,6 @@ class PersonKeyService(
     personEntity.personKey = highConfidenceRecord.personKey!!
     return personEntity
   }
-
-  fun clusterIsNeedsAttentionAndCanBecomeActive(cluster: PersonKeyEntity): Boolean = cluster.isNeedsAttention() && personMatchService.examineIsClusterValid(cluster).isClusterValid
 
   fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity, changedRecord: PersonEntity) {
     personKeyEntity.status = ACTIVE

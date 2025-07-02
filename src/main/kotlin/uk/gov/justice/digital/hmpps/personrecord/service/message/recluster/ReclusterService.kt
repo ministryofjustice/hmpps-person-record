@@ -35,7 +35,7 @@ class ReclusterService(
   @Transactional
   fun recluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
     when {
-      personKeyService.clusterIsNeedsAttentionAndCanBecomeActive(cluster) -> personKeyService.settingNeedsAttentionClusterToActive(cluster, changedRecord)
+      clusterIsNeedsAttentionAndCanBecomeActive(cluster) -> personKeyService.settingNeedsAttentionClusterToActive(cluster, changedRecord)
     }
     when {
       cluster.isActive() -> processRecluster(cluster, changedRecord)
@@ -158,6 +158,8 @@ class ReclusterService(
     clusterDetails.cluster.status = NEEDS_ATTENTION
     personKeyRepository.save(clusterDetails.cluster)
   }
+
+  fun clusterIsNeedsAttentionAndCanBecomeActive(cluster: PersonKeyEntity): Boolean = cluster.isNeedsAttention() && personMatchService.examineIsClusterValid(cluster).isClusterValid
 
   private fun List<PersonKeyEntity>.removeUpdatedCluster(cluster: PersonKeyEntity) = this.filterNot { it.id == cluster.id }
 
