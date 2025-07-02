@@ -47,9 +47,8 @@ class CreateUpdateService(
     val personUpdated = personService.updatePersonEntity(person, existingPersonEntity)
     publisher.publishEvent(personUpdated)
 
-    val shouldRecluster = person.reclusterOnUpdate && personUpdated.matchingFieldsHaveChanged
-    if (shouldRecluster) {
-      personUpdated.personEntity.personKey?.let {
+    personUpdated.personEntity.personKey?.let {
+      if (person.reclusterOnUpdate && personUpdated.matchingFieldsHaveChanged) {
         reclusterService.recluster(it, personUpdated.personEntity)
       }
     }
