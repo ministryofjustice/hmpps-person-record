@@ -33,9 +33,8 @@ class DeletionService(
 
   private fun handleMergedRecords(personEntity: PersonEntity) {
     personEntity.id?.let {
-      val mergedRecords: List<PersonEntity?> = personRepository.findByMergedTo(it)
-      mergedRecords.forEach { mergedRecord ->
-        fetchRecordAndDelete { mergedRecord }
+      personRepository.findByMergedTo(it).forEach {
+        fetchRecordAndDelete { it }
       }
     }
   }
@@ -49,7 +48,7 @@ class DeletionService(
     personEntity.personKey?.let {
       when {
         it.personEntities.size == 1 -> deletePersonKey(it, personEntity)
-        else -> removeLinkToRecord(personEntity)
+        else -> removeLinkToRecord(it, personEntity)
       }
     }
   }
@@ -59,8 +58,8 @@ class DeletionService(
     publisher.publishEvent(PersonKeyDeleted(personEntity, personKeyEntity))
   }
 
-  private fun removeLinkToRecord(personEntity: PersonEntity) {
-    personEntity.personKey?.personEntities?.remove(personEntity)
-    personKeyRepository.save(personEntity.personKey!!)
+  private fun removeLinkToRecord(personKeyEntity: PersonKeyEntity, personEntity: PersonEntity) {
+    personKeyEntity.personEntities.remove(personEntity)
+    personKeyRepository.save(personKeyEntity)
   }
 }

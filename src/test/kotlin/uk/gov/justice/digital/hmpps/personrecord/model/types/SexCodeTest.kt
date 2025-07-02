@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -12,7 +13,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import java.util.stream.Stream
-import kotlin.test.assertEquals
 
 class SexCodeTest {
 
@@ -24,7 +24,7 @@ class SexCodeTest {
       lastName = "",
     )
 
-    assertEquals(SexCode.from(personDetails), sexCode)
+    assertThat(SexCode.from(personDetails)).isEqualTo(sexCode)
   }
 
   @ParameterizedTest
@@ -32,7 +32,7 @@ class SexCodeTest {
   fun `should map libra event defendantSex values`(defendantSex: String?, sexCode: SexCode?) {
     val libraHearingEvent = LibraHearingEvent(defendantSex = defendantSex)
 
-    assertEquals(SexCode.from(libraHearingEvent), sexCode)
+    assertThat(SexCode.from(libraHearingEvent)).isEqualTo(sexCode)
   }
 
   @ParameterizedTest
@@ -40,7 +40,7 @@ class SexCodeTest {
   fun `should map from probation event gender values`(genderCode: String?, sexCode: SexCode?) {
     val probationCase = ProbationCase(name = Name(), identifiers = Identifiers(), gender = Value(genderCode))
 
-    assertEquals(SexCode.from(probationCase), sexCode)
+    assertThat(SexCode.from(probationCase)).isEqualTo(sexCode)
   }
 
   @ParameterizedTest
@@ -60,7 +60,7 @@ class SexCodeTest {
       dateOfBirth = randomDate(),
     )
 
-    assertEquals(SexCode.from(probationCase), sexCode)
+    assertThat(SexCode.from(probationCase)).isEqualTo(sexCode)
   }
 
   companion object {

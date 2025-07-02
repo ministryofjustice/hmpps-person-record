@@ -55,7 +55,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService.Companion.THRESHOLD_WEIGHT
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -264,29 +263,46 @@ class IntegrationTestBase {
 
   internal fun stubNoMatchesPersonMatch(matchId: UUID? = null) = stubPersonMatchScores(matchId = matchId, personMatchResponse = emptyList())
 
-  internal fun stubOnePersonMatchHighConfidenceMatch(matchId: UUID? = null, matchedRecord: UUID) = stubXPersonMatchHighConfidenceMatches(
+  internal fun stubOnePersonMatchAboveJoinThreshold(matchId: UUID? = null, matchedRecord: UUID) = stubXPersonMatches(
     matchId = matchId,
-    results = listOf(matchedRecord),
+    aboveJoin = listOf(matchedRecord),
   )
 
-  internal fun stubOnePersonMatchLowConfidenceMatch(matchId: UUID? = null, matchedRecord: UUID) = stubPersonMatchScores(
+  internal fun stubOnePersonMatchAboveFractureThreshold(matchId: UUID? = null, matchedRecord: UUID) = stubXPersonMatches(
     matchId = matchId,
-    personMatchResponse = listOf(
-      PersonMatchScore(
-        candidateMatchId = matchedRecord.toString(),
-        candidateMatchWeight = THRESHOLD_WEIGHT - 1F,
-        candidateMatchProbability = 0.988899F,
-      ),
-    ),
+    aboveFracture = listOf(matchedRecord),
   )
 
-  internal fun stubXPersonMatchHighConfidenceMatches(matchId: UUID? = null, results: List<UUID>) = stubPersonMatchScores(
+  internal fun stubOnePersonMatchBelowFractureThreshold(matchId: UUID? = null, matchedRecord: UUID) = stubXPersonMatches(
     matchId = matchId,
-    personMatchResponse = List(results.size) { index ->
+    belowFracture = listOf(matchedRecord),
+  )
+
+  internal fun stubXPersonMatches(matchId: UUID? = null, aboveJoin: List<UUID> = emptyList(), aboveFracture: List<UUID> = emptyList(), belowFracture: List<UUID> = emptyList()) = stubPersonMatchScores(
+    matchId = matchId,
+    personMatchResponse = List(aboveJoin.size) { index ->
       PersonMatchScore(
-        candidateMatchId = results[index].toString(),
-        candidateMatchWeight = THRESHOLD_WEIGHT + 1F,
+        candidateMatchId = aboveJoin[index].toString(),
+        candidateMatchWeight = JOIN_THRESHOLD + 1F,
         candidateMatchProbability = 0.999999F,
+        candidateShouldFracture = false,
+        candidateShouldJoin = true,
+      )
+    } + List(aboveFracture.size) { index ->
+      PersonMatchScore(
+        candidateMatchId = aboveFracture[index].toString(),
+        candidateMatchWeight = FRACTURE_THRESHOLD + 1F,
+        candidateMatchProbability = 0.999999F,
+        candidateShouldFracture = false,
+        candidateShouldJoin = false,
+      )
+    } + List(belowFracture.size) { index ->
+      PersonMatchScore(
+        candidateMatchId = belowFracture[index].toString(),
+        candidateMatchWeight = FRACTURE_THRESHOLD - 1F,
+        candidateMatchProbability = 0.999999F,
+        candidateShouldFracture = true,
+        candidateShouldJoin = false,
       )
     },
   )
@@ -513,6 +529,9 @@ class IntegrationTestBase {
       personRepository.findByMatchId(this.matchId)?.overrideMarkers?.filter { it.markerType == EXCLUDE && it.markerValue == personEntity.id },
     ).hasSize(1)
   }
+  fun PersonEntity.assertPersonDeleted() = awaitAssert { assertThat(personRepository.findByMatchId(this.matchId)).isNull() }
+
+  fun PersonKeyEntity.assertPersonKeyDeleted() = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)).isNull() }
 
   companion object {
 
@@ -524,5 +543,8 @@ class IntegrationTestBase {
       .options(wireMockConfig().port(8090))
       .failOnUnmatchedRequests(true)
       .build()
+
+    internal const val JOIN_THRESHOLD = 24F
+    internal const val FRACTURE_THRESHOLD = 18F
   }
 }

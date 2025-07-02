@@ -8,9 +8,6 @@ management.endpoint:
 person-match:
   base-url: http://localhost:8090
 
-match-score:
-  base-url: http://localhost:8090
-
 nomis-oauth:
   base-url: http://localhost:8090
 
@@ -69,7 +66,7 @@ hmpps.sqs:
       queueName: cpr_nomis_merge_events_queue
       dlqName: cpr_nomis_merge_events_queue_dlq
       subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ "prisoner-offender-events.prisoner.merged"] }'
+      subscribeFilter: '{"eventType":[ "prison-offender-events.prisoner.merged"] }'
       dlqMaxReceiveCount: 2
   topics:
     courtcasestopic:

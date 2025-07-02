@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
+import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getCrn
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.PROBATION_EVENT_QUEUE_ID
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSListenerService
@@ -29,7 +30,7 @@ class ProbationEventListener(
 
   private fun handleDomainEvent(sqsMessage: SQSMessage) {
     val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
-    val crn = domainEvent.personReference?.identifiers?.first { it.type == "CRN" }!!.value
+    val crn = domainEvent.getCrn()
     eventProcessor.processEvent(crn)
   }
 

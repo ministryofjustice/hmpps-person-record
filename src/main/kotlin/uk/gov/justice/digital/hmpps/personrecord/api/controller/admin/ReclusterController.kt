@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.admin
 
 import io.swagger.v3.oas.annotations.Hidden
 import kotlinx.coroutines.CoroutineScope
@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminReclusterRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -20,8 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchServi
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @RestController
-@RequestMapping("/admin")
-class AdminController(
+class ReclusterController(
   private val reclusterService: ReclusterService,
   private val personRepository: PersonRepository,
   private val personMatchService: PersonMatchService,
@@ -29,7 +27,7 @@ class AdminController(
 ) {
 
   @Hidden
-  @PostMapping("/recluster")
+  @PostMapping("/admin/recluster")
   suspend fun postRecluster(
     @RequestBody adminReclusterRecords: List<AdminReclusterRecord>,
   ) {
@@ -72,7 +70,10 @@ class AdminController(
       val itemNumber = idx + 1
       log.info("Processing $processName, item: $itemNumber/$total")
       searchForPersonByIdentifier(record)?.let {
-        action(it)
+        when {
+          it.isNotMerged() -> action(it)
+          else -> log.info("Skipping $processName, item: $itemNumber/$total it has been merged")
+        }
       } ?: log.info("Error $processName, record not found. id: ${record.sourceSystemId} item: $itemNumber/$total")
     }
   }

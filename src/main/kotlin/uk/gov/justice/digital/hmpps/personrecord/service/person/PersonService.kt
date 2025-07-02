@@ -37,7 +37,7 @@ class PersonService(
   }
 
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
-    val personEntityWithKey = personMatchService.findHighestConfidencePersonRecord(personEntity).exists(
+    val personEntityWithKey = personMatchService.findHighestMatchThatPersonRecordCanJoin(personEntity).exists(
       no = { personKeyService.assignPersonToNewPersonKey(personEntity) },
       yes = { personKeyService.assignToPersonKeyOfHighestConfidencePerson(personEntity, it) },
     )

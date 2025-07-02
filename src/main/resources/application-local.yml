@@ -1,11 +1,10 @@
 person-match:
-  base-url: https://hmpps-person-match-dev.hmpps.service.justice.gov.uk
-
-match-score:
-  base-url: https://hmpps-person-match-score-dev.hmpps.service.justice.gov.uk
+  base-url: http://localhost:5000
+  client-secret: clientsecret
+  client-id: hmpps-person-match
 
 nomis-oauth:
-  base-url: https://sign-in-dev.hmpps.service.justice.gov.uk
+  base-url: http://localhost:8081
 
 prisoner-search:
   base-url: https://prisoner-search-dev.prison.service.justice.gov.uk
@@ -49,7 +48,7 @@ hmpps.sqs:
       queueName: cpr_nomis_merge_events_queue
       dlqName: cpr_nomis_merge_events_queue_dlq
       subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ "prisoner-offender-events.prisoner.merged"] }'
+      subscribeFilter: '{"eventType":[ "prison-offender-events.prisoner.merged"] }'
   topics:
     courtcasestopic:
       arn: arn:aws:sns:eu-west-2:000000000000:courtcasestopic.fifo

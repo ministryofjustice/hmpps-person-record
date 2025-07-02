@@ -8,7 +8,6 @@ generic-service:
   env:
     SPRING_PROFILES_ACTIVE: "preprod"
     PERSON_MATCH_BASE_URL: https://hmpps-person-match-preprod.hmpps.service.justice.gov.uk
-    MATCH_SCORE_BASE_URL: https://hmpps-person-match-score-preprod.hmpps.service.justice.gov.uk
     NOMIS_OAUTH_BASE_URL: https://sign-in-preprod.hmpps.service.justice.gov.uk
     PRISONER_SEARCH_BASE_URL: https://prisoner-search-preprod.prison.service.justice.gov.uk
     PRISON_SERVICE_BASE_URL: https://prison-api-preprod.prison.service.justice.gov.uk

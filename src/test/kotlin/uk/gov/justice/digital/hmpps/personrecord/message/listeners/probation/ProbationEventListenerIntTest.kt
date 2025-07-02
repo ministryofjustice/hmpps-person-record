@@ -8,9 +8,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
@@ -181,7 +178,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val personKeyEntity = createPersonKey()
       val existingPerson = createPerson(existingPrisoner, personKeyEntity = personKeyEntity)
 
-      stubOnePersonMatchHighConfidenceMatch(matchedRecord = existingPerson.matchId)
+      stubOnePersonMatchAboveJoinThreshold(matchedRecord = existingPerson.matchId)
 
       val apiResponse = ApiResponseSetup(
         crn = crn,
@@ -200,8 +197,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
           "RECORD_COUNT" to "1",
           "UUID_COUNT" to "1",
           "CRN" to crn,
-          "HIGH_CONFIDENCE_COUNT" to "1",
-          "LOW_CONFIDENCE_COUNT" to "0",
+          "ABOVE_JOIN_THRESHOLD_COUNT" to "1",
+          "ABOVE_FRACTURE_THRESHOLD_COUNT" to "0",
+          "BELOW_FRACTURE_THRESHOLD_COUNT" to "0",
         ),
       )
       checkTelemetry(
@@ -217,6 +215,23 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val personKey = personKeyRepository.findByPersonUUID(personKeyEntity.personUUID)
       assertThat(personKey?.personEntities?.size).isEqualTo(2)
+    }
+
+    @Test
+    fun `should not link a new probation record to a cluster if its not above the join threshold`() {
+      val crn = randomCrn()
+
+      val existingPerson = createPersonWithNewKey(createRandomProbationPersonDetails(randomCrn()))
+
+      stubOnePersonMatchAboveFractureThreshold(matchedRecord = existingPerson.matchId)
+
+      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn))
+
+      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+      checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
+      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+
+      awaitNotNullPerson { personRepository.findByCrn(crn) }
     }
 
     @Test
@@ -351,7 +366,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val crn = randomCrn()
     stubPersonMatchUpsert()
     val matchIdWhichExistsInPersonMatchButNotInCPR = UUID.randomUUID().toString()
-    val highConfidenceMatchWhichDoesNotExistInCPR = PersonMatchScore(matchIdWhichExistsInPersonMatchButNotInCPR, 0.99999F, 0.9999F)
+    val highConfidenceMatchWhichDoesNotExistInCPR = PersonMatchScore(matchIdWhichExistsInPersonMatchButNotInCPR, 0.99999F, 24F, candidateShouldJoin = true, candidateShouldFracture = false)
     stubPersonMatchScores(personMatchResponse = listOf(highConfidenceMatchWhichDoesNotExistInCPR))
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn))
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
@@ -361,10 +376,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should not push 404 to dead letter queue but discard message instead`() {
     val crn = randomCrn()
     stub404Response(probationUrl(crn))
-
-    val crnType = PersonIdentifier("CRN", crn)
-    val personReference = PersonReference(listOf(crnType))
-    val domainEvent = DomainEvent(eventType = NEW_OFFENDER_CREATED, personReference = personReference, additionalInformation = null)
+    val domainEvent = probationDomainEvent(NEW_OFFENDER_CREATED, crn)
     publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
     expectNoMessagesOnQueueOrDlq(probationEventsQueue)
@@ -376,14 +388,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     stub5xxResponse(probationUrl(crn), nextScenarioState = "request will fail", "failure")
     stub5xxResponse(probationUrl(crn), currentScenarioState = "request will fail", nextScenarioState = "request will fail", scenarioName = "failure")
     stub5xxResponse(probationUrl(crn), currentScenarioState = "request will fail", nextScenarioState = "request will fail", scenarioName = "failure")
-    val crnType = PersonIdentifier("CRN", crn)
-    val personReference = PersonReference(listOf(crnType))
-
-    val domainEvent = DomainEvent(
-      eventType = NEW_OFFENDER_CREATED,
-      personReference = personReference,
-      additionalInformation = null,
-    )
+    val domainEvent = probationDomainEvent(NEW_OFFENDER_CREATED, crn)
     publishDomainEvent(NEW_OFFENDER_CREATED, domainEvent)
 
     expectOneMessageOnDlq(probationEventsQueue)

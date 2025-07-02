@@ -166,7 +166,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val existingPerson = createPerson(personFromProbation, personKeyEntity = personKeyEntity)
 
     stubPersonMatchUpsert()
-    stubOnePersonMatchHighConfidenceMatch(matchedRecord = existingPerson.matchId)
+    stubOnePersonMatchAboveJoinThreshold(matchedRecord = existingPerson.matchId)
 
     publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = ""))
 
@@ -175,8 +175,9 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
         "RECORD_COUNT" to "1",
-        "HIGH_CONFIDENCE_COUNT" to "1",
-        "LOW_CONFIDENCE_COUNT" to "0",
+        "ABOVE_JOIN_THRESHOLD_COUNT" to "1",
+        "ABOVE_FRACTURE_THRESHOLD_COUNT" to "0",
+        "BELOW_FRACTURE_THRESHOLD_COUNT" to "0",
         "C_ID" to cId,
       ),
     )
@@ -266,6 +267,23 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId),
     )
+  }
+
+  @Test
+  fun `should not link a new defendant from libra to a cluster that is below the join threshold`() {
+    val cId = randomCId()
+    val existingPerson = createPersonWithNewKey(createRandomLibraPersonDetails(randomCId()))
+
+    stubPersonMatchUpsert()
+    stubOnePersonMatchAboveFractureThreshold(matchedRecord = existingPerson.matchId)
+
+    publishLibraMessage(libraHearing(firstName = randomName(), lastName = randomName(), cId = cId, dateOfBirth = randomDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
+
+    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
+    checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_CREATED)
+    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
+
+    awaitNotNullPerson { personRepository.findByCId(cId) }
   }
 
   @Nested

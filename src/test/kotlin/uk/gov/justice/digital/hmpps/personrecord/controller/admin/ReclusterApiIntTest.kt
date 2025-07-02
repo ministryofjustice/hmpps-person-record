@@ -12,13 +12,13 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 
-class AdminApiIntTest : WebTestBase() {
+class ReclusterApiIntTest : WebTestBase() {
 
   @Nested
   inner class MissingRecord {
 
     @Test
-    fun `should throw not found error when person record not found in list`() {
+    fun `should not do anything when person record not found in list`() {
       val defendantId = randomDefendantId()
       val request = listOf(AdminReclusterRecord(SourceSystemType.COMMON_PLATFORM, defendantId))
 
@@ -44,9 +44,10 @@ class AdminApiIntTest : WebTestBase() {
 
       mergeRecord(mergedPerson, person)
 
+      mergedPerson.assertHasLinkToCluster()
       mergedPerson.assertMergedTo(person)
 
-      val request = listOf(AdminReclusterRecord(SourceSystemType.COMMON_PLATFORM, mergedPerson.crn!!))
+      val request = listOf(AdminReclusterRecord(SourceSystemType.DELIUS, mergedPerson.crn!!))
 
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_URL)

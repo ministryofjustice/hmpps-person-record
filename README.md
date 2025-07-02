@@ -36,9 +36,10 @@ Mostly runs against dev services, uses localstack for the queues
 
 ```shell
 AWS_REGION=eu-west-2 AWS_ACCESS_KEY_ID=key AWS_SECRET_ACCESS_KEY=secret aws --endpoint-url=http://localhost:4566 sns publish \
-    --topic-arn arn:aws:sns:eu-west-2:000000000000:courtcasestopic \
+    --topic-arn arn:aws:sns:eu-west-2:000000000000:courtcasestopic.fifo \
     --message-attributes file://$(pwd)/src/test/resources/examples/commonPlatformMessageAttributes.json \
-    --message file://$(pwd)/src/test/resources/examples/commonPlatformMessage.json
+    --message file://$(pwd)/src/test/resources/examples/commonPlatformMessage.json \
+    --message-group-id 123 
 ```
 
 ### Working with AWS resources

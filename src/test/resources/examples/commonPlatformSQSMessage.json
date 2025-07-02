@@ -5,6 +5,7 @@
   "Timestamp" : "2024-04-10T14:12:26.817Z",
   "MessageAttributes" : {
     "messageType": {"Type":"String","Value":"COMMON_PLATFORM_HEARING"},
+    "eventType": "some event type",
     "id" : {"Type":"String","Value":"86e3ede2-9d7c-da1d-c17a-521cd3f654d8"},
     "timestamp" : {"Type":"Number.java.lang.Long","Value":"1712758346812"}
   }
