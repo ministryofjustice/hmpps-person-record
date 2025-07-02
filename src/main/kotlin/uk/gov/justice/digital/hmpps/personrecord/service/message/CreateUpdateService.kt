@@ -22,34 +22,32 @@ class CreateUpdateService(
   @Transactional(isolation = REPEATABLE_READ)
   fun processPerson(
     person: Person,
-    shouldReclusterOnUpdate: Boolean = true,
-    shouldLinkOnCreate: Boolean = true,
     findPerson: () -> PersonEntity?,
   ): PersonEntity = runBlocking {
     return@runBlocking findPerson().exists(
       no = {
-        handlePersonCreation(person, shouldLinkOnCreate)
+        handlePersonCreation(person)
       },
       yes = {
-        handlePersonUpdate(person, it, shouldReclusterOnUpdate)
+        handlePersonUpdate(person, it)
       },
     )
   }
 
-  private fun handlePersonCreation(person: Person, shouldLinkOnCreate: Boolean): PersonEntity {
+  private fun handlePersonCreation(person: Person): PersonEntity {
     val personEntity: PersonEntity = personService.createPersonEntity(person)
-    if (shouldLinkOnCreate) {
+    if (person.linkOnCreate) {
       personService.linkRecordToPersonKey(personEntity)
     }
     publisher.publishEvent(PersonCreated(personEntity))
     return personEntity
   }
 
-  private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity, shouldReclusterOnUpdate: Boolean): PersonEntity {
+  private fun handlePersonUpdate(person: Person, existingPersonEntity: PersonEntity): PersonEntity {
     val personUpdated = personService.updatePersonEntity(person, existingPersonEntity)
     publisher.publishEvent(personUpdated)
 
-    val shouldRecluster = shouldReclusterOnUpdate && personUpdated.matchingFieldsHaveChanged
+    val shouldRecluster = person.reclusterOnUpdate && personUpdated.matchingFieldsHaveChanged
     if (shouldRecluster) {
       personUpdated.personEntity.personKey?.let {
         reclusterService.recluster(it, personUpdated.personEntity)
