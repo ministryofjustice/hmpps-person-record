@@ -42,6 +42,7 @@ data class Person(
   val cId: String? = null,
   val sexCode: SexCode? = null,
   var reclusterOnUpdate: Boolean = true,
+  var linkOnCreate: Boolean = true,
 ) {
 
   companion object {
@@ -235,6 +236,10 @@ data class Person(
 
   fun doNotReclusterOnUpdate(): Person {
     reclusterOnUpdate = false
+    return this
+  }
+  fun doNotLinkOnCreate(): Person {
+    linkOnCreate = false
     return this
   }
   fun isPerson(): Boolean = minimumDataIsPresent()

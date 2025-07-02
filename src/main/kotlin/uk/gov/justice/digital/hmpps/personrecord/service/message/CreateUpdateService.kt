@@ -22,12 +22,11 @@ class CreateUpdateService(
   @Transactional(isolation = REPEATABLE_READ)
   fun processPerson(
     person: Person,
-    shouldLinkOnCreate: Boolean = true,
     findPerson: () -> PersonEntity?,
   ): PersonEntity = runBlocking {
     return@runBlocking findPerson().exists(
       no = {
-        handlePersonCreation(person, shouldLinkOnCreate)
+        handlePersonCreation(person)
       },
       yes = {
         handlePersonUpdate(person, it)
@@ -35,9 +34,9 @@ class CreateUpdateService(
     )
   }
 
-  private fun handlePersonCreation(person: Person, shouldLinkOnCreate: Boolean): PersonEntity {
+  private fun handlePersonCreation(person: Person): PersonEntity {
     val personEntity: PersonEntity = personService.createPersonEntity(person)
-    if (shouldLinkOnCreate) {
+    if (person.linkOnCreate) {
       personService.linkRecordToPersonKey(personEntity)
     }
     publisher.publishEvent(PersonCreated(personEntity))

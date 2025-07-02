@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.UnmergeService
@@ -17,17 +16,24 @@ class ProbationUnmergeEventProcessor(
 ) {
 
   fun processEvent(domainEvent: DomainEvent) {
-    val existingPerson = getProbationPerson(domainEvent.additionalInformation?.unmergedCrn!!, true)
-    val reactivatedPerson = getProbationPerson(domainEvent.additionalInformation.reactivatedCrn!!, false)
+    val unmergedCrn = domainEvent.additionalInformation?.unmergedCrn!!
+    val existingPerson = corePersonRecordAndDeliusClient
+      .getPerson(unmergedCrn)
+      .let {
+        createUpdateService.processPerson(
+          it,
+        ) { personRepository.findByCrn(unmergedCrn) }
+      }
+
+    val reactivatedCrn = domainEvent.additionalInformation.reactivatedCrn!!
+    val reactivatedPerson = corePersonRecordAndDeliusClient
+      .getPerson(reactivatedCrn)
+      .let {
+        createUpdateService.processPerson(
+          it.doNotLinkOnCreate(),
+        ) { personRepository.findByCrn(reactivatedCrn) }
+      }
+
     unmergeService.processUnmerge(reactivatedPerson, existingPerson)
   }
-
-  private fun getProbationPerson(crn: String, shouldLinkOnCreate: Boolean): PersonEntity = corePersonRecordAndDeliusClient
-    .getPerson(crn)
-    .let {
-      createUpdateService.processPerson(
-        it,
-        shouldLinkOnCreate = shouldLinkOnCreate,
-      ) { personRepository.findByCrn(crn) }
-    }
 }
