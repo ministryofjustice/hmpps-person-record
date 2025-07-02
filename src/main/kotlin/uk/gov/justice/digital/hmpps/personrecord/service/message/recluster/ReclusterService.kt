@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordClusterTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -29,13 +28,12 @@ class ReclusterService(
   private val personKeyRepository: PersonKeyRepository,
   private val personRepository: PersonRepository,
   private val publisher: ApplicationEventPublisher,
-  private val personKeyService: PersonKeyService,
 ) {
 
   @Transactional
   fun recluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
     when {
-      personKeyService.clusterIsNeedsAttentionAndCanBecomeActive(cluster) -> personKeyService.settingNeedsAttentionClusterToActive(cluster, changedRecord)
+      clusterIsNeedsAttentionAndCanBecomeActive(cluster) -> settingNeedsAttentionClusterToActive(cluster, changedRecord)
     }
     when {
       cluster.isActive() -> processRecluster(cluster, changedRecord)
@@ -158,6 +156,20 @@ class ReclusterService(
     clusterDetails.cluster.status = NEEDS_ATTENTION
     personKeyRepository.save(clusterDetails.cluster)
   }
+
+  private fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity, changedRecord: PersonEntity) {
+    personKeyEntity.status = ACTIVE
+    personKeyRepository.save(personKeyEntity)
+    publisher.publishEvent(
+      RecordEventLog(
+        CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE,
+        changedRecord,
+        personKeyEntity,
+      ),
+    )
+  }
+
+  private fun clusterIsNeedsAttentionAndCanBecomeActive(cluster: PersonKeyEntity): Boolean = cluster.isNeedsAttention() && personMatchService.examineIsClusterValid(cluster).isClusterValid
 
   private fun List<PersonKeyEntity>.removeUpdatedCluster(cluster: PersonKeyEntity) = this.filterNot { it.id == cluster.id }
 
