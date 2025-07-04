@@ -64,7 +64,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should update an existing person record from common platform message`() {
-    stubPersonMatchUpsert()
     val defendantId = randomDefendantId()
     val pnc = randomPnc()
     val cro = randomCro()
@@ -82,7 +81,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       ),
       personKeyEntity = personKey,
     )
-
+    stubPersonMatchUpsert(person = person)
     stubNoMatchesPersonMatch(matchId = person.matchId)
 
     val changedLastName = randomName()
@@ -491,7 +490,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val person = awaitNotNullPerson {
       personRepository.findByDefendantId(defendantId)
     }
-
+    stubPersonMatchUpsert(person = person)
     assertThat(sqsMessage?.messageAttributes?.eventType).isEqualTo(MessageAttribute(LARGE_CASE_EVENT_TYPE))
     assertThat(sqsMessage?.messageAttributes?.hearingEventType).isEqualTo(MessageAttribute("ConfirmedOrUpdated"))
     assertThat(messageBody.contains(defendantId)).isEqualTo(true)
