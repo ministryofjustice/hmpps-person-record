@@ -67,12 +67,21 @@ tasks {
     include("**/InitialiseDatabase.class")
   }
 
+  register("integrationTest", Test::class) {
+    include("**/IntegrationTest.class")
+  }
+
   test {
     exclude("**/InitialiseDatabase.class")
+    exclude("**/IntegrationTest.class")
   }
 
   getByName("initialiseDatabase") {
     onlyIf { gradle.startParameter.taskNames.contains("initialiseDatabase") }
+  }
+
+  getByName("integrationTest") {
+    onlyIf { gradle.startParameter.taskNames.contains("integrationTest") }
   }
 
   getByName("check") {

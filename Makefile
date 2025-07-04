@@ -29,3 +29,11 @@ ifeq (0,$(shell docker ps --filter "status=running" | grep 'hmpps-person-match' 
 else
 	docker compose up -d localstack-hmpps-person-record && ./gradlew bootRun --args='--spring.profiles.active=local'
 endif
+
+int-test-setup: restart-containers
+ifeq (0,$(shell docker ps --filter "status=running" | grep 'hmpps-person-match' | wc -l | xargs))
+	docker compose -f docker-compose-test.yml down && docker compose -f docker-compose-test.yml up -d migrations hmpps-auth hmpps-person-match
+endif
+
+int-test: int-test-setup
+	./gradlew integrationTest
