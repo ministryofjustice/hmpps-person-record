@@ -490,7 +490,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val person = awaitNotNullPerson {
       personRepository.findByDefendantId(defendantId)
     }
-    stubPersonMatchUpsert(person = person)
     assertThat(sqsMessage?.messageAttributes?.eventType).isEqualTo(MessageAttribute(LARGE_CASE_EVENT_TYPE))
     assertThat(sqsMessage?.messageAttributes?.hearingEventType).isEqualTo(MessageAttribute("ConfirmedOrUpdated"))
     assertThat(messageBody.contains(defendantId)).isEqualTo(true)

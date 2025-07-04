@@ -337,6 +337,7 @@ class IntegrationTestBase {
       url = "/is-cluster-valid",
       status = status,
       responseBody = objectMapper.writeValueAsString(isClusterValidResponse),
+      requestBody = ContainsPattern("["),
     )
   }
 
