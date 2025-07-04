@@ -390,7 +390,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `should push 404 to dead letter queue`() {
       val reactivatedCrn = randomCrn()
       val unmergedCrn = randomCrn()
-      stub404Response(probationUrl(reactivatedCrn))
+      stub404Response(probationUrl(unmergedCrn))
 
       publishDomainEvent(
         OFFENDER_UNMERGED,
