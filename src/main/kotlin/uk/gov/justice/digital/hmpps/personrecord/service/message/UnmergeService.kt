@@ -36,6 +36,7 @@ class UnmergeService(
     reactivated.removeMergedLink()
 
     reactivated.addExcludeOverrideMarker(excludeRecord = existing)
+    // upsert reactivated before we get here
     personService.linkRecordToPersonKey(reactivated)
     publisher.publishEvent(PersonUnmerged(reactivated, existing))
   }

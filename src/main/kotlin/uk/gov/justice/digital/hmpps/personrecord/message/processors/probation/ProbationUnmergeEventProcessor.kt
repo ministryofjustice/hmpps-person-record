@@ -31,7 +31,7 @@ class ProbationUnmergeEventProcessor(
       .let {
         createUpdateService.processPerson(
           it.doNotLinkOnCreate(),
-        ) { personRepository.findByCrn(reactivatedCrn) }
+        ) { personRepository.findByCrn(reactivatedCrn) } // this will find a record. I think we should also set shouldNotReclusterOnUpdate here
       }
 
     unmergeService.processUnmerge(reactivatedPerson, existingPerson)

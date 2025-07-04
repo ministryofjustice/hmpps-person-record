@@ -34,7 +34,7 @@ class PersonService(
       ),
     )
     when {
-      matchingFieldsHaveChanged -> personMatchService.saveToPersonMatch(updatedEntity)
+      matchingFieldsHaveChanged -> personMatchService.saveToPersonMatch(updatedEntity) // possibly also save here when reactivcating
     }
     return PersonUpdated(updatedEntity, matchingFieldsHaveChanged)
   }
