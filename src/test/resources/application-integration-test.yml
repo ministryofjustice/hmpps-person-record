@@ -1,5 +1,2 @@
 person-match:
   base-url: http://localhost:5000
-
-nomis-oauth:
-  base-url: http://localhost:8080

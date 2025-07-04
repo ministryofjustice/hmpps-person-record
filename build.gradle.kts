@@ -69,6 +69,7 @@ tasks {
 
   register("integrationTest", Test::class) {
     include("**/IntegrationTest.class")
+    environment(mapOf("SPRING_PROFILES_ACTIVE" to "test,integration-test"))
   }
 
   test {
