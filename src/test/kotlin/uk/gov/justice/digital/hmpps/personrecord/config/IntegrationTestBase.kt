@@ -16,6 +16,8 @@ import com.github.tomakehurst.wiremock.http.RequestMethod.GET
 import com.github.tomakehurst.wiremock.http.RequestMethod.POST
 import com.github.tomakehurst.wiremock.http.RequestMethod.PUT
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension
+import com.github.tomakehurst.wiremock.matching.ContainsPattern
+import com.github.tomakehurst.wiremock.matching.ContentPattern
 import com.github.tomakehurst.wiremock.matching.UrlPattern
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.assertj.core.api.Assertions.assertThat
@@ -335,6 +337,7 @@ class IntegrationTestBase {
       url = "/is-cluster-valid",
       status = status,
       responseBody = objectMapper.writeValueAsString(isClusterValidResponse),
+      requestBody = ContainsPattern("["),
     )
   }
 
@@ -347,7 +350,6 @@ class IntegrationTestBase {
     currentScenarioState: String = STARTED,
     nextScenarioState: String = currentScenarioState,
     status: Int = 200,
-    body: String = "{}",
   ) {
     authSetup()
     stubPostRequest(
@@ -356,7 +358,25 @@ class IntegrationTestBase {
       nextScenarioState,
       url = "/person",
       status = status,
-      responseBody = body,
+      responseBody = "{}",
+    )
+  }
+  internal fun stubPersonMatchUpsert(
+    scenario: String = BASE_SCENARIO,
+    currentScenarioState: String = STARTED,
+    nextScenarioState: String = currentScenarioState,
+    status: Int = 200,
+    person: PersonEntity,
+  ) {
+    authSetup()
+    stubPostRequest(
+      scenario,
+      currentScenarioState,
+      nextScenarioState,
+      url = "/person",
+      status = status,
+      responseBody = "{}",
+      requestBody = ContainsPattern(person.matchId.toString()),
     )
   }
 
@@ -417,10 +437,11 @@ class IntegrationTestBase {
     )
   }
 
-  internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, responseBody: String, status: Int = 200) {
+  internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, responseBody: String, status: Int = 200, requestBody: ContentPattern<String> = ContainsPattern("matchId")) {
     authSetup()
     wiremock.stubFor(
       WireMock.post(url)
+        .withRequestBody(requestBody)
         .inScenario(scenarioName)
         .whenScenarioStateIs(currentScenarioState)
         .willSetStateTo(nextScenarioState)
