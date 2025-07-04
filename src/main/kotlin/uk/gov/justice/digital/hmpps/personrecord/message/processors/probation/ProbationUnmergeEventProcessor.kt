@@ -18,7 +18,7 @@ class ProbationUnmergeEventProcessor(
   fun processEvent(domainEvent: DomainEvent) {
     val unmergedCrn = domainEvent.additionalInformation?.unmergedCrn!!
     val existingPerson = corePersonRecordAndDeliusClient
-      .getPerson(unmergedCrn)
+      .getPersonErrorIfNotFound(unmergedCrn)
       .let {
         createUpdateService.processPerson(
           it,
@@ -27,7 +27,7 @@ class ProbationUnmergeEventProcessor(
 
     val reactivatedCrn = domainEvent.additionalInformation.reactivatedCrn!!
     val reactivatedPerson = corePersonRecordAndDeliusClient
-      .getPerson(reactivatedCrn)
+      .getPersonErrorIfNotFound(reactivatedCrn)
       .let {
         createUpdateService.processPerson(
           it.doNotLinkOnCreate(),
