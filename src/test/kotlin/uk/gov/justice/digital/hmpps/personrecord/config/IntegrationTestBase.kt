@@ -347,7 +347,6 @@ class IntegrationTestBase {
     currentScenarioState: String = STARTED,
     nextScenarioState: String = currentScenarioState,
     status: Int = 200,
-    body: String = "{}",
   ) {
     authSetup()
     stubPostRequest(
@@ -356,7 +355,7 @@ class IntegrationTestBase {
       nextScenarioState,
       url = "/person",
       status = status,
-      responseBody = body,
+      responseBody = "{}",
     )
   }
 
