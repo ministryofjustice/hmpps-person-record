@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.client
 
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.ProbationCases
+import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.discardNotFoundException
@@ -11,18 +11,21 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.discardNotFoundEx
 class CorePersonRecordAndDeliusClient(private val corePersonRecordAndDeliusWebClient: WebClient) {
 
   fun getPerson(crn: String): Person {
-    val probationCase = corePersonRecordAndDeliusWebClient
-      .get()
-      .uri("/probation-cases/$crn")
-      .retrieve()
-      .bodyToMono(ProbationCase::class.java)
+    val probationCase = getProbationCase(crn)
       .discardNotFoundException()
       .block()!!
     return Person.from(probationCase)
   }
 
-  fun getProbationCases(pageParams: CorePersonRecordAndDeliusClientPageParams): ProbationCases? = corePersonRecordAndDeliusWebClient.get()
-    .uri("/all-probation-cases") { it.queryParam("size", pageParams.size).queryParam("page", pageParams.page).queryParam("sort", "id,asc").build() }.retrieve().bodyToMono(ProbationCases::class.java).block()!!
-}
+  fun getPersonErrorIfNotFound(crn: String): Person {
+    val probationCase = getProbationCase(crn)
+      .block()!!
+    return Person.from(probationCase)
+  }
 
-class CorePersonRecordAndDeliusClientPageParams(val page: Int, val size: Int)
+  private fun getProbationCase(crn: String): Mono<ProbationCase> = corePersonRecordAndDeliusWebClient
+    .get()
+    .uri("/probation-cases/$crn")
+    .retrieve()
+    .bodyToMono(ProbationCase::class.java)
+}

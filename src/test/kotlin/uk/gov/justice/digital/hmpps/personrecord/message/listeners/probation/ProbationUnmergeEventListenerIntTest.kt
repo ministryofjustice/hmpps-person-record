@@ -387,7 +387,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should not push 404 to dead letter queue but discard message instead`() {
+    fun `should push 404 to dead letter queue`() {
       val reactivatedCrn = randomCrn()
       val unmergedCrn = randomCrn()
       stub404Response(probationUrl(unmergedCrn))
@@ -402,7 +402,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
           ),
         ),
       )
-      expectNoMessagesOnQueueOrDlq(probationMergeEventsQueue)
+      expectOneMessageOnDlq(probationMergeEventsQueue)
     }
   }
 }
