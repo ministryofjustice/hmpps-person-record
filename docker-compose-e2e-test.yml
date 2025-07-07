@@ -1,0 +1,51 @@
+services:
+
+  hmpps-person-match:
+    container_name: hmpps-person-match
+    image: hmpps-person-match:latest
+    command: |
+      sh -c "/app/.venv/bin/python -m pip install --no-cache-dir debugpy &&
+             python -m debugpy --listen 0.0.0.0:5678 -m uvicorn asgi:app --host 0.0.0.0 --port 5000 --reload --log-level debug"
+    networks:
+      - hmpps
+    environment: &database_config
+      DATABASE_USERNAME: root
+      DATABASE_PASSWORD: dev
+      DATABASE_NAME: postgres
+      DATABASE_PORT: 5432
+      DATABASE_HOST: postgres-hmpps-person-record
+      DB_SSL_ENABLED: False
+      OAUTH_BASE_URL: http://hmpps-auth:8080
+      OAUTH_ISSUER_URL_KEY: http://localhost:8080
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+      hmpps-auth:
+        condition: service_healthy
+    ports:
+      - 5000:5000
+      - 5678:5678
+
+  migrations:
+    image: hmpps-person-match:latest
+    container_name: db-migrations
+    command: alembic upgrade head
+    networks:
+      - hmpps
+    environment:
+      <<: *database_config
+
+  hmpps-auth:
+    image: quay.io/hmpps/hmpps-auth:latest
+    container_name: hmpps-auth
+    networks:
+      - hmpps
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/auth/health"]
+    environment:
+      - SERVER_PORT=8080
+      - SPRING_PROFILES_ACTIVE=dev
+networks:
+  hmpps:

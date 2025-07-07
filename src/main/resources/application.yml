@@ -43,11 +43,6 @@ spring:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
 
-  profiles:
-    group:
-      test:
-        - "stdout"
-
   datasource:
     url: jdbc:postgresql://${database.endpoint:localhost:5432}/${database.name:postgres}?currentSchema=${database.schema.name}&user=${database.username:root}&password=${database.password:dev}&stringtype=unspecified&sslmode=verify-full
     hikari:
