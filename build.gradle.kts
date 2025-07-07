@@ -67,22 +67,21 @@ tasks {
     include("**/InitialiseDatabase.class")
   }
 
-  register("integrationTest", Test::class) {
-    include("**/IntegrationTest.class")
-    environment(mapOf("SPRING_PROFILES_ACTIVE" to "test,integration-test"))
+  register("e2eTest", Test::class) {
+    include("**/E2ETest.class")
   }
 
   test {
     exclude("**/InitialiseDatabase.class")
-    exclude("**/IntegrationTest.class")
+    exclude("**/E2ETest.class")
   }
 
   getByName("initialiseDatabase") {
     onlyIf { gradle.startParameter.taskNames.contains("initialiseDatabase") }
   }
 
-  getByName("integrationTest") {
-    onlyIf { gradle.startParameter.taskNames.contains("integrationTest") }
+  getByName("e2eTest") {
+    onlyIf { gradle.startParameter.taskNames.contains("e2eTest") }
   }
 
   getByName("check") {

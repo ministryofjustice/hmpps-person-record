@@ -15,8 +15,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 
-@ActiveProfiles("integration")
-class IntegrationTest : MessagingTestBase() {
+@ActiveProfiles("e2e")
+class E2ETest : MessagingTestBase() {
 
   @Test
   fun `should create a new person`() {
