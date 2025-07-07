@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminCl
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 
-class ClustersApiIntTest: WebTestBase() {
+class ClustersApiIntTest : WebTestBase() {
 
   @BeforeEach
   fun beforeEach() {
@@ -103,7 +103,6 @@ class ClustersApiIntTest: WebTestBase() {
     assertThat(response.content[0].recordComposition.libra).isEqualTo(1)
     assertThat(response.content[0].recordComposition.commonPlatform).isEqualTo(1)
 
-
     assertThat(response.content[1].uuid).isEqualTo(cluster2.personUUID.toString())
     assertThat(response.content[1].recordComposition.delius).isEqualTo(2)
     assertThat(response.content[1].recordComposition.nomis).isEqualTo(0)
@@ -163,6 +162,29 @@ class ClustersApiIntTest: WebTestBase() {
     assertThat(response.content[0].uuid).isEqualTo(nextPageCluster.personUUID.toString())
   }
 
+  @Test
+  fun `should return Access Denied 403 when role is wrong`() {
+    val expectedErrorMessage = "Forbidden: Access Denied"
+    webTestClient.get()
+      .uri(ADMIN_CLUSTERS_URL)
+      .authorised(listOf("UNSUPPORTED-ROLE"))
+      .exchange()
+      .expectStatus()
+      .isForbidden
+      .expectBody()
+      .jsonPath("userMessage")
+      .isEqualTo(expectedErrorMessage)
+  }
+
+  @Test
+  fun `should return UNAUTHORIZED 401 when role is not set`() {
+    webTestClient.get()
+      .uri(ADMIN_CLUSTERS_URL)
+      .exchange()
+      .expectStatus()
+      .isUnauthorized
+  }
+
   companion object {
     private const val ADMIN_CLUSTERS_URL = "/admin/clusters"
   }
@@ -173,5 +195,5 @@ data class PagedResponse<T>(
   val page: Int,
   val size: Int,
   val totalElements: Long,
-  val totalPages: Int
+  val totalPages: Int,
 )

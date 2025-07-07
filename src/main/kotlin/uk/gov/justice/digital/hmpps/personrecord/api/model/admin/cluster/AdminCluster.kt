@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster
 
-
 data class AdminCluster(
   val uuid: String,
   val recordComposition: SourceSystemComposition,

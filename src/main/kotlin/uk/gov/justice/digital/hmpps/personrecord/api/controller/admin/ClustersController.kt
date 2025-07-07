@@ -26,7 +26,7 @@ class ClustersController(
   @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")
   @GetMapping("/admin/clusters")
   suspend fun getClusters(
-    @PageableDefault(size = DEFAULT_PAGE_SIZE) pageable: Pageable
+    @PageableDefault(size = DEFAULT_PAGE_SIZE) pageable: Pageable,
   ): Page<AdminCluster> {
     val evaluatedPageable: Pageable = pageable.check()
     return withContext(Dispatchers.IO) {
@@ -39,8 +39,9 @@ class ClustersController(
           delius = it.personEntities.getRecordCountBySourceSystem(SourceSystemType.DELIUS),
           commonPlatform = it.personEntities.getRecordCountBySourceSystem(SourceSystemType.COMMON_PLATFORM),
           libra = it.personEntities.getRecordCountBySourceSystem(SourceSystemType.LIBRA),
-        )
-    ) }
+        ),
+      )
+    }
   }
 
   private fun Pageable.check() = when {
@@ -55,5 +56,3 @@ class ClustersController(
     private const val MAX_PAGE_SIZE = 50
   }
 }
-
-
