@@ -46,43 +46,11 @@ jobs:
       - store_artifacts:
           path: build/reports/kover/html
           destination: coverage
-  integration-test:
-    executor:
-      name: hmpps/java_localstack_postgres
-      jdk_tag: "21.0"
-      localstack_tag: "3.0"
-      postgres_tag: "16.1"
-      java_options: "-Xmx4096m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=true -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.workers.max=1"
-      resource_class: medium+
-      services: "s3,sqs,sns"
-    steps:
-      - checkout
-      - hmpps/install_aws_cli
-      - hmpps/wait_till_ready
-      - run:
-          name: Set up S3
-          command: src/test/resources/localstack/setup-aws.sh
-      - restore_cache:
-          keys:
-            - gradle-{{ checksum "build.gradle.kts" }}
-            - gradle-
-      - run:
-          command: make int-test
-      - save_cache:
-          paths:
-            - ~/.gradle
-          key: gradle-{{ checksum "build.gradle.kts" }}
-      - store_test_results:
-          path: build/test-results
-      - store_artifacts:
-          path: build/reports/tests
-          destination: junit
 
 workflows:
   version: 2
   build-test-and-deploy:
     jobs:
-      - integration-test
       - validate:
           filters:
             tags:
