@@ -33,7 +33,7 @@ class ReclusterService(
   @Transactional
   fun recluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
     when {
-      clusterIsNeedsAttentionAndCanBecomeActive(cluster) -> settingNeedsAttentionClusterToActive(cluster, changedRecord)
+      clusterIsNeedsAttentionAndCanBecomeActive(cluster) -> settingNeedsAttentionClusterToActive(changedRecord)
     }
     when {
       cluster.isActive() -> processRecluster(cluster, changedRecord)
@@ -128,7 +128,7 @@ class ReclusterService(
         clusterDetails.cluster,
       ),
     )
-    settingClusterToNeedsAttention(clusterDetails)
+    settingClusterToNeedsAttention(clusterDetails.cluster)
   }
 
   private fun handleInvalidClusterComposition(
@@ -149,22 +149,23 @@ class ReclusterService(
         clusterComposition,
       ),
     )
-    settingClusterToNeedsAttention(clusterDetails)
+    settingClusterToNeedsAttention(clusterDetails.cluster)
   }
 
-  private fun settingClusterToNeedsAttention(clusterDetails: ClusterDetails) {
-    clusterDetails.cluster.status = NEEDS_ATTENTION
-    personKeyRepository.save(clusterDetails.cluster)
+  private fun settingClusterToNeedsAttention(cluster: PersonKeyEntity) {
+    cluster.status = NEEDS_ATTENTION
+    personKeyRepository.save(cluster)
   }
 
-  private fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity, changedRecord: PersonEntity) {
-    personKeyEntity.status = ACTIVE
-    personKeyRepository.save(personKeyEntity)
+  private fun settingNeedsAttentionClusterToActive(changedRecord: PersonEntity) {
+    val cluster = changedRecord.personKey!!
+    cluster.status = ACTIVE
+    personKeyRepository.save(cluster)
     publisher.publishEvent(
       RecordEventLog(
         CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE,
         changedRecord,
-        personKeyEntity,
+        cluster,
       ),
     )
   }
