@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 
 @ActiveProfiles("e2e")
-class E2ETest : MessagingTestBase() {
+class CreateCommonPlatformPersonE2ETest : MessagingTestBase() {
 
   @Test
   fun `should create a new person`() {
@@ -30,7 +30,7 @@ class E2ETest : MessagingTestBase() {
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, firstName = firstName, lastName = lastName, cro = cro, defendantId = defendantId))),
     )
 
-    val updatedPersonEntity = awaitNotNullPerson(timeout = 15, function = { personRepository.findByDefendantId(defendantId) })
+    val updatedPersonEntity = awaitNotNullPerson(timeout = 5, function = { personRepository.findByDefendantId(defendantId) })
     assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(lastName)
     assertThat(updatedPersonEntity.references.getType(PNC).first().identifierValue).isEqualTo(pnc)
     assertThat(updatedPersonEntity.references.getType(CRO).first().identifierValue).isEqualTo(cro)

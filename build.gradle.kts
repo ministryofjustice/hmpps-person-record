@@ -68,12 +68,12 @@ tasks {
   }
 
   register("e2eTest", Test::class) {
-    include("**/E2ETest.class")
+    include("**/**E2ETest.class")
   }
 
   test {
     exclude("**/InitialiseDatabase.class")
-    exclude("**/E2ETest.class")
+    exclude("**/**E2ETest.class")
   }
 
   getByName("initialiseDatabase") {
