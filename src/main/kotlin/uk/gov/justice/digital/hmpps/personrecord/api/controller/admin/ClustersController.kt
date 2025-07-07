@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.admin
 
 import io.swagger.v3.oas.annotations.Hidden
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
@@ -13,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.SourceS
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 
 @RestController
 class ClustersController(
@@ -22,12 +25,13 @@ class ClustersController(
   @Hidden
   @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")
   @GetMapping("/admin/clusters")
-  suspend fun getClusters(@PageableDefault(size = DEFAULT_PAGE_SIZE) pageable: Pageable): Page<AdminCluster> {
-    val evaluatedPageable: Pageable = when {
-      pageable.pageSize > MAX_PAGE_SIZE -> Pageable.ofSize(DEFAULT_PAGE_SIZE).withPage(pageable.pageNumber)
-      else -> pageable
-    }
-    return personKeyRepository.findAll(evaluatedPageable).map {
+  suspend fun getClusters(
+    @PageableDefault(size = DEFAULT_PAGE_SIZE) pageable: Pageable
+  ): Page<AdminCluster> {
+    val evaluatedPageable: Pageable = pageable.check()
+    return withContext(Dispatchers.IO) {
+      personKeyRepository.findAllByStatus(UUIDStatusType.NEEDS_ATTENTION, evaluatedPageable)
+    }.map {
       AdminCluster(
         uuid = it.personUUID.toString(),
         recordComposition = SourceSystemComposition(
@@ -37,6 +41,11 @@ class ClustersController(
           libra = it.personEntities.getRecordCountBySourceSystem(SourceSystemType.LIBRA),
         )
     ) }
+  }
+
+  private fun Pageable.check() = when {
+    this.pageSize > MAX_PAGE_SIZE -> Pageable.ofSize(DEFAULT_PAGE_SIZE).withPage(this.pageNumber)
+    else -> this
   }
 
   private fun List<PersonEntity>.getRecordCountBySourceSystem(sourceSystemType: SourceSystemType): Int = this.filter { record -> record.sourceSystem == sourceSystemType }.size

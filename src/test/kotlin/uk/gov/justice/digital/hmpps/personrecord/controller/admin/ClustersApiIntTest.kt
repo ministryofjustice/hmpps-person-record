@@ -7,6 +7,7 @@ import org.springframework.core.ParameterizedTypeReference
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminCluster
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 
 class ClustersApiIntTest: WebTestBase() {
 
@@ -17,8 +18,8 @@ class ClustersApiIntTest: WebTestBase() {
   }
 
   @Test
-  fun `should return list of clusters with composition `() {
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails())
+  fun `should return list of clusters with composition`() {
+    val person = createPersonWithNewKey(createRandomProbationPersonDetails(), status = UUIDStatusType.NEEDS_ATTENTION)
 
     val responseType = object : ParameterizedTypeReference<PagedResponse<AdminCluster>>() {}
     val response = webTestClient.get()
@@ -44,14 +45,38 @@ class ClustersApiIntTest: WebTestBase() {
   }
 
   @Test
+  fun `should not return clusters that are not NEEDS ATTENTION`() {
+    createPersonWithNewKey(createRandomProbationPersonDetails(), status = UUIDStatusType.ACTIVE)
+    createPersonWithNewKey(createRandomProbationPersonDetails(), status = UUIDStatusType.MERGED)
+    createPersonWithNewKey(createRandomProbationPersonDetails(), status = UUIDStatusType.RECLUSTER_MERGE)
+
+    val responseType = object : ParameterizedTypeReference<PagedResponse<AdminCluster>>() {}
+    val response = webTestClient.get()
+      .uri(ADMIN_CLUSTERS_URL)
+      .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(responseType)
+      .returnResult()
+      .responseBody!!
+
+    assertThat(response.content.size).isEqualTo(0)
+    assertThat(response.totalElements).isEqualTo(0)
+    assertThat(response.totalPages).isEqualTo(0)
+    assertThat(response.page).isEqualTo(0)
+    assertThat(response.size).isEqualTo(20)
+  }
+
+  @Test
   fun `should return list of multiple clusters with composition`() {
-    val cluster1 = createPersonKey()
+    val cluster1 = createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION)
       .addPerson(createPerson(createRandomProbationPersonDetails()))
       .addPerson(createPerson(createRandomPrisonPersonDetails()))
       .addPerson(createPerson(createRandomCommonPlatformPersonDetails()))
       .addPerson(createPerson(createRandomLibraPersonDetails()))
 
-    val cluster2 = createPersonKey()
+    val cluster2 = createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION)
       .addPerson(createPerson(createRandomProbationPersonDetails()))
       .addPerson(createPerson(createRandomProbationPersonDetails()))
 
@@ -89,7 +114,7 @@ class ClustersApiIntTest: WebTestBase() {
   @Test
   fun `should return default size of cluster if exceeds max`() {
     repeat(51) {
-      createPersonKey().addPerson(createPerson(createRandomProbationPersonDetails()))
+      createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION).addPerson(createPerson(createRandomProbationPersonDetails()))
     }
 
     val responseType = object : ParameterizedTypeReference<PagedResponse<AdminCluster>>() {}
@@ -113,10 +138,10 @@ class ClustersApiIntTest: WebTestBase() {
   @Test
   fun `should return specified page`() {
     repeat(20) {
-      createPersonKey().addPerson(createPerson(createRandomProbationPersonDetails()))
+      createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION).addPerson(createPerson(createRandomProbationPersonDetails()))
     }
 
-    val nextPageCluster = createPersonKey().addPerson(createPerson(createRandomProbationPersonDetails()))
+    val nextPageCluster = createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION).addPerson(createPerson(createRandomProbationPersonDetails()))
 
     val responseType = object : ParameterizedTypeReference<PagedResponse<AdminCluster>>() {}
     val response = webTestClient.get()
