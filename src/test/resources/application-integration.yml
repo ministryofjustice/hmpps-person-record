@@ -1,0 +1,10 @@
+person-match:
+  base-url: http://localhost:5000
+  client-secret: clientsecret
+  client-id: hmpps-person-match
+
+nomis-oauth:
+  base-url: http://localhost:8080
+
+retry:
+  timeout: 5000

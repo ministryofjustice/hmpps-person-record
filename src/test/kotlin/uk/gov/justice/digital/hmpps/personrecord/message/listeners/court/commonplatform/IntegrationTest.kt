@@ -2,7 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.common
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import org.springframework.test.context.ActiveProfiles
+import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
@@ -14,7 +15,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 
-class IntegrationTest : MessagingMultiNodeTestBase() {
+@ActiveProfiles("integration")
+class IntegrationTest : MessagingTestBase() {
 
   @Test
   fun `should create a new person`() {

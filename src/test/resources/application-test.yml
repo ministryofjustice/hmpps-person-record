@@ -6,12 +6,10 @@ management.endpoint:
   info.cache.time-to-live: 0
 
 person-match:
-  base-url: http://localhost:5000
-  client-secret: clientsecret
-  client-id: hmpps-person-match
+  base-url: http://localhost:8090
 
 nomis-oauth:
-  base-url: http://localhost:8080
+  base-url: http://localhost:8090
 
 prisoner-search:
   base-url: http://localhost:8090
@@ -24,7 +22,7 @@ core-person-record-and-delius:
 
 retry:
   delay: 120
-  timeout: 5000
+  timeout: 200
 
 hmpps.sqs:
   enabled: true
