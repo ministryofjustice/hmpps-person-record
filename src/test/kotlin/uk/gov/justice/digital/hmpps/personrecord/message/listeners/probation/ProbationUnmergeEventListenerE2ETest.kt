@@ -42,14 +42,15 @@ class ProbationUnmergeEventListenerE2ETest : MessagingTestBase() {
         addresses = listOf(ApiResponseSetupAddress(postcode = reactivatedPerson.addresses.first().postcode, fullAddress = randomFullAddress())),
         aliases = listOf(ApiResponseSetupAlias(firstName = reactivatedPerson.aliases.first().firstName!!, middleName = reactivatedPerson.aliases.first().middleNames!!, lastName = reactivatedPerson.aliases.first().lastName!!, dateOfBirth = reactivatedPerson.aliases.first().dateOfBirth!!)),
       )
-// make sure none of the matching fields have changes
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmergedCrn, sourceSetup = reactivatedSetup) // need to pass the person details in here as well to ensure they are unchanhed !!
-      // reactivatedPersonEntity.assertMergedTo(unmergedPerson)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmergedCrn)
+
+      checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_RECORD_MERGED)
+      reactivatedPersonEntity.assertMergedTo(unmergedPerson)
 
       probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn, reactivatedSetup = reactivatedSetup)
 
-      checkEventLogExist(reactivatedPersonEntity.crn!!, CPRLogEvents.CPR_UUID_CREATED)
-      checkEventLog(reactivatedPersonEntity.crn!!, CPRLogEvents.CPR_RECORD_UNMERGED) { eventLogs ->
+      checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_UUID_CREATED)
+      checkEventLog(reactivatedCrn, CPRLogEvents.CPR_RECORD_UNMERGED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
         assertThat(eventLog.personUUID).isNotEqualTo(cluster.personUUID)

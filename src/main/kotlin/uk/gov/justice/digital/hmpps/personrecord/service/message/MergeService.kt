@@ -38,7 +38,6 @@ class MergeService(
   }
 
   private fun merge(from: PersonEntity?, to: PersonEntity) {
-    publisher.publishEvent(PersonMerged(from, to))
     from?.let {
       it.throwIfCircularMerge(to)
       it.removePersonKeyLink()
@@ -46,6 +45,7 @@ class MergeService(
       personRepository.save(it)
       personMatchService.deleteFromPersonMatch(it)
     }
+    publisher.publishEvent(PersonMerged(from, to))
   }
 
   private fun PersonKeyEntity.throwIfCircularMerge(to: PersonKeyEntity) {
