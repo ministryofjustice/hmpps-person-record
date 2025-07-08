@@ -4,9 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
@@ -32,8 +29,8 @@ class CreateCommonPlatformPersonE2ETest : MessagingTestBase() {
 
     val updatedPersonEntity = awaitNotNullPerson(timeout = 5, function = { personRepository.findByDefendantId(defendantId) })
     assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(lastName)
-    assertThat(updatedPersonEntity.references.getType(PNC).first().identifierValue).isEqualTo(pnc)
-    assertThat(updatedPersonEntity.references.getType(CRO).first().identifierValue).isEqualTo(cro)
+    assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
+    assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
     assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
 
     checkTelemetry(

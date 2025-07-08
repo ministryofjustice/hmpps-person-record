@@ -10,11 +10,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
@@ -74,9 +72,9 @@ class EventLogServiceIntTest : IntegrationTestBase() {
     assertThat(eventLog.postcodes.size).isEqualTo(1)
     assertThat(eventLog.postcodes.first()).isEqualTo(personEntity.addresses.first().postcode)
     assertThat(eventLog.cros.size).isEqualTo(1)
-    assertThat(eventLog.cros.first()).isEqualTo(personEntity.references.getType(IdentifierType.CRO).first().identifierValue)
+    assertThat(eventLog.cros.first()).isEqualTo(personEntity.getCro())
     assertThat(eventLog.pncs.size).isEqualTo(1)
-    assertThat(eventLog.pncs.first()).isEqualTo(personEntity.references.getType(IdentifierType.PNC).first().identifierValue)
+    assertThat(eventLog.pncs.first()).isEqualTo(personEntity.getPnc())
     assertThat(eventLog.sentenceDates.size).isEqualTo(1)
     assertThat(eventLog.sentenceDates.first()).isEqualTo(personEntity.sentenceInfo.first().sentenceDate)
     assertThat(eventLog.recordMergedTo).isNull()
