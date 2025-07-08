@@ -73,7 +73,12 @@ abstract class MessagingTestBase : IntegrationTestBase() {
 
   internal fun publishLargeCommonPlatformMessage(message: String) = publishCourtMessage(message, COMMON_PLATFORM_HEARING, LARGE_CASE_EVENT_TYPE, "ConfirmedOrUpdated")
 
-  private fun publishCourtMessage(message: String, messageType: MessageType, eventType: String, hearingEventType: String?) {
+  private fun publishCourtMessage(
+    message: String,
+    messageType: MessageType,
+    eventType: String,
+    hearingEventType: String?,
+  ) {
     val attributes = mutableMapOf(
       "messageType" to MessageAttributeValue.builder().dataType("String")
         .stringValue(messageType.name).build(),
@@ -155,7 +160,12 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     expectNoMessagesOn(probationEventsQueue)
   }
 
-  private fun publishEvent(message: String, topic: HmppsTopic?, messageAttributes: Map<String, MessageAttributeValue>, eventType: String): String? = topic?.publish(event = message, eventType = eventType, attributes = messageAttributes)?.messageId()
+  private fun publishEvent(
+    message: String,
+    topic: HmppsTopic?,
+    messageAttributes: Map<String, MessageAttributeValue>,
+    eventType: String,
+  ): String? = topic?.publish(event = message, eventType = eventType, attributes = messageAttributes)?.messageId()
 
   fun probationMergeEventAndResponseSetup(
     eventType: String,
@@ -166,7 +176,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     nextScenarioState: String = STARTED,
   ) {
     stubSingleProbationResponse(ApiResponseSetup(crn = targetCrn), scenario, currentScenarioState, nextScenarioState)
-
     publishDomainEvent(
       eventType,
       DomainEvent(
@@ -186,8 +195,26 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
+  ) = probationUnmergeEventAndResponseSetup(
+    eventType,
+    reactivatedCrn,
+    unmergedCrn,
+    scenario,
+    currentScenarioState,
+    nextScenarioState,
+    ApiResponseSetup(crn = reactivatedCrn),
+  )
+
+  fun probationUnmergeEventAndResponseSetup(
+    eventType: String,
+    reactivatedCrn: String,
+    unmergedCrn: String,
+    scenario: String = BASE_SCENARIO,
+    currentScenarioState: String = STARTED,
+    nextScenarioState: String = STARTED,
+    reactivatedSetup: ApiResponseSetup,
   ) {
-    stubSingleProbationResponse(ApiResponseSetup(crn = reactivatedCrn), scenario, currentScenarioState, nextScenarioState)
+    stubSingleProbationResponse(reactivatedSetup, scenario, currentScenarioState, nextScenarioState)
     stubSingleProbationResponse(ApiResponseSetup(crn = unmergedCrn), scenario, currentScenarioState, nextScenarioState)
 
     publishDomainEvent(
@@ -216,9 +243,16 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   }
 
   fun probationDomainEvent(eventType: String, crn: String, additionalInformation: AdditionalInformation? = null) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("CRN", crn))), additionalInformation)
+
   fun prisonDomainEvent(eventType: String, prisonNumber: String, additionalInformation: AdditionalInformation? = null) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))), additionalInformation)
 
-  fun probationEventAndResponseSetup(eventType: String, apiResponseSetup: ApiResponseSetup, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) {
+  fun probationEventAndResponseSetup(
+    eventType: String,
+    apiResponseSetup: ApiResponseSetup,
+    scenario: String = BASE_SCENARIO,
+    currentScenarioState: String = STARTED,
+    nextScenarioState: String = STARTED,
+  ) {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
 
     val probationEvent = ProbationEvent(apiResponseSetup.crn!!)
@@ -233,7 +267,12 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
   ) {
-    stubPrisonResponse(ApiResponseSetup(prisonNumber = targetPrisonNumber), scenario, currentScenarioState, nextScenarioState)
+    stubPrisonResponse(
+      ApiResponseSetup(prisonNumber = targetPrisonNumber),
+      scenario,
+      currentScenarioState,
+      nextScenarioState,
+    )
 
     publishDomainEvent(
       eventType,

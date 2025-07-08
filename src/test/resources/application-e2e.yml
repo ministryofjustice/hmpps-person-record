@@ -3,6 +3,10 @@ person-match:
   client-secret: clientsecret
   client-id: hmpps-person-match
 
+core-person-record-and-delius:
+  client-secret: clientsecret
+  client-id: hmpps-person-match
+
 nomis-oauth:
   base-url: http://localhost:8080
 
