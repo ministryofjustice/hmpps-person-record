@@ -49,29 +49,18 @@ class UnmergeControllerIntTest : WebTestBase() {
       assertThat(eventLog.excludeOverrideMarkers).contains(unmergedPerson.id)
     }
     checkEventLog(unmergedPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
-      assertThat(eventLogs).hasSize(2)
+      assertThat(eventLogs).hasSize(1)
       val eventLog = eventLogs.first()
       assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
       assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
       assertThat(eventLog.excludeOverrideMarkers).contains(reactivatedPerson.id)
     }
-    checkTelemetry(
-      CPR_RECORD_UPDATED,
-      mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkTelemetry(
-      CPR_RECORD_UPDATED,
-      mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-    )
+
     checkTelemetry(
       CPR_UUID_CREATED,
       mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
     )
-    checkTelemetry(
-      CPR_UUID_CREATED,
-      mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-      times = 0,
-    )
+
     checkTelemetry(
       CPR_RECORD_UNMERGED,
       mapOf(

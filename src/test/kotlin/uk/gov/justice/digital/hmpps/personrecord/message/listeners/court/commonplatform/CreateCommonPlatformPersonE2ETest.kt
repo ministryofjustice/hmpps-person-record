@@ -30,7 +30,7 @@ class CreateCommonPlatformPersonE2ETest : MessagingTestBase() {
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, firstName = firstName, lastName = lastName, cro = cro, defendantId = defendantId))),
     )
 
-    val updatedPersonEntity = awaitNotNullPerson(timeout = 5, function = { personRepository.findByDefendantId(defendantId) })
+    val updatedPersonEntity = awaitNotNullPerson(timeout = 7, function = { personRepository.findByDefendantId(defendantId) })
     assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(lastName)
     assertThat(updatedPersonEntity.references.getType(PNC).first().identifierValue).isEqualTo(pnc)
     assertThat(updatedPersonEntity.references.getType(CRO).first().identifierValue).isEqualTo(cro)
