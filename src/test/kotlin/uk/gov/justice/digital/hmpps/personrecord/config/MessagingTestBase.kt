@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domai
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonReference
+import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase.Companion.BASE_SCENARIO
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
@@ -164,8 +165,17 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
+  ) = probationMergeEventAndResponseSetup(eventType, sourceCrn, targetCrn, scenario, currentScenarioState, nextScenarioState, ApiResponseSetup(crn = targetCrn))
+  fun probationMergeEventAndResponseSetup(
+    eventType: String,
+    sourceCrn: String,
+    targetCrn: String,
+    scenario: String = BASE_SCENARIO,
+    currentScenarioState: String = STARTED,
+    nextScenarioState: String = STARTED,
+    sourceSetup: ApiResponseSetup,
   ) {
-    stubSingleProbationResponse(ApiResponseSetup(crn = targetCrn), scenario, currentScenarioState, nextScenarioState)
+    stubSingleProbationResponse(sourceSetup, scenario, currentScenarioState, nextScenarioState)
 
     publishDomainEvent(
       eventType,
@@ -186,8 +196,26 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
+  ) = probationUnmergeEventAndResponseSetup(
+    eventType,
+    reactivatedCrn,
+    unmergedCrn,
+    scenario,
+    currentScenarioState,
+    nextScenarioState,
+    ApiResponseSetup(crn = reactivatedCrn),
+  )
+
+  fun probationUnmergeEventAndResponseSetup(
+    eventType: String,
+    reactivatedCrn: String,
+    unmergedCrn: String,
+    scenario: String = BASE_SCENARIO,
+    currentScenarioState: String = STARTED,
+    nextScenarioState: String = STARTED,
+    reactivatedSetup: ApiResponseSetup,
   ) {
-    stubSingleProbationResponse(ApiResponseSetup(crn = reactivatedCrn), scenario, currentScenarioState, nextScenarioState)
+    stubSingleProbationResponse(reactivatedSetup, scenario, currentScenarioState, nextScenarioState)
     stubSingleProbationResponse(ApiResponseSetup(crn = unmergedCrn), scenario, currentScenarioState, nextScenarioState)
 
     publishDomainEvent(
