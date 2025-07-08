@@ -93,8 +93,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     awaitAssert {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
       assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(changedLastName)
-      assertThat(updatedPersonEntity.references.getType(PNC).first().identifierValue).isEqualTo(pnc)
-      assertThat(updatedPersonEntity.references.getType(CRO).first().identifierValue).isEqualTo(cro)
+      assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
+      assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
     }
 
@@ -145,8 +145,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     awaitAssert {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
       assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(changedLastName)
-      assertThat(updatedPersonEntity.references.getType(PNC).first().identifierValue).isEqualTo(pnc)
-      assertThat(updatedPersonEntity.references.getType(CRO).first().identifierValue).isEqualTo(cro)
+      assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
+      assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
     }
 
@@ -228,7 +228,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       personRepository.findByDefendantId(forthDefendantId)
     }
 
-    assertThat(firstPerson.references.getType(PNC).first().identifierValue).isEqualTo(firstPnc)
+    assertThat(firstPerson.getPnc()).isEqualTo(firstPnc)
     assertThat(firstPerson.personKey).isNotNull()
     assertThat(firstPerson.masterDefendantId).isEqualTo(firstDefendantId)
     assertThat(firstPerson.getPrimaryName().firstName).isEqualTo(firstName)
@@ -255,7 +255,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPerson.addresses[0].county).isNull()
     assertThat(secondPerson.addresses[0].country).isNull()
     assertThat(secondPerson.addresses[0].uprn).isNull()
-    assertThat(secondPerson.references.getType(PNC).first().identifierValue).isEqualTo(secondPnc)
+    assertThat(secondPerson.getPnc()).isEqualTo(secondPnc)
     assertThat(secondPerson.contacts.size).isEqualTo(3)
     assertThat(secondPerson.contacts[0].contactType).isEqualTo(HOME)
     assertThat(secondPerson.contacts[0].contactValue).isEqualTo("0207345678")
@@ -266,14 +266,14 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     assertThat(thirdPerson.getAliases()).isEmpty()
     assertThat(thirdPerson.contacts.size).isEqualTo(0)
-    assertThat(thirdPerson.references.getType(PNC).first().identifierValue).isEqualTo(thirdPnc)
+    assertThat(thirdPerson.getPnc()).isEqualTo(thirdPnc)
     assertThat(thirdPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(thirdDefendantNINumber)
     assertThat(thirdPerson.masterDefendantId).isEqualTo(thirdDefendantId)
     assertThat(thirdPerson.sexCode).isEqualTo(SexCode.NS)
 
     assertThat(forthPerson.getAliases()).isEmpty()
     assertThat(forthPerson.contacts.size).isEqualTo(0)
-    assertThat(forthPerson.references.getType(PNC).first().identifierValue).isEqualTo(forthPnc)
+    assertThat(forthPerson.getPnc()).isEqualTo(forthPnc)
     assertThat(forthPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(forthDefendantNINumber)
     assertThat(forthPerson.masterDefendantId).isEqualTo(forthDefendantId)
     assertThat(forthPerson.sexCode).isEqualTo(SexCode.N)
