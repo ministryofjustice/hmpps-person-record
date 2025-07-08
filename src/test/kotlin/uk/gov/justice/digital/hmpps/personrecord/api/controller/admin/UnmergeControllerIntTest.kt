@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
@@ -21,7 +20,7 @@ class UnmergeControllerIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should unmerge 2 records that have been merged`() {
+  fun `should unmerge 2 records that have been merged without updating them`() {
     val reactivatedCrn = randomCrn()
     val unmergedCrn = randomCrn()
 
