@@ -52,12 +52,7 @@ class UnmergeService(
     }
   }
 
-  private fun clusterContainsAdditionalRecords(reactivated: PersonEntity, existing: PersonEntity): Boolean {
-    val additionalRecords = existing.personKey?.let { cluster ->
-      cluster.personEntities.filter {
-        listOf(existing.id, reactivated.id).contains(it.id).not()
-      }
-    }
-    return (additionalRecords?.size ?: 0) > 0
-  }
+  private fun clusterContainsAdditionalRecords(reactivated: PersonEntity, existing: PersonEntity): Boolean = existing.personKey?.personEntities?.any {
+    listOf(existing.id, reactivated.id).contains(it.id).not()
+  } ?: false
 }
