@@ -279,7 +279,9 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, mergedReactivatedRecord.crn!!, unmergedRecord.crn!!)
 
       checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to reactivatedRecord.crn!!))
-
+      checkEventLog(unmergedRecord.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
+        assertThat(eventLogs).hasSize(0)
+      }
       reactivatedRecord.assertNotMerged()
 
       reactivatedRecord.assertExcludedFrom(unmergedRecord)
