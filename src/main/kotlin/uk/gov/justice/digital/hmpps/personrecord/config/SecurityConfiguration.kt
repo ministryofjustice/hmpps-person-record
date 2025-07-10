@@ -15,7 +15,6 @@ class SecurityConfiguration {
         "/jobs/recordcountreport",
         "/admin/recluster",
         "/admin/delete",
-        "/admin/unmerge",
       )
     }
   }

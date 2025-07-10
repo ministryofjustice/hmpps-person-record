@@ -5,7 +5,7 @@
 ## About
 
 HMPPS Person Record is a service for managing identity data about the people we look after in HMPPS. 
-Dealing with record updates and creation, as well detecting / preventing any duplicate person records that have been created.
+Dealing with record updates and creation, as well detecting/preventing any duplicate person records that have been created.
 
 ## Service
 
