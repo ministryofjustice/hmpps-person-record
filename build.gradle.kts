@@ -32,7 +32,7 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-  implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.10.2")
+  implementation("io.hypersistence:hypersistence-utils-hibernate-63:3.10.3")
 
   runtimeOnly("org.postgresql:postgresql:42.7.7")
   runtimeOnly("org.flywaydb:flyway-core")
