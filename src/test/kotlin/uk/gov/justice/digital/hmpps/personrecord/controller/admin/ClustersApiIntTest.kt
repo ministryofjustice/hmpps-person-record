@@ -8,7 +8,14 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.admin.PaginatedResponse
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminCluster
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 
 class ClustersApiIntTest : WebTestBase() {
 
@@ -40,17 +47,21 @@ class ClustersApiIntTest : WebTestBase() {
     assertThat(response.pagination.perPage).isEqualTo(20)
 
     assertThat(response.content[0].uuid).isEqualTo(person.personKey?.personUUID.toString())
-    assertThat(response.content[0].recordComposition.delius).isEqualTo(1)
-    assertThat(response.content[0].recordComposition.nomis).isEqualTo(0)
-    assertThat(response.content[0].recordComposition.libra).isEqualTo(0)
-    assertThat(response.content[0].recordComposition.commonPlatform).isEqualTo(0)
+    assertThat(response.content[0].recordComposition[0].count).isEqualTo(0)
+    assertThat(response.content[0].recordComposition[0].sourceSystem).isEqualTo(COMMON_PLATFORM)
+    assertThat(response.content[0].recordComposition[1].count).isEqualTo(1)
+    assertThat(response.content[0].recordComposition[1].sourceSystem).isEqualTo(DELIUS)
+    assertThat(response.content[0].recordComposition[2].count).isEqualTo(0)
+    assertThat(response.content[0].recordComposition[2].sourceSystem).isEqualTo(LIBRA)
+    assertThat(response.content[0].recordComposition[3].count).isEqualTo(0)
+    assertThat(response.content[0].recordComposition[3].sourceSystem).isEqualTo(NOMIS)
   }
 
   @Test
   fun `should not return clusters that are not NEEDS ATTENTION`() {
-    createPersonWithNewKey(createRandomProbationPersonDetails(), status = UUIDStatusType.ACTIVE)
-    createPersonWithNewKey(createRandomProbationPersonDetails(), status = UUIDStatusType.MERGED)
-    createPersonWithNewKey(createRandomProbationPersonDetails(), status = UUIDStatusType.RECLUSTER_MERGE)
+    createPersonWithNewKey(createRandomProbationPersonDetails(), status = ACTIVE)
+    createPersonWithNewKey(createRandomProbationPersonDetails(), status = MERGED)
+    createPersonWithNewKey(createRandomProbationPersonDetails(), status = RECLUSTER_MERGE)
 
     val responseType = object : ParameterizedTypeReference<PaginatedResponse<AdminCluster>>() {}
     val response = webTestClient.get()
@@ -99,16 +110,23 @@ class ClustersApiIntTest : WebTestBase() {
     assertThat(response.pagination.perPage).isEqualTo(20)
 
     assertThat(response.content[0].uuid).isEqualTo(cluster1.personUUID.toString())
-    assertThat(response.content[0].recordComposition.delius).isEqualTo(1)
-    assertThat(response.content[0].recordComposition.nomis).isEqualTo(1)
-    assertThat(response.content[0].recordComposition.libra).isEqualTo(1)
-    assertThat(response.content[0].recordComposition.commonPlatform).isEqualTo(1)
+    assertThat(response.content[0].recordComposition[0].count).isEqualTo(1)
+    assertThat(response.content[0].recordComposition[0].sourceSystem).isEqualTo(COMMON_PLATFORM)
+    assertThat(response.content[0].recordComposition[1].count).isEqualTo(1)
+    assertThat(response.content[0].recordComposition[1].sourceSystem).isEqualTo(DELIUS)
+    assertThat(response.content[0].recordComposition[2].count).isEqualTo(1)
+    assertThat(response.content[0].recordComposition[2].sourceSystem).isEqualTo(LIBRA)
+    assertThat(response.content[0].recordComposition[3].count).isEqualTo(1)
+    assertThat(response.content[0].recordComposition[3].sourceSystem).isEqualTo(NOMIS)
 
     assertThat(response.content[1].uuid).isEqualTo(cluster2.personUUID.toString())
-    assertThat(response.content[1].recordComposition.delius).isEqualTo(2)
-    assertThat(response.content[1].recordComposition.nomis).isEqualTo(0)
-    assertThat(response.content[1].recordComposition.libra).isEqualTo(0)
-    assertThat(response.content[1].recordComposition.commonPlatform).isEqualTo(0)
+    assertThat(response.content[1].recordComposition.first { it.sourceSystem == COMMON_PLATFORM }.count).isEqualTo(0)
+    assertThat(response.content[1].recordComposition[1].count).isEqualTo(2)
+    assertThat(response.content[1].recordComposition[1].sourceSystem).isEqualTo(DELIUS)
+    assertThat(response.content[1].recordComposition[2].count).isEqualTo(0)
+    assertThat(response.content[1].recordComposition[2].sourceSystem).isEqualTo(LIBRA)
+    assertThat(response.content[1].recordComposition[3].count).isEqualTo(0)
+    assertThat(response.content[1].recordComposition[3].sourceSystem).isEqualTo(NOMIS)
   }
 
   @Test

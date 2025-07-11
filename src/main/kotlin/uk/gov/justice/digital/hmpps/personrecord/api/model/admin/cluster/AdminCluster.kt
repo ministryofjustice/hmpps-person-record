@@ -1,13 +1,13 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster
 
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+
 data class AdminCluster(
   val uuid: String,
-  val recordComposition: SourceSystemComposition,
+  val recordComposition: List<SourceSystemComposition>,
 )
 
 data class SourceSystemComposition(
-  val nomis: Int,
-  val delius: Int,
-  val commonPlatform: Int,
-  val libra: Int,
+  val sourceSystem: SourceSystemType,
+  val count: Int,
 )
