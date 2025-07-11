@@ -1,13 +1,13 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.admin
 
 import io.swagger.v3.oas.annotations.Hidden
+import io.swagger.v3.oas.annotations.media.Schema
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.web.PageableDefault
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminCluster
@@ -30,12 +30,13 @@ class ClustersController(
   @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")
   @GetMapping("/admin/clusters")
   suspend fun getClusters(
-    @PageableDefault(size = DEFAULT_PAGE_SIZE) pageable: Pageable,
-  ): Page<AdminCluster> {
-    val evaluatedPageable: Pageable = pageable.check()
-    return withContext(Dispatchers.IO) {
+    @RequestParam(defaultValue = "1") page: Int,
+  ): PaginatedResponse<AdminCluster> {
+    val evaluatedPageable: Pageable = Pageable.ofSize(DEFAULT_PAGE_SIZE).withPage(page - 1)
+    val paginatedClusters = withContext(Dispatchers.IO) {
       personKeyRepository.findAllByStatus(UUIDStatusType.NEEDS_ATTENTION, evaluatedPageable)
-    }.map {
+    }
+    val clusters = paginatedClusters.content.map {
       AdminCluster(
         uuid = it.personUUID.toString(),
         recordComposition = listOf(
@@ -46,17 +47,42 @@ class ClustersController(
         ),
       )
     }
-  }
-
-  private fun Pageable.check() = when {
-    this.pageSize > MAX_PAGE_SIZE -> Pageable.ofSize(DEFAULT_PAGE_SIZE).withPage(this.pageNumber)
-    else -> this
+    return PaginatedResponse(
+      content = clusters,
+      pagination = Pagination(
+        isLastPage = paginatedClusters.isLast,
+        count = paginatedClusters.numberOfElements,
+        page = paginatedClusters.number + 1,
+        perPage = paginatedClusters.size,
+        totalCount = paginatedClusters.totalElements,
+        totalPages = paginatedClusters.totalPages,
+      ),
+    )
   }
 
   private fun List<PersonEntity>.getRecordCountBySourceSystem(sourceSystemType: SourceSystemType): Int = this.filter { record -> record.sourceSystem == sourceSystemType }.size
 
   companion object {
     private const val DEFAULT_PAGE_SIZE = 20
-    private const val MAX_PAGE_SIZE = 50
   }
 }
+
+class PaginatedResponse<T>(
+  val content: List<T>,
+  val pagination: Pagination,
+)
+
+data class Pagination(
+  @Schema(description = "Is the current page the last one?", example = "true")
+  val isLastPage: Boolean,
+  @Schema(description = "The number of results in `data` for the current page", example = "1")
+  val count: Int,
+  @Schema(description = "The current page number", example = "1")
+  val page: Int,
+  @Schema(description = "The maximum number of results in `data` for a page", example = "10")
+  val perPage: Int,
+  @Schema(description = "The total number of results in `data` across all pages", example = "1")
+  val totalCount: Long,
+  @Schema(description = "The total number of pages", example = "1")
+  val totalPages: Int,
+)
