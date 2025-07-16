@@ -47,8 +47,7 @@ class CommonPlatformEventProcessor(
       .flatMap { it.defendants }
       .filterNot { it.isYouth }
       .distinctBy { it.id }
-      .map { defendant -> getPNCFromDefendant(defendant) }
-      .map { defendant -> getCROFromDefendant(defendant) }
+      .map { defendant -> getIdentifiersFromDefendant(defendant) }
       .map { defendant -> Person.from(defendant) }
       .filter { it.isPerson() }
       .map {
@@ -102,20 +101,17 @@ class CommonPlatformEventProcessor(
     return messageParser.jsonString()
   }
 
-  private fun getPNCFromDefendant(defendant: Defendant): Defendant {
+  private fun getIdentifiersFromDefendant(defendant: Defendant): Defendant {
     if (defendant.isPncMissing) {
-      val orginal = defendant.id?.let { personRepository.findByDefendantId(it) }
+      val getDefendant = defendant.id?.let { personRepository.findByDefendantId(it) }
       defendant.pncId =
-        PNCIdentifier.from(orginal?.references?.first { it.identifierType == IdentifierType.PNC }?.identifierValue)
+        PNCIdentifier.from(getDefendant?.references?.first { it.identifierType == IdentifierType.PNC }?.identifierValue)
     }
-    return defendant
-  }
 
-  private fun getCROFromDefendant(defendant: Defendant): Defendant {
     if (defendant.isCroMissing) {
-      val orginal = defendant.id?.let { personRepository.findByDefendantId(it) }
+      val getDefendant = defendant.id?.let { personRepository.findByDefendantId(it) }
       defendant.cro =
-        CROIdentifier.from(orginal?.references?.first { it.identifierType == IdentifierType.CRO }?.identifierValue)
+        CROIdentifier.from(getDefendant?.references?.first { it.identifierType == IdentifierType.CRO }?.identifierValue)
     }
     return defendant
   }
