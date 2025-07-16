@@ -119,18 +119,18 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) = 
 """.trimIndent()
 
 private fun croNumber(commonPlatformHearingSetup: CommonPlatformHearingSetup) = when (commonPlatformHearingSetup.croMissing) {
-  false -> """ "croNumber": "${commonPlatformHearingSetup.cro}","""
-  else -> ""
+  false -> """ "croNumber": "${commonPlatformHearingSetup.cro}", "isCroMissing": false,"""
+  else -> """ "isCroMissing": true,"""
 }
 
 private fun pncId(commonPlatformHearingSetup: CommonPlatformHearingSetup) = when (commonPlatformHearingSetup.pncMissing) {
-  false -> """ "pncId": ${commonPlatformHearingSetup.pnc?.let { """ "${commonPlatformHearingSetup.pnc}" """.trimIndent() } ?: "null"},""".trimIndent()
-  else -> ""
+  false -> """ "pncId": ${commonPlatformHearingSetup.pnc?.let { """ "${commonPlatformHearingSetup.pnc}" """.trimIndent() } ?: "null"},"isPncMissing": false,""".trimIndent()
+  else -> """ "isPncMissing": true,"""
 }
 
 private fun isYouth(commonPlatformHearingSetup: CommonPlatformHearingSetup) = when (commonPlatformHearingSetup.isYouthMissing) {
-  false -> """ "isYouth": ${commonPlatformHearingSetup.isYouth.let { """ "${commonPlatformHearingSetup.isYouth}", """.trimIndent() }} """.trimIndent()
-  else -> ""
+  false -> """ "isYouth": ${commonPlatformHearingSetup.isYouth?.let { """ "${commonPlatformHearingSetup.isYouth}" """.trimIndent() } ?: "null"},"isYouthMissing": false, """.trimIndent()
+  else -> """ isYouthMissing": true,"""
 }
 
 private fun personDefendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) = """

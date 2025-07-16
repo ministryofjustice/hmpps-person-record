@@ -15,14 +15,16 @@ data class Defendant(
   val id: String? = null,
   val masterDefendantId: String? = null,
   @JsonDeserialize(using = PNCIdentifierDeserializer::class)
-  val pncId: PNCIdentifier? = PNCIdentifier.from(),
+  var pncId: PNCIdentifier? = PNCIdentifier.from(),
   @JsonProperty("croNumber")
   @JsonDeserialize(using = CROIdentifierDeserializer::class)
-  val cro: CROIdentifier? = CROIdentifier.from(),
+  var cro: CROIdentifier? = CROIdentifier.from(),
   @Valid
   @Nullable
   val personDefendant: PersonDefendant? = null,
   val ethnicity: Ethnicity? = null,
   val aliases: List<DefendantAlias>? = emptyList(),
   val isYouth: Boolean = false,
+  val isPncMissing: Boolean = false,
+  val isCroMissing: Boolean = false,
 )
