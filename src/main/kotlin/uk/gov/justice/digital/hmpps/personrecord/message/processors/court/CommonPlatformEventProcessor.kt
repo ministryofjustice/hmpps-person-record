@@ -8,12 +8,16 @@ import org.springframework.stereotype.Component
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.LargeMessageBody
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.CourtMessagePublisher
 
@@ -43,6 +47,8 @@ class CommonPlatformEventProcessor(
       .flatMap { it.defendants }
       .filterNot { it.isYouth }
       .distinctBy { it.id }
+      .map { defendant -> getPNCFromDefendant(defendant) }
+      .map { defendant -> getCROFromDefendant(defendant) }
       .map { defendant -> Person.from(defendant) }
       .filter { it.isPerson() }
       .map {
@@ -67,7 +73,10 @@ class CommonPlatformEventProcessor(
 
   private suspend fun getPayloadFromS3(sqsMessage: SQSMessage): String {
     val messageBody = objectMapper.readValue(sqsMessage.message, ArrayList::class.java)
-    val (s3Key, s3BucketName) = objectMapper.readValue(objectMapper.writeValueAsString(messageBody[1]), LargeMessageBody::class.java)
+    val (s3Key, s3BucketName) = objectMapper.readValue(
+      objectMapper.writeValueAsString(messageBody[1]),
+      LargeMessageBody::class.java,
+    )
 
     val request = GetObjectRequest.builder().key(s3Key).bucket(s3BucketName).build()
     return s3AsyncClient.getObject(
@@ -91,5 +100,23 @@ class CommonPlatformEventProcessor(
       )
     }
     return messageParser.jsonString()
+  }
+
+  private fun getPNCFromDefendant(defendant: Defendant): Defendant {
+    if (defendant.isPncMissing) {
+      val orginal = defendant.id?.let { personRepository.findByDefendantId(it) }
+      defendant.pncId =
+        PNCIdentifier.from(orginal?.references?.first { it.identifierType == IdentifierType.PNC }?.identifierValue)
+    }
+    return defendant
+  }
+
+  private fun getCROFromDefendant(defendant: Defendant): Defendant {
+    if (defendant.isCroMissing) {
+      val orginal = defendant.id?.let { personRepository.findByDefendantId(it) }
+      defendant.cro =
+        CROIdentifier.from(orginal?.references?.first { it.identifierType == IdentifierType.CRO }?.identifierValue)
+    }
+    return defendant
   }
 }

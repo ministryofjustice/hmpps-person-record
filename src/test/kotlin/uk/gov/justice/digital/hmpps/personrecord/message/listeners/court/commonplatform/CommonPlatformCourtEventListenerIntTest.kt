@@ -504,6 +504,35 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     )
   }
 
+  @Test
+  fun `should not go into needs attention when 2 records in cluster and update does not contain pnc and cro`() {
+    val defendantId = randomDefendantId()
+    val cro = randomCro()
+    val pnc = randomPnc()
+
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = cro, pnc = pnc))),
+    )
+
+    awaitNotNullPerson {
+      personRepository.findByDefendantId(defendantId)
+    }
+
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, croMissing = true, pncMissing = true))),
+    )
+
+    val updatedPerson = awaitNotNullPerson {
+      personRepository.findByDefendantId(defendantId)
+    }
+
+    assertThat(updatedPerson.getPnc()).isEqualTo(pnc)
+    assertThat(updatedPerson.getCro()).isEqualTo(cro)
+  }
+
   private fun putLargeMessageBodyIntoS3(message: String) {
     val s3Key = UUID.randomUUID().toString()
     val incomingMessageFromS3 = message.toByteArray(Charset.forName("UTF8"))
