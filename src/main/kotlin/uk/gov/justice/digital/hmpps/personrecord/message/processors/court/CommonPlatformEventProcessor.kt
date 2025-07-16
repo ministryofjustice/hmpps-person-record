@@ -106,9 +106,9 @@ class CommonPlatformEventProcessor(
       val getDefendant = defendant.id?.let { personRepository.findByDefendantId(it) }
 
       defendant.pncId =
-        PNCIdentifier.from(getDefendant?.references?.first { it.identifierType == IdentifierType.PNC }?.identifierValue)
+        PNCIdentifier.from(getDefendant?.references?.firstOrNull { it.identifierType == IdentifierType.PNC }?.identifierValue)
       defendant.cro =
-        CROIdentifier.from(getDefendant?.references?.first { it.identifierType == IdentifierType.CRO }?.identifierValue)
+        CROIdentifier.from(getDefendant?.references?.firstOrNull { it.identifierType == IdentifierType.CRO }?.identifierValue)
     }
     return defendant
   }

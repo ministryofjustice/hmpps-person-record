@@ -552,9 +552,9 @@ class IntegrationTestBase {
   fun PersonKeyEntity.assertPersonKeyDeleted() = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)).isNull() }
 
   fun Person.getCro(): String? = this.references.getType(CRO).first().identifierValue
-  fun PersonEntity.getCro(): String? = this.references.getType(CRO).first().identifierValue
+  fun PersonEntity.getCro(): String? = this.references.getType(CRO).firstOrNull()?.identifierValue
   fun Person.getPnc(): String? = this.references.getType(PNC).first().identifierValue
-  fun PersonEntity.getPnc(): String? = this.references.getType(PNC).first().identifierValue
+  fun PersonEntity.getPnc(): String? = this.references.getType(PNC).firstOrNull()?.identifierValue
   companion object {
 
     internal const val BASE_SCENARIO = "baseScenario"

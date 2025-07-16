@@ -533,6 +533,35 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(updatedPerson.getCro()).isEqualTo(cro)
   }
 
+  @Test
+  fun `should return empty strings for pnc and cro if missing`() {
+    val defendantId = randomDefendantId()
+    val cro = randomCro()
+    val pnc = randomPnc()
+
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = "", pnc = ""))),
+    )
+
+    awaitNotNullPerson {
+      personRepository.findByDefendantId(defendantId)
+    }
+
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, croMissing = true, pncMissing = true))),
+    )
+
+    val updatedPerson = awaitNotNullPerson {
+      personRepository.findByDefendantId(defendantId)
+    }
+
+    assertThat(updatedPerson.getPnc()).isNull()
+    assertThat(updatedPerson.getCro()).isNull()
+  }
+
   private fun putLargeMessageBodyIntoS3(message: String) {
     val s3Key = UUID.randomUUID().toString()
     val incomingMessageFromS3 = message.toByteArray(Charset.forName("UTF8"))
