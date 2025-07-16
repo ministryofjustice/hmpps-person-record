@@ -47,7 +47,7 @@ class CommonPlatformEventProcessor(
       .flatMap { it.defendants }
       .filterNot { it.isYouth }
       .distinctBy { it.id }
-      .map { defendant -> getIdentifiersFromDefendant(defendant) }
+      .map { defendant -> populateIdentifiersFromDefendantWhenMissing(defendant) }
       .map { defendant -> Person.from(defendant) }
       .filter { it.isPerson() }
       .map {
@@ -101,7 +101,7 @@ class CommonPlatformEventProcessor(
     return messageParser.jsonString()
   }
 
-  private fun getIdentifiersFromDefendant(defendant: Defendant): Defendant {
+  private fun populateIdentifiersFromDefendantWhenMissing(defendant: Defendant): Defendant {
     if (defendant.isPncMissing && defendant.isCroMissing) {
       defendant.id?.let { personRepository.findByDefendantId(it) }?.let { existingDefendant ->
 
