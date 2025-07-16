@@ -505,7 +505,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should not go into needs attention when 2 records in cluster and update does not contain pnc and cro`() {
+  fun `should preserve pnc and cro if missing`() {
     val defendantId = randomDefendantId()
     val cro = randomCro()
     val pnc = randomPnc()

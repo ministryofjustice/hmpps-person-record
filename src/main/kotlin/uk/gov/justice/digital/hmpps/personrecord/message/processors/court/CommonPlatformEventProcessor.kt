@@ -102,14 +102,11 @@ class CommonPlatformEventProcessor(
   }
 
   private fun getIdentifiersFromDefendant(defendant: Defendant): Defendant {
-    if (defendant.isPncMissing) {
+    if (defendant.isPncMissing && defendant.isCroMissing) {
       val getDefendant = defendant.id?.let { personRepository.findByDefendantId(it) }
+
       defendant.pncId =
         PNCIdentifier.from(getDefendant?.references?.first { it.identifierType == IdentifierType.PNC }?.identifierValue)
-    }
-
-    if (defendant.isCroMissing) {
-      val getDefendant = defendant.id?.let { personRepository.findByDefendantId(it) }
       defendant.cro =
         CROIdentifier.from(getDefendant?.references?.first { it.identifierType == IdentifierType.CRO }?.identifierValue)
     }
