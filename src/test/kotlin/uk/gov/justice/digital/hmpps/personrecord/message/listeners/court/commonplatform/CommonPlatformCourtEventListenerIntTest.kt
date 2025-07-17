@@ -471,8 +471,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
     assertThat(commonPlatformHearing.contains("cprUUID")).isEqualTo(true)
     assertThat(commonPlatformHearing.contains(person.personKey?.personUUID.toString())).isEqualTo(true)
-    assertThat(sqsMessage.message.contains("pncId")).isFalse()
-    assertThat(sqsMessage.message.contains("croNumber")).isFalse()
+    assertThat(sqsMessage.message.contains("pncId")).isTrue()
+    assertThat(sqsMessage.message.contains("croNumber")).isTrue()
     assertThat(commonPlatformHearingAttributes?.messageType?.value).isEqualTo(COMMON_PLATFORM_HEARING.name)
 
     checkTelemetry(
