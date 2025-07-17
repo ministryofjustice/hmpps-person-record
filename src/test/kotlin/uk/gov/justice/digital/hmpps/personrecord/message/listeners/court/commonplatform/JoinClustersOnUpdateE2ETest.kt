@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
@@ -14,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
 
 @ActiveProfiles("e2e")
 class JoinClustersOnUpdateE2ETest : MessagingTestBase() {
@@ -36,6 +38,7 @@ class JoinClustersOnUpdateE2ETest : MessagingTestBase() {
       dateOfBirth = basePerson.dateOfBirth,
       addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
+      sentences = listOf(ApiResponseSetupSentences(basePerson.sentences.first().sentenceDate)),
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
 
@@ -78,6 +81,7 @@ class JoinClustersOnUpdateE2ETest : MessagingTestBase() {
       dateOfBirth = basePerson.dateOfBirth,
       addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
+      sentences = listOf(ApiResponseSetupSentences(basePerson.sentences.first().sentenceDate)),
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, thirdSetup)
 
@@ -123,6 +127,7 @@ class JoinClustersOnUpdateE2ETest : MessagingTestBase() {
       dateOfBirth = basePerson.dateOfBirth,
       addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
+      sentences = listOf(ApiResponseSetupSentences(basePerson.sentences.first().sentenceDate)),
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
 
@@ -184,6 +189,7 @@ class JoinClustersOnUpdateE2ETest : MessagingTestBase() {
       dateOfBirth = basePerson.dateOfBirth,
       addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress()), ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
+      sentences = listOf(ApiResponseSetupSentences(basePerson.sentences.first().sentenceDate)),
     )
     probationDomainEventAndResponseSetup(OFFENDER_ADDRESS_UPDATED, thirdUpdate)
     val thirdPersonRecordUpdated = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(thirdCrnWithBoth) })
@@ -246,20 +252,12 @@ class JoinClustersOnUpdateE2ETest : MessagingTestBase() {
 
   @Test
   fun `should create two people who do not match followed by a third which matches both and picks one - then when updating one of the original two the clusters are merged`() {
-    // we think our system behaves like this,
-    // but apparently it actually just picks one of the clusters even on update
-    // expected
     /*
     create A
     create B, no match
     create C, matches A and B, picks A
     update B, matches A and C merges B into A
      */
-    // actual
-    /*
-   ???
-     */
-
     val firstCrnWithPnc = randomCrn()
     val secondCrnWithCro = randomCrn()
     val thirdCrnWithBoth = randomCrn()
@@ -274,15 +272,15 @@ class JoinClustersOnUpdateE2ETest : MessagingTestBase() {
       middleName = basePerson.middleNames,
       lastName = basePerson.lastName,
       dateOfBirth = basePerson.dateOfBirth,
-      addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
+      addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress()), ApiResponseSetupAddress(postcode = basePerson.addresses[1].postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
+      sentences = listOf(ApiResponseSetupSentences(basePerson.sentences.first().sentenceDate)),
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
 
     val firstPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(firstCrnWithPnc) })
     assertThat(firstPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
     assertThat(firstPersonRecord.getPnc()).isEqualTo(pnc)
-    assertThat(firstPersonRecord.addresses.size).isEqualTo(1)
     assertThat(firstPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
 
     checkTelemetry(
@@ -335,10 +333,15 @@ class JoinClustersOnUpdateE2ETest : MessagingTestBase() {
       middleName = basePerson.middleNames,
       lastName = basePerson.lastName,
       dateOfBirth = basePerson.dateOfBirth,
-      addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress()), ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
+      addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress()), ApiResponseSetupAddress(postcode = basePerson.addresses[1].postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
+      sentences = listOf(ApiResponseSetupSentences(basePerson.sentences.first().sentenceDate)),
     )
     probationDomainEventAndResponseSetup(OFFENDER_ADDRESS_UPDATED, secondUpdate)
+    checkTelemetry(
+      CPR_RECORD_UPDATED,
+      mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to secondCrnWithCro),
+    )
     val secondPersonRecordUpdated = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(secondCrnWithCro) })
     assertThat(secondPersonRecordUpdated.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
     assertThat(secondPersonRecordUpdated.getCro()).isEqualTo(cro)
