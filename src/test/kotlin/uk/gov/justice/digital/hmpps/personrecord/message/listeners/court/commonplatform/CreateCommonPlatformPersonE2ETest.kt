@@ -27,11 +27,11 @@ class CreateCommonPlatformPersonE2ETest : MessagingTestBase() {
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, firstName = firstName, lastName = lastName, cro = cro, defendantId = defendantId))),
     )
 
-    val updatedPersonEntity = awaitNotNullPerson(timeout = 7, function = { personRepository.findByDefendantId(defendantId) })
-    assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(lastName)
-    assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
-    assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
-    assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
+    val person = awaitNotNullPerson(timeout = 7, function = { personRepository.findByDefendantId(defendantId) })
+    assertThat(person.getPrimaryName().lastName).isEqualTo(lastName)
+    assertThat(person.getPnc()).isEqualTo(pnc)
+    assertThat(person.getCro()).isEqualTo(cro)
+    assertThat(person.addresses.size).isEqualTo(1)
 
     checkTelemetry(
       CPR_RECORD_CREATED,
