@@ -471,7 +471,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
     assertThat(commonPlatformHearing.contains("cprUUID")).isEqualTo(true)
     assertThat(commonPlatformHearing.contains(person.personKey?.personUUID.toString())).isEqualTo(true)
-
+    assertThat(sqsMessage.message.contains("pncId")).isTrue()
+    assertThat(sqsMessage.message.contains("croNumber")).isTrue()
     assertThat(commonPlatformHearingAttributes?.messageType?.value).isEqualTo(COMMON_PLATFORM_HEARING.name)
 
     checkTelemetry(
@@ -505,7 +506,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should preserve pnc and cro if missing`() {
+  fun `should preserve pnc and cro if originally set then missing from an update`() {
     val defendantId = randomDefendantId()
     val cro = randomCro()
     val pnc = randomPnc()
@@ -521,6 +522,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       personRepository.findByDefendantId(defendantId)
     }
 
+    purgeQueueAndDlq(testOnlyCourtEventsQueue)
+
     publishCommonPlatformMessage(
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, croMissing = true, pncMissing = true))),
     )
@@ -531,13 +534,19 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     assertThat(updatedPerson.getPnc()).isEqualTo(pnc)
     assertThat(updatedPerson.getCro()).isEqualTo(cro)
+    expectOneMessageOn(testOnlyCourtEventsQueue)
+
+    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
+
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }!!
+    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
+    assertThat(sqsMessage.message.contains("pncId")).isFalse()
+    assertThat(sqsMessage.message.contains("croNumber")).isFalse()
   }
 
   @Test
   fun `should return empty strings for pnc and cro if missing`() {
     val defendantId = randomDefendantId()
-    val cro = randomCro()
-    val pnc = randomPnc()
 
     stubPersonMatchUpsert()
     stubPersonMatchScores()
