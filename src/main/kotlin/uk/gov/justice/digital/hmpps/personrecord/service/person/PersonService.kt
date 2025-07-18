@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
@@ -47,15 +46,18 @@ class PersonService(
   }
 
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
-    val personEntityWithKey = personMatchService.findHighestMatchThatPersonRecordCanJoin(personEntity).exists(
-      no = { personKeyService.assignPersonToNewPersonKey(personEntity) },
-      yes = {
-        personKeyService.assignToPersonKeyOfHighestConfidencePerson(personEntity, it)
+    val matches =
+      personMatchService.findHighestMatchThatPersonRecordCanJoin(personEntity)
+    if (matches.isNotEmpty()) {
+      personKeyService.assignToPersonKeyOfHighestConfidencePerson(personEntity, matches.first().personEntity)
+      if (matches.size > 1) {
         reclusterService.recluster(personEntity)
-        personEntity
-      },
-    )
-    return personRepository.saveAndFlush(personEntityWithKey)
+      }
+    } else {
+      personKeyService.assignPersonToNewPersonKey(personEntity)
+    }
+
+    return personRepository.saveAndFlush(personEntity)
   }
 
   private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
