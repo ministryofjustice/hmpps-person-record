@@ -50,7 +50,7 @@ class ReclusterController(
     adminReclusterRecords.forEachPersonAndLog(RECLUSTER_PROCESS_NAME) { person ->
       person.personKey?.let { cluster ->
         publisher.publishEvent(RecordClusterTelemetry(TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED, cluster))
-        reclusterService.recluster(cluster, person)
+        reclusterService.recluster(person)
       }
     }
   }
