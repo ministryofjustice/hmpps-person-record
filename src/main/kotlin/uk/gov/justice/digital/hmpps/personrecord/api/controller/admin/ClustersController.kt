@@ -34,7 +34,7 @@ class ClustersController(
   ): PaginatedResponse<AdminCluster> {
     val evaluatedPageable: Pageable = Pageable.ofSize(DEFAULT_PAGE_SIZE).withPage(page - 1)
     val paginatedClusters = withContext(Dispatchers.IO) {
-      personKeyRepository.findAllByStatus(UUIDStatusType.NEEDS_ATTENTION, evaluatedPageable)
+      personKeyRepository.findAllByStatusOrderById(UUIDStatusType.NEEDS_ATTENTION, evaluatedPageable)
     }
     val clusters = paginatedClusters.content.map {
       AdminCluster(
