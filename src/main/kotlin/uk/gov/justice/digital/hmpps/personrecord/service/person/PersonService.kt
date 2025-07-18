@@ -46,15 +46,14 @@ class PersonService(
   }
 
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
-    val matches =
-      personMatchService.findHighestMatchThatPersonRecordCanJoin(personEntity)
-    if (matches.isNotEmpty()) {
+    val matches = personMatchService.findHighestMatchThatPersonRecordCanJoin(personEntity)
+    if (matches.isEmpty()) {
+      personKeyService.assignPersonToNewPersonKey(personEntity)
+    } else {
       personKeyService.assignToPersonKeyOfHighestConfidencePerson(personEntity, matches.first().personEntity)
       if (matches.size > 1) {
         reclusterService.recluster(personEntity)
       }
-    } else {
-      personKeyService.assignPersonToNewPersonKey(personEntity)
     }
 
     return personRepository.saveAndFlush(personEntity)
