@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Compani
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
@@ -14,6 +15,7 @@ class PersonService(
   private val personRepository: PersonRepository,
   private val personKeyService: PersonKeyService,
   private val personMatchService: PersonMatchService,
+  private val reclusterService: ReclusterService,
 ) {
 
   fun createPersonEntity(person: Person): PersonEntity {
@@ -36,13 +38,22 @@ class PersonService(
     when {
       matchingFieldsHaveChanged -> personMatchService.saveToPersonMatch(updatedEntity)
     }
+    existingPersonEntity.personKey?.let {
+      if (person.reclusterOnUpdate && matchingFieldsHaveChanged) {
+        reclusterService.recluster(existingPersonEntity)
+      }
+    }
     return PersonUpdated(updatedEntity, matchingFieldsHaveChanged)
   }
 
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
     val personEntityWithKey = personMatchService.findHighestMatchThatPersonRecordCanJoin(personEntity).exists(
       no = { personKeyService.assignPersonToNewPersonKey(personEntity) },
-      yes = { personKeyService.assignToPersonKeyOfHighestConfidencePerson(personEntity, it) },
+      yes = {
+        personKeyService.assignToPersonKeyOfHighestConfidencePerson(personEntity, it)
+        reclusterService.recluster(personEntity)
+        personEntity
+      },
     )
     return personRepository.saveAndFlush(personEntityWithKey)
   }
