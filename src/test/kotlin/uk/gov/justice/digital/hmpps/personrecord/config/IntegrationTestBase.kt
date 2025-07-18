@@ -44,6 +44,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifie
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
@@ -148,8 +149,10 @@ class IntegrationTestBase {
       identifiers = Identifiers(crn = crn),
       addresses = listOf(
         Address(postcode = randomPostcode()),
+        Address(postcode = randomPostcode()),
       ),
       aliases = listOf(ProbationCaseAlias(Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), dateOfBirth = randomDate())),
+      sentences = listOf(Sentences(randomDate())),
     ),
   )
 

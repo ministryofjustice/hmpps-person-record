@@ -193,6 +193,61 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
+  fun `should process and create libra message and link to two different source system records in separate clusters and all three records end up on the same cluster`() {
+    val firstName = randomName()
+    val lastName = randomName()
+    val dateOfBirth = randomDate()
+    val cId = randomCId()
+    val firstPersonFromProbation = Person(
+      firstName = firstName,
+      lastName = lastName,
+      dateOfBirth = dateOfBirth,
+      addresses = listOf(Address(postcode = randomPostcode())),
+      sourceSystem = DELIUS,
+    )
+    val personKeyEntity = createPersonKey()
+    val existingPerson = createPerson(firstPersonFromProbation, personKeyEntity = personKeyEntity)
+    val secondPersonFromProbation = Person(
+      firstName = firstName,
+      lastName = lastName,
+      dateOfBirth = dateOfBirth,
+      addresses = listOf(Address(postcode = randomPostcode())),
+      sourceSystem = DELIUS,
+    )
+    val secondPersonKeyEntity = createPersonKey()
+    val secondExistingPerson = createPerson(secondPersonFromProbation, personKeyEntity = secondPersonKeyEntity)
+
+    stubPersonMatchUpsert()
+    stubXPersonMatches(aboveJoin = listOf(existingPerson.matchId, secondExistingPerson.matchId))
+
+    publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = ""))
+
+    checkTelemetry(
+      CPR_CANDIDATE_RECORD_SEARCH,
+      mapOf(
+        "SOURCE_SYSTEM" to LIBRA.name,
+        "RECORD_COUNT" to "2",
+        "ABOVE_JOIN_THRESHOLD_COUNT" to "2",
+        "ABOVE_FRACTURE_THRESHOLD_COUNT" to "0",
+        "BELOW_FRACTURE_THRESHOLD_COUNT" to "0",
+        "C_ID" to cId,
+      ),
+      2,
+    )
+    checkTelemetry(
+      CPR_CANDIDATE_RECORD_FOUND_UUID,
+      mapOf(
+        "SOURCE_SYSTEM" to LIBRA.name,
+        "CLUSTER_SIZE" to "1",
+        "UUID" to personKeyEntity.personUUID.toString(),
+      ),
+    )
+
+    val personKey = personKeyRepository.findByPersonUUID(personKeyEntity.personUUID)
+    assertThat(personKey?.personEntities?.size).isEqualTo(3)
+  }
+
+  @Test
   fun `should republish organisation defendant from libra without creating a person record`() {
     val cId = randomCId()
     publishLibraMessage(libraHearing(cId = cId, defendantType = ORGANISATION))
