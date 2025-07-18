@@ -26,23 +26,23 @@ class PersonService(
     return personEntity
   }
 
-  fun updatePersonEntity(person: Person, existingPersonEntity: PersonEntity): PersonUpdated {
-    val oldMatchingDetails = PersonMatchRecord.from(existingPersonEntity)
-    val updatedEntity = updateExistingPersonEntity(person, existingPersonEntity)
+  fun updatePersonEntity(person: Person, personEntity: PersonEntity): PersonUpdated {
+    val oldMatchingDetails = PersonMatchRecord.from(personEntity)
+    updateExistingPersonEntity(person, personEntity)
     val matchingFieldsHaveChanged = oldMatchingDetails.matchingFieldsAreDifferent(
       PersonMatchRecord.from(
-        updatedEntity,
+        personEntity,
       ),
     )
     when {
-      matchingFieldsHaveChanged -> personMatchService.saveToPersonMatch(updatedEntity)
+      matchingFieldsHaveChanged -> personMatchService.saveToPersonMatch(personEntity)
     }
-    existingPersonEntity.personKey?.let {
+    personEntity.personKey?.let {
       if (person.reclusterOnUpdate && matchingFieldsHaveChanged) {
-        reclusterService.recluster(existingPersonEntity)
+        reclusterService.recluster(personEntity)
       }
     }
-    return PersonUpdated(updatedEntity, matchingFieldsHaveChanged)
+    return PersonUpdated(personEntity, matchingFieldsHaveChanged)
   }
 
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
@@ -59,9 +59,9 @@ class PersonService(
     return personRepository.saveAndFlush(personEntity)
   }
 
-  private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
+  private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity) {
     personEntity.update(person)
-    return personRepository.save(personEntity)
+    personRepository.save(personEntity)
   }
 
   private fun createNewPersonEntity(person: Person): PersonEntity {
