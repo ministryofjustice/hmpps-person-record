@@ -233,7 +233,6 @@ class IntegrationTestBase {
   internal fun PersonKeyEntity.addPerson(personEntity: PersonEntity): PersonKeyEntity {
     this.personEntities.add(personEntity)
     personEntity.personKey = this
-    personRepository.save(personEntity)
     return personKeyRepository.save(this)
   }
 
