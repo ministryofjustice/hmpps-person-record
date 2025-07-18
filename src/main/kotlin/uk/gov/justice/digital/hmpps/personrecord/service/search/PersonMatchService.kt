@@ -29,7 +29,7 @@ class PersonMatchService(
   private val objectMapper: ObjectMapper,
 ) {
 
-  fun findHighestMatchThatPersonRecordCanJoin(personEntity: PersonEntity) = findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity)
+  fun findClustersToJoin(personEntity: PersonEntity) = findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity)
     .getClustersThatItCanJoin()
 
   fun findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity: PersonEntity): List<PersonMatchResult> = runBlocking {

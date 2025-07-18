@@ -46,7 +46,7 @@ class PersonService(
   }
 
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
-    val matches = personMatchService.findHighestMatchThatPersonRecordCanJoin(personEntity)
+    val matches = personMatchService.findClustersToJoin(personEntity)
     if (matches.isEmpty()) {
       personKeyService.assignPersonToNewPersonKey(personEntity)
     } else {
