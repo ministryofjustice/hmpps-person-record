@@ -31,7 +31,8 @@ class ReclusterService(
 ) {
 
   @Transactional
-  fun recluster(cluster: PersonKeyEntity, changedRecord: PersonEntity) {
+  fun recluster(changedRecord: PersonEntity) {
+    val cluster = changedRecord.personKey!!
     when {
       clusterIsNeedsAttentionAndCanBecomeActive(cluster) -> settingNeedsAttentionClusterToActive(cluster, changedRecord)
     }

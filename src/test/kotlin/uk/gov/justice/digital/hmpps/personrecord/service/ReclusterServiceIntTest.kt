@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
@@ -214,7 +215,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterNotChanged(size = 2)
       cluster2.assertClusterNotChanged(size = 1)
@@ -272,7 +273,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterNotChanged(size = 1)
       cluster2.assertClusterNotChanged(size = 2)
@@ -286,7 +287,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubNoMatchesPersonMatch(matchId = personA.matchId)
 
-      reclusterService.recluster(cluster, changedRecord = personA)
+      recluster(personA)
 
       cluster.assertClusterNotChanged(size = 1)
     }
@@ -301,7 +302,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubOnePersonMatchAboveJoinThreshold(matchId = personA.matchId, matchedRecord = personB.matchId)
 
-      reclusterService.recluster(cluster, changedRecord = personA)
+      recluster(personA)
 
       cluster.assertClusterNotChanged(size = 2)
     }
@@ -316,7 +317,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubOnePersonMatchAboveFractureThreshold(matchId = personA.matchId, matchedRecord = personB.matchId)
 
-      reclusterService.recluster(cluster, changedRecord = personA)
+      recluster(personA)
 
       cluster.assertClusterNotChanged(size = 2)
     }
@@ -337,7 +338,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         aboveFracture = listOf(personC.matchId),
       )
 
-      reclusterService.recluster(cluster, changedRecord = personA)
+      recluster(personA)
 
       cluster.assertClusterNotChanged(size = 3)
     }
@@ -366,7 +367,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster, changedRecord = personA)
+      recluster(personA)
 
       cluster.assertClusterNotChanged(size = 5)
     }
@@ -384,7 +385,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       stubClusterIsValid()
       stubOnePersonMatchAboveJoinThreshold(matchId = personA.matchId, matchedRecord = personB.matchId)
 
-      reclusterService.recluster(cluster, changedRecord = personA)
+      recluster(personA)
 
       cluster.assertClusterNotChanged(size = 3)
     }
@@ -406,7 +407,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         aboveFracture = listOf(personB.matchId, personC.matchId),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterNotChanged(size = 2)
       cluster2.assertClusterNotChanged(size = 1)
@@ -431,7 +432,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       stubClusterIsNotValid()
       stubOnePersonMatchAboveJoinThreshold(matchId = personA.matchId, matchedRecord = personB.matchId)
 
-      reclusterService.recluster(cluster, changedRecord = personA)
+      recluster(personA)
 
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
@@ -453,7 +454,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       stubClusterIsNotValid()
       stubXPersonMatches(matchId = personA.matchId, aboveFracture = listOf(personB.matchId), belowFracture = listOf(personC.matchId))
 
-      reclusterService.recluster(cluster, changedRecord = personA)
+      recluster(personA)
 
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
@@ -472,7 +473,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubNoMatchesPersonMatch(matchId = personA.matchId)
 
-      reclusterService.recluster(cluster, changedRecord = personA)
+      recluster(personA)
 
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
@@ -495,7 +496,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubNoMatchesPersonMatch(matchId = personA.matchId)
 
-      reclusterService.recluster(cluster, changedRecord = personA)
+      recluster(personA)
 
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
@@ -522,7 +523,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubOnePersonMatchAboveJoinThreshold(matchId = personA.matchId, matchedRecord = personD.matchId)
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
@@ -556,7 +557,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterIsOfSize(3)
       cluster2.assertClusterIsOfSize(0)
@@ -590,7 +591,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterIsOfSize(3)
       cluster2.assertClusterIsOfSize(0)
@@ -615,7 +616,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val personC = createPerson(createRandomProbationPersonDetails())
       stubOnePersonMatchAboveJoinThreshold(personA.matchId, personB.matchId)
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterIsOfSize(2)
       cluster2.assertClusterIsOfSize(0)
@@ -629,7 +630,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val updatedCluster2 = personKeyRepository.findByPersonUUID(cluster2.personUUID)!!
       updatedCluster2.addPerson(personC)
 
-      reclusterService.recluster(updatedCluster2, changedRecord = personC)
+      recluster(personC)
 
       // does nothing as cluster set for re-clustering is RECLUSTER_MERGE
       cluster1.assertClusterIsOfSize(2)
@@ -660,7 +661,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterIsOfSize(4)
       cluster2.assertClusterIsOfSize(0)
@@ -694,7 +695,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterIsOfSize(3)
       cluster2.assertClusterIsOfSize(0)
@@ -733,7 +734,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterIsOfSize(4)
       cluster2.assertClusterIsOfSize(0)
@@ -773,7 +774,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterIsOfSize(6)
       cluster2.assertClusterIsOfSize(0)
@@ -817,7 +818,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterIsOfSize(3)
       cluster2.assertClusterIsOfSize(0)
@@ -864,7 +865,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterIsOfSize(3)
       cluster2.assertClusterIsOfSize(0)
@@ -899,7 +900,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterIsOfSize(1)
       cluster2.assertClusterIsOfSize(1)
@@ -930,7 +931,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterIsOfSize(2)
       cluster2.assertClusterIsOfSize(1)
@@ -967,7 +968,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterIsOfSize(4)
       cluster2.assertClusterIsOfSize(0)
@@ -1007,7 +1008,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterIsOfSize(4)
       cluster2.assertClusterIsOfSize(0)
@@ -1042,7 +1043,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterIsOfSize(1)
       cluster2.assertClusterIsOfSize(1)
@@ -1068,7 +1069,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterIsOfSize(1)
       cluster2.assertClusterIsOfSize(1)
@@ -1110,7 +1111,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = updatedPersonA!!)
+      recluster(updatedPersonA!!)
 
       cluster1.assertClusterIsOfSize(3)
       cluster2.assertClusterIsOfSize(2)
@@ -1144,7 +1145,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterIsOfSize(2)
       cluster2.assertClusterIsOfSize(0)
@@ -1184,7 +1185,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       checkTelemetry(
         TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
@@ -1232,7 +1233,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       checkTelemetry(
         TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
@@ -1277,7 +1278,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      reclusterService.recluster(cluster1, changedRecord = personA)
+      recluster(personA)
 
       cluster1.assertClusterIsOfSize(4)
       cluster2.assertMergedTo(cluster1)
@@ -1305,7 +1306,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubNoMatchesPersonMatch(matchId = personA.matchId)
 
-      reclusterService.recluster(cluster, changedRecord = personA)
+      recluster(personA)
 
       cluster.assertClusterStatus(NEEDS_ATTENTION)
       checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
@@ -1357,7 +1358,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       stubClusterIsNotValid(clusterComposition)
       stubOnePersonMatchAboveJoinThreshold(matchId = personA.matchId, matchedRecord = personB.matchId)
 
-      reclusterService.recluster(cluster, changedRecord = personA)
+      recluster(personA)
 
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
@@ -1372,6 +1373,12 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         assertThat(eventLog.uuidStatusType).isEqualTo(NEEDS_ATTENTION)
         assertThat(eventLog.clusterComposition).isEqualTo(objectMapper.writeValueAsString(clusterComposition))
       }
+    }
+  }
+
+  private fun recluster(personA: PersonEntity) {
+    personRepository.findByMatchId(personA.matchId)?.let {
+      reclusterService.recluster(it)
     }
   }
 
