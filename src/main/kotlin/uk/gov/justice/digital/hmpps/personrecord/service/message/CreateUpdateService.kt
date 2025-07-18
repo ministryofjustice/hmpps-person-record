@@ -46,7 +46,7 @@ class CreateUpdateService(
 
     personUpdated.personEntity.personKey?.let {
       if (person.reclusterOnUpdate && personUpdated.matchingFieldsHaveChanged) {
-        reclusterService.recluster(it, personUpdated.personEntity)
+        reclusterService.recluster(personUpdated.personEntity)
       }
     }
     return personUpdated.personEntity
