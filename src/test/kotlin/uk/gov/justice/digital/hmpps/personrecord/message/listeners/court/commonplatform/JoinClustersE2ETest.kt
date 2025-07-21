@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -165,7 +166,7 @@ class JoinClustersE2ETest : MessagingTestBase() {
     )
 
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
-    val firstPersonRecord = awaitNotNullPerson(timeout = 70, function = { personRepository.findByCrn(firstCrn) })
+    var firstPersonRecord = awaitNotNullPerson(timeout = 70, function = { personRepository.findByCrn(firstCrn) })
     assertThat(firstPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
 
     val secondSetup = ApiResponseSetup(
@@ -182,7 +183,7 @@ class JoinClustersE2ETest : MessagingTestBase() {
     )
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, secondCrn, firstCrn, reactivatedSetup = secondSetup, unmergedSetup = firstSetup)
     awaitAssert { assertThat(personRepository.findByCrn(secondCrn)?.personKey).isNotNull() }
-    val secondPersonRecord = awaitNotNullPerson(timeout = 70, function = { personRepository.findByCrn(secondCrn) })
+    var secondPersonRecord = awaitNotNullPerson(timeout = 70, function = { personRepository.findByCrn(secondCrn) })
     assertThat(secondPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
 
     secondPersonRecord.assertExcludedFrom(firstPersonRecord)
@@ -204,6 +205,12 @@ class JoinClustersE2ETest : MessagingTestBase() {
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, thirdSetup)
     val thirdPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(thirdCrn) })
     assertThat(thirdPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
-    // see what happens... atm it just joins one so this fails
+
+    assertThat(thirdPersonRecord.personKey!!.status).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
+    secondPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(secondCrn) })
+    assertThat(secondPersonRecord.personKey!!.status).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
+
+    firstPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(firstCrn) })
+    assertThat(secondPersonRecord.personKey!!.status).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
   }
 }
