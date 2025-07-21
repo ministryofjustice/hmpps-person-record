@@ -2,8 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -54,12 +54,13 @@ class PersonService(
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
     val matches = personMatchService.findClustersToJoin(personEntity)
     if (matches.containsExcluded().isNotEmpty()) {
+      matches.containsExcluded().forEach {
+        it.status = NEEDS_ATTENTION_EXCLUDE
+        personKeyRepository.save(it)
+      }
       personKeyService.assignPersonToNewPersonKey(personEntity)
       personEntity.personKey?.status = NEEDS_ATTENTION_EXCLUDE
-      matches.containsExcluded().map { it.person?.personKey }.forEach {
-        it?.status = NEEDS_ATTENTION_EXCLUDE
-        personKeyRepository.save(it!!)
-      }
+
       personKeyRepository.save(personEntity.personKey!!)
       return personRepository.saveAndFlush(personEntity)
     }
@@ -86,10 +87,10 @@ class PersonService(
   }
 }
 
-private fun List<PersonMatchResult>.containsExcluded(): List<OverrideMarkerEntity> {
+private fun List<PersonMatchResult>.containsExcluded(): List<PersonKeyEntity> {
   val allKeys = this.map { it.personEntity.personKey }
   val allEntities = allKeys.flatMap { it?.personEntities!! }
   val allEntityIds = allEntities.map { it.id }
   val allOverrides = allEntities.map { it.overrideMarkers }.flatten().filter { it.markerType == OverrideMarkerType.EXCLUDE }
-  return allOverrides.filter { it.markerValue in allEntityIds }
+  return allOverrides.filter { it.markerValue in allEntityIds }.map { it.person?.personKey!! }
 }
