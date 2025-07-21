@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyReposit
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION_EXCLUDE
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
@@ -55,14 +55,13 @@ class PersonService(
     val matches = personMatchService.findClustersToJoin(personEntity)
     if (matches.containsExcluded().isNotEmpty()) {
       personKeyService.assignPersonToNewPersonKey(personEntity)
-      personEntity.personKey?.status = NEEDS_ATTENTION
-      matches.containsExcluded().forEach {
-        it.person?.personKey!!.status = NEEDS_ATTENTION
-        personKeyRepository.save(it.person!!.personKey!!)
+      personEntity.personKey?.status = NEEDS_ATTENTION_EXCLUDE
+      matches.containsExcluded().map { it.person?.personKey }.forEach {
+        it?.status = NEEDS_ATTENTION_EXCLUDE
+        personKeyRepository.save(it!!)
       }
       personKeyRepository.save(personEntity.personKey!!)
-
-      return personEntity
+      return personRepository.saveAndFlush(personEntity)
     }
     if (matches.isEmpty()) {
       personKeyService.assignPersonToNewPersonKey(personEntity)

@@ -4,7 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION_EXCLUDE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -206,11 +206,11 @@ class JoinClustersE2ETest : MessagingTestBase() {
     val thirdPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(thirdCrn) })
     assertThat(thirdPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
 
-    assertThat(thirdPersonRecord.personKey!!.status).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
+    assertThat(thirdPersonRecord.personKey!!.status).isEqualTo(NEEDS_ATTENTION_EXCLUDE)
     secondPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(secondCrn) })
-    assertThat(secondPersonRecord.personKey!!.status).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
+    assertThat(secondPersonRecord.personKey!!.status).isEqualTo(NEEDS_ATTENTION_EXCLUDE)
 
     firstPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(firstCrn) })
-    assertThat(secondPersonRecord.personKey!!.status).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
+    assertThat(firstPersonRecord.personKey!!.status).isEqualTo(NEEDS_ATTENTION_EXCLUDE)
   }
 }
