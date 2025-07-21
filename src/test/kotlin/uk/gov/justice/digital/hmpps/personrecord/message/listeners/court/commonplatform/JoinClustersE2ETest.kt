@@ -208,9 +208,12 @@ class JoinClustersE2ETest : MessagingTestBase() {
 
     assertThat(thirdPersonRecord.personKey!!.status).isEqualTo(NEEDS_ATTENTION_EXCLUDE)
     secondPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(secondCrn) })
+    assertThat(secondPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
+
     assertThat(secondPersonRecord.personKey!!.status).isEqualTo(NEEDS_ATTENTION_EXCLUDE)
 
     firstPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(firstCrn) })
+    assertThat(firstPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
     assertThat(firstPersonRecord.personKey!!.status).isEqualTo(NEEDS_ATTENTION_EXCLUDE)
   }
 }
