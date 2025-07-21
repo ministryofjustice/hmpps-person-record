@@ -1,6 +1,7 @@
-package uk.gov.justice.digital.hmpps.personrecord.controller.canonical
+package uk.gov.justice.digital.hmpps.personrecord.controller.person
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
@@ -10,16 +11,15 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNa
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
@@ -38,10 +38,13 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 
-class CanonicalApiIntTest : WebTestBase() {
+class CourtApiIntTest : WebTestBase() {
+
+  @Nested
+  inner class CommonPlatform
 
   @Test
-  fun `should return ok for get canonical record`() {
+  fun `should return ok for get`() {
     val firstName = randomName()
     val lastName = randomName()
     val middleNames = randomName()
@@ -73,7 +76,7 @@ class CanonicalApiIntTest : WebTestBase() {
         lastName = randomName(),
         middleNames = randomName(),
         dateOfBirth = randomDate(),
-        sourceSystem = NOMIS,
+        sourceSystem = COMMON_PLATFORM,
         title = randomName(),
         crn = crn,
         sexCode = SexCode.M,
@@ -94,12 +97,12 @@ class CanonicalApiIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(person.personKey?.personUUID.toString()))
+      .uri(commonPLatformApiUrl(person))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
-      .expectBody(CanonicalRecord::class.java)
+      .expectBody(CanonicalRecord::class.java) // TODO different class
       .returnResult()
       .responseBody!!
 
@@ -127,7 +130,7 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
     assertThat(responseBody.ethnicity.description).isEqualTo(canonicalEthnicity.description)
     assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
-    assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
+    assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro)) // TODO not a list
     assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
     assertThat(responseBody.identifiers.crns).isEqualTo(listOf(crn))
     assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(defendantId))
@@ -136,19 +139,21 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
   }
 
+  private fun commonPLatformApiUrl(person: PersonEntity) = "/person/commonplatform/${person.defendantId}"
+
   @Test
   fun `should return null when values are null or empty for get canonical record`() {
-    val crn = randomCrn()
+    val defendantId = randomDefendantId()
 
     val person = createPersonWithNewKey(
       Person(
-        sourceSystem = NOMIS,
-        crn = crn,
+        sourceSystem = COMMON_PLATFORM,
+        defendantId = defendantId,
       ),
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(person.personKey?.personUUID.toString()))
+      .uri(commonPLatformApiUrl(person))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -181,8 +186,8 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.nationalities).isEmpty()
     assertThat(responseBody.aliases).isEmpty()
     assertThat(responseBody.addresses).isEmpty()
-    assertThat(responseBody.identifiers.crns).isEqualTo(listOf(crn))
-    assertThat(responseBody.identifiers.defendantIds).isEmpty()
+    assertThat(responseBody.identifiers.crns).isEmpty()
+    assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(defendantId))
     assertThat(responseBody.identifiers.prisonNumbers).isEmpty()
     assertThat(responseBody.identifiers.cids).isEmpty()
     assertThat(responseBody.identifiers.pncs).isEmpty()
@@ -193,21 +198,21 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should return when values are null or empty for get canonical record aliases`() {
-    val crn = randomCrn()
+  fun `should return when values are null or empty for get aliases`() {
+    val defendantId = randomDefendantId()
 
     val aliasFirstName = randomName()
 
     val person = createPersonWithNewKey(
       Person(
-        sourceSystem = NOMIS,
-        crn = crn,
+        sourceSystem = COMMON_PLATFORM,
+        defendantId = defendantId,
         aliases = listOf(Alias(firstName = aliasFirstName)),
       ),
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(person.personKey?.personUUID.toString()))
+      .uri(commonPLatformApiUrl(person))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -224,21 +229,21 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should return  when values are null or empty for get canonical record addresses`() {
-    val crn = randomCrn()
+  fun `should return  when values are null or empty for get addresses`() {
+    val defendantId = randomDefendantId()
 
     val postcode = randomPostcode()
 
     val person = createPersonWithNewKey(
       Person(
-        sourceSystem = NOMIS,
-        crn = crn,
+        sourceSystem = COMMON_PLATFORM,
+        defendantId = defendantId,
         addresses = listOf(Address(postcode = postcode)),
       ),
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(person.personKey?.personUUID.toString()))
+      .uri(commonPLatformApiUrl(person))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -259,35 +264,6 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.addresses.first().county).isNull()
     assertThat(responseBody.addresses.first().country).isNull()
     assertThat(responseBody.addresses.first().uprn).isNull()
-  }
-
-  @Test
-  fun `should return latest modified from 2 records`() {
-    val personKey = createPersonKey()
-
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKey,
-    )
-
-    val latestPerson = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKey,
-    )
-
-    val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
-      .authorised(listOf(API_READ_ONLY))
-      .exchange()
-      .expectStatus()
-      .isOk
-      .expectBody(CanonicalRecord::class.java)
-      .returnResult()
-      .responseBody!!
-
-    assertThat(responseBody.firstName).isEqualTo(latestPerson.getPrimaryName().firstName)
-    assertThat(responseBody.middleNames).isEqualTo(latestPerson.getPrimaryName().middleNames)
-    assertThat(responseBody.lastName).isEqualTo(latestPerson.getPrimaryName().lastName)
   }
 
   @Test
@@ -312,6 +288,9 @@ class CanonicalApiIntTest : WebTestBase() {
     val personOneDriversLicenseNumber = randomDriverLicenseNumber()
     val personTwoDriversLicenseNumber = randomDriverLicenseNumber()
 
+    val personOneDefendantId = randomDefendantId()
+    val personTwoDefendantId = randomDefendantId()
+
     val personOne = createPerson(
       Person(
         firstName = randomName(),
@@ -326,8 +305,8 @@ class CanonicalApiIntTest : WebTestBase() {
         nationality = randomNationality(),
         religion = randomReligion(),
         cId = randomCId(),
-        defendantId = randomDefendantId(),
-        masterDefendantId = randomDefendantId(),
+        defendantId = personOneDefendantId,
+        masterDefendantId = personOneDefendantId,
         references = listOf(
           Reference(identifierType = IdentifierType.CRO, identifierValue = personOneCro),
           Reference(identifierType = IdentifierType.PNC, identifierValue = personOnePnc),
@@ -353,8 +332,8 @@ class CanonicalApiIntTest : WebTestBase() {
         nationality = randomNationality(),
         religion = randomReligion(),
         cId = randomCId(),
-        defendantId = randomDefendantId(),
-        masterDefendantId = randomDefendantId(),
+        defendantId = personTwoDefendantId,
+        masterDefendantId = personTwoDefendantId,
         references = listOf(
           Reference(identifierType = IdentifierType.CRO, identifierValue = personTwoCro),
           Reference(identifierType = IdentifierType.PNC, identifierValue = personTwoPnc),
@@ -367,7 +346,7 @@ class CanonicalApiIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
+      .uri(commonPLatformApiUrl(personOne))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -388,27 +367,30 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should add an empty list of additional identifiers to the canonical record when null`() {
+  fun `should add an empty list of additional identifiers when null`() {
     val personKey = createPersonKey()
 
-    createPerson(
+    val defendantId = randomDefendantId()
+
+    val person = createPerson(
       Person(
         firstName = randomName(),
         lastName = randomName(),
         middleNames = randomName(),
         dateOfBirth = randomDate(),
-        sourceSystem = NOMIS,
+        sourceSystem = COMMON_PLATFORM,
         title = randomName(),
         ethnicity = randomEthnicity(),
         nationality = randomNationality(),
         religion = randomReligion(),
         masterDefendantId = randomDefendantId(),
+        defendantId = defendantId,
       ),
       personKey,
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
+      .uri(commonPLatformApiUrl(person))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -419,144 +401,14 @@ class CanonicalApiIntTest : WebTestBase() {
 
     assertThat(responseBody.identifiers.crns).isEmpty()
     assertThat(responseBody.identifiers.cids).isEmpty()
-    assertThat(responseBody.identifiers.defendantIds).isEmpty()
+    assertThat(responseBody.identifiers.defendantIds).isNotEmpty()
     assertThat(responseBody.identifiers.prisonNumbers).isEmpty()
   }
 
   @Test
-  fun `should return latest modified with latest person set to null record`() {
-    val personKey = createPersonKey()
-
-    val person = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKey,
-    )
-
-    val latestPerson = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKey,
-    )
-
-    latestPerson.lastModified = null
-    personRepository.saveAndFlush(latestPerson)
-
-    val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
-      .authorised(listOf(API_READ_ONLY))
-      .exchange()
-      .expectStatus()
-      .isOk
-      .expectBody(CanonicalRecord::class.java)
-      .returnResult()
-      .responseBody!!
-
-    assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
-    assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
-    assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
-  }
-
-  @Test
-  fun `should return record when all last modified are null`() {
-    val personKey = createPersonKey()
-
-    val person = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKey,
-    )
-
-    val latestPerson = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKey,
-    )
-
-    latestPerson.lastModified = null
-    person.lastModified = null
-    personRepository.saveAndFlush(latestPerson)
-    personRepository.saveAndFlush(person)
-
-    val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
-      .authorised(listOf(API_READ_ONLY))
-      .exchange()
-      .expectStatus()
-      .isOk
-      .expectBody(CanonicalRecord::class.java)
-      .returnResult()
-      .responseBody!!
-
-    assertThat(responseBody).isNotNull()
-  }
-
-  @Test
-  fun `should redirect to merged to record`() {
-    val sourcePersonFirstName = randomName()
-    val targetPersonFirstName = randomName()
-
-    val sourcePersonKey = createPersonKey()
-    val targetPersonKey = createPersonKey()
-
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = sourcePersonFirstName), identifiers = Identifiers())),
-      personKeyEntity = sourcePersonKey,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = targetPersonFirstName), identifiers = Identifiers())),
-      personKeyEntity = targetPersonKey,
-    )
-
-    mergeUuid(sourcePersonKey, targetPersonKey)
-
+  fun `should return bad request if defendantId not supplied`() {
     webTestClient.get()
-      .uri(canonicalAPIUrl(sourcePersonKey.personUUID.toString()))
-      .authorised(listOf(API_READ_ONLY))
-      .exchange()
-      .expectStatus()
-      .isEqualTo(301)
-      .expectHeader()
-      .valueEquals("Location", "/person/${targetPersonKey.personUUID}")
-  }
-
-  @Test
-  fun `should redirect to the top node of a merged to record`() {
-    val sourcePersonFirstName = randomName()
-    val targetPersonFirstName = randomName()
-    val newTargetPersonFirstName = randomName()
-
-    val sourcePersonKey = createPersonKey()
-    val targetPersonKey = createPersonKey()
-    val newTargetPersonKey = createPersonKey()
-
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = sourcePersonFirstName), identifiers = Identifiers())),
-      personKeyEntity = sourcePersonKey,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = targetPersonFirstName), identifiers = Identifiers())),
-      personKeyEntity = targetPersonKey,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = Name(firstName = newTargetPersonFirstName), identifiers = Identifiers())),
-      personKeyEntity = newTargetPersonKey,
-    )
-
-    mergeUuid(sourcePersonKey, targetPersonKey)
-    mergeUuid(targetPersonKey, newTargetPersonKey)
-
-    webTestClient.get()
-      .uri(canonicalAPIUrl(sourcePersonKey.personUUID.toString()))
-      .authorised(listOf(API_READ_ONLY))
-      .exchange()
-      .expectStatus()
-      .isEqualTo(301)
-      .expectHeader()
-      .valueEquals("Location", "/person/${newTargetPersonKey.personUUID}")
-  }
-
-  @Test
-  fun `should return bad request if canonical record is invalid uuid`() {
-    val randomString = randomName()
-    webTestClient.get()
-      .uri(canonicalAPIUrl(randomString))
+      .uri("/person/commonplatform/")
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -565,10 +417,10 @@ class CanonicalApiIntTest : WebTestBase() {
 
   @Test
   fun `should return not found 404 with userMessage to show that the UUID is not found`() {
-    val randomUUId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
-    val expectedErrorMessage = "Not found: $randomUUId"
+    val nonExistentDefendantId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+    val expectedErrorMessage = "Not found: $nonExistentDefendantId"
     webTestClient.get()
-      .uri(canonicalAPIUrl(randomUUId))
+      .uri("/person/commonplatform/$nonExistentDefendantId")
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -582,7 +434,7 @@ class CanonicalApiIntTest : WebTestBase() {
   fun `should return Access Denied 403 when role is wrong`() {
     val expectedErrorMessage = "Forbidden: Access Denied"
     webTestClient.get()
-      .uri(canonicalAPIUrl("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"))
+      .uri("/person/commonplatform/accessdenied")
       .authorised(listOf("UNSUPPORTED-ROLE"))
       .exchange()
       .expectStatus()
@@ -595,11 +447,9 @@ class CanonicalApiIntTest : WebTestBase() {
   @Test
   fun `should return UNAUTHORIZED 401 when role is not set`() {
     webTestClient.get()
-      .uri(canonicalAPIUrl("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"))
+      .uri("/person/commonplatform/unauthorised")
       .exchange()
       .expectStatus()
       .isUnauthorized
   }
-
-  private fun canonicalAPIUrl(uuid: String) = "/person/$uuid"
 }
