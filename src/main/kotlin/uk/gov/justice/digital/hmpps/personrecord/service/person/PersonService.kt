@@ -3,10 +3,10 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
@@ -14,6 +14,7 @@ class PersonService(
   private val personRepository: PersonRepository,
   private val personKeyService: PersonKeyService,
   private val personMatchService: PersonMatchService,
+  private val reclusterService: ReclusterService,
 ) {
 
   fun createPersonEntity(person: Person): PersonEntity {
@@ -25,31 +26,42 @@ class PersonService(
     return personEntity
   }
 
-  fun updatePersonEntity(person: Person, existingPersonEntity: PersonEntity): PersonUpdated {
-    val oldMatchingDetails = PersonMatchRecord.from(existingPersonEntity)
-    val updatedEntity = updateExistingPersonEntity(person, existingPersonEntity)
+  fun updatePersonEntity(person: Person, personEntity: PersonEntity): PersonUpdated {
+    val oldMatchingDetails = PersonMatchRecord.from(personEntity)
+    updateExistingPersonEntity(person, personEntity)
     val matchingFieldsHaveChanged = oldMatchingDetails.matchingFieldsAreDifferent(
       PersonMatchRecord.from(
-        updatedEntity,
+        personEntity,
       ),
     )
     when {
-      matchingFieldsHaveChanged -> personMatchService.saveToPersonMatch(updatedEntity)
+      matchingFieldsHaveChanged -> personMatchService.saveToPersonMatch(personEntity)
     }
-    return PersonUpdated(updatedEntity, matchingFieldsHaveChanged)
+    personEntity.personKey?.let {
+      if (person.reclusterOnUpdate && matchingFieldsHaveChanged) {
+        reclusterService.recluster(personEntity)
+      }
+    }
+    return PersonUpdated(personEntity, matchingFieldsHaveChanged)
   }
 
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
-    val personEntityWithKey = personMatchService.findHighestMatchThatPersonRecordCanJoin(personEntity).exists(
-      no = { personKeyService.assignPersonToNewPersonKey(personEntity) },
-      yes = { personKeyService.assignToPersonKeyOfHighestConfidencePerson(personEntity, it) },
-    )
-    return personRepository.saveAndFlush(personEntityWithKey)
+    val matches = personMatchService.findClustersToJoin(personEntity)
+    if (matches.isEmpty()) {
+      personKeyService.assignPersonToNewPersonKey(personEntity)
+    } else {
+      personKeyService.assignToPersonKeyOfHighestConfidencePerson(personEntity, matches.first().personEntity)
+      if (matches.size > 1) {
+        reclusterService.recluster(personEntity)
+      }
+    }
+
+    return personRepository.saveAndFlush(personEntity)
   }
 
-  private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
+  private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity) {
     personEntity.update(person)
-    return personRepository.save(personEntity)
+    personRepository.save(personEntity)
   }
 
   private fun createNewPersonEntity(person: Person): PersonEntity {
