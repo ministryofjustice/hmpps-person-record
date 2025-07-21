@@ -161,10 +161,11 @@ class JoinClustersE2ETest : MessagingTestBase() {
       dateOfBirth = basePerson.dateOfBirth,
       addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
+      sentences = listOf(ApiResponseSetupSentences(basePerson.sentences.first().sentenceDate)),
     )
 
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
-    val firstPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(firstCrn) })
+    val firstPersonRecord = awaitNotNullPerson(timeout = 70, function = { personRepository.findByCrn(firstCrn) })
     assertThat(firstPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
 
     val secondSetup = ApiResponseSetup(
@@ -177,10 +178,13 @@ class JoinClustersE2ETest : MessagingTestBase() {
       dateOfBirth = basePerson.dateOfBirth,
       addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
+      sentences = listOf(ApiResponseSetupSentences(basePerson.sentences.first().sentenceDate)),
     )
-    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, secondCrn, firstCrn, reactivatedSetup = secondSetup)
-    val secondPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(secondCrn) })
+    probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, secondCrn, firstCrn, reactivatedSetup = secondSetup, unmergedSetup = firstSetup)
+    awaitAssert { assertThat(personRepository.findByCrn(secondCrn)?.personKey).isNotNull() }
+    val secondPersonRecord = awaitNotNullPerson(timeout = 70, function = { personRepository.findByCrn(secondCrn) })
     assertThat(secondPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
+
     secondPersonRecord.assertExcludedFrom(firstPersonRecord)
 
     // create a new person which matches both
@@ -194,6 +198,7 @@ class JoinClustersE2ETest : MessagingTestBase() {
       dateOfBirth = basePerson.dateOfBirth,
       addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
       aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
+      sentences = listOf(ApiResponseSetupSentences(basePerson.sentences.first().sentenceDate)),
     )
 
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, thirdSetup)

@@ -213,9 +213,10 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
     reactivatedSetup: ApiResponseSetup,
+    unmergedSetup: ApiResponseSetup = ApiResponseSetup(crn = unmergedCrn),
   ) {
     stubSingleProbationResponse(reactivatedSetup, scenario, currentScenarioState, nextScenarioState)
-    stubSingleProbationResponse(ApiResponseSetup(crn = unmergedCrn), scenario, currentScenarioState, nextScenarioState)
+    stubSingleProbationResponse(unmergedSetup, scenario, currentScenarioState, nextScenarioState)
 
     publishDomainEvent(
       eventType,
