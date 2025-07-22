@@ -93,6 +93,22 @@ data class CanonicalIdentifiers(
       )
     }
 
+    fun from(personEntity: PersonEntity): CanonicalIdentifiers {
+      val referenceEntities = personEntity.references
+      val personEntities = personEntity.personKey!!.personEntities
+      return CanonicalIdentifiers(
+        crns = personEntities.mapNotNull { it.crn },
+        prisonNumbers = personEntities.mapNotNull { it.prisonNumber },
+        defendantIds = personEntities.mapNotNull { it.defendantId },
+        cids = personEntities.mapNotNull { it.cId },
+        cros = referenceEntities.findByIdentifierType(CRO),
+        pncs = referenceEntities.findByIdentifierType(PNC),
+        nationalInsuranceNumbers = referenceEntities.findByIdentifierType(NATIONAL_INSURANCE_NUMBER),
+        arrestSummonsNumbers = referenceEntities.findByIdentifierType(ARREST_SUMMONS_NUMBER),
+        driverLicenseNumbers = referenceEntities.findByIdentifierType(DRIVER_LICENSE_NUMBER),
+      )
+    }
+
     private fun List<ReferenceEntity>.findByIdentifierType(identifierType: IdentifierType): List<String> = this.filter { it.identifierType == identifierType }.mapNotNull { it.identifierValue }
   }
 }

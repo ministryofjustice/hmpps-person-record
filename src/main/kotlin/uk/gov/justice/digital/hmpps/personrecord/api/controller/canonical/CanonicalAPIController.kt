@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.canonical
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -24,7 +24,7 @@ import java.util.UUID
 @Tag(name = "HMPPS Person API")
 @RestController
 @PreAuthorize("hasRole('$API_READ_ONLY')")
-class APIController(
+class CanonicalAPIController(
   private val personKeyRepository: PersonKeyRepository,
 ) {
   @Operation(
@@ -56,7 +56,7 @@ class APIController(
   ): ResponseEntity<*> {
     val personKeyEntity = getCorrectPersonKeyEntity(personKeyRepository.findByPersonUUID(uuid), mutableSetOf())
     return when {
-      personKeyEntity == null -> throw ResourceNotFoundException(uuid)
+      personKeyEntity == null -> throw ResourceNotFoundException(uuid.toString())
       personKeyEntity.isNotRequestedUuid(uuid) -> ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).location(URI("/person/${personKeyEntity.personUUID}")).build<Void>()
       else -> ResponseEntity.ok(CanonicalRecord.from(personKeyEntity))
     }
