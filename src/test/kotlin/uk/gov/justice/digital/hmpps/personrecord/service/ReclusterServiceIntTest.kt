@@ -116,7 +116,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubPersonMatchUpsert()
       stubXPersonMatches(matchId = doesNotMatch.matchId, aboveJoin = listOf(matchesA.matchId, recordA.matchId))
-      stubClusterIsValid()
+      stubClusterIsValid(requestBody = """["${recordA.matchId}", "${matchesA.matchId}","${doesNotMatch.matchId}"]""")
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
 
       cluster.assertClusterIsOfSize(3)
@@ -135,7 +135,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubPersonMatchUpsert()
       stubXPersonMatches(matchId = doesNotMatch.matchId, aboveFracture = listOf(matchesA.matchId, recordA.matchId))
-      stubClusterIsValid()
+      stubClusterIsValid(requestBody = """["${recordA.matchId}", "${matchesA.matchId}","${doesNotMatch.matchId}"]""")
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
 
       cluster.assertClusterIsOfSize(3)
@@ -155,7 +155,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubPersonMatchUpsert()
       stubXPersonMatches(matchId = doesNotMatch.matchId, aboveJoin = listOf(matchesA.matchId, recordA.matchId, recordToJoinCluster.matchId))
-      stubClusterIsValid()
+      stubClusterIsValid(requestBody = """["${recordA.matchId}", "${matchesA.matchId}","${doesNotMatch.matchId}"]""")
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
 
       cluster.assertClusterIsOfSize(4)
@@ -382,7 +382,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personB)
         .addPerson(personC)
 
-      stubClusterIsValid()
+      stubClusterIsValid(requestBody = """["${personA.matchId}", "${personB.matchId}", "${personC.matchId}"]""")
       stubOnePersonMatchAboveJoinThreshold(matchId = personA.matchId, matchedRecord = personB.matchId)
 
       recluster(personA)
@@ -959,7 +959,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val cluster2 = createPersonKey()
         .addPerson(personD)
 
-      stubClusterIsValid()
+      stubClusterIsValid(requestBody = """["${personA.matchId}", "${personB.matchId}", "${personC.matchId}"]""")
       stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
@@ -998,7 +998,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val cluster3 = createPersonKey(status = NEEDS_ATTENTION)
         .addPerson(personE)
 
-      stubClusterIsValid()
+      stubClusterIsValid(requestBody = """["${personA.matchId}", "${personB.matchId}", "${personC.matchId}"]""")
       stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
@@ -1328,7 +1328,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personC)
 
       stubPersonMatchUpsert()
-      stubClusterIsValid()
+      stubClusterIsValid(requestBody = """["${personA.matchId}", "${personB.matchId}", "${personC.matchId}"]""")
       stubXPersonMatches(matchId = personA.matchId, aboveJoin = listOf(personB.matchId, personC.matchId))
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = personA.crn))
 
