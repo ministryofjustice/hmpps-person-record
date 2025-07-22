@@ -46,8 +46,8 @@ class ExceptionHandler {
       ),
     )
 
-  @ExceptionHandler(CanonicalRecordNotFoundException::class)
-  fun handleKeyNotFoundException(e: CanonicalRecordNotFoundException): ResponseEntity<ErrorResponse> = ResponseEntity
+  @ExceptionHandler(ResourceNotFoundException::class)
+  fun handleKeyNotFoundException(e: ResourceNotFoundException): ResponseEntity<ErrorResponse> = ResponseEntity
     .status(NOT_FOUND)
     .body(
       ErrorResponse(
