@@ -7,10 +7,13 @@ import kotlinx.coroutines.withContext
 import org.springframework.data.domain.Pageable
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminCluster
+import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.SourceSystemComposition
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -20,11 +23,24 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import java.util.UUID
 
 @RestController
 class ClustersController(
   private val personKeyRepository: PersonKeyRepository,
 ) {
+
+  @Hidden
+  @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")
+  @GetMapping("/admin/cluster/{uuid}")
+  suspend fun getCluster(
+    @PathVariable(name = "uuid") uuid: UUID,
+  ): AdminClusterDetail {
+    val personKeyEntity = withContext(Dispatchers.IO) {
+      personKeyRepository.findByPersonUUID(uuid)
+    } ?: throw ResourceNotFoundException(uuid)
+    return AdminClusterDetail.from(personKeyEntity)
+  }
 
   @Hidden
   @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")

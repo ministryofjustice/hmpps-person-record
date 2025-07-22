@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CanonicalRecordNotFoundException
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -56,7 +56,7 @@ class APIController(
   ): ResponseEntity<*> {
     val personKeyEntity = getCorrectPersonKeyEntity(personKeyRepository.findByPersonUUID(uuid), mutableSetOf())
     return when {
-      personKeyEntity == null -> throw CanonicalRecordNotFoundException(uuid)
+      personKeyEntity == null -> throw ResourceNotFoundException(uuid)
       personKeyEntity.isNotRequestedUuid(uuid) -> ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).location(URI("/person/${personKeyEntity.personUUID}")).build<Void>()
       else -> ResponseEntity.ok(CanonicalRecord.from(personKeyEntity))
     }
