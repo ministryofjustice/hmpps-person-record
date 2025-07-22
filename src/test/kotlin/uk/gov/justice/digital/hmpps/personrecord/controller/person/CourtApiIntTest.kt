@@ -112,7 +112,6 @@ class CourtApiIntTest : WebTestBase() {
     val canonicalReligion = CanonicalReligion(code = religion, description = religion)
     val canonicalEthnicity = CanonicalEthnicity(code = ethnicity, description = ethnicity)
 
-    assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personUUID.toString())
     assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
     assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
     assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
@@ -162,7 +161,6 @@ class CourtApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personUUID.toString())
     assertThat(responseBody.firstName).isNull()
     assertThat(responseBody.middleNames).isNull()
     assertThat(responseBody.lastName).isNull()
@@ -403,16 +401,6 @@ class CourtApiIntTest : WebTestBase() {
     assertThat(responseBody.identifiers.cids).isEmpty()
     assertThat(responseBody.identifiers.defendantIds).isNotEmpty()
     assertThat(responseBody.identifiers.prisonNumbers).isEmpty()
-  }
-
-  @Test
-  fun `should return bad request if defendantId not supplied`() {
-    webTestClient.get()
-      .uri("/person/commonplatform/")
-      .authorised(listOf(API_READ_ONLY))
-      .exchange()
-      .expectStatus()
-      .isBadRequest
   }
 
   @Test

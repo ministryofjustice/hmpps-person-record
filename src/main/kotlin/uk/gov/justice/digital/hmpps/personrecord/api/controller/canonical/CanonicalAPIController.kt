@@ -56,7 +56,7 @@ class CanonicalAPIController(
   ): ResponseEntity<*> {
     val personKeyEntity = getCorrectPersonKeyEntity(personKeyRepository.findByPersonUUID(uuid), mutableSetOf())
     return when {
-      personKeyEntity == null -> throw CanonicalRecordNotFoundException(uuid)
+      personKeyEntity == null -> throw CanonicalRecordNotFoundException(uuid.toString())
       personKeyEntity.isNotRequestedUuid(uuid) -> ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY).location(URI("/person/${personKeyEntity.personUUID}")).build<Void>()
       else -> ResponseEntity.ok(CanonicalRecord.from(personKeyEntity))
     }
