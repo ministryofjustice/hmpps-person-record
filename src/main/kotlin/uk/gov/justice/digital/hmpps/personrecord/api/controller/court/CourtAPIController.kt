@@ -24,7 +24,7 @@ class CourtAPIController(
   private val personRepository: PersonRepository,
 ) {
   @Operation(
-    description = "Retrieve person record by Defendant ID. Role required is **$API_READ_ONLY**",
+    description = "Retrieve person record by Defendant ID. Role required is **$API_READ_ONLY** . For Identifiers the crn, prisonNumber, defendantId, cids come from all records related to this person and the other identifiers come from just this person ",
     security = [SecurityRequirement(name = "api-role")],
   )
   @GetMapping("/person/commonplatform/{defendantId}")
