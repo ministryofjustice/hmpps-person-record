@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CanonicalRecordNotFoundException
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 
@@ -24,7 +24,9 @@ class CourtAPIController(
   private val personRepository: PersonRepository,
 ) {
   @Operation(
-    description = "Retrieve person record by Defendant ID. Role required is **$API_READ_ONLY** . For Identifiers the crn, prisonNumber, defendantId, cids come from all records related to this person and the other identifiers come from just this person ",
+    description = """Retrieve person record by Defendant ID. Role required is **$API_READ_ONLY** . 
+      For Identifiers the crn, prisonNumber, defendantId, cids come from all records related to this person. 
+      The other Identifiers come from just this person""",
     security = [SecurityRequirement(name = "api-role")],
   )
   @GetMapping("/person/commonplatform/{defendantId}")
@@ -45,7 +47,7 @@ class CourtAPIController(
   ): ResponseEntity<*> {
     val personEntity = personRepository.findByDefendantId(defendantID)
     return when {
-      personEntity == null -> throw CanonicalRecordNotFoundException(defendantID)
+      personEntity == null -> throw ResourceNotFoundException(defendantID)
       else -> ResponseEntity.ok(CanonicalRecord.from(personEntity))
     }
   }

@@ -38,7 +38,7 @@ class ClustersController(
   ): AdminClusterDetail {
     val personKeyEntity = withContext(Dispatchers.IO) {
       personKeyRepository.findByPersonUUID(uuid)
-    } ?: throw ResourceNotFoundException(uuid)
+    } ?: throw ResourceNotFoundException(uuid.toString())
     return AdminClusterDetail.from(personKeyEntity)
   }
 
