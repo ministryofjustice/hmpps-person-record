@@ -53,6 +53,21 @@ data class CanonicalRecord(
       )
     }
 
+    fun from(person: PersonEntity): CanonicalRecord = CanonicalRecord(
+      firstName = person.getPrimaryName().firstName,
+      middleNames = person.getPrimaryName().middleNames,
+      lastName = person.getPrimaryName().lastName,
+      dateOfBirth = person.getPrimaryName().dateOfBirth?.toString(),
+      title = CanonicalTitle.from(person.getPrimaryName().title),
+      sex = CanonicalSex.from(person.sexCode),
+      religion = CanonicalReligion.from(person.religion),
+      ethnicity = CanonicalEthnicity.from(person.ethnicity),
+      aliases = getAliases(person),
+      addresses = getAddresses(person),
+      identifiers = CanonicalIdentifiers.from(person),
+      nationalities = CanonicalNationality.from(person),
+    )
+
     private fun getAliases(person: PersonEntity?): List<CanonicalAlias> = CanonicalAlias.from(person) ?: emptyList()
 
     private fun getAddresses(person: PersonEntity?): List<CanonicalAddress> = person?.addresses?.let { CanonicalAddress.fromAddressEntityList(it) } ?: emptyList()
