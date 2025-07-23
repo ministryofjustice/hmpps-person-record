@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
-import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminEventLogDetails
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminEventLogSummary
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import java.util.UUID
@@ -28,5 +26,4 @@ class EventLogController(
     val eventLogs = withContext(Dispatchers.IO) { eventLogRepository.findAllByPersonUUIDOrderByEventTimestampDesc(uuid) } ?: emptyList()
     return AdminEventLogSummary.from(uuid, eventLogs)
   }
-
 }

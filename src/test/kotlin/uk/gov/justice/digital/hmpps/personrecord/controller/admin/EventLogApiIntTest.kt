@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.EventLogService
 import java.util.UUID
 
-class EventLogApiIntTest: WebTestBase() {
+class EventLogApiIntTest : WebTestBase() {
 
   @Autowired
   lateinit var eventLogService: EventLogService
@@ -58,6 +58,5 @@ class EventLogApiIntTest: WebTestBase() {
     assertThat(response.eventLogs[1].uuidStatusType).isEqualTo("ACTIVE")
   }
 
-  private fun eventLogUrl(uuid: String) = "/admin/event-log/${uuid}"
-
+  private fun eventLogUrl(uuid: String) = "/admin/event-log/$uuid"
 }

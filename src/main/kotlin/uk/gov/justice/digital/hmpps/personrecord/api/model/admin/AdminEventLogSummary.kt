@@ -5,12 +5,12 @@ import java.util.UUID
 
 data class AdminEventLogSummary(
   val uuid: String,
-  val eventLogs: List<AdminEventLogDetails>
+  val eventLogs: List<AdminEventLogDetails>,
 ) {
   companion object {
     fun from(uuid: UUID, eventLogs: List<EventLogEntity>): AdminEventLogSummary = AdminEventLogSummary(
       uuid = uuid.toString(),
-      eventLogs = eventLogs.map { AdminEventLogDetails.from(it) }
+      eventLogs = eventLogs.map { AdminEventLogDetails.from(it) },
     )
   }
 }
@@ -52,7 +52,7 @@ data class AdminEventLogDetails(
       recordMergedTo = eventLogEntity.recordMergedTo,
       eventTimestamp = eventLogEntity.eventTimestamp.toString(),
       sentenceDates = eventLogEntity.sentenceDates.map { it.toString() }.toTypedArray(),
-      excludeOverrideMarkers = eventLogEntity.excludeOverrideMarkers
+      excludeOverrideMarkers = eventLogEntity.excludeOverrideMarkers,
     )
   }
 }
