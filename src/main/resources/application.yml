@@ -90,7 +90,6 @@ management:
         time-to-live: 2000ms
 
 retry:
-  delay: 2000
   timeout: 10000
 
 populate-from-nomis:
