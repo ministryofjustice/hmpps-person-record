@@ -67,7 +67,7 @@ class PersonService(
     if (matches.isEmpty()) {
       personKeyService.assignPersonToNewPersonKey(personEntity)
     } else {
-      personKeyService.assignToPersonKeyOfHighestConfidencePerson(personEntity, matches.first().personEntity)
+      personKeyService.assignToPersonKeyOfHighestConfidencePerson(personEntity, matches.first().personEntity.personKey!!)
       if (matches.size > 1) {
         reclusterService.recluster(personEntity)
       }

@@ -22,9 +22,8 @@ class PersonKeyService(
     return personEntity
   }
 
-  fun assignToPersonKeyOfHighestConfidencePerson(personEntity: PersonEntity, highConfidenceRecord: PersonEntity): PersonEntity {
-    publisher.publishEvent(PersonKeyFound(personEntity, highConfidenceRecord.personKey!!))
-    personEntity.personKey = highConfidenceRecord.personKey!!
-    return personEntity
+  fun assignToPersonKeyOfHighestConfidencePerson(personEntity: PersonEntity, personKey: PersonKeyEntity) {
+    publisher.publishEvent(PersonKeyFound(personEntity, personKey))
+    personEntity.personKey = personKey
   }
 }
