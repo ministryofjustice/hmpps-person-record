@@ -11,4 +11,5 @@ interface EventLogRepository : JpaRepository<EventLogEntity, Long> {
 
   fun findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(eventType: CPRLogEvents, sourceSystemId: String): List<EventLogEntity>?
   fun findAllByEventTypeAndPersonUUIDOrderByEventTimestampDesc(eventType: CPRLogEvents, personUUID: UUID): List<EventLogEntity>?
+  fun findAllByPersonUUIDOrderByEventTimestampDesc(uuid: UUID): List<EventLogEntity>?
 }
