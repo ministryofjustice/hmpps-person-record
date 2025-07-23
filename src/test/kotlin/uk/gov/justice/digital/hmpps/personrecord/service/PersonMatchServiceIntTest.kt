@@ -1,8 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
-import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
-import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
-import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -26,24 +23,6 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
   @Nested
   inner class IsClusterValid {
-
-    @Test
-    fun `isClusterValid request sent as a list of matchId`() {
-      val personA = createPerson(createExamplePerson())
-      val personB = createPerson(createExamplePerson())
-      val cluster = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-
-      stubClusterIsValid()
-
-      personMatchService.examineIsClusterValid(cluster)
-
-      wiremock.verify(
-        postRequestedFor(urlEqualTo("/is-cluster-valid"))
-          .withRequestBody(equalToJson("""["${personA.matchId}", "${personB.matchId}"]""")),
-      )
-    }
 
     @Test
     fun `should process isClusterValid response`() {
@@ -86,7 +65,10 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         nextScenarioState = "FOUND ALL RECORDS",
       )
       stubPersonMatchUpsert(currentScenarioState = "FOUND ALL RECORDS", nextScenarioState = "CLUSTER IS VALID")
-      stubClusterIsValid(currentScenarioState = "CLUSTER IS VALID")
+      stubClusterIsValid(
+        currentScenarioState = "CLUSTER IS VALID",
+        requestBody = """["${personA.matchId}", "${personB.matchId}"]""",
+      )
 
       val result = personMatchService.examineIsClusterValid(cluster)
       assertThat(result.isClusterValid).isTrue()

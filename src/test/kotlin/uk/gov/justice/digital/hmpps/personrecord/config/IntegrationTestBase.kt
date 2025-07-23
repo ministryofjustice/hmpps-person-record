@@ -349,18 +349,35 @@ class IntegrationTestBase {
     )
   }
 
-  private fun stubIsClusterValid(isClusterValidResponse: IsClusterValidResponse, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200) {
-    stubPostRequest(
-      scenario,
-      currentScenarioState,
-      nextScenarioState,
-      url = "/is-cluster-valid",
-      status = status,
-      responseBody = objectMapper.writeValueAsString(isClusterValidResponse),
-    )
+  private fun stubIsClusterValid(isClusterValidResponse: IsClusterValidResponse, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200, requestBody: String = "") {
+    if (requestBody.isNotEmpty()) {
+      stubPostRequest(
+        scenario,
+        currentScenarioState,
+        nextScenarioState,
+        url = "/is-cluster-valid",
+        status = status,
+        responseBody = objectMapper.writeValueAsString(isClusterValidResponse),
+        requestBody = requestBody,
+      )
+    } else {
+      stubPostRequest(
+        scenario,
+        currentScenarioState,
+        nextScenarioState,
+        url = "/is-cluster-valid",
+        status = status,
+        responseBody = objectMapper.writeValueAsString(isClusterValidResponse),
+      )
+    }
   }
 
-  internal fun stubClusterIsValid(scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = true, clusters = listOf()), scenario, currentScenarioState, nextScenarioState)
+  internal fun stubClusterIsValid(
+    scenario: String = BASE_SCENARIO,
+    currentScenarioState: String = STARTED,
+    nextScenarioState: String = STARTED,
+    requestBody: String = "",
+  ) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = true, clusters = listOf()), scenario, currentScenarioState, nextScenarioState, requestBody = requestBody)
 
   internal fun stubClusterIsNotValid(clusters: List<ValidCluster> = listOf()) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = false, clusters = clusters.map { cluster -> cluster.records }))
 
