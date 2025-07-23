@@ -116,7 +116,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubPersonMatchUpsert()
       stubXPersonMatches(matchId = doesNotMatch.matchId, aboveJoin = listOf(matchesA.matchId, recordA.matchId))
-      stubClusterIsValid(requestBody = """["${recordA.matchId}", "${matchesA.matchId}","${doesNotMatch.matchId}"]""")
+      stubClusterIsValid()
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
 
       cluster.assertClusterIsOfSize(3)
@@ -1328,7 +1328,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personC)
 
       stubPersonMatchUpsert()
-      stubClusterIsValid(requestBody = """["${personA.matchId}", "${personB.matchId}", "${personC.matchId}"]""")
+      stubClusterIsValid()
       stubXPersonMatches(matchId = personA.matchId, aboveJoin = listOf(personB.matchId, personC.matchId))
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = personA.crn))
 
