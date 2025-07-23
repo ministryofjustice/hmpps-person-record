@@ -46,13 +46,6 @@ class SQSListenerService(
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
-
-    fun DomainEvent.whenEvent(eventType: String, action: (domainEvent: DomainEvent) -> Unit): DomainEvent {
-      when {
-        this.eventType == eventType -> action(this)
-      }
-      return this
-    }
   }
 }
 
@@ -61,7 +54,6 @@ class DiscardableNotFoundException : RuntimeException()
 fun <T> Mono<out T>.discardNotFoundException(): Mono<out T> = this.onErrorResume(WebClientResponseException::class.java) {
   if (it.statusCode == NOT_FOUND) {
     throw DiscardableNotFoundException()
-  } else {
-    Mono.error(it)
   }
+  Mono.error(it)
 }
