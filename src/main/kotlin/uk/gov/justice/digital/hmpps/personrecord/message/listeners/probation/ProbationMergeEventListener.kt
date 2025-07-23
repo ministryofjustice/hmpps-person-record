@@ -25,7 +25,7 @@ class ProbationMergeEventListener(
   }
 }
 
-fun DomainEvent.whenEvent(eventType: String, action: (domainEvent: DomainEvent) -> Unit): DomainEvent {
+private fun DomainEvent.whenEvent(eventType: String, action: (domainEvent: DomainEvent) -> Unit): DomainEvent {
   when {
     this.eventType == eventType -> action(this)
   }
