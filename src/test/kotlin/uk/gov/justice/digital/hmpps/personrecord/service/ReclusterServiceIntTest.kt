@@ -105,7 +105,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubPersonMatchUpsert()
       stubXPersonMatches(matchId = doesNotMatch.matchId, aboveFracture = listOf(matchesA.matchId, recordA.matchId))
-      stubClusterIsValid(requestBody = """["${recordA.matchId}", "${matchesA.matchId}","${doesNotMatch.matchId}"]""")
+      stubClusterIsValid(requestBody = """["${recordA.matchId}", "${matchesA.matchId}", "${doesNotMatch.matchId}"]""")
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
 
       cluster.assertClusterIsOfSize(3)
