@@ -352,7 +352,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         .addPerson(personB)
         .addPerson(personC)
 
-      stubClusterIsValid(requestBody = """["${personA.matchId}", "${personB.matchId}", "${personC.matchId}"]""")
+      stubClusterIsValid()
       stubOnePersonMatchAboveJoinThreshold(matchId = personA.matchId, matchedRecord = personB.matchId)
 
       recluster(personA)
