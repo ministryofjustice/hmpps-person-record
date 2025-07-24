@@ -58,5 +58,27 @@ class EventLogApiIntTest : WebTestBase() {
     assertThat(response.eventLogs[1].uuidStatusType).isEqualTo("ACTIVE")
   }
 
+  @Test
+  fun `should return seeded event log`() {
+    val person = createPersonWithNewKey(createRandomProbationPersonDetails())
+
+    eventLogService.logEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_SEEDED, person))
+
+    val response = webTestClient.get()
+      .uri(eventLogUrl(person.personKey?.personUUID.toString()))
+      .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody(AdminEventLogSummary::class.java)
+      .returnResult()
+      .responseBody!!
+
+    assertThat(response.uuid).isEqualTo(person.personKey?.personUUID.toString())
+    assertThat(response.eventLogs.count()).isEqualTo(1)
+    assertThat(response.eventLogs[0].eventType).isEqualTo(CPRLogEvents.CPR_RECORD_SEEDED.name)
+    assertThat(response.eventLogs[0].uuidStatusType).isEqualTo("ACTIVE")
+  }
+
   private fun eventLogUrl(uuid: String) = "/admin/event-log/$uuid"
 }
