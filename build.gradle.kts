@@ -75,6 +75,7 @@ tasks {
   test {
     exclude("**/InitialiseDatabase.class")
     exclude("**/**E2ETest.class")
+    exclude("**/**IntTest.class")
   }
 
   getByName("initialiseDatabase") {
@@ -87,7 +88,10 @@ tasks {
 
   getByName("check") {
     dependsOn(":ktlintCheck", "detekt")
-    finalizedBy("koverHtmlReport")
+  }
+
+  getByName("koverHtmlReport") {
+    dependsOn("check")
   }
 
   withType<JavaCompile>().configureEach {
