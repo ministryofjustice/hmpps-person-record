@@ -75,7 +75,6 @@ tasks {
   test {
     exclude("**/InitialiseDatabase.class")
     exclude("**/**E2ETest.class")
-    exclude("**/**IntTest.class")
   }
 
   getByName("initialiseDatabase") {
