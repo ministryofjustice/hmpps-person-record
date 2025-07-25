@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 
-data class Contact(
+data class ContactInfo(
   val phoneNumbers: List<Phone>,
   val emails: List<Email>,
 )

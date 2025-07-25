@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.CreateResponse
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
@@ -47,13 +46,7 @@ class SysconSyncController {
     @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true)
     prisonNumber: String,
     @RequestBody prisoner: Prisoner,
-  ): CreateResponse {
-    useInputs(prisonNumber, prisoner)
-    return CreateResponse()
+  ): String {
+    return "OK"
   }
-
-  private fun useInputs(
-    prisonNumber: String,
-    prisoner: Prisoner,
-  ): String = prisoner.status + prisonNumber
 }

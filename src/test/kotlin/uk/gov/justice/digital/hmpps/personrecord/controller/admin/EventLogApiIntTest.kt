@@ -84,5 +84,30 @@ class EventLogApiIntTest : WebTestBase() {
     assertThat(response.eventLogs[0].uuidStatusType).isEqualTo("ACTIVE")
   }
 
+  @Test
+  fun `should return Access Denied 403 when role is wrong`() {
+    val person = createPersonWithNewKey(createRandomProbationPersonDetails())
+    val expectedErrorMessage = "Forbidden: Access Denied"
+    webTestClient.get()
+      .uri(eventLogUrl(person.personKey?.personUUID.toString()))
+      .authorised(listOf("UNSUPPORTED-ROLE"))
+      .exchange()
+      .expectStatus()
+      .isForbidden
+      .expectBody()
+      .jsonPath("userMessage")
+      .isEqualTo(expectedErrorMessage)
+  }
+
+  @Test
+  fun `should return UNAUTHORIZED 401 when role is not set`() {
+    val person = createPersonWithNewKey(createRandomProbationPersonDetails())
+    webTestClient.get()
+      .uri(eventLogUrl(person.personKey?.personUUID.toString()))
+      .exchange()
+      .expectStatus()
+      .isUnauthorized
+  }
+
   private fun eventLogUrl(uuid: String) = "/admin/event-log/$uuid"
 }
