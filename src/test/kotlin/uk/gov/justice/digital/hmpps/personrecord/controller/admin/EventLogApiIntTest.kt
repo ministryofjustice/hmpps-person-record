@@ -86,10 +86,9 @@ class EventLogApiIntTest : WebTestBase() {
 
   @Test
   fun `should return Access Denied 403 when role is wrong`() {
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails())
     val expectedErrorMessage = "Forbidden: Access Denied"
     webTestClient.get()
-      .uri(eventLogUrl(person.personKey?.personUUID.toString()))
+      .uri(eventLogUrl(UUID.randomUUID().toString()))
       .authorised(listOf("UNSUPPORTED-ROLE"))
       .exchange()
       .expectStatus()
@@ -101,9 +100,8 @@ class EventLogApiIntTest : WebTestBase() {
 
   @Test
   fun `should return UNAUTHORIZED 401 when role is not set`() {
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails())
     webTestClient.get()
-      .uri(eventLogUrl(person.personKey?.personUUID.toString()))
+      .uri(eventLogUrl(UUID.randomUUID().toString()))
       .exchange()
       .expectStatus()
       .isUnauthorized

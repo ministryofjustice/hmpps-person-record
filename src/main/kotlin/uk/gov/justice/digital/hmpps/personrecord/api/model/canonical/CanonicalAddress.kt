@@ -14,7 +14,7 @@ data class CanonicalAddress(
   val postcode: String? = null,
   @Schema(description = "Person address sub building name", example = "Sub building 2")
   val subBuildingName: String? = null,
-  @Schema(description = "Person address building uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Name", example = "Main Building")
+  @Schema(description = "Person address building Name", example = "Main Building")
   val buildingName: String? = null,
   @Schema(description = "Person address building number", example = "102")
   val buildingNumber: String? = null,
