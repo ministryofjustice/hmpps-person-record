@@ -1,5 +1,6 @@
 server:
-  shutdown: immediate
+  server.shutdown=graceful
+  spring.lifecycle.timeout-per-shutdown-phase=2s
 
 management.endpoint:
   health.cache.time-to-live: 0
