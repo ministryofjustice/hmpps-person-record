@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.syscon
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -20,7 +20,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @Tag(name = "Syscon Sync")
 @RestController
-@PreAuthorize("hasRole('${Roles.QUEUE_ADMIN}')") // TODO change me :-)
+@PreAuthorize("hasRole('${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}')") // TODO change me :-)
 class SysconSyncController {
 
   @Operation(description = "Create a prison record")
