@@ -14,5 +14,5 @@ enum class AliasType {
   A,
   CN,
   MAID,
-  NICK
+  NICK,
 }

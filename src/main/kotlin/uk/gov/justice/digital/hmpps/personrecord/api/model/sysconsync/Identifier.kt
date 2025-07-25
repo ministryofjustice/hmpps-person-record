@@ -9,5 +9,5 @@ enum class IdentifierType {
   PNC,
   CRO,
   NINO,
-  DL
+  DL,
 }

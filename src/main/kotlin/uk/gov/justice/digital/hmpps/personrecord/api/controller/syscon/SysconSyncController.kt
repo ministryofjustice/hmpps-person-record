@@ -19,7 +19,7 @@ import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @Tag(name = "Syscon Sync")
 @RestController
-@PreAuthorize("hasRole('${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}')") // TODO change me :-)
+@PreAuthorize("hasRole('${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 class SysconSyncController {
 
   @Operation(description = "Create a prison record")
@@ -46,7 +46,5 @@ class SysconSyncController {
     @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true)
     prisonNumber: String,
     @RequestBody prisoner: Prisoner,
-  ): String {
-    return "OK"
-  }
+  ): String = prisonNumber + prisoner
 }
