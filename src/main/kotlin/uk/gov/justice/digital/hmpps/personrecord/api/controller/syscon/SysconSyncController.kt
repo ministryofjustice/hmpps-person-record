@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.api.controller
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.syscon
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -14,13 +14,12 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
-import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.CreateResponse
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
 import uk.gov.justice.hmpps.kotlin.common.ErrorResponse
 
 @Tag(name = "Syscon Sync")
 @RestController
-@PreAuthorize("hasRole('${Roles.QUEUE_ADMIN}')") // TODO change me :-)
+@PreAuthorize("hasRole('${Roles.PERSON_RECORD_SYSCON_SYNC_WRITE}')")
 class SysconSyncController {
 
   @Operation(description = "Create a prison record")
@@ -47,13 +46,5 @@ class SysconSyncController {
     @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true)
     prisonNumber: String,
     @RequestBody prisoner: Prisoner,
-  ): CreateResponse {
-    useInputs(prisonNumber, prisoner)
-    return CreateResponse()
-  }
-
-  private fun useInputs(
-    prisonNumber: String,
-    prisoner: Prisoner,
-  ): String = prisoner.status + prisonNumber
+  ): String = prisonNumber + prisoner
 }
