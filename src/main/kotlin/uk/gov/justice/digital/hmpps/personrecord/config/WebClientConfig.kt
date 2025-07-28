@@ -12,7 +12,6 @@ import java.time.Duration
 class WebClientConfig(
   @Value("\${person-match.base-url}") val personMatchUrl: String,
   @Value("\${prisoner-search.base-url}") val prisonerSearchUrl: String,
-  @Value("\${prison-service.base-url}") val prisonServiceUrl: String,
   @Value("\${core-person-record-and-delius.base-url}") val corePersonRecordAndDeliusUrl: String,
   @Value("\${retry.timeout}") val timeout: Long,
 ) {
@@ -25,17 +24,6 @@ class WebClientConfig(
     authorizedClientManager = authorizedClientManager,
     registrationId = "person-match",
     url = personMatchUrl,
-    timeout = Duration.ofMillis(timeout),
-  )
-
-  @Bean
-  fun prisonServiceWebClient(
-    authorizedClientManager: OAuth2AuthorizedClientManager,
-    builder: WebClient.Builder,
-  ): WebClient = builder.authorisedWebClient(
-    authorizedClientManager = authorizedClientManager,
-    registrationId = "prison-service",
-    url = prisonServiceUrl,
     timeout = Duration.ofMillis(timeout),
   )
 
