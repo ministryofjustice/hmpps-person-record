@@ -33,7 +33,7 @@ jobs:
             - gradle-{{ checksum "build.gradle.kts" }}
             - gradle-
       - run:
-          command: ./gradlew build
+          command: ./gradlew koverHtmlReport
       - save_cache:
           paths:
             - ~/.gradle
