@@ -1,10 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
 import org.apache.commons.lang3.StringUtils.SPACE
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.PhoneType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
@@ -17,6 +17,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import java.time.LocalDate
 import java.util.UUID
+import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner as SysconPrisoner
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner as PrisonerSearchPrisoner
 
 data class Person(
   val personId: UUID? = null,
@@ -168,7 +170,7 @@ data class Person(
       )
     }
 
-    fun from(prisoner: Prisoner): Person {
+    fun from(prisoner: PrisonerSearchPrisoner): Person {
       val emails: List<Contact> = prisoner.emailAddresses.map { Contact.from(ContactType.EMAIL, it.email) }
       val phoneNumbers: List<Contact> = listOf(
         Contact.from(ContactType.HOME, prisoner.getHomePhone()),
@@ -205,6 +207,48 @@ data class Person(
         sourceSystem = NOMIS,
         nationality = prisoner.nationality,
         religion = prisoner.religion,
+        sentences = prisoner.allConvictedOffences?.map { SentenceInfo.from(it) } ?: emptyList(),
+        sexCode = SexCode.from(prisoner),
+      )
+    }
+    fun from(prisoner: SysconPrisoner): Person {
+      val emails: List<Contact> = prisoner.contactInfo.emails.map { Contact.from(ContactType.EMAIL, it.value) }
+      val homeNumbers = prisoner.contactInfo.phoneNumbers.filter { it.type == PhoneType.HOME }.map { Contact.from(ContactType.HOME, it.value) }
+      val mobileNumbers = prisoner.contactInfo.phoneNumbers.filter { it.type == PhoneType.MOB }.map { Contact.from(ContactType.MOBILE, it.value) }
+
+      val contacts: List<Contact> = homeNumbers + mobileNumbers + emails
+
+      val addresses: List<Address> = Address.fromPrisonerAddressList(prisoner.addresses)
+
+      val references = listOf(
+        Reference(identifierType = IdentifierType.CRO, identifierValue = prisoner.cro?.toString()),
+        Reference(identifierType = IdentifierType.PNC, identifierValue = prisoner.pnc?.toString()),
+        Reference(
+          identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
+          identifierValue = prisoner.identifiers.getType("NINO")?.value,
+        ),
+        Reference(
+          identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
+          identifierValue = prisoner.identifiers.getType("DL")?.value,
+        ),
+
+      )
+
+      return Person(
+        prisonNumber = prisoner.prisonNumber,
+        // title = ,  // TODO: as syscon if this is title code or just title
+        firstName = prisoner.name.firstName,
+        middleNames = prisoner.name.middleName1 + " " + prisoner.name.middleName2,
+        lastName = prisoner.name.lastName,
+        dateOfBirth = prisoner.demographicAttributes.dateOfBirth,
+        // ethnicity = prisoner.demographicAttributes.ethnicityCode,
+        aliases = prisoner.aliases.map { Alias.from(it) },
+        contacts = contacts,
+        addresses = addresses,
+        references = references,
+        sourceSystem = NOMIS,
+        // nationality = prisoner.demographicAttributes.nationalityCode,
+        religion = prisoner.religions,
         sentences = prisoner.allConvictedOffences?.map { SentenceInfo.from(it) } ?: emptyList(),
         sexCode = SexCode.from(prisoner),
       )

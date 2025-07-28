@@ -40,7 +40,7 @@ class SysconSyncController {
       content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
     ),
   )
-  fun create(
+  fun createOrUpdatePrisoner(
     @NotBlank
     @PathVariable(name = "prisonNumber")
     @Parameter(description = "The identifier of the offender source system (NOMIS)", required = true)
