@@ -22,12 +22,6 @@ spring:
             authorization-grant-type: client_credentials
             client-id: ${prisoner-search.client-id}
             client-secret: ${prisoner-search.client-secret}
-          prison-service:
-            provider: nomis-oauth-service
-            client-authentication-method: client_secret_basic
-            authorization-grant-type: client_credentials
-            client-id: ${prison-service.client-id}
-            client-secret: ${prison-service.client-secret}
           core-person-record-and-delius:
             provider: nomis-oauth-service
             client-authentication-method: client_secret_basic
