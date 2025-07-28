@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person
 
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -9,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION_EXCLUDE
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
@@ -21,6 +23,7 @@ class PersonService(
   private val personKeyService: PersonKeyService,
   private val personMatchService: PersonMatchService,
   private val reclusterService: ReclusterService,
+  private val publisher: ApplicationEventPublisher,
 ) {
 
   fun createPersonEntity(person: Person): PersonEntity {
@@ -29,10 +32,11 @@ class PersonService(
     if (person.linkOnCreate) {
       linkRecordToPersonKey(personEntity)
     }
+    publisher.publishEvent(PersonCreated(personEntity))
     return personEntity
   }
 
-  fun updatePersonEntity(person: Person, personEntity: PersonEntity): PersonUpdated {
+  fun updatePersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
     val oldMatchingDetails = PersonMatchRecord.from(personEntity)
     updateExistingPersonEntity(person, personEntity)
     val matchingFieldsHaveChanged = oldMatchingDetails.matchingFieldsAreDifferent(
@@ -48,7 +52,8 @@ class PersonService(
         reclusterService.recluster(personEntity)
       }
     }
-    return PersonUpdated(personEntity, matchingFieldsHaveChanged)
+    publisher.publishEvent(PersonUpdated(personEntity, matchingFieldsHaveChanged))
+    return personEntity
   }
 
   fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
