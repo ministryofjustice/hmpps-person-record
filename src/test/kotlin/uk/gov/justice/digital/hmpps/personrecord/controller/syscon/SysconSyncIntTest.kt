@@ -64,7 +64,7 @@ class SysconSyncIntTest : WebTestBase() {
       lastName = randomName(),
     ),
     demographicAttributes = DemographicAttributes(
-      dateOfBirth = randomDate().toString(),
+      dateOfBirth = randomDate(),
       birthPlace = "",
       birthCountryCode = "",
       nationalityCode = randomNationality(),
@@ -72,9 +72,10 @@ class SysconSyncIntTest : WebTestBase() {
       ethnicityCode = randomEthnicity(),
       sexualOrientationCode = "",
       sexCode = "",
-      disability = "",
-      interestToImmigration = "",
+      disability = false,
+      interestToImmigration = false,
     ),
+    addresses = emptyList(),
     religions = emptyList(),
     contactInfo = ContactInfo(
       phoneNumbers = emptyList(),
