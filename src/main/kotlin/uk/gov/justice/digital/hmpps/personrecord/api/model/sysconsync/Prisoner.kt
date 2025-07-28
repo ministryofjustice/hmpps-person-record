@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync
 data class Prisoner(
   val name: Name,
   val demographicAttributes: DemographicAttributes,
+  val addresses: List<Address>,
   val religions: List<Religion>,
   val contactInfo: ContactInfo,
   val aliases: List<Alias>,

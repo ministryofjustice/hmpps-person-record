@@ -61,7 +61,7 @@ class ReclusterService(
     val matchedRecordsClusters: List<PersonKeyEntity> =
       clusterDetails.shouldJoinRecords
         .collectDistinctClusters()
-        .removeUpdatedCluster(cluster = clusterDetails.cluster)
+        .removeUpdatedCluster(clusterDetails.cluster)
         .getActiveClusters()
     when {
       hasExcludeMarkerBetweenClusters(matchedRecordsClusters) -> handleExclusionsBetweenMatchedClusters(clusterDetails)
@@ -129,7 +129,7 @@ class ReclusterService(
         clusterDetails.cluster,
       ),
     )
-    settingClusterToNeedsAttention(clusterDetails)
+    setToNeedsAttention(clusterDetails.cluster)
   }
 
   private fun handleInvalidClusterComposition(
@@ -150,12 +150,12 @@ class ReclusterService(
         clusterComposition,
       ),
     )
-    settingClusterToNeedsAttention(clusterDetails)
+    setToNeedsAttention(clusterDetails.cluster)
   }
 
-  private fun settingClusterToNeedsAttention(clusterDetails: ClusterDetails) {
-    clusterDetails.cluster.status = NEEDS_ATTENTION
-    personKeyRepository.save(clusterDetails.cluster)
+  private fun setToNeedsAttention(personKeyEntity: PersonKeyEntity) {
+    personKeyEntity.status = NEEDS_ATTENTION
+    personKeyRepository.save(personKeyEntity)
   }
 
   private fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity, changedRecord: PersonEntity) {

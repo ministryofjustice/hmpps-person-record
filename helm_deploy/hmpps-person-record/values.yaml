@@ -93,9 +93,6 @@ generic-service:
     court-topic:
       HMPPS_SQS_TOPICS_CPRCOURTCASESTOPIC_ARN: topic_arn
 
-    large-court-cases-s3-bucket:
-      AWS_COURT_MESSAGE_BUCKET_NAME: "bucket_name"
-
     uuid-enriched-large-court-cases-s3-bucket:
       AWS_CPR_COURT_MESSAGE_BUCKET_NAME: "bucket_name"
 
