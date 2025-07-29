@@ -64,6 +64,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -90,6 +91,9 @@ class IntegrationTestBase {
 
   @Autowired
   private lateinit var personService: PersonService
+
+  @Autowired
+  private lateinit var personFactory: PersonFactory
 
   @Autowired
   lateinit var objectMapper: ObjectMapper
@@ -246,7 +250,7 @@ class IntegrationTestBase {
   internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE): PersonEntity = createPerson(person, createPersonKey(status))
 
   internal fun createPerson(person: Person, personKeyEntity: PersonKeyEntity? = null): PersonEntity {
-    val personEntity = personService.createNewPersonEntity(person)
+    val personEntity = personFactory.create(person)
     personEntity.personKey = personKeyEntity
     personKeyEntity?.personEntities?.add(personEntity)
     return personRepository.saveAndFlush(personEntity)
