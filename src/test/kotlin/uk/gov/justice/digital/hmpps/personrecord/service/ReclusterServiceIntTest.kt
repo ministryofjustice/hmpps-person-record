@@ -128,7 +128,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       stubClusterIsValid(requestBody = """["${recordA.matchId}", "${matchesA.matchId}","${doesNotMatch.matchId}"]""")
 
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
-      // cause a deliberate update until the message is processed!
+      // cause a deliberate delay until the message is processed!
       recordToJoinCluster.assertLinkedToCluster(cluster)
 
       cluster.assertClusterIsOfSize(4)
