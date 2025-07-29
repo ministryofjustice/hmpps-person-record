@@ -8,7 +8,7 @@ core-person-record-and-delius:
   client-id: hmpps-person-match
 
 nomis-oauth:
-  base-url: http://localhost:8080
+  base-url: http://localhost:8081
 
 retry:
   timeout: 5000
