@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.CO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import java.time.LocalDate
 import java.util.UUID
 
@@ -28,6 +29,7 @@ data class Person(
   var prisonNumber: String? = null,
   var defendantId: String? = null,
   val title: String? = null,
+  val titleCode: TitleCode? = null,
   val aliases: List<Alias> = emptyList(),
   val masterDefendantId: String? = null,
   val nationality: String? = null,
@@ -67,6 +69,7 @@ data class Person(
       )
       return Person(
         title = probationCase.title?.value,
+        titleCode = TitleCode.from(probationCase),
         firstName = probationCase.name.firstName,
         middleNames = probationCase.name.middleNames,
         lastName = probationCase.name.lastName,

@@ -5,10 +5,13 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.TitleCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION_EXCLUDE
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
@@ -20,6 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchServi
 class PersonService(
   private val personRepository: PersonRepository,
   private val personKeyRepository: PersonKeyRepository,
+  private val titleCodeRepository: TitleCodeRepository,
   private val personKeyService: PersonKeyService,
   private val personMatchService: PersonMatchService,
   private val reclusterService: ReclusterService,
@@ -88,7 +92,15 @@ class PersonService(
 
   private fun createNewPersonEntity(person: Person): PersonEntity {
     val personEntity = PersonEntity.new(person)
+    personEntity.pseudonyms.addAll(buildPseudonyms(person))
     return personRepository.save(personEntity)
+  }
+
+  private fun lookupTitleCode(titleCode: TitleCode?) = titleCode?.let { titleCodeRepository.findByCode(it.name) }
+
+  private fun buildPseudonyms(person: Person): List<PseudonymEntity> {
+    val primaryName = PseudonymEntity.from(person, lookupTitleCode(person.titleCode))
+    return primaryName
   }
 }
 

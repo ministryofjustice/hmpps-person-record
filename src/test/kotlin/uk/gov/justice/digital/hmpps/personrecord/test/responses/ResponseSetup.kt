@@ -24,6 +24,7 @@ data class ApiResponseSetupAlias(val firstName: String, val middleName: String, 
 
 data class ApiResponseSetup(
   val title: String? = null,
+  val titleCode: String? = null,
   val crn: String? = null,
   val cro: String? = null,
   val pnc: String? = null,

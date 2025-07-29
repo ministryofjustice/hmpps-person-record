@@ -63,7 +63,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     @Test
     fun `creates person when new offender created event is published`() {
       val crn = randomCrn()
-      val title = randomName()
+      val title = "MR"
       val prisonNumber = randomPrisonNumber()
       val firstName = randomName()
       val middleName = randomName() + " " + randomName()
@@ -119,7 +119,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getCro()).isEqualTo(cro)
       assertThat(personEntity.getAliases().size).isEqualTo(1)
-      assertThat(personEntity.getAliases()[0].titleCode).isNull()
       assertThat(personEntity.getAliases()[0].firstName).isEqualTo(aliasFirstName)
       assertThat(personEntity.getAliases()[0].middleNames).isEqualTo(aliasMiddleName)
       assertThat(personEntity.getAliases()[0].lastName).isEqualTo(aliasLastName)
@@ -130,6 +129,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
       assertThat(personEntity.getPrimaryName().nameType).isEqualTo(NameType.PRIMARY)
       assertThat(personEntity.getPrimaryName().title).isEqualTo(title)
+      assertThat(personEntity.getPrimaryName().titleCode?.code).isEqualTo(title)
+      assertThat(personEntity.getPrimaryName().titleCode?.description).isEqualTo("Mr")
       assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
 
       assertThat(personEntity.addresses.size).isEqualTo(2)

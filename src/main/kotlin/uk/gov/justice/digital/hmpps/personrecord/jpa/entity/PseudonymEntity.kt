@@ -62,13 +62,14 @@ class PseudonymEntity(
   var version: Int = 0,
 ) {
   companion object {
-    fun from(person: Person): List<PseudonymEntity> {
+    fun from(person: Person, titleCode: TitleCodeEntity?): List<PseudonymEntity> {
       val primary = PseudonymEntity(
         firstName = person.firstName,
         middleNames = person.middleNames,
         lastName = person.lastName,
         nameType = NameType.PRIMARY,
         title = person.title,
+        titleCode = titleCode,
         dateOfBirth = person.dateOfBirth,
       )
 
