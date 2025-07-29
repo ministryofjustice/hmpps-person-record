@@ -119,6 +119,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getCro()).isEqualTo(cro)
       assertThat(personEntity.getAliases().size).isEqualTo(1)
+      assertThat(personEntity.getAliases()[0].titleCode).isNull()
       assertThat(personEntity.getAliases()[0].firstName).isEqualTo(aliasFirstName)
       assertThat(personEntity.getAliases()[0].middleNames).isEqualTo(aliasMiddleName)
       assertThat(personEntity.getAliases()[0].lastName).isEqualTo(aliasLastName)
