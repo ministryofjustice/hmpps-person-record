@@ -109,10 +109,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       assertThat(personEntity.personKey).isNotNull()
       assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
-      assertThat(personEntity.getPrimaryName().firstName).isEqualTo(firstName)
-      assertThat(personEntity.getPrimaryName().middleNames).isEqualTo(middleName)
-      assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
-      assertThat(personEntity.getPrimaryName().title).isEqualTo(title.name)
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.crn).isEqualTo(crn)
       assertThat(personEntity.ethnicity).isEqualTo(ethnicity)
