@@ -87,7 +87,10 @@ tasks {
 
   getByName("check") {
     dependsOn(":ktlintCheck", "detekt")
-    finalizedBy("koverHtmlReport")
+  }
+
+  getByName("koverHtmlReport") {
+    dependsOn("check")
   }
 
   withType<JavaCompile>().configureEach {

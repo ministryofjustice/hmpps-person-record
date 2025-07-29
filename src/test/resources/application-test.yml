@@ -1,5 +1,6 @@
 server:
-  shutdown: immediate
+  server.shutdown=graceful
+  spring.lifecycle.timeout-per-shutdown-phase=2s
 
 management.endpoint:
   health.cache.time-to-live: 0
@@ -12,9 +13,6 @@ nomis-oauth:
   base-url: http://localhost:8090
 
 prisoner-search:
-  base-url: http://localhost:8090
-
-prison-service:
   base-url: http://localhost:8090
 
 core-person-record-and-delius:

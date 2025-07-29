@@ -11,7 +11,6 @@ generic-service:
     PERSON_MATCH_BASE_URL: https://hmpps-person-match.hmpps.service.justice.gov.uk
     NOMIS_OAUTH_BASE_URL: https://sign-in.hmpps.service.justice.gov.uk
     PRISONER_SEARCH_BASE_URL: https://prisoner-search.prison.service.justice.gov.uk
-    PRISON_SERVICE_BASE_URL: https://prison-api.prison.service.justice.gov.uk
     CORE_PERSON_RECORD_AND_DELIUS_BASE_URL: https://core-person-record-and-delius.hmpps.service.justice.gov.uk
 
 generic-prometheus-alerts:
