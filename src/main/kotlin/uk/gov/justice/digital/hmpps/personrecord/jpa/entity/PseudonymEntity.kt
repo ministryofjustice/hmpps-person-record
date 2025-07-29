@@ -35,6 +35,10 @@ class PseudonymEntity(
   @Column
   val title: String? = null,
 
+  @ManyToOne
+  @JoinColumn(name = "fk_title_code_id")
+  val titleCode: TitleCodeEntity? = null,
+
   @Column(name = "first_name")
   val firstName: String? = null,
 
