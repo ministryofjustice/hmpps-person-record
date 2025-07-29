@@ -92,7 +92,7 @@ class PersonService(
     personRepository.save(personEntity)
   }
 
-  private fun createNewPersonEntity(person: Person): PersonEntity {
+  fun createNewPersonEntity(person: Person): PersonEntity {
     val personEntity = PersonEntity.new(person)
     personEntity.buildPseudonyms(person)
     return personRepository.save(personEntity)
