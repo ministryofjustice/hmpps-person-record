@@ -156,7 +156,6 @@ class PersonEntity(
     this.cId = person.cId
     this.sexCode = person.sexCode
     this.lastModified = LocalDateTime.now()
-    pseudonyms.clear()
     addresses.clear()
     contacts.clear()
     references.clear()

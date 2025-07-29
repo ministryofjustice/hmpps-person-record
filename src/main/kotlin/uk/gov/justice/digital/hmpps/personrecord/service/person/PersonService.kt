@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchR
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.TitleCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.TitleCodeRepository
@@ -87,20 +88,29 @@ class PersonService(
 
   private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity) {
     personEntity.update(person)
+    personEntity.buildPseudonyms(person)
     personRepository.save(personEntity)
   }
 
   private fun createNewPersonEntity(person: Person): PersonEntity {
     val personEntity = PersonEntity.new(person)
-    personEntity.pseudonyms.addAll(buildPseudonyms(person))
+    personEntity.buildPseudonyms(person)
     return personRepository.save(personEntity)
   }
 
-  private fun lookupTitleCode(titleCode: TitleCode?) = titleCode?.let { titleCodeRepository.findByCode(it.name) }
+  private fun lookupTitleCode(titleCode: TitleCode?): TitleCodeEntity? = titleCode?.let { titleCodeRepository.findByCode(it.name) }
 
-  private fun buildPseudonyms(person: Person): List<PseudonymEntity> {
-    val primaryName = PseudonymEntity.from(person, lookupTitleCode(person.titleCode))
-    return primaryName
+  private fun PersonEntity.buildPseudonyms(person: Person) {
+    this.pseudonyms.clear()
+
+    val primaryName = PseudonymEntity.primaryNameFrom(person, lookupTitleCode(person.titleCode))
+    val aliases = person.aliases.mapNotNull { PseudonymEntity.aliasFrom(it, lookupTitleCode(it.titleCode)) }
+
+    val pseudonyms = mutableListOf<PseudonymEntity>()
+    pseudonyms.add(primaryName)
+    pseudonyms.addAll(aliases)
+    pseudonyms.forEach { pseudonymEntity -> pseudonymEntity.person = this }
+    this.pseudonyms.addAll(pseudonyms)
   }
 }
 
