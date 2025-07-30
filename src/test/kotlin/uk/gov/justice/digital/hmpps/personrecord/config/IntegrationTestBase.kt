@@ -221,7 +221,7 @@ class IntegrationTestBase {
 
   private fun awaitAssert(function: () -> Unit, timeout: Long) = await atMost (Duration.ofSeconds(timeout)) untilAsserted function
 
-  internal fun awaitAssert(function: () -> Unit) = awaitAssert(function = function, timeout = 5)
+  internal fun awaitAssert(function: () -> Unit) = awaitAssert(function = function, timeout = 3)
 
   internal fun awaitNotNullPerson(function: () -> PersonEntity?): PersonEntity = awaitNotNullPerson(function, 3)
 

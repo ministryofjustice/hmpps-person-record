@@ -105,7 +105,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubPersonMatchUpsert()
       stubXPersonMatches(matchId = doesNotMatch.matchId, aboveFracture = listOf(matchesA.matchId, recordA.matchId))
-      stubClusterIsValid(requestBody = """["${recordA.matchId}", "${matchesA.matchId}", "${doesNotMatch.matchId}"]""")
+      stubClusterIsValid(clusters = listOf(recordA.matchId, matchesA.matchId, doesNotMatch.matchId))
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
 
       cluster.assertClusterIsOfSize(3)
@@ -125,10 +125,10 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubPersonMatchUpsert()
       stubXPersonMatches(matchId = doesNotMatch.matchId, aboveJoin = listOf(matchesA.matchId, recordA.matchId, recordToJoinCluster.matchId))
-      stubClusterIsValid(requestBody = """["${recordA.matchId}", "${matchesA.matchId}","${doesNotMatch.matchId}"]""")
+      stubClusterIsValid(clusters = listOf(recordA.matchId, matchesA.matchId, doesNotMatch.matchId))
 
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
-      // cause a deliberate delay until the message is processed!
+
       recordToJoinCluster.assertLinkedToCluster(cluster)
 
       cluster.assertClusterIsOfSize(4)
