@@ -69,7 +69,7 @@ data class Person(
       )
       return Person(
         title = probationCase.title?.value,
-        titleCode = TitleCode.from(probationCase),
+        titleCode = TitleCode.from(probationCase.title?.value),
         firstName = probationCase.name.firstName,
         middleNames = probationCase.name.middleNames,
         lastName = probationCase.name.lastName,
@@ -127,7 +127,7 @@ data class Person(
       )
 
       return Person(
-        titleCode = TitleCode.from(defendant.personDefendant?.personDetails),
+        titleCode = TitleCode.from(defendant.personDefendant?.personDetails?.title),
         firstName = defendant.personDefendant?.personDetails?.firstName,
         lastName = defendant.personDefendant?.personDetails?.lastName,
         middleNames = defendant.personDefendant?.personDetails?.middleName,
@@ -160,7 +160,7 @@ data class Person(
       )
       return Person(
         title = libraHearingEvent.name?.title,
-        titleCode = TitleCode.from(libraHearingEvent),
+        titleCode = TitleCode.from(libraHearingEvent.name?.title),
         firstName = libraHearingEvent.name?.firstName,
         middleNames = listOfNotNull(libraHearingEvent.name?.forename2, libraHearingEvent.name?.forename3).joinToString(SPACE).trim(),
         lastName = libraHearingEvent.name?.lastName,
@@ -198,7 +198,7 @@ data class Person(
       return Person(
         prisonNumber = prisoner.prisonNumber,
         title = prisoner.title,
-        titleCode = TitleCode.from(prisoner),
+        titleCode = TitleCode.from(prisoner.title),
         firstName = prisoner.firstName,
         middleNames = prisoner.middleNames,
         lastName = prisoner.lastName,
