@@ -229,7 +229,7 @@ class IntegrationTestBase {
 
   private fun awaitAssert(function: () -> Unit, timeout: Long) = await atMost (Duration.ofSeconds(timeout)) untilAsserted function
 
-  internal fun awaitAssert(function: () -> Unit) = awaitAssert(function = function, timeout = 5)
+  internal fun awaitAssert(function: () -> Unit) = awaitAssert(function = function, timeout = 3)
 
   internal fun awaitNotNullPerson(function: () -> PersonEntity?): PersonEntity = awaitNotNullPerson(function, 3)
 
@@ -386,6 +386,13 @@ class IntegrationTestBase {
     nextScenarioState: String = STARTED,
     requestBody: String = "",
   ) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = true, clusters = listOf()), scenario, currentScenarioState, nextScenarioState, requestBody = requestBody)
+
+  internal fun stubClusterIsValid(
+    scenario: String = BASE_SCENARIO,
+    currentScenarioState: String = STARTED,
+    nextScenarioState: String = STARTED,
+    clusters: List<UUID>,
+  ) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = true, clusters = listOf(clusters.map { it.toString() })), scenario, currentScenarioState, nextScenarioState)
 
   internal fun stubClusterIsNotValid(clusters: List<ValidCluster> = listOf()) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = false, clusters = clusters.map { cluster -> cluster.records }))
 
