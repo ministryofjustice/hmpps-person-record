@@ -105,7 +105,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubPersonMatchUpsert()
       stubXPersonMatches(matchId = doesNotMatch.matchId, aboveFracture = listOf(matchesA.matchId, recordA.matchId))
-      stubClusterIsValid(requestBody = """["${recordA.matchId}", "${matchesA.matchId}", "${doesNotMatch.matchId}"]""")
+      stubClusterIsValid(clusters = listOf(recordA.matchId, matchesA.matchId, doesNotMatch.matchId))
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
 
       cluster.assertClusterIsOfSize(3)
@@ -125,10 +125,10 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       stubPersonMatchUpsert()
       stubXPersonMatches(matchId = doesNotMatch.matchId, aboveJoin = listOf(matchesA.matchId, recordA.matchId, recordToJoinCluster.matchId))
-      stubClusterIsValid(requestBody = """["${recordA.matchId}", "${matchesA.matchId}","${doesNotMatch.matchId}"]""")
+      stubClusterIsValid(clusters = listOf(recordA.matchId, matchesA.matchId, doesNotMatch.matchId))
 
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
-      // cause a deliberate delay until the message is processed!
+
       recordToJoinCluster.assertLinkedToCluster(cluster)
 
       cluster.assertClusterIsOfSize(4)
@@ -932,7 +932,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val cluster2 = createPersonKey()
         .addPerson(personD)
 
-      stubClusterIsValid(requestBody = """["${personA.matchId}", "${personB.matchId}", "${personC.matchId}"]""")
+      stubClusterIsValid(clusters = listOf(personA.matchId, personB.matchId, personC.matchId))
       stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
@@ -971,7 +971,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val cluster3 = createPersonKey(status = NEEDS_ATTENTION)
         .addPerson(personE)
 
-      stubClusterIsValid(requestBody = """["${personA.matchId}", "${personB.matchId}", "${personC.matchId}"]""")
+      stubClusterIsValid(clusters = listOf(personA.matchId, personB.matchId, personC.matchId))
       stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(

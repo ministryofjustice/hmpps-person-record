@@ -121,7 +121,7 @@ class ReclusterApiIntTest : WebTestBase() {
       val person = createPersonWithNewKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION)
       val request = listOf(AdminReclusterRecord(SourceSystemType.DELIUS, person.crn!!))
 
-      stubClusterIsValid(requestBody = """["${person.matchId}"]""")
+      stubClusterIsValid(clusters = listOf(person.matchId))
 
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_URL)
