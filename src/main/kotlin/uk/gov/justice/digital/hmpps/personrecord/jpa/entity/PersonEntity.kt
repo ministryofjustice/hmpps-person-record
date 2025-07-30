@@ -156,7 +156,6 @@ class PersonEntity(
     this.cId = person.cId
     this.sexCode = person.sexCode
     this.lastModified = LocalDateTime.now()
-    pseudonyms.clear()
     addresses.clear()
     contacts.clear()
     references.clear()
@@ -167,7 +166,6 @@ class PersonEntity(
   private fun updateChildEntities(person: Person) {
     updatePersonAddresses(person)
     updatePersonContacts(person)
-    updatePseudonyms(person)
     updatePersonReferences(person)
     updatePersonSentences(person)
   }
@@ -176,12 +174,6 @@ class PersonEntity(
     val personAddresses = AddressEntity.fromList(person.addresses)
     personAddresses.forEach { personAddressEntity -> personAddressEntity.person = this }
     this.addresses.addAll(personAddresses)
-  }
-
-  private fun updatePseudonyms(person: Person) {
-    val entities = PseudonymEntity.from(person)
-    entities.forEach { entity -> entity.person = this }
-    this.pseudonyms.addAll(entities)
   }
 
   private fun updatePersonContacts(person: Person) {

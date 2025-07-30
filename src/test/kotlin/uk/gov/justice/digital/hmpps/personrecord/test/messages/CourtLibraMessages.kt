@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 
 fun libraHearing(
   pncNumber: String? = randomPnc(),
+  title: String? = null,
   firstName: String? = null,
   foreName2: String? = null,
   foreName3: String? = null,
@@ -30,7 +31,7 @@ fun libraHearing(
    "cId": "$cId",
    "caseNo":"1600032981",
    "name":{
-      "title":"Mr",
+      ${title?.let { """ "title": "$title", """.trimIndent() } ?: ""}
       ${firstName?.let { """ "forename1": "$firstName", """.trimIndent() } ?: ""}
       ${foreName2?.let { """ "forename2": "$foreName2", """.trimIndent() } ?: ""}
       ${foreName3?.let { """ "forename3": "$foreName3", """.trimIndent() } ?: ""}

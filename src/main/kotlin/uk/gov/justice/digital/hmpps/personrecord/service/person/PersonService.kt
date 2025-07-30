@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEED
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
@@ -20,14 +21,15 @@ import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchServi
 class PersonService(
   private val personRepository: PersonRepository,
   private val personKeyRepository: PersonKeyRepository,
+  private val personFactory: PersonFactory,
   private val personKeyService: PersonKeyService,
   private val personMatchService: PersonMatchService,
   private val reclusterService: ReclusterService,
   private val publisher: ApplicationEventPublisher,
 ) {
 
-  fun createPersonEntity(person: Person): PersonEntity {
-    val personEntity = createNewPersonEntity(person)
+  fun handlePersonCreation(person: Person): PersonEntity {
+    val personEntity = personFactory.create(person)
     personMatchService.saveToPersonMatch(personEntity)
     if (person.linkOnCreate) {
       linkRecordToPersonKey(personEntity)
@@ -36,9 +38,9 @@ class PersonService(
     return personEntity
   }
 
-  fun updatePersonEntity(person: Person, personEntity: PersonEntity): PersonEntity {
+  fun handlePersonUpdate(person: Person, personEntity: PersonEntity): PersonEntity {
     val oldMatchingDetails = PersonMatchRecord.from(personEntity)
-    updateExistingPersonEntity(person, personEntity)
+    personFactory.update(person, personEntity)
     val matchingFieldsHaveChanged = oldMatchingDetails.matchingFieldsAreDifferent(
       PersonMatchRecord.from(
         personEntity,
@@ -79,16 +81,6 @@ class PersonService(
     }
 
     return personRepository.saveAndFlush(personEntity)
-  }
-
-  private fun updateExistingPersonEntity(person: Person, personEntity: PersonEntity) {
-    personEntity.update(person)
-    personRepository.save(personEntity)
-  }
-
-  private fun createNewPersonEntity(person: Person): PersonEntity {
-    val personEntity = PersonEntity.new(person)
-    return personRepository.save(personEntity)
   }
 }
 

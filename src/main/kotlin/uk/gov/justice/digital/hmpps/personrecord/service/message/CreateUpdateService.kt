@@ -21,10 +21,10 @@ class CreateUpdateService(
   ): PersonEntity = runBlocking {
     return@runBlocking findPerson().exists(
       no = {
-        personService.createPersonEntity(person)
+        personService.handlePersonCreation(person)
       },
       yes = {
-        personService.updatePersonEntity(person, it)
+        personService.handlePersonUpdate(person, it)
       },
     )
   }

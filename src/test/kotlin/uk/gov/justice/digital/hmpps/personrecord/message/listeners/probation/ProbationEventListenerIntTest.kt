@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
@@ -63,7 +64,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     @Test
     fun `creates person when new offender created event is published`() {
       val crn = randomCrn()
-      val title = randomName()
+      val title = TitleCode.MR
       val prisonNumber = randomPrisonNumber()
       val firstName = randomName()
       val middleName = randomName() + " " + randomName()
@@ -86,7 +87,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         dateOfBirth = dateOfBirth,
         crn = crn,
         pnc = pnc,
-        title = title,
+        title = title.name,
         firstName = firstName,
         middleName = middleName,
         lastName = lastName,
@@ -108,10 +109,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       assertThat(personEntity.personKey).isNotNull()
       assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
-      assertThat(personEntity.getPrimaryName().firstName).isEqualTo(firstName)
-      assertThat(personEntity.getPrimaryName().middleNames).isEqualTo(middleName)
-      assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
-      assertThat(personEntity.getPrimaryName().title).isEqualTo(title)
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.crn).isEqualTo(crn)
       assertThat(personEntity.ethnicity).isEqualTo(ethnicity)
@@ -119,7 +116,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getCro()).isEqualTo(cro)
       assertThat(personEntity.getAliases().size).isEqualTo(1)
-      assertThat(personEntity.getAliases()[0].titleCode).isNull()
       assertThat(personEntity.getAliases()[0].firstName).isEqualTo(aliasFirstName)
       assertThat(personEntity.getAliases()[0].middleNames).isEqualTo(aliasMiddleName)
       assertThat(personEntity.getAliases()[0].lastName).isEqualTo(aliasLastName)
@@ -129,7 +125,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getPrimaryName().middleNames).isEqualTo(middleName)
       assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
       assertThat(personEntity.getPrimaryName().nameType).isEqualTo(NameType.PRIMARY)
-      assertThat(personEntity.getPrimaryName().title).isEqualTo(title)
+      assertThat(personEntity.getPrimaryName().title).isEqualTo(title.name)
+      assertThat(personEntity.getPrimaryName().titleCode?.code).isEqualTo("MR")
+      assertThat(personEntity.getPrimaryName().titleCode?.description).isEqualTo("Mr")
       assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
 
       assertThat(personEntity.addresses.size).isEqualTo(2)
@@ -462,6 +460,19 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
   }
 
+  @ParameterizedTest
+  @MethodSource("probationTitleCodes")
+  fun `should map all title codes to cpr title codes`(probationTitleCode: String?, cprTitleCode: String?, cprTitleCodeDescription: String?) {
+    val crn = randomCrn()
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, title = probationTitleCode))
+    val person = awaitNotNullPerson { personRepository.findByCrn(crn) }
+    assertThat(person.getPrimaryName().title).isEqualTo(probationTitleCode)
+    assertThat(person.getPrimaryName().titleCode?.code).isEqualTo(cprTitleCode)
+    assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(cprTitleCodeDescription)
+  }
+
   companion object {
 
     @JvmStatic
@@ -472,6 +483,22 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       Arguments.of(OFFENDER_ADDRESS_CREATED),
       Arguments.of(OFFENDER_ADDRESS_UPDATED),
       Arguments.of(OFFENDER_ADDRESS_DELETED),
+    )
+
+    @JvmStatic
+    fun probationTitleCodes(): Stream<Arguments> = Stream.of(
+      Arguments.of("MR", "MR", "Mr"),
+      Arguments.of("MRS", "MRS", "Mrs"),
+      Arguments.of("MISS", "MISS", "Miss"),
+      Arguments.of("MS", "MS", "Ms"),
+      Arguments.of("MX", "MX", "Mx"),
+      Arguments.of("REV", "REV", "Reverend"),
+      Arguments.of("DME", "DME", "Dame"),
+      Arguments.of("DR", "DR", "Dr"),
+      Arguments.of("LDY", "LDY", "Lady"),
+      Arguments.of("LRD", "LRD", "Lord"),
+      Arguments.of("SIR", "SIR", "Sir"),
+      Arguments.of("Invalid", "UN", "Unknown"),
     )
   }
 }

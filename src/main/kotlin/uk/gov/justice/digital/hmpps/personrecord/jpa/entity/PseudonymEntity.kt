@@ -35,12 +35,12 @@ class PseudonymEntity(
   @Column
   val title: String? = null,
 
-  @ManyToOne(optional = true)
+  @ManyToOne
   @JoinColumn(
     name = "fk_title_code_id",
     referencedColumnName = "id",
   )
-  val titleCode: TitleCodeEntity? = null,
+  var titleCode: TitleCodeEntity? = null,
 
   @Column(name = "first_name")
   val firstName: String? = null,
@@ -62,20 +62,17 @@ class PseudonymEntity(
   var version: Int = 0,
 ) {
   companion object {
-    fun from(person: Person): List<PseudonymEntity> {
-      val primary = PseudonymEntity(
-        firstName = person.firstName,
-        middleNames = person.middleNames,
-        lastName = person.lastName,
-        nameType = NameType.PRIMARY,
-        title = person.title,
-        dateOfBirth = person.dateOfBirth,
-      )
+    fun primaryNameFrom(person: Person, titleCode: TitleCodeEntity?): PseudonymEntity = PseudonymEntity(
+      firstName = person.firstName,
+      middleNames = person.middleNames,
+      lastName = person.lastName,
+      nameType = NameType.PRIMARY,
+      title = person.title,
+      titleCode = titleCode,
+      dateOfBirth = person.dateOfBirth,
+    )
 
-      return person.aliases.mapNotNull { from(it) } + primary
-    }
-
-    private fun from(alias: Alias): PseudonymEntity? = when {
+    fun aliasFrom(alias: Alias, titleCode: TitleCodeEntity?): PseudonymEntity? = when {
       isAliasPresent(alias.firstName, alias.middleNames, alias.lastName) ->
         PseudonymEntity(
           firstName = alias.firstName,
@@ -84,6 +81,7 @@ class PseudonymEntity(
           dateOfBirth = alias.dateOfBirth,
           nameType = NameType.ALIAS,
           title = alias.title,
+          titleCode = titleCode,
         )
       else -> null
     }

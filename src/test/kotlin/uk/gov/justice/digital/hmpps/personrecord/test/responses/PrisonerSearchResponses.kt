@@ -9,7 +9,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     "croNumber": "${responseSetup.cro}",
     "bookingId": "0001200924",
     "bookNumber": "38412A",
-    "title": "Ms",
+    "title": "${responseSetup.title}",
     "firstName": "${responseSetup.firstName}",
     "middleNames": "${responseSetup.middleName} ${responseSetup.middleName}",
     "lastName": "${responseSetup.lastName}",

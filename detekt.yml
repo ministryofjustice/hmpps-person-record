@@ -120,6 +120,7 @@ complexity:
       - 'run'
       - 'use'
       - 'with'
+    excludes: ['**/TitleCode.kt']
   LabeledExpression:
     active: false
     ignoredLabels: []
