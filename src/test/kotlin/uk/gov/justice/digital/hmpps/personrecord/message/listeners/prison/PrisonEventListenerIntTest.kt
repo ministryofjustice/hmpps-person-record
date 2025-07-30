@@ -215,7 +215,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val updatedFirstName = randomName()
 
       stubNoMatchesPersonMatch(matchId = prisoner.matchId)
-      stubPrisonResponse(ApiResponseSetup(gender = "Male", prisonNumber = prisonNumber, firstName = updatedFirstName))
+      stubPrisonResponse(ApiResponseSetup(gender = "Male", title = "Mr", prisonNumber = prisonNumber, firstName = updatedFirstName))
       val domainEvent = prisonDomainEvent(PRISONER_UPDATED, prisonNumber)
       publishDomainEvent(PRISONER_UPDATED, domainEvent)
 
@@ -228,6 +228,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber = prisonNumber)!!
         assertThat(personEntity.matchId).isEqualTo(prisoner.matchId)
+        assertThat(personEntity.getPrimaryName().title).isEqualTo("Mr")
+        assertThat(personEntity.getPrimaryName().titleCode?.code).isEqualTo("MR")
+        assertThat(personEntity.getPrimaryName().titleCode?.description).isEqualTo("Mr")
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
         assertThat(personEntity.sexCode).isEqualTo(SexCode.M)
       }
