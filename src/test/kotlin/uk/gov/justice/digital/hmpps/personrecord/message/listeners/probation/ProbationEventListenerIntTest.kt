@@ -97,7 +97,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
           ApiResponseSetupAddress(noFixedAbode = true, addressStartDate, addressEndDate, postcode = "LS1 1AB", fullAddress = "abc street"),
           ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street"),
         ),
-        aliases = listOf(ApiResponseSetupAlias(aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth)),
+        aliases = listOf(ApiResponseSetupAlias(firstName = aliasFirstName, middleName = aliasMiddleName, lastName = aliasLastName, dateOfBirth = aliasDateOfBirth)),
         ethnicity = ethnicity,
         nationality = nationality,
         sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
@@ -423,7 +423,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         addresses = listOf(
           ApiResponseSetupAddress(postcode = postcode, fullAddress = ""),
         ),
-        aliases = listOf(ApiResponseSetupAlias(aliasFirstName, "", aliasLastName, aliasDateOfBirth)),
+        aliases = listOf(ApiResponseSetupAlias(firstName = aliasFirstName, middleName = "", lastName = aliasLastName, dateOfBirth = aliasDateOfBirth)),
         sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
       )
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)

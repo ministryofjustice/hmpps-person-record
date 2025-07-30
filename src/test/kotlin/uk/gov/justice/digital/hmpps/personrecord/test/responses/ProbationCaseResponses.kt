@@ -46,13 +46,13 @@ private fun alias(alias: ApiResponseSetupAlias) =
   """
     {
           "name": {
-            "forename": "${alias.firstName}",
-            "middleName": "${alias.middleName}",
-            "surname": "${alias.lastName}",
+            "forename": "${alias.firstName ?: ""}",
+            "middleName": "${alias.middleName ?: ""}",
+            "surname": "${alias.lastName ?: ""}",
             "previousSurname": "previousSurname",
             "preferred": "preferred"
           },
-          "dateOfBirth": "${alias.dateOfBirth}"
+          "dateOfBirth": "${alias.dateOfBirth ?: ""}"
         }
   """.trimIndent()
 private fun address(address: ApiResponseSetupAddress) =
