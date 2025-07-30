@@ -12,6 +12,7 @@ data class CommonPlatformHearingSetup(
   val firstName: String? = randomName(),
   val middleName: String? = null,
   val lastName: String = randomName(),
+  val title: String? = null,
   val dateOfBirth: String = randomDate().toString(),
   val cro: String = randomCro(),
   val defendantId: String = randomDefendantId(),
@@ -159,7 +160,7 @@ private fun personDefendant(commonPlatformHearingSetup: CommonPlatformHearingSet
       "gender": "${commonPlatformHearingSetup.gender}",
       ${commonPlatformHearingSetup.middleName?.let { """ "middleName": "${commonPlatformHearingSetup.middleName}", """.trimIndent() } ?: ""}
       "lastName": "${commonPlatformHearingSetup.lastName}",
-      "title": "Mr",
+      "title": "${commonPlatformHearingSetup.title}",
       "nationalityCode": "GB",
       "nationalInsuranceNumber": "${commonPlatformHearingSetup.nationalInsuranceNumber}"
     }

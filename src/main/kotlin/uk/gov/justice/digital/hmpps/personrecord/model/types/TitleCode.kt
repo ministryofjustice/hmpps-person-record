@@ -73,12 +73,12 @@ enum class TitleCode {
       "FATHER" -> FR
       "IMAM" -> IMAM
       "RABBI" -> RABBI
-      "Brother" -> BR
+      "BROTHER" -> BR
       "SISTER" -> SR
-      "DME" -> DME
+      "DAME" -> DME
       "DR" -> DR
-      "LDY" -> LDY
-      "LRD" -> LRD
+      "LADY" -> LDY
+      "LORD" -> LRD
       "SIR" -> SIR
       null -> null
       else -> UN
