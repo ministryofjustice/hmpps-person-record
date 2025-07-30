@@ -932,7 +932,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val cluster2 = createPersonKey()
         .addPerson(personD)
 
-      stubClusterIsValid(requestBody = """["${personA.matchId}", "${personB.matchId}", "${personC.matchId}"]""")
+      stubClusterIsValid(clusters = listOf(personA.matchId, personB.matchId, personC.matchId))
       stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
@@ -971,7 +971,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val cluster3 = createPersonKey(status = NEEDS_ATTENTION)
         .addPerson(personE)
 
-      stubClusterIsValid(requestBody = """["${personA.matchId}", "${personB.matchId}", "${personC.matchId}"]""")
+      stubClusterIsValid(clusters = listOf(personA.matchId, personB.matchId, personC.matchId))
       stubXPersonMatches(
         matchId = personA.matchId,
         aboveJoin = listOf(
