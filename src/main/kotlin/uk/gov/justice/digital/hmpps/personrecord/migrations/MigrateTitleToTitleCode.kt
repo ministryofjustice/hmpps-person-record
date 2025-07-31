@@ -36,20 +36,15 @@ class MigrateTitleToTitleCode(
 
   suspend fun migrateTitleToTitleCodes() = coroutineScope {
     log.info("Starting migration of title codes")
-    val semaphore = Semaphore(MAX_CONCURRENT_LOOKUPS)
+    val preLoadedTitleCodeEntityMap: List<TitleCodeEntity> = titleCodeRepository.findAll()
     val executionResults = forPage { page ->
       log.info("Migrating title codes, page: ${page.pageable.pageNumber + 1}")
-      val deferredLookups = page.content.map { pseudonymEntity ->
-        async(Dispatchers.IO) {
-          semaphore.withPermit {
-            pseudonymEntity.apply {
-              titleCode = lookupTitleCode(TitleCode.from(title))
-            }
-          }
+      val enrichedPseudonyms = page.content.map { pseudonymEntity ->
+        pseudonymEntity.apply {
+          titleCode = preLoadedTitleCodeEntityMap.lookupTitleCode(TitleCode.from(title))
         }
       }
-      val collected = deferredLookups.awaitAll()
-      pseudonymRepository.saveAll(collected)
+      pseudonymRepository.saveAll(enrichedPseudonyms)
     }
     log.info(
       "Finished migrating title codes, total pages: ${executionResults.totalPages}, " +
@@ -58,7 +53,7 @@ class MigrateTitleToTitleCode(
     )
   }
 
-  private fun lookupTitleCode(titleCode: TitleCode?): TitleCodeEntity? = titleCode?.let { titleCodeRepository.findByCode(it.name) }
+  private fun List<TitleCodeEntity>.lookupTitleCode(titleCode: TitleCode?): TitleCodeEntity? = titleCode?.let { this.find { it.code == titleCode.name } }
 
   private inline fun forPage(page: (Page<PseudonymEntity>) -> Unit): ExecutionResult {
     var pageNumber = 0
@@ -89,7 +84,6 @@ class MigrateTitleToTitleCode(
   companion object {
     private const val OK = "OK"
     private const val BATCH_SIZE = 100
-    private const val MAX_CONCURRENT_LOOKUPS = 10
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
