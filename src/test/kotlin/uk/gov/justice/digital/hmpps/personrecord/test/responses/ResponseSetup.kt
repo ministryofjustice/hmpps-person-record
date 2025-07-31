@@ -20,7 +20,7 @@ data class ApiResponseSetupAddress(
 
 data class ApiResponseSetupSentences(val sentenceDate: LocalDate?)
 
-data class ApiResponseSetupAlias(val firstName: String, val middleName: String, val lastName: String, val dateOfBirth: LocalDate)
+data class ApiResponseSetupAlias(val title: String? = null, val firstName: String? = null, val middleName: String? = null, val lastName: String? = null, val dateOfBirth: LocalDate? = null)
 
 data class ApiResponseSetup(
   val title: String? = null,

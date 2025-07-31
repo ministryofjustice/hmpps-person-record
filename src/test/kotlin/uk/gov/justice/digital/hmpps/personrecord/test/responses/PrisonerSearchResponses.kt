@@ -136,11 +136,11 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
 private fun alias(alias: ApiResponseSetupAlias) =
   """
           {
-            "title": "AliasTitle",
-            "firstName": "${alias.firstName}",
-            "middleNames": "${alias.middleName}",
-            "lastName": "${alias.lastName}",
-            "dateOfBirth": "${alias.dateOfBirth}",
+            "title": "${alias.title ?: ""}",
+            "firstName": "${alias.firstName ?: ""}",
+            "middleNames": "${alias.middleName ?: ""}",
+            "lastName": "${alias.lastName ?: ""}",
+            "dateOfBirth": "${alias.dateOfBirth ?: ""}",
             "gender": "Male",
             "ethnicity": "White : Irish"
           }

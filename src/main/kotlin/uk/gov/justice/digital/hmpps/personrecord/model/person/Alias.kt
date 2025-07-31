@@ -19,31 +19,33 @@ data class Alias(
 
     fun from(alias: DefendantAlias): Alias = Alias(
       firstName = alias.firstName,
-      lastName = alias.lastName,
       middleNames = alias.middleName,
+      lastName = alias.lastName,
     )
 
     fun from(alias: ProbationCaseAlias): Alias = Alias(
       firstName = alias.name.firstName,
-      lastName = alias.name.lastName,
       middleNames = alias.name.middleNames,
+      lastName = alias.name.lastName,
       dateOfBirth = alias.dateOfBirth,
     )
 
     fun from(alias: PrisonerAlias) = Alias(
+      title = alias.title,
+      titleCode = TitleCode.from(alias.title),
       firstName = alias.firstName,
       middleNames = alias.middleNames,
       lastName = alias.lastName,
       dateOfBirth = alias.dateOfBirth,
-      title = alias.title,
     )
 
     fun from(pseudonymEntity: PseudonymEntity): Alias = Alias(
+      title = pseudonymEntity.title,
+      titleCode = TitleCode.from(pseudonymEntity.titleCode?.code),
       firstName = pseudonymEntity.firstName,
       middleNames = pseudonymEntity.middleNames,
       lastName = pseudonymEntity.lastName,
       dateOfBirth = pseudonymEntity.dateOfBirth,
-      title = pseudonymEntity.title,
     )
   }
 }
