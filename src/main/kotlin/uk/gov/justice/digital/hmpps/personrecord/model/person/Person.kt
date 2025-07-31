@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraH
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner.Companion.getType
+import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -38,7 +39,6 @@ data class Person(
   val contacts: List<Contact> = emptyList(),
   val addresses: List<Address> = emptyList(),
   val references: List<Reference> = emptyList(),
-  var selfMatchScore: Double? = null,
   val sourceSystem: SourceSystemType,
   val sentences: List<SentenceInfo> = emptyList(),
   val cId: String? = null,
@@ -54,7 +54,7 @@ data class Person(
     fun List<Reference>.toString(): String = this.joinToString { it.identifierValue.toString() }
 
     fun from(probationCase: ProbationCase): Person {
-      val contacts: List<Contact> = listOf(
+      val contacts: List<Contact> = listOfNotNull(
         Contact.from(ContactType.HOME, probationCase.contactDetails?.telephone),
         Contact.from(ContactType.MOBILE, probationCase.contactDetails?.mobile),
         Contact.from(ContactType.EMAIL, probationCase.contactDetails?.email),
@@ -68,15 +68,15 @@ data class Person(
         ),
       )
       return Person(
-        title = probationCase.title?.value,
-        titleCode = TitleCode.from(probationCase.title?.value),
-        firstName = probationCase.name.firstName,
-        middleNames = probationCase.name.middleNames,
-        lastName = probationCase.name.lastName,
+        title = probationCase.title?.value.nullIfBlank(),
+        titleCode = TitleCode.from(probationCase.title?.value.nullIfBlank()),
+        firstName = probationCase.name.firstName.nullIfBlank(),
+        middleNames = probationCase.name.middleNames.nullIfBlank(),
+        lastName = probationCase.name.lastName.nullIfBlank(),
         dateOfBirth = probationCase.dateOfBirth,
         crn = probationCase.identifiers.crn,
-        ethnicity = probationCase.ethnicity?.value,
-        nationality = probationCase.nationality?.value,
+        ethnicity = probationCase.ethnicity?.value.nullIfBlank(),
+        nationality = probationCase.nationality?.value.nullIfBlank(),
         aliases = probationCase.aliases?.map { Alias.from(it) } ?: emptyList(),
         addresses = Address.fromOffenderAddressList(probationCase.addresses),
         contacts = contacts,
@@ -88,52 +88,39 @@ data class Person(
     }
 
     fun from(defendant: Defendant, sourceSystemType: SourceSystemType = COMMON_PLATFORM): Person {
-      val contacts: List<Contact> = listOf(
+      val contacts: List<Contact> = listOfNotNull(
         Contact.from(ContactType.HOME, defendant.personDefendant?.personDetails?.contact?.home),
         Contact.from(ContactType.MOBILE, defendant.personDefendant?.personDetails?.contact?.mobile),
         Contact.from(ContactType.EMAIL, defendant.personDefendant?.personDetails?.contact?.primaryEmail),
       )
 
-      val addresses: MutableList<Address> = mutableListOf()
-      defendant.personDefendant?.personDetails?.address?.postcode.let {
-        addresses.add(
-          Address(
-            postcode = defendant.personDefendant?.personDetails?.address?.postcode,
-            buildingName = defendant.personDefendant?.personDetails?.address?.address1,
-            buildingNumber = defendant.personDefendant?.personDetails?.address?.address2,
-            thoroughfareName = defendant.personDefendant?.personDetails?.address?.address3,
-            dependentLocality = defendant.personDefendant?.personDetails?.address?.address4,
-            postTown = defendant.personDefendant?.personDetails?.address?.address5,
+      val addresses = listOf(Address.from(defendant.personDefendant?.personDetails?.address))
 
-          ),
-        )
-      }
-
-      val references: List<Reference> = listOf(
-        Reference(
+      val references: List<Reference> = listOfNotNull(
+        Reference.from(
           identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
           identifierValue = defendant.personDefendant?.personDetails?.nationalInsuranceNumber,
         ),
-        Reference(
+        Reference.from(
           identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
           identifierValue = defendant.personDefendant?.driverNumber,
         ),
-        Reference(
+        Reference.from(
           identifierType = IdentifierType.ARREST_SUMMONS_NUMBER,
           identifierValue = defendant.personDefendant?.arrestSummonsNumber,
         ),
-        Reference(identifierType = IdentifierType.PNC, identifierValue = defendant.pncId?.pncId),
-        Reference(identifierType = IdentifierType.CRO, identifierValue = defendant.cro?.croId),
+        Reference.from(identifierType = IdentifierType.PNC, identifierValue = defendant.pncId?.pncId),
+        Reference.from(identifierType = IdentifierType.CRO, identifierValue = defendant.cro?.croId),
       )
 
       return Person(
-        titleCode = TitleCode.from(defendant.personDefendant?.personDetails?.title),
-        firstName = defendant.personDefendant?.personDetails?.firstName,
-        lastName = defendant.personDefendant?.personDetails?.lastName,
-        middleNames = defendant.personDefendant?.personDetails?.middleName,
+        titleCode = TitleCode.from(defendant.personDefendant?.personDetails?.title.nullIfBlank()),
+        firstName = defendant.personDefendant?.personDetails?.firstName.nullIfBlank(),
+        lastName = defendant.personDefendant?.personDetails?.lastName.nullIfBlank(),
+        middleNames = defendant.personDefendant?.personDetails?.middleName.nullIfBlank(),
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
-        defendantId = defendant.id,
-        masterDefendantId = defendant.masterDefendantId,
+        defendantId = defendant.id.nullIfBlank(),
+        masterDefendantId = defendant.masterDefendantId.nullIfBlank(),
         contacts = contacts,
         addresses = addresses,
         references = references,
@@ -145,72 +132,64 @@ data class Person(
 
     fun from(libraHearingEvent: LibraHearingEvent): Person {
       val addresses = listOf(
-        Address(
-          postcode = libraHearingEvent.defendantAddress?.postcode,
-          buildingName = libraHearingEvent.defendantAddress?.buildingName,
-          buildingNumber = libraHearingEvent.defendantAddress?.buildingNumber,
-          thoroughfareName = libraHearingEvent.defendantAddress?.thoroughfareName,
-          dependentLocality = libraHearingEvent.defendantAddress?.dependentLocality,
-          postTown = libraHearingEvent.defendantAddress?.postTown,
-        ),
+        Address.from(libraHearingEvent.defendantAddress),
       )
-      val references = listOf(
-        Reference(identifierType = IdentifierType.CRO, identifierValue = libraHearingEvent.cro?.toString()),
-        Reference(identifierType = IdentifierType.PNC, identifierValue = libraHearingEvent.pnc?.toString()),
+      val references = listOfNotNull(
+        Reference.from(identifierType = IdentifierType.CRO, identifierValue = libraHearingEvent.cro?.toString()),
+        Reference.from(identifierType = IdentifierType.PNC, identifierValue = libraHearingEvent.pnc?.toString()),
       )
       return Person(
-        title = libraHearingEvent.name?.title,
+        title = libraHearingEvent.name?.title.nullIfBlank(),
         titleCode = TitleCode.from(libraHearingEvent.name?.title),
-        firstName = libraHearingEvent.name?.firstName,
-        middleNames = listOfNotNull(libraHearingEvent.name?.forename2, libraHearingEvent.name?.forename3).joinToString(SPACE).trim(),
-        lastName = libraHearingEvent.name?.lastName,
+        firstName = libraHearingEvent.name?.firstName.nullIfBlank(),
+        middleNames = listOfNotNull(libraHearingEvent.name?.forename2.nullIfBlank(), libraHearingEvent.name?.forename3.nullIfBlank()).joinToString(SPACE).trim(),
+        lastName = libraHearingEvent.name?.lastName.nullIfBlank(),
         dateOfBirth = libraHearingEvent.dateOfBirth,
         addresses = addresses,
         references = references,
         sourceSystem = LIBRA,
-        cId = libraHearingEvent.cId,
+        cId = libraHearingEvent.cId.nullIfBlank(),
         sexCode = SexCode.from(libraHearingEvent),
       )
     }
 
     fun from(prisoner: Prisoner): Person {
-      val emails: List<Contact> = prisoner.emailAddresses.map { Contact.from(ContactType.EMAIL, it.email) }
-      val phoneNumbers: List<Contact> = listOf(
+      val emails: List<Contact> = prisoner.emailAddresses.mapNotNull { Contact.from(ContactType.EMAIL, it.email) }
+      val phoneNumbers: List<Contact> = listOfNotNull(
         Contact.from(ContactType.HOME, prisoner.getHomePhone()),
         Contact.from(ContactType.MOBILE, prisoner.getMobilePhone()),
       )
       val contacts: List<Contact> = emails + phoneNumbers
       val addresses: List<Address> = Address.fromPrisonerAddressList(prisoner.addresses)
-      val references = listOf(
-        Reference(identifierType = IdentifierType.CRO, identifierValue = prisoner.cro?.toString()),
-        Reference(identifierType = IdentifierType.PNC, identifierValue = prisoner.pnc?.toString()),
-        Reference(
+      val references = listOfNotNull(
+        Reference.from(identifierType = IdentifierType.CRO, identifierValue = prisoner.cro?.toString()),
+        Reference.from(identifierType = IdentifierType.PNC, identifierValue = prisoner.pnc?.toString()),
+        Reference.from(
           identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
           identifierValue = prisoner.identifiers.getType("NINO")?.value,
         ),
-        Reference(
+        Reference.from(
           identifierType = IdentifierType.DRIVER_LICENSE_NUMBER,
           identifierValue = prisoner.identifiers.getType("DL")?.value,
         ),
-
       )
 
       return Person(
-        prisonNumber = prisoner.prisonNumber,
-        title = prisoner.title,
+        prisonNumber = prisoner.prisonNumber.nullIfBlank(),
+        title = prisoner.title.nullIfBlank(),
         titleCode = TitleCode.from(prisoner.title),
-        firstName = prisoner.firstName,
-        middleNames = prisoner.middleNames,
-        lastName = prisoner.lastName,
+        firstName = prisoner.firstName.nullIfBlank(),
+        middleNames = prisoner.middleNames.nullIfBlank(),
+        lastName = prisoner.lastName.nullIfBlank(),
         dateOfBirth = prisoner.dateOfBirth,
-        ethnicity = prisoner.ethnicity,
+        ethnicity = prisoner.ethnicity.nullIfBlank(),
         aliases = prisoner.aliases.map { Alias.from(it) },
         contacts = contacts,
         addresses = addresses,
         references = references,
         sourceSystem = NOMIS,
-        nationality = prisoner.nationality,
-        religion = prisoner.religion,
+        nationality = prisoner.nationality.nullIfBlank(),
+        religion = prisoner.religion.nullIfBlank(),
         sentences = prisoner.allConvictedOffences?.map { SentenceInfo.from(it) } ?: emptyList(),
         sexCode = SexCode.from(prisoner),
       )
@@ -244,10 +223,12 @@ data class Person(
     reclusterOnUpdate = false
     return this
   }
+
   fun doNotLinkOnCreate(): Person {
     linkOnCreate = false
     return this
   }
+
   fun isPerson(): Boolean = minimumDataIsPresent()
 
   private fun minimumDataIsPresent(): Boolean = lastNameIsPresent() && anyOtherPersonalDataIsPresent()
