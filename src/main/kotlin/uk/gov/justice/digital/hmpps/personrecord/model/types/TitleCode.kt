@@ -22,7 +22,7 @@ enum class TitleCode {
 
   companion object {
 
-    fun from(title: String?): TitleCode? = when (title?.uppercase()?.trim()) {
+    fun from(title: String?): TitleCode? = when (title?.ifBlank { null }?.uppercase()?.trim()) {
       "MR" -> MR
       "MRS" -> MRS
       "MISS" -> MISS

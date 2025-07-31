@@ -399,6 +399,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       Arguments.of("Lord", "LRD", "Lord"),
       Arguments.of("Sir", "SIR", "Sir"),
       Arguments.of("Invalid", "UN", "Unknown"),
+      Arguments.of("", null, null),
       Arguments.of(null, null, null),
     )
   }
