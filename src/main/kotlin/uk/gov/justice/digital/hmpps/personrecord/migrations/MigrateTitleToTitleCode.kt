@@ -1,9 +1,12 @@
 package uk.gov.justice.digital.hmpps.personrecord.migrations
 
 import io.swagger.v3.oas.annotations.Hidden
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -31,24 +34,28 @@ class MigrateTitleToTitleCode(
     return OK
   }
 
-  suspend fun migrateTitleToTitleCodes() {
-    CoroutineScope(Dispatchers.Default).launch {
-      log.info("Starting migration of title codes")
-      val executionResults = forPage { page ->
-        log.info("Migrating title codes, page: ${page.pageable.pageNumber + 1}")
-        val pseudonyms = page.content.map { pseudonymEntity ->
-          pseudonymEntity.apply {
-            titleCode = lookupTitleCode(TitleCode.from(title))
+  suspend fun migrateTitleToTitleCodes() = coroutineScope {
+    log.info("Starting migration of title codes")
+    val semaphore = Semaphore(MAX_CONCURRENT_LOOKUPS)
+    val executionResults = forPage { page ->
+      log.info("Migrating title codes, page: ${page.pageable.pageNumber + 1}")
+      val deferredLookups = page.content.map { pseudonymEntity ->
+        async(Dispatchers.IO) {
+          semaphore.withPermit {
+            pseudonymEntity.apply {
+              titleCode = lookupTitleCode(TitleCode.from(title))
+            }
           }
         }
-        pseudonymRepository.saveAll(pseudonyms)
       }
-      log.info(
-        "Finished migrating title codes, total pages: ${executionResults.totalPages}, " +
-          "total elements: ${executionResults.totalElements}, " +
-          "elapsed time: ${executionResults.elapsedTime}",
-      )
+      val collected = deferredLookups.awaitAll()
+      pseudonymRepository.saveAll(collected)
     }
+    log.info(
+      "Finished migrating title codes, total pages: ${executionResults.totalPages}, " +
+        "total elements: ${executionResults.totalElements}, " +
+        "elapsed time: ${executionResults.elapsedTime}",
+    )
   }
 
   private fun lookupTitleCode(titleCode: TitleCode?): TitleCodeEntity? = titleCode?.let { titleCodeRepository.findByCode(it.name) }
@@ -82,6 +89,7 @@ class MigrateTitleToTitleCode(
   companion object {
     private const val OK = "OK"
     private const val BATCH_SIZE = 100
+    private const val MAX_CONCURRENT_LOOKUPS = 10
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
