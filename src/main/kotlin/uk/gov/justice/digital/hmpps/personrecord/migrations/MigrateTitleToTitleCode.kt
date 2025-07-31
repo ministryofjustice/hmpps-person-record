@@ -1,9 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.migrations
 
 import io.swagger.v3.oas.annotations.Hidden
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.coroutineScope
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -31,27 +29,26 @@ class MigrateTitleToTitleCode(
     return OK
   }
 
-  suspend fun migrateTitleToTitleCodes() {
-    CoroutineScope(Dispatchers.Default).launch {
-      log.info("Starting migration of title codes")
-      val executionResults = forPage { page ->
-        log.info("Migrating title codes, page: ${page.pageable.pageNumber + 1}")
-        val pseudonyms = page.content.map { pseudonymEntity ->
-          pseudonymEntity.apply {
-            titleCode = lookupTitleCode(TitleCode.from(title))
-          }
+  suspend fun migrateTitleToTitleCodes() = coroutineScope {
+    log.info("Starting migration of title codes")
+    val preLoadedTitleCodeEntityMap: List<TitleCodeEntity> = titleCodeRepository.findAll()
+    val executionResults = forPage { page ->
+      log.info("Migrating title codes, page: ${page.pageable.pageNumber + 1}")
+      val enrichedPseudonyms = page.content.map { pseudonymEntity ->
+        pseudonymEntity.apply {
+          titleCode = preLoadedTitleCodeEntityMap.lookupTitleCode(TitleCode.from(title))
         }
-        pseudonymRepository.saveAll(pseudonyms)
       }
-      log.info(
-        "Finished migrating title codes, total pages: ${executionResults.totalPages}, " +
-          "total elements: ${executionResults.totalElements}, " +
-          "elapsed time: ${executionResults.elapsedTime}",
-      )
+      pseudonymRepository.saveAll(enrichedPseudonyms)
     }
+    log.info(
+      "Finished migrating title codes, total pages: ${executionResults.totalPages}, " +
+        "total elements: ${executionResults.totalElements}, " +
+        "elapsed time: ${executionResults.elapsedTime}",
+    )
   }
 
-  private fun lookupTitleCode(titleCode: TitleCode?): TitleCodeEntity? = titleCode?.let { titleCodeRepository.findByCode(it.name) }
+  private fun List<TitleCodeEntity>.lookupTitleCode(titleCode: TitleCode?): TitleCodeEntity? = titleCode?.let { this.find { it.code == titleCode.name } }
 
   private inline fun forPage(page: (Page<PseudonymEntity>) -> Unit): ExecutionResult {
     var pageNumber = 0
