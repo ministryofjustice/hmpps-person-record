@@ -38,6 +38,10 @@ generic-service:
           deny all;
           return 401;
         }
+        location /migrate/title-to-title-code {
+          deny all;
+          return 401;
+        }
         location /admin/** {
           deny all;
           return 401;

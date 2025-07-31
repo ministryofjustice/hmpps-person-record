@@ -20,6 +20,7 @@ class SecurityConfiguration {
       addPaths = setOf(
         "/queue-admin/retry-all-dlqs",
         "/jobs/recordcountreport",
+        "/migrate/title-to-title-code",
         "/admin/recluster",
         "/admin/delete",
       )

@@ -6,18 +6,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PseudonymRepository
-import kotlin.time.Duration
-import kotlin.time.measureTime
-import org.springframework.data.domain.PageRequest
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.TitleCodeEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PseudonymRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.TitleCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
+import kotlin.time.Duration
+import kotlin.time.measureTime
 
 @RestController
 class MigrateTitleToTitleCode(
@@ -37,9 +36,12 @@ class MigrateTitleToTitleCode(
       log.info("Starting migration of title codes")
       val executionResults = forPage { page ->
         log.info("Migrating title codes, page: ${page.pageable.pageNumber + 1}")
-        page.content.map { pseudonymEntity -> pseudonymEntity.apply {
-          titleCode = lookupTitleCode(TitleCode.from(title))
-        }  }
+        val pseudonyms = page.content.map { pseudonymEntity ->
+          pseudonymEntity.apply {
+            titleCode = lookupTitleCode(TitleCode.from(title))
+          }
+        }
+        pseudonymRepository.saveAll(pseudonyms)
       }
       log.info(
         "Finished migrating title codes, total pages: ${executionResults.totalPages}, " +
