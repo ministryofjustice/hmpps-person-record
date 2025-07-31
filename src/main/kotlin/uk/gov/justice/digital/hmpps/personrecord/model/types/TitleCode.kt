@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
+import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
+
 enum class TitleCode {
   MR,
   MRS,
@@ -22,7 +24,7 @@ enum class TitleCode {
 
   companion object {
 
-    fun from(title: String?): TitleCode? = when (title?.ifBlank { null }?.uppercase()?.trim()) {
+    fun from(title: String?): TitleCode? = when (title?.nullIfBlank()?.uppercase()?.trim()) {
       "MR" -> MR
       "MRS" -> MRS
       "MISS" -> MISS

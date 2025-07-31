@@ -17,9 +17,9 @@ data class Prisoner(
   @JsonProperty("prisonerNumber")
   val prisonNumber: String,
   val title: String? = null,
-  val firstName: String,
+  val firstName: String?,
   val middleNames: String? = null,
-  val lastName: String,
+  val lastName: String?,
   val nationality: String? = null,
   val religion: String? = null,
   val ethnicity: String? = null,

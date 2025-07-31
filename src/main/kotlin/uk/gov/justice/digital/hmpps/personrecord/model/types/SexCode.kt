@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
 
 enum class SexCode(val description: String) {
   M("Male"),
@@ -14,7 +15,7 @@ enum class SexCode(val description: String) {
 
   companion object {
 
-    fun from(libraHearingEvent: LibraHearingEvent?): SexCode? = when (libraHearingEvent?.defendantSex) {
+    fun from(libraHearingEvent: LibraHearingEvent?): SexCode? = when (libraHearingEvent?.defendantSex.nullIfBlank()) {
       "M" -> M
       "F" -> F
       "NS" -> NS
@@ -22,7 +23,7 @@ enum class SexCode(val description: String) {
       else -> N
     }
 
-    fun from(personDetails: PersonDetails?): SexCode? = when (personDetails?.gender) {
+    fun from(personDetails: PersonDetails?): SexCode? = when (personDetails?.gender.nullIfBlank()) {
       "MALE" -> M
       "FEMALE" -> F
       "NOT SPECIFIED" -> NS
@@ -30,7 +31,7 @@ enum class SexCode(val description: String) {
       else -> N
     }
 
-    fun from(probationCase: ProbationCase?): SexCode? = when (probationCase?.gender?.value) {
+    fun from(probationCase: ProbationCase?): SexCode? = when (probationCase?.gender?.value.nullIfBlank()) {
       "M" -> M
       "F" -> F
       "N" -> N
@@ -38,7 +39,7 @@ enum class SexCode(val description: String) {
       else -> NS
     }
 
-    fun from(prisoner: Prisoner): SexCode? = when (prisoner.gender) {
+    fun from(prisoner: Prisoner): SexCode? = when (prisoner.gender.nullIfBlank()) {
       "Male" -> M
       "Female" -> F
       "Not Known / Not Recorded" -> N

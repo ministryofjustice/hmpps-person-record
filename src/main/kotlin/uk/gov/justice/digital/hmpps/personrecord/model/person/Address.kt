@@ -1,7 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
+import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import java.time.LocalDate
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Address as CommonPlatformAddress
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Address as LibraAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Address as OffenderAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Address as PrisonerAddress
 
@@ -24,8 +27,8 @@ data class Address(
 ) {
   companion object {
     fun from(address: PrisonerAddress): Address = Address(
-      postcode = address.postcode,
-      fullAddress = address.fullAddress,
+      postcode = address.postcode.nullIfBlank(),
+      fullAddress = address.fullAddress.nullIfBlank(),
       startDate = address.startDate,
       noFixedAbode = address.noFixedAbode,
     )
@@ -34,8 +37,26 @@ data class Address(
       noFixedAbode = address.noFixedAbode,
       startDate = address.startDate,
       endDate = address.endDate,
-      postcode = address.postcode,
-      fullAddress = address.fullAddress,
+      postcode = address.postcode.nullIfBlank(),
+      fullAddress = address.fullAddress.nullIfBlank(),
+    )
+
+    fun from(address: CommonPlatformAddress?): Address = Address(
+      postcode = address?.postcode.nullIfBlank(),
+      buildingName = address?.address1.nullIfBlank(),
+      buildingNumber = address?.address2.nullIfBlank(),
+      thoroughfareName = address?.address3.nullIfBlank(),
+      dependentLocality = address?.address4.nullIfBlank(),
+      postTown = address?.address5.nullIfBlank(),
+    )
+
+    fun from(address: LibraAddress?): Address = Address(
+      postcode = address?.postcode.nullIfBlank(),
+      buildingName = address?.buildingName.nullIfBlank(),
+      buildingNumber = address?.buildingNumber.nullIfBlank(),
+      thoroughfareName = address?.thoroughfareName.nullIfBlank(),
+      dependentLocality = address?.dependentLocality.nullIfBlank(),
+      postTown = address?.postTown.nullIfBlank(),
     )
 
     fun fromPrisonerAddressList(addresses: List<PrisonerAddress>): List<Address> = addresses.map { from(it) }
