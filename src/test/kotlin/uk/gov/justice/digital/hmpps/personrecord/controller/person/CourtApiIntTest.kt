@@ -77,7 +77,6 @@ class CourtApiIntTest : WebTestBase() {
         middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = COMMON_PLATFORM,
-        title = randomName(),
         crn = crn,
         sexCode = SexCode.M,
         prisonNumber = prisonNumber,
@@ -106,7 +105,7 @@ class CourtApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = CanonicalTitle(code = title, description = title))
+    val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = CanonicalTitle(code = null, description = null))
     val canonicalNationality = listOf(CanonicalNationality(code = nationality, description = nationality))
     val canonicalAddress = CanonicalAddress(noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
     val canonicalReligion = CanonicalReligion(code = religion, description = religion)
@@ -116,10 +115,10 @@ class CourtApiIntTest : WebTestBase() {
     assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
     assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
     assertThat(responseBody.dateOfBirth).isEqualTo(person.getPrimaryName().dateOfBirth.toString())
-    assertThat(responseBody.title.code).isEqualTo(person.getPrimaryName().title)
-    assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().title)
-    assertThat(responseBody.aliases.first().title.code).isEqualTo(person.getAliases().first().title)
-    assertThat(responseBody.aliases.first().title.description).isEqualTo(person.getAliases().first().title)
+    assertThat(responseBody.title.code).isNull()
+    assertThat(responseBody.title.description).isNull()
+    assertThat(responseBody.aliases.first().title.code).isNull()
+    assertThat(responseBody.aliases.first().title.description).isNull()
     assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
     assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
     assertThat(responseBody.sex.code).isEqualTo("M")
@@ -296,7 +295,6 @@ class CourtApiIntTest : WebTestBase() {
         middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
-        title = randomName(),
         crn = personOneCrn,
         prisonNumber = randomPrisonNumber(),
         ethnicity = randomEthnicity(),
@@ -323,7 +321,6 @@ class CourtApiIntTest : WebTestBase() {
         middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
-        title = randomName(),
         crn = personTwoCrn,
         prisonNumber = randomPrisonNumber(),
         ethnicity = randomEthnicity(),
@@ -377,7 +374,6 @@ class CourtApiIntTest : WebTestBase() {
         middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = COMMON_PLATFORM,
-        title = randomName(),
         ethnicity = randomEthnicity(),
         nationality = randomNationality(),
         religion = randomReligion(),
