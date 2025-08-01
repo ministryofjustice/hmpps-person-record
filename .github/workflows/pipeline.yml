@@ -48,6 +48,7 @@ jobs:
       postgres-tag: '16.1'
       localstack-tag: '3.0'
       postgres-username: 'root'
+      localstack-services: 'sqs,sns,s3'
   build:
     name: Build docker image from hmpps-github-actions
     if: github.ref == 'refs/heads/main'
