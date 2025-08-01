@@ -118,7 +118,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
         assertThat(personEntity.personKey).isNotNull()
         assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
-        assertThat(personEntity.getPrimaryName().title).isEqualTo("Mr")
         assertThat(personEntity.getPrimaryName().titleCode?.code).isEqualTo("MR")
         assertThat(personEntity.getPrimaryName().titleCode?.description).isEqualTo("Mr")
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(firstName)
@@ -133,7 +132,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.references.getType(IdentifierType.DRIVER_LICENSE_NUMBER).first().identifierValue).isEqualTo(driverLicenseNumber)
         assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(personDateOfBirth)
         assertThat(personEntity.getAliases().size).isEqualTo(1)
-        assertThat(personEntity.getAliases()[0].title).isEqualTo("Mr")
         assertThat(personEntity.getAliases()[0].titleCode?.code).isEqualTo("MR")
         assertThat(personEntity.getAliases()[0].titleCode?.description).isEqualTo("Mr")
         assertThat(personEntity.getAliases()[0].firstName).isEqualTo(aliasFirstName)
@@ -229,7 +227,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber = prisonNumber)!!
         assertThat(personEntity.matchId).isEqualTo(prisoner.matchId)
-        assertThat(personEntity.getPrimaryName().title).isEqualTo("Mr")
         assertThat(personEntity.getPrimaryName().titleCode?.code).isEqualTo("MR")
         assertThat(personEntity.getPrimaryName().titleCode?.description).isEqualTo("Mr")
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
@@ -366,7 +363,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubPrisonResponse(ApiResponseSetup(title = prisonTitleCode, prisonNumber = prisonNumber))
     publishDomainEvent(PRISONER_CREATED, prisonDomainEvent(PRISONER_CREATED, prisonNumber))
     val person = awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumber) }
-    assertThat(person.getPrimaryName().title).isEqualTo(prisonTitleCode)
     assertThat(person.getPrimaryName().titleCode?.code).isEqualTo(cprTitleCode)
     assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(cprTitleCodeDescription)
   }

@@ -125,7 +125,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getPrimaryName().middleNames).isEqualTo(middleName)
       assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
       assertThat(personEntity.getPrimaryName().nameType).isEqualTo(NameType.PRIMARY)
-      assertThat(personEntity.getPrimaryName().title).isEqualTo(title.name)
       assertThat(personEntity.getPrimaryName().titleCode?.code).isEqualTo("MR")
       assertThat(personEntity.getPrimaryName().titleCode?.description).isEqualTo("Mr")
       assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
@@ -468,7 +467,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubPersonMatchScores()
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, title = probationTitleCode))
     val person = awaitNotNullPerson { personRepository.findByCrn(crn) }
-    assertThat(person.getPrimaryName().title).isEqualTo(probationTitleCode)
     assertThat(person.getPrimaryName().titleCode?.code).isEqualTo(cprTitleCode)
     assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(cprTitleCodeDescription)
   }
