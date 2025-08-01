@@ -57,7 +57,7 @@ class MigrateTitleToTitleCode(
       do {
         val pageable = PageRequest.of(pageNumber, BATCH_SIZE)
 
-        pseudonymRecords = pseudonymRepository.getAllByTitleNotNull(pageable)
+        pseudonymRecords = pseudonymRepository.findAllByTitleNotNullOrderByIdAsc(pageable)
         page(pseudonymRecords)
 
         pageNumber++
