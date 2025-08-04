@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
 import io.swagger.v3.oas.annotations.media.Schema
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.TitleCodeEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.TitleCodeEntity
 
 data class CanonicalTitle(
   @Schema(description = "Person title code", example = "Mr")

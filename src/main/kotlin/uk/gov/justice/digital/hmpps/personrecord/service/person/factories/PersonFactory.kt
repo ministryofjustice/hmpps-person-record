@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person.factories
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.TitleCodeEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.TitleCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.TitleCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
