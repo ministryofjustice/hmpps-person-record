@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -45,7 +46,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val firstName = randomName()
     val lastName = randomName()
     val middleNames = randomName()
-    val title = randomName()
+    val title = "Mr"
     val pnc = randomPnc()
     val noFixedAbode = true
     val startDate = randomDate()
@@ -74,6 +75,7 @@ class CanonicalApiIntTest : WebTestBase() {
         middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
+        titleCode = TitleCode.from(title),
         crn = crn,
         sexCode = SexCode.M,
         prisonNumber = prisonNumber,
@@ -82,7 +84,7 @@ class CanonicalApiIntTest : WebTestBase() {
         religion = religion,
         cId = cid,
         defendantId = defendantId,
-        aliases = listOf(Alias(firstName = firstName, middleNames = middleNames, lastName = lastName, dateOfBirth = randomDate(), title = title)),
+        aliases = listOf(Alias(firstName = firstName, middleNames = middleNames, lastName = lastName, dateOfBirth = randomDate(), titleCode = TitleCode.from(title))),
         addresses = listOf(Address(noFixedAbode = noFixedAbode, startDate = startDate, endDate = endDate, postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)),
         references = listOf(
           Reference(identifierType = IdentifierType.PNC, identifierValue = pnc),
@@ -102,7 +104,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = CanonicalTitle(code = null, description = null))
+    val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = CanonicalTitle(code = "MR", description = "Mr"))
     val canonicalNationality = listOf(CanonicalNationality(code = nationality, description = nationality))
     val canonicalAddress = CanonicalAddress(noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
     val canonicalReligion = CanonicalReligion(code = religion, description = religion)
@@ -113,10 +115,10 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
     assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
     assertThat(responseBody.dateOfBirth).isEqualTo(person.getPrimaryName().dateOfBirth.toString())
-    assertThat(responseBody.title.code).isNull()
-    assertThat(responseBody.title.description).isNull()
-    assertThat(responseBody.aliases.first().title.code).isNull()
-    assertThat(responseBody.aliases.first().title.description).isNull()
+    assertThat(responseBody.title.code).isEqualTo(person.getPrimaryName().titleCode?.code)
+    assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().titleCode?.description)
+    assertThat(responseBody.aliases.first().title.code).isEqualTo(person.getAliases().first().titleCode?.code)
+    assertThat(responseBody.aliases.first().title.description).isEqualTo(person.getAliases().first().titleCode?.description)
     assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
     assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
     assertThat(responseBody.sex.code).isEqualTo("M")
