@@ -1,9 +1,6 @@
 BEGIN;
 -------------------------------------------------------
 
-ALTER TABLE IF EXISTS person
-    ADD COLUMN nationality_notes TEXT NULL;
-
 DROP TABLE IF EXISTS nationalities;
 CREATE TABLE IF NOT EXISTS nationalities
 (
