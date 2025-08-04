@@ -29,7 +29,6 @@ data class Person(
   val crn: String? = null,
   var prisonNumber: String? = null,
   var defendantId: String? = null,
-  val title: String? = null,
   val titleCode: TitleCode? = null,
   val aliases: List<Alias> = emptyList(),
   val masterDefendantId: String? = null,
@@ -68,8 +67,7 @@ data class Person(
         ),
       )
       return Person(
-        title = probationCase.title?.value.nullIfBlank(),
-        titleCode = TitleCode.from(probationCase.title?.value.nullIfBlank()),
+        titleCode = TitleCode.from(probationCase.title?.value),
         firstName = probationCase.name.firstName.nullIfBlank(),
         middleNames = probationCase.name.middleNames.nullIfBlank(),
         lastName = probationCase.name.lastName.nullIfBlank(),
@@ -139,7 +137,6 @@ data class Person(
         Reference.from(identifierType = IdentifierType.PNC, identifierValue = libraHearingEvent.pnc?.toString()),
       )
       return Person(
-        title = libraHearingEvent.name?.title.nullIfBlank(),
         titleCode = TitleCode.from(libraHearingEvent.name?.title),
         firstName = libraHearingEvent.name?.firstName.nullIfBlank(),
         middleNames = listOfNotNull(libraHearingEvent.name?.forename2.nullIfBlank(), libraHearingEvent.name?.forename3.nullIfBlank()).joinToString(SPACE).trim(),
@@ -176,7 +173,6 @@ data class Person(
 
       return Person(
         prisonNumber = prisoner.prisonNumber.nullIfBlank(),
-        title = prisoner.title.nullIfBlank(),
         titleCode = TitleCode.from(prisoner.title),
         firstName = prisoner.firstName.nullIfBlank(),
         middleNames = prisoner.middleNames.nullIfBlank(),
@@ -204,7 +200,6 @@ data class Person(
       crn = existingPersonEntity.crn,
       prisonNumber = existingPersonEntity.prisonNumber,
       defendantId = existingPersonEntity.defendantId,
-      title = existingPersonEntity.getPrimaryName().title,
       aliases = existingPersonEntity.getAliases().map { Alias.from(it) },
       masterDefendantId = existingPersonEntity.masterDefendantId,
       nationality = existingPersonEntity.nationality,

@@ -32,9 +32,6 @@ class PseudonymEntity(
   )
   var person: PersonEntity? = null,
 
-  @Column
-  val title: String? = null,
-
   @ManyToOne
   @JoinColumn(
     name = "fk_title_code_id",
@@ -67,7 +64,6 @@ class PseudonymEntity(
       middleNames = person.middleNames,
       lastName = person.lastName,
       nameType = NameType.PRIMARY,
-      title = person.title,
       titleCode = titleCode,
       dateOfBirth = person.dateOfBirth,
     )
@@ -80,7 +76,6 @@ class PseudonymEntity(
           lastName = alias.lastName,
           dateOfBirth = alias.dateOfBirth,
           nameType = NameType.ALIAS,
-          title = alias.title,
           titleCode = titleCode,
         )
       else -> null

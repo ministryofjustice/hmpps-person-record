@@ -144,7 +144,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       personRepository.findByCId(cId)
     }
 
-    assertThat(person.getPrimaryName().title).isNull()
     assertThat(person.getPrimaryName().titleCode).isNull()
     assertThat(person.getPrimaryName().firstName).isEqualTo(changedFirstName)
     assertThat(person.getPrimaryName().middleNames).isEqualTo(changedForename3)
