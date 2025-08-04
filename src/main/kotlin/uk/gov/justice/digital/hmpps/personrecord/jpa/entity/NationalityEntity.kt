@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
@@ -19,7 +20,7 @@ class NationalityEntity(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
 
-  @ManyToOne
+  @ManyToOne(optional = false)
   @JoinColumn(
     name = "fk_nationality_code_id",
     referencedColumnName = "id",
