@@ -55,7 +55,7 @@ jobs:
     steps:
       - name: Setup S3
         shell: bash
-        run : src/test/resources/localstack/setup-aws.sh
+        run : aws --version
   build:
     name: Build docker image from hmpps-github-actions
     if: github.ref == 'refs/heads/main'
