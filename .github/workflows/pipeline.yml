@@ -51,8 +51,8 @@ jobs:
       postgres-password: 'dev'
       localstack-services: 'sqs,sns,s3'
   setupS3:
-    - name: Setup S3
-      run : src/test/resources/localstack/setup-aws.sh
+    name: Setup S3
+    run : src/test/resources/localstack/setup-aws.sh
   build:
     name: Build docker image from hmpps-github-actions
     if: github.ref == 'refs/heads/main'
