@@ -56,7 +56,6 @@ jobs:
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/docker_build.yml@v2 # WORKFLOW_VERSION
     needs:
       - kotlin_validate
-      - setupS3
     with:
       docker_registry: 'ghcr.io'
       registry_org: 'ministryofjustice'
