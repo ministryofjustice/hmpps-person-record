@@ -51,6 +51,7 @@ jobs:
       postgres-password: 'dev'
       localstack-services: 'sqs,sns,s3'
   setupS3:
+    runs-on: ubuntu-latest
     steps:
       - name: Setup S3
         shell: bash
