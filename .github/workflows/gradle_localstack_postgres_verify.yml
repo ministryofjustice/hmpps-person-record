@@ -112,7 +112,7 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
-      - name: Setup S3
+      - name: Setup S3 buckets
         shell: bash
         run: |
           ./src/test/resources/localstack/setup-aws.sh
