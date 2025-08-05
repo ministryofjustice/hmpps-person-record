@@ -91,10 +91,6 @@ jobs:
       localstack:
         image: localstack/localstack:${{ inputs.localstack-tag }}
         env:
-          TERM: ansi
-          AWS_ACCESS_KEY_ID: foobar
-          AWS_SECRET_ACCESS_KEY: foobar
-          AWS_DEFAULT_REGION: eu-west-2
           ES_PORT_EXTERNAL: 4571
           DOCKER_HOST: 'unix:///var/run/docker.sock'
           AWS_EXECUTION_ENV: True
