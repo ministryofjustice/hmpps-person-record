@@ -2,6 +2,10 @@ name: Run gradle checks with a localstack and postgres instance
 on:
   workflow_call:
     inputs:
+      localstack-env:
+        type: string
+        default: ''
+        required: false
       java-version:
         type: string
         required: false
@@ -87,6 +91,10 @@ jobs:
       localstack:
         image: localstack/localstack:${{ inputs.localstack-tag }}
         env:
+          TERM: ansi
+          AWS_ACCESS_KEY_ID: foobar
+          AWS_SECRET_ACCESS_KEY: foobar
+          AWS_DEFAULT_REGION: eu-west-2
           ES_PORT_EXTERNAL: 4571
           DOCKER_HOST: 'unix:///var/run/docker.sock'
           AWS_EXECUTION_ENV: True
@@ -104,6 +112,10 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
+      - name: Setup S3
+        shell: bash
+        run: |
+          ./src/test/resources/localstack/setup-aws.sh
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
