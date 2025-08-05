@@ -20,7 +20,7 @@ data class CanonicalAlias(
       firstName = pseudonymEntity.firstName,
       middleNames = pseudonymEntity.middleNames,
       lastName = pseudonymEntity.lastName,
-      title = CanonicalTitle.from(pseudonymEntity.title),
+      title = CanonicalTitle.from(pseudonymEntity.titleCode),
     )
 
     fun from(person: PersonEntity?): List<CanonicalAlias>? = person?.getAliases()?.map { from(it) }

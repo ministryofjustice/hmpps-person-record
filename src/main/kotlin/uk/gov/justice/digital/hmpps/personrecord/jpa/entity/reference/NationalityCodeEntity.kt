@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
+package uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -8,8 +8,8 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 
 @Entity
-@Table(name = "title_codes")
-class TitleCodeEntity(
+@Table(name = "nationality_codes")
+class NationalityCodeEntity(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
