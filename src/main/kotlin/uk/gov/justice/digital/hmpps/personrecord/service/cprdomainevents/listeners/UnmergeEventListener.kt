@@ -18,8 +18,8 @@ class UnmergeEventListener(
 
   @TransactionalEventListener
   fun onUnmergeEvent(personUnmerged: PersonUnmerged) {
-    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_UNMERGED, personUnmerged.reactivatedRecord))
-    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_UPDATED, personUnmerged.unmergedRecord))
+    publisher.publishEvent(RecordEventLog.from(CPRLogEvents.CPR_RECORD_UNMERGED, personUnmerged.reactivatedRecord))
+    publisher.publishEvent(RecordEventLog.from(CPRLogEvents.CPR_RECORD_UPDATED, personUnmerged.unmergedRecord))
     publisher.publishEvent(
       RecordTelemetry(
         TelemetryEventType.CPR_RECORD_UNMERGED,

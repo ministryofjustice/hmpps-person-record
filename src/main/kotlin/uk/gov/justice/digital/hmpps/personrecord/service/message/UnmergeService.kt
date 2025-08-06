@@ -48,7 +48,7 @@ class UnmergeService(
     existing.personKey?.let {
       it.status = UUIDStatusType.NEEDS_ATTENTION
       personKeyRepository.save(it)
-      publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION, existing, it))
+      publisher.publishEvent(RecordEventLog.from(CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION, existing, it))
     }
   }
 

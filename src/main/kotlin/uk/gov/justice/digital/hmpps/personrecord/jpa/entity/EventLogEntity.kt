@@ -13,11 +13,9 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.GeneratedColumn
 import org.hibernate.annotations.Type
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.extractSourceSystemId
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -113,36 +111,31 @@ class EventLogEntity(
   companion object {
 
     fun from(
-      personEntity: PersonEntity,
-      eventType: CPRLogEvents,
+      eventLog: RecordEventLog,
       clusterComposition: String? = null,
-      personKeyEntity: PersonKeyEntity? = null,
-    ): EventLogEntity {
-      val aliases: List<PseudonymEntity> = personEntity.getAliases()
-      return EventLogEntity(
-        sourceSystemId = personEntity.extractSourceSystemId(),
-        matchId = personEntity.matchId,
-        personUUID = personKeyEntity?.personUUID ?: personEntity.personKey?.personUUID,
-        uuidStatusType = personKeyEntity?.status ?: personEntity.personKey?.status,
-        firstName = personEntity.getPrimaryName().firstName,
-        middleNames = personEntity.getPrimaryName().middleNames,
-        lastName = personEntity.getPrimaryName().lastName,
-        dateOfBirth = personEntity.getPrimaryName().dateOfBirth,
-        firstNameAliases = aliases.mapNotNull { it.firstName }.dedupeAndSortedArray(),
-        lastNameAliases = aliases.mapNotNull { it.lastName }.dedupeAndSortedArray(),
-        dateOfBirthAliases = aliases.mapNotNull { it.dateOfBirth }.dedupeAndSortedArray(),
-        postcodes = personEntity.addresses.mapNotNull { it.postcode }.dedupeAndSortedArray(),
-        cros = personEntity.references.getType(IdentifierType.CRO).mapNotNull { it.identifierValue }.dedupeAndSortedArray(),
-        pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue }.dedupeAndSortedArray(),
-        sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.dedupeAndSortedArray(),
-        excludeOverrideMarkers = personEntity.getExcludeOverrideMarkers().mapNotNull { it.markerValue }.dedupeAndSortedArray(),
-        includeOverrideMarkers = personEntity.getIncludeOverrideMarkers().mapNotNull { it.markerValue }.dedupeAndSortedArray(),
-        sourceSystem = personEntity.sourceSystem,
-        eventType = eventType,
-        recordMergedTo = personEntity.mergedTo,
-        clusterComposition = clusterComposition,
-      )
-    }
+    ): EventLogEntity = EventLogEntity(
+      sourceSystemId = eventLog.sourceSystemId,
+      matchId = eventLog.matchId,
+      personUUID = eventLog.personUUID,
+      uuidStatusType = eventLog.uuidStatusType,
+      firstName = eventLog.firstName,
+      middleNames = eventLog.middleNames,
+      lastName = eventLog.lastName,
+      dateOfBirth = eventLog.dateOfBirth,
+      firstNameAliases = eventLog.firstNameAliases.dedupeAndSortedArray(),
+      lastNameAliases = eventLog.lastNameAliases.dedupeAndSortedArray(),
+      dateOfBirthAliases = eventLog.dateOfBirthAliases.dedupeAndSortedArray(),
+      postcodes = eventLog.postcodes.dedupeAndSortedArray(),
+      cros = eventLog.cros.dedupeAndSortedArray(),
+      pncs = eventLog.pncs.dedupeAndSortedArray(),
+      sentenceDates = eventLog.sentenceDates.dedupeAndSortedArray(),
+      excludeOverrideMarkers = eventLog.excludeOverrideMarkers.dedupeAndSortedArray(),
+      includeOverrideMarkers = eventLog.includeOverrideMarkers.dedupeAndSortedArray(),
+      sourceSystem = eventLog.sourceSystem,
+      eventType = eventLog.eventType,
+      recordMergedTo = eventLog.recordMergedTo,
+      clusterComposition = clusterComposition,
+    )
 
     private fun List<String>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
 
