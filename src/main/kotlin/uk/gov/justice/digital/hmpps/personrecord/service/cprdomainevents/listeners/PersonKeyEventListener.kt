@@ -22,7 +22,7 @@ class PersonKeyEventListener(
   @EventListener
   fun onPersonKeyCreated(personKeyCreated: PersonKeyCreated) {
     publisher.publishEvent(RecordPersonTelemetry(CPR_UUID_CREATED, personKeyCreated.personEntity, mapOf(EventKeys.UUID to personKeyCreated.personKeyEntity.personUUID.toString())))
-    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_UUID_CREATED, personKeyCreated.personEntity, personKeyCreated.personKeyEntity))
+    publisher.publishEvent(RecordEventLog.from(CPRLogEvents.CPR_UUID_CREATED, personKeyCreated.personEntity, personKeyCreated.personKeyEntity))
   }
 
   @EventListener
@@ -42,6 +42,6 @@ class PersonKeyEventListener(
   @EventListener
   fun onPersonKeyDeleted(personKeyDeleted: PersonKeyDeleted) {
     publisher.publishEvent(RecordPersonTelemetry(CPR_UUID_DELETED, personKeyDeleted.personEntity, mapOf(EventKeys.UUID to personKeyDeleted.personKeyEntity.personUUID.toString())))
-    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_UUID_DELETED, personKeyDeleted.personEntity))
+    publisher.publishEvent(RecordEventLog.from(CPRLogEvents.CPR_UUID_DELETED, personKeyDeleted.personEntity))
   }
 }
