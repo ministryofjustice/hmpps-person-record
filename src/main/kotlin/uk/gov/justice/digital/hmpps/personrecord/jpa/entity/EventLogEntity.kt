@@ -135,6 +135,7 @@ class EventLogEntity(
       eventType = eventLog.eventType,
       recordMergedTo = eventLog.recordMergedTo,
       clusterComposition = clusterComposition,
+      eventTimestamp = LocalDateTime.now(),
     )
 
     private fun List<String>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
