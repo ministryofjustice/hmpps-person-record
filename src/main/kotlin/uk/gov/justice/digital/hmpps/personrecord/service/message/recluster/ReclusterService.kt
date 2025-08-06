@@ -86,11 +86,11 @@ class ReclusterService(
     from.mergedTo = to.id
     from.status = RECLUSTER_MERGE
     personKeyRepository.save(from)
-    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_UUID_MERGED, from.personEntities.first(), from))
+    publisher.publishEvent(RecordEventLog.from(CPRLogEvents.CPR_RECLUSTER_UUID_MERGED, from.personEntities.first(), from))
 
     from.personEntities.forEach { personEntity ->
       personEntity.personKey = to
-      publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED, personEntity))
+      publisher.publishEvent(RecordEventLog.from(CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED, personEntity))
     }
     personRepository.saveAll(from.personEntities)
 
@@ -116,6 +116,7 @@ class ReclusterService(
   }
 
   private fun handleExclusionsBetweenMatchedClusters(clusterDetails: ClusterDetails) {
+    setToNeedsAttention(clusterDetails.cluster)
     publisher.publishEvent(
       RecordClusterTelemetry(
         TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
@@ -123,19 +124,19 @@ class ReclusterService(
       ),
     )
     publisher.publishEvent(
-      RecordEventLog(
+      RecordEventLog.from(
         CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION,
         clusterDetails.changedRecord,
         clusterDetails.cluster,
       ),
     )
-    setToNeedsAttention(clusterDetails.cluster)
   }
 
   private fun handleInvalidClusterComposition(
     clusterDetails: ClusterDetails,
     clusterComposition: List<ValidCluster>? = null,
   ) {
+    setToNeedsAttention(clusterDetails.cluster)
     publisher.publishEvent(
       RecordClusterTelemetry(
         TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
@@ -143,14 +144,13 @@ class ReclusterService(
       ),
     )
     publisher.publishEvent(
-      RecordEventLog(
+      RecordEventLog.from(
         CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION,
         clusterDetails.changedRecord,
         clusterDetails.cluster,
         clusterComposition,
       ),
     )
-    setToNeedsAttention(clusterDetails.cluster)
   }
 
   private fun setToNeedsAttention(personKeyEntity: PersonKeyEntity) {
@@ -162,7 +162,7 @@ class ReclusterService(
     personKeyEntity.status = ACTIVE
     personKeyRepository.save(personKeyEntity)
     publisher.publishEvent(
-      RecordEventLog(
+      RecordEventLog.from(
         CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE,
         changedRecord,
         personKeyEntity,

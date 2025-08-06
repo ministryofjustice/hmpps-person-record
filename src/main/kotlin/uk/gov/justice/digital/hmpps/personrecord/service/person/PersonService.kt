@@ -49,12 +49,12 @@ class PersonService(
     when {
       matchingFieldsHaveChanged -> personMatchService.saveToPersonMatch(personEntity)
     }
+    publisher.publishEvent(PersonUpdated(personEntity, matchingFieldsHaveChanged))
     personEntity.personKey?.let {
       if (person.reclusterOnUpdate && matchingFieldsHaveChanged) {
         reclusterService.recluster(personEntity)
       }
     }
-    publisher.publishEvent(PersonUpdated(personEntity, matchingFieldsHaveChanged))
     return personEntity
   }
 

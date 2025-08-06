@@ -12,12 +12,10 @@ class EventLogService(
   private val objectMapper: ObjectMapper,
 ) {
 
-  fun logEvent(eventLog: RecordEventLog) = eventLogRepository.save(
+  fun logEvent(eventLog: RecordEventLog): EventLogEntity = eventLogRepository.save(
     EventLogEntity.from(
-      eventLog.personEntity,
-      eventLog.eventType,
+      eventLog,
       eventLog.clusterComposition?.let { objectMapper.writeValueAsString(eventLog.clusterComposition) },
-      eventLog.personKeyEntity,
     ),
   )
 }
