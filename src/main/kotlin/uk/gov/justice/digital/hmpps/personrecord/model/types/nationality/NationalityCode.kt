@@ -4,11 +4,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.F
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.M
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.N
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.NS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.Companion.normalize
 
 enum class NationalityCode {
@@ -257,13 +252,16 @@ enum class NationalityCode {
 
   companion object {
     fun from(probationCase: ProbationCase): NationalityCode? = probationCase.nationality?.value?.getNationalityFromOrUnknown(
-      PROBATION_NATIONALITY_MAPPING)
+      PROBATION_NATIONALITY_MAPPING,
+    )
 
     fun from(prisoner: Prisoner): NationalityCode? = prisoner.nationality?.getNationalityFromOrUnknown(
-      PRISON_NATIONALITY_MAPPING)
+      PRISON_NATIONALITY_MAPPING,
+    )
 
     fun from(personDetails: PersonDetails?): NationalityCode? = personDetails?.nationalityCode?.getNationalityFromOrUnknown(
-      COMMON_PLATFORM_NATIONALITY_MAPPING)
+      COMMON_PLATFORM_NATIONALITY_MAPPING,
+    )
 
     private fun String?.getNationalityFromOrUnknown(nationalityMap: Map<String, NationalityCode>): NationalityCode? = this.normalize()?.let {
       nationalityMap[it] ?: UNKNOWN
