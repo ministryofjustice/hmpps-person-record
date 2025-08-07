@@ -4,7 +4,7 @@ generic-service:
   serviceAccountName: "person-record-service"
 
   autoscaling:
-    enabled: false
+    enabled: true
     minReplicas: 2
     maxReplicas: 4
     targetCPUUtilizationPercentage: 75
