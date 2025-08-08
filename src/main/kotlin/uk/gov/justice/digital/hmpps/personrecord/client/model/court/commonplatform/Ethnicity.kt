@@ -6,4 +6,5 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 data class Ethnicity(
   val observedEthnicityDescription: String? = null,
   val selfDefinedEthnicityDescription: String? = null,
+  val selfDefinedEthnicityCode: String? = null,
 )

@@ -471,6 +471,18 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(cprTitleCodeDescription)
   }
 
+  @ParameterizedTest
+  @MethodSource("probationEthnicityCodes")
+  fun `should map all ethnicity codes to cpr ethnicity codes`(probationEthnicityCode: String?, cprEthnicityCode: String?, cprEthnicityCodeDescription: String?) {
+    val crn = randomCrn()
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, ethnicity = probationEthnicityCode))
+    val person = awaitNotNullPerson { personRepository.findByCrn(crn) }
+    assertThat(person.ethnicityCode?.code).isEqualTo(cprEthnicityCode)
+    assertThat(person.ethnicityCode?.description).isEqualTo(cprEthnicityCodeDescription)
+  }
+
   companion object {
 
     @JvmStatic
@@ -496,6 +508,37 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       Arguments.of("LDY", "LDY", "Lady"),
       Arguments.of("LRD", "LRD", "Lord"),
       Arguments.of("SIR", "SIR", "Sir"),
+      Arguments.of("Invalid", "UN", "Unknown"),
+    )
+
+    @JvmStatic
+    fun probationEthnicityCodes(): Stream<Arguments> = Stream.of(
+      Arguments.of("A1", "A1", "Asian/Asian British : Indian"),
+      Arguments.of("A2", "A2", "Asian/Asian British : Pakistani"),
+      Arguments.of("A3", "A3", "Asian/Asian British : Bangladeshi"),
+      Arguments.of("A4", "A4", "Asian/Asian British: Chinese"),
+      Arguments.of("A9", "A9", "Asian/Asian British : Any other backgr'nd"),
+      Arguments.of("B1", "B1", "Black/Black British : Carribean"),
+      Arguments.of("B2", "B2", "Black/Black British : African"),
+      Arguments.of("B9", "B9", "Black/Black British : Any other backgr'nd"),
+      Arguments.of("M1", "M1", "Mixed : White and Black Carribean"),
+      Arguments.of("M2", "M2", "Mixed : White and Black African"),
+      Arguments.of("M3", "M3", "Mixed : White and Asian"),
+      Arguments.of("M9", "M9", "Mixed : Any other background"),
+      Arguments.of("NS", "NS", "Prefer not to say"),
+      Arguments.of("O2", "O2", "Other: Arab"),
+      Arguments.of("O9", "O9", "Other: Any other background"),
+      Arguments.of("W1", "W1", "White : Eng/Welsh/Scot/N.Irish/British"),
+      Arguments.of("W2", "W2", "White : Irish"),
+      Arguments.of("W3", "W3", "White: Gypsy or Irish Traveller"),
+      Arguments.of("W4", "W4", "White: Gypsy or Irish Traveller"),
+      Arguments.of("W5", "W5", "White: Roma"),
+      Arguments.of("W9", "W9", "White : Any other background"),
+      Arguments.of("ETH03", "ETH03", "Other (historic)"),
+      Arguments.of("ETH04", "ETH04", "Z_Dummy Ethnicity 04"),
+      Arguments.of("ETH05", "ETH05", "Z_Dummy Ethnicity 05"),
+      Arguments.of("O1", "O1", "Chinese"),
+      Arguments.of("Z1", "Z1", "Missing (IAPS)"),
       Arguments.of("Invalid", "UN", "Unknown"),
     )
   }

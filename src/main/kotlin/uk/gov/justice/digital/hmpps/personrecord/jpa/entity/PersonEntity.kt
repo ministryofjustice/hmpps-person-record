@@ -14,6 +14,7 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
@@ -97,6 +98,13 @@ class PersonEntity(
   @Column(name = "sex_code")
   @Enumerated(STRING)
   var sexCode: SexCode? = null,
+
+  @ManyToOne
+  @JoinColumn(
+    name = "fk_ethnicity_code_id",
+    referencedColumnName = "id",
+  )
+  var ethnicityCode: EthnicityCodeEntity? = null,
 
   @Column
   val ethnicity: String? = null,
@@ -217,7 +225,7 @@ class PersonEntity(
       else -> yes(this)
     }
 
-    fun new(person: Person): PersonEntity {
+    fun new(person: Person, ethnicityCode: EthnicityCodeEntity? = null): PersonEntity {
       val personEntity = PersonEntity(
         defendantId = person.defendantId,
         crn = person.crn,
@@ -225,6 +233,7 @@ class PersonEntity(
         masterDefendantId = person.masterDefendantId,
         sourceSystem = person.sourceSystem,
         ethnicity = person.ethnicity,
+        ethnicityCode = ethnicityCode,
         nationality = person.nationality,
         religion = person.religion,
         matchId = UUID.randomUUID(),
