@@ -26,6 +26,8 @@ fun libraHearing(
   cId: String = randomCId(),
   defendantType: DefendantType = PERSON,
   defendantSex: String? = null,
+  nationality1: String? = null,
+  nationality2: String? = null,
 ) = """
 {
    "cId": "$cId",
@@ -53,8 +55,8 @@ fun libraHearing(
    "cro":"$cro",
    ${pncNumber?.let { """ "pnc": "$pncNumber", """.trimIndent() } ?: ""}
    "listNo":"1st",
-   "nationality1":"Angolan",
-   "nationality2":"Austrian",
+   ${nationality1?.let { """ "nationality1": "$nationality1", """.trimIndent() } ?: ""}
+   ${nationality2?.let { """ "nationality1": "$nationality2", """.trimIndent() } ?: ""}
    "offences":[
       {
          "seq":1,
