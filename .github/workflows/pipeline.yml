@@ -73,7 +73,7 @@ jobs:
       - name: echo var
         shell: bash
         run: |
-          echo ${{ env.SECURITY_ALERTS_SLACK_CHANNEL_ID }}
+          echo ${{ vars.SECURITY_ALERTS_SLACK_CHANNEL_ID }}
   database_report:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
