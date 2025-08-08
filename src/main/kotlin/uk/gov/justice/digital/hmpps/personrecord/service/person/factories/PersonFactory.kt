@@ -4,11 +4,8 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NationalityEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.reference.NationalityFactory
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.reference.PseudonymFactory
 
@@ -17,7 +14,6 @@ class PersonFactory(
   private val personRepository: PersonRepository,
   private val pseudonymFactory: PseudonymFactory,
   private val nationalityFactory: NationalityFactory,
-  private val ethnicityCodeRepository: EthnicityCodeRepository,
 
 ) {
 
@@ -49,5 +45,4 @@ class PersonFactory(
     nationalities.forEach { nationalityEntity -> nationalityEntity.person = this }
     this.nationalities.addAll(nationalities)
   }
-  private fun lookupEthnicityCode(ethnicityCode: EthnicityCode?): EthnicityCodeEntity? = ethnicityCode?.let { ethnicityCodeRepository.findByCode(it.name) }
 }
