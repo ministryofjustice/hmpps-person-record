@@ -19,7 +19,7 @@ generic-service:
       memory: 4Gi
 
   image:
-    repository: quay.io/hmpps/hmpps-person-record
+    repository: ghcr.io/ministryofjustice/hmpps-person-record
     tag: app_version # override at deployment time
     port: 8080
 
