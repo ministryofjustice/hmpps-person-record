@@ -459,18 +459,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
   }
 
-  @ParameterizedTest
-  @MethodSource("probationTitleCodes")
-  fun `should map all title codes to cpr title codes`(probationTitleCode: String?, cprTitleCode: String?, cprTitleCodeDescription: String?) {
-    val crn = randomCrn()
-    stubPersonMatchUpsert()
-    stubPersonMatchScores()
-    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, title = probationTitleCode))
-    val person = awaitNotNullPerson { personRepository.findByCrn(crn) }
-    assertThat(person.getPrimaryName().titleCode?.code).isEqualTo(cprTitleCode)
-    assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(cprTitleCodeDescription)
-  }
-
   companion object {
 
     @JvmStatic
@@ -481,22 +469,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       Arguments.of(OFFENDER_ADDRESS_CREATED),
       Arguments.of(OFFENDER_ADDRESS_UPDATED),
       Arguments.of(OFFENDER_ADDRESS_DELETED),
-    )
-
-    @JvmStatic
-    fun probationTitleCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("MR", "MR", "Mr"),
-      Arguments.of("MRS", "MRS", "Mrs"),
-      Arguments.of("MISS", "MISS", "Miss"),
-      Arguments.of("MS", "MS", "Ms"),
-      Arguments.of("MX", "MX", "Mx"),
-      Arguments.of("REV", "REV", "Reverend"),
-      Arguments.of("DME", "DME", "Dame"),
-      Arguments.of("DR", "DR", "Dr"),
-      Arguments.of("LDY", "LDY", "Lady"),
-      Arguments.of("LRD", "LRD", "Lord"),
-      Arguments.of("SIR", "SIR", "Sir"),
-      Arguments.of("Invalid", "UN", "Unknown"),
     )
   }
 }

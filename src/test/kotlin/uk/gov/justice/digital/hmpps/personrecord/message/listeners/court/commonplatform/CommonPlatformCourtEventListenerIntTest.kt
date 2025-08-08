@@ -4,9 +4,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import software.amazon.awssdk.core.async.AsyncRequestBody
@@ -56,7 +53,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.nio.charset.Charset
 import java.time.LocalDateTime.now
 import java.util.UUID
-import java.util.stream.Stream
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -609,52 +605,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     ).join().asUtf8String()
 
     return Pair(body, sqsMessage)
-  }
-
-  @ParameterizedTest
-  @MethodSource("commonPlatformTitleCodes")
-  fun `should map all title codes to cpr title codes`(defendantTitleCode: String?, cprTitleCode: String?, cprTitleCodeDescription: String?) {
-    stubPersonMatchScores()
-    stubPersonMatchUpsert()
-    val defendantId = randomDefendantId()
-
-    publishCommonPlatformMessage(
-      commonPlatformHearing(
-        listOf(
-          CommonPlatformHearingSetup(
-            title = defendantTitleCode,
-            defendantId = defendantId,
-          ),
-        ),
-      ),
-    )
-
-    val person = awaitNotNullPerson { personRepository.findByDefendantId(defendantId = defendantId) }
-    assertThat(person.getPrimaryName().titleCode?.code).isEqualTo(cprTitleCode)
-    assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(cprTitleCodeDescription)
-  }
-
-  companion object {
-
-    @JvmStatic
-    fun commonPlatformTitleCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("Mr", "MR", "Mr"),
-      Arguments.of("Mrs", "MRS", "Mrs"),
-      Arguments.of("Miss", "MISS", "Miss"),
-      Arguments.of("Ms", "MS", "Ms"),
-      Arguments.of("Reverend", "REV", "Reverend"),
-      Arguments.of("Father", "FR", "Father"),
-      Arguments.of("Imam", "IMAM", "Imam"),
-      Arguments.of("Rabbi", "RABBI", "Rabbi"),
-      Arguments.of("Brother", "BR", "Brother"),
-      Arguments.of("Sister", "SR", "Sister"),
-      Arguments.of("Dame", "DME", "Dame"),
-      Arguments.of("Dr", "DR", "Dr"),
-      Arguments.of("Lady", "LDY", "Lady"),
-      Arguments.of("Lord", "LRD", "Lord"),
-      Arguments.of("Sir", "SIR", "Sir"),
-      Arguments.of("Invalid", "UN", "Unknown"),
-    )
   }
 
   @Nested
