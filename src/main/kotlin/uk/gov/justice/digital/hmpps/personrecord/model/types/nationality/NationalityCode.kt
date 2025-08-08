@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
 
-
 enum class NationalityCode {
   AFGA,
   ALBA,
