@@ -85,13 +85,10 @@ jobs:
         run: |
           export JAVA_OPTS="${{ inputs.java_options }}"
           ${{ inputs.gradle-command }}
-
       - name: Start Required Services
         run: make start-containers
-
       - name: init db
         run: ./gradlew initialiseDatabase
-
       - uses: ministryofjustice/hmpps-github-actions/.github/actions/database_schema_report@v2 # WORKFLOW_VERSION
         with:
           schema: personrecordservice
