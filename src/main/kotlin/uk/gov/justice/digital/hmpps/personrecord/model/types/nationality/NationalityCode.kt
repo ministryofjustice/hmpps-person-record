@@ -1,10 +1,10 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types.nationality
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
+import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
-import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.Companion.normalize
 
 enum class NationalityCode {
   AFGA,
@@ -251,19 +251,24 @@ enum class NationalityCode {
   ;
 
   companion object {
-    fun from(probationCase: ProbationCase): NationalityCode? = probationCase.nationality?.value?.getNationalityFromOrUnknown(
+    fun from(probationCase: ProbationCase): NationalityCode? = probationCase.nationality?.value?.getNationalityOrUnknown(
       PROBATION_NATIONALITY_MAPPING,
     )
 
-    fun from(prisoner: Prisoner): NationalityCode? = prisoner.nationality?.getNationalityFromOrUnknown(
+    fun from(prisoner: Prisoner): NationalityCode? = prisoner.nationality?.getNationalityOrUnknown(
       PRISON_NATIONALITY_MAPPING,
     )
 
-    fun from(personDetails: PersonDetails?): NationalityCode? = personDetails?.nationalityCode?.getNationalityFromOrUnknown(
+    fun from(personDetails: PersonDetails?): NationalityCode? = personDetails?.nationalityCode?.getNationalityOrUnknown(
       COMMON_PLATFORM_NATIONALITY_MAPPING,
     )
 
-    private fun String?.getNationalityFromOrUnknown(nationalityMap: Map<String, NationalityCode>): NationalityCode? = this.normalize()?.let {
+    fun from(libraHearingEvent: LibraHearingEvent?): List<NationalityCode> = listOfNotNull(
+      libraHearingEvent?.nationality1?.getNationalityOrUnknown(LIBRA_NATIONALITY_MAPPINGS),
+      libraHearingEvent?.nationality2?.getNationalityOrUnknown(LIBRA_NATIONALITY_MAPPINGS),
+    )
+
+    private fun String?.getNationalityOrUnknown(nationalityMap: Map<String, NationalityCode>): NationalityCode? = this.normalize()?.let {
       nationalityMap[it] ?: UNKNOWN
     }
 
