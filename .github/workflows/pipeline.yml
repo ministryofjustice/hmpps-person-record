@@ -75,7 +75,7 @@ jobs:
 
       - uses: ministryofjustice/hmpps-github-actions/.github/actions/database_schema_report@v2 # WORKFLOW_VERSION
         with:
-          schema: personmatch
+          schema: personrecordservice
   deploy_dev:
     name: Deploy to the development environment
     needs:
