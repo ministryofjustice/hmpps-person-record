@@ -86,7 +86,7 @@ class PersonEntity(
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
-  var nationalities: MutableList<OverrideMarkerEntity> = mutableListOf(),
+  var nationalities: MutableList<NationalityEntity> = mutableListOf(),
 
   @Column
   var religion: String? = null,
