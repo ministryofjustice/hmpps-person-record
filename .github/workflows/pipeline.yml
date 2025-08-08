@@ -16,7 +16,11 @@ on:
         required: true
         default: false
         type: boolean
-
+      java_options:
+        type: string
+        default: '-Xmx4096m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=true -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.workers.max=1'
+        required: false
+        description: Setting up common java optioins
 permissions:
   contents: read
   packages: write
@@ -44,7 +48,7 @@ jobs:
     uses: ./.github/workflows/gradle_localstack_postgres_verify.yml # WORKFLOW_VERSION
     secrets: inherit
     with:
-      java-options: '-Xmx4096m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=true -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.workers.max=1'
+      java-options: "${{ inputs.java_options }}"
       postgres-tag: '16.1'
       localstack-tag: '3.0'
       postgres-username: 'root'
@@ -69,10 +73,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
       - name: Start Required Services
         run: make start-containers
-
+      - name: Run checks with gradle
+        shell: bash
+        run: |
+          export JAVA_OPTS="${{ inputs.java_options }}"
+          ./gradlew initialiseDatabase
       - uses: ministryofjustice/hmpps-github-actions/.github/actions/database_schema_report@v2 # WORKFLOW_VERSION
         with:
           schema: personrecordservice
