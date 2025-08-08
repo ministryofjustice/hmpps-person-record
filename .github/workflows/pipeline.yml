@@ -64,7 +64,7 @@ jobs:
       docker_multiplatform: false
   database_report:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+#    if: github.ref == 'refs/heads/main'
     name: Generate Database Schema Report
     steps:
       - name: Checkout code
@@ -72,6 +72,9 @@ jobs:
 
       - name: Start Required Services
         run: make start-containers
+
+      - name: init db
+        run: ./gradlew initialiseDatabase
 
       - uses: ministryofjustice/hmpps-github-actions/.github/actions/database_schema_report@v2 # WORKFLOW_VERSION
         with:
