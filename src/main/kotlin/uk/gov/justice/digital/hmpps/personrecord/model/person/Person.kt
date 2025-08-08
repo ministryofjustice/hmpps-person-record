@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import java.time.LocalDate
 import java.util.UUID
 
@@ -34,6 +35,7 @@ data class Person(
   val aliases: List<Alias> = emptyList(),
   val masterDefendantId: String? = null,
   val nationality: String? = null,
+  val nationalities: List<Nationality> = emptyList(),
   val religion: String? = null,
   val ethnicity: String? = null,
   val ethnicityCode: EthnicityCode? = null,
@@ -68,6 +70,9 @@ data class Person(
           identifierValue = probationCase.identifiers.nationalInsuranceNumber,
         ),
       )
+      val nationalities: List<Nationality> = listOf(
+        Nationality(NationalityCode.fromProbationMapping(probationCase.nationality?.value)),
+      )
       return Person(
         titleCode = TitleCode.from(probationCase.title?.value),
         firstName = probationCase.name.firstName.nullIfBlank(),
@@ -78,6 +83,7 @@ data class Person(
         ethnicity = probationCase.ethnicity?.value.nullIfBlank(),
         ethnicityCode = EthnicityCode.from(probationCase.ethnicity?.value),
         nationality = probationCase.nationality?.value.nullIfBlank(),
+        nationalities = nationalities,
         aliases = probationCase.aliases?.map { Alias.from(it) } ?: emptyList(),
         addresses = Address.fromOffenderAddressList(probationCase.addresses),
         contacts = contacts,
@@ -114,6 +120,10 @@ data class Person(
         Reference.from(identifierType = IdentifierType.CRO, identifierValue = defendant.cro?.croId),
       )
 
+      val nationalities: List<Nationality> = listOf(
+        Nationality(NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.nationalityCode)),
+      )
+
       return Person(
         titleCode = TitleCode.from(defendant.personDefendant?.personDetails?.title.nullIfBlank()),
         firstName = defendant.personDefendant?.personDetails?.firstName.nullIfBlank(),
@@ -126,6 +136,7 @@ data class Person(
         contacts = contacts,
         addresses = addresses,
         references = references,
+        nationalities = nationalities,
         aliases = defendant.aliases?.map { Alias.from(it) } ?: emptyList(),
         sourceSystem = sourceSystemType,
         sexCode = SexCode.from(defendant.personDefendant?.personDetails),
@@ -140,6 +151,10 @@ data class Person(
         Reference.from(identifierType = IdentifierType.CRO, identifierValue = libraHearingEvent.cro?.toString()),
         Reference.from(identifierType = IdentifierType.PNC, identifierValue = libraHearingEvent.pnc?.toString()),
       )
+      val nationalities: List<Nationality> = listOf(
+        Nationality(NationalityCode.fromLibraMapping(libraHearingEvent.nationality1)),
+        Nationality(NationalityCode.fromLibraMapping(libraHearingEvent.nationality2)),
+      )
       return Person(
         titleCode = TitleCode.from(libraHearingEvent.name?.title),
         firstName = libraHearingEvent.name?.firstName.nullIfBlank(),
@@ -148,6 +163,7 @@ data class Person(
         dateOfBirth = libraHearingEvent.dateOfBirth,
         addresses = addresses,
         references = references,
+        nationalities = nationalities,
         sourceSystem = LIBRA,
         cId = libraHearingEvent.cId.nullIfBlank(),
         sexCode = SexCode.from(libraHearingEvent),
@@ -174,6 +190,9 @@ data class Person(
           identifierValue = prisoner.identifiers.getType("DL")?.value,
         ),
       )
+      val nationalities: List<Nationality> = listOf(
+        Nationality(NationalityCode.fromPrisonMapping(prisoner.nationality)),
+      )
 
       return Person(
         prisonNumber = prisoner.prisonNumber.nullIfBlank(),
@@ -190,6 +209,7 @@ data class Person(
         references = references,
         sourceSystem = NOMIS,
         nationality = prisoner.nationality.nullIfBlank(),
+        nationalities = nationalities,
         religion = prisoner.religion.nullIfBlank(),
         sentences = prisoner.allConvictedOffences?.map { SentenceInfo.from(it) } ?: emptyList(),
         sexCode = SexCode.from(prisoner),
