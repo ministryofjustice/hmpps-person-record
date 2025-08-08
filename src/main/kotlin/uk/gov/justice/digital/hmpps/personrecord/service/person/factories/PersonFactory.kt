@@ -17,7 +17,6 @@ class PersonFactory(
   private val personRepository: PersonRepository,
   private val pseudonymFactory: PseudonymFactory,
   private val nationalityFactory: NationalityFactory,
-  private val titleCodeRepository: TitleCodeRepository,
   private val ethnicityCodeRepository: EthnicityCodeRepository,
 
 ) {
