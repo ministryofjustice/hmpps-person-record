@@ -13,6 +13,7 @@ data class CommonPlatformHearingSetup(
   val middleName: String? = null,
   val lastName: String = randomName(),
   val title: String? = null,
+  val ethnicity: CommonPlatformHearingSetupEthnicity? = null,
   val dateOfBirth: String = randomDate().toString(),
   val cro: String = randomCro(),
   val defendantId: String = randomDefendantId(),
@@ -36,6 +37,9 @@ data class CommonPlatformHearingSetupContact(
   val work: String = "0203788776",
   val mobile: String = "078590345677",
   val primaryEmail: String = "email@email.com",
+)
+data class CommonPlatformHearingSetupEthnicity(
+  val selfDefinedEthnicityCode: String? = null,
 )
 
 data class CommonPlatformHearingSetupAddress(val buildingName: String, val buildingNumber: String, val thoroughfareName: String, val dependentLocality: String, val postTown: String, val postcode: String)
@@ -156,6 +160,13 @@ private fun personDefendant(commonPlatformHearingSetup: CommonPlatformHearingSet
          }, 
   """.trimIndent()
 } ?: ""}   
+      ${commonPlatformHearingSetup.ethnicity?.let {
+  """
+        "ethnicity": {
+        "selfDefinedEthnicityCode": "${commonPlatformHearingSetup.ethnicity.selfDefinedEthnicityCode}"
+         }, 
+  """.trimIndent()
+} ?: ""} 
       "dateOfBirth": "${commonPlatformHearingSetup.dateOfBirth}",
       ${commonPlatformHearingSetup.firstName?.let { """ "firstName": "${commonPlatformHearingSetup.firstName}", """.trimIndent() } ?: ""}
       "gender": "${commonPlatformHearingSetup.gender}",

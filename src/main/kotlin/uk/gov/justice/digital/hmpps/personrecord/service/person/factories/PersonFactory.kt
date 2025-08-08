@@ -14,6 +14,7 @@ class PersonFactory(
   private val personRepository: PersonRepository,
   private val pseudonymFactory: PseudonymFactory,
   private val nationalityFactory: NationalityFactory,
+
 ) {
 
   fun create(person: Person): PersonEntity {

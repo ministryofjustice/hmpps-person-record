@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner.
 import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -37,6 +38,7 @@ data class Person(
   val nationalities: List<Nationality> = emptyList(),
   val religion: String? = null,
   val ethnicity: String? = null,
+  val ethnicityCode: EthnicityCode? = null,
   val contacts: List<Contact> = emptyList(),
   val addresses: List<Address> = emptyList(),
   val references: List<Reference> = emptyList(),
@@ -79,6 +81,7 @@ data class Person(
         dateOfBirth = probationCase.dateOfBirth,
         crn = probationCase.identifiers.crn,
         ethnicity = probationCase.ethnicity?.value.nullIfBlank(),
+        ethnicityCode = EthnicityCode.from(probationCase.ethnicity?.value),
         nationality = probationCase.nationality?.value.nullIfBlank(),
         nationalities = nationalities,
         aliases = probationCase.aliases?.map { Alias.from(it) } ?: emptyList(),
@@ -127,6 +130,7 @@ data class Person(
         lastName = defendant.personDefendant?.personDetails?.lastName.nullIfBlank(),
         middleNames = defendant.personDefendant?.personDetails?.middleName.nullIfBlank(),
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
+        ethnicityCode = EthnicityCode.from(defendant.personDefendant?.personDetails?.ethnicity?.selfDefinedEthnicityCode),
         defendantId = defendant.id.nullIfBlank(),
         masterDefendantId = defendant.masterDefendantId.nullIfBlank(),
         contacts = contacts,
@@ -198,6 +202,7 @@ data class Person(
         lastName = prisoner.lastName.nullIfBlank(),
         dateOfBirth = prisoner.dateOfBirth,
         ethnicity = prisoner.ethnicity.nullIfBlank(),
+        ethnicityCode = EthnicityCode.from(prisoner.ethnicity.nullIfBlank()),
         aliases = prisoner.aliases.map { Alias.from(it) },
         contacts = contacts,
         addresses = addresses,
