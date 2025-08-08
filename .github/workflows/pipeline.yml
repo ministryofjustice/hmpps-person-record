@@ -82,7 +82,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
       - name: Start Required Services
         run: make start-containers
-      - name: Run checks with gradle
+      - name: Initialise DB
         shell: bash
         run: |
           export JAVA_OPTS="${{ inputs.java_options }}"
