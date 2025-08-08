@@ -9,6 +9,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.NationalityCodeEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Nationality
 import java.time.LocalDate
 
 @Entity
@@ -42,4 +43,16 @@ class NationalityEntity(
 
   @Column(name = "notes")
   val notes: String? = null,
-)
+) {
+  companion object {
+
+    fun from(nationality: Nationality, nationalityCode: NationalityCodeEntity?): NationalityEntity? = nationalityCode?.let {
+      NationalityEntity(
+        nationalityCode = nationalityCode,
+        startDate = nationality.startDate,
+        endDate = nationality.endDate,
+        notes = nationality.notes,
+      )
+    }
+  }
+}

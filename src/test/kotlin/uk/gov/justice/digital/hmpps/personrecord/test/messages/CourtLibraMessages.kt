@@ -56,7 +56,7 @@ fun libraHearing(
    ${pncNumber?.let { """ "pnc": "$pncNumber", """.trimIndent() } ?: ""}
    "listNo":"1st",
    ${nationality1?.let { """ "nationality1": "$nationality1", """.trimIndent() } ?: ""}
-   ${nationality2?.let { """ "nationality1": "$nationality2", """.trimIndent() } ?: ""}
+   ${nationality2?.let { """ "nationality2": "$nationality2", """.trimIndent() } ?: ""}
    "offences":[
       {
          "seq":1,

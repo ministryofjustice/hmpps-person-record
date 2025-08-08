@@ -9,7 +9,7 @@ val PRISON_NATIONALITY_MAPPING: Map<String, NationalityCode> = mapOf(
   "ANDORRAN" to NationalityCode.ANDO,
   "ANGOLAN" to NationalityCode.ANGOL,
   "ANGUILLAN" to NationalityCode.AG,
-  "CITIZEN OF ANTIGUA AND BARBUDA\t" to NationalityCode.ANTIG,
+  "CITIZEN OF ANTIGUA AND BARBUDA" to NationalityCode.ANTIG,
   "ARGENTINE" to NationalityCode.ARGEN,
   "ARMENIAN" to NationalityCode.ARME,
   "ARUBAN" to NationalityCode.AB,

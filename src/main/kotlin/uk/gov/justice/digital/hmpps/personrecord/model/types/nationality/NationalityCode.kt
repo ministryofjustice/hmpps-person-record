@@ -1,9 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types.nationality
 
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
-import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
 
 enum class NationalityCode {
@@ -251,21 +247,21 @@ enum class NationalityCode {
   ;
 
   companion object {
-    fun from(probationCase: ProbationCase): NationalityCode? = probationCase.nationality?.value?.getNationalityOrUnknown(
+
+    fun fromProbationMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
       PROBATION_NATIONALITY_MAPPING,
     )
 
-    fun from(prisoner: Prisoner): NationalityCode? = prisoner.nationality?.getNationalityOrUnknown(
+    fun fromPrisonMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
       PRISON_NATIONALITY_MAPPING,
     )
 
-    fun from(personDetails: PersonDetails?): NationalityCode? = personDetails?.nationalityCode?.getNationalityOrUnknown(
+    fun fromCommonPlatformMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
       COMMON_PLATFORM_NATIONALITY_MAPPING,
     )
 
-    fun from(libraHearingEvent: LibraHearingEvent?): List<NationalityCode> = listOfNotNull(
-      libraHearingEvent?.nationality1?.getNationalityOrUnknown(LIBRA_NATIONALITY_MAPPINGS),
-      libraHearingEvent?.nationality2?.getNationalityOrUnknown(LIBRA_NATIONALITY_MAPPINGS),
+    fun fromLibraMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
+      LIBRA_NATIONALITY_MAPPINGS,
     )
 
     private fun String?.getNationalityOrUnknown(nationalityMap: Map<String, NationalityCode>): NationalityCode? = this.normalize()?.let {
