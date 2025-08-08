@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
@@ -32,7 +33,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomNationality
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -92,7 +92,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val cro = randomCro()
       val postcode = randomPostcode()
       val fullAddress = randomFullAddress()
-      val nationality = randomNationality()
+      val nationality = "British"
       val religion = randomReligion()
       val personDateOfBirth = randomDate()
       val nationalInsuranceNumber = randomNationalInsuranceNumber()
@@ -152,6 +152,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.contacts[2].contactValue).isEqualTo("01141234567")
         assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceStartDate)
         assertThat(personEntity.sexCode).isEqualTo(SexCode.F)
+        assertThat(personEntity.nationalities.size).isEqualTo(1)
+        assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(NationalityCode.BRIT.name)
+        assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo("British")
       }
 
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)

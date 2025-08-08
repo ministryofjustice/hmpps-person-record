@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.NS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
@@ -77,6 +78,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         line3 = thoroughfareName,
         line4 = dependentLocality,
         line5 = postTown,
+        nationality1 = "British",
+        nationality2 = "British",
       ),
     )
 
@@ -108,6 +111,9 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.personKey).isNotNull()
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
     assertThat(person.sexCode).isEqualTo(NS)
+    assertThat(person.nationalities.size).isEqualTo(2)
+    assertThat(person.nationalities.first().nationalityCode?.code).isEqualTo(NationalityCode.BRIT.name)
+    assertThat(person.nationalities.first().nationalityCode?.description).isEqualTo("British")
   }
 
   @Test

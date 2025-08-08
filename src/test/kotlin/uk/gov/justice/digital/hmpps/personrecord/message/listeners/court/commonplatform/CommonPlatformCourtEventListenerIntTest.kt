@@ -34,6 +34,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -202,12 +203,14 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
               CommonPlatformHearingSetupAlias(firstName = "aliasFirstName1", lastName = "alisLastName1"),
               CommonPlatformHearingSetupAlias(firstName = "aliasFirstName2", lastName = "alisLastName2"),
             ),
+            nationalityCode = "GB",
           ),
           CommonPlatformHearingSetup(
             gender = "FEMALE",
             pnc = secondPnc,
             defendantId = secondDefendantId,
             contact = CommonPlatformHearingSetupContact(),
+            nationalityCode = "GB",
             address =
             CommonPlatformHearingSetupAddress(buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown, postcode = postcode),
           ),
@@ -244,6 +247,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getPrimaryName().lastName).isEqualTo(lastName)
     assertThat(firstPerson.contacts).isEmpty()
     assertThat(firstPerson.addresses).isNotEmpty()
+    assertThat(firstPerson.nationalities.size).isEqualTo(1)
+    assertThat(firstPerson.nationalities.first().nationalityCode?.code).isEqualTo(NationalityCode.BRIT.name)
+    assertThat(firstPerson.nationalities.first().nationalityCode?.description).isEqualTo("British")
     assertThat(firstPerson.getAliases().size).isEqualTo(2)
     assertThat(firstPerson.getAliases()[0].titleCode).isNull()
     assertThat(firstPerson.getAliases()[0].firstName).isEqualTo("aliasFirstName1")
@@ -273,6 +279,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPerson.contacts[1].contactValue).isEqualTo("078590345677")
     assertThat(secondPerson.masterDefendantId).isEqualTo(secondDefendantId)
     assertThat(secondPerson.sexCode).isEqualTo(SexCode.F)
+    assertThat(secondPerson.nationalities.size).isEqualTo(1)
+    assertThat(secondPerson.nationalities.first().nationalityCode?.code).isEqualTo(NationalityCode.BRIT.name)
+    assertThat(secondPerson.nationalities.first().nationalityCode?.description).isEqualTo("British")
 
     assertThat(thirdPerson.getAliases()).isEmpty()
     assertThat(thirdPerson.contacts.size).isEqualTo(0)

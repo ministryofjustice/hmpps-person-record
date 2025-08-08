@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.test
 
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier.Companion.VALID_LETTERS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import java.time.LocalDate
 import java.util.UUID
 
@@ -27,7 +28,7 @@ fun randomName(): String = randomLowerCaseString()
 
 fun randomEthnicity(): String = randomLowerCaseString()
 
-fun randomNationality(): String = randomLowerCaseString()
+fun randomNationality(): String = NationalityCode.entries.random().name
 
 fun randomReligion(): String = randomLowerCaseString()
 
