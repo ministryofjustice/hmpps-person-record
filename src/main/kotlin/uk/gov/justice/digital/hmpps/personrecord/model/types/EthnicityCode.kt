@@ -38,39 +38,68 @@ enum class EthnicityCode {
 
   companion object {
 
-    fun from(ethnicity: String?): EthnicityCode? = when (ethnicity?.nullIfBlank()?.uppercase()?.trim()) {
-      "A1", "Asian/Asian British : Indian" -> A1
-      "A2", "Asian/Asian British : Pakistani" -> A2
-      "A3", "Asian/Asian British : Bangladeshi" -> A3
-      "A4", "Asian/Asian British : Chinese" -> A4
-      "A9", "Asian/Asian British : Any other backgr'nd" -> A9
-      "B1", "Black/Black British : Carribean" -> B1
-      "B2", "Black/Black British : African" -> B2
-      "B9", "Black/Black British: Any other backgr'nd" -> B9
-      "M1", "Mixed : White and Black Carribean" -> M1
-      "M2", "Mixed : White and Black African" -> M2
-      "M3", "Mixed : White and Asian" -> M3
-      "M9", "Mixed : Any other background" -> M9
-      "MERGE", "Needs to be confirmed following merge" -> MERGE
-      "NS", "Prefer not to say" -> NS
-      "O2", "Other: Arab" -> O2
-      "O3" -> O3
-      "O9", "Other: Any other background" -> O9
-      "W1", "White : Eng/Welsh/Scot/N.Irish/British" -> W1
-      "W2", "White : Irish" -> W2
-      "W3", "White: Gypsy or Irish Traveller" -> W3
-      "W4" -> W4
-      "W5", "White: Roma" -> W5
-      "W9", "White : Any other background" -> W9
-      "ETH03" -> ETH03
-      "ETH04" -> ETH04
-      "ETH05" -> ETH05
-      "O1", "Chinese" -> O1
-      "W8", "White : Irish Traveller/Gypsy".uppercase() -> W8
-      "Z1" -> Z1
-      "P" -> P
-      null -> null
-      else -> UN
+    private val ethnicityMap: Map<String, EthnicityCode> = mapOf(
+      "A1" to A1,
+      "Asian/Asian British : Indian" to A1,
+      "A2" to A2,
+      "Asian/Asian British : Pakistani" to A2,
+      "A3" to A3,
+      "Asian/Asian British : Bangladeshi" to A3,
+      "A4" to A4,
+      "Asian/Asian British : Chinese" to A4,
+      "A9" to A9,
+      "Asian/Asian British : Any other backgr'nd" to A9,
+      "B1" to B1,
+      "Black/Black British : Carribean" to B1,
+      "B2" to B2,
+      "Black/Black British : African" to B2,
+      "B9" to B9,
+      "Black/Black British: Any other backgr'nd" to B9,
+      "M1" to M1,
+      "Mixed : White and Black Carribean" to M1,
+      "M2" to M2,
+      "Mixed : White and Black African" to M2,
+      "M3" to M3,
+      "Mixed : White and Asian" to M3,
+      "M9" to M9,
+      "Mixed : Any other background" to M9,
+      "MERGE" to MERGE,
+      "Needs to be confirmed following merge" to MERGE,
+      "NS" to NS,
+      "Prefer not to say" to NS,
+      "O2" to O2,
+      "Other: Arab" to O2,
+      "O3" to O3,
+      "O9" to O9,
+      "Other: Any other background" to O9,
+      "W1" to W1,
+      "White : Eng/Welsh/Scot/N.Irish/British" to W1,
+      "W2" to W2,
+      "White : Irish" to W2,
+      "W3" to W3,
+      "White: Gypsy or Irish Traveller" to W3,
+      "W4" to W4,
+      "W5" to W5,
+      "White: Roma" to W5,
+      "W9" to W9,
+      "White : Any other background" to W9,
+      "ETH03" to ETH03,
+      "ETH04" to ETH04,
+      "ETH05" to ETH05,
+      "O1" to O1,
+      "Chinese" to O1,
+      "W8" to W8,
+      "White : Irish Traveller/Gypsy" to W8,
+      "Z1" to Z1,
+      "P" to P,
+    )
+    fun from(code: String?): EthnicityCode? = code?.getEthnicityOrUnknown(
+      ethnicityMap,
+    )
+
+    private fun String?.getEthnicityOrUnknown(ethniciyMap: Map<String, EthnicityCode>): EthnicityCode? = this.normalize()?.let {
+      ethniciyMap[it] ?: UN
     }
+    private fun String?.normalize(): String? = this?.trim().nullIfBlank()?.uppercase()
   }
 }

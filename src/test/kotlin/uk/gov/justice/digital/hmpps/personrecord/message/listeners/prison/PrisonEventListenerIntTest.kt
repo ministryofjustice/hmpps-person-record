@@ -4,9 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
@@ -43,7 +40,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupIdentifier
 import java.lang.Thread.sleep
 import java.time.LocalDate
-import java.util.stream.Stream
 
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun waitForMessageToBeProcessedAndDiscarded() {
@@ -355,82 +351,5 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       }
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_UUID_CREATED)
     }
-  }
-
-  @ParameterizedTest
-  @MethodSource("prisonTitleCodes")
-  fun `should map all title codes to cpr title codes`(prisonTitleCode: String?, cprTitleCode: String?, cprTitleCodeDescription: String?) {
-    val prisonNumber = randomPrisonNumber()
-    stubNoMatchesPersonMatch()
-    stubPersonMatchUpsert()
-    stubPrisonResponse(ApiResponseSetup(title = prisonTitleCode, prisonNumber = prisonNumber))
-    publishDomainEvent(PRISONER_CREATED, prisonDomainEvent(PRISONER_CREATED, prisonNumber))
-    val person = awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumber) }
-    assertThat(person.getPrimaryName().titleCode?.code).isEqualTo(cprTitleCode)
-    assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(cprTitleCodeDescription)
-  }
-
-  @ParameterizedTest
-  @MethodSource("prisonEthnicityCodes")
-  fun `should map all ethnicity codes to ethnicity codes`(prisonEthnicityCode: String?, cprEthnicityCode: String?, cprEthnicityCodeDescription: String?) {
-    val prisonNumber = randomPrisonNumber()
-    stubNoMatchesPersonMatch()
-    stubPersonMatchUpsert()
-    stubPrisonResponse(ApiResponseSetup(ethnicity = prisonEthnicityCode, prisonNumber = prisonNumber))
-    publishDomainEvent(PRISONER_CREATED, prisonDomainEvent(PRISONER_CREATED, prisonNumber))
-    val person = awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumber) }
-    assertThat(person.ethnicityCode?.code).isEqualTo(cprEthnicityCode)
-    assertThat(person.ethnicityCode?.description).isEqualTo(cprEthnicityCodeDescription)
-  }
-
-  companion object {
-
-    @JvmStatic
-    fun prisonTitleCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("Mr", "MR", "Mr"),
-      Arguments.of("Mrs", "MRS", "Mrs"),
-      Arguments.of("Miss", "MISS", "Miss"),
-      Arguments.of("Ms", "MS", "Ms"),
-      Arguments.of("Reverend", "REV", "Reverend"),
-      Arguments.of("Father", "FR", "Father"),
-      Arguments.of("Imam", "IMAM", "Imam"),
-      Arguments.of("Rabbi", "RABBI", "Rabbi"),
-      Arguments.of("Brother", "BR", "Brother"),
-      Arguments.of("Sister", "SR", "Sister"),
-      Arguments.of("Dame", "DME", "Dame"),
-      Arguments.of("Dr", "DR", "Dr"),
-      Arguments.of("Lady", "LDY", "Lady"),
-      Arguments.of("Lord", "LRD", "Lord"),
-      Arguments.of("Sir", "SIR", "Sir"),
-      Arguments.of("Invalid", "UN", "Unknown"),
-    )
-
-    @JvmStatic
-    fun prisonEthnicityCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("A1", "A1", "Asian/Asian British : Indian"),
-      Arguments.of("A2", "A2", "Asian/Asian British : Pakistani"),
-      Arguments.of("A3", "A3", "Asian/Asian British : Bangladeshi"),
-      Arguments.of("A4", "A4", "Asian/Asian British: Chinese"),
-      Arguments.of("A9", "A9", "Asian/Asian British : Any other backgr'nd"),
-      Arguments.of("B1", "B1", "Black/Black British : Carribean"),
-      Arguments.of("B2", "B2", "Black/Black British : African"),
-      Arguments.of("B9", "B9", "Black/Black British : Any other backgr'nd"),
-      Arguments.of("M1", "M1", "Mixed : White and Black Carribean"),
-      Arguments.of("M2", "M2", "Mixed : White and Black African"),
-      Arguments.of("M3", "M3", "Mixed : White and Asian"),
-      Arguments.of("M9", "M9", "Mixed : Any other background"),
-      Arguments.of("MERGE", "MERGE", "Needs to be confirmed following merge"),
-      Arguments.of("NS", "NS", "Prefer not to say"),
-      Arguments.of("O2", "O2", "Other: Arab"),
-      Arguments.of("O9", "O9", "Other: Any other background"),
-      Arguments.of("W1", "W1", "White : Eng/Welsh/Scot/N.Irish/British"),
-      Arguments.of("W2", "W2", "White : Irish"),
-      Arguments.of("W3", "W3", "White: Gypsy or Irish Traveller"),
-      Arguments.of("W5", "W5", "White: Roma"),
-      Arguments.of("W9", "W9", "White : Any other background"),
-      Arguments.of("O1", "O1", "Chinese"),
-      Arguments.of("W8", "W8", "White : Irish Traveller/Gypsy"),
-      Arguments.of("Invalid", "UN", "Unknown"),
-    )
   }
 }

@@ -225,7 +225,7 @@ class PersonEntity(
       else -> yes(this)
     }
 
-    fun new(person: Person, ethnicityCode: EthnicityCodeEntity? = null): PersonEntity {
+    fun new(person: Person): PersonEntity {
       val personEntity = PersonEntity(
         defendantId = person.defendantId,
         crn = person.crn,
@@ -233,7 +233,6 @@ class PersonEntity(
         masterDefendantId = person.masterDefendantId,
         sourceSystem = person.sourceSystem,
         ethnicity = person.ethnicity,
-        ethnicityCode = ethnicityCode,
         nationality = person.nationality,
         religion = person.religion,
         matchId = UUID.randomUUID(),

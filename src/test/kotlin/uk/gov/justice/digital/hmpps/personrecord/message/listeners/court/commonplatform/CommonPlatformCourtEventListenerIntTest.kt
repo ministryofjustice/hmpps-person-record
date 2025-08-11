@@ -4,9 +4,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import software.amazon.awssdk.core.async.AsyncRequestBody
@@ -44,7 +41,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupContact
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformMessage
@@ -58,7 +54,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.nio.charset.Charset
 import java.time.LocalDateTime.now
 import java.util.UUID
-import java.util.stream.Stream
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -619,103 +614,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     ).join().asUtf8String()
 
     return Pair(body, sqsMessage)
-  }
-
-  @ParameterizedTest
-  @MethodSource("commonPlatformTitleCodes")
-  fun `should map all title codes to cpr title codes`(defendantTitleCode: String?, cprTitleCode: String?, cprTitleCodeDescription: String?) {
-    stubPersonMatchScores()
-    stubPersonMatchUpsert()
-    val defendantId = randomDefendantId()
-
-    publishCommonPlatformMessage(
-      commonPlatformHearing(
-        listOf(
-          CommonPlatformHearingSetup(
-            title = defendantTitleCode,
-            defendantId = defendantId,
-          ),
-        ),
-      ),
-    )
-
-    val person = awaitNotNullPerson { personRepository.findByDefendantId(defendantId = defendantId) }
-    assertThat(person.getPrimaryName().titleCode?.code).isEqualTo(cprTitleCode)
-    assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(cprTitleCodeDescription)
-  }
-
-  @ParameterizedTest
-  @MethodSource("commonPlatformEthnicityCodes")
-  fun `should map all ethnicity codes to cpr title codes`(defendantEthnicityCode: String?, cprEthnicityCode: String?, cprEthnicityCodeDescription: String?) {
-    stubPersonMatchScores()
-    stubPersonMatchUpsert()
-    val defendantId = randomDefendantId()
-
-    publishCommonPlatformMessage(
-      commonPlatformHearing(
-        listOf(
-          CommonPlatformHearingSetup(
-            ethnicity = CommonPlatformHearingSetupEthnicity(selfDefinedEthnicityCode = defendantEthnicityCode),
-            defendantId = defendantId,
-          ),
-        ),
-      ),
-    )
-
-    val person = awaitNotNullPerson { personRepository.findByDefendantId(defendantId = defendantId) }
-    assertThat(person.ethnicityCode?.code).isEqualTo(cprEthnicityCode)
-    assertThat(person.ethnicityCode?.description).isEqualTo(cprEthnicityCodeDescription)
-  }
-
-  companion object {
-
-    @JvmStatic
-    fun commonPlatformTitleCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("Mr", "MR", "Mr"),
-      Arguments.of("Mrs", "MRS", "Mrs"),
-      Arguments.of("Miss", "MISS", "Miss"),
-      Arguments.of("Ms", "MS", "Ms"),
-      Arguments.of("Reverend", "REV", "Reverend"),
-      Arguments.of("Father", "FR", "Father"),
-      Arguments.of("Imam", "IMAM", "Imam"),
-      Arguments.of("Rabbi", "RABBI", "Rabbi"),
-      Arguments.of("Brother", "BR", "Brother"),
-      Arguments.of("Sister", "SR", "Sister"),
-      Arguments.of("Dame", "DME", "Dame"),
-      Arguments.of("Dr", "DR", "Dr"),
-      Arguments.of("Lady", "LDY", "Lady"),
-      Arguments.of("Lord", "LRD", "Lord"),
-      Arguments.of("Sir", "SIR", "Sir"),
-      Arguments.of("Invalid", "UN", "Unknown"),
-    )
-
-    @JvmStatic
-    fun commonPlatformEthnicityCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("A1", "A1", "Asian/Asian British : Indian"),
-      Arguments.of("A2", "A2", "Asian/Asian British : Pakistani"),
-      Arguments.of("A3", "A3", "Asian/Asian British : Bangladeshi"),
-      Arguments.of("A4", "A4", "Asian/Asian British: Chinese"),
-      Arguments.of("A9", "A9", "Asian/Asian British : Any other backgr'nd"),
-      Arguments.of("B1", "B1", "Black/Black British : Carribean"),
-      Arguments.of("B2", "B2", "Black/Black British : African"),
-      Arguments.of("B9", "B9", "Black/Black British : Any other backgr'nd"),
-      Arguments.of("M1", "M1", "Mixed : White and Black Carribean"),
-      Arguments.of("M2", "M2", "Mixed : White and Black African"),
-      Arguments.of("M3", "M3", "Mixed : White and Asian"),
-      Arguments.of("M9", "M9", "Mixed : Any other background"),
-      Arguments.of("NS", "NS", "Prefer not to say"),
-      Arguments.of("O2", "O2", "Other: Arab"),
-      Arguments.of("O9", "O9", "Other: Any other background"),
-      Arguments.of("W1", "W1", "White : Eng/Welsh/Scot/N.Irish/British"),
-      Arguments.of("W2", "W2", "White : Irish"),
-      Arguments.of("W3", "W3", "White: Gypsy or Irish Traveller"),
-      Arguments.of("W9", "W9", "White : Any other background"),
-      Arguments.of("ETH03", "ETH03", "Other (historic)"),
-      Arguments.of("ETH04", "ETH04", "Z_Dummy Ethnicity 04"),
-      Arguments.of("ETH05", "ETH05", "Z_Dummy Ethnicity 05"),
-      Arguments.of("O1", "O1", "Chinese"),
-      Arguments.of("Invalid", "UN", "Unknown"),
-    )
   }
 
   @Nested

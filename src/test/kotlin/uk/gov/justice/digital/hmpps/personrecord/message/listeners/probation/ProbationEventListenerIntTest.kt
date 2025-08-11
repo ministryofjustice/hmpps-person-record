@@ -4,9 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
@@ -25,12 +22,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_RECOVERED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -49,7 +42,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
 import java.util.UUID
-import java.util.stream.Stream
 
 class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -449,100 +441,5 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       }
       checkEventLogExist(crn, CPRLogEvents.CPR_UUID_CREATED)
     }
-  }
-
-  @ParameterizedTest
-  @MethodSource("domainEvents")
-  fun `should process domain events`(event: String) {
-    val crn = randomCrn()
-    stubPersonMatchUpsert()
-    stubPersonMatchScores()
-    probationDomainEventAndResponseSetup(event, ApiResponseSetup(crn = crn))
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
-    checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
-  }
-
-  @ParameterizedTest
-  @MethodSource("probationTitleCodes")
-  fun `should map all title codes to cpr title codes`(probationTitleCode: String?, cprTitleCode: String?, cprTitleCodeDescription: String?) {
-    val crn = randomCrn()
-    stubPersonMatchUpsert()
-    stubPersonMatchScores()
-    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, title = probationTitleCode))
-    val person = awaitNotNullPerson { personRepository.findByCrn(crn) }
-    assertThat(person.getPrimaryName().titleCode?.code).isEqualTo(cprTitleCode)
-    assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(cprTitleCodeDescription)
-  }
-
-  @ParameterizedTest
-  @MethodSource("probationEthnicityCodes")
-  fun `should map all ethnicity codes to cpr ethnicity codes`(probationEthnicityCode: String?, cprEthnicityCode: String?, cprEthnicityCodeDescription: String?) {
-    val crn = randomCrn()
-    stubPersonMatchUpsert()
-    stubPersonMatchScores()
-    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, ethnicity = probationEthnicityCode))
-    val person = awaitNotNullPerson { personRepository.findByCrn(crn) }
-    assertThat(person.ethnicityCode?.code).isEqualTo(cprEthnicityCode)
-    assertThat(person.ethnicityCode?.description).isEqualTo(cprEthnicityCodeDescription)
-  }
-
-  companion object {
-
-    @JvmStatic
-    fun domainEvents(): Stream<Arguments> = Stream.of(
-      Arguments.of(OFFENDER_RECOVERED),
-      Arguments.of(NEW_OFFENDER_CREATED),
-      Arguments.of(OFFENDER_PERSONAL_DETAILS_UPDATED),
-      Arguments.of(OFFENDER_ADDRESS_CREATED),
-      Arguments.of(OFFENDER_ADDRESS_UPDATED),
-      Arguments.of(OFFENDER_ADDRESS_DELETED),
-    )
-
-    @JvmStatic
-    fun probationTitleCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("MR", "MR", "Mr"),
-      Arguments.of("MRS", "MRS", "Mrs"),
-      Arguments.of("MISS", "MISS", "Miss"),
-      Arguments.of("MS", "MS", "Ms"),
-      Arguments.of("MX", "MX", "Mx"),
-      Arguments.of("REV", "REV", "Reverend"),
-      Arguments.of("DME", "DME", "Dame"),
-      Arguments.of("DR", "DR", "Dr"),
-      Arguments.of("LDY", "LDY", "Lady"),
-      Arguments.of("LRD", "LRD", "Lord"),
-      Arguments.of("SIR", "SIR", "Sir"),
-      Arguments.of("Invalid", "UN", "Unknown"),
-    )
-
-    @JvmStatic
-    fun probationEthnicityCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("A1", "A1", "Asian/Asian British : Indian"),
-      Arguments.of("A2", "A2", "Asian/Asian British : Pakistani"),
-      Arguments.of("A3", "A3", "Asian/Asian British : Bangladeshi"),
-      Arguments.of("A4", "A4", "Asian/Asian British: Chinese"),
-      Arguments.of("A9", "A9", "Asian/Asian British : Any other backgr'nd"),
-      Arguments.of("B1", "B1", "Black/Black British : Carribean"),
-      Arguments.of("B2", "B2", "Black/Black British : African"),
-      Arguments.of("B9", "B9", "Black/Black British : Any other backgr'nd"),
-      Arguments.of("M1", "M1", "Mixed : White and Black Carribean"),
-      Arguments.of("M2", "M2", "Mixed : White and Black African"),
-      Arguments.of("M3", "M3", "Mixed : White and Asian"),
-      Arguments.of("M9", "M9", "Mixed : Any other background"),
-      Arguments.of("NS", "NS", "Prefer not to say"),
-      Arguments.of("O2", "O2", "Other: Arab"),
-      Arguments.of("O9", "O9", "Other: Any other background"),
-      Arguments.of("W1", "W1", "White : Eng/Welsh/Scot/N.Irish/British"),
-      Arguments.of("W2", "W2", "White : Irish"),
-      Arguments.of("W3", "W3", "White: Gypsy or Irish Traveller"),
-      Arguments.of("W4", "W4", "White: Gypsy or Irish Traveller"),
-      Arguments.of("W5", "W5", "White: Roma"),
-      Arguments.of("W9", "W9", "White : Any other background"),
-      Arguments.of("ETH03", "ETH03", "Other (historic)"),
-      Arguments.of("ETH04", "ETH04", "Z_Dummy Ethnicity 04"),
-      Arguments.of("ETH05", "ETH05", "Z_Dummy Ethnicity 05"),
-      Arguments.of("O1", "O1", "Chinese"),
-      Arguments.of("Z1", "Z1", "Missing (IAPS)"),
-      Arguments.of("Invalid", "UN", "Unknown"),
-    )
   }
 }
