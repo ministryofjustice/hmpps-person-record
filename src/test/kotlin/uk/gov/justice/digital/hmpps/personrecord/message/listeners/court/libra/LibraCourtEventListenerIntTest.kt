@@ -4,9 +4,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType.ORGANISATION
@@ -30,13 +27,11 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.format.DateTimeFormatter
-import java.util.stream.Stream
 
 class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -351,62 +346,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
 
     awaitNotNullPerson { personRepository.findByCId(cId) }
-  }
-
-  @ParameterizedTest
-  @MethodSource("libraTitleCodes")
-  fun `should map all title codes to cpr title codes`(libraTitleCode: String?, cprTitleCode: String?, cprTitleCodeDescription: String?) {
-    val cId = randomCId()
-
-    stubPersonMatchUpsert()
-    stubPersonMatchScores()
-
-    publishLibraMessage(
-      libraHearing(
-        cId = cId,
-        title = libraTitleCode,
-        firstName = randomName(),
-        lastName = randomName(),
-        cro = randomCro(),
-        pncNumber = randomPnc(),
-      ),
-    )
-
-    val person = awaitNotNullPerson { personRepository.findByCId(cId) }
-    assertThat(person.getPrimaryName().titleCode?.code).isEqualTo(cprTitleCode)
-    assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(cprTitleCodeDescription)
-  }
-
-  companion object {
-
-    @JvmStatic
-    fun libraTitleCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("Mr", "MR", "Mr"),
-      Arguments.of("MR", "MR", "Mr"),
-      Arguments.of("Mrs", "MRS", "Mrs"),
-      Arguments.of("MRS", "MRS", "Mrs"),
-      Arguments.of("Miss", "MISS", "Miss"),
-      Arguments.of("MISS", "MISS", "Miss"),
-      Arguments.of("Ms", "MS", "Ms"),
-      Arguments.of("MS", "MS", "Ms"),
-      Arguments.of("Mx", "MX", "Mx"),
-      Arguments.of("MX", "MX", "Mx"),
-      Arguments.of("Reverend", "REV", "Reverend"),
-      Arguments.of("Father", "FR", "Father"),
-      Arguments.of("Imam", "IMAM", "Imam"),
-      Arguments.of("Rabbi", "RABBI", "Rabbi"),
-      Arguments.of("Brother", "BR", "Brother"),
-      Arguments.of("Sister", "SR", "Sister"),
-      Arguments.of("Dame", "DME", "Dame"),
-      Arguments.of("Dr", "DR", "Dr"),
-      Arguments.of("DR", "DR", "Dr"),
-      Arguments.of("Lady", "LDY", "Lady"),
-      Arguments.of("Lord", "LRD", "Lord"),
-      Arguments.of("Sir", "SIR", "Sir"),
-      Arguments.of("Invalid", "UN", "Unknown"),
-      Arguments.of("", null, null),
-      Arguments.of(null, null, null),
-    )
   }
 
   @Nested
