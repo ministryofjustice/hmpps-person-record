@@ -38,7 +38,7 @@ enum class EthnicityCode {
 
   companion object {
 
-    private val ethnicityMap: Map<String, EthnicityCode> = mapOf(
+    private val rawMap = mapOf(
       "A1" to A1,
       "Asian/Asian British : Indian" to A1,
       "A2" to A2,
@@ -54,7 +54,7 @@ enum class EthnicityCode {
       "B2" to B2,
       "Black/Black British : African" to B2,
       "B9" to B9,
-      "Black/Black British: Any other backgr'nd" to B9,
+      "Black/Black British : Any other backgr'nd" to B9,
       "M1" to M1,
       "Mixed : White and Black Carribean" to M1,
       "M2" to M2,
@@ -93,6 +93,8 @@ enum class EthnicityCode {
       "Z1" to Z1,
       "P" to P,
     )
+    private val ethnicityMap: Map<String, EthnicityCode> = rawMap.mapKeys { it.key.uppercase() }
+
     fun from(code: String?): EthnicityCode? = code?.getEthnicityOrUnknown(
       ethnicityMap,
     )
