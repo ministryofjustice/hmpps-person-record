@@ -107,7 +107,7 @@ class PersonEntity(
   var ethnicityCode: EthnicityCodeEntity? = null,
 
   @Column
-  val ethnicity: String? = null,
+  var ethnicity: String? = null,
 
   @Column(name = "merged_to")
   var mergedTo: Long? = null,
