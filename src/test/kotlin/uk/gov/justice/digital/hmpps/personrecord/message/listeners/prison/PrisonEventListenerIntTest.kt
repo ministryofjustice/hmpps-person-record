@@ -119,7 +119,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(firstName)
         assertThat(personEntity.getPrimaryName().middleNames).isEqualTo("$middleName $middleName")
         assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
-        assertThat(personEntity.nationality).isEqualTo(nationality)
         assertThat(personEntity.religion).isEqualTo(religion)
         assertThat(personEntity.ethnicity).isEqualTo(ethnicity)
         assertThat(personEntity.getPnc()).isEqualTo(pnc)
@@ -174,8 +173,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
-
-        assertThat(personEntity.nationality).isEqualTo(null)
+        assertThat(personEntity.nationalities.size).isEqualTo(0)
         assertThat(personEntity.religion).isEqualTo(null)
       }
 
