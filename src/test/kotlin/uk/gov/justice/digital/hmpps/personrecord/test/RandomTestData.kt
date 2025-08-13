@@ -1,7 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.test
 
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier.Companion.VALID_LETTERS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.COMMON_PLATFORM_NATIONALITY_MAPPING
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.LIBRA_NATIONALITY_MAPPINGS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.PRISON_NATIONALITY_MAPPING
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.PROBATION_NATIONALITY_MAPPING
 import java.time.LocalDate
 import java.util.UUID
 
@@ -28,7 +32,15 @@ fun randomName(): String = randomLowerCaseString()
 
 fun randomEthnicity(): String = randomLowerCaseString()
 
-fun randomNationality(): String = NationalityCode.entries.random().name
+fun randomNationalityCode(): NationalityCode = NationalityCode.entries.random()
+
+fun randomPrisonerNationalityCode(): String = PRISON_NATIONALITY_MAPPING.entries.random().key
+
+fun randomProbationNationalityCode(): String = PROBATION_NATIONALITY_MAPPING.entries.random().key
+
+fun randomLibraNationalityCode(): String = LIBRA_NATIONALITY_MAPPINGS.entries.random().key
+
+fun randomCommonPlatformNationalityCode(): String = COMMON_PLATFORM_NATIONALITY_MAPPING.entries.random().key
 
 fun randomReligion(): String = randomLowerCaseString()
 
