@@ -25,7 +25,7 @@ data class CanonicalNationality(
         description = it.nationalityCode?.description,
         startDate = it.startDate,
         endDate = it.startDate,
-        notes = it.notes
+        notes = it.notes,
       )
     }
   }
