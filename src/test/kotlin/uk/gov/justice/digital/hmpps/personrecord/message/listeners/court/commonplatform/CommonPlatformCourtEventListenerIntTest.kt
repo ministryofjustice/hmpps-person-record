@@ -31,7 +31,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.LARGE_CASE_EVENT_TYPE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -45,6 +44,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -184,6 +184,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val postcode = randomPostcode()
     val title = "Mr"
 
+    val firstNationality = randomCommonPlatformNationalityCode()
+    val secondNationality = randomCommonPlatformNationalityCode()
+
     publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
@@ -199,14 +202,14 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
               CommonPlatformHearingSetupAlias(firstName = "aliasFirstName1", lastName = "alisLastName1"),
               CommonPlatformHearingSetupAlias(firstName = "aliasFirstName2", lastName = "alisLastName2"),
             ),
-            nationalityCode = "GB",
+            nationalityCode = firstNationality,
           ),
           CommonPlatformHearingSetup(
             gender = "FEMALE",
             pnc = secondPnc,
             defendantId = secondDefendantId,
             contact = CommonPlatformHearingSetupContact(),
-            nationalityCode = "GB",
+            nationalityCode = secondNationality,
             address =
             CommonPlatformHearingSetupAddress(buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown, postcode = postcode),
           ),
@@ -244,8 +247,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.contacts).isEmpty()
     assertThat(firstPerson.addresses).isNotEmpty()
     assertThat(firstPerson.nationalities.size).isEqualTo(1)
-    assertThat(firstPerson.nationalities.first().nationalityCode?.code).isEqualTo(NationalityCode.BRIT.name)
-    assertThat(firstPerson.nationalities.first().nationalityCode?.description).isEqualTo("British")
+    assertThat(firstPerson.nationalities.first().nationalityCode?.code).isEqualTo(firstNationality.getNationalityCodeEntityFromCommonPlatformCode()?.code)
+    assertThat(firstPerson.nationalities.first().nationalityCode?.description).isEqualTo(firstNationality.getNationalityCodeEntityFromCommonPlatformCode()?.description)
     assertThat(firstPerson.getAliases().size).isEqualTo(2)
     assertThat(firstPerson.getAliases()[0].titleCode).isNull()
     assertThat(firstPerson.getAliases()[0].firstName).isEqualTo("aliasFirstName1")
@@ -276,8 +279,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPerson.masterDefendantId).isEqualTo(secondDefendantId)
     assertThat(secondPerson.sexCode).isEqualTo(SexCode.F)
     assertThat(secondPerson.nationalities.size).isEqualTo(1)
-    assertThat(secondPerson.nationalities.first().nationalityCode?.code).isEqualTo(NationalityCode.BRIT.name)
-    assertThat(secondPerson.nationalities.first().nationalityCode?.description).isEqualTo("British")
+    assertThat(secondPerson.nationalities.first().nationalityCode?.code).isEqualTo(secondNationality.getNationalityCodeEntityFromCommonPlatformCode()?.code)
+    assertThat(secondPerson.nationalities.first().nationalityCode?.description).isEqualTo(secondNationality.getNationalityCodeEntityFromCommonPlatformCode()?.description)
 
     assertThat(thirdPerson.getAliases()).isEmpty()
     assertThat(thirdPerson.contacts.size).isEqualTo(0)
