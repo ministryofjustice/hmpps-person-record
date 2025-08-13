@@ -149,8 +149,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceStartDate)
         assertThat(personEntity.sexCode).isEqualTo(SexCode.F)
         assertThat(personEntity.nationalities.size).isEqualTo(1)
-        assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeFromPrisonCode()?.code)
-        assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeFromPrisonCode()?.description)
+        assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromPrisonCode()?.code)
+        assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeEntityFromPrisonCode()?.description)
       }
 
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)

@@ -110,7 +110,7 @@ class CourtApiIntTest : WebTestBase() {
       .responseBody!!
 
     val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = CanonicalTitle(code = "MRS", description = "Mrs"))
-    val canonicalNationality = nationality.getNationalityCode()?.let { listOf(CanonicalNationality(it.code, it.description)) }
+    val canonicalNationality = nationality.getEntity()?.let { listOf(CanonicalNationality(it.code, it.description)) }
     val canonicalAddress = CanonicalAddress(noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
     val canonicalReligion = CanonicalReligion(code = religion, description = religion)
     val canonicalEthnicity = CanonicalEthnicity(code = ethnicity, description = ethnicity)

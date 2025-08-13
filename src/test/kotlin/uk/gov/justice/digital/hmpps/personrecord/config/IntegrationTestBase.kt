@@ -548,15 +548,15 @@ class IntegrationTestBase {
     }
   }
 
-  internal fun NationalityCode?.getNationalityCode(): NationalityCodeEntity? = this?.let { nationalityCodeRepository.findByCode(it.name) }
+  internal fun NationalityCode?.getEntity(): NationalityCodeEntity? = this?.let { nationalityCodeRepository.findByCode(it.name) }
 
-  internal fun String?.getNationalityCodeFromPrisonCode(): NationalityCodeEntity? = NationalityCode.fromPrisonMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
+  internal fun String?.getNationalityCodeEntityFromPrisonCode(): NationalityCodeEntity? = NationalityCode.fromPrisonMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
 
-  internal fun String?.getNationalityCodeFromProbationCode(): NationalityCodeEntity? = NationalityCode.fromProbationMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
+  internal fun String?.getNationalityCodeEntityFromProbationCode(): NationalityCodeEntity? = NationalityCode.fromProbationMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
 
-  internal fun String?.getNationalityCodeFromLibraCode(): NationalityCodeEntity? = NationalityCode.fromLibraMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
+  internal fun String?.getNationalityCodeEntityFromLibraCode(): NationalityCodeEntity? = NationalityCode.fromLibraMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
 
-  internal fun String?.getNationalityCodeFromCommonPlatformCode(): NationalityCodeEntity? = NationalityCode.fromCommonPlatformMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
+  internal fun String?.getNationalityCodeEntityFromCommonPlatformCode(): NationalityCodeEntity? = NationalityCode.fromCommonPlatformMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
 
   internal fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.personEntities?.size).isEqualTo(size) }
 

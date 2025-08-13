@@ -108,8 +108,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
     assertThat(person.sexCode).isEqualTo(NS)
     assertThat(person.nationalities.size).isEqualTo(1)
-    assertThat(person.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeFromLibraCode()?.code)
-    assertThat(person.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeFromLibraCode()?.description)
+    assertThat(person.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromLibraCode()?.code)
+    assertThat(person.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeEntityFromLibraCode()?.description)
   }
 
   @Test
