@@ -26,7 +26,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -39,7 +38,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonerNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 
 class CourtApiIntTest : WebTestBase() {
@@ -302,7 +300,7 @@ class CourtApiIntTest : WebTestBase() {
         crn = personOneCrn,
         prisonNumber = randomPrisonNumber(),
         ethnicity = randomEthnicity(),
-        nationality = randomPrisonerNationalityCode(),
+        nationalities = listOf(Nationality(randomNationalityCode())),
         religion = randomReligion(),
         cId = randomCId(),
         defendantId = personOneDefendantId,
@@ -328,7 +326,7 @@ class CourtApiIntTest : WebTestBase() {
         crn = personTwoCrn,
         prisonNumber = randomPrisonNumber(),
         ethnicity = randomEthnicity(),
-        nationality = randomPrisonerNationalityCode(),
+        nationalities = listOf(Nationality(randomNationalityCode())),
         religion = randomReligion(),
         cId = randomCId(),
         defendantId = personTwoDefendantId,
@@ -379,7 +377,7 @@ class CourtApiIntTest : WebTestBase() {
         dateOfBirth = randomDate(),
         sourceSystem = COMMON_PLATFORM,
         ethnicity = randomEthnicity(),
-        nationality = randomCommonPlatformNationalityCode(),
+        nationalities = listOf(Nationality(randomNationalityCode())),
         religion = randomReligion(),
         masterDefendantId = randomDefendantId(),
         defendantId = defendantId,
