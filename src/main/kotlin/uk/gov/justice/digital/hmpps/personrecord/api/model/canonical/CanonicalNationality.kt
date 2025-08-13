@@ -12,13 +12,11 @@ data class CanonicalNationality(
 ) {
   companion object {
 
-    fun from(personEntity: PersonEntity): List<CanonicalNationality> = personEntity.nationality?.let {
-      listOf(
-        CanonicalNationality(
-          code = personEntity.nationality,
-          description = personEntity.nationality,
-        ),
+    fun from(personEntity: PersonEntity): List<CanonicalNationality> = personEntity.nationalities.map {
+      CanonicalNationality(
+        code = it.nationalityCode?.code,
+        description = it.nationalityCode?.description,
       )
-    } ?: emptyList()
+    }
   }
 }

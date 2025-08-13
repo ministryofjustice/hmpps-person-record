@@ -51,7 +51,9 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.NationalityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.NationalityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -62,6 +64,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType.
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
@@ -109,6 +112,9 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var eventLogRepository: EventLogRepository
+
+  @Autowired
+  lateinit var nationalityCodeRepository: NationalityCodeRepository
 
   fun authSetup() {
     wiremock.stubFor(
@@ -541,6 +547,16 @@ class IntegrationTestBase {
       blitzer.shutdown()
     }
   }
+
+  internal fun NationalityCode?.getNationalityCode(): NationalityCodeEntity? = this?.let { nationalityCodeRepository.findByCode(it.name) }
+
+  internal fun String?.getNationalityCodeFromPrisonCode(): NationalityCodeEntity? = NationalityCode.fromPrisonMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
+
+  internal fun String?.getNationalityCodeFromProbationCode(): NationalityCodeEntity? = NationalityCode.fromProbationMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
+
+  internal fun String?.getNationalityCodeFromLibraCode(): NationalityCodeEntity? = NationalityCode.fromLibraMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
+
+  internal fun String?.getNationalityCodeFromCommonPlatformCode(): NationalityCodeEntity? = NationalityCode.fromCommonPlatformMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
 
   internal fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.personEntities?.size).isEqualTo(size) }
 

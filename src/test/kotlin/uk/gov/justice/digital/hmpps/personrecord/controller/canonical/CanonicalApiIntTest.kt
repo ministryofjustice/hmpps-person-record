@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Nationality
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -33,10 +34,11 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomNationality
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonerNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 
 class CanonicalApiIntTest : WebTestBase() {
@@ -52,7 +54,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val startDate = randomDate()
     val endDate = randomDate()
     val postcode = randomPostcode()
-    val nationality = randomNationality()
+    val nationality = randomNationalityCode()
     val religion = randomReligion()
     val ethnicity = randomEthnicity()
 
@@ -80,7 +82,7 @@ class CanonicalApiIntTest : WebTestBase() {
         sexCode = SexCode.M,
         prisonNumber = prisonNumber,
         ethnicity = ethnicity,
-        nationality = nationality,
+        nationalities = listOf(Nationality(nationality)),
         religion = religion,
         cId = cid,
         defendantId = defendantId,
@@ -105,7 +107,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .responseBody!!
 
     val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = CanonicalTitle(code = "MR", description = "Mr"))
-    val canonicalNationality = listOf(CanonicalNationality(code = nationality, description = nationality))
+    val canonicalNationality = nationality.getNationalityCode()?.let { listOf(CanonicalNationality(it.code, it.description)) }
     val canonicalAddress = CanonicalAddress(noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
     val canonicalReligion = CanonicalReligion(code = religion, description = religion)
     val canonicalEthnicity = CanonicalEthnicity(code = ethnicity, description = ethnicity)
@@ -119,8 +121,8 @@ class CanonicalApiIntTest : WebTestBase() {
     assertThat(responseBody.title.description).isEqualTo(person.getPrimaryName().titleCode?.description)
     assertThat(responseBody.aliases.first().title.code).isEqualTo(person.getAliases().first().titleCode?.code)
     assertThat(responseBody.aliases.first().title.description).isEqualTo(person.getAliases().first().titleCode?.description)
-    assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality.first().code)
-    assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality.first().description)
+    assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality?.first()?.code)
+    assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality?.first()?.description)
     assertThat(responseBody.sex.code).isEqualTo("M")
     assertThat(responseBody.sex.description).isEqualTo("Male")
     assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
@@ -323,7 +325,7 @@ class CanonicalApiIntTest : WebTestBase() {
         crn = personOneCrn,
         prisonNumber = randomPrisonNumber(),
         ethnicity = randomEthnicity(),
-        nationality = randomNationality(),
+        nationality = randomPrisonerNationalityCode(),
         religion = randomReligion(),
         cId = randomCId(),
         defendantId = randomDefendantId(),
@@ -349,7 +351,7 @@ class CanonicalApiIntTest : WebTestBase() {
         crn = personTwoCrn,
         prisonNumber = randomPrisonNumber(),
         ethnicity = randomEthnicity(),
-        nationality = randomNationality(),
+        nationality = randomPrisonerNationalityCode(),
         religion = randomReligion(),
         cId = randomCId(),
         defendantId = randomDefendantId(),
@@ -398,7 +400,7 @@ class CanonicalApiIntTest : WebTestBase() {
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
         ethnicity = randomEthnicity(),
-        nationality = randomNationality(),
+        nationality = randomPrisonerNationalityCode(),
         religion = randomReligion(),
         masterDefendantId = randomDefendantId(),
       ),
