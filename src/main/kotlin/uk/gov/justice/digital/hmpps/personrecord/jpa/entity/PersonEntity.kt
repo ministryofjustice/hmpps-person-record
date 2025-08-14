@@ -83,9 +83,6 @@ class PersonEntity(
   val birthCountry: String? = null,
 
   @Column
-  var nationality: String? = null,
-
-  @Column
   @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
   var nationalities: MutableList<NationalityEntity> = mutableListOf(),
 
@@ -163,7 +160,6 @@ class PersonEntity(
     this.crn = person.crn
     this.prisonNumber = person.prisonNumber
     this.masterDefendantId = person.masterDefendantId
-    this.nationality = person.nationality
     this.religion = person.religion
     this.cId = person.cId
     this.sexCode = person.sexCode
@@ -233,7 +229,6 @@ class PersonEntity(
         masterDefendantId = person.masterDefendantId,
         sourceSystem = person.sourceSystem,
         ethnicity = person.ethnicity,
-        nationality = person.nationality,
         religion = person.religion,
         matchId = UUID.randomUUID(),
         cId = person.cId,

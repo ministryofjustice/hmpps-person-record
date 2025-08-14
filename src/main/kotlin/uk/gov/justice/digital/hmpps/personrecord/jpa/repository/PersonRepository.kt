@@ -28,7 +28,5 @@ interface PersonRepository : JpaRepository<PersonEntity, Long> {
 
   fun countBySourceSystemAndMergedToIsNull(sourceSystem: SourceSystemType): Long
 
-  fun findAllByNationalityIsNotNull(pageable: Pageable): Page<PersonEntity>
-
   fun findAllByEthnicityIsNotNull(pageable: Pageable): Page<PersonEntity>
 }
