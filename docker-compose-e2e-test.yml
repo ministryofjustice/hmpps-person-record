@@ -2,7 +2,7 @@ services:
 
   hmpps-person-match:
     container_name: hmpps-person-match
-    image: hmpps-person-match:latest
+    image: ghcr.io/ministryofjustice/hmpps-person-match
     command: |
       sh -c "/app/.venv/bin/python -m pip install --no-cache-dir debugpy &&
              python -m debugpy --listen 0.0.0.0:5678 -m uvicorn asgi:app --host 0.0.0.0 --port 5000 --reload --log-level debug"
@@ -27,7 +27,7 @@ services:
       - 5678:5678
 
   migrations:
-    image: hmpps-person-match:latest
+    image: ghcr.io/ministryofjustice/hmpps-person-match
     container_name: db-migrations
     command: alembic upgrade head
     networks:
