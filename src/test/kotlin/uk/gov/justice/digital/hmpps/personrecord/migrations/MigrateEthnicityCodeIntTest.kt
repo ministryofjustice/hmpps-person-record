@@ -4,11 +4,16 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import java.util.stream.Stream
 
 class MigrateEthnicityCodeIntTest : WebTestBase() {
+
+  @Autowired
+  lateinit var ethnicityCodeRepository: EthnicityCodeRepository
 
   @ParameterizedTest
   @MethodSource("probationCodes")
@@ -40,6 +45,31 @@ class MigrateEthnicityCodeIntTest : WebTestBase() {
     personRepository.save(beforeMigrationPerson)
 
     assertThat(beforeMigrationPerson.ethnicity).isEqualTo(prisonCode)
+
+    webTestClient.post()
+      .uri("/migrate/ethnicity-codes")
+      .exchange()
+      .expectStatus()
+      .isOk
+
+    awaitAssert {
+      val afterMigrationPerson = awaitNotNullPerson { personRepository.findByPrisonNumber(beforeMigrationPerson.prisonNumber!!) }
+      assertThat(afterMigrationPerson.ethnicityCode?.code).isEqualTo(cprCode.name)
+      assertThat(afterMigrationPerson.ethnicityCode?.description).isEqualTo(cprDescription)
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("prisonCodes")
+  fun `migrates incorrect UN ethnicityCode to correct ethnicity code`(prisonCode: String, cprCode: EthnicityCode, cprDescription: String) {
+    val beforeMigrationPerson = createPerson(createRandomPrisonPersonDetails())
+    beforeMigrationPerson.ethnicity = prisonCode
+    beforeMigrationPerson.ethnicityCode = ethnicityCodeRepository.findByCode("UN")
+
+    personRepository.save(beforeMigrationPerson)
+
+    assertThat(beforeMigrationPerson.ethnicity).isEqualTo(prisonCode)
+    assertThat(beforeMigrationPerson.ethnicityCode?.code).isEqualTo("UN")
 
     webTestClient.post()
       .uri("/migrate/ethnicity-codes")

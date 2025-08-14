@@ -15,8 +15,8 @@ class EthnicityCodeEntity(
   val id: Long? = null,
 
   @Column(unique = true, nullable = false)
-  val code: String,
+  var code: String,
 
   @Column
-  val description: String,
+  var description: String,
 )
