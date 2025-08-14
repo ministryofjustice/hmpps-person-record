@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.NS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
@@ -28,6 +27,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLibraNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -53,6 +53,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val dependentLocality = randomName()
     val postTown = randomName()
 
+    val nationality = randomLibraNationalityCode()
+
     stubPersonMatchUpsert()
     stubPersonMatchScores()
 
@@ -73,8 +75,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         line3 = thoroughfareName,
         line4 = dependentLocality,
         line5 = postTown,
-        nationality1 = "British",
-        nationality2 = "British",
+        nationality1 = nationality,
       ),
     )
 
@@ -106,9 +107,9 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.personKey).isNotNull()
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
     assertThat(person.sexCode).isEqualTo(NS)
-    assertThat(person.nationalities.size).isEqualTo(2)
-    assertThat(person.nationalities.first().nationalityCode?.code).isEqualTo(NationalityCode.BRIT.name)
-    assertThat(person.nationalities.first().nationalityCode?.description).isEqualTo("British")
+    assertThat(person.nationalities.size).isEqualTo(1)
+    assertThat(person.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromLibraCode()?.code)
+    assertThat(person.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeEntityFromLibraCode()?.description)
   }
 
   @Test
