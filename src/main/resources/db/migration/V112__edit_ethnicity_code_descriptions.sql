@@ -2,43 +2,36 @@ BEGIN;
 -------------------------------------------------------
 UPDATE ethnicity_codes
 SET description = 'Asian/Asian British : Chinese'
-WHERE id = 4;
+WHERE code = 'A4';
 
 UPDATE ethnicity_codes
 SET description = 'Other : Arab'
-WHERE id = 15;
+WHERE code = 'O2';
 
 UPDATE ethnicity_codes
 SET description = 'Other : Any other background'
-WHERE id = 16;
+WHERE code = 'O9';
 
 UPDATE ethnicity_codes
 SET description = 'White : Gypsy or Irish Traveller'
-WHERE id = 16;
+WHERE code = 'W3';
 
 UPDATE ethnicity_codes
 SET description = 'Black/Black British : Caribbean'
-WHERE id = 6;
+WHERE code = 'B1';
 
 UPDATE ethnicity_codes
 SET description = 'Mixed : White and Black Caribbean'
-WHERE id = 9;
-
-UPDATE ethnicity_codes
-SET description = 'Other : Any other background'
-WHERE id = 16;
+WHERE code = 'M1';
 
 UPDATE ethnicity_codes
 SET description = 'White : Gypsy or Irish Traveller'
-WHERE id = 19;
+WHERE code = 'W4';
 
-UPDATE ethnicity_codes
-SET description = 'White : Gypsy or Irish Traveller'
-WHERE id = 20;
 
 UPDATE ethnicity_codes
 SET description = 'White : Roma'
-WHERE id = 21;
+WHERE code = 'W5';
 
 
 -----------------------------------------------------
