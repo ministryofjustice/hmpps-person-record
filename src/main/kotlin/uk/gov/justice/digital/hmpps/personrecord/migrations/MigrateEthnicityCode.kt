@@ -31,15 +31,17 @@ class MigrateEthnicityCode(
 
   suspend fun migrateEthnicityCodes() = coroutineScope {
     log.info("Starting migration of ethnicity codes")
-    val preLoadedEthnicityCodes: List<EthnicityCodeEntity> = ethnicityCodeRepository.findAll()
+    val preLoadedEthnicityCodes: Map<String, EthnicityCodeEntity> = ethnicityCodeRepository.findAll().associateBy { it.code }
     val executionResults = forPage { page ->
       log.info("Migrating ethnicity codes, page: ${page.pageable.pageNumber + 1}")
       page.content.map { personEntity ->
         val ethnicityCode = personEntity.getEthnicityCode()
-        val ethnicityCodeEntity = preLoadedEthnicityCodes.lookupEthnicityCode(ethnicityCode)
+        val ethnicityCodeEntity = ethnicityCode?.let { preLoadedEthnicityCodes[it.name] }
 
-        personEntity.ethnicityCode = ethnicityCodeEntity
-        personRepository.save(personEntity)
+        if (ethnicityCodeEntity != null) {
+          personEntity.ethnicityCode = ethnicityCodeEntity
+          personRepository.save(personEntity)
+        }
       }
     }
     log.info(
@@ -50,8 +52,6 @@ class MigrateEthnicityCode(
   }
 
   private fun PersonEntity.getEthnicityCode(): EthnicityCode? = EthnicityCode.from(this.ethnicity)
-
-  private fun List<EthnicityCodeEntity>.lookupEthnicityCode(ethnicityCode: EthnicityCode?): EthnicityCodeEntity? = ethnicityCode?.let { this.find { it.code == ethnicityCode.name } }
 
   private inline fun forPage(page: (Page<PersonEntity>) -> Unit): ExecutionResult {
     var pageNumber = 0
