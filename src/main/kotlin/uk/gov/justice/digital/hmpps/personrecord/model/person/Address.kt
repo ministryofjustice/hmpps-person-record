@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import java.time.LocalDate
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Address as CommonPlatformAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Address as LibraAddress
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Address as OffenderAddress
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress as OffenderAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Address as PrisonerAddress
 
 data class Address(

@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Identifiers(
+  val defendantId: String? = null,
   val crn: String? = null,
   @JsonDeserialize(using = PNCIdentifierDeserializer::class)
   val pnc: PNCIdentifier? = PNCIdentifier.from(),

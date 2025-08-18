@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.eventlog
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Address
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
@@ -39,7 +39,7 @@ class EventLogServiceIntTest : IntegrationTestBase() {
           name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
           dateOfBirth = randomDate(),
           identifiers = Identifiers(crn = randomCrn(), cro = CROIdentifier.from(randomCro()), pnc = PNCIdentifier.from(randomPnc())),
-          addresses = listOf(Address(postcode = randomPostcode())),
+          addresses = listOf(ProbationAddress(postcode = randomPostcode())),
           aliases = listOf(
             ProbationCaseAlias(
               name = Name(firstName = randomName(), lastName = randomName()),
@@ -120,7 +120,7 @@ class EventLogServiceIntTest : IntegrationTestBase() {
         ProbationCase(
           name = Name(firstName = randomName(), lastName = randomName()),
           identifiers = Identifiers(crn = randomCrn(), cro = CROIdentifier.from(randomCro()), pnc = PNCIdentifier.from(randomPnc())),
-          addresses = listOf(Address(postcode = "ZX1 1AB"), Address(postcode = "AB1 2BC"), Address(postcode = "ZX1 1AB")),
+          addresses = listOf(ProbationAddress(postcode = "ZX1 1AB"), ProbationAddress(postcode = "AB1 2BC"), ProbationAddress(postcode = "ZX1 1AB")),
           aliases = listOf(
             ProbationCaseAlias(
               name = Name(firstName = "Bob", lastName = "Smythe"),

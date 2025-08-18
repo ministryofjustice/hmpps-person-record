@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Address
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
@@ -58,7 +58,7 @@ class CreateUpdateServiceIntTest : IntegrationTestBase() {
       ProbationCase(
         name = OffenderName(firstName = firstName, lastName = lastName),
         identifiers = Identifiers(crn = crn),
-        addresses = listOf(Address(postcode = postcode1), Address(postcode = postcode2)),
+        addresses = listOf(ProbationAddress(postcode = postcode1), ProbationAddress(postcode = postcode2)),
       ),
     )
     val existingPerson = createPersonWithNewKey(person)
@@ -67,7 +67,7 @@ class CreateUpdateServiceIntTest : IntegrationTestBase() {
       ProbationCase(
         name = OffenderName(firstName = firstName, lastName = lastName),
         identifiers = Identifiers(crn = crn),
-        addresses = listOf(Address(postcode = postcode2), Address(postcode = postcode1)),
+        addresses = listOf(ProbationAddress(postcode = postcode2), ProbationAddress(postcode = postcode1)),
       ),
     )
 
