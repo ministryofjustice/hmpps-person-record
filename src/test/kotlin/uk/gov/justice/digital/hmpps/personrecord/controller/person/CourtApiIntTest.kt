@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Nationality
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
@@ -32,6 +33,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
@@ -58,7 +60,7 @@ class CourtApiIntTest : WebTestBase() {
     val postcode = randomPostcode()
     val nationality = randomNationalityCode()
     val religion = randomReligion()
-    val ethnicity = randomEthnicity()
+    val ethnicity = randomEthnicityCode()
 
     val buildingName = randomName()
     val buildingNumber = randomBuildingNumber()
@@ -83,7 +85,8 @@ class CourtApiIntTest : WebTestBase() {
         crn = crn,
         sexCode = SexCode.M,
         prisonNumber = prisonNumber,
-        ethnicity = ethnicity,
+        ethnicity = ethnicity.name,
+        ethnicityCode = EthnicityCode.from(ethnicity.name),
         nationalities = listOf(Nationality(nationality)),
         religion = religion,
         cId = cid,
@@ -111,7 +114,7 @@ class CourtApiIntTest : WebTestBase() {
     val canonicalNationality = nationality.getEntity()?.let { listOf(CanonicalNationality(it.code, it.description)) }
     val canonicalAddress = CanonicalAddress(noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
     val canonicalReligion = CanonicalReligion(code = religion, description = religion)
-    val canonicalEthnicity = CanonicalEthnicity(code = ethnicity, description = ethnicity)
+    val canonicalEthnicity = ethnicity.getEthnicityEntity()?.let { CanonicalEthnicity(code = it.code, description = it.description) }
 
     assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
     assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
@@ -127,8 +130,8 @@ class CourtApiIntTest : WebTestBase() {
     assertThat(responseBody.sex.description).isEqualTo("Male")
     assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
     assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
-    assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
-    assertThat(responseBody.ethnicity.description).isEqualTo(canonicalEthnicity.description)
+    assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity?.code)
+    assertThat(responseBody.ethnicity.description).isEqualTo(canonicalEthnicity?.description)
     assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
     assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro)) // TODO not a list
     assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
