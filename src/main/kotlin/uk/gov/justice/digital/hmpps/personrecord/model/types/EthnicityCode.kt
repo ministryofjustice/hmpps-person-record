@@ -102,6 +102,6 @@ enum class EthnicityCode {
     private fun String?.getEthnicityOrUnknown(ethniciyMap: Map<String, EthnicityCode>): EthnicityCode? = this.normalize()?.let {
       ethniciyMap[it] ?: UN
     }
-    private fun String?.normalize(): String? = this?.trim().nullIfBlank()?.uppercase()
+    private fun String?.normalize(): String? = this?.trim().nullIfBlank()?.uppercase()?.replace(" : ", ": ")
   }
 }
