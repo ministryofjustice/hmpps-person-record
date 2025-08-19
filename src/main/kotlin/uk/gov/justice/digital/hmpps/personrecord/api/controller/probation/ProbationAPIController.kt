@@ -27,7 +27,7 @@ class ProbationAPIController(
       Includes all fields relating to core person information""",
     security = [SecurityRequirement(name = "api-role")],
   )
-  @PostMapping("/person/delius")
+  @PostMapping("/person/probation")
   @ApiResponses(
     ApiResponse(
       responseCode = "200",

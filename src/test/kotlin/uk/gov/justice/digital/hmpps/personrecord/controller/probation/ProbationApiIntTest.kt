@@ -244,6 +244,6 @@ class ProbationApiIntTest : WebTestBase() {
   }
 
   companion object {
-    private const val PROBATION_API_URL = "/person/delius"
+    private const val PROBATION_API_URL = "/person/probation"
   }
 }
