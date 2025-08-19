@@ -8,6 +8,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -62,8 +64,8 @@ data class Person(
         Contact.from(ContactType.EMAIL, probationCase.contactDetails?.email),
       )
       val references: List<Reference> = listOf(
-        Reference(identifierType = IdentifierType.CRO, identifierValue = probationCase.identifiers.cro?.croId),
-        Reference(identifierType = IdentifierType.PNC, identifierValue = probationCase.identifiers.pnc?.pncId),
+        Reference(identifierType = IdentifierType.CRO, identifierValue = CROIdentifier.from(probationCase.identifiers.cro).croId),
+        Reference(identifierType = IdentifierType.PNC, identifierValue = PNCIdentifier.from(probationCase.identifiers.pnc).pncId),
         Reference(
           identifierType = IdentifierType.NATIONAL_INSURANCE_NUMBER,
           identifierValue = probationCase.identifiers.nationalInsuranceNumber,

@@ -3,15 +3,13 @@ package uk.gov.justice.digital.hmpps.personrecord.eventlog
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
@@ -38,7 +36,7 @@ class EventLogServiceIntTest : IntegrationTestBase() {
         ProbationCase(
           name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
           dateOfBirth = randomDate(),
-          identifiers = Identifiers(crn = randomCrn(), cro = CROIdentifier.from(randomCro()), pnc = PNCIdentifier.from(randomPnc())),
+          identifiers = Identifiers(crn = randomCrn(), cro = randomCro(), pnc = randomPnc()),
           addresses = listOf(ProbationAddress(postcode = randomPostcode())),
           aliases = listOf(
             ProbationCaseAlias(
@@ -119,7 +117,7 @@ class EventLogServiceIntTest : IntegrationTestBase() {
       Person.from(
         ProbationCase(
           name = Name(firstName = randomName(), lastName = randomName()),
-          identifiers = Identifiers(crn = randomCrn(), cro = CROIdentifier.from(randomCro()), pnc = PNCIdentifier.from(randomPnc())),
+          identifiers = Identifiers(crn = randomCrn(), cro = randomCro(), pnc = randomPnc()),
           addresses = listOf(ProbationAddress(postcode = "ZX1 1AB"), ProbationAddress(postcode = "AB1 2BC"), ProbationAddress(postcode = "ZX1 1AB")),
           aliases = listOf(
             ProbationCaseAlias(
