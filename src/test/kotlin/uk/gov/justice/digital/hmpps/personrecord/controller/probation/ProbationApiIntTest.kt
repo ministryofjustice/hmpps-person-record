@@ -186,7 +186,7 @@ class ProbationApiIntTest : WebTestBase() {
 
       val probationCase = ProbationCase(
         name = Name(firstName = randomName(), lastName = randomName()),
-        identifiers = Identifiers(crn = crn, defendantId = randomDefendantId())
+        identifiers = Identifiers(crn = crn, defendantId = randomDefendantId()),
       )
 
       webTestClient.post()
