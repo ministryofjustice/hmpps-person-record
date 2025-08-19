@@ -31,6 +31,7 @@ class MigrateEthnicityCode(
 
   suspend fun migrateEthnicityCodes() = coroutineScope {
     log.info("Starting migration of ethnicity codes")
+    log.info("total number of pages: ${ethnicityCodeRepository.count() / BATCH_SIZE + 1}")
     val preLoadedEthnicityCodes: Map<String, EthnicityCodeEntity> = ethnicityCodeRepository.findAll().associateBy { it.code }
     val executionResults = forPage { page ->
       log.info("Migrating ethnicity codes, page: ${page.pageable.pageNumber + 1}")
@@ -60,7 +61,7 @@ class MigrateEthnicityCode(
       do {
         val pageable = PageRequest.of(pageNumber, BATCH_SIZE)
 
-        personRecords = personRepository.findAllByEthnicityIsNotNull(pageable)
+        personRecords = personRepository.findAllByEthnicityIsNotNullOrderById(pageable)
         page(personRecords)
 
         pageNumber++
