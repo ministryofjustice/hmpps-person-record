@@ -16,6 +16,8 @@ fun randomPnc(): String {
   return "$year/$digits$check"
 }
 
+fun randomPhoneNumber(): String = randomDigit(10)
+
 fun randomEmail(): String = randomLowerCaseString(8) + "." + randomDigit(4) + "@" + randomLowerCaseString(8) + ".co.uk"
 
 fun randomDate(): LocalDate = LocalDate.of(randomYear(), (1..12).random(), (1..28).random())

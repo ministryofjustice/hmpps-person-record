@@ -39,9 +39,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraH
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Address
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
@@ -162,8 +162,8 @@ class IntegrationTestBase {
       name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
       identifiers = Identifiers(crn = crn),
       addresses = listOf(
-        Address(postcode = randomPostcode()),
-        Address(postcode = randomPostcode()),
+        ProbationAddress(postcode = randomPostcode()),
+        ProbationAddress(postcode = randomPostcode()),
       ),
       aliases = listOf(ProbationCaseAlias(Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), dateOfBirth = randomDate())),
       sentences = listOf(Sentences(randomDate())),

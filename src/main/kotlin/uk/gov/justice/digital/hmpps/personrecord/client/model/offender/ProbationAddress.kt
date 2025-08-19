@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.client.model.offender
 
 import java.time.LocalDate
 
-data class Address(
+data class ProbationAddress(
   val noFixedAbode: Boolean? = null,
   val startDate: LocalDate? = null,
   val endDate: LocalDate? = null,
