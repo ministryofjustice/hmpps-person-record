@@ -18,6 +18,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -39,7 +41,6 @@ class ProbationApiIntTest : WebTestBase() {
     @BeforeEach
     fun beforeEach() {
       stubPersonMatchUpsert()
-      stubNoMatchesPersonMatch()
     }
 
     @Test
@@ -119,6 +120,8 @@ class ProbationApiIntTest : WebTestBase() {
         gender = Value(gender),
       )
 
+      stubNoMatchesPersonMatch()
+
       webTestClient.post()
         .uri(PROBATION_API_URL)
         .authorised(listOf(PROBATION_API_READ_WRITE))
@@ -169,6 +172,35 @@ class ProbationApiIntTest : WebTestBase() {
       assertThat(personEntity.nationalities.size).isEqualTo(1)
       assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromProbationCode()?.code)
       assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeEntityFromProbationCode()?.description)
+
+      checkTelemetry(
+        CPR_RECORD_CREATED,
+        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
+      )
+    }
+
+    @Test
+    fun `should update record if it exists already`() {
+      val crn = randomCrn()
+      createPerson(createRandomProbationPersonDetails(crn))
+
+      val probationCase = ProbationCase(
+        name = Name(firstName = randomName(), lastName = randomName()),
+        identifiers = Identifiers(crn = crn, defendantId = randomDefendantId())
+      )
+
+      webTestClient.post()
+        .uri(PROBATION_API_URL)
+        .authorised(listOf(PROBATION_API_READ_WRITE))
+        .bodyValue(probationCase)
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      checkTelemetry(
+        CPR_RECORD_UPDATED,
+        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
+      )
     }
   }
 
