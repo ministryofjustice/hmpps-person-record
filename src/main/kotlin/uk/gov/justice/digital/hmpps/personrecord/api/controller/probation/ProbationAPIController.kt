@@ -10,7 +10,10 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.MalformedDataException
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.CourtProbationLinkEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtProbationLinkRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
@@ -21,6 +24,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateSer
 class ProbationAPIController(
   private val personRepository: PersonRepository,
   private val createUpdateService: CreateUpdateService,
+  private val courtProbationLinkRepository: CourtProbationLinkRepository,
 ) {
   @Operation(
     description = """Create person record by CRN. Role required is **$PROBATION_API_READ_WRITE** . 
@@ -37,10 +41,24 @@ class ProbationAPIController(
   fun createProbationRecord(
     @RequestBody probationCase: ProbationCase,
   ) {
-    createUpdateService.processPerson(Person.from(probationCase)) {
-      probationCase.identifiers.crn?.let {
+    when {
+      probationCase.hasMissingCrnAndDefendantId() -> throw MalformedDataException("Missing identifiers: CRN, Defendant ID")
+    }
+    probationCase.createPerson()
+    probationCase.storeLinks()
+  }
+
+  private fun ProbationCase.hasMissingCrnAndDefendantId() = this.identifiers.crn.isNullOrEmpty() && this.identifiers.defendantId.isNullOrEmpty()
+
+  private fun ProbationCase.createPerson() {
+    createUpdateService.processPerson(Person.from(this)) {
+      this.identifiers.crn?.let {
         personRepository.findByCrn(it)
       }
     }
+  }
+
+  private fun ProbationCase.storeLinks() {
+    courtProbationLinkRepository.save(CourtProbationLinkEntity.from(this))
   }
 }

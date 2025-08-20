@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ContactDetails
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
@@ -13,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtProbationLinkRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
@@ -34,6 +36,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
 
 class ProbationApiIntTest : WebTestBase() {
+
+  @Autowired
+  lateinit var courtProbationLinkRepository: CourtProbationLinkRepository
 
   @Nested
   inner class SuccessfulProcessing {
@@ -177,16 +182,19 @@ class ProbationApiIntTest : WebTestBase() {
         CPR_RECORD_CREATED,
         mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
       )
+
+      defendantId.assertLinksToCrn(crn)
     }
 
     @Test
     fun `should update record if it exists already`() {
       val crn = randomCrn()
+      val defendantId = randomDefendantId()
       createPerson(createRandomProbationPersonDetails(crn))
 
       val probationCase = ProbationCase(
         name = Name(firstName = randomName(), lastName = randomName()),
-        identifiers = Identifiers(crn = crn, defendantId = randomDefendantId()),
+        identifiers = Identifiers(crn = crn, defendantId = defendantId),
       )
 
       webTestClient.post()
@@ -201,11 +209,33 @@ class ProbationApiIntTest : WebTestBase() {
         CPR_RECORD_UPDATED,
         mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
       )
+
+      defendantId.assertLinksToCrn(crn)
+    }
+
+    private fun String.assertLinksToCrn(crn: String) = awaitAssert {
+      assertThat(courtProbationLinkRepository.findByDefendantId(this)?.crn).isEqualTo(crn)
     }
   }
 
   @Nested
   inner class ErrorScenarios {
+
+    @Test
+    fun `should return bad request if crn and defendantId is missing`() {
+      val probationCase = ProbationCase(
+        name = Name(firstName = randomName(), lastName = randomName()),
+        identifiers = Identifiers(crn = null, defendantId = null),
+      )
+
+      webTestClient.post()
+        .uri(PROBATION_API_URL)
+        .authorised(listOf(PROBATION_API_READ_WRITE))
+        .bodyValue(probationCase)
+        .exchange()
+        .expectStatus()
+        .isBadRequest
+    }
 
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
