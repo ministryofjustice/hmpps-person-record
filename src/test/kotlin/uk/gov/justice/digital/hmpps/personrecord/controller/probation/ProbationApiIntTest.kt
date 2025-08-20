@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ContactDetails
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
@@ -14,7 +13,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtProbationLinkRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
@@ -36,9 +34,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
 
 class ProbationApiIntTest : WebTestBase() {
-
-  @Autowired
-  lateinit var courtProbationLinkRepository: CourtProbationLinkRepository
 
   @Nested
   inner class SuccessfulProcessing {
@@ -261,14 +256,6 @@ class ProbationApiIntTest : WebTestBase() {
 
       defendantId.assertLinksToCrn(newCrn)
       defendantId.assertNotLinksToCrn(crn)
-    }
-
-    private fun String.assertLinksToCrn(crn: String) = awaitAssert {
-      assertThat(courtProbationLinkRepository.findByDefendantId(this)?.crn).isEqualTo(crn)
-    }
-
-    private fun String.assertNotLinksToCrn(crn: String) = awaitAssert {
-      assertThat(courtProbationLinkRepository.findByDefendantId(this)?.crn).isNotEqualTo(crn)
     }
   }
 

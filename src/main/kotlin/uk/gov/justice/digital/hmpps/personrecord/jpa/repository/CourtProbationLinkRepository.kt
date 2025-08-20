@@ -5,4 +5,5 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.CourtProbationLinkEn
 
 interface CourtProbationLinkRepository : JpaRepository<CourtProbationLinkEntity, Long> {
   fun findByDefendantId(defendantId: String): CourtProbationLinkEntity?
+  fun findByCrn(crn: String): CourtProbationLinkEntity?
 }
