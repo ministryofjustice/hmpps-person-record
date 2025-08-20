@@ -213,8 +213,62 @@ class ProbationApiIntTest : WebTestBase() {
       defendantId.assertLinksToCrn(crn)
     }
 
+    @Test
+    fun `should update crn against a defendant id`() {
+      val crn = randomCrn()
+      val defendantId = randomDefendantId()
+
+      val probationCase = ProbationCase(
+        name = Name(firstName = randomName(), lastName = randomName()),
+        identifiers = Identifiers(crn = crn, defendantId = defendantId),
+      )
+
+      stubNoMatchesPersonMatch()
+
+      webTestClient.post()
+        .uri(PROBATION_API_URL)
+        .authorised(listOf(PROBATION_API_READ_WRITE))
+        .bodyValue(probationCase)
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      checkTelemetry(
+        CPR_RECORD_CREATED,
+        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
+      )
+
+      defendantId.assertLinksToCrn(crn)
+
+      val newCrn = randomCrn()
+      val probationCaseUpdate = ProbationCase(
+        name = Name(firstName = randomName(), lastName = randomName()),
+        identifiers = Identifiers(crn = newCrn, defendantId = defendantId),
+      )
+
+      webTestClient.post()
+        .uri(PROBATION_API_URL)
+        .authorised(listOf(PROBATION_API_READ_WRITE))
+        .bodyValue(probationCaseUpdate)
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      checkTelemetry(
+        CPR_RECORD_CREATED,
+        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
+      )
+
+      defendantId.assertLinksToCrn(newCrn)
+      defendantId.assertNotLinksToCrn(crn)
+    }
+
     private fun String.assertLinksToCrn(crn: String) = awaitAssert {
       assertThat(courtProbationLinkRepository.findByDefendantId(this)?.crn).isEqualTo(crn)
+    }
+
+    private fun String.assertNotLinksToCrn(crn: String) = awaitAssert {
+      assertThat(courtProbationLinkRepository.findByDefendantId(this)?.crn).isNotEqualTo(crn)
     }
   }
 
