@@ -45,7 +45,7 @@ class ProbationAPIController(
       probationCase.hasMissingCrnOrDefendantId() -> throw MalformedDataException("Missing identifier: CRN / Defendant ID")
     }
     probationCase.createPerson()
-    probationCase.storeLinks()
+    probationCase.storeLink()
   }
 
   private fun ProbationCase.hasMissingCrnOrDefendantId() = this.identifiers.crn.isNullOrEmpty() || this.identifiers.defendantId.isNullOrEmpty()
@@ -58,7 +58,5 @@ class ProbationAPIController(
     }
   }
 
-  private fun ProbationCase.storeLinks() {
-    courtProbationLinkRepository.save(CourtProbationLinkEntity.from(this))
-  }
+  private fun ProbationCase.storeLink() = courtProbationLinkRepository.save(CourtProbationLinkEntity.from(this))
 }
