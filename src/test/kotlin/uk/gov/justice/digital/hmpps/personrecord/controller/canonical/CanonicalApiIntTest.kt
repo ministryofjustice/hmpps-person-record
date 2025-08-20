@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.controller.canonical
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
@@ -14,12 +15,12 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifie
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Nationality
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
-import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
@@ -42,6 +43,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 
 class CanonicalApiIntTest : WebTestBase() {
+
+  @Autowired
+  private lateinit var ethnicityCodeRepository: EthnicityCodeRepository
 
   @Test
   fun `should return ok for get canonical record`() {
@@ -81,7 +85,7 @@ class CanonicalApiIntTest : WebTestBase() {
         crn = crn,
         sexCode = SexCode.M,
         prisonNumber = prisonNumber,
-        ethnicityCode = EthnicityCode.from(ethnicity.name),
+        ethnicityCode = ethnicity,
         nationalities = listOf(Nationality(nationality)),
         religion = religion,
         cId = cid,
@@ -110,7 +114,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val canonicalNationality = nationality.getEntity()?.let { listOf(CanonicalNationality(it.code, it.description)) }
     val canonicalAddress = CanonicalAddress(noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
     val canonicalReligion = CanonicalReligion(code = religion, description = religion)
-    val canonicalEthnicity = ethnicity.getEthnicityEntity()?.let { CanonicalEthnicity(code = it.code, description = it.description) }
+    val canonicalEthnicity = CanonicalEthnicity.from(ethnicityCodeRepository.findByCode(ethnicity.name))
 
     assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personUUID.toString())
     assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
