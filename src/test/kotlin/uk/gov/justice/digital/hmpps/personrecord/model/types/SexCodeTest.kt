@@ -7,7 +7,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
@@ -38,7 +38,7 @@ class SexCodeTest {
   @ParameterizedTest
   @MethodSource("probationEvent")
   fun `should map from probation event gender values`(genderCode: String?, sexCode: SexCode?) {
-    val probationCase = ProbationCase(name = Name(), identifiers = Identifiers(), gender = Value(genderCode))
+    val probationCase = ProbationCase(name = ProbationCaseName(), identifiers = Identifiers(), gender = Value(genderCode))
 
     assertThat(SexCode.from(probationCase)).isEqualTo(sexCode)
   }

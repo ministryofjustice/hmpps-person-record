@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ContactDetails
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
@@ -79,7 +79,7 @@ class ProbationApiIntTest : WebTestBase() {
 
       val probationCase = ProbationCase(
         title = Value(value = title.name),
-        name = Name(
+        name = ProbationCaseName(
           firstName = firstName,
           middleNames = middleName,
           lastName = lastName,
@@ -93,7 +93,7 @@ class ProbationApiIntTest : WebTestBase() {
         dateOfBirth = dateOfBirth,
         aliases = listOf(
           ProbationCaseAlias(
-            name = Name(
+            name = ProbationCaseName(
               firstName = aliasFirstName,
               middleNames = aliasMiddleName,
               lastName = aliasLastName,
@@ -185,7 +185,7 @@ class ProbationApiIntTest : WebTestBase() {
       createPerson(createRandomProbationPersonDetails(crn))
 
       val probationCase = ProbationCase(
-        name = Name(firstName = randomName(), lastName = randomName()),
+        name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
         identifiers = Identifiers(crn = crn, defendantId = randomDefendantId()),
       )
 
@@ -212,7 +212,7 @@ class ProbationApiIntTest : WebTestBase() {
       val offender = ProbationCase(
         title = Value(),
         identifiers = Identifiers(crn = randomCrn()),
-        name = Name(firstName = randomName()),
+        name = ProbationCaseName(firstName = randomName()),
         gender = Value(SexCode.M.name),
         ethnicity = Value(
           randomEthnicity(),

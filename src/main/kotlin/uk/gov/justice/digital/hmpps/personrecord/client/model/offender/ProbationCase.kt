@@ -6,7 +6,7 @@ import java.time.LocalDate
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ProbationCase(
   val title: Value? = null,
-  val name: Name,
+  val name: ProbationCaseName,
   val ethnicity: Value? = null,
   val identifiers: Identifiers,
   val dateOfBirth: LocalDate? = null,

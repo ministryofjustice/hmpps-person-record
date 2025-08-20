@@ -11,7 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReligion
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
@@ -271,12 +271,12 @@ class CanonicalApiIntTest : WebTestBase() {
     val personKey = createPersonKey()
 
     createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+      Person.from(ProbationCase(name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
       personKey,
     )
 
     val latestPerson = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+      Person.from(ProbationCase(name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
       personKey,
     )
 
@@ -430,12 +430,12 @@ class CanonicalApiIntTest : WebTestBase() {
     val personKey = createPersonKey()
 
     val person = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+      Person.from(ProbationCase(name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
       personKey,
     )
 
     val latestPerson = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+      Person.from(ProbationCase(name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
       personKey,
     )
 
@@ -462,12 +462,12 @@ class CanonicalApiIntTest : WebTestBase() {
     val personKey = createPersonKey()
 
     val person = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+      Person.from(ProbationCase(name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
       personKey,
     )
 
     val latestPerson = createPerson(
-      Person.from(ProbationCase(name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+      Person.from(ProbationCase(name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
       personKey,
     )
 
@@ -498,11 +498,11 @@ class CanonicalApiIntTest : WebTestBase() {
     val targetPersonKey = createPersonKey()
 
     createPerson(
-      Person.from(ProbationCase(name = Name(firstName = sourcePersonFirstName), identifiers = Identifiers())),
+      Person.from(ProbationCase(name = ProbationCaseName(firstName = sourcePersonFirstName), identifiers = Identifiers())),
       personKeyEntity = sourcePersonKey,
     )
     createPerson(
-      Person.from(ProbationCase(name = Name(firstName = targetPersonFirstName), identifiers = Identifiers())),
+      Person.from(ProbationCase(name = ProbationCaseName(firstName = targetPersonFirstName), identifiers = Identifiers())),
       personKeyEntity = targetPersonKey,
     )
 
@@ -529,15 +529,15 @@ class CanonicalApiIntTest : WebTestBase() {
     val newTargetPersonKey = createPersonKey()
 
     createPerson(
-      Person.from(ProbationCase(name = Name(firstName = sourcePersonFirstName), identifiers = Identifiers())),
+      Person.from(ProbationCase(name = ProbationCaseName(firstName = sourcePersonFirstName), identifiers = Identifiers())),
       personKeyEntity = sourcePersonKey,
     )
     createPerson(
-      Person.from(ProbationCase(name = Name(firstName = targetPersonFirstName), identifiers = Identifiers())),
+      Person.from(ProbationCase(name = ProbationCaseName(firstName = targetPersonFirstName), identifiers = Identifiers())),
       personKeyEntity = targetPersonKey,
     )
     createPerson(
-      Person.from(ProbationCase(name = Name(firstName = newTargetPersonFirstName), identifiers = Identifiers())),
+      Person.from(ProbationCase(name = ProbationCaseName(firstName = newTargetPersonFirstName), identifiers = Identifiers())),
       personKeyEntity = newTargetPersonKey,
     )
 

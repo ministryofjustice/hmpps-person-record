@@ -4,7 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
@@ -34,13 +34,13 @@ class EventLogServiceIntTest : IntegrationTestBase() {
     val personEntity = createPersonWithNewKey(
       Person.from(
         ProbationCase(
-          name = Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
+          name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
           dateOfBirth = randomDate(),
           identifiers = Identifiers(crn = randomCrn(), cro = randomCro(), pnc = randomPnc()),
           addresses = listOf(ProbationAddress(postcode = randomPostcode())),
           aliases = listOf(
             ProbationCaseAlias(
-              name = Name(firstName = randomName(), lastName = randomName()),
+              name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
               dateOfBirth = randomDate(),
             ),
           ),
@@ -116,16 +116,16 @@ class EventLogServiceIntTest : IntegrationTestBase() {
     val personEntity = createPersonWithNewKey(
       Person.from(
         ProbationCase(
-          name = Name(firstName = randomName(), lastName = randomName()),
+          name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
           identifiers = Identifiers(crn = randomCrn(), cro = randomCro(), pnc = randomPnc()),
           addresses = listOf(ProbationAddress(postcode = "ZX1 1AB"), ProbationAddress(postcode = "AB1 2BC"), ProbationAddress(postcode = "ZX1 1AB")),
           aliases = listOf(
             ProbationCaseAlias(
-              name = Name(firstName = "Bob", lastName = "Smythe"),
+              name = ProbationCaseName(firstName = "Bob", lastName = "Smythe"),
               dateOfBirth = LocalDate.of(1970, 1, 1),
             ),
             ProbationCaseAlias(
-              name = Name(firstName = "Bob", lastName = "Smith"),
+              name = ProbationCaseName(firstName = "Bob", lastName = "Smith"),
               dateOfBirth = LocalDate.of(1980, 1, 1),
             ),
           ),
