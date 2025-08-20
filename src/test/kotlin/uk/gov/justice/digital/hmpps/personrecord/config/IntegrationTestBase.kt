@@ -40,10 +40,10 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchS
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
@@ -86,7 +86,7 @@ import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name as LibraName
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name as OffenderName
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName as OffenderName
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -165,7 +165,7 @@ class IntegrationTestBase {
         ProbationAddress(postcode = randomPostcode()),
         ProbationAddress(postcode = randomPostcode()),
       ),
-      aliases = listOf(ProbationCaseAlias(Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), dateOfBirth = randomDate())),
+      aliases = listOf(ProbationCaseAlias(ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), dateOfBirth = randomDate())),
       sentences = listOf(Sentences(randomDate())),
     ),
   )
