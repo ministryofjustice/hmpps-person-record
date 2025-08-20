@@ -42,13 +42,13 @@ class ProbationAPIController(
     @RequestBody probationCase: ProbationCase,
   ) {
     when {
-      probationCase.hasMissingCrnAndDefendantId() -> throw MalformedDataException("Missing identifiers: CRN, Defendant ID")
+      probationCase.hasMissingCrnOrDefendantId() -> throw MalformedDataException("Missing identifiers: CRN, Defendant ID")
     }
     probationCase.createPerson()
     probationCase.storeLinks()
   }
 
-  private fun ProbationCase.hasMissingCrnAndDefendantId() = this.identifiers.crn.isNullOrEmpty() && this.identifiers.defendantId.isNullOrEmpty()
+  private fun ProbationCase.hasMissingCrnOrDefendantId() = this.identifiers.crn.isNullOrEmpty() || this.identifiers.defendantId.isNullOrEmpty()
 
   private fun ProbationCase.createPerson() {
     createUpdateService.processPerson(Person.from(this)) {
