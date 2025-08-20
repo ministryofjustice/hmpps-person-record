@@ -11,11 +11,11 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchS
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
@@ -39,6 +39,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -52,6 +53,8 @@ import java.util.UUID
 import java.util.stream.Stream
 
 class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
+
+  private lateinit var ethnicityCodeRepository: EthnicityCodeRepository
 
   @Nested
   inner class SuccessfulProcessing {
@@ -73,7 +76,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val cro = randomCro()
       val addressStartDate = randomDate()
       val addressEndDate = randomDate()
-      val ethnicityCode = EthnicityCode.A1
+      val ethnicityCode = randomEthnicityCode()
       val nationality = randomProbationNationalityCode()
       val sentenceDate = randomDate()
       val aliasFirstName = randomName()
@@ -106,13 +109,13 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
 
       val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
-
+      //   val ethnicityCodeDescription = Await
       assertThat(personEntity.personKey).isNotNull()
       assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.crn).isEqualTo(crn)
-      assertThat(personEntity.ethnicityCode?.code).isEqualTo("A1")
-      assertThat(personEntity.ethnicityCode?.description).isEqualTo("Asian/Asian British : Indian")
+      assertThat(personEntity.ethnicityCode?.code).isEqualTo(ethnicityCode.name)
+      assertThat(personEntity.ethnicityCode?.description).isEqualTo(ethnicityCode.getEthnicityEntity()?.description)
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getCro()).isEqualTo(cro)
       assertThat(personEntity.getAliases().size).isEqualTo(1)

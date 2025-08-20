@@ -63,7 +63,7 @@ class CourtApiIntTest : WebTestBase() {
     val postcode = randomPostcode()
     val nationality = randomNationalityCode()
     val religion = randomReligion()
-    val ethnicity = randomEthnicityCode()
+    val ethnicityCode = randomEthnicityCode()
 
     val buildingName = randomName()
     val buildingNumber = randomBuildingNumber()
@@ -88,7 +88,7 @@ class CourtApiIntTest : WebTestBase() {
         crn = crn,
         sexCode = SexCode.M,
         prisonNumber = prisonNumber,
-        ethnicityCode = ethnicity,
+        ethnicityCode = ethnicityCode,
         nationalities = listOf(Nationality(nationality)),
         religion = religion,
         cId = cid,
@@ -116,7 +116,7 @@ class CourtApiIntTest : WebTestBase() {
     val canonicalNationality = nationality.getEntity()?.let { listOf(CanonicalNationality(it.code, it.description)) }
     val canonicalAddress = CanonicalAddress(noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
     val canonicalReligion = CanonicalReligion(code = religion, description = religion)
-    val canonicalEthnicity = CanonicalEthnicity.from(ethnicityCodeRepository.findByCode(ethnicity.name))
+    val canonicalEthnicity = CanonicalEthnicity.from(ethnicityCode.getEthnicityEntity())
 
     assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
     assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)

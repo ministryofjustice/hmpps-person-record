@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
@@ -27,6 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
@@ -74,7 +74,7 @@ class ProbationApiIntTest : WebTestBase() {
       val fullAddress = randomFullAddress()
 
       val nationality = randomProbationNationalityCode()
-      val ethnicity = EthnicityCode.A1
+      val ethnicityCode = randomEthnicityCode()
 
       val gender = "M"
 
@@ -117,7 +117,7 @@ class ProbationApiIntTest : WebTestBase() {
           ),
         ),
         nationality = Value(nationality),
-        ethnicity = Value(ethnicity.name),
+        ethnicity = Value(ethnicityCode.name),
         gender = Value(gender),
       )
 
@@ -137,7 +137,8 @@ class ProbationApiIntTest : WebTestBase() {
       assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.crn).isEqualTo(crn)
-      assertThat(personEntity.ethnicityCode?.code).isEqualTo("A1")
+      assertThat(personEntity.ethnicityCode?.code).isEqualTo(ethnicityCode.name)
+      assertThat(personEntity.ethnicityCode?.description).isEqualTo(ethnicityCode.getEthnicityEntity()?.description)
       assertThat(personEntity.getCro()).isEqualTo(cro)
       assertThat(personEntity.getAliases().size).isEqualTo(1)
       assertThat(personEntity.getAliases()[0].firstName).isEqualTo(aliasFirstName)
