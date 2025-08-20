@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.util.stream.Stream
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name as OffenderName
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName as OffenderName
 
 class EthnicityCodeIntTest : IntegrationTestBase() {
 

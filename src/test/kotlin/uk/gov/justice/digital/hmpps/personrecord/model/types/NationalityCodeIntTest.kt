@@ -10,8 +10,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
@@ -29,7 +29,7 @@ class NationalityCodeIntTest : IntegrationTestBase() {
 
   @Test
   fun `should handle null probation nationality code`() {
-    val probationCase = ProbationCase(name = Name(firstName = randomName()), identifiers = Identifiers(crn = randomCrn()), nationality = Value(null))
+    val probationCase = ProbationCase(name = ProbationCaseName(firstName = randomName()), identifiers = Identifiers(crn = randomCrn()), nationality = Value(null))
     val person = createPerson(Person.from(probationCase))
     assertThat(person.nationalities.size).isEqualTo(0)
   }
@@ -37,7 +37,7 @@ class NationalityCodeIntTest : IntegrationTestBase() {
   @ParameterizedTest
   @MethodSource("probationCodes")
   fun `should map probation nationality codes to cpr nationality codes`(probationCode: String, cprCode: NationalityCode, cprDescription: String) {
-    val probationCase = ProbationCase(name = Name(firstName = randomName()), identifiers = Identifiers(crn = randomCrn()), nationality = Value(probationCode))
+    val probationCase = ProbationCase(name = ProbationCaseName(firstName = randomName()), identifiers = Identifiers(crn = randomCrn()), nationality = Value(probationCode))
     val person = createPerson(Person.from(probationCase))
     assertThat(person.nationalities.first().nationalityCode?.code).isEqualTo(cprCode.name)
     assertThat(person.nationalities.first().nationalityCode?.description).isEqualTo(cprDescription)
