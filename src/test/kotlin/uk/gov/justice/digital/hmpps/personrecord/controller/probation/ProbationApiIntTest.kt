@@ -214,7 +214,7 @@ class ProbationApiIntTest : WebTestBase() {
       val defendantId = randomDefendantId()
 
       val probationCase = ProbationCase(
-        name = Name(firstName = randomName(), lastName = randomName()),
+        name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
         identifiers = Identifiers(crn = crn, defendantId = defendantId),
       )
 
@@ -237,7 +237,7 @@ class ProbationApiIntTest : WebTestBase() {
 
       val newCrn = randomCrn()
       val probationCaseUpdate = ProbationCase(
-        name = Name(firstName = randomName(), lastName = randomName()),
+        name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
         identifiers = Identifiers(crn = newCrn, defendantId = defendantId),
       )
 
@@ -265,7 +265,7 @@ class ProbationApiIntTest : WebTestBase() {
     @Test
     fun `should return bad request if crn and defendantId is missing`() {
       val probationCase = ProbationCase(
-        name = Name(firstName = randomName(), lastName = randomName()),
+        name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
         identifiers = Identifiers(crn = null, defendantId = null),
       )
 
