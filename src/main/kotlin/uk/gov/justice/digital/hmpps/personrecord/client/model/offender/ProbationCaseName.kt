@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.client.model.offender
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
-data class Name(
+data class ProbationCaseName(
   @JsonProperty("forename")
   val firstName: String? = null,
   @JsonProperty("surname")
