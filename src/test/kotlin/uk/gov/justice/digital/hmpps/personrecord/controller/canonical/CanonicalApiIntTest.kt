@@ -32,7 +32,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
@@ -82,7 +81,6 @@ class CanonicalApiIntTest : WebTestBase() {
         crn = crn,
         sexCode = SexCode.M,
         prisonNumber = prisonNumber,
-        ethnicity = ethnicity.name,
         ethnicityCode = EthnicityCode.from(ethnicity.name),
         nationalities = listOf(Nationality(nationality)),
         religion = religion,
@@ -329,7 +327,6 @@ class CanonicalApiIntTest : WebTestBase() {
         sourceSystem = NOMIS,
         crn = personOneCrn,
         prisonNumber = randomPrisonNumber(),
-        ethnicity = randomEthnicity(),
         nationalities = listOf(Nationality(randomNationalityCode())),
         religion = randomReligion(),
         cId = randomCId(),
@@ -355,7 +352,6 @@ class CanonicalApiIntTest : WebTestBase() {
         sourceSystem = NOMIS,
         crn = personTwoCrn,
         prisonNumber = randomPrisonNumber(),
-        ethnicity = randomEthnicity(),
         nationalities = listOf(Nationality(randomNationalityCode())),
         religion = randomReligion(),
         cId = randomCId(),
@@ -404,7 +400,6 @@ class CanonicalApiIntTest : WebTestBase() {
         middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
-        ethnicity = randomEthnicity(),
         nationalities = listOf(Nationality(randomNationalityCode())),
         religion = randomReligion(),
         masterDefendantId = randomDefendantId(),

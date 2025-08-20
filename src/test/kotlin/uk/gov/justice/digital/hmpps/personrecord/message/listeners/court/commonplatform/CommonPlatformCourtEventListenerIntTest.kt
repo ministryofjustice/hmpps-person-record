@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
@@ -40,6 +41,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupContact
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformMessage
@@ -125,7 +127,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       prisonNumber = person.prisonNumber,
       masterDefendantId = person.masterDefendantId,
       sourceSystem = person.sourceSystem,
-      ethnicity = person.ethnicity,
       religion = person.religion,
       matchId = UUID.randomUUID(),
       cId = person.cId,
@@ -182,6 +183,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val postTown = randomName()
     val postcode = randomPostcode()
     val title = "Mr"
+    val ethnicity = EthnicityCode.O9.name
 
     val firstNationality = randomCommonPlatformNationalityCode()
     val secondNationality = randomCommonPlatformNationalityCode()
@@ -197,6 +199,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
             middleName = "mName1 mName2",
             lastName = lastName,
             defendantId = firstDefendantId,
+            ethnicity = CommonPlatformHearingSetupEthnicity(selfDefinedEthnicityCode = ethnicity),
             aliases = listOf(
               CommonPlatformHearingSetupAlias(firstName = "aliasFirstName1", lastName = "alisLastName1"),
               CommonPlatformHearingSetupAlias(firstName = "aliasFirstName2", lastName = "alisLastName2"),
@@ -244,6 +247,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getPrimaryName().middleNames).isEqualTo("mName1 mName2")
     assertThat(firstPerson.getPrimaryName().lastName).isEqualTo(lastName)
     assertThat(firstPerson.contacts).isEmpty()
+    assertThat(firstPerson.ethnicityCode?.code).isEqualTo("O9")
+    assertThat(firstPerson.ethnicityCode?.description).isEqualTo("Other : Any other background")
     assertThat(firstPerson.addresses).isNotEmpty()
     assertThat(firstPerson.nationalities.size).isEqualTo(1)
     assertThat(firstPerson.nationalities.first().nationalityCode?.code).isEqualTo(firstNationality.getNationalityCodeEntityFromCommonPlatformCode()?.code)

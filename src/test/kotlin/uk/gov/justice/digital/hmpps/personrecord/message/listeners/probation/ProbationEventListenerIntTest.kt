@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
@@ -38,7 +39,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -73,7 +73,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val cro = randomCro()
       val addressStartDate = randomDate()
       val addressEndDate = randomDate()
-      val ethnicity = randomEthnicity()
+      val ethnicityCode = EthnicityCode.A1
       val nationality = randomProbationNationalityCode()
       val sentenceDate = randomDate()
       val aliasFirstName = randomName()
@@ -91,6 +91,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         firstName = firstName,
         middleName = middleName,
         lastName = lastName,
+        ethnicity = ethnicityCode.name,
         prisonNumber = prisonNumber,
         cro = cro,
         addresses = listOf(
@@ -98,7 +99,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
           ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street"),
         ),
         aliases = listOf(ApiResponseSetupAlias(firstName = aliasFirstName, middleName = aliasMiddleName, lastName = aliasLastName, dateOfBirth = aliasDateOfBirth)),
-        ethnicity = ethnicity,
         nationality = nationality,
         sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
         gender = gender,
@@ -111,7 +111,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.crn).isEqualTo(crn)
-      assertThat(personEntity.ethnicity).isEqualTo(ethnicity)
+      assertThat(personEntity.ethnicityCode?.code).isEqualTo("A1")
+      assertThat(personEntity.ethnicityCode?.description).isEqualTo("Asian/Asian British : Indian")
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getCro()).isEqualTo(cro)
       assertThat(personEntity.getAliases().size).isEqualTo(1)
