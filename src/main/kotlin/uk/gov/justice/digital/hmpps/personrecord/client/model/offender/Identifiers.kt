@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Identifiers(
-  val defendantId: String? = null,
   val crn: String? = null,
   val pnc: String? = null,
   val cro: String? = null,

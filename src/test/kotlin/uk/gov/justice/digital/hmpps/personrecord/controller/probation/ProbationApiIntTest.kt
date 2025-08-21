@@ -85,7 +85,6 @@ class ProbationApiIntTest : WebTestBase() {
           lastName = lastName,
         ),
         identifiers = Identifiers(
-          defendantId = defendantId,
           crn = crn,
           pnc = pnc,
           cro = cro,
@@ -122,8 +121,8 @@ class ProbationApiIntTest : WebTestBase() {
 
       stubNoMatchesPersonMatch()
 
-      webTestClient.post()
-        .uri(PROBATION_API_URL)
+      webTestClient.put()
+        .uri(probationApiUrl(defendantId))
         .authorised(listOf(PROBATION_API_READ_WRITE))
         .bodyValue(probationCase)
         .exchange()
@@ -189,11 +188,11 @@ class ProbationApiIntTest : WebTestBase() {
 
       val probationCase = ProbationCase(
         name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
-        identifiers = Identifiers(crn = crn, defendantId = defendantId),
+        identifiers = Identifiers(crn = crn),
       )
 
-      webTestClient.post()
-        .uri(PROBATION_API_URL)
+      webTestClient.put()
+        .uri(probationApiUrl(defendantId))
         .authorised(listOf(PROBATION_API_READ_WRITE))
         .bodyValue(probationCase)
         .exchange()
@@ -215,13 +214,13 @@ class ProbationApiIntTest : WebTestBase() {
 
       val probationCase = ProbationCase(
         name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
-        identifiers = Identifiers(crn = crn, defendantId = defendantId),
+        identifiers = Identifiers(crn = crn),
       )
 
       stubNoMatchesPersonMatch()
 
-      webTestClient.post()
-        .uri(PROBATION_API_URL)
+      webTestClient.put()
+        .uri(probationApiUrl(defendantId))
         .authorised(listOf(PROBATION_API_READ_WRITE))
         .bodyValue(probationCase)
         .exchange()
@@ -238,11 +237,11 @@ class ProbationApiIntTest : WebTestBase() {
       val newCrn = randomCrn()
       val probationCaseUpdate = ProbationCase(
         name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
-        identifiers = Identifiers(crn = newCrn, defendantId = defendantId),
+        identifiers = Identifiers(crn = newCrn),
       )
 
-      webTestClient.post()
-        .uri(PROBATION_API_URL)
+      webTestClient.put()
+        .uri(probationApiUrl(defendantId))
         .authorised(listOf(PROBATION_API_READ_WRITE))
         .bodyValue(probationCaseUpdate)
         .exchange()
@@ -263,22 +262,6 @@ class ProbationApiIntTest : WebTestBase() {
   inner class ErrorScenarios {
 
     @Test
-    fun `should return bad request if crn and defendantId is missing`() {
-      val probationCase = ProbationCase(
-        name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
-        identifiers = Identifiers(crn = null, defendantId = null),
-      )
-
-      webTestClient.post()
-        .uri(PROBATION_API_URL)
-        .authorised(listOf(PROBATION_API_READ_WRITE))
-        .bodyValue(probationCase)
-        .exchange()
-        .expectStatus()
-        .isBadRequest
-    }
-
-    @Test
     fun `should return Access Denied 403 when role is wrong`() {
       val offender = ProbationCase(
         title = Value(),
@@ -292,8 +275,8 @@ class ProbationApiIntTest : WebTestBase() {
         contactDetails = ContactDetails(),
       )
       val expectedErrorMessage = "Forbidden: Access Denied"
-      webTestClient.post()
-        .uri(PROBATION_API_URL)
+      webTestClient.put()
+        .uri(probationApiUrl(randomDefendantId()))
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .bodyValue(offender)
         .exchange()
@@ -306,15 +289,13 @@ class ProbationApiIntTest : WebTestBase() {
 
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
-      webTestClient.post()
-        .uri(PROBATION_API_URL)
+      webTestClient.put()
+        .uri(probationApiUrl(randomDefendantId()))
         .exchange()
         .expectStatus()
         .isUnauthorized
     }
   }
 
-  companion object {
-    private const val PROBATION_API_URL = "/person/probation"
-  }
+  private fun probationApiUrl(defendantId: String) = "/person/probation/$defendantId"
 }
