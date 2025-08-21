@@ -61,7 +61,7 @@ class MigrateEthnicityCode(
       do {
         val pageable = PageRequest.of(pageNumber, BATCH_SIZE)
 
-        personRecords = personRepository.findAllByEthnicityIsNotNullOrderById(pageable)
+        personRecords = personRepository.findAllByEthnicityIsNotNullAndEthnicityCodeIsNull(pageable)
         page(personRecords)
 
         pageNumber++

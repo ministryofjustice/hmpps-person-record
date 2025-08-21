@@ -95,12 +95,10 @@ enum class EthnicityCode {
     )
     private val ethnicityMap: Map<String, EthnicityCode> = rawMap.mapKeys { it.key.uppercase() }
 
-    fun from(code: String?): EthnicityCode? = code?.getEthnicityOrUnknown(
-      ethnicityMap,
-    )
+    fun from(code: String?): EthnicityCode? = code?.getEthnicityOrUnknown()
 
-    private fun String?.getEthnicityOrUnknown(ethniciyMap: Map<String, EthnicityCode>): EthnicityCode? = this.normalize()?.let {
-      ethniciyMap[it] ?: UN
+    private fun String?.getEthnicityOrUnknown(): EthnicityCode? = this.normalize()?.let {
+      ethnicityMap[it] ?: UN
     }
     private fun String?.normalize(): String? = this?.trim().nullIfBlank()?.uppercase()?.replace(" : ", ": ")
   }
