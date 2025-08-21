@@ -12,6 +12,11 @@ plugins {
   kotlin("plugin.jpa") version "2.2.10"
   id("io.gitlab.arturbosch.detekt") version "1.23.8"
   id("org.jetbrains.kotlinx.kover") version "0.9.1"
+  id("org.owasp.dependencycheck") version "12.1.3"
+}
+
+dependencyCheck {
+  nvd.datafeedUrl = "file:///opt/vulnz/cache"
 }
 
 configurations {
