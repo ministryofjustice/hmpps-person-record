@@ -109,7 +109,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
 
       val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
-      //   val ethnicityCodeDescription = Await
       assertThat(personEntity.personKey).isNotNull()
       assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
