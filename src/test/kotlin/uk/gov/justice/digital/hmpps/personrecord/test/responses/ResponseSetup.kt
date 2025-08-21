@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
-import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
@@ -37,7 +36,6 @@ data class ApiResponseSetup(
   val religion: String? = null,
   val prisonNumber: String? = null,
   val ethnicity: String? = null,
-  val ethnicityCode: EthnicityCode? = null,
   val addresses: List<ApiResponseSetupAddress> = listOf(ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = randomFullAddress())),
   val nationalInsuranceNumber: String? = null,
   val email: String? = randomEmail(),
