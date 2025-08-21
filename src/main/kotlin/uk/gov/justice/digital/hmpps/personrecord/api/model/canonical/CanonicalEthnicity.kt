@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.canonical
 
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 
 data class CanonicalEthnicity(
   @Schema(description = "Person ethnicity code", example = "British")
@@ -11,9 +12,9 @@ data class CanonicalEthnicity(
 ) {
   companion object {
 
-    fun from(ethnicity: String?) = CanonicalEthnicity(
-      code = ethnicity,
-      description = ethnicity,
+    fun from(ethnicity: EthnicityCodeEntity?) = CanonicalEthnicity(
+      code = ethnicity?.code,
+      description = ethnicity?.description,
     )
   }
 }

@@ -103,9 +103,6 @@ class PersonEntity(
   )
   var ethnicityCode: EthnicityCodeEntity? = null,
 
-  @Column
-  var ethnicity: String? = null,
-
   @Column(name = "merged_to")
   var mergedTo: Long? = null,
 
@@ -228,7 +225,6 @@ class PersonEntity(
         prisonNumber = person.prisonNumber,
         masterDefendantId = person.masterDefendantId,
         sourceSystem = person.sourceSystem,
-        ethnicity = person.ethnicity,
         religion = person.religion,
         matchId = UUID.randomUUID(),
         cId = person.cId,

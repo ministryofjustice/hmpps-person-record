@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.controller.person
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAddress
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalAlias
@@ -13,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRe
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Nationality
@@ -31,7 +33,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
@@ -41,6 +43,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 
 class CourtApiIntTest : WebTestBase() {
+
+  @Autowired
+  private lateinit var ethnicityCodeRepository: EthnicityCodeRepository
 
   @Nested
   inner class CommonPlatform
@@ -58,7 +63,7 @@ class CourtApiIntTest : WebTestBase() {
     val postcode = randomPostcode()
     val nationality = randomNationalityCode()
     val religion = randomReligion()
-    val ethnicity = randomEthnicity()
+    val ethnicityCode = randomEthnicityCode()
 
     val buildingName = randomName()
     val buildingNumber = randomBuildingNumber()
@@ -83,7 +88,7 @@ class CourtApiIntTest : WebTestBase() {
         crn = crn,
         sexCode = SexCode.M,
         prisonNumber = prisonNumber,
-        ethnicity = ethnicity,
+        ethnicityCode = ethnicityCode,
         nationalities = listOf(Nationality(nationality)),
         religion = religion,
         cId = cid,
@@ -111,7 +116,7 @@ class CourtApiIntTest : WebTestBase() {
     val canonicalNationality = nationality.getEntity()?.let { listOf(CanonicalNationality(it.code, it.description)) }
     val canonicalAddress = CanonicalAddress(noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
     val canonicalReligion = CanonicalReligion(code = religion, description = religion)
-    val canonicalEthnicity = CanonicalEthnicity(code = ethnicity, description = ethnicity)
+    val canonicalEthnicity = CanonicalEthnicity.from(ethnicityCode.getEthnicityEntity())
 
     assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
     assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
@@ -127,8 +132,8 @@ class CourtApiIntTest : WebTestBase() {
     assertThat(responseBody.sex.description).isEqualTo("Male")
     assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
     assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
-    assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
-    assertThat(responseBody.ethnicity.description).isEqualTo(canonicalEthnicity.description)
+    assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity?.code)
+    assertThat(responseBody.ethnicity.description).isEqualTo(canonicalEthnicity?.description)
     assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
     assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro)) // TODO not a list
     assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
@@ -299,7 +304,6 @@ class CourtApiIntTest : WebTestBase() {
         sourceSystem = NOMIS,
         crn = personOneCrn,
         prisonNumber = randomPrisonNumber(),
-        ethnicity = randomEthnicity(),
         nationalities = listOf(Nationality(randomNationalityCode())),
         religion = randomReligion(),
         cId = randomCId(),
@@ -325,7 +329,6 @@ class CourtApiIntTest : WebTestBase() {
         sourceSystem = NOMIS,
         crn = personTwoCrn,
         prisonNumber = randomPrisonNumber(),
-        ethnicity = randomEthnicity(),
         nationalities = listOf(Nationality(randomNationalityCode())),
         religion = randomReligion(),
         cId = randomCId(),
@@ -376,7 +379,6 @@ class CourtApiIntTest : WebTestBase() {
         middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = COMMON_PLATFORM,
-        ethnicity = randomEthnicity(),
         nationalities = listOf(Nationality(randomNationalityCode())),
         religion = randomReligion(),
         masterDefendantId = randomDefendantId(),
