@@ -2,6 +2,35 @@ package uk.gov.justice.digital.hmpps.personrecord.model.types
 
 import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
 
+enum class ProbationEthnicityCode {
+  A1,
+  A2,
+  A3,
+  A4,
+  A9,
+  B1,
+  B2,
+  B9,
+  M1,
+  M2,
+  M3,
+  M9,
+  NS,
+  O2,
+  O9,
+  W1,
+  W2,
+  W3,
+  W4,
+  W5,
+  W9,
+  ETH03,
+  ETH04,
+  ETH05,
+  O1,
+  Z1,
+}
+
 enum class EthnicityCode {
   A1,
   A2,

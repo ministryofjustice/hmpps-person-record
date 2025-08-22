@@ -38,11 +38,11 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
@@ -73,7 +73,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val cro = randomCro()
       val addressStartDate = randomDate()
       val addressEndDate = randomDate()
-      val ethnicity = randomEthnicity()
+      val ethnicity = randomProbationEthnicity()
       val nationality = randomProbationNationalityCode()
       val sentenceDate = randomDate()
       val aliasFirstName = randomName()
@@ -111,7 +111,11 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.crn).isEqualTo(crn)
+      val ethnicityCode = ethnicityCodeRepository.findByCode(ethnicity)
       assertThat(personEntity.ethnicity).isEqualTo(ethnicity)
+      assertThat(personEntity.ethnicityCode?.code).isEqualTo(ethnicityCode?.code)
+      assertThat(personEntity.ethnicityCode?.description).isEqualTo(ethnicityCode?.description)
+
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getCro()).isEqualTo(cro)
       assertThat(personEntity.getAliases().size).isEqualTo(1)
