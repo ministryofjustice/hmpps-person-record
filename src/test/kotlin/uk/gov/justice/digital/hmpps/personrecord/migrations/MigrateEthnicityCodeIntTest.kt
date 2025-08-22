@@ -4,16 +4,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import java.util.stream.Stream
 
 class MigrateEthnicityCodeIntTest : WebTestBase() {
-
-  @Autowired
-  lateinit var ethnicityCodeRepository: EthnicityCodeRepository
 
   @ParameterizedTest
   @MethodSource("probationCodes")

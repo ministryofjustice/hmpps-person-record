@@ -1,11 +1,12 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
-import jakarta.persistence.CascadeType
+import jakarta.persistence.CascadeType.ALL
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType.STRING
 import jakarta.persistence.Enumerated
-import jakarta.persistence.FetchType
+import jakarta.persistence.FetchType.EAGER
+import jakarta.persistence.FetchType.LAZY
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
@@ -36,32 +37,32 @@ class PersonEntity(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   var id: Long? = null,
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = LAZY)
   @JoinColumn(name = "fk_person_key_id", referencedColumnName = "id", nullable = true)
   var personKey: PersonKeyEntity? = null,
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var pseudonyms: MutableList<PseudonymEntity> = mutableListOf(),
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var addresses: MutableList<AddressEntity> = mutableListOf(),
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var contacts: MutableList<ContactEntity> = mutableListOf(),
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var references: MutableList<ReferenceEntity> = mutableListOf(),
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var sentenceInfo: MutableList<SentenceInfoEntity> = mutableListOf(),
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var overrideMarkers: MutableList<OverrideMarkerEntity> = mutableListOf(),
 
   @Column
@@ -83,7 +84,7 @@ class PersonEntity(
   val birthCountry: String? = null,
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var nationalities: MutableList<NationalityEntity> = mutableListOf(),
 
   @Column
@@ -96,7 +97,7 @@ class PersonEntity(
   @Enumerated(STRING)
   var sexCode: SexCode? = null,
 
-  @ManyToOne
+  @ManyToOne(fetch = LAZY)
   @JoinColumn(
     name = "fk_ethnicity_code_id",
     referencedColumnName = "id",
