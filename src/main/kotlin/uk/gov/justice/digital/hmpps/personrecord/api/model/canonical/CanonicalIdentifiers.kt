@@ -93,11 +93,12 @@ data class CanonicalIdentifiers(
       )
     }
 
-    fun from(personEntity: PersonEntity): CanonicalIdentifiers {
+    fun from(personEntity: PersonEntity, additionalCrn: String? = null): CanonicalIdentifiers {
       val referenceEntities = personEntity.references
       val personEntities = personEntity.personKey!!.personEntities
+      val crns = personEntities.map { it.crn } + additionalCrn
       return CanonicalIdentifiers(
-        crns = personEntities.mapNotNull { it.crn },
+        crns = crns.filterNotNull(),
         prisonNumbers = personEntities.mapNotNull { it.prisonNumber },
         defendantIds = personEntities.mapNotNull { it.defendantId },
         cids = personEntities.mapNotNull { it.cId },
