@@ -6,6 +6,23 @@ generic-service:
     host: hmpps-person-record.hmpps.service.justice.gov.uk
     tlsSecretName: hmpps-person-record-cert-secret
 
+  postgresDatabaseRestore:
+    enabled: true
+    namespace_secrets:
+      hmpps-person-record-rds-instance-output:
+        DB_NAME: "database_name"
+        DB_USER: "database_username"
+        DB_PASS: "database_password"
+        DB_HOST: "rds_instance_address"
+      hmpps-person-record-preprod-rds-instance-output:
+        DB_NAME_PREPROD: "database_name"
+        DB_USER_PREPROD: "database_username"
+        DB_PASS_PREPROD: "database_password"
+        DB_HOST_PREPROD: "rds_instance_address"
+    env:
+      SCHEMA_TO_RESTORE: "personrecordservice"
+      MIGRATIONS_VENDOR: "flyway"
+
   env:
     SPRING_PROFILES_ACTIVE: "prod"
     PERSON_MATCH_BASE_URL: https://hmpps-person-match.hmpps.service.justice.gov.uk

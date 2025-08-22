@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.test
 
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier.Companion.VALID_LETTERS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ProbationEthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.COMMON_PLATFORM_NATIONALITY_MAPPING
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.LIBRA_NATIONALITY_MAPPINGS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
@@ -15,6 +16,8 @@ fun randomPnc(): String {
   val check = VALID_LETTERS[(year.takeLast(2) + digits).toInt().mod(VALID_LETTERS.length)]
   return "$year/$digits$check"
 }
+
+fun randomPhoneNumber(): String = randomDigit(10)
 
 fun randomEmail(): String = randomLowerCaseString(8) + "." + randomDigit(4) + "@" + randomLowerCaseString(8) + ".co.uk"
 
@@ -31,6 +34,8 @@ fun randomBuildingNumber(): String = randomDigit(3)
 fun randomName(): String = randomLowerCaseString()
 
 fun randomEthnicity(): String = randomLowerCaseString()
+
+fun randomProbationEthnicity(): String = ProbationEthnicityCode.entries.toTypedArray().random().name
 
 fun randomNationalityCode(): NationalityCode = NationalityCode.entries.random()
 

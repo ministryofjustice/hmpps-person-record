@@ -39,11 +39,11 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraH
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Address
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
@@ -52,6 +52,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.NationalityCodeEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtProbationLinkRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.NationalityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -86,7 +88,7 @@ import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name as LibraName
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Name as OffenderName
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName as OffenderName
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -115,6 +117,12 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var nationalityCodeRepository: NationalityCodeRepository
+
+  @Autowired
+  lateinit var courtProbationLinkRepository: CourtProbationLinkRepository
+
+  @Autowired
+  lateinit var ethnicityCodeRepository: EthnicityCodeRepository
 
   fun authSetup() {
     wiremock.stubFor(
@@ -162,10 +170,10 @@ class IntegrationTestBase {
       name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
       identifiers = Identifiers(crn = crn),
       addresses = listOf(
-        Address(postcode = randomPostcode()),
-        Address(postcode = randomPostcode()),
+        ProbationAddress(postcode = randomPostcode()),
+        ProbationAddress(postcode = randomPostcode()),
       ),
-      aliases = listOf(ProbationCaseAlias(Name(firstName = randomName(), middleNames = randomName(), lastName = randomName()), dateOfBirth = randomDate())),
+      aliases = listOf(ProbationCaseAlias(ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), dateOfBirth = randomDate())),
       sentences = listOf(Sentences(randomDate())),
     ),
   )
@@ -598,9 +606,18 @@ class IntegrationTestBase {
       personRepository.findByMatchId(this.matchId)?.overrideMarkers?.filter { it.markerType == EXCLUDE && it.markerValue == personEntity.id },
     ).hasSize(1)
   }
+
   fun PersonEntity.assertPersonDeleted() = awaitAssert { assertThat(personRepository.findByMatchId(this.matchId)).isNull() }
 
   fun PersonKeyEntity.assertPersonKeyDeleted() = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)).isNull() }
+
+  internal fun String.assertLinksToCrn(crn: String) = awaitAssert {
+    assertThat(courtProbationLinkRepository.findByDefendantId(this)?.crn).isEqualTo(crn)
+  }
+
+  internal fun String.assertNotLinksToCrn(crn: String) = awaitAssert {
+    assertThat(courtProbationLinkRepository.findByDefendantId(this)?.crn).isNotEqualTo(crn)
+  }
 
   fun Person.getCro(): String? = this.references.getType(CRO).first().identifierValue
   fun PersonEntity.getCro(): String? = this.references.getType(CRO).firstOrNull()?.identifierValue

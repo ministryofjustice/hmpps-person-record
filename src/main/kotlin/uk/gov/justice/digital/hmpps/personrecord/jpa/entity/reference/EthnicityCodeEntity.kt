@@ -14,7 +14,7 @@ class EthnicityCodeEntity(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
 
-  @Column(unique = true, nullable = false)
+  @Column
   val code: String,
 
   @Column

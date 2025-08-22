@@ -4,16 +4,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import java.util.stream.Stream
 
 class MigrateEthnicityCodeIntTest : WebTestBase() {
-
-  @Autowired
-  lateinit var ethnicityCodeRepository: EthnicityCodeRepository
 
   @ParameterizedTest
   @MethodSource("probationCodes")
@@ -85,6 +80,28 @@ class MigrateEthnicityCodeIntTest : WebTestBase() {
   }
 
   @ParameterizedTest
+  @MethodSource("abnormalEthnicityCodes")
+  fun `migrates abnormal ethnicity to ethnicity code`(prisonCode: String) {
+    val beforeMigrationPerson = createPerson(createRandomPrisonPersonDetails())
+    beforeMigrationPerson.ethnicity = prisonCode
+    personRepository.save(beforeMigrationPerson)
+    webTestClient.post()
+      .uri("/migrate/ethnicity-codes")
+      .exchange()
+      .expectStatus()
+      .isOk
+
+    awaitAssert {
+      val afterMigrationPerson =
+        awaitNotNullPerson { personRepository.findByPrisonNumber(beforeMigrationPerson.prisonNumber!!) }
+      assertThat(afterMigrationPerson.ethnicityCode?.code).isNotNull()
+      assertThat(afterMigrationPerson.ethnicityCode?.code).isNotEqualTo("UN")
+      assertThat(afterMigrationPerson.ethnicityCode?.description).isNotNull()
+      assertThat(afterMigrationPerson.ethnicityCode?.description).isNotEqualTo("UN")
+    }
+  }
+
+  @ParameterizedTest
   @MethodSource("commonPlatformCodes")
   fun `migrates common platform ethnicity to ethnicity code`(commonPlatformCode: String, cprCode: EthnicityCode, cprDescription: String) {
     val beforeMigrationPerson = createPerson(createRandomCommonPlatformPersonDetails())
@@ -106,6 +123,58 @@ class MigrateEthnicityCodeIntTest : WebTestBase() {
   }
 
   companion object {
+    @JvmStatic
+    fun abnormalEthnicityCodes(): Stream<Arguments> = Stream.of(
+      Arguments.of("A1"),
+      Arguments.of("A2"),
+      Arguments.of("A3"),
+      Arguments.of("A4"),
+      Arguments.of("A9"),
+      Arguments.of("Asian/Asian British: Any other backgr'nd"),
+      Arguments.of("Asian/Asian British: Bangladeshi"),
+      Arguments.of("Asian/Asian British: Chinese"),
+      Arguments.of("Asian/Asian British: Indian"),
+      Arguments.of("Asian/Asian British: Pakistani"),
+      Arguments.of("B1"),
+      Arguments.of("B2"),
+      Arguments.of("B9"),
+      Arguments.of("Black/Black British: African"),
+      Arguments.of("Black/Black British: Any other backgr'nd"),
+      Arguments.of("Black/Black British: Caribbean"),
+      Arguments.of("Chinese"),
+      Arguments.of("ETH03"),
+      Arguments.of("ETH04"),
+      Arguments.of("ETH05"),
+      Arguments.of("M1"),
+      Arguments.of("M2"),
+      Arguments.of("M3"),
+      Arguments.of("M9"),
+      Arguments.of("Mixed: Any other background"),
+      Arguments.of("Mixed: White and Asian"),
+      Arguments.of("Mixed: White and Black African"),
+      Arguments.of("Mixed: White and Black Caribbean"),
+      Arguments.of("Needs to be confirmed following merge"),
+      Arguments.of("NS"),
+      Arguments.of("O1"),
+      Arguments.of("O2"),
+      Arguments.of("O9"),
+      Arguments.of("Other: Any other background"),
+      Arguments.of("Other: Arab"),
+      Arguments.of("Prefer not to say"),
+      Arguments.of("W1"),
+      Arguments.of("W2"),
+      Arguments.of("W3"),
+      Arguments.of("W4"),
+      Arguments.of("W5"),
+      Arguments.of("W9"),
+      Arguments.of("White: Any other background"),
+      Arguments.of("White: Eng./Welsh/Scot./N.Irish/British"),
+      Arguments.of("White: Gypsy or Irish Traveller"),
+      Arguments.of("White: Irish"),
+      Arguments.of("White : Irish Traveller/Gypsy"),
+      Arguments.of("White: Roma"),
+      Arguments.of("Z1"),
+    )
 
     @JvmStatic
     fun probationCodes(): Stream<Arguments> = Stream.of(
