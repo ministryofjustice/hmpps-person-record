@@ -318,19 +318,27 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `should process OFFENDER_ALIAS_CHANGED events successfully`() {
-      // this is the only test which updates an existing probation record
+      // this is the only test which updates an existing probation record. Do not just delete this when we get rid of OFFENDER_ALIAS_CHANGED events
       val pnc = randomPnc()
       val crn = randomCrn()
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc, gender = "M"))
+      val originalEthnicity = randomProbationEthnicity()
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc, gender = "M", ethnicity = originalEthnicity))
       val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.sexCode).isEqualTo(SexCode.M)
+      val originalEthnicityCode = ethnicityCodeRepository.findByCode(originalEthnicity)
+      assertThat(personEntity.ethnicity).isEqualTo(originalEthnicity)
+      assertThat(personEntity.ethnicityCode?.code).isEqualTo(originalEthnicityCode?.code)
+      assertThat(personEntity.ethnicityCode?.description).isEqualTo(originalEthnicityCode?.description)
+
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
       val createdLastModified = personEntity.lastModified
       val changedPnc = randomPnc()
       val changedDateOfBirth = randomDate()
-      probationEventAndResponseSetup(OFFENDER_ALIAS_CHANGED, ApiResponseSetup(crn = crn, pnc = changedPnc, gender = "F", dateOfBirth = changedDateOfBirth))
+      val changedEthnicity = randomProbationEthnicity()
+
+      probationEventAndResponseSetup(OFFENDER_ALIAS_CHANGED, ApiResponseSetup(crn = crn, pnc = changedPnc, gender = "F", dateOfBirth = changedDateOfBirth, ethnicity = changedEthnicity))
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
       val updatedPersonEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
@@ -341,6 +349,11 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       assertThat(updatedLastModified).isAfter(createdLastModified)
       assertThat(updatedPersonEntity.getPrimaryName().dateOfBirth).isEqualTo(changedDateOfBirth)
+
+      val changedEthnicityCode = ethnicityCodeRepository.findByCode(changedEthnicity)
+      assertThat(updatedPersonEntity.ethnicity).isEqualTo(changedEthnicity)
+      assertThat(updatedPersonEntity.ethnicityCode?.code).isEqualTo(changedEthnicityCode?.code)
+      assertThat(updatedPersonEntity.ethnicityCode?.description).isEqualTo(changedEthnicityCode?.description)
     }
 
     @Test
