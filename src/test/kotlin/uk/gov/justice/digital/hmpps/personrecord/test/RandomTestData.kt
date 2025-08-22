@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.test
 
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier.Companion.VALID_LETTERS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.CommonPlatformEthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ProbationEthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.COMMON_PLATFORM_NATIONALITY_MAPPING
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.LIBRA_NATIONALITY_MAPPINGS
@@ -36,6 +37,7 @@ fun randomName(): String = randomLowerCaseString()
 fun randomEthnicity(): String = randomLowerCaseString()
 
 fun randomProbationEthnicity(): String = ProbationEthnicityCode.entries.toTypedArray().random().name
+fun randomCommonPlatformEthnicity(): String = CommonPlatformEthnicityCode.entries.toTypedArray().random().name
 
 fun randomNationalityCode(): NationalityCode = NationalityCode.entries.random()
 

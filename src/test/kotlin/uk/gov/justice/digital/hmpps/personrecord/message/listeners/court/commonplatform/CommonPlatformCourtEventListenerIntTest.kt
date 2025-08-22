@@ -40,10 +40,12 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupContact
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
@@ -157,7 +159,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should create new people with additional fields from common platform message`() {
+  fun `should create new people from common platform message`() {
     stubPersonMatchScores()
     stubPersonMatchUpsert()
     val firstPnc = randomPnc()
@@ -165,15 +167,15 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val lastName = randomName()
     val secondPnc = randomPnc()
     val thirdPnc = randomPnc()
-    val forthPnc = randomPnc()
+    val fourthPnc = randomPnc()
 
     val firstDefendantId = randomDefendantId()
     val secondDefendantId = randomDefendantId()
     val thirdDefendantId = randomDefendantId()
-    val forthDefendantId = randomDefendantId()
+    val fourthDefendantId = randomDefendantId()
 
     val thirdDefendantNINumber = randomNationalInsuranceNumber()
-    val forthDefendantNINumber = randomNationalInsuranceNumber()
+    val fourthDefendantNINumber = randomNationalInsuranceNumber()
 
     val buildingName = randomName()
     val buildingNumber = randomBuildingNumber()
@@ -182,6 +184,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val postTown = randomName()
     val postcode = randomPostcode()
     val title = "Mr"
+    val ethnicity = randomCommonPlatformEthnicity()
 
     val firstNationality = randomCommonPlatformNationalityCode()
     val secondNationality = randomCommonPlatformNationalityCode()
@@ -198,10 +201,11 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
             lastName = lastName,
             defendantId = firstDefendantId,
             aliases = listOf(
-              CommonPlatformHearingSetupAlias(firstName = "aliasFirstName1", lastName = "alisLastName1"),
-              CommonPlatformHearingSetupAlias(firstName = "aliasFirstName2", lastName = "alisLastName2"),
+              CommonPlatformHearingSetupAlias(firstName = "aliasFirstName1", lastName = "aliasLastName1"),
+              CommonPlatformHearingSetupAlias(firstName = "aliasFirstName2", lastName = "aliasLastName2"),
             ),
             nationalityCode = firstNationality,
+            ethnicity = CommonPlatformHearingSetupEthnicity(ethnicity),
           ),
           CommonPlatformHearingSetup(
             gender = "FEMALE",
@@ -213,7 +217,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
             CommonPlatformHearingSetupAddress(buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown, postcode = postcode),
           ),
           CommonPlatformHearingSetup(pnc = thirdPnc, defendantId = thirdDefendantId, nationalInsuranceNumber = thirdDefendantNINumber, gender = "NOT SPECIFIED"),
-          CommonPlatformHearingSetup(pnc = forthPnc, defendantId = forthDefendantId, nationalInsuranceNumber = forthDefendantNINumber, gender = "UNSUPPORTED GENDER CODE"),
+          CommonPlatformHearingSetup(pnc = fourthPnc, defendantId = fourthDefendantId, nationalInsuranceNumber = fourthDefendantNINumber, gender = "UNSUPPORTED GENDER CODE"),
         ),
       ),
 
@@ -232,7 +236,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     val forthPerson = awaitNotNullPerson {
-      personRepository.findByDefendantId(forthDefendantId)
+      personRepository.findByDefendantId(fourthDefendantId)
     }
 
     assertThat(firstPerson.getPnc()).isEqualTo(firstPnc)
@@ -251,11 +255,14 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getAliases().size).isEqualTo(2)
     assertThat(firstPerson.getAliases()[0].titleCode).isNull()
     assertThat(firstPerson.getAliases()[0].firstName).isEqualTo("aliasFirstName1")
-    assertThat(firstPerson.getAliases()[0].lastName).isEqualTo("alisLastName1")
+    assertThat(firstPerson.getAliases()[0].lastName).isEqualTo("aliasLastName1")
     assertThat(firstPerson.getAliases()[1].titleCode).isNull()
     assertThat(firstPerson.getAliases()[1].firstName).isEqualTo("aliasFirstName2")
-    assertThat(firstPerson.getAliases()[1].lastName).isEqualTo("alisLastName2")
+    assertThat(firstPerson.getAliases()[1].lastName).isEqualTo("aliasLastName2")
     assertThat(firstPerson.sexCode).isEqualTo(SexCode.M)
+    val ethnicityCode = ethnicityCodeRepository.findByCode(ethnicity)
+    assertThat(firstPerson.ethnicityCode?.code).isEqualTo(ethnicityCode?.code)
+    assertThat(firstPerson.ethnicityCode?.description).isEqualTo(ethnicityCode?.description)
 
     assertThat(secondPerson.getAliases()).isEmpty()
     assertThat(secondPerson.addresses).isNotEmpty()
@@ -290,9 +297,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     assertThat(forthPerson.getAliases()).isEmpty()
     assertThat(forthPerson.contacts.size).isEqualTo(0)
-    assertThat(forthPerson.getPnc()).isEqualTo(forthPnc)
-    assertThat(forthPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(forthDefendantNINumber)
-    assertThat(forthPerson.masterDefendantId).isEqualTo(forthDefendantId)
+    assertThat(forthPerson.getPnc()).isEqualTo(fourthPnc)
+    assertThat(forthPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(fourthDefendantNINumber)
+    assertThat(forthPerson.masterDefendantId).isEqualTo(fourthDefendantId)
     assertThat(forthPerson.sexCode).isEqualTo(SexCode.N)
   }
 
