@@ -37,6 +37,7 @@ fun randomName(): String = randomLowerCaseString()
 fun randomEthnicity(): String = randomLowerCaseString()
 
 fun randomProbationEthnicity(): String = ProbationEthnicityCode.entries.toTypedArray().random().name
+
 fun randomCommonPlatformEthnicity(): String = CommonPlatformEthnicityCode.entries.toTypedArray().random().name
 
 fun randomNationalityCode(): NationalityCode = NationalityCode.entries.random()
