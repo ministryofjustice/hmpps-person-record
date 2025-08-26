@@ -45,7 +45,7 @@ fun randomPrisonEthnicity(): PrisonEthnicity = PrisonEthnicity.entries.toTypedAr
 
 fun randomNationalityCode(): NationalityCode = NationalityCode.entries.random()
 
-fun randomPrisonerNationalityCode(): String = PRISON_NATIONALITY_MAPPING.entries.random().key
+fun randomPrisonNationalityCode(): String = PRISON_NATIONALITY_MAPPING.entries.random().key
 
 fun randomProbationNationalityCode(): String = PROBATION_NATIONALITY_MAPPING.entries.random().key
 
