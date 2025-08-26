@@ -2,32 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.model.types
 
 import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
 
-enum class PrisonEthnicity(val description: String) {
-  A1("Asian/Asian British : Indian"),
-  A2("Asian/Asian British : Pakistani"),
-  A3("Asian/Asian British : Bangladeshi"),
-  A4("Asian/Asian British: Chinese"),
-  A9("Asian/Asian British : Any other backgr'nd"),
-  B1("Black/Black British : Carribean"),
-  B2("Black/Black British : African"),
-  B9("Black/Black British : Any other Backgr'nd"),
-  M1("Mixed : White and Black Carribean"),
-  M2("Mixed : White and Black African"),
-  M3("Mixed : White and Asian"),
-  M9("Mixed : Any other background"),
-  MERGE("Needs to be confirmed following Merge"),
-  NS("Prefer not to say"),
-  O2("Other: Arab"),
-  O9("Other: Any other background"),
-  W1("White : Eng/Welsh/Scot/N.Irish/British"),
-  W2("White : Irish"),
-  W3("White: Gypsy or Irish Traveller"),
-  W5("White: Roma"),
-  W9("White : Any other background"),
-  O1("Chinese"),
-  W8("White : Irish Traveller/Gypsy"),
-}
-
 enum class CommonPlatformEthnicityCode {
   A1,
   A2,
@@ -116,6 +90,31 @@ enum class EthnicityCode {
 
   companion object {
 
+    val prisonEthnicity: Map<String, EthnicityCode> = mapOf(
+      "Asian/Asian British : Indian" to A1,
+      "Asian/Asian British : Pakistani" to A2,
+      "Asian/Asian British : Bangladeshi" to A3,
+      "Asian/Asian British: Chinese" to A4,
+      "Asian/Asian British : Any other backgr'nd" to A9,
+      "Black/Black British : Carribean" to B1,
+      "Black/Black British : African" to B2,
+      "Black/Black British : Any other Backgr'nd" to B9,
+      "Mixed : White and Black Carribean" to M1,
+      "Mixed : White and Black African" to M2,
+      "Mixed : White and Asian" to M3,
+      "Mixed : Any other background" to M9,
+      "Needs to be confirmed following Merge" to MERGE,
+      "Prefer not to say" to NS,
+      "Other: Arab" to O2,
+      "Other: Any other background" to O9,
+      "White : Eng/Welsh/Scot/N.Irish/British" to W1,
+      "White : Irish" to W2,
+      "White: Gypsy or Irish Traveller" to W3,
+      "White: Roma" to W5,
+      "White : Any other background" to W9,
+      "Chinese" to O1,
+      "White : Irish Traveller/Gypsy" to W8,
+    )
     private val rawMap = mapOf(
       "A1" to A1,
       "Asian/Asian British: Indian" to A1,

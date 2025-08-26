@@ -102,7 +102,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val aliasDateOfBirth = randomDate()
 
       stubNoMatchesPersonMatch()
-      stubPrisonResponse(ApiResponseSetup(title = title, gender = "Female", aliases = listOf(ApiResponseSetupAlias(title, aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity.description, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
+      stubPrisonResponse(ApiResponseSetup(title = title, gender = "Female", aliases = listOf(ApiResponseSetupAlias(title, aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
       val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
       publishDomainEvent(PRISONER_CREATED, domainEvent)
 
@@ -149,8 +149,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.nationalities.size).isEqualTo(1)
         assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromPrisonCode()?.code)
         assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeEntityFromPrisonCode()?.description)
-        assertThat(personEntity.ethnicity).isEqualTo(ethnicity.description)
-        val storedPrisonEthnicity = ethnicityCodeRepository.findByCode(ethnicity.name)
+        assertThat(personEntity.ethnicity).isEqualTo(ethnicity)
+        val storedPrisonEthnicity = ethnicityCodeRepository.findByDescription(ethnicity)
         assertThat(personEntity.ethnicityCode?.code).isEqualTo(storedPrisonEthnicity?.code)
         assertThat(personEntity.ethnicityCode?.description).isEqualTo(storedPrisonEthnicity?.description)
       }
@@ -216,7 +216,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val updatedNationality = randomPrisonNationalityCode()
 
       stubNoMatchesPersonMatch(matchId = prisoner.matchId)
-      stubPrisonResponse(ApiResponseSetup(gender = "Male", title = "Mr", prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity.description))
+      stubPrisonResponse(ApiResponseSetup(gender = "Male", title = "Mr", prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity))
 
       val domainEvent = prisonDomainEvent(PRISONER_UPDATED, prisonNumber)
       publishDomainEvent(PRISONER_UPDATED, domainEvent)
@@ -235,7 +235,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
         assertThat(personEntity.sexCode).isEqualTo(SexCode.M)
 
-        val storedPrisonEthnicity = ethnicityCodeRepository.findByCode(ethnicity.name)
+        val storedPrisonEthnicity = ethnicityCodeRepository.findByDescription(ethnicity)
         assertThat(personEntity.ethnicityCode?.code).isEqualTo(storedPrisonEthnicity?.code)
         assertThat(personEntity.ethnicityCode?.description).isEqualTo(storedPrisonEthnicity?.description)
 
