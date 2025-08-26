@@ -49,6 +49,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformEthnic
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
@@ -114,6 +115,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val pnc = randomPnc()
     val cro = randomCro()
     val personKey = createPersonKey()
+    val ethnicity = randomCommonPlatformEthnicity()
 
     val person = Person(
       defendantId = defendantId,
@@ -141,15 +143,18 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val changedLastName = randomName()
     publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId, ethnicity = CommonPlatformHearingSetupEthnicity(ethnicity)))),
     )
 
     awaitAssert {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
+       val storedEthnicity = ethnicityCodeRepository.findByCode(ethnicity)
       assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(changedLastName)
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
       assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
+      assertThat(updatedPersonEntity.ethnicityCode?.code).isEqualTo(storedEthnicity?.code)
+      assertThat(updatedPersonEntity.ethnicityCode?.description).isEqualTo(storedEthnicity?.description)
     }
 
     checkTelemetry(
