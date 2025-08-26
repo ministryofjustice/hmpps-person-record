@@ -49,7 +49,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformEthnic
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
-import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
@@ -148,7 +147,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     awaitAssert {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
-       val storedEthnicity = ethnicityCodeRepository.findByCode(ethnicity)
+      val storedEthnicity = ethnicityCodeRepository.findByCode(ethnicity)
       assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(changedLastName)
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
       assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
