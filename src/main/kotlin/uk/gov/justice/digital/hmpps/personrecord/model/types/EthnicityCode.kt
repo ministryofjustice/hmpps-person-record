@@ -2,6 +2,32 @@ package uk.gov.justice.digital.hmpps.personrecord.model.types
 
 import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
 
+enum class PrisonEthnicity(val description: String) {
+  A1("Asian/Asian British : Indian"),
+  A2("Asian/Asian British : Pakistani"),
+  A3("Asian/Asian British : Bangladeshi"),
+  A4("Asian/Asian British: Chinese"),
+  A9("Asian/Asian British : Any other backgr'nd"),
+  B1("Black/Black British : Carribean"),
+  B2("Black/Black British : African"),
+  B9("Black/Black British : Any other Backgr'nd"),
+  M1("Mixed : White and Black Carribean"),
+  M2("Mixed : White and Black African"),
+  M3("Mixed : White and Asian"),
+  M9("Mixed : Any other background"),
+  MERGE("Needs to be confirmed following Merge"),
+  NS("Prefer not to say"),
+  O2("Other: Arab"),
+  O9("Other: Any other background"),
+  W1("White : Eng/Welsh/Scot/N.Irish/British"),
+  W2("White : Irish"),
+  W3("White: Gypsy or Irish Traveller"),
+  W5("White: Roma"),
+  W9("White : Any other background"),
+  O1("Chinese"),
+  W8("White : Irish Traveller/Gypsy"),
+}
+
 enum class CommonPlatformEthnicityCode {
   A1,
   A2,
