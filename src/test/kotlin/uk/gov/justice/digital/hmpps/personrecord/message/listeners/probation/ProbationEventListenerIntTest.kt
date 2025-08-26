@@ -337,8 +337,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val changedPnc = randomPnc()
       val changedDateOfBirth = randomDate()
       val changedEthnicity = randomProbationEthnicity()
-
-      probationEventAndResponseSetup(OFFENDER_ALIAS_CHANGED, ApiResponseSetup(crn = crn, pnc = changedPnc, gender = "F", dateOfBirth = changedDateOfBirth, ethnicity = changedEthnicity))
+      val nationality = randomProbationNationalityCode()
+      probationEventAndResponseSetup(OFFENDER_ALIAS_CHANGED, ApiResponseSetup(crn = crn, pnc = changedPnc, gender = "F", dateOfBirth = changedDateOfBirth, ethnicity = changedEthnicity, nationality = nationality))
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
       val updatedPersonEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
@@ -354,6 +354,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.ethnicity).isEqualTo(changedEthnicity)
       assertThat(updatedPersonEntity.ethnicityCode?.code).isEqualTo(changedEthnicityCode?.code)
       assertThat(updatedPersonEntity.ethnicityCode?.description).isEqualTo(changedEthnicityCode?.description)
+
+      assertThat(updatedPersonEntity.nationalities.size).isEqualTo(1)
+      assertThat(updatedPersonEntity.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromProbationCode()?.code)
+      assertThat(updatedPersonEntity.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeEntityFromProbationCode()?.description)
     }
 
     @Test
