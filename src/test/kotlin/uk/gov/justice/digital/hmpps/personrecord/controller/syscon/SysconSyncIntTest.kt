@@ -11,8 +11,8 @@ import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonerNationalityCode
 
 class SysconSyncIntTest : WebTestBase() {
 
@@ -67,7 +67,7 @@ class SysconSyncIntTest : WebTestBase() {
       dateOfBirth = randomDate(),
       birthPlace = "",
       birthCountryCode = "",
-      nationalityCode = randomPrisonerNationalityCode(),
+      nationalityCode = randomPrisonNationalityCode(),
       multipleNationalities = "",
       ethnicityCode = randomEthnicity(),
       sexualOrientationCode = "",

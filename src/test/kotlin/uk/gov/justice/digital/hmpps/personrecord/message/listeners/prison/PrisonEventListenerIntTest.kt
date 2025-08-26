@@ -31,8 +31,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNum
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonerNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
@@ -88,7 +88,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val cro = randomCro()
       val postcode = randomPostcode()
       val fullAddress = randomFullAddress()
-      val nationality = randomPrisonerNationalityCode()
+      val nationality = randomPrisonNationalityCode()
       val religion = randomReligion()
       val personDateOfBirth = randomDate()
       val nationalInsuranceNumber = randomNationalInsuranceNumber()
@@ -212,9 +212,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val prisoner = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       val updatedFirstName = randomName()
+      val updatedNationality = randomPrisonNationalityCode()
 
       stubNoMatchesPersonMatch(matchId = prisoner.matchId)
-      stubPrisonResponse(ApiResponseSetup(gender = "Male", title = "Mr", prisonNumber = prisonNumber, firstName = updatedFirstName))
+      stubPrisonResponse(ApiResponseSetup(gender = "Male", title = "Mr", prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality))
       val domainEvent = prisonDomainEvent(PRISONER_UPDATED, prisonNumber)
       publishDomainEvent(PRISONER_UPDATED, domainEvent)
 
@@ -231,6 +232,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().titleCode?.description).isEqualTo("Mr")
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
         assertThat(personEntity.sexCode).isEqualTo(SexCode.M)
+        assertThat(personEntity.nationalities.size).isEqualTo(1)
+        assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(updatedNationality.getNationalityCodeEntityFromPrisonCode()?.code)
+        assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(updatedNationality.getNationalityCodeEntityFromPrisonCode()?.description)
       }
     }
 
