@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS person_override_scope
 );
 
 create index idx_person_override_scope_person on person_override_scope(person_id);
-create index idx_person_override_scope_overrode_scope on person_override_scope(override_scope_id);
+create index idx_person_override_scope_override_scope on person_override_scope(override_scope_id);
 
 -----------------------------------------------------
 COMMIT;
