@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ActorType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ConfidenceType
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import java.time.LocalDate
 import java.util.UUID
 
@@ -40,8 +41,6 @@ class PersonMatchRecordTest {
   @Test
   fun `should build dates in correct YYYY-MM-dd format`() {
     val date = LocalDate.of(1970, 1, 1)
-    val overrideMarker = UUID.randomUUID()
-    val overrideScopes = UUID.randomUUID()
     val personEntity = PersonEntity(
       pseudonyms = mutableListOf(
         PseudonymEntity(nameType = NameType.ALIAS, dateOfBirth = date),
@@ -51,14 +50,30 @@ class PersonMatchRecordTest {
       sentenceInfo = mutableListOf(SentenceInfoEntity(sentenceDate = date)),
       matchId = UUID.randomUUID(),
       sourceSystem = DELIUS,
-      overrideMarker = overrideMarker,
-      overrideScopes = mutableListOf(OverrideScopeEntity(scope = overrideScopes, actor = ActorType.HUMAN, confidence = ConfidenceType.VERIFIED)),
     )
 
     val personMatchRecord = PersonMatchRecord.from(personEntity)
     assertThat(personMatchRecord.dateOfBirth).isEqualTo("1970-01-01")
     assertThat(personMatchRecord.dateOfBirthAliases).isEqualTo(listOf("1970-01-01"))
     assertThat(personMatchRecord.sentenceDates).isEqualTo(listOf("1970-01-01"))
+  }
+
+  @Test
+  fun `should build override marker and override scope`() {
+    val overrideMarker = UUID.randomUUID()
+    val overrideScopes = UUID.randomUUID()
+    val personEntity = PersonEntity(
+      pseudonyms = mutableListOf(
+        PseudonymEntity(nameType = NameType.PRIMARY, dateOfBirth = randomDate()),
+      ),
+
+      matchId = UUID.randomUUID(),
+      sourceSystem = DELIUS,
+      overrideMarker = overrideMarker,
+      overrideScopes = mutableListOf(OverrideScopeEntity(scope = overrideScopes, actor = ActorType.HUMAN, confidence = ConfidenceType.VERIFIED)),
+    )
+
+    val personMatchRecord = PersonMatchRecord.from(personEntity)
     assertThat(personMatchRecord.overrideMarker).isEqualTo(overrideMarker.toString())
     assertThat(personMatchRecord.overrideScopes).isEqualTo(listOf(overrideScopes.toString()))
   }
