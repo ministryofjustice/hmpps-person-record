@@ -11,6 +11,8 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.JoinTable
+import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
@@ -64,6 +66,17 @@ class PersonEntity(
   @Column
   @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var overrideMarkers: MutableList<OverrideMarkerEntity> = mutableListOf(),
+
+  @Column(name = "override_marker")
+  val overrideMarker: UUID? = null,
+
+  @ManyToMany(cascade = [ALL], fetch = EAGER)
+  @JoinTable(
+    name = "person_override_scope",
+    joinColumns = [JoinColumn(name = "person_id")],
+    inverseJoinColumns = [JoinColumn(name = "override_scope_id")],
+  )
+  val overrideScopes: MutableList<OverrideScopeEntity> = mutableListOf(),
 
   @Column
   var crn: String? = null,
