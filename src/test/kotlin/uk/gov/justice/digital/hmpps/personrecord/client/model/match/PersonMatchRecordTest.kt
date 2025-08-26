@@ -59,9 +59,10 @@ class PersonMatchRecordTest {
   }
 
   @Test
-  fun `should build override marker and override scope`() {
+  fun `should build override marker and override scopea`() {
     val overrideMarker = UUID.randomUUID()
-    val overrideScopes = UUID.randomUUID()
+    val overrideScope1 = UUID.randomUUID()
+    val overrideScope2 = UUID.randomUUID()
     val personEntity = PersonEntity(
       pseudonyms = mutableListOf(
         PseudonymEntity(nameType = NameType.PRIMARY, dateOfBirth = randomDate()),
@@ -70,11 +71,15 @@ class PersonMatchRecordTest {
       matchId = UUID.randomUUID(),
       sourceSystem = DELIUS,
       overrideMarker = overrideMarker,
-      overrideScopes = mutableListOf(OverrideScopeEntity(scope = overrideScopes, actor = ActorType.HUMAN, confidence = ConfidenceType.VERIFIED)),
+      overrideScopes = mutableListOf(
+        OverrideScopeEntity(scope = overrideScope1, actor = ActorType.HUMAN, confidence = ConfidenceType.VERIFIED),
+        OverrideScopeEntity(scope = overrideScope2, actor = ActorType.SYSTEM, confidence = ConfidenceType.VERIFIED),
+      ),
+
     )
 
     val personMatchRecord = PersonMatchRecord.from(personEntity)
     assertThat(personMatchRecord.overrideMarker).isEqualTo(overrideMarker.toString())
-    assertThat(personMatchRecord.overrideScopes).isEqualTo(listOf(overrideScopes.toString()))
+    assertThat(personMatchRecord.overrideScopes).isEqualTo(listOf(overrideScope1.toString(), overrideScope2.toString()))
   }
 }
