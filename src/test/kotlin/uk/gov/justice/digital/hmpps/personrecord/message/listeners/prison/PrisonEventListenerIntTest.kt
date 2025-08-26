@@ -212,10 +212,12 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val prisoner = createPersonWithNewKey(createRandomPrisonPersonDetails(prisonNumber))
 
       val updatedFirstName = randomName()
+      val ethnicity = randomPrisonEthnicity()
       val updatedNationality = randomPrisonNationalityCode()
 
       stubNoMatchesPersonMatch(matchId = prisoner.matchId)
-      stubPrisonResponse(ApiResponseSetup(gender = "Male", title = "Mr", prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality))
+      stubPrisonResponse(ApiResponseSetup(gender = "Male", title = "Mr", prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity.description))
+
       val domainEvent = prisonDomainEvent(PRISONER_UPDATED, prisonNumber)
       publishDomainEvent(PRISONER_UPDATED, domainEvent)
 
@@ -232,6 +234,11 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().titleCode?.description).isEqualTo("Mr")
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
         assertThat(personEntity.sexCode).isEqualTo(SexCode.M)
+
+        val storedPrisonEthnicity = ethnicityCodeRepository.findByCode(ethnicity.name)
+        assertThat(personEntity.ethnicityCode?.code).isEqualTo(storedPrisonEthnicity?.code)
+        assertThat(personEntity.ethnicityCode?.description).isEqualTo(storedPrisonEthnicity?.description)
+
         assertThat(personEntity.nationalities.size).isEqualTo(1)
         assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(updatedNationality.getNationalityCodeEntityFromPrisonCode()?.code)
         assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(updatedNationality.getNationalityCodeEntityFromPrisonCode()?.description)
