@@ -40,10 +40,12 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupContact
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformMessage
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
@@ -125,7 +127,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       prisonNumber = person.prisonNumber,
       masterDefendantId = person.masterDefendantId,
       sourceSystem = person.sourceSystem,
-      ethnicity = person.ethnicity,
       religion = person.religion,
       matchId = UUID.randomUUID(),
       cId = person.cId,
@@ -138,8 +139,21 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubNoMatchesPersonMatch(matchId = personEntity.matchId)
 
     val changedLastName = randomName()
+    val ethnicity = randomCommonPlatformEthnicity()
     publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId))),
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(
+            pnc = pnc,
+            lastName = changedLastName,
+            cro = cro,
+            defendantId = defendantId,
+            ethnicity = CommonPlatformHearingSetupEthnicity(
+              ethnicity,
+            ),
+          ),
+        ),
+      ),
     )
 
     awaitAssert {
@@ -148,6 +162,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
       assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
+      val ethnicityCode = ethnicityCodeRepository.findByCode(ethnicity)
+      assertThat(updatedPersonEntity.ethnicityCode?.code).isEqualTo(ethnicityCode?.code)
+      assertThat(updatedPersonEntity.ethnicityCode?.description).isEqualTo(ethnicityCode?.description)
     }
 
     checkTelemetry(

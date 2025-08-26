@@ -112,10 +112,6 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) = 
                   }
                 ],
                 ${commonPlatformHearingSetup.isPerson.takeIf { it }?.let { personDefendant(commonPlatformHearingSetup)} ?: organisationDefendant(commonPlatformHearingSetup)}
-                "ethnicity": {
-                   "observedEthnicityDescription": "observedEthnicityDescription",
-                   "selfDefinedEthnicityDescription": "selfDefinedEthnicityDescription"
-                },
                 ${commonPlatformHearingSetup.aliases?.let {
   """ "aliases": [${commonPlatformHearingSetup.aliases.joinToString(",") { alias(it) }
   }], """.trimIndent()
