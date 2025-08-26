@@ -23,12 +23,12 @@ CREATE TABLE IF NOT EXISTS person_override_scope
     person_id                               BIGINT      NOT NULL ,
     override_scope_id                       BIGINT      NOT NULL,
     PRIMARY KEY (person_id, override_scope_id),
-    CONSTRAINT fk_student FOREIGN KEY (person_id) references person (id),
-    CONSTRAINT fk_course FOREIGN KEY (override_scope_id) references override_scopes (id)
+    CONSTRAINT fk_person_id FOREIGN KEY (person_id) references person (id),
+    CONSTRAINT fk_override_scope_id FOREIGN KEY (override_scope_id) references override_scopes (id)
 );
 
 create index idx_person_override_scope_person on person_override_scope(person_id);
-create index idx_person_override_scope_overrode_scope on person_override_scope(override_scope_id);
+create index idx_person_override_scope_override_scope on person_override_scope(override_scope_id);
 
 -----------------------------------------------------
 COMMIT;
