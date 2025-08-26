@@ -202,7 +202,7 @@ data class Person(
         lastName = prisoner.lastName.nullIfBlank(),
         dateOfBirth = prisoner.dateOfBirth,
         ethnicity = prisoner.ethnicity.nullIfBlank(),
-        ethnicityCode = EthnicityCode.from(prisoner.ethnicity.nullIfBlank()),
+        ethnicityCode = EthnicityCode.fromPrison(prisoner.ethnicity.nullIfBlank()),
         aliases = prisoner.aliases.map { Alias.from(it) },
         contacts = contacts,
         addresses = addresses,

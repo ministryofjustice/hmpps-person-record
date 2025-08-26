@@ -91,30 +91,33 @@ enum class EthnicityCode {
   companion object {
 
     val prisonEthnicity: Map<String, EthnicityCode> = mapOf(
-      "Asian/Asian British : Indian" to A1,
-      "Asian/Asian British : Pakistani" to A2,
-      "Asian/Asian British : Bangladeshi" to A3,
+      "Asian/Asian British: Indian" to A1,
+      "Asian/Asian British: Pakistani" to A2,
+      "Asian/Asian British: Bangladeshi" to A3,
       "Asian/Asian British: Chinese" to A4,
-      "Asian/Asian British : Any other backgr'nd" to A9,
-      "Black/Black British : Carribean" to B1,
-      "Black/Black British : African" to B2,
-      "Black/Black British : Any other Backgr'nd" to B9,
-      "Mixed : White and Black Carribean" to M1,
-      "Mixed : White and Black African" to M2,
-      "Mixed : White and Asian" to M3,
-      "Mixed : Any other background" to M9,
-      "Needs to be confirmed following Merge" to MERGE,
+      "Asian/Asian British: Any other backgr'nd" to A9,
+      "Black/Black British: Caribbean" to B1,
+      "Black/Black British: African" to B2,
+      "Black/Black British: Any other backgr'nd" to B9,
+      "Mixed: White and Black Caribbean" to M1,
+      "Mixed: White and Black African" to M2,
+      "Mixed: White and Asian" to M3,
+      "Mixed: Any other background" to M9,
+      "Needs to be confirmed following merge" to MERGE,
       "Prefer not to say" to NS,
       "Other: Arab" to O2,
       "Other: Any other background" to O9,
-      "White : Eng/Welsh/Scot/N.Irish/British" to W1,
-      "White : Irish" to W2,
+      "White: Eng./Welsh/Scot./N.Irish/British" to W1,
+      "White: Irish" to W2,
       "White: Gypsy or Irish Traveller" to W3,
       "White: Roma" to W5,
-      "White : Any other background" to W9,
+      "White: Any other background" to W9,
       "Chinese" to O1,
       "White : Irish Traveller/Gypsy" to W8,
     )
+
+    fun fromPrison(description: String?): EthnicityCode? = description?.let { prisonEthnicity.getOrDefault(it, UN) }
+
     private val rawMap = mapOf(
       "A1" to A1,
       "Asian/Asian British: Indian" to A1,
@@ -170,6 +173,7 @@ enum class EthnicityCode {
       "Z1" to Z1,
       "P" to P,
     )
+
     private val ethnicityMap: Map<String, EthnicityCode> = rawMap.mapKeys { it.key.uppercase() }
 
     fun from(code: String?): EthnicityCode? = code?.getEthnicityOrUnknown(

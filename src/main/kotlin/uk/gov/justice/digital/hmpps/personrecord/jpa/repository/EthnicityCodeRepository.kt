@@ -7,5 +7,4 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityC
 @Repository
 interface EthnicityCodeRepository : JpaRepository<EthnicityCodeEntity, Long> {
   fun findByCode(code: String): EthnicityCodeEntity?
-  fun findByDescription(description: String): EthnicityCodeEntity?
 }

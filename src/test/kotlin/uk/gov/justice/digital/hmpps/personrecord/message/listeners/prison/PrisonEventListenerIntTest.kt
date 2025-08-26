@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Compani
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -150,7 +151,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromPrisonCode()?.code)
         assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeEntityFromPrisonCode()?.description)
         assertThat(personEntity.ethnicity).isEqualTo(ethnicity)
-        val storedPrisonEthnicity = ethnicityCodeRepository.findByDescription(ethnicity)
+        val storedPrisonEthnicity = ethnicityCodeRepository.findByCode(EthnicityCode.fromPrison(ethnicity)?.name!!)
         assertThat(personEntity.ethnicityCode?.code).isEqualTo(storedPrisonEthnicity?.code)
         assertThat(personEntity.ethnicityCode?.description).isEqualTo(storedPrisonEthnicity?.description)
       }
@@ -235,7 +236,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
         assertThat(personEntity.sexCode).isEqualTo(SexCode.M)
 
-        val storedPrisonEthnicity = ethnicityCodeRepository.findByDescription(ethnicity)
+        val storedPrisonEthnicity = ethnicityCodeRepository.findByCode(EthnicityCode.fromPrison(ethnicity)?.name!!)
         assertThat(personEntity.ethnicityCode?.code).isEqualTo(storedPrisonEthnicity?.code)
         assertThat(personEntity.ethnicityCode?.description).isEqualTo(storedPrisonEthnicity?.description)
 
