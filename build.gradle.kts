@@ -1,3 +1,8 @@
+@file:Suppress("UnstableApiUsage")
+
+import org.gradle.model.internal.core.ModelNodes.withType
+
+
 kotlin {
   compilerOptions {
     jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
@@ -68,26 +73,26 @@ detekt {
   config.setFrom("$projectDir/detekt.yml") // point to your custom config defining rules
 }
 
+val test by testing.suites.existing(JvmTestSuite::class)
+
+tasks.register<Test>("initialiseDatabase") {
+  testClassesDirs = files(test.map { it.sources.output.classesDirs })
+  classpath = files(test.map { it.sources.runtimeClasspath })
+  include("**/InitialiseDatabase.class")
+  onlyIf { gradle.startParameter.taskNames.contains("initialiseDatabase") }
+}
+
+tasks.register<Test>("e2eTest") {
+  testClassesDirs = files(test.map { it.sources.output.classesDirs })
+  classpath = files(test.map { it.sources.runtimeClasspath })
+  include("**/**E2ETest.class")
+  onlyIf { gradle.startParameter.taskNames.contains("e2eTest") }
+}
+
 tasks {
-  register("initialiseDatabase", Test::class) {
-    include("**/InitialiseDatabase.class")
-  }
-
-  register("e2eTest", Test::class) {
-    include("**/**E2ETest.class")
-  }
-
   test {
     exclude("**/InitialiseDatabase.class")
     exclude("**/**E2ETest.class")
-  }
-
-  getByName("initialiseDatabase") {
-    onlyIf { gradle.startParameter.taskNames.contains("initialiseDatabase") }
-  }
-
-  getByName("e2eTest") {
-    onlyIf { gradle.startParameter.taskNames.contains("e2eTest") }
   }
 
   getByName("check") {
