@@ -2,13 +2,14 @@ package uk.gov.justice.digital.hmpps.personrecord.client.model.match
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideScopeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.SentenceInfoEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ActorType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ConfidenceType
 import java.time.LocalDate
 import java.util.UUID
 
@@ -32,13 +33,15 @@ class PersonMatchRecordTest {
     assertThat(personMatchRecord.cros).isEmpty()
     assertThat(personMatchRecord.pncs).isEmpty()
     assertThat(personMatchRecord.sentenceDates).isEmpty()
-    assertThat(personMatchRecord.includeOverrideMarkers).isEmpty()
-    assertThat(personMatchRecord.excludeOverrideMarkers).isEmpty()
+    assertThat(personMatchRecord.overrideMarker).isEmpty()
+    assertThat(personMatchRecord.overrideScopes).isEmpty()
   }
 
   @Test
   fun `should build dates in correct YYYY-MM-dd format`() {
     val date = LocalDate.of(1970, 1, 1)
+    val overrideMarker = UUID.randomUUID()
+    val overrideScopes = UUID.randomUUID()
     val personEntity = PersonEntity(
       pseudonyms = mutableListOf(
         PseudonymEntity(nameType = NameType.ALIAS, dateOfBirth = date),
@@ -48,18 +51,15 @@ class PersonMatchRecordTest {
       sentenceInfo = mutableListOf(SentenceInfoEntity(sentenceDate = date)),
       matchId = UUID.randomUUID(),
       sourceSystem = DELIUS,
+      overrideMarker = overrideMarker,
+      overrideScopes = mutableListOf(OverrideScopeEntity(scope = overrideScopes, actor = ActorType.HUMAN, confidence = ConfidenceType.VERIFIED)),
     )
-    val include1 = OverrideMarkerEntity(person = personEntity, markerType = OverrideMarkerType.INCLUDE, markerValue = 111L)
-    val include2 = OverrideMarkerEntity(person = personEntity, markerType = OverrideMarkerType.INCLUDE, markerValue = 222L)
-    val exclude1 = OverrideMarkerEntity(person = personEntity, markerType = OverrideMarkerType.EXCLUDE, markerValue = 999L)
-
-    personEntity.overrideMarkers.addAll(listOf(include1, include2, exclude1))
 
     val personMatchRecord = PersonMatchRecord.from(personEntity)
     assertThat(personMatchRecord.dateOfBirth).isEqualTo("1970-01-01")
     assertThat(personMatchRecord.dateOfBirthAliases).isEqualTo(listOf("1970-01-01"))
     assertThat(personMatchRecord.sentenceDates).isEqualTo(listOf("1970-01-01"))
-    assertThat(personMatchRecord.includeOverrideMarkers).containsExactly("111", "222")
-    assertThat(personMatchRecord.excludeOverrideMarkers).containsExactly("999")
+    assertThat(personMatchRecord.overrideMarker).isEqualTo(overrideMarker.toString())
+    assertThat(personMatchRecord.overrideScopes).isEqualTo(listOf(overrideScopes.toString()))
   }
 }
