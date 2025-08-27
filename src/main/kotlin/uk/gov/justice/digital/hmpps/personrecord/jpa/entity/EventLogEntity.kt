@@ -90,6 +90,13 @@ class EventLogEntity(
   @Column(name = "include_override_markers", columnDefinition = "bigint[]")
   val includeOverrideMarkers: Array<Long> = emptyArray<Long>(),
 
+  @Column(name = "override_marker")
+  val overrideMarker: UUID? = null,
+
+  @Type(StringArrayType::class)
+  @Column(name = "override_scopes", columnDefinition = "text[]")
+  val overrideScopes: Array<UUID> = emptyArray<UUID>(),
+
   @Enumerated(STRING)
   @Column(name = "source_system")
   val sourceSystem: SourceSystemType? = null,
@@ -131,6 +138,8 @@ class EventLogEntity(
       sentenceDates = eventLog.sentenceDates.dedupeAndSortedArray(),
       excludeOverrideMarkers = eventLog.excludeOverrideMarkers.dedupeAndSortedArray(),
       includeOverrideMarkers = eventLog.includeOverrideMarkers.dedupeAndSortedArray(),
+      overrideMarker = eventLog.overrideMarker,
+      overrideScopes = eventLog.overrideScopes.dedupeAndSortedArray(),
       sourceSystem = eventLog.sourceSystem,
       eventType = eventLog.eventType,
       recordMergedTo = eventLog.recordMergedTo,
@@ -139,6 +148,8 @@ class EventLogEntity(
     )
 
     private fun List<String>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
+
+    private fun List<UUID>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
 
     private fun List<Long>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
 
