@@ -322,7 +322,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val pnc = randomPnc()
       val crn = randomCrn()
       val originalEthnicity = randomProbationEthnicity()
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc, gender = "M", ethnicity = originalEthnicity))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc, gender = "M", ethnicity = originalEthnicity, title = "Mrs"))
       val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.sexCode).isEqualTo(SexCode.M)
@@ -338,7 +338,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val changedDateOfBirth = randomDate()
       val changedEthnicity = randomProbationEthnicity()
       val nationality = randomProbationNationalityCode()
-      probationEventAndResponseSetup(OFFENDER_ALIAS_CHANGED, ApiResponseSetup(crn = crn, pnc = changedPnc, gender = "F", dateOfBirth = changedDateOfBirth, ethnicity = changedEthnicity, nationality = nationality))
+      probationEventAndResponseSetup(OFFENDER_ALIAS_CHANGED, ApiResponseSetup(crn = crn, pnc = changedPnc, gender = "F", dateOfBirth = changedDateOfBirth, ethnicity = changedEthnicity, nationality = nationality, title = "MR"))
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
       val updatedPersonEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
@@ -358,6 +358,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.nationalities.size).isEqualTo(1)
       assertThat(updatedPersonEntity.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromProbationCode()?.code)
       assertThat(updatedPersonEntity.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeEntityFromProbationCode()?.description)
+
+      assertThat(updatedPersonEntity.getPrimaryName().titleCode?.code).isEqualTo("MR")
+      assertThat(updatedPersonEntity.getPrimaryName().titleCode?.description).isEqualTo("Mr")
     }
 
     @Test
