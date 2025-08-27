@@ -44,6 +44,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
+import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
 
 class CourtApiIntTest : WebTestBase() {
 
@@ -55,7 +56,7 @@ class CourtApiIntTest : WebTestBase() {
       val firstName = randomName()
       val lastName = randomName()
       val middleNames = randomName()
-      val title = "Mrs"
+      val title = randomTitle()
       val pnc = randomPnc()
       val noFixedAbode = true
       val startDate = randomDate()
@@ -131,12 +132,12 @@ class CourtApiIntTest : WebTestBase() {
         .expectBody(CanonicalRecord::class.java) // TODO different class
         .returnResult()
         .responseBody!!
-
+      val storedTitle = title.getTitle()
       val canonicalAlias = CanonicalAlias(
         firstName = firstName,
         lastName = lastName,
         middleNames = middleNames,
-        title = CanonicalTitle(code = "MRS", description = "Mrs"),
+        title = CanonicalTitle(code = storedTitle.code, description = storedTitle.description),
       )
       val canonicalNationality = nationality.getEntity()?.let { listOf(CanonicalNationality(it.code, it.description)) }
       val canonicalAddress = CanonicalAddress(

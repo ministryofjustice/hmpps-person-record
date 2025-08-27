@@ -53,6 +53,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
 import java.nio.charset.Charset
 import java.time.LocalDateTime.now
 import java.util.UUID
@@ -187,7 +188,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val dependentLocality = randomName()
     val postTown = randomName()
     val postcode = randomPostcode()
-    val title = "Mr"
+    val title = randomTitle()
     val ethnicity = randomCommonPlatformEthnicity()
 
     val firstNationality = randomCommonPlatformNationalityCode()
@@ -246,8 +247,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getPnc()).isEqualTo(firstPnc)
     assertThat(firstPerson.personKey).isNotNull()
     assertThat(firstPerson.masterDefendantId).isEqualTo(firstDefendantId)
-    assertThat(firstPerson.getPrimaryName().titleCode?.code).isEqualTo("MR")
-    assertThat(firstPerson.getPrimaryName().titleCode?.description).isEqualTo("Mr")
+    val storedTitle = title.getTitle()
+    assertThat(firstPerson.getPrimaryName().titleCode?.code).isEqualTo(storedTitle.code)
+    assertThat(firstPerson.getPrimaryName().titleCode?.description).isEqualTo(storedTitle.description)
     assertThat(firstPerson.getPrimaryName().firstName).isEqualTo(firstName)
     assertThat(firstPerson.getPrimaryName().middleNames).isEqualTo("mName1 mName2")
     assertThat(firstPerson.getPrimaryName().lastName).isEqualTo(lastName)
