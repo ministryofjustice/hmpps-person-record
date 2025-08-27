@@ -68,7 +68,7 @@ class PersonEntity(
   var overrideMarkers: MutableList<OverrideMarkerEntity> = mutableListOf(),
 
   @Column(name = "override_marker")
-  val overrideMarker: UUID? = null,
+  var overrideMarker: UUID? = null,
 
   @ManyToMany(cascade = [ALL], fetch = EAGER)
   @JoinTable(

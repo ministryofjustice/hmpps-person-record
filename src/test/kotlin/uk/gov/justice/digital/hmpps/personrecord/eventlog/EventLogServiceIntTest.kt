@@ -81,6 +81,8 @@ class EventLogServiceIntTest : IntegrationTestBase() {
     assertThat(eventLog.eventType).isEqualTo(CPRLogEvents.CPR_RECORD_UPDATED)
     assertThat(eventLog.excludeOverrideMarkers.size).isEqualTo(0)
     assertThat(eventLog.includeOverrideMarkers.size).isEqualTo(0)
+    assertThat(eventLog.overrideMarker).isNull()
+    assertThat(eventLog.overrideScopes).isEmpty()
   }
 
   @Test
@@ -109,6 +111,8 @@ class EventLogServiceIntTest : IntegrationTestBase() {
 
     assertThat(eventLog.excludeOverrideMarkers.size).isEqualTo(1)
     assertThat(eventLog.excludeOverrideMarkers.first()).isEqualTo(fromRecord.id)
+    assertThat(eventLog.overrideMarker).isNotNull()
+    assertThat(eventLog.overrideScopes).isNotEmpty()
   }
 
   @Test
