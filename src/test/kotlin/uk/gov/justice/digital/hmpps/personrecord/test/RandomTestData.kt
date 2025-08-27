@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.test
 
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier.Companion.VALID_LETTERS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.CommonPlatformEthnicityCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.PrisonEthnicity
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ProbationEthnicityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.commonPlatformEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.prisonEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.probationEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.COMMON_PLATFORM_NATIONALITY_MAPPING
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.LIBRA_NATIONALITY_MAPPINGS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
@@ -35,13 +35,11 @@ fun randomBuildingNumber(): String = randomDigit(3)
 
 fun randomName(): String = randomLowerCaseString()
 
-fun randomEthnicity(): String = randomLowerCaseString()
+fun randomProbationEthnicity(): String = probationEthnicity.keys.random()
 
-fun randomProbationEthnicity(): String = ProbationEthnicityCode.entries.toTypedArray().random().name
+fun randomCommonPlatformEthnicity(): String = commonPlatformEthnicity.keys.random()
 
-fun randomCommonPlatformEthnicity(): String = CommonPlatformEthnicityCode.entries.toTypedArray().random().name
-
-fun randomPrisonEthnicity(): PrisonEthnicity = PrisonEthnicity.entries.toTypedArray().random()
+fun randomPrisonEthnicity(): String = prisonEthnicity.keys.random()
 
 fun randomNationalityCode(): NationalityCode = NationalityCode.entries.random()
 

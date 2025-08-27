@@ -9,8 +9,8 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Name
 import uk.gov.justice.digital.hmpps.personrecord.api.model.sysconsync.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 
@@ -69,7 +69,7 @@ class SysconSyncIntTest : WebTestBase() {
       birthCountryCode = "",
       nationalityCode = randomPrisonNationalityCode(),
       multipleNationalities = "",
-      ethnicityCode = randomEthnicity(),
+      ethnicityCode = randomPrisonEthnicity(),
       sexualOrientationCode = "",
       sexCode = "",
       disability = false,
