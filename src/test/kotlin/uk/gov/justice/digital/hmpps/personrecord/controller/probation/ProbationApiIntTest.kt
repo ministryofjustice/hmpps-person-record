@@ -25,7 +25,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
-import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
@@ -269,9 +268,7 @@ class ProbationApiIntTest : WebTestBase() {
         identifiers = Identifiers(crn = randomCrn()),
         name = ProbationCaseName(firstName = randomName()),
         gender = Value(SexCode.M.name),
-        ethnicity = Value(
-          randomEthnicity(),
-        ),
+        ethnicity = Value(randomProbationEthnicity()),
         nationality = Value(randomProbationNationalityCode()),
         contactDetails = ContactDetails(),
       )

@@ -17,7 +17,6 @@ enum class EthnicityCode {
   NS,
   O1,
   O2,
-  O3,
   O9,
   W1,
   W2,
@@ -30,7 +29,6 @@ enum class EthnicityCode {
   ETH05,
   W8,
   Z1,
-  P,
   UN,
   ;
 
@@ -63,6 +61,7 @@ enum class EthnicityCode {
       O1,
       Z1,
     ).associateBy { it.name }
+
     val commonPlatformEthnicity = listOf(
       A1,
       A2,
@@ -85,6 +84,7 @@ enum class EthnicityCode {
       W9,
       O1,
     ).associateBy { it.name }
+
     val prisonEthnicity: Map<String, EthnicityCode> = mapOf(
       "Asian/Asian British: Indian" to A1,
       "Asian/Asian British: Pakistani" to A2,
