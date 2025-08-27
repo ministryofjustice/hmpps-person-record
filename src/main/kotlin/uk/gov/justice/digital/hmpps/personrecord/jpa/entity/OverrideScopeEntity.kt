@@ -23,7 +23,7 @@ class OverrideScopeEntity(
   val id: Long? = null,
 
   @ManyToMany(mappedBy = "overrideScopes")
-  var person: MutableList<PersonEntity> = mutableListOf(),
+  var personEntities: MutableList<PersonEntity> = mutableListOf(),
 
   @Column
   val scope: UUID,

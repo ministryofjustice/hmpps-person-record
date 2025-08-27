@@ -618,6 +618,32 @@ class IntegrationTestBase {
     ).hasSize(1)
   }
 
+  internal fun PersonEntity.assertHasOverrideMarker() = awaitAssert {
+    assertThat(personRepository.findByMatchId(this.matchId)?.overrideMarker).isNotNull()
+  }
+
+  internal fun PersonEntity.assertDoesNotHaveOverrideMarker() = awaitAssert {
+    assertThat(personRepository.findByMatchId(this.matchId)?.overrideMarker).isNull()
+  }
+
+  internal fun PersonEntity.assertHasDifferentOverrideMarker(personEntity: PersonEntity) = awaitAssert {
+    assertThat(personRepository.findByMatchId(this.matchId)?.overrideMarker).isNotEqualTo(personEntity.overrideMarker)
+  }
+
+  internal fun PersonEntity.assertHasSameOverrideScope(personEntity: PersonEntity) = awaitAssert {
+    val thisPersonScopes = personRepository.findByMatchId(this.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()
+    val evalPersonScopes = personRepository.findByMatchId(personEntity.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()
+    val intersection = thisPersonScopes.intersect(evalPersonScopes)
+    assertThat(intersection).isNotEmpty()
+  }
+
+  internal fun PersonEntity.assertHasDifferentOverrideScope(personEntity: PersonEntity) = awaitAssert {
+    val thisPersonScopes = personRepository.findByMatchId(this.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()
+    val evalPersonScopes = personRepository.findByMatchId(personEntity.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()
+    val intersection = thisPersonScopes.intersect(evalPersonScopes)
+    assertThat(intersection).isEmpty()
+  }
+
   fun PersonEntity.assertPersonDeleted() = awaitAssert { assertThat(personRepository.findByMatchId(this.matchId)).isNull() }
 
   fun PersonKeyEntity.assertPersonKeyDeleted() = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)).isNull() }

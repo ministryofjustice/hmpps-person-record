@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 import io.hypersistence.utils.hibernate.type.array.LocalDateArrayType
 import io.hypersistence.utils.hibernate.type.array.LongArrayType
 import io.hypersistence.utils.hibernate.type.array.StringArrayType
+import io.hypersistence.utils.hibernate.type.array.UUIDArrayType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType.STRING
@@ -93,8 +94,8 @@ class EventLogEntity(
   @Column(name = "override_marker")
   val overrideMarker: UUID? = null,
 
-  @Type(StringArrayType::class)
-  @Column(name = "override_scopes", columnDefinition = "text[]")
+  @Type(UUIDArrayType::class)
+  @Column(name = "override_scopes", columnDefinition = "uuid[]")
   val overrideScopes: Array<UUID> = emptyArray<UUID>(),
 
   @Enumerated(STRING)
