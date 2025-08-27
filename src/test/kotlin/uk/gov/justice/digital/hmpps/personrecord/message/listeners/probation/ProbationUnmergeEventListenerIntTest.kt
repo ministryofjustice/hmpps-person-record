@@ -385,6 +385,26 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       unmergedRecord.assertOverrideScopeSize(2)
     }
+
+    @Test
+    fun `should not overwrite existing override marker`() {
+      val cluster = createPersonKey()
+      val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
+      val firstReactivatedRecord = createPerson(createRandomProbationPersonDetails())
+      val secondReactivatedRecord = createPerson(createRandomProbationPersonDetails())
+
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, firstReactivatedRecord.crn!!, unmergedRecord.crn!!)
+      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to firstReactivatedRecord.crn!!))
+
+      val initialOverrideMarker = awaitNotNullPerson { personRepository.findByCrn(unmergedRecord.crn!!) }.overrideMarker
+      assertThat(initialOverrideMarker).isNotNull()
+
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, secondReactivatedRecord.crn!!, unmergedRecord.crn!!)
+      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to secondReactivatedRecord.crn!!))
+
+      val finalOverrideMarker = awaitNotNullPerson { personRepository.findByCrn(unmergedRecord.crn!!) }.overrideMarker
+      assertThat(initialOverrideMarker).isEqualTo(finalOverrideMarker)
+    }
   }
 
   @Nested

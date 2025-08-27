@@ -57,6 +57,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtProbationLi
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.NationalityCodeRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OverrideScopeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -96,6 +97,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
 class IntegrationTestBase {
+
+  @Autowired
+  private lateinit var overrideScopeRepository: OverrideScopeRepository
 
   @Autowired
   private lateinit var personService: PersonService
@@ -290,9 +294,11 @@ class IntegrationTestBase {
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
     val source = personRepository.findByMatchId(sourceRecord.matchId)
-    val scope = OverrideScopeEntity.new(
-      ConfidenceType.VERIFIED,
-      ActorType.SYSTEM,
+    val scope = overrideScopeRepository.save(
+      OverrideScopeEntity.new(
+        ConfidenceType.VERIFIED,
+        ActorType.SYSTEM,
+      ),
     )
     source?.overrideMarker = OverrideScopeEntity.newMarker()
     source?.overrideScopes?.add(scope)
