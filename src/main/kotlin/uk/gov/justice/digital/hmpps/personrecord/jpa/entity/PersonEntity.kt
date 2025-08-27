@@ -68,7 +68,7 @@ class PersonEntity(
   var overrideMarkers: MutableList<OverrideMarkerEntity> = mutableListOf(),
 
   @Column(name = "override_marker")
-  val overrideMarker: UUID? = null,
+  var overrideMarker: UUID? = null,
 
   @ManyToMany(cascade = [ALL], fetch = EAGER)
   @JoinTable(
@@ -152,6 +152,12 @@ class PersonEntity(
     this.overrideMarkers.add(
       OverrideMarkerEntity(markerType = OverrideMarkerType.EXCLUDE, markerValue = excludeRecord.id, person = this),
     )
+  }
+
+  fun addOverrideMarker(scope: OverrideScopeEntity, marker: UUID? = null) {
+    this.overrideMarker = marker ?: OverrideScopeEntity.newMarker()
+    this.overrideScopes.add(scope)
+    scope.personEntities.add(this)
   }
 
   fun mergeTo(personEntity: PersonEntity) {
