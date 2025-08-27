@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
@@ -44,6 +43,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
@@ -64,7 +64,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     @Test
     fun `creates person when new offender created event is published`() {
       val crn = randomCrn()
-      val title = TitleCode.MR
+      val title = randomTitle()
       val prisonNumber = randomPrisonNumber()
       val firstName = randomName()
       val middleName = randomName() + " " + randomName()
@@ -87,7 +87,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         dateOfBirth = dateOfBirth,
         crn = crn,
         pnc = pnc,
-        title = title.name,
+        title = title,
         firstName = firstName,
         middleName = middleName,
         lastName = lastName,
@@ -128,8 +128,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getPrimaryName().middleNames).isEqualTo(middleName)
       assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
       assertThat(personEntity.getPrimaryName().nameType).isEqualTo(NameType.PRIMARY)
-      assertThat(personEntity.getPrimaryName().titleCode?.code).isEqualTo("MR")
-      assertThat(personEntity.getPrimaryName().titleCode?.description).isEqualTo("Mr")
+      val storedTitle = title.getTitle()
+      assertThat(personEntity.getPrimaryName().titleCode?.code).isEqualTo(storedTitle?.code)
+      assertThat(personEntity.getPrimaryName().titleCode?.description).isEqualTo(storedTitle?.description)
       assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
 
       assertThat(personEntity.addresses.size).isEqualTo(2)
