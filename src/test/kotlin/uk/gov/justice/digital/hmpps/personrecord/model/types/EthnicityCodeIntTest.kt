@@ -100,6 +100,7 @@ class EthnicityCodeIntTest : IntegrationTestBase() {
       Arguments.of("O1", "O1", "Chinese"),
       Arguments.of("Z1", "Z1", "Missing (IAPS)"),
       Arguments.of("Invalid", "UN", "Unknown"),
+      Arguments.of(null, "UN", "Unknown"),
     )
 
     @JvmStatic
@@ -127,6 +128,7 @@ class EthnicityCodeIntTest : IntegrationTestBase() {
       Arguments.of("White: Any other background", "W9", "White : Any other background"),
       Arguments.of("Chinese", "O1", "Chinese"),
       Arguments.of("White : Irish Traveller/Gypsy", "W8", "White : Irish Traveller/Gypsy"),
+      Arguments.of(null, "UN", "Unknown"),
     )
 
     @JvmStatic
@@ -152,6 +154,7 @@ class EthnicityCodeIntTest : IntegrationTestBase() {
       Arguments.of("W9", "W9", "White : Any other background"),
       Arguments.of("O1", "O1", "Chinese"),
       Arguments.of("Invalid", "UN", "Unknown"),
+      Arguments.of(null, "UN", "Unknown"),
     )
   }
 }
