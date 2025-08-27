@@ -31,12 +31,12 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
@@ -63,7 +63,7 @@ class CourtApiIntTest : WebTestBase() {
       val postcode = randomPostcode()
       val nationality = randomNationalityCode()
       val religion = randomReligion()
-      val ethnicity = randomEthnicity()
+      val ethnicity = randomCommonPlatformEthnicity()
 
       val buildingName = randomName()
       val buildingNumber = randomBuildingNumber()
@@ -341,7 +341,7 @@ class CourtApiIntTest : WebTestBase() {
           sourceSystem = NOMIS,
           crn = personOneCrn,
           prisonNumber = randomPrisonNumber(),
-          ethnicity = randomEthnicity(),
+          ethnicity = randomCommonPlatformEthnicity(),
           nationalities = listOf(Nationality(randomNationalityCode())),
           religion = randomReligion(),
           cId = randomCId(),
@@ -376,7 +376,7 @@ class CourtApiIntTest : WebTestBase() {
           sourceSystem = NOMIS,
           crn = personTwoCrn,
           prisonNumber = randomPrisonNumber(),
-          ethnicity = randomEthnicity(),
+          ethnicity = randomCommonPlatformEthnicity(),
           nationalities = listOf(Nationality(randomNationalityCode())),
           religion = randomReligion(),
           cId = randomCId(),
@@ -456,7 +456,7 @@ class CourtApiIntTest : WebTestBase() {
           middleNames = randomName(),
           dateOfBirth = randomDate(),
           sourceSystem = COMMON_PLATFORM,
-          ethnicity = randomEthnicity(),
+          ethnicity = randomCommonPlatformEthnicity(),
           nationalities = listOf(Nationality(randomNationalityCode())),
           religion = randomReligion(),
           masterDefendantId = randomDefendantId(),

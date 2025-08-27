@@ -31,12 +31,12 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 
@@ -55,7 +55,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val postcode = randomPostcode()
     val nationality = randomNationalityCode()
     val religion = randomReligion()
-    val ethnicity = randomEthnicity()
+    val ethnicity = randomPrisonEthnicity()
 
     val buildingName = randomName()
     val buildingNumber = randomBuildingNumber()
@@ -77,7 +77,7 @@ class CanonicalApiIntTest : WebTestBase() {
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
         titleCode = TitleCode.from(title),
-        crn = crn,
+        crn = crn, // this is not realistic - a person will only have pne of crn, cid,defendantId or prison number
         sexCode = SexCode.M,
         prisonNumber = prisonNumber,
         ethnicity = ethnicity,
@@ -326,7 +326,7 @@ class CanonicalApiIntTest : WebTestBase() {
         sourceSystem = NOMIS,
         crn = personOneCrn,
         prisonNumber = randomPrisonNumber(),
-        ethnicity = randomEthnicity(),
+        ethnicity = randomPrisonEthnicity(),
         nationalities = listOf(Nationality(randomNationalityCode())),
         religion = randomReligion(),
         cId = randomCId(),
@@ -352,7 +352,7 @@ class CanonicalApiIntTest : WebTestBase() {
         sourceSystem = NOMIS,
         crn = personTwoCrn,
         prisonNumber = randomPrisonNumber(),
-        ethnicity = randomEthnicity(),
+        ethnicity = randomPrisonEthnicity(),
         nationalities = listOf(Nationality(randomNationalityCode())),
         religion = randomReligion(),
         cId = randomCId(),
@@ -401,7 +401,7 @@ class CanonicalApiIntTest : WebTestBase() {
         middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
-        ethnicity = randomEthnicity(),
+        ethnicity = randomPrisonEthnicity(),
         nationalities = listOf(Nationality(randomNationalityCode())),
         religion = randomReligion(),
         masterDefendantId = randomDefendantId(),

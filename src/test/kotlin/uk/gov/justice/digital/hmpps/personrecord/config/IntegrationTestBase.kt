@@ -48,6 +48,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideScopeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -67,6 +68,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ActorType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ConfidenceType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
@@ -287,6 +290,12 @@ class IntegrationTestBase {
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
     val source = personRepository.findByMatchId(sourceRecord.matchId)
+    val scope = OverrideScopeEntity.new(
+      ConfidenceType.VERIFIED,
+      ActorType.SYSTEM,
+    )
+    source?.overrideMarker = OverrideScopeEntity.newMarker()
+    source?.overrideScopes?.add(scope)
     source?.overrideMarkers?.add(
       OverrideMarkerEntity(
         markerType = EXCLUDE,
@@ -295,6 +304,8 @@ class IntegrationTestBase {
       ),
     )
     val target = personRepository.findByMatchId(sourceRecord.matchId)
+    target?.overrideMarker = OverrideScopeEntity.newMarker()
+    target?.overrideScopes?.add(scope)
     target?.overrideMarkers?.add(
       OverrideMarkerEntity(
         markerType = EXCLUDE,

@@ -25,12 +25,12 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
-import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
 
 class ProbationApiIntTest : WebTestBase() {
@@ -73,7 +73,7 @@ class ProbationApiIntTest : WebTestBase() {
       val fullAddress = randomFullAddress()
 
       val nationality = randomProbationNationalityCode()
-      val ethnicity = randomEthnicity()
+      val ethnicity = randomProbationEthnicity()
 
       val gender = "M"
 
@@ -268,9 +268,7 @@ class ProbationApiIntTest : WebTestBase() {
         identifiers = Identifiers(crn = randomCrn()),
         name = ProbationCaseName(firstName = randomName()),
         gender = Value(SexCode.M.name),
-        ethnicity = Value(
-          randomEthnicity(),
-        ),
+        ethnicity = Value(randomProbationEthnicity()),
         nationality = Value(randomProbationNationalityCode()),
         contactDetails = ContactDetails(),
       )

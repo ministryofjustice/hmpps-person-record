@@ -23,7 +23,7 @@ class OverrideScopeEntity(
   val id: Long? = null,
 
   @ManyToMany(mappedBy = "overrideScopes")
-  var personEntities: MutableList<PersonEntity> = mutableListOf(),
+  var person: MutableList<PersonEntity> = mutableListOf(),
 
   @Column
   val scope: UUID,
@@ -40,7 +40,6 @@ class OverrideScopeEntity(
   var version: Int = 0,
 ) {
   companion object {
-
     fun newMarker(): UUID = UUID.randomUUID()
 
     fun new(confidence: ConfidenceType, actor: ActorType): OverrideScopeEntity = OverrideScopeEntity(
