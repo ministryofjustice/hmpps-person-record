@@ -62,8 +62,9 @@ enum class EthnicityCode {
       ETH05,
       O1,
       Z1,
-    )
-    val probationEthnicityMap = probationEthnicity.associateBy { it.name }
+    ).associateBy { it.name }
+
+    fun fromProbation(code: String?): EthnicityCode? = code?.let { probationEthnicity.getOrDefault(it, UN) }
 
     val commonPlatformEthnicity = listOf(
       A1,
@@ -86,12 +87,9 @@ enum class EthnicityCode {
       W3,
       W9,
       O1,
-    )
-    val commonPlatformEthnicityMap = commonPlatformEthnicity.associateBy { it.name }
+    ).associateBy { it.name }
 
-    fun fromCommonPlatform(code: String?): EthnicityCode? = code?.let { commonPlatformEthnicityMap.getOrDefault(it, UN) }
-
-    fun fromProbation(code: String?): EthnicityCode? = code?.let { probationEthnicityMap.getOrDefault(it, UN) }
+    fun fromCommonPlatform(code: String?): EthnicityCode? = code?.let { commonPlatformEthnicity.getOrDefault(it, UN) }
 
     val prisonEthnicity: Map<String, EthnicityCode> = mapOf(
       "Asian/Asian British: Indian" to A1,

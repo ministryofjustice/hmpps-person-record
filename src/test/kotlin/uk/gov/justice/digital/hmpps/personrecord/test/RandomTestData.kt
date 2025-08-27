@@ -37,9 +37,9 @@ fun randomName(): String = randomLowerCaseString()
 
 fun randomEthnicity(): String = randomLowerCaseString()
 
-fun randomProbationEthnicity(): String = probationEthnicity.random().name
+fun randomProbationEthnicity(): String = probationEthnicity.keys.random()
 
-fun randomCommonPlatformEthnicity(): String = commonPlatformEthnicity.random().name
+fun randomCommonPlatformEthnicity(): String = commonPlatformEthnicity.keys.random()
 
 fun randomPrisonEthnicity(): String = EthnicityCode.prisonEthnicity.keys.random()
 
