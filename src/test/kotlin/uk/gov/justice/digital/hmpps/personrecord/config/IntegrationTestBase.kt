@@ -631,17 +631,15 @@ class IntegrationTestBase {
   }
 
   internal fun PersonEntity.assertHasSameOverrideScope(personEntity: PersonEntity) = awaitAssert {
-    val thisPersonScopes = personRepository.findByMatchId(this.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()
-    val evalPersonScopes = personRepository.findByMatchId(personEntity.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()
-    val intersection = thisPersonScopes.intersect(evalPersonScopes)
-    assertThat(intersection).isNotEmpty()
+    assertThat(this.intersectScopes(personEntity)).isNotEmpty()
   }
 
   internal fun PersonEntity.assertHasDifferentOverrideScope(personEntity: PersonEntity) = awaitAssert {
-    val thisPersonScopes = personRepository.findByMatchId(this.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()
-    val evalPersonScopes = personRepository.findByMatchId(personEntity.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()
-    val intersection = thisPersonScopes.intersect(evalPersonScopes)
-    assertThat(intersection).isEmpty()
+    assertThat(this.intersectScopes(personEntity)).isEmpty()
+  }
+
+  internal fun PersonEntity.assertOverrideScopeSize(size: Int) = awaitAssert {
+    assertThat(personRepository.findByMatchId(this.matchId)?.overrideScopes?.size).isEqualTo(size)
   }
 
   fun PersonEntity.assertPersonDeleted() = awaitAssert { assertThat(personRepository.findByMatchId(this.matchId)).isNull() }
@@ -660,6 +658,13 @@ class IntegrationTestBase {
   fun PersonEntity.getCro(): String? = this.references.getType(CRO).firstOrNull()?.identifierValue
   fun Person.getPnc(): String? = this.references.getType(PNC).first().identifierValue
   fun PersonEntity.getPnc(): String? = this.references.getType(PNC).firstOrNull()?.identifierValue
+
+  private fun PersonEntity.intersectScopes(personEntity: PersonEntity): Set<UUID> {
+    val thisPersonScopes = personRepository.findByMatchId(this.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()
+    val evalPersonScopes = personRepository.findByMatchId(personEntity.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()
+    return thisPersonScopes.intersect(evalPersonScopes)
+  }
+
   companion object {
 
     internal const val BASE_SCENARIO = "baseScenario"

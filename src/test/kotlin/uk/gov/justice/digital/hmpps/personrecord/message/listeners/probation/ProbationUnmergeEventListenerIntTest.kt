@@ -100,6 +100,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       unmergedPerson.assertHasOverrideMarker()
       reactivatedPerson.assertHasOverrideMarker()
+      unmergedPerson.assertOverrideScopeSize(1)
+      reactivatedPerson.assertOverrideScopeSize(1)
       unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
       unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
     }
@@ -380,6 +382,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       unmergedRecord.assertHasSameOverrideScope(firstReactivatedRecord)
       unmergedRecord.assertHasSameOverrideScope(secondReactivatedRecord)
       firstReactivatedRecord.assertHasDifferentOverrideScope(secondReactivatedRecord)
+
+      unmergedRecord.assertOverrideScopeSize(2)
     }
   }
 

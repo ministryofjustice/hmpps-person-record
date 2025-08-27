@@ -154,10 +154,9 @@ class PersonEntity(
     )
   }
 
-  fun addOverrideMarker(scope: OverrideScopeEntity, marker: UUID? = null) {
-    this.overrideMarker = marker ?: OverrideScopeEntity.newMarker()
+  fun addOverrideMarker(scope: OverrideScopeEntity) {
+    this.overrideMarker = this.overrideMarker ?: OverrideScopeEntity.newMarker()
     this.overrideScopes.add(scope)
-    scope.personEntities.add(this)
   }
 
   fun mergeTo(personEntity: PersonEntity) {
