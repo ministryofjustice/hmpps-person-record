@@ -128,6 +128,7 @@ class EthnicityCodeIntTest : IntegrationTestBase() {
       Arguments.of("White: Any other background", "W9", "White : Any other background"),
       Arguments.of("Chinese", "O1", "Chinese"),
       Arguments.of("White : Irish Traveller/Gypsy", "W8", "White : Irish Traveller/Gypsy"),
+      Arguments.of("Invalid", "UN", "Unknown"),
       Arguments.of(null, "UN", "Unknown"),
     )
 
