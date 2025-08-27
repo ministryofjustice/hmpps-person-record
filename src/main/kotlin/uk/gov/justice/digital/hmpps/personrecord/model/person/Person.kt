@@ -130,7 +130,7 @@ data class Person(
         lastName = defendant.personDefendant?.personDetails?.lastName.nullIfBlank(),
         middleNames = defendant.personDefendant?.personDetails?.middleName.nullIfBlank(),
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
-        ethnicityCode = EthnicityCode.from(defendant.personDefendant?.personDetails?.ethnicity?.selfDefinedEthnicityCode),
+        ethnicityCode = EthnicityCode.fromCommonPlatform(defendant.personDefendant?.personDetails?.ethnicity?.selfDefinedEthnicityCode),
         defendantId = defendant.id.nullIfBlank(),
         masterDefendantId = defendant.masterDefendantId.nullIfBlank(),
         contacts = contacts,

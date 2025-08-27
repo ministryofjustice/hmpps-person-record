@@ -1,30 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
-import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
-
-enum class CommonPlatformEthnicityCode {
-  A1,
-  A2,
-  A3,
-  A4,
-  A9,
-  B1,
-  B2,
-  B9,
-  M1,
-  M2,
-  M3,
-  M9,
-  NS,
-  O2,
-  O9,
-  W1,
-  W2,
-  W3,
-  W9,
-  O1,
-}
-
 enum class EthnicityCode {
   A1,
   A2,
@@ -89,16 +64,45 @@ enum class EthnicityCode {
       Z1,
     )
 
-    fun fromProbation(code: String?): EthnicityCode? {
-      if (code == null) {
-        return null
+    val commonPlatformEthnicity = listOf(
+      A1,
+      A2,
+      A3,
+      A4,
+      A9,
+      B1,
+      B2,
+      B9,
+      M1,
+      M2,
+      M3,
+      M9,
+      NS,
+      O2,
+      O9,
+      W1,
+      W2,
+      W3,
+      W9,
+      O1,
+    )
+
+    fun fromCommonPlatform(code: String?): EthnicityCode {
+      if (code != null && entries.any { it.name == code }) {
+        if (commonPlatformEthnicity.contains(EthnicityCode.valueOf(code))) {
+          return EthnicityCode.valueOf(code)
+        }
       }
-      if (entries.any { it.name == code }) {
+      return UN
+    }
+
+    fun fromProbation(code: String?): EthnicityCode {
+      if (code != null && entries.any { it.name == code }) {
         if (probationEthnicity.contains(EthnicityCode.valueOf(code))) {
           return EthnicityCode.valueOf(code)
         }
       }
-      return null
+      return UN
     }
 
     val prisonEthnicity: Map<String, EthnicityCode> = mapOf(
@@ -128,72 +132,5 @@ enum class EthnicityCode {
     )
 
     fun fromPrison(description: String?): EthnicityCode? = description?.let { prisonEthnicity.getOrDefault(it, UN) }
-
-    private val rawMap = mapOf(
-      "A1" to A1,
-      "Asian/Asian British: Indian" to A1,
-      "A2" to A2,
-      "Asian/Asian British: Pakistani" to A2,
-      "A3" to A3,
-      "Asian/Asian British: Bangladeshi" to A3,
-      "A4" to A4,
-      "Asian/Asian British: Chinese" to A4,
-      "A9" to A9,
-      "Asian/Asian British: Any other backgr'nd" to A9,
-      "B1" to B1,
-      "Black/Black British: Caribbean" to B1,
-      "B2" to B2,
-      "Black/Black British: African" to B2,
-      "B9" to B9,
-      "Black/Black British: Any other backgr'nd" to B9,
-      "M1" to M1,
-      "Mixed: White and Black Caribbean" to M1,
-      "M2" to M2,
-      "Mixed: White and Black African" to M2,
-      "M3" to M3,
-      "Mixed: White and Asian" to M3,
-      "M9" to M9,
-      "Mixed: Any other background" to M9,
-      "MERGE" to MERGE,
-      "Needs to be confirmed following merge" to MERGE,
-      "NS" to NS,
-      "Prefer not to say" to NS,
-      "O2" to O2,
-      "Other: Arab" to O2,
-      "O3" to O3,
-      "O9" to O9,
-      "Other: Any other background" to O9,
-      "W1" to W1,
-      "White: Eng./Welsh/Scot./N.Irish/British" to W1,
-      "W2" to W2,
-      "White: Irish" to W2,
-      "W3" to W3,
-      "White: Gypsy or Irish Traveller" to W3,
-      "W4" to W4,
-      "W5" to W5,
-      "White: Roma" to W5,
-      "W9" to W9,
-      "White: Any other background" to W9,
-      "ETH03" to ETH03,
-      "ETH04" to ETH04,
-      "ETH05" to ETH05,
-      "O1" to O1,
-      "Chinese" to O1,
-      "W8" to W8,
-      "White: Irish Traveller/Gypsy" to W8,
-      "Z1" to Z1,
-      "P" to P,
-    )
-
-    private val ethnicityMap: Map<String, EthnicityCode> = rawMap.mapKeys { it.key.uppercase() }
-
-    fun from(code: String?): EthnicityCode? = code?.getEthnicityOrUnknown(
-      ethnicityMap,
-    )
-
-    private fun String?.getEthnicityOrUnknown(ethniciyMap: Map<String, EthnicityCode>): EthnicityCode? = this.normalize()?.let {
-      ethniciyMap[it] ?: UN
-    }
-    private fun String?.normalize(): String? = this?.trim().nullIfBlank()?.uppercase()?.replace(" : ", ": ")
   }
 }

@@ -54,7 +54,7 @@ class EthnicityCodeIntTest : IntegrationTestBase() {
 
   @ParameterizedTest
   @MethodSource("commonPlatformEthnicityCodes")
-  fun `should map all ethnicity codes to cpr title codes`(defendantEthnicityCode: String?, cprEthnicityCode: EthnicityCode, cprEthnicityCodeDescription: String?) {
+  fun `should map all common platform ethnicity codes to cpr ethnicity codes`(defendantEthnicityCode: String?, cprEthnicityCode: EthnicityCode, cprEthnicityCodeDescription: String?) {
     val defendant = Defendant(
       id = randomDefendantId(),
       personDefendant = PersonDefendant(
@@ -150,9 +150,6 @@ class EthnicityCodeIntTest : IntegrationTestBase() {
       Arguments.of("W2", "W2", "White : Irish"),
       Arguments.of("W3", "W3", "White : Gypsy or Irish Traveller"),
       Arguments.of("W9", "W9", "White : Any other background"),
-      Arguments.of("ETH03", "ETH03", "Other (historic)"),
-      Arguments.of("ETH04", "ETH04", "Z_Dummy Ethnicity 04"),
-      Arguments.of("ETH05", "ETH05", "Z_Dummy Ethnicity 05"),
       Arguments.of("O1", "O1", "Chinese"),
       Arguments.of("Invalid", "UN", "Unknown"),
     )
