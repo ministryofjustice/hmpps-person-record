@@ -137,7 +137,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val changedFirstName = randomName()
     val changedForename2 = ""
     val changedForename3 = randomName()
-    publishLibraMessage(libraHearing(defendantSex = "F", firstName = changedFirstName, foreName2 = changedForename2, foreName3 = changedForename3, cId = cId, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
+    publishLibraMessage(libraHearing(defendantSex = "F", firstName = changedFirstName, foreName2 = changedForename2, foreName3 = changedForename3, cId = cId, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), title = "Rabbi"))
 
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
     checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_UPDATED)
@@ -146,7 +146,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       personRepository.findByCId(cId)
     }
 
-    assertThat(person.getPrimaryName().titleCode).isNull()
+    assertThat(person.getPrimaryName().titleCode?.code).isEqualTo("RABBI")
+    assertThat(person.getPrimaryName().titleCode?.description).isEqualTo("Rabbi")
     assertThat(person.getPrimaryName().firstName).isEqualTo(changedFirstName)
     assertThat(person.getPrimaryName().middleNames).isEqualTo(changedForename3)
     assertThat(person.getPrimaryName().lastName).isEqualTo(lastName)
