@@ -37,7 +37,8 @@ class UnmergeService(
 
   private fun unmerge(reactivated: PersonEntity, existing: PersonEntity) {
     val scopeEntity: OverrideScopeEntity = overrideScopeRepository.save(
-      OverrideScopeEntity.new(confidence = ConfidenceType.VERIFIED, actor = ActorType.SYSTEM))
+      OverrideScopeEntity.new(confidence = ConfidenceType.VERIFIED, actor = ActorType.SYSTEM),
+    )
 
     existing.addExcludeOverrideMarker(excludeRecord = reactivated)
     existing.addOverrideMarker(scopeEntity)
