@@ -31,13 +31,14 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomLibraNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
 import java.time.format.DateTimeFormatter
 
 class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should create new person from Libra message`() {
-    val title = "Mr"
+    val title = randomTitle()
     val firstName = randomName()
     val forename2 = randomName()
     val forename3 = randomName()
@@ -86,8 +87,9 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val person = awaitNotNullPerson { personRepository.findByCId(cId) }
 
-    assertThat(person.getPrimaryName().titleCode?.code).isEqualTo("MR")
-    assertThat(person.getPrimaryName().titleCode?.description).isEqualTo("Mr")
+    val storedTitle = titleCodeRepository.findByCode(title)
+    assertThat(person.getPrimaryName().titleCode?.code).isEqualTo(storedTitle?.code)
+    assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(storedTitle?.description)
     assertThat(person.getPrimaryName().firstName).isEqualTo(firstName)
     assertThat(person.getPrimaryName().middleNames).isEqualTo("$forename2 $forename3")
     assertThat(person.getPrimaryName().lastName).isEqualTo(lastName)

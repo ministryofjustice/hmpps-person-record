@@ -59,6 +59,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogReposito
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.NationalityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.TitleCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
@@ -126,6 +127,9 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var ethnicityCodeRepository: EthnicityCodeRepository
+
+  @Autowired
+  lateinit var titleCodeRepository: TitleCodeRepository
 
   fun authSetup() {
     wiremock.stubFor(
