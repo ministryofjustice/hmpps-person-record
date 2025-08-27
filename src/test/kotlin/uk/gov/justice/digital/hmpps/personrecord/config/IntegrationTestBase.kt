@@ -135,7 +135,7 @@ class IntegrationTestBase {
   lateinit var ethnicityCodeRepository: EthnicityCodeRepository
 
   @Autowired
-  lateinit var titleCodeRepository: TitleCodeRepository
+  private lateinit var titleCodeRepository: TitleCodeRepository
 
   fun authSetup() {
     wiremock.stubFor(
