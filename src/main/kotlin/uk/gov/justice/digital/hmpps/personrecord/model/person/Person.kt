@@ -82,7 +82,7 @@ data class Person(
         dateOfBirth = probationCase.dateOfBirth,
         crn = probationCase.identifiers.crn,
         ethnicity = probationCase.ethnicity?.value.nullIfBlank(),
-        ethnicityCode = EthnicityCode.from(probationCase.ethnicity?.value),
+        ethnicityCode = EthnicityCode.fromProbation(probationCase.ethnicity?.value),
         nationalities = nationalities,
         aliases = probationCase.aliases?.map { Alias.from(it) } ?: emptyList(),
         addresses = Address.fromOffenderAddressList(probationCase.addresses),

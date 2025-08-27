@@ -31,6 +31,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
 
 class ProbationApiIntTest : WebTestBase() {
@@ -73,7 +74,7 @@ class ProbationApiIntTest : WebTestBase() {
       val fullAddress = randomFullAddress()
 
       val nationality = randomProbationNationalityCode()
-      val ethnicity = randomEthnicity()
+      val ethnicity = randomProbationEthnicity()
 
       val gender = "M"
 
