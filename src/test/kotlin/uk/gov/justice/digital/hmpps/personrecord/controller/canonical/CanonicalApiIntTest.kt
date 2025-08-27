@@ -39,6 +39,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
+import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
 
 class CanonicalApiIntTest : WebTestBase() {
 
@@ -47,7 +48,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val firstName = randomName()
     val lastName = randomName()
     val middleNames = randomName()
-    val title = "Mr"
+    val title = randomTitle()
     val pnc = randomPnc()
     val noFixedAbode = true
     val startDate = randomDate()
@@ -105,7 +106,8 @@ class CanonicalApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = CanonicalTitle(code = "MR", description = "Mr"))
+    val storedTitle = title.getTitle()
+    val canonicalAlias = CanonicalAlias(firstName = firstName, lastName = lastName, middleNames = middleNames, title = CanonicalTitle(code = storedTitle?.code, description = storedTitle?.description))
     val canonicalNationality = nationality.getEntity()?.let { listOf(CanonicalNationality(it.code, it.description)) }
     val canonicalAddress = CanonicalAddress(noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
     val canonicalReligion = CanonicalReligion(code = religion, description = religion)
