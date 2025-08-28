@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
-import org.slf4j.LoggerFactory
-
 enum class EthnicityCode {
   A1,
   A2,
@@ -35,7 +33,6 @@ enum class EthnicityCode {
   ;
 
   companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
 
     val probationEthnicity = listOf(
       A1,
@@ -115,22 +112,10 @@ enum class EthnicityCode {
       "White : Irish Traveller/Gypsy" to W8,
     )
 
-    fun fromProbation(code: String?): EthnicityCode = probationEthnicity.getOrDefault(code, UN).also {
-      if (it == UN) {
-        log.info("Unknown ethnicity code probation $code")
-      }
-    }
+    fun fromProbation(code: String?): EthnicityCode = probationEthnicity.getOrDefault(code, UN)
 
-    fun fromCommonPlatform(code: String?): EthnicityCode = commonPlatformEthnicity.getOrDefault(code, UN).also {
-      if (it == UN) {
-        log.info("Unknown ethnicity code Common Platform $code")
-      }
-    }
+    fun fromCommonPlatform(code: String?): EthnicityCode = commonPlatformEthnicity.getOrDefault(code, UN)
 
-    fun fromPrison(description: String?): EthnicityCode = prisonEthnicity.getOrDefault(description, UN).also {
-      if (it == UN) {
-        log.info("Unknown ethnicity prison $description")
-      }
-    }
+    fun fromPrison(description: String?): EthnicityCode = prisonEthnicity.getOrDefault(description, UN)
   }
 }
