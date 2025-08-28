@@ -26,20 +26,20 @@ class EthnicityCodeIntTest : IntegrationTestBase() {
 
   @ParameterizedTest
   @MethodSource("probationEthnicityCodes")
-  fun `should map all ethnicity codes to cpr ethnicity codes`(probationEthnicityCode: String?, cprEthnicityCode: EthnicityCode, cprEthnicityCodeDescription: String?) {
+  fun `should map all probation ethnicity codes to cpr ethnicity codes`(probationEthnicityCode: String?, cprEthnicityCode: EthnicityCode?, cprEthnicityCodeDescription: String?) {
     val probationCase = ProbationCase(
       identifiers = Identifiers(randomCrn()),
       ethnicity = Value(probationEthnicityCode),
       name = OffenderName(firstName = randomName()),
     )
     val person = createPerson(Person.from(probationCase))
-    assertThat(person.ethnicityCode?.code).isEqualTo(cprEthnicityCode.name)
+    assertThat(person.ethnicityCode?.code).isEqualTo(cprEthnicityCode?.name)
     assertThat(person.ethnicityCode?.description).isEqualTo(cprEthnicityCodeDescription)
   }
 
   @ParameterizedTest
   @MethodSource("prisonEthnicityCodes")
-  fun `should map all ethnicity codes to ethnicity codes`(prisonEthnicityCode: String?, cprEthnicityCode: EthnicityCode, cprEthnicityCodeDescription: String?) {
+  fun `should map all prison ethnicity codes to ethnicity codes`(prisonEthnicityCode: String?, cprEthnicityCode: EthnicityCode?, cprEthnicityCodeDescription: String?) {
     val prisoner = Prisoner(
       prisonNumber = randomPrisonNumber(),
       ethnicity = prisonEthnicityCode,
@@ -48,13 +48,13 @@ class EthnicityCodeIntTest : IntegrationTestBase() {
       dateOfBirth = randomDate(),
     )
     val person = createPerson(Person.from(prisoner))
-    assertThat(person.ethnicityCode?.code).isEqualTo(cprEthnicityCode.name)
+    assertThat(person.ethnicityCode?.code).isEqualTo(cprEthnicityCode?.name)
     assertThat(person.ethnicityCode?.description).isEqualTo(cprEthnicityCodeDescription)
   }
 
   @ParameterizedTest
   @MethodSource("commonPlatformEthnicityCodes")
-  fun `should map all common platform ethnicity codes to cpr ethnicity codes`(defendantEthnicityCode: String?, cprEthnicityCode: EthnicityCode, cprEthnicityCodeDescription: String?) {
+  fun `should map all common platform ethnicity codes to cpr ethnicity codes`(defendantEthnicityCode: String?, cprEthnicityCode: EthnicityCode?, cprEthnicityCodeDescription: String?) {
     val defendant = Defendant(
       id = randomDefendantId(),
       personDefendant = PersonDefendant(
@@ -65,7 +65,7 @@ class EthnicityCodeIntTest : IntegrationTestBase() {
       ),
     )
     val person = createPerson(Person.from(defendant))
-    assertThat(person.ethnicityCode?.code).isEqualTo(cprEthnicityCode.name)
+    assertThat(person.ethnicityCode?.code).isEqualTo(cprEthnicityCode?.name)
     assertThat(person.ethnicityCode?.description).isEqualTo(cprEthnicityCodeDescription)
   }
 
@@ -100,7 +100,7 @@ class EthnicityCodeIntTest : IntegrationTestBase() {
       Arguments.of("O1", "O1", "Chinese"),
       Arguments.of("Z1", "Z1", "Missing (IAPS)"),
       Arguments.of("Invalid", "UN", "Unknown"),
-      Arguments.of(null, "UN", "Unknown"),
+      Arguments.of(null, null, null),
     )
 
     @JvmStatic
@@ -129,7 +129,7 @@ class EthnicityCodeIntTest : IntegrationTestBase() {
       Arguments.of("Chinese", "O1", "Chinese"),
       Arguments.of("White : Irish Traveller/Gypsy", "W8", "White : Irish Traveller/Gypsy"),
       Arguments.of("Invalid", "UN", "Unknown"),
-      Arguments.of(null, "UN", "Unknown"),
+      Arguments.of(null, null, null),
     )
 
     @JvmStatic
@@ -155,7 +155,7 @@ class EthnicityCodeIntTest : IntegrationTestBase() {
       Arguments.of("W9", "W9", "White : Any other background"),
       Arguments.of("O1", "O1", "Chinese"),
       Arguments.of("Invalid", "UN", "Unknown"),
-      Arguments.of(null, "UN", "Unknown"),
+      Arguments.of(null, null, null),
     )
   }
 }
