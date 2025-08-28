@@ -12,8 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.NS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
@@ -28,6 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLibraNationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLibraSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -56,6 +55,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val nationality = randomLibraNationalityCode()
 
+    val sexCode = randomLibraSexCode()
+
     stubPersonMatchUpsert()
     stubPersonMatchScores()
 
@@ -70,7 +71,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
         cro = "", pncNumber = pnc,
         postcode = postcode,
-        defendantSex = "NS",
+        defendantSex = sexCode.key,
         line1 = buildingName,
         line2 = buildingNumber,
         line3 = thoroughfareName,
@@ -108,7 +109,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.addresses[0].uprn).isNull()
     assertThat(person.personKey).isNotNull()
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
-    assertThat(person.sexCode).isEqualTo(NS)
+    assertThat(person.sexCode).isEqualTo(sexCode.value)
     assertThat(person.nationalities.size).isEqualTo(1)
     assertThat(person.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromLibraCode()?.code)
     assertThat(person.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeEntityFromLibraCode()?.description)
@@ -121,6 +122,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val postcode = randomPostcode()
     val dateOfBirth = randomDate()
     val cId = randomCId()
+    val updatedSexCode = randomLibraSexCode()
     val personEntity = createPersonWithNewKey(
       Person(
         firstName = firstName,
@@ -129,7 +131,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         dateOfBirth = dateOfBirth,
         sourceSystem = LIBRA,
         cId = cId,
-        sexCode = NS,
+        sexCode = randomLibraSexCode().value,
       ),
     )
 
@@ -140,7 +142,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val changedForename2 = ""
     val changedForename3 = randomName()
     val title = randomTitle()
-    publishLibraMessage(libraHearing(defendantSex = "F", firstName = changedFirstName, foreName2 = changedForename2, foreName3 = changedForename3, cId = cId, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), title = title))
+    publishLibraMessage(libraHearing(defendantSex = updatedSexCode.key, firstName = changedFirstName, foreName2 = changedForename2, foreName3 = changedForename3, cId = cId, lastName = lastName, cro = "", pncNumber = "", postcode = postcode, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), title = title))
 
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
     checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_UPDATED)
@@ -158,7 +160,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
-    assertThat(person.sexCode).isEqualTo(SexCode.F)
+    assertThat(person.sexCode).isEqualTo(updatedSexCode.value)
   }
 
   @Test
