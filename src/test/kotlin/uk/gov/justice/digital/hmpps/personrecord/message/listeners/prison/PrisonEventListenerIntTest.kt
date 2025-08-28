@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Compani
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
@@ -154,10 +153,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromPrisonCode()?.code)
         assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeEntityFromPrisonCode()?.description)
         assertThat(personEntity.ethnicity).isEqualTo(ethnicity)
-        val storedPrisonEthnicity =
-          EthnicityCode.fromPrison(ethnicity)?.let { ethnicityCodeRepository.findByCode(it.name) } // TODO extension function
-        assertThat(personEntity.ethnicityCode?.code).isEqualTo(storedPrisonEthnicity?.code)
-        assertThat(personEntity.ethnicityCode?.description).isEqualTo(storedPrisonEthnicity?.description)
+        val storedPrisonEthnicity = ethnicity.getEthnicity()
+        assertThat(personEntity.ethnicityCode?.code).isEqualTo(storedPrisonEthnicity.code)
+        assertThat(personEntity.ethnicityCode?.description).isEqualTo(storedPrisonEthnicity.description)
       }
 
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
@@ -242,9 +240,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
         assertThat(personEntity.sexCode).isEqualTo(updatedSexCode.value)
 
-        val storedPrisonEthnicity = ethnicityCodeRepository.findByCode(EthnicityCode.fromPrison(ethnicity)?.name!!)
-        assertThat(personEntity.ethnicityCode?.code).isEqualTo(storedPrisonEthnicity?.code)
-        assertThat(personEntity.ethnicityCode?.description).isEqualTo(storedPrisonEthnicity?.description)
+        val storedPrisonEthnicity = ethnicity.getEthnicity()
+        assertThat(personEntity.ethnicityCode?.code).isEqualTo(storedPrisonEthnicity.code)
+        assertThat(personEntity.ethnicityCode?.description).isEqualTo(storedPrisonEthnicity.description)
 
         assertThat(personEntity.nationalities.size).isEqualTo(1)
         assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(updatedNationality.getNationalityCodeEntityFromPrisonCode()?.code)

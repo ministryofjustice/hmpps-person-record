@@ -52,6 +52,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideScopeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.NationalityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.TitleCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtProbationLinkRepository
@@ -64,6 +65,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.TitleCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person.Companion.getType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType.EXCLUDE
@@ -671,6 +673,7 @@ class IntegrationTestBase {
   fun Person.getPnc(): String? = this.references.getType(PNC).first().identifierValue
   fun PersonEntity.getPnc(): String? = this.references.getType(PNC).firstOrNull()?.identifierValue
   fun String.getTitle(): TitleCodeEntity = titleCodeRepository.findByCode(TitleCode.from(this)!!.name)!!
+  fun String.getEthnicity(): EthnicityCodeEntity = EthnicityCode.fromPrison(this)?.let { ethnicityCodeRepository.findByCode(it.name) }!!
 
   private fun PersonEntity.intersectScopes(personEntity: PersonEntity): Set<UUID> {
     val thisPersonScopes = personRepository.findByMatchId(this.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()

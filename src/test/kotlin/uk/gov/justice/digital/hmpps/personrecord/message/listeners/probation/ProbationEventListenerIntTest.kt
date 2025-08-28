@@ -111,10 +111,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.crn).isEqualTo(crn)
-      val ethnicityCode = ethnicityCodeRepository.findByCode(ethnicity)
+      val ethnicityCode = ethnicity.getEthnicity()
       assertThat(personEntity.ethnicity).isEqualTo(ethnicity)
-      assertThat(personEntity.ethnicityCode?.code).isEqualTo(ethnicityCode?.code)
-      assertThat(personEntity.ethnicityCode?.description).isEqualTo(ethnicityCode?.description)
+      assertThat(personEntity.ethnicityCode?.code).isEqualTo(ethnicityCode.code)
+      assertThat(personEntity.ethnicityCode?.description).isEqualTo(ethnicityCode.description)
 
       assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceDate)
       assertThat(personEntity.getCro()).isEqualTo(cro)
@@ -328,10 +328,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.sexCode).isEqualTo(gender.value)
-      val originalEthnicityCode = ethnicityCodeRepository.findByCode(originalEthnicity)
+      val originalEthnicityCode = originalEthnicity.getEthnicity()
       assertThat(personEntity.ethnicity).isEqualTo(originalEthnicity)
-      assertThat(personEntity.ethnicityCode?.code).isEqualTo(originalEthnicityCode?.code)
-      assertThat(personEntity.ethnicityCode?.description).isEqualTo(originalEthnicityCode?.description)
+      assertThat(personEntity.ethnicityCode?.code).isEqualTo(originalEthnicityCode.code)
+      assertThat(personEntity.ethnicityCode?.description).isEqualTo(originalEthnicityCode.description)
 
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
@@ -353,10 +353,10 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedLastModified).isAfter(createdLastModified)
       assertThat(updatedPersonEntity.getPrimaryName().dateOfBirth).isEqualTo(changedDateOfBirth)
 
-      val changedEthnicityCode = ethnicityCodeRepository.findByCode(changedEthnicity)
+      val changedEthnicityCode = changedEthnicity.getEthnicity()
       assertThat(updatedPersonEntity.ethnicity).isEqualTo(changedEthnicity)
-      assertThat(updatedPersonEntity.ethnicityCode?.code).isEqualTo(changedEthnicityCode?.code)
-      assertThat(updatedPersonEntity.ethnicityCode?.description).isEqualTo(changedEthnicityCode?.description)
+      assertThat(updatedPersonEntity.ethnicityCode?.code).isEqualTo(changedEthnicityCode.code)
+      assertThat(updatedPersonEntity.ethnicityCode?.description).isEqualTo(changedEthnicityCode.description)
 
       assertThat(updatedPersonEntity.nationalities.size).isEqualTo(1)
       assertThat(updatedPersonEntity.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromProbationCode()?.code)

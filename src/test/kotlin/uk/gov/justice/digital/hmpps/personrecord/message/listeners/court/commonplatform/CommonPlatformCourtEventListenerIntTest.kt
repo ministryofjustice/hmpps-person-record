@@ -141,13 +141,13 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     awaitAssert {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
-      val storedEthnicity = ethnicityCodeRepository.findByCode(ethnicity)
+      val storedEthnicity = ethnicity.getEthnicity()
       assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(changedLastName)
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
       assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
-      assertThat(updatedPersonEntity.ethnicityCode?.code).isEqualTo(storedEthnicity?.code)
-      assertThat(updatedPersonEntity.ethnicityCode?.description).isEqualTo(storedEthnicity?.description)
+      assertThat(updatedPersonEntity.ethnicityCode?.code).isEqualTo(storedEthnicity.code)
+      assertThat(updatedPersonEntity.ethnicityCode?.description).isEqualTo(storedEthnicity.description)
     }
 
     checkTelemetry(
@@ -247,9 +247,9 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getAliases()[1].firstName).isEqualTo("aliasFirstName2")
     assertThat(firstPerson.getAliases()[1].lastName).isEqualTo("aliasLastName2")
     assertThat(firstPerson.sexCode).isEqualTo(firstSexCode.value)
-    val ethnicityCode = ethnicityCodeRepository.findByCode(ethnicity)
-    assertThat(firstPerson.ethnicityCode?.code).isEqualTo(ethnicityCode?.code)
-    assertThat(firstPerson.ethnicityCode?.description).isEqualTo(ethnicityCode?.description)
+    val ethnicityCode = ethnicity.getEthnicity()
+    assertThat(firstPerson.ethnicityCode?.code).isEqualTo(ethnicityCode.code)
+    assertThat(firstPerson.ethnicityCode?.description).isEqualTo(ethnicityCode.description)
     assertThat(firstPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(firstDefendantNINumber)
 
     assertThat(secondPerson.getAliases()).isEmpty()
