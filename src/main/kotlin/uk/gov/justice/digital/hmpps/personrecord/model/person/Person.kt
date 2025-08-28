@@ -94,7 +94,7 @@ data class Person(
       )
     }
 
-    fun from(defendant: Defendant, sourceSystemType: SourceSystemType = COMMON_PLATFORM): Person {
+    fun from(defendant: Defendant): Person {
       val contacts: List<Contact> = listOfNotNull(
         Contact.from(ContactType.HOME, defendant.personDefendant?.personDetails?.contact?.home),
         Contact.from(ContactType.MOBILE, defendant.personDefendant?.personDetails?.contact?.mobile),
@@ -138,7 +138,7 @@ data class Person(
         references = references,
         nationalities = nationalities,
         aliases = defendant.aliases?.map { Alias.from(it) } ?: emptyList(),
-        sourceSystem = sourceSystemType,
+        sourceSystem = COMMON_PLATFORM,
         sexCode = SexCode.from(defendant.personDefendant?.personDetails),
       )
     }
