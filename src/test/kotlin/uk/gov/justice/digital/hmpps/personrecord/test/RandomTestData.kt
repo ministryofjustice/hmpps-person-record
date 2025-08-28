@@ -6,6 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Compa
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.probationEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.Companion.commonPlatformSexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.Companion.libraSexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode.Companion.titleCodeMap
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.COMMON_PLATFORM_NATIONALITY_MAPPING
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.LIBRA_NATIONALITY_MAPPINGS
@@ -41,6 +42,8 @@ fun randomName(): String = randomLowerCaseString()
 fun randomTitle(): String = titleCodeMap.keys.random()
 
 fun randomCommonPlatformSexCode(): Map.Entry<String, SexCode> = commonPlatformSexCode.entries.random()
+
+fun randomLibraSexCode(): Map.Entry<String, SexCode> = libraSexCode.entries.random()
 
 fun randomProbationEthnicity(): String = probationEthnicity.keys.random()
 

@@ -21,6 +21,12 @@ enum class SexCode(val description: String) {
       "NOT SPECIFIED" to NS,
     )
 
+    val libraSexCode: Map<String, SexCode> = mapOf(
+      "M" to M,
+      "F" to F,
+      "NS" to NS,
+    )
+
     fun from(libraHearingEvent: LibraHearingEvent?): SexCode? = when (libraHearingEvent?.defendantSex.nullIfBlank()) {
       "M" -> M
       "F" -> F
