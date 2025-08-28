@@ -1,5 +1,4 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
-import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
 
 enum class TitleCode {
@@ -23,8 +22,6 @@ enum class TitleCode {
   ;
 
   companion object {
-    val log = LoggerFactory.getLogger(this::class.java)
-
     val titleCodeMap: Map<String, TitleCode> = mapOf(
       "MR" to MR,
       "MRS" to MRS,

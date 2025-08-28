@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
-import org.slf4j.LoggerFactory
-
 enum class EthnicityCode {
   A1,
   A2,
@@ -35,7 +33,6 @@ enum class EthnicityCode {
   ;
 
   companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
 
     val probationEthnicity = listOf(
       A1,
