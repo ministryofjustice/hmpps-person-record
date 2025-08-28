@@ -37,4 +37,7 @@ class OverrideMarkerEntity(
 
   @Version
   var version: Int = 0,
+
+  @Column(name = "fk_person_id", insertable = false, updatable = false)
+  val fkPersonId: Long? = null,
 )

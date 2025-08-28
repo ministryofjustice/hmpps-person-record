@@ -42,7 +42,7 @@ generic-service:
           deny all;
           return 401;
         }
-        location /migrate/ethnicity-codes {
+        location /migrate/exclude-markers {
           deny all;
           return 401;
         }
