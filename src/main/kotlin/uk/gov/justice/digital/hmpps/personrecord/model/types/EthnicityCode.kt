@@ -112,28 +112,10 @@ enum class EthnicityCode {
       "White : Irish Traveller/Gypsy" to W8,
     )
 
-    fun fromProbation(code: String?): EthnicityCode? {
-      if (code == null) {
-        return null
-      }
+    fun fromProbation(code: String?): EthnicityCode? = code?.let { probationEthnicity.getOrDefault(code, UN) }
 
-      return probationEthnicity.getOrDefault(code, UN)
-    }
+    fun fromCommonPlatform(code: String?): EthnicityCode? = code?.let { commonPlatformEthnicity.getOrDefault(code, UN) }
 
-    fun fromCommonPlatform(code: String?): EthnicityCode? {
-      if (code == null) {
-        return null
-      }
-
-      return commonPlatformEthnicity.getOrDefault(code, UN)
-    }
-
-    fun fromPrison(description: String?): EthnicityCode? {
-      if (description == null) {
-        return null
-      }
-
-      return prisonEthnicity.getOrDefault(description, UN)
-    }
+    fun fromPrison(description: String?): EthnicityCode? = description?.let { prisonEthnicity.getOrDefault(it, UN) }
   }
 }
