@@ -56,7 +56,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
 import java.nio.charset.Charset
 import java.time.LocalDateTime.now
-import java.util.*
+import java.util.UUID
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
