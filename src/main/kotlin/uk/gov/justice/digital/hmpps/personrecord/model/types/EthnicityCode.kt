@@ -115,22 +115,10 @@ enum class EthnicityCode {
       "White : Irish Traveller/Gypsy" to W8,
     )
 
-    fun fromProbation(code: String?): EthnicityCode = probationEthnicity.getOrDefault(code, UN).also {
-      if (it == UN) {
-        log.info("Unknown ethnicity code probation $code")
-      }
-    }
+    fun fromProbation(code: String?): EthnicityCode = probationEthnicity.getOrDefault(code, UN)
 
-    fun fromCommonPlatform(code: String?): EthnicityCode = commonPlatformEthnicity.getOrDefault(code, UN).also {
-      if (it == UN) {
-        log.info("Unknown ethnicity code Common Platform $code")
-      }
-    }
+    fun fromCommonPlatform(code: String?): EthnicityCode = commonPlatformEthnicity.getOrDefault(code, UN)
 
-    fun fromPrison(description: String?): EthnicityCode = prisonEthnicity.getOrDefault(description, UN).also {
-      if (it == UN) {
-        log.info("Unknown ethnicity prison $description")
-      }
-    }
+    fun fromPrison(description: String?): EthnicityCode = prisonEthnicity.getOrDefault(description, UN)
   }
 }
