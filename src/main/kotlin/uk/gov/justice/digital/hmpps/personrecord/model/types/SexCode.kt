@@ -33,6 +33,13 @@ enum class SexCode(val description: String) {
       "N" to N,
     )
 
+    val prisonSexCode: Map<String, SexCode> = mapOf(
+      "Male" to M,
+      "Female" to F,
+      "Not Known / Not Recorded" to N,
+      "Not Specified (Indeterminate)" to NS,
+    )
+
     fun from(libraHearingEvent: LibraHearingEvent?): SexCode? = when (libraHearingEvent?.defendantSex.nullIfBlank()) {
       "M" -> M
       "F" -> F
