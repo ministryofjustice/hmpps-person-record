@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.UN
 
 enum class TitleCode {
   MR,
@@ -49,6 +50,10 @@ enum class TitleCode {
     )
 
     fun from(title: String?): TitleCode? = title?.nullIfBlank()?.let { titleCodeMap.getOrDefault(it.uppercase().trim(), UN) }
-      .also { log.info("Unknown title code $title") }
+      .also {
+        if (it == UN) {
+          log.info("Unknown title code $title")
+        }
+      }
   }
 }
