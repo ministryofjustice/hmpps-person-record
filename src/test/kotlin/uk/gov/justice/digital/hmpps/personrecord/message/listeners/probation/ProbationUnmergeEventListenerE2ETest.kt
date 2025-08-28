@@ -86,6 +86,13 @@ class ProbationUnmergeEventListenerE2ETest : MessagingTestBase() {
       reactivatedPersonEntity.assertNotLinkedToCluster(unmergedPerson.personKey!!)
       reactivatedPersonEntity.assertExcludedFrom(unmergedPerson)
       reactivatedPersonEntity.assertNotMerged()
+
+      unmergedPerson.assertHasOverrideMarker()
+      reactivatedPersonEntity.assertHasOverrideMarker()
+      unmergedPerson.assertOverrideScopeSize(1)
+      reactivatedPersonEntity.assertOverrideScopeSize(1)
+      unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPersonEntity)
+      unmergedPerson.assertHasSameOverrideScope(reactivatedPersonEntity)
     }
   }
 }

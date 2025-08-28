@@ -58,6 +58,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtProbationLi
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.NationalityCodeRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OverrideScopeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.TitleCodeRepository
@@ -99,6 +100,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
 class IntegrationTestBase {
+
+  @Autowired
+  private lateinit var overrideScopeRepository: OverrideScopeRepository
 
   @Autowired
   private lateinit var personService: PersonService
@@ -296,9 +300,11 @@ class IntegrationTestBase {
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
     val source = personRepository.findByMatchId(sourceRecord.matchId)
-    val scope = OverrideScopeEntity.new(
-      ConfidenceType.VERIFIED,
-      ActorType.SYSTEM,
+    val scope = overrideScopeRepository.save(
+      OverrideScopeEntity.new(
+        ConfidenceType.VERIFIED,
+        ActorType.SYSTEM,
+      ),
     )
     source?.overrideMarker = OverrideScopeEntity.newMarker()
     source?.overrideScopes?.add(scope)
@@ -624,6 +630,30 @@ class IntegrationTestBase {
     ).hasSize(1)
   }
 
+  internal fun PersonEntity.assertHasOverrideMarker() = awaitAssert {
+    assertThat(personRepository.findByMatchId(this.matchId)?.overrideMarker).isNotNull()
+  }
+
+  internal fun PersonEntity.assertDoesNotHaveOverrideMarker() = awaitAssert {
+    assertThat(personRepository.findByMatchId(this.matchId)?.overrideMarker).isNull()
+  }
+
+  internal fun PersonEntity.assertHasDifferentOverrideMarker(personEntity: PersonEntity) = awaitAssert {
+    assertThat(personRepository.findByMatchId(this.matchId)?.overrideMarker).isNotEqualTo(personEntity.overrideMarker)
+  }
+
+  internal fun PersonEntity.assertHasSameOverrideScope(personEntity: PersonEntity) = awaitAssert {
+    assertThat(this.intersectScopes(personEntity)).isNotEmpty()
+  }
+
+  internal fun PersonEntity.assertHasDifferentOverrideScope(personEntity: PersonEntity) = awaitAssert {
+    assertThat(this.intersectScopes(personEntity)).isEmpty()
+  }
+
+  internal fun PersonEntity.assertOverrideScopeSize(size: Int) = awaitAssert {
+    assertThat(personRepository.findByMatchId(this.matchId)?.overrideScopes?.size).isEqualTo(size)
+  }
+
   fun PersonEntity.assertPersonDeleted() = awaitAssert { assertThat(personRepository.findByMatchId(this.matchId)).isNull() }
 
   fun PersonKeyEntity.assertPersonKeyDeleted() = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)).isNull() }
@@ -641,6 +671,12 @@ class IntegrationTestBase {
   fun Person.getPnc(): String? = this.references.getType(PNC).first().identifierValue
   fun PersonEntity.getPnc(): String? = this.references.getType(PNC).firstOrNull()?.identifierValue
   fun String.getTitle(): TitleCodeEntity = titleCodeRepository.findByCode(TitleCode.from(this)!!.name)!!
+
+  private fun PersonEntity.intersectScopes(personEntity: PersonEntity): Set<UUID> {
+    val thisPersonScopes = personRepository.findByMatchId(this.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()
+    val evalPersonScopes = personRepository.findByMatchId(personEntity.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()
+    return thisPersonScopes.intersect(evalPersonScopes)
+  }
 
   companion object {
 

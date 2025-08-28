@@ -154,6 +154,11 @@ class PersonEntity(
     )
   }
 
+  fun addOverrideMarker(scope: OverrideScopeEntity) {
+    this.overrideMarker = this.overrideMarker ?: OverrideScopeEntity.newMarker()
+    this.overrideScopes.add(scope)
+  }
+
   fun mergeTo(personEntity: PersonEntity) {
     this.mergedTo = personEntity.id
   }
