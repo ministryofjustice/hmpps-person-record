@@ -15,6 +15,12 @@ enum class SexCode(val description: String) {
 
   companion object {
 
+    val commonPlatformSexCode: Map<String, SexCode> = mapOf(
+      "MALE" to M,
+      "FEMALE" to F,
+      "NOT SPECIFIED" to NS,
+    )
+
     fun from(libraHearingEvent: LibraHearingEvent?): SexCode? = when (libraHearingEvent?.defendantSex.nullIfBlank()) {
       "M" -> M
       "F" -> F

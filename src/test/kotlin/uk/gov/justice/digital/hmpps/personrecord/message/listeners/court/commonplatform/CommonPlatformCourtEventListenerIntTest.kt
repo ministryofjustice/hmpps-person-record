@@ -47,6 +47,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatfo
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformNationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -72,26 +73,18 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val defendantId = randomDefendantId()
     val pnc = randomPnc()
     val cro = randomCro()
-    val firstName = randomName()
     val lastName = randomName()
 
-    val personKey = createPersonKey()
-    val person = createPerson(
-      Person(
-        defendantId = defendantId,
-        references = listOf(Reference(PNC, pnc), Reference(CRO, cro)),
-        firstName = firstName,
-        lastName = lastName,
-        sourceSystem = COMMON_PLATFORM,
-      ),
-      personKeyEntity = personKey,
+    stubNoMatchesPersonMatch()
+
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(gender = randomCommonPlatformSexCode().key, pnc = pnc, lastName = lastName, cro = cro, defendantId = defendantId))),
     )
 
-    stubNoMatchesPersonMatch(matchId = person.matchId)
-
     val changedLastName = randomName()
+    val updatedSexCode = randomCommonPlatformSexCode()
     publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(gender = updatedSexCode.key, pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId))),
     )
 
     awaitAssert {
@@ -100,6 +93,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
       assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
+      assertThat(updatedPersonEntity.sexCode).isEqualTo(updatedSexCode.value)
     }
 
     checkTelemetry(
