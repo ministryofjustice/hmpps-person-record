@@ -49,6 +49,10 @@ enum class TitleCode {
     )
 
     fun from(title: String?): TitleCode? = title?.nullIfBlank()?.let { titleCodeMap.getOrDefault(it.uppercase().trim(), UN) }
-      .also { log.info("Unknown title code $title") }
+      .also {
+        if (it == UN) {
+          log.info("Unknown title code $title")
+        }
+      }
   }
 }
