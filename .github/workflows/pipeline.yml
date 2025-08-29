@@ -20,7 +20,8 @@ on:
         type: string
         default: '-Xmx4096m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=true -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.workers.max=1'
         required: false
-        description: Setting up common java optioins
+        description: Setting up common java options
+
 permissions:
   contents: read
   packages: write
@@ -84,9 +85,7 @@ jobs:
         run: make start-containers
       - name: Initialise DB
         shell: bash
-        run: |
-          export JAVA_OPTS="${{ inputs.java_options }}"
-          ./gradlew initialiseDatabase
+        run: make initialise-database
       - uses: ministryofjustice/hmpps-github-actions/.github/actions/database_schema_report@v2 # WORKFLOW_VERSION
         with:
           schema: personrecordservice
