@@ -112,10 +112,10 @@ enum class EthnicityCode {
       "White : Irish Traveller/Gypsy" to W8,
     )
 
-    fun fromProbation(code: String?): EthnicityCode = probationEthnicity.getOrDefault(code, UN)
+    fun fromProbation(code: String?): EthnicityCode? = code?.let { probationEthnicity.getOrDefault(code, UN) }
 
-    fun fromCommonPlatform(code: String?): EthnicityCode = commonPlatformEthnicity.getOrDefault(code, UN)
+    fun fromCommonPlatform(code: String?): EthnicityCode? = code?.let { commonPlatformEthnicity.getOrDefault(code, UN) }
 
-    fun fromPrison(description: String?): EthnicityCode = prisonEthnicity.getOrDefault(description, UN)
+    fun fromPrison(description: String?): EthnicityCode? = description?.let { prisonEthnicity.getOrDefault(it, UN) }
   }
 }
