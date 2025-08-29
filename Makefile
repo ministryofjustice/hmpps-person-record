@@ -1,8 +1,13 @@
 SHELL     := /bin/bash
 JAVA_OPTS := "-Xmx4096m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=true -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.workers.max=1"
 
-test: start-containers format
+test: start-containers format test-all
+
+test-all:
 	export _JAVA_OPTIONS=${JAVA_OPTS} && ./gradlew check
+
+initialise-database:
+	export _JAVA_OPTIONS=${JAVA_OPTS} && ./gradlew initialiseDatabase
 
 format:
 	./gradlew ktlintFormat
@@ -34,7 +39,7 @@ e2e-test-setup: restart-containers e2e-shutdown
 	docker compose -f docker-compose-e2e-test.yml up -d
 
 e2e-test: e2e-test-setup
-	./gradlew e2eTest
+	export _JAVA_OPTIONS=${JAVA_OPTS} && ./gradlew e2eTest
 
 e2e-shutdown:
 	docker compose -f docker-compose-e2e-test.yml down
