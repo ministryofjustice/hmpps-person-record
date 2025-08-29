@@ -10,6 +10,11 @@ on:
         type: string
         required: false
         default: '21'
+      java-options:
+        description: Any JAVA_OPTS that need to be set.  Not normally required when using github actions
+        type: string
+        default: ''
+        required: false
       postgres-tag:
         type: string
         required: true
@@ -117,6 +122,7 @@ jobs:
       - name: Run checks with gradle
         shell: bash
         run: |
+          export _JAVA_OPTIONS="${{ inputs.java_options }}"
           ${{ inputs.gradle-command }}
       - name: Upload the test artifacts
         if: ${{ inputs.upload-test-artifacts && !cancelled() }}

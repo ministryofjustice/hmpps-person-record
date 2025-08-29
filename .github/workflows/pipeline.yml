@@ -86,7 +86,8 @@ jobs:
       - name: Initialise DB
         shell: bash
         run: |
-          make initialise-database
+          export _JAVA_OPTIONS="${{ inputs.java_options }}" 
+          ./gradlew initialiseDatabase
       - uses: ministryofjustice/hmpps-github-actions/.github/actions/database_schema_report@v2 # WORKFLOW_VERSION
         with:
           schema: personrecordservice
