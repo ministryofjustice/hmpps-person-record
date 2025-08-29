@@ -39,7 +39,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHea
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupContact
-import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.largeCommonPlatformMessage
@@ -56,7 +55,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
 import java.nio.charset.Charset
 import java.time.LocalDateTime.now
-import java.util.*
+import java.util.UUID
 
 class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -136,7 +135,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val changedLastName = randomName()
     publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId, ethnicity = CommonPlatformHearingSetupEthnicity(ethnicity)))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId, ethnicity = ethnicity))),
     )
 
     awaitAssert {
@@ -200,7 +199,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
               CommonPlatformHearingSetupAlias(firstName = "aliasFirstName2", lastName = "aliasLastName2"),
             ),
             nationalityCode = firstNationality,
-            ethnicity = CommonPlatformHearingSetupEthnicity(ethnicity),
+            ethnicity = ethnicity,
             nationalInsuranceNumber = firstDefendantNINumber,
           ),
           CommonPlatformHearingSetup(
