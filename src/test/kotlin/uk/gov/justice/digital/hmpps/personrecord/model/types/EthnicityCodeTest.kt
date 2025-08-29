@@ -12,8 +12,34 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifie
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
-import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.A1
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.A2
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.A3
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.A4
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.A9
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.B1
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.B2
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.B9
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.ETH03
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.ETH04
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.ETH05
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.M1
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.M2
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.M3
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.M9
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.NS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.O1
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.O2
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.O9
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.UN
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.W1
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.W2
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.W3
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.W4
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.W5
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.W9
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Z1
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
@@ -22,24 +48,23 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.util.stream.Stream
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName as OffenderName
 
-class EthnicityCodeIntTest : IntegrationTestBase() {
+class EthnicityCodeTest {
 
   @ParameterizedTest
   @MethodSource("probationEthnicityCodes")
-  fun `should map all ethnicity codes to cpr ethnicity codes`(probationEthnicityCode: String?, cprEthnicityCode: EthnicityCode, cprEthnicityCodeDescription: String?) {
+  fun `should map all ethnicity codes to cpr ethnicity codes`(probationEthnicityCode: String?, cprEthnicityCode: EthnicityCode) {
     val probationCase = ProbationCase(
       identifiers = Identifiers(randomCrn()),
       ethnicity = Value(probationEthnicityCode),
       name = OffenderName(firstName = randomName()),
     )
-    val person = createPerson(Person.from(probationCase))
-    assertThat(person.ethnicityCode?.code).isEqualTo(cprEthnicityCode.name)
-    assertThat(person.ethnicityCode?.description).isEqualTo(cprEthnicityCodeDescription)
+    val person = Person.from(probationCase)
+    assertThat(person.ethnicityCode).isEqualTo(cprEthnicityCode)
   }
 
   @ParameterizedTest
   @MethodSource("prisonEthnicityCodes")
-  fun `should map all ethnicity codes to ethnicity codes`(prisonEthnicityCode: String?, cprEthnicityCode: EthnicityCode, cprEthnicityCodeDescription: String?) {
+  fun `should map all ethnicity codes to ethnicity codes`(prisonEthnicityCode: String?, cprEthnicityCode: EthnicityCode) {
     val prisoner = Prisoner(
       prisonNumber = randomPrisonNumber(),
       ethnicity = prisonEthnicityCode,
@@ -47,14 +72,13 @@ class EthnicityCodeIntTest : IntegrationTestBase() {
       firstName = randomName(),
       dateOfBirth = randomDate(),
     )
-    val person = createPerson(Person.from(prisoner))
-    assertThat(person.ethnicityCode?.code).isEqualTo(cprEthnicityCode.name)
-    assertThat(person.ethnicityCode?.description).isEqualTo(cprEthnicityCodeDescription)
+    val person = Person.from(prisoner)
+    assertThat(person.ethnicityCode).isEqualTo(cprEthnicityCode)
   }
 
   @ParameterizedTest
   @MethodSource("commonPlatformEthnicityCodes")
-  fun `should map all common platform ethnicity codes to cpr ethnicity codes`(defendantEthnicityCode: String?, cprEthnicityCode: EthnicityCode, cprEthnicityCodeDescription: String?) {
+  fun `should map all common platform ethnicity codes to cpr ethnicity codes`(defendantEthnicityCode: String?, cprEthnicityCode: EthnicityCode) {
     val defendant = Defendant(
       id = randomDefendantId(),
       personDefendant = PersonDefendant(
@@ -64,43 +88,42 @@ class EthnicityCodeIntTest : IntegrationTestBase() {
         ),
       ),
     )
-    val person = createPerson(Person.from(defendant))
-    assertThat(person.ethnicityCode?.code).isEqualTo(cprEthnicityCode.name)
-    assertThat(person.ethnicityCode?.description).isEqualTo(cprEthnicityCodeDescription)
+    val person = Person.from(defendant)
+    assertThat(person.ethnicityCode).isEqualTo(cprEthnicityCode)
   }
 
   companion object {
 
     @JvmStatic
     fun probationEthnicityCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("A1", "A1", "Asian/Asian British : Indian"),
-      Arguments.of("A2", "A2", "Asian/Asian British : Pakistani"),
-      Arguments.of("A3", "A3", "Asian/Asian British : Bangladeshi"),
-      Arguments.of("A4", "A4", "Asian/Asian British : Chinese"),
-      Arguments.of("A9", "A9", "Asian/Asian British : Any other backgr'nd"),
-      Arguments.of("B1", "B1", "Black/Black British : Caribbean"),
-      Arguments.of("B2", "B2", "Black/Black British : African"),
-      Arguments.of("B9", "B9", "Black/Black British : Any other backgr'nd"),
-      Arguments.of("M1", "M1", "Mixed : White and Black Caribbean"),
-      Arguments.of("M2", "M2", "Mixed : White and Black African"),
-      Arguments.of("M3", "M3", "Mixed : White and Asian"),
-      Arguments.of("M9", "M9", "Mixed : Any other background"),
-      Arguments.of("NS", "NS", "Prefer not to say"),
-      Arguments.of("O2", "O2", "Other : Arab"),
-      Arguments.of("O9", "O9", "Other : Any other background"),
-      Arguments.of("W1", "W1", "White : Eng/Welsh/Scot/N.Irish/British"),
-      Arguments.of("W2", "W2", "White : Irish"),
-      Arguments.of("W3", "W3", "White : Gypsy or Irish Traveller"),
-      Arguments.of("W4", "W4", "White : Gypsy or Irish Traveller"),
-      Arguments.of("W5", "W5", "White : Roma"),
-      Arguments.of("W9", "W9", "White : Any other background"),
-      Arguments.of("ETH03", "ETH03", "Other (historic)"),
-      Arguments.of("ETH04", "ETH04", "Z_Dummy Ethnicity 04"),
-      Arguments.of("ETH05", "ETH05", "Z_Dummy Ethnicity 05"),
-      Arguments.of("O1", "O1", "Chinese"),
-      Arguments.of("Z1", "Z1", "Missing (IAPS)"),
-      Arguments.of("Invalid", "UN", "Unknown"),
-      Arguments.of(null, "UN", "Unknown"),
+      Arguments.of("A1", A1),
+      Arguments.of("A2", A2),
+      Arguments.of("A3", A3),
+      Arguments.of("A4", A4),
+      Arguments.of("A9", A9),
+      Arguments.of("B1", B1),
+      Arguments.of("B2", B2),
+      Arguments.of("B9", B9),
+      Arguments.of("M1", M1),
+      Arguments.of("M2", M2),
+      Arguments.of("M3", M3),
+      Arguments.of("M9", M9),
+      Arguments.of("NS", NS),
+      Arguments.of("O2", O2),
+      Arguments.of("O9", O9),
+      Arguments.of("W1", W1),
+      Arguments.of("W2", W2),
+      Arguments.of("W3", W3),
+      Arguments.of("W4", W4),
+      Arguments.of("W5", W5),
+      Arguments.of("W9", W9),
+      Arguments.of("ETH03", ETH03),
+      Arguments.of("ETH04", ETH04),
+      Arguments.of("ETH05", ETH05),
+      Arguments.of("O1", O1),
+      Arguments.of("Z1", Z1),
+      Arguments.of("Invalid", UN),
+      Arguments.of(null, UN),
     )
 
     @JvmStatic
@@ -134,28 +157,28 @@ class EthnicityCodeIntTest : IntegrationTestBase() {
 
     @JvmStatic
     fun commonPlatformEthnicityCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("A1", "A1", "Asian/Asian British : Indian"),
-      Arguments.of("A2", "A2", "Asian/Asian British : Pakistani"),
-      Arguments.of("A3", "A3", "Asian/Asian British : Bangladeshi"),
-      Arguments.of("A4", "A4", "Asian/Asian British : Chinese"),
-      Arguments.of("A9", "A9", "Asian/Asian British : Any other backgr'nd"),
-      Arguments.of("B1", "B1", "Black/Black British : Caribbean"),
-      Arguments.of("B2", "B2", "Black/Black British : African"),
-      Arguments.of("B9", "B9", "Black/Black British : Any other backgr'nd"),
-      Arguments.of("M1", "M1", "Mixed : White and Black Caribbean"),
-      Arguments.of("M2", "M2", "Mixed : White and Black African"),
-      Arguments.of("M3", "M3", "Mixed : White and Asian"),
-      Arguments.of("M9", "M9", "Mixed : Any other background"),
-      Arguments.of("NS", "NS", "Prefer not to say"),
-      Arguments.of("O2", "O2", "Other : Arab"),
-      Arguments.of("O9", "O9", "Other : Any other background"),
-      Arguments.of("W1", "W1", "White : Eng/Welsh/Scot/N.Irish/British"),
-      Arguments.of("W2", "W2", "White : Irish"),
-      Arguments.of("W3", "W3", "White : Gypsy or Irish Traveller"),
-      Arguments.of("W9", "W9", "White : Any other background"),
-      Arguments.of("O1", "O1", "Chinese"),
-      Arguments.of("Invalid", "UN", "Unknown"),
-      Arguments.of(null, "UN", "Unknown"),
+      Arguments.of("A1", A1),
+      Arguments.of("A2", A2),
+      Arguments.of("A3", A3),
+      Arguments.of("A4", A4),
+      Arguments.of("A9", A9),
+      Arguments.of("B1", B1),
+      Arguments.of("B2", B2),
+      Arguments.of("B9", B9),
+      Arguments.of("M1", M1),
+      Arguments.of("M2", M2),
+      Arguments.of("M3", M3),
+      Arguments.of("M9", M9),
+      Arguments.of("NS", NS),
+      Arguments.of("O2", O2),
+      Arguments.of("O9", O9),
+      Arguments.of("W1", W1),
+      Arguments.of("W2", W2),
+      Arguments.of("W3", W3),
+      Arguments.of("W9", W9),
+      Arguments.of("O1", O1),
+      Arguments.of("Invalid", UN),
+      Arguments.of(null, UN),
     )
   }
 }
