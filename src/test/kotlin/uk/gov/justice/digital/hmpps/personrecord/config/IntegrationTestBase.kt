@@ -300,16 +300,9 @@ class IntegrationTestBase {
     return personKeyRepository.saveAndFlush(source)
   }
 
-  internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
+  internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity, newProcess: Boolean = true) {
     val source = personRepository.findByMatchId(sourceRecord.matchId)
-    val scope = overrideScopeRepository.save(
-      OverrideScopeEntity.new(
-        ConfidenceType.VERIFIED,
-        ActorType.SYSTEM,
-      ),
-    )
-    source?.overrideMarker = OverrideScopeEntity.newMarker()
-    source?.overrideScopes?.add(scope)
+    val target = personRepository.findByMatchId(excludingRecord.matchId)
     source?.overrideMarkers?.add(
       OverrideMarkerEntity(
         markerType = EXCLUDE,
@@ -317,9 +310,6 @@ class IntegrationTestBase {
         person = sourceRecord,
       ),
     )
-    val target = personRepository.findByMatchId(sourceRecord.matchId)
-    target?.overrideMarker = OverrideScopeEntity.newMarker()
-    target?.overrideScopes?.add(scope)
     target?.overrideMarkers?.add(
       OverrideMarkerEntity(
         markerType = EXCLUDE,
@@ -327,6 +317,18 @@ class IntegrationTestBase {
         person = excludingRecord,
       ),
     )
+    if (newProcess) {
+      val scope = overrideScopeRepository.save(
+        OverrideScopeEntity.new(
+          ConfidenceType.VERIFIED,
+          ActorType.SYSTEM,
+        ),
+      )
+      source?.overrideMarker = OverrideScopeEntity.newMarker()
+      target?.overrideMarker = OverrideScopeEntity.newMarker()
+      source?.overrideScopes?.add(scope)
+      target?.overrideScopes?.add(scope)
+    }
     personRepository.saveAll(listOf(source, target))
   }
 
