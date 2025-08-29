@@ -61,6 +61,7 @@ jobs:
     needs:
       - kotlin_validate
     with:
+      java-options: "${{ inputs.java_options }}"
       docker_registry: 'ghcr.io'
       registry_org: 'ministryofjustice'
       additional_docker_tag: ${{ inputs.additional_docker_tag }}
