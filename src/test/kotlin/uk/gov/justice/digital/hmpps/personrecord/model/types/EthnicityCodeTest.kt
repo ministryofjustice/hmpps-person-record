@@ -54,7 +54,7 @@ class EthnicityCodeTest {
 
   @ParameterizedTest
   @MethodSource("probationEthnicityCodes")
-  fun `should map all ethnicity codes to cpr ethnicity codes`(probationEthnicityCode: String?, cprEthnicityCode: EthnicityCode) {
+  fun `should map all probation ethnicity codes to cpr ethnicity codes`(probationEthnicityCode: String?, cprEthnicityCode: EthnicityCode?) {
     val probationCase = ProbationCase(
       identifiers = Identifiers(randomCrn()),
       ethnicity = Value(probationEthnicityCode),
@@ -66,7 +66,7 @@ class EthnicityCodeTest {
 
   @ParameterizedTest
   @MethodSource("prisonEthnicityCodes")
-  fun `should map all ethnicity codes to ethnicity codes`(prisonEthnicityCode: String?, cprEthnicityCode: EthnicityCode) {
+  fun `should map all prison ethnicity codes to cpr ethnicity codes`(prisonEthnicityCode: String?, cprEthnicityCode: EthnicityCode?) {
     val prisoner = Prisoner(
       prisonNumber = randomPrisonNumber(),
       ethnicity = prisonEthnicityCode,
@@ -80,7 +80,7 @@ class EthnicityCodeTest {
 
   @ParameterizedTest
   @MethodSource("commonPlatformEthnicityCodes")
-  fun `should map all common platform ethnicity codes to cpr ethnicity codes`(defendantEthnicityCode: String?, cprEthnicityCode: EthnicityCode) {
+  fun `should map all common platform ethnicity codes to cpr ethnicity codes`(defendantEthnicityCode: String?, cprEthnicityCode: EthnicityCode?) {
     val defendant = Defendant(
       id = randomDefendantId(),
       personDefendant = PersonDefendant(
@@ -125,7 +125,7 @@ class EthnicityCodeTest {
       Arguments.of("O1", O1),
       Arguments.of("Z1", Z1),
       Arguments.of("Invalid", UN),
-      Arguments.of(null, UN),
+      Arguments.of(null, null),
     )
 
     @JvmStatic
@@ -154,7 +154,7 @@ class EthnicityCodeTest {
       Arguments.of("Chinese", O1),
       Arguments.of("White : Irish Traveller/Gypsy", W8),
       Arguments.of("Invalid", UN),
-      Arguments.of(null, UN),
+      Arguments.of(null, null),
     )
 
     @JvmStatic
@@ -180,7 +180,7 @@ class EthnicityCodeTest {
       Arguments.of("W9", W9),
       Arguments.of("O1", O1),
       Arguments.of("Invalid", UN),
-      Arguments.of(null, UN),
+      Arguments.of(null, null),
     )
   }
 }
