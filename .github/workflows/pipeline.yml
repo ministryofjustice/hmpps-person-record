@@ -49,7 +49,6 @@ jobs:
     uses: ./.github/workflows/gradle_localstack_postgres_verify.yml # WORKFLOW_VERSION
     secrets: inherit
     with:
-      gradle-command: "make test-all"
       postgres-tag: '16.1'
       localstack-tag: '3.0'
       postgres-username: 'root'
@@ -85,9 +84,7 @@ jobs:
         run: make start-containers
       - name: Initialise DB
         shell: bash
-        run: |
-          export _JAVA_OPTIONS="${{ inputs.java_options }}" 
-          ./gradlew initialiseDatabase
+        run: make initialise-database
       - uses: ministryofjustice/hmpps-github-actions/.github/actions/database_schema_report@v2 # WORKFLOW_VERSION
         with:
           schema: personrecordservice
