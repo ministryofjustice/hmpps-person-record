@@ -252,19 +252,19 @@ enum class NationalityCode {
 
     fun fromProbationMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
       PROBATION_NATIONALITY_MAPPING,
-    ).also { if (it == UNKNOWN) log.info("Unknown nationality code probation: $it") }
+    ).also { if (it == UNKNOWN) log.info("Unknown nationality code probation: $code") }
 
     fun fromPrisonMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
       PRISON_NATIONALITY_MAPPING,
-    ).also { if (it == UNKNOWN) log.info("Unknown nationality code prison: $it") }
+    ).also { if (it == UNKNOWN) log.info("Unknown nationality code prison: $code") }
 
     fun fromCommonPlatformMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
       COMMON_PLATFORM_NATIONALITY_MAPPING,
-    ).also { if (it == UNKNOWN) log.info("Unknown nationality code common platform: $it") }
+    ).also { if (it == UNKNOWN) log.info("Unknown nationality code common platform: $code") }
 
     fun fromLibraMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
       LIBRA_NATIONALITY_MAPPINGS,
-    ).also { if (it == UNKNOWN) log.info("Unknown nationality code libra: $it") }
+    ).also { if (it == UNKNOWN) log.info("Unknown nationality code libra: $code") }
 
     private fun String?.getNationalityOrUnknown(nationalityMap: Map<String, NationalityCode>): NationalityCode? = this.normalize()?.let {
       nationalityMap[it] ?: UNKNOWN
