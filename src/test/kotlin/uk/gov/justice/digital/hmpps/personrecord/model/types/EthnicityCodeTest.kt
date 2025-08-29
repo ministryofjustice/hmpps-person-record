@@ -28,6 +28,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.M1
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.M2
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.M3
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.M9
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.MERGE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.NS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.O1
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.O2
@@ -38,6 +39,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.W2
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.W3
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.W4
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.W5
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.W8
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.W9
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Z1
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -128,31 +130,31 @@ class EthnicityCodeTest {
 
     @JvmStatic
     fun prisonEthnicityCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("Asian/Asian British: Indian", "A1", "Asian/Asian British : Indian"),
-      Arguments.of("Asian/Asian British: Pakistani", "A2", "Asian/Asian British : Pakistani"),
-      Arguments.of("Asian/Asian British: Bangladeshi", "A3", "Asian/Asian British : Bangladeshi"),
-      Arguments.of("Asian/Asian British: Chinese", "A4", "Asian/Asian British : Chinese"),
-      Arguments.of("Asian/Asian British: Any other backgr'nd", "A9", "Asian/Asian British : Any other backgr'nd"),
-      Arguments.of("Black/Black British: Caribbean", "B1", "Black/Black British : Caribbean"),
-      Arguments.of("Black/Black British: African", "B2", "Black/Black British : African"),
-      Arguments.of("Black/Black British: Any other backgr'nd", "B9", "Black/Black British : Any other backgr'nd"),
-      Arguments.of("Mixed: White and Black Caribbean", "M1", "Mixed : White and Black Caribbean"),
-      Arguments.of("Mixed: White and Black African", "M2", "Mixed : White and Black African"),
-      Arguments.of("Mixed: White and Asian", "M3", "Mixed : White and Asian"),
-      Arguments.of("Mixed: Any other background", "M9", "Mixed : Any other background"),
-      Arguments.of("Needs to be confirmed following merge", "MERGE", "Needs to be confirmed following merge"),
-      Arguments.of("Prefer not to say", "NS", "Prefer not to say"),
-      Arguments.of("Other: Arab", "O2", "Other : Arab"),
-      Arguments.of("Other: Any other background", "O9", "Other : Any other background"),
-      Arguments.of("White: Eng./Welsh/Scot./N.Irish/British", "W1", "White : Eng/Welsh/Scot/N.Irish/British"),
-      Arguments.of("White: Irish", "W2", "White : Irish"),
-      Arguments.of("White: Gypsy or Irish Traveller", "W3", "White : Gypsy or Irish Traveller"),
+      Arguments.of("Asian/Asian British: Indian", A1),
+      Arguments.of("Asian/Asian British: Pakistani", A2),
+      Arguments.of("Asian/Asian British: Bangladeshi", A3),
+      Arguments.of("Asian/Asian British: Chinese", A4),
+      Arguments.of("Asian/Asian British: Any other backgr'nd", A9),
+      Arguments.of("Black/Black British: Caribbean", B1),
+      Arguments.of("Black/Black British: African", B2),
+      Arguments.of("Black/Black British: Any other backgr'nd", B9),
+      Arguments.of("Mixed: White and Black Caribbean", M1),
+      Arguments.of("Mixed: White and Black African", M2),
+      Arguments.of("Mixed: White and Asian", M3),
+      Arguments.of("Mixed: Any other background", M9),
+      Arguments.of("Needs to be confirmed following merge", MERGE),
+      Arguments.of("Prefer not to say", NS),
+      Arguments.of("Other: Arab", O2),
+      Arguments.of("Other: Any other background", O9),
+      Arguments.of("White: Eng./Welsh/Scot./N.Irish/British", W1),
+      Arguments.of("White: Irish", W2),
+      Arguments.of("White: Gypsy or Irish Traveller", W3),
       Arguments.of("White: Roma", "W5", "White : Roma"),
-      Arguments.of("White: Any other background", "W9", "White : Any other background"),
-      Arguments.of("Chinese", "O1", "Chinese"),
-      Arguments.of("White : Irish Traveller/Gypsy", "W8", "White : Irish Traveller/Gypsy"),
-      Arguments.of("Invalid", "UN", "Unknown"),
-      Arguments.of(null, "UN", "Unknown"),
+      Arguments.of("White: Any other background", W9),
+      Arguments.of("Chinese", O1),
+      Arguments.of("White : Irish Traveller/Gypsy", W8),
+      Arguments.of("Invalid", UN),
+      Arguments.of(null, UN),
     )
 
     @JvmStatic
