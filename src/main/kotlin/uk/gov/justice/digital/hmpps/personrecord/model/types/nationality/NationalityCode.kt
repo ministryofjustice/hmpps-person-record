@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types.nationality
 
+import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
 
 enum class NationalityCode {
@@ -247,22 +248,23 @@ enum class NationalityCode {
   ;
 
   companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     fun fromProbationMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
       PROBATION_NATIONALITY_MAPPING,
-    )
+    ).also { if (it == UNKNOWN) log.info("Unknown nationality code probation: $it") }
 
     fun fromPrisonMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
       PRISON_NATIONALITY_MAPPING,
-    )
+    ).also { if (it == UNKNOWN) log.info("Unknown nationality code prison: $it") }
 
     fun fromCommonPlatformMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
       COMMON_PLATFORM_NATIONALITY_MAPPING,
-    )
+    ).also { if (it == UNKNOWN) log.info("Unknown nationality code common platform: $it") }
 
     fun fromLibraMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
       LIBRA_NATIONALITY_MAPPINGS,
-    )
+    ).also { if (it == UNKNOWN) log.info("Unknown nationality code libra: $it") }
 
     private fun String?.getNationalityOrUnknown(nationalityMap: Map<String, NationalityCode>): NationalityCode? = this.normalize()?.let {
       nationalityMap[it] ?: UNKNOWN
