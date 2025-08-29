@@ -49,6 +49,7 @@ jobs:
     uses: ./.github/workflows/gradle_localstack_postgres_verify.yml # WORKFLOW_VERSION
     secrets: inherit
     with:
+      java-options: "${{ inputs.java_options }}"
       postgres-tag: '16.1'
       localstack-tag: '3.0'
       postgres-username: 'root'
@@ -61,7 +62,6 @@ jobs:
     needs:
       - kotlin_validate
     with:
-      java-options: "${{ inputs.java_options }}"
       docker_registry: 'ghcr.io'
       registry_org: 'ministryofjustice'
       additional_docker_tag: ${{ inputs.additional_docker_tag }}
