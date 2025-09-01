@@ -45,7 +45,7 @@ val PRISON_NATIONALITY_MAPPING: Map<String, NationalityCode> = mapOf(
   "CANADIAN" to CANA,
   "CAPE VERDEAN" to CAVER,
   "CAYMAN ISLANDER" to KY,
-  "CENTRAL AFRICAN\t" to CF,
+  "CENTRAL AFRICAN" to CF,
   "CHADIAN" to CHAD,
   "CHILEAN" to CHIL,
   "CHINESE" to CHINA,
