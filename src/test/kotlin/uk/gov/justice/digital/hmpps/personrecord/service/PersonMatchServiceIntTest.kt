@@ -73,6 +73,40 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       val result = personMatchService.examineIsClusterValid(cluster)
       assertThat(result.isClusterValid).isTrue()
     }
+
+    @Test
+    fun `should handle out of sync isClusterMergeValid response`() {
+      val personA = createPerson(createExamplePerson())
+      val personB = createPerson(createExamplePerson())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+
+      val personC = createPerson(createExamplePerson())
+      val personD = createPerson(createExamplePerson())
+      val cluster2 = createPersonKey()
+        .addPerson(personC)
+        .addPerson(personD)
+
+      stubPostRequest(
+        url = "/is-cluster-valid",
+        status = 404,
+        responseBody = """
+          {
+            "unknownIds": ["${personC.matchId}"]
+          }
+        """.trimIndent(),
+        nextScenarioState = "FOUND ALL RECORDS",
+      )
+      stubPersonMatchUpsert(currentScenarioState = "FOUND ALL RECORDS", nextScenarioState = "CLUSTER IS VALID")
+      stubClusterIsValid(
+        currentScenarioState = "CLUSTER IS VALID",
+        clusters = listOf(personA.matchId, personB.matchId, personC.matchId, personD.matchId),
+      )
+
+      val result = personMatchService.examineIsClusterMergeValid(listOf(cluster1, cluster2))
+      assertThat(result.isClusterValid).isTrue()
+    }
   }
 
   @Nested
