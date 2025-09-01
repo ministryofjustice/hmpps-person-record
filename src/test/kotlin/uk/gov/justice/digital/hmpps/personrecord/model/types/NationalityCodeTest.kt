@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
-import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -25,71 +24,67 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.util.stream.Stream
 
-class NationalityCodeIntTest : IntegrationTestBase() {
+class NationalityCodeTest {
 
   @Test
   fun `should handle null probation nationality code`() {
     val probationCase = ProbationCase(name = ProbationCaseName(firstName = randomName()), identifiers = Identifiers(crn = randomCrn()), nationality = Value(null))
-    val person = createPerson(Person.from(probationCase))
+    val person = Person.from(probationCase)
     assertThat(person.nationalities.size).isEqualTo(0)
   }
 
   @ParameterizedTest
   @MethodSource("probationCodes")
-  fun `should map probation nationality codes to cpr nationality codes`(probationCode: String, cprCode: NationalityCode, cprDescription: String) {
+  fun `should map probation nationality codes to cpr nationality codes`(probationCode: String, cprCode: NationalityCode) {
     val probationCase = ProbationCase(name = ProbationCaseName(firstName = randomName()), identifiers = Identifiers(crn = randomCrn()), nationality = Value(probationCode))
-    val person = createPerson(Person.from(probationCase))
-    assertThat(person.nationalities.first().nationalityCode?.code).isEqualTo(cprCode.name)
-    assertThat(person.nationalities.first().nationalityCode?.description).isEqualTo(cprDescription)
+    val person = Person.from(probationCase)
+    assertThat(person.nationalities.first().code).isEqualTo(cprCode)
   }
 
   @Test
-  fun `handle null probation nationality code`() {
+  fun `handle null Prison nationality code`() {
     val prisoner = Prisoner(prisonNumber = randomPrisonNumber(), firstName = randomName(), lastName = randomName(), dateOfBirth = randomDate(), nationality = null)
-    val person = createPerson(Person.from(prisoner))
+    val person = Person.from(prisoner)
     assertThat(person.nationalities.size).isEqualTo(0)
   }
 
   @ParameterizedTest
   @MethodSource("prisonCodes")
-  fun `should map prison nationality codes to cpr nationality codes`(prisonCode: String, cprCode: NationalityCode, cprDescription: String) {
+  fun `should map prison nationality codes to cpr nationality codes`(prisonCode: String, cprCode: NationalityCode) {
     val prisoner = Prisoner(prisonNumber = randomPrisonNumber(), firstName = randomName(), lastName = randomName(), dateOfBirth = randomDate(), nationality = prisonCode)
-    val person = createPerson(Person.from(prisoner))
-    assertThat(person.nationalities.first().nationalityCode?.code).isEqualTo(cprCode.name)
-    assertThat(person.nationalities.first().nationalityCode?.description).isEqualTo(cprDescription)
+    val person = Person.from(prisoner)
+    assertThat(person.nationalities.first().code).isEqualTo(cprCode)
   }
 
   @Test
   fun `should handle null common platform nationality code`() {
     val defendant = Defendant(id = randomDefendantId(), personDefendant = PersonDefendant(PersonDetails(lastName = randomName(), nationalityCode = null)))
-    val person = createPerson(Person.from(defendant))
+    val person = Person.from(defendant)
     assertThat(person.nationalities.size).isEqualTo(0)
   }
 
   @ParameterizedTest
   @MethodSource("commonPlatformCodes")
-  fun `should map common platform nationality codes to cpr nationality codes`(commonPlatformCode: String, cprCode: NationalityCode, cprDescription: String) {
+  fun `should map common platform nationality codes to cpr nationality codes`(commonPlatformCode: String, cprCode: NationalityCode) {
     val defendant = Defendant(id = randomDefendantId(), personDefendant = PersonDefendant(PersonDetails(lastName = randomName(), nationalityCode = commonPlatformCode)))
-    val person = createPerson(Person.from(defendant))
-    assertThat(person.nationalities.first().nationalityCode?.code).isEqualTo(cprCode.name)
-    assertThat(person.nationalities.first().nationalityCode?.description).isEqualTo(cprDescription)
+    val person = Person.from(defendant)
+    assertThat(person.nationalities.first().code).isEqualTo(cprCode)
   }
 
   @Test
   fun `should handle null libra nationality code`() {
     val libraHearingEvent = LibraHearingEvent(cId = randomCId(), nationality1 = null, nationality2 = null)
-    val person = createPerson(Person.from(libraHearingEvent))
+    val person = Person.from(libraHearingEvent)
     assertThat(person.nationalities.size).isEqualTo(0)
   }
 
   @ParameterizedTest
   @MethodSource("libraCodes")
-  fun `should map libra nationality codes to cpr nationality codes`(libraCode: String, cprCode: NationalityCode, cprDescription: String) {
+  fun `should map libra nationality codes to cpr nationality codes`(libraCode: String, cprCode: NationalityCode) {
     val libraHearingEvent = LibraHearingEvent(cId = randomCId(), nationality1 = libraCode, nationality2 = libraCode)
-    val person = createPerson(Person.from(libraHearingEvent))
+    val person = Person.from(libraHearingEvent)
     assertThat(person.nationalities.size).isEqualTo(2)
-    assertThat(person.nationalities.first().nationalityCode?.code).isEqualTo(cprCode.name)
-    assertThat(person.nationalities.first().nationalityCode?.description).isEqualTo(cprDescription)
+    assertThat(person.nationalities.first().code).isEqualTo(cprCode)
   }
 
   companion object {
@@ -124,12 +119,12 @@ class NationalityCodeIntTest : IntegrationTestBase() {
 
     @JvmStatic
     fun commonPlatformCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("AL", NationalityCode.ALBA, "Albanian"),
-      Arguments.of("DZ", NationalityCode.ALGE, "Algerian"),
-      Arguments.of("AD", NationalityCode.ANDO, "Andorran"),
-      Arguments.of("AO", NationalityCode.ANGOL, "Angolan"),
-      Arguments.of("AG", NationalityCode.ANTIG, "Citizen of Antigua and Barbuda"),
-      Arguments.of("AR", NationalityCode.ARGEN, "Argentine"),
+      Arguments.of("ALB", NationalityCode.ALBA, "Albanian"),
+      Arguments.of("DZA", NationalityCode.ALGE, "Algerian"),
+      Arguments.of("AND", NationalityCode.ANDO, "Andorran"),
+      Arguments.of("AGO", NationalityCode.ANGOL, "Angolan"),
+      Arguments.of("ATG", NationalityCode.ANTIG, "Citizen of Antigua and Barbuda"),
+      Arguments.of("ARG", NationalityCode.ARGEN, "Argentine"),
       Arguments.of("UNKNOWN", NationalityCode.UNKNOWN, "Unknown"),
       Arguments.of("INVALID NATIONALITY CODE", NationalityCode.UNKNOWN, "Unknown"),
     )
