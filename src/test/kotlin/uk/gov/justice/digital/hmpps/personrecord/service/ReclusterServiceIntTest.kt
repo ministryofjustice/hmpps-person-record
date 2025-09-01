@@ -8,6 +8,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclusterval
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.BROKEN_CLUSTER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
@@ -40,7 +42,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
     @Test
     fun `should add a created record to a cluster if it is set to need attention`() {
       val personA = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey(status = NEEDS_ATTENTION)
+      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
         .addPerson(personA)
 
       stubPersonMatchUpsert()
@@ -55,7 +57,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       )
 
       cluster.assertClusterIsOfSize(2)
-      cluster.assertClusterStatus(NEEDS_ATTENTION)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
     }
 
     @Test
@@ -63,7 +65,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val recordA = createPerson(createRandomProbationPersonDetails())
       val matchesA = createPerson(createRandomProbationPersonDetails())
       val doesNotMatch = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey(status = NEEDS_ATTENTION)
+      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
@@ -73,7 +75,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = recordA.crn))
 
       cluster.assertClusterIsOfSize(3)
-      cluster.assertClusterStatus(NEEDS_ATTENTION)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
     }
 
     @Test
@@ -81,7 +83,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val recordA = createPerson(createRandomProbationPersonDetails())
       val matchesA = createPerson(createRandomProbationPersonDetails())
       val doesNotMatch = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey(status = NEEDS_ATTENTION)
+      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
@@ -100,7 +102,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val recordA = createPerson(createRandomProbationPersonDetails())
       val matchesA = createPerson(createRandomProbationPersonDetails())
       val doesNotMatch = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey(status = NEEDS_ATTENTION)
+      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
@@ -120,7 +122,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       val matchesA = createPerson(createRandomProbationPersonDetails())
       val doesNotMatch = createPerson(createRandomProbationPersonDetails())
       val recordToJoinCluster = createPersonWithNewKey(createRandomProbationPersonDetails())
-      val cluster = createPersonKey(status = NEEDS_ATTENTION)
+      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
@@ -141,7 +143,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
     @Test
     fun `should not set a cluster to active if it is set to needs attention and an update does change the cluster composition`() {
       val personA = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey(status = NEEDS_ATTENTION)
+      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(personA)
 
       stubPersonMatchUpsert()
@@ -156,12 +158,12 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       )
 
       cluster.assertClusterIsOfSize(2)
-      cluster.assertClusterStatus(NEEDS_ATTENTION)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = newPersonCrn))
 
       cluster.assertClusterIsOfSize(2)
-      cluster.assertClusterStatus(NEEDS_ATTENTION)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
     }
   }
 
@@ -413,7 +415,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
         mapOf("UUID" to cluster.personUUID.toString()),
       )
-      cluster.assertClusterStatus(NEEDS_ATTENTION)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
     }
 
     @Test
@@ -435,7 +437,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
         mapOf("UUID" to cluster.personUUID.toString()),
       )
-      cluster.assertClusterStatus(NEEDS_ATTENTION)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
     }
 
     @Test
@@ -456,7 +458,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
           "UUID" to cluster.personUUID.toString(),
         ),
       )
-      cluster.assertClusterStatus(NEEDS_ATTENTION)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
     }
 
     @Test
@@ -479,7 +481,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
           "UUID" to cluster.personUUID.toString(),
         ),
       )
-      cluster.assertClusterStatus(NEEDS_ATTENTION)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
     }
 
     @Test
@@ -504,7 +506,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
         mapOf("UUID" to cluster1.personUUID.toString()),
       )
-      cluster1.assertClusterStatus(NEEDS_ATTENTION)
+      cluster1.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
       cluster2.assertClusterStatus(ACTIVE)
     }
   }
@@ -1172,7 +1174,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster3.assertClusterIsOfSize(1)
       cluster4.assertClusterIsOfSize(1)
 
-      cluster1.assertClusterStatus(NEEDS_ATTENTION)
+      cluster1.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
       cluster2.assertClusterStatus(ACTIVE)
       cluster3.assertClusterStatus(ACTIVE)
       cluster4.assertClusterStatus(ACTIVE)
@@ -1220,7 +1222,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster3.assertClusterIsOfSize(1)
       cluster4.assertClusterIsOfSize(1)
 
-      cluster1.assertClusterStatus(NEEDS_ATTENTION)
+      cluster1.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
       cluster2.assertClusterStatus(ACTIVE)
       cluster3.assertClusterStatus(ACTIVE)
       cluster4.assertClusterStatus(ACTIVE)
@@ -1283,7 +1285,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       recluster(personA)
 
-      cluster.assertClusterStatus(NEEDS_ATTENTION)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
       checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
@@ -1348,7 +1350,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
         mapOf("UUID" to cluster.personUUID.toString()),
       )
-      cluster.assertClusterStatus(NEEDS_ATTENTION)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
       checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
