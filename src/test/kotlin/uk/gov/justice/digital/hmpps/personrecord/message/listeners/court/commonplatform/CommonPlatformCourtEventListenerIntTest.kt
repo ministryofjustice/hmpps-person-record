@@ -78,7 +78,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     publishCommonPlatformMessage(
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(gender = randomCommonPlatformSexCode().key, pnc = pnc, lastName = lastName, cro = cro, defendantId = defendantId))),
     )
-
+    awaitNotNullPerson { personRepository.findByDefendantId(defendantId) }
     val changedLastName = randomName()
     val updatedSexCode = randomCommonPlatformSexCode()
     publishCommonPlatformMessage(
