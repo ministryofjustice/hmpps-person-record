@@ -70,6 +70,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType.EXCLUDE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
@@ -264,9 +265,12 @@ class IntegrationTestBase {
 
   internal fun awaitNotNullPerson(function: () -> PersonEntity?, timeout: Long): PersonEntity = await atMost (Duration.ofSeconds(timeout)) untilNotNull function
 
-  internal fun createPersonKey(status: UUIDStatusType = ACTIVE): PersonKeyEntity {
+  internal fun createPersonKey(status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
-    personKeyEntity.status = status
+    personKeyEntity.apply {
+      this.status = status
+      this.statusReason = reason
+    }
     return personKeyRepository.save(personKeyEntity)
   }
 
@@ -593,7 +597,11 @@ class IntegrationTestBase {
 
   internal fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.personEntities?.size).isEqualTo(size) }
 
-  internal fun PersonKeyEntity.assertClusterStatus(status: UUIDStatusType) = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.status).isEqualTo(status) }
+  internal fun PersonKeyEntity.assertClusterStatus(status: UUIDStatusType, reason: UUIDStatusReasonType? = null) = awaitAssert {
+    val cluster = personKeyRepository.findByPersonUUID(this.personUUID)
+    assertThat(cluster?.status).isEqualTo(status)
+    assertThat(cluster?.statusReason).isEqualTo(reason)
+  }
 
   internal fun PersonKeyEntity.assertMergedTo(mergedCluster: PersonKeyEntity) {
     awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.mergedTo).isEqualTo(mergedCluster.id) }

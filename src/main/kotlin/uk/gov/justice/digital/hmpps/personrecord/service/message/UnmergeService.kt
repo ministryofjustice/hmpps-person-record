@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OverrideScopeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ActorType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ConfidenceType
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
@@ -41,6 +41,7 @@ class UnmergeService(
     )
 
     existing.addExcludeOverrideMarker(excludeRecord = reactivated)
+    // Check that we need to add the scope to the rest of the records in the cluster for analysis
     existing.addOverrideMarker(scopeEntity)
     personRepository.save(existing)
     personMatchService.saveToPersonMatch(existing)
@@ -58,7 +59,7 @@ class UnmergeService(
 
   private fun setClusterAsNeedsAttention(existing: PersonEntity) {
     existing.personKey?.let {
-      it.status = UUIDStatusType.NEEDS_ATTENTION
+      it.setAsNeedsAttention(UUIDStatusReasonType.OVERRIDE_CONFLICT)
       personKeyRepository.save(it)
       publisher.publishEvent(RecordEventLog.from(CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION, existing, it))
     }
