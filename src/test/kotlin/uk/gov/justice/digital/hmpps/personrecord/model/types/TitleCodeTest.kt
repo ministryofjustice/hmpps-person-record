@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifie
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
-import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -24,42 +23,38 @@ import java.util.stream.Stream
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Name as LibraName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName as OffenderName
 
-class TitleCodeIntTest : IntegrationTestBase() {
+class TitleCodeTest {
 
   @ParameterizedTest
   @MethodSource("probationTitleCodes")
   fun `should map all probation title codes to cpr title codes`(probationTitleCode: String?, cprTitleCode: String?, cprTitleCodeDescription: String?) {
     val probationCase = ProbationCase(identifiers = Identifiers(randomCrn()), title = Value(probationTitleCode), name = OffenderName(firstName = randomName()))
-    val person = createPerson(Person.from(probationCase))
-    assertThat(person.getPrimaryName().titleCode?.code).isEqualTo(cprTitleCode)
-    assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(cprTitleCodeDescription)
+    val person = Person.from(probationCase)
+    assertThat(person.titleCode?.name).isEqualTo(cprTitleCode)
   }
 
   @ParameterizedTest
   @MethodSource("prisonTitleCodes")
-  fun `should map all prison title codes to cpr title codes`(prisonTitleCode: String?, cprTitleCode: String?, cprTitleCodeDescription: String?) {
+  fun `should map all prison title codes to cpr title codes`(prisonTitleCode: String?, cprTitleCode: String?) {
     val prisoner = Prisoner(prisonNumber = randomPrisonNumber(), title = prisonTitleCode, lastName = randomName(), firstName = randomName(), dateOfBirth = randomDate())
-    val person = createPerson(Person.from(prisoner))
-    assertThat(person.getPrimaryName().titleCode?.code).isEqualTo(cprTitleCode)
-    assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(cprTitleCodeDescription)
+    val person = Person.from(prisoner)
+    assertThat(person.titleCode?.name).isEqualTo(cprTitleCode)
   }
 
   @ParameterizedTest
   @MethodSource("commonPlatformTitleCodes")
-  fun `should map all common platform title codes to cpr title codes`(defendantTitleCode: String?, cprTitleCode: String?, cprTitleCodeDescription: String?) {
+  fun `should map all common platform title codes to cpr title codes`(defendantTitleCode: String?, cprTitleCode: String?) {
     val defendant = Defendant(id = randomDefendantId(), personDefendant = PersonDefendant(personDetails = PersonDetails(title = defendantTitleCode, lastName = randomName())))
-    val person = createPerson(Person.from(defendant))
-    assertThat(person.getPrimaryName().titleCode?.code).isEqualTo(cprTitleCode)
-    assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(cprTitleCodeDescription)
+    val person = Person.from(defendant)
+    assertThat(person.titleCode?.name).isEqualTo(cprTitleCode)
   }
 
   @ParameterizedTest
   @MethodSource("libraTitleCodes")
-  fun `should map all libra title codes to cpr title codes`(libraTitleCode: String?, cprTitleCode: String?, cprTitleCodeDescription: String?) {
+  fun `should map all libra title codes to cpr title codes`(libraTitleCode: String?, cprTitleCode: String?) {
     val libraHearingEvent = LibraHearingEvent(cId = randomCId(), name = LibraName(title = libraTitleCode))
-    val person = createPerson(Person.from(libraHearingEvent))
-    assertThat(person.getPrimaryName().titleCode?.code).isEqualTo(cprTitleCode)
-    assertThat(person.getPrimaryName().titleCode?.description).isEqualTo(cprTitleCodeDescription)
+    val person = Person.from(libraHearingEvent)
+    assertThat(person.titleCode?.name).isEqualTo(cprTitleCode)
   }
 
   companion object {
@@ -125,31 +120,31 @@ class TitleCodeIntTest : IntegrationTestBase() {
 
     @JvmStatic
     fun libraTitleCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("Mr", "MR", "Mr"),
-      Arguments.of("MR", "MR", "Mr"),
-      Arguments.of("Mrs", "MRS", "Mrs"),
-      Arguments.of("MRS", "MRS", "Mrs"),
-      Arguments.of("Miss", "MISS", "Miss"),
-      Arguments.of("MISS", "MISS", "Miss"),
-      Arguments.of("Ms", "MS", "Ms"),
-      Arguments.of("MS", "MS", "Ms"),
-      Arguments.of("Mx", "MX", "Mx"),
-      Arguments.of("MX", "MX", "Mx"),
-      Arguments.of("Reverend", "REV", "Reverend"),
-      Arguments.of("Father", "FR", "Father"),
-      Arguments.of("Imam", "IMAM", "Imam"),
-      Arguments.of("Rabbi", "RABBI", "Rabbi"),
-      Arguments.of("Brother", "BR", "Brother"),
-      Arguments.of("Sister", "SR", "Sister"),
-      Arguments.of("Dame", "DME", "Dame"),
-      Arguments.of("Dr", "DR", "Dr"),
-      Arguments.of("DR", "DR", "Dr"),
-      Arguments.of("Lady", "LDY", "Lady"),
-      Arguments.of("Lord", "LRD", "Lord"),
-      Arguments.of("Sir", "SIR", "Sir"),
-      Arguments.of("Invalid", "UN", "Unknown"),
-      Arguments.of("", null, null),
-      Arguments.of(null, null, null),
+      Arguments.of("Mr", "MR"),
+      Arguments.of("MR", "MR"),
+      Arguments.of("Mrs", "MRS"),
+      Arguments.of("MRS", "MRS"),
+      Arguments.of("Miss", "MISS"),
+      Arguments.of("MISS", "MISS"),
+      Arguments.of("Ms", "MS"),
+      Arguments.of("MS", "MS"),
+      Arguments.of("Mx", "MX"),
+      Arguments.of("MX", "MX"),
+      Arguments.of("Reverend", "REV"),
+      Arguments.of("Father", "FR"),
+      Arguments.of("Imam", "IMAM"),
+      Arguments.of("Rabbi", "RABBI"),
+      Arguments.of("Brother", "BR"),
+      Arguments.of("Sister", "SR"),
+      Arguments.of("Dame", "DME"),
+      Arguments.of("Dr", "DR"),
+      Arguments.of("DR", "DR"),
+      Arguments.of("Lady", "LDY"),
+      Arguments.of("Lord", "LRD"),
+      Arguments.of("Sir", "SIR"),
+      Arguments.of("Invalid", "UN"),
+      Arguments.of("", null),
+      Arguments.of(null, null),
     )
   }
 }
