@@ -25,12 +25,12 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
-import uk.gov.justice.digital.hmpps.personrecord.test.randomEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
 
 class ProbationApiIntTest : WebTestBase() {
@@ -73,7 +73,7 @@ class ProbationApiIntTest : WebTestBase() {
       val fullAddress = randomFullAddress()
 
       val nationality = randomProbationNationalityCode()
-      val ethnicity = randomEthnicity()
+      val ethnicity = randomProbationEthnicity()
 
       val gender = "M"
 
@@ -85,7 +85,6 @@ class ProbationApiIntTest : WebTestBase() {
           lastName = lastName,
         ),
         identifiers = Identifiers(
-          defendantId = defendantId,
           crn = crn,
           pnc = pnc,
           cro = cro,
@@ -122,8 +121,8 @@ class ProbationApiIntTest : WebTestBase() {
 
       stubNoMatchesPersonMatch()
 
-      webTestClient.post()
-        .uri(PROBATION_API_URL)
+      webTestClient.put()
+        .uri(probationApiUrl(defendantId))
         .authorised(listOf(PROBATION_API_READ_WRITE))
         .bodyValue(probationCase)
         .exchange()
@@ -177,20 +176,23 @@ class ProbationApiIntTest : WebTestBase() {
         CPR_RECORD_CREATED,
         mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
       )
+
+      defendantId.assertLinksToCrn(crn)
     }
 
     @Test
     fun `should update record if it exists already`() {
       val crn = randomCrn()
+      val defendantId = randomDefendantId()
       createPerson(createRandomProbationPersonDetails(crn))
 
       val probationCase = ProbationCase(
         name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
-        identifiers = Identifiers(crn = crn, defendantId = randomDefendantId()),
+        identifiers = Identifiers(crn = crn),
       )
 
-      webTestClient.post()
-        .uri(PROBATION_API_URL)
+      webTestClient.put()
+        .uri(probationApiUrl(defendantId))
         .authorised(listOf(PROBATION_API_READ_WRITE))
         .bodyValue(probationCase)
         .exchange()
@@ -201,6 +203,58 @@ class ProbationApiIntTest : WebTestBase() {
         CPR_RECORD_UPDATED,
         mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
       )
+
+      defendantId.assertLinksToCrn(crn)
+    }
+
+    @Test
+    fun `should update crn against a defendant id`() {
+      val crn = randomCrn()
+      val defendantId = randomDefendantId()
+
+      val probationCase = ProbationCase(
+        name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
+        identifiers = Identifiers(crn = crn),
+      )
+
+      stubNoMatchesPersonMatch()
+
+      webTestClient.put()
+        .uri(probationApiUrl(defendantId))
+        .authorised(listOf(PROBATION_API_READ_WRITE))
+        .bodyValue(probationCase)
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      checkTelemetry(
+        CPR_RECORD_CREATED,
+        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
+      )
+
+      defendantId.assertLinksToCrn(crn)
+
+      val newCrn = randomCrn()
+      val probationCaseUpdate = ProbationCase(
+        name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
+        identifiers = Identifiers(crn = newCrn),
+      )
+
+      webTestClient.put()
+        .uri(probationApiUrl(defendantId))
+        .authorised(listOf(PROBATION_API_READ_WRITE))
+        .bodyValue(probationCaseUpdate)
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      checkTelemetry(
+        CPR_RECORD_CREATED,
+        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
+      )
+
+      defendantId.assertLinksToCrn(newCrn)
+      defendantId.assertNotLinksToCrn(crn)
     }
   }
 
@@ -214,15 +268,13 @@ class ProbationApiIntTest : WebTestBase() {
         identifiers = Identifiers(crn = randomCrn()),
         name = ProbationCaseName(firstName = randomName()),
         gender = Value(SexCode.M.name),
-        ethnicity = Value(
-          randomEthnicity(),
-        ),
+        ethnicity = Value(randomProbationEthnicity()),
         nationality = Value(randomProbationNationalityCode()),
         contactDetails = ContactDetails(),
       )
       val expectedErrorMessage = "Forbidden: Access Denied"
-      webTestClient.post()
-        .uri(PROBATION_API_URL)
+      webTestClient.put()
+        .uri(probationApiUrl(randomDefendantId()))
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .bodyValue(offender)
         .exchange()
@@ -235,15 +287,13 @@ class ProbationApiIntTest : WebTestBase() {
 
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
-      webTestClient.post()
-        .uri(PROBATION_API_URL)
+      webTestClient.put()
+        .uri(probationApiUrl(randomDefendantId()))
         .exchange()
         .expectStatus()
         .isUnauthorized
     }
   }
 
-  companion object {
-    private const val PROBATION_API_URL = "/person/probation"
-  }
+  private fun probationApiUrl(defendantId: String) = "/person/probation/$defendantId"
 }

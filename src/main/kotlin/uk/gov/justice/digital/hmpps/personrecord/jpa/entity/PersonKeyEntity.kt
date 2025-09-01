@@ -13,6 +13,7 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import java.util.*
 
@@ -36,6 +37,10 @@ class PersonKeyEntity(
   @Column
   @Enumerated(STRING)
   var status: UUIDStatusType = UUIDStatusType.ACTIVE,
+
+  @Column
+  @Enumerated(STRING)
+  val statusReason: UUIDStatusReasonType? = null,
 
   @Version
   var version: Int = 0,

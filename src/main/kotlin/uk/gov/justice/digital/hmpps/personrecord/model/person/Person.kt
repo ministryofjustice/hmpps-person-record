@@ -82,7 +82,7 @@ data class Person(
         dateOfBirth = probationCase.dateOfBirth,
         crn = probationCase.identifiers.crn,
         ethnicity = probationCase.ethnicity?.value.nullIfBlank(),
-        ethnicityCode = EthnicityCode.from(probationCase.ethnicity?.value),
+        ethnicityCode = EthnicityCode.fromProbation(probationCase.ethnicity?.value),
         nationalities = nationalities,
         aliases = probationCase.aliases?.map { Alias.from(it) } ?: emptyList(),
         addresses = Address.fromOffenderAddressList(probationCase.addresses),
@@ -94,7 +94,7 @@ data class Person(
       )
     }
 
-    fun from(defendant: Defendant, sourceSystemType: SourceSystemType = COMMON_PLATFORM): Person {
+    fun from(defendant: Defendant): Person {
       val contacts: List<Contact> = listOfNotNull(
         Contact.from(ContactType.HOME, defendant.personDefendant?.personDetails?.contact?.home),
         Contact.from(ContactType.MOBILE, defendant.personDefendant?.personDetails?.contact?.mobile),
@@ -130,7 +130,7 @@ data class Person(
         lastName = defendant.personDefendant?.personDetails?.lastName.nullIfBlank(),
         middleNames = defendant.personDefendant?.personDetails?.middleName.nullIfBlank(),
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
-        ethnicityCode = EthnicityCode.from(defendant.personDefendant?.personDetails?.ethnicity?.selfDefinedEthnicityCode),
+        ethnicityCode = EthnicityCode.fromCommonPlatform(defendant.personDefendant?.personDetails?.ethnicity?.selfDefinedEthnicityCode),
         defendantId = defendant.id.nullIfBlank(),
         masterDefendantId = defendant.masterDefendantId.nullIfBlank(),
         contacts = contacts,
@@ -138,7 +138,7 @@ data class Person(
         references = references,
         nationalities = nationalities,
         aliases = defendant.aliases?.map { Alias.from(it) } ?: emptyList(),
-        sourceSystem = sourceSystemType,
+        sourceSystem = COMMON_PLATFORM,
         sexCode = SexCode.from(defendant.personDefendant?.personDetails),
       )
     }
@@ -202,7 +202,7 @@ data class Person(
         lastName = prisoner.lastName.nullIfBlank(),
         dateOfBirth = prisoner.dateOfBirth,
         ethnicity = prisoner.ethnicity.nullIfBlank(),
-        ethnicityCode = EthnicityCode.from(prisoner.ethnicity.nullIfBlank()),
+        ethnicityCode = EthnicityCode.fromPrison(prisoner.ethnicity.nullIfBlank()),
         aliases = prisoner.aliases.map { Alias.from(it) },
         contacts = contacts,
         addresses = addresses,

@@ -1,6 +1,15 @@
 package uk.gov.justice.digital.hmpps.personrecord.test
 
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier.Companion.VALID_LETTERS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.commonPlatformEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.prisonEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode.Companion.probationEthnicity
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.Companion.commonPlatformSexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.Companion.libraSexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.Companion.prisonSexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.Companion.probationSexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode.Companion.titleCodeMap
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.COMMON_PLATFORM_NATIONALITY_MAPPING
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.LIBRA_NATIONALITY_MAPPINGS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
@@ -32,11 +41,25 @@ fun randomBuildingNumber(): String = randomDigit(3)
 
 fun randomName(): String = randomLowerCaseString()
 
-fun randomEthnicity(): String = randomLowerCaseString()
+fun randomTitle(): String = titleCodeMap.keys.random()
+
+fun randomCommonPlatformSexCode(): Map.Entry<String, SexCode> = commonPlatformSexCode.entries.random()
+
+fun randomLibraSexCode(): Map.Entry<String, SexCode> = libraSexCode.entries.random()
+
+fun randomProbationSexCode(): Map.Entry<String, SexCode> = probationSexCode.entries.random()
+
+fun randomPrisonSexCode(): Map.Entry<String, SexCode> = prisonSexCode.entries.random()
+
+fun randomProbationEthnicity(): String = probationEthnicity.keys.random()
+
+fun randomCommonPlatformEthnicity(): String = commonPlatformEthnicity.keys.random()
+
+fun randomPrisonEthnicity(): String = prisonEthnicity.keys.random()
 
 fun randomNationalityCode(): NationalityCode = NationalityCode.entries.random()
 
-fun randomPrisonerNationalityCode(): String = PRISON_NATIONALITY_MAPPING.entries.random().key
+fun randomPrisonNationalityCode(): String = PRISON_NATIONALITY_MAPPING.entries.random().key
 
 fun randomProbationNationalityCode(): String = PROBATION_NATIONALITY_MAPPING.entries.random().key
 

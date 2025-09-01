@@ -1,15 +1,18 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
-import jakarta.persistence.CascadeType
+import jakarta.persistence.CascadeType.ALL
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType.STRING
 import jakarta.persistence.Enumerated
-import jakarta.persistence.FetchType
+import jakarta.persistence.FetchType.EAGER
+import jakarta.persistence.FetchType.LAZY
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.JoinTable
+import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
@@ -36,33 +39,44 @@ class PersonEntity(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   var id: Long? = null,
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = LAZY)
   @JoinColumn(name = "fk_person_key_id", referencedColumnName = "id", nullable = true)
   var personKey: PersonKeyEntity? = null,
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var pseudonyms: MutableList<PseudonymEntity> = mutableListOf(),
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var addresses: MutableList<AddressEntity> = mutableListOf(),
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var contacts: MutableList<ContactEntity> = mutableListOf(),
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var references: MutableList<ReferenceEntity> = mutableListOf(),
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var sentenceInfo: MutableList<SentenceInfoEntity> = mutableListOf(),
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var overrideMarkers: MutableList<OverrideMarkerEntity> = mutableListOf(),
+
+  @Column(name = "override_marker")
+  var overrideMarker: UUID? = null,
+
+  @ManyToMany(cascade = [ALL], fetch = EAGER)
+  @JoinTable(
+    name = "person_override_scope",
+    joinColumns = [JoinColumn(name = "person_id")],
+    inverseJoinColumns = [JoinColumn(name = "override_scope_id")],
+  )
+  val overrideScopes: MutableList<OverrideScopeEntity> = mutableListOf(),
 
   @Column
   var crn: String? = null,
@@ -83,7 +97,7 @@ class PersonEntity(
   val birthCountry: String? = null,
 
   @Column
-  @OneToMany(mappedBy = "person", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+  @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var nationalities: MutableList<NationalityEntity> = mutableListOf(),
 
   @Column
@@ -96,7 +110,7 @@ class PersonEntity(
   @Enumerated(STRING)
   var sexCode: SexCode? = null,
 
-  @ManyToOne
+  @ManyToOne(fetch = LAZY)
   @JoinColumn(
     name = "fk_ethnicity_code_id",
     referencedColumnName = "id",
@@ -140,6 +154,11 @@ class PersonEntity(
     )
   }
 
+  fun addOverrideMarker(scope: OverrideScopeEntity) {
+    this.overrideMarker = this.overrideMarker ?: OverrideScopeEntity.newMarker()
+    this.overrideScopes.add(scope)
+  }
+
   fun mergeTo(personEntity: PersonEntity) {
     this.mergedTo = personEntity.id
   }
@@ -160,6 +179,7 @@ class PersonEntity(
     this.crn = person.crn
     this.prisonNumber = person.prisonNumber
     this.masterDefendantId = person.masterDefendantId
+    this.ethnicity = person.ethnicity
     this.religion = person.religion
     this.cId = person.cId
     this.sexCode = person.sexCode

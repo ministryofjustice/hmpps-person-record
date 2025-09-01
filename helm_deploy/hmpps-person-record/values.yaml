@@ -42,10 +42,6 @@ generic-service:
           deny all;
           return 401;
         }
-        location /migrate/ethnicity-codes {
-          deny all;
-          return 401;
-        }
 
   # Environment variables to load into the deployment
   env:

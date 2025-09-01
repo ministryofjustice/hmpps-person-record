@@ -48,23 +48,34 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideScopeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.NationalityCodeEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.TitleCodeEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtProbationLinkRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.NationalityCodeRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OverrideScopeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.TitleCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person.Companion.getType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType.EXCLUDE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ActorType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ConfidenceType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
@@ -93,6 +104,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 class IntegrationTestBase {
 
   @Autowired
+  private lateinit var overrideScopeRepository: OverrideScopeRepository
+
+  @Autowired
   private lateinit var personService: PersonService
 
   @Autowired
@@ -115,6 +129,15 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var nationalityCodeRepository: NationalityCodeRepository
+
+  @Autowired
+  lateinit var courtProbationLinkRepository: CourtProbationLinkRepository
+
+  @Autowired
+  lateinit var ethnicityCodeRepository: EthnicityCodeRepository
+
+  @Autowired
+  private lateinit var titleCodeRepository: TitleCodeRepository
 
   fun authSetup() {
     wiremock.stubFor(
@@ -279,6 +302,7 @@ class IntegrationTestBase {
 
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
     val source = personRepository.findByMatchId(sourceRecord.matchId)
+    val target = personRepository.findByMatchId(excludingRecord.matchId)
     source?.overrideMarkers?.add(
       OverrideMarkerEntity(
         markerType = EXCLUDE,
@@ -286,7 +310,6 @@ class IntegrationTestBase {
         person = sourceRecord,
       ),
     )
-    val target = personRepository.findByMatchId(sourceRecord.matchId)
     target?.overrideMarkers?.add(
       OverrideMarkerEntity(
         markerType = EXCLUDE,
@@ -294,6 +317,16 @@ class IntegrationTestBase {
         person = excludingRecord,
       ),
     )
+    val scope = overrideScopeRepository.save(
+      OverrideScopeEntity.new(
+        ConfidenceType.VERIFIED,
+        ActorType.SYSTEM,
+      ),
+    )
+    source?.overrideMarker = OverrideScopeEntity.newMarker()
+    target?.overrideMarker = OverrideScopeEntity.newMarker()
+    source?.overrideScopes?.add(scope)
+    target?.overrideScopes?.add(scope)
     personRepository.saveAll(listOf(source, target))
   }
 
@@ -598,14 +631,58 @@ class IntegrationTestBase {
       personRepository.findByMatchId(this.matchId)?.overrideMarkers?.filter { it.markerType == EXCLUDE && it.markerValue == personEntity.id },
     ).hasSize(1)
   }
+
+  internal fun PersonEntity.assertHasOverrideMarker() = awaitAssert {
+    assertThat(personRepository.findByMatchId(this.matchId)?.overrideMarker).isNotNull()
+  }
+
+  internal fun PersonEntity.assertDoesNotHaveOverrideMarker() = awaitAssert {
+    assertThat(personRepository.findByMatchId(this.matchId)?.overrideMarker).isNull()
+  }
+
+  internal fun PersonEntity.assertHasDifferentOverrideMarker(personEntity: PersonEntity) = awaitAssert {
+    assertThat(personRepository.findByMatchId(this.matchId)?.overrideMarker).isNotEqualTo(personEntity.overrideMarker)
+  }
+
+  internal fun PersonEntity.assertHasSameOverrideScope(personEntity: PersonEntity) = awaitAssert {
+    assertThat(this.intersectScopes(personEntity)).isNotEmpty()
+  }
+
+  internal fun PersonEntity.assertHasDifferentOverrideScope(personEntity: PersonEntity) = awaitAssert {
+    assertThat(this.intersectScopes(personEntity)).isEmpty()
+  }
+
+  internal fun PersonEntity.assertOverrideScopeSize(size: Int) = awaitAssert {
+    assertThat(personRepository.findByMatchId(this.matchId)?.overrideScopes?.size).isEqualTo(size)
+  }
+
   fun PersonEntity.assertPersonDeleted() = awaitAssert { assertThat(personRepository.findByMatchId(this.matchId)).isNull() }
 
   fun PersonKeyEntity.assertPersonKeyDeleted() = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)).isNull() }
+
+  internal fun String.assertLinksToCrn(crn: String) = awaitAssert {
+    assertThat(courtProbationLinkRepository.findByDefendantId(this)?.crn).isEqualTo(crn)
+  }
+
+  internal fun String.assertNotLinksToCrn(crn: String) = awaitAssert {
+    assertThat(courtProbationLinkRepository.findByDefendantId(this)?.crn).isNotEqualTo(crn)
+  }
 
   fun Person.getCro(): String? = this.references.getType(CRO).first().identifierValue
   fun PersonEntity.getCro(): String? = this.references.getType(CRO).firstOrNull()?.identifierValue
   fun Person.getPnc(): String? = this.references.getType(PNC).first().identifierValue
   fun PersonEntity.getPnc(): String? = this.references.getType(PNC).firstOrNull()?.identifierValue
+  fun String.getTitle(): TitleCodeEntity = titleCodeRepository.findByCode(TitleCode.from(this)!!.name)!!
+  fun String.getCommonPlatformEthnicity(): EthnicityCodeEntity = EthnicityCode.fromCommonPlatform(this)?.let { ethnicityCodeRepository.findByCode(it.name) }!!
+  fun String.getPrisonEthnicity(): EthnicityCodeEntity = EthnicityCode.fromPrison(this)?.let { ethnicityCodeRepository.findByCode(it.name) }!!
+  fun String.getProbationEthnicity(): EthnicityCodeEntity = EthnicityCode.fromProbation(this)?.let { ethnicityCodeRepository.findByCode(it.name) }!!
+
+  private fun PersonEntity.intersectScopes(personEntity: PersonEntity): Set<UUID> {
+    val thisPersonScopes = personRepository.findByMatchId(this.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()
+    val evalPersonScopes = personRepository.findByMatchId(personEntity.matchId)?.overrideScopes?.map { it.scope }?.toSet() ?: emptySet()
+    return thisPersonScopes.intersect(evalPersonScopes)
+  }
+
   companion object {
 
     internal const val BASE_SCENARIO = "baseScenario"

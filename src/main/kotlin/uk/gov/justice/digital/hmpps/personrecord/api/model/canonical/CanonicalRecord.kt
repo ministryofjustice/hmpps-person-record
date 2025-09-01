@@ -53,7 +53,7 @@ data class CanonicalRecord(
       )
     }
 
-    fun from(person: PersonEntity): CanonicalRecord = CanonicalRecord(
+    fun from(person: PersonEntity, identifiers: CanonicalIdentifiers? = null): CanonicalRecord = CanonicalRecord(
       firstName = person.getPrimaryName().firstName,
       middleNames = person.getPrimaryName().middleNames,
       lastName = person.getPrimaryName().lastName,
@@ -64,7 +64,7 @@ data class CanonicalRecord(
       ethnicity = CanonicalEthnicity.from(person.ethnicity),
       aliases = getAliases(person),
       addresses = getAddresses(person),
-      identifiers = CanonicalIdentifiers.from(person),
+      identifiers = identifiers ?: CanonicalIdentifiers.from(person),
       nationalities = CanonicalNationality.from(person),
     )
 
