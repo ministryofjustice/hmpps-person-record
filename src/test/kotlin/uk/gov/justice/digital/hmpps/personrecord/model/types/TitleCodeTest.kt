@@ -27,7 +27,7 @@ class TitleCodeTest {
 
   @ParameterizedTest
   @MethodSource("probationTitleCodes")
-  fun `should map all probation title codes to cpr title codes`(probationTitleCode: String?, cprTitleCode: String?, cprTitleCodeDescription: String?) {
+  fun `should map all probation title codes to cpr title codes`(probationTitleCode: String?, cprTitleCode: String?) {
     val probationCase = ProbationCase(identifiers = Identifiers(randomCrn()), title = Value(probationTitleCode), name = OffenderName(firstName = randomName()))
     val person = Person.from(probationCase)
     assertThat(person.titleCode?.name).isEqualTo(cprTitleCode)
@@ -61,61 +61,61 @@ class TitleCodeTest {
 
     @JvmStatic
     fun probationTitleCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("MR", "MR", "Mr"),
-      Arguments.of("MRS", "MRS", "Mrs"),
-      Arguments.of("MISS", "MISS", "Miss"),
-      Arguments.of("MS", "MS", "Ms"),
-      Arguments.of("MX", "MX", "Mx"),
-      Arguments.of("REV", "REV", "Reverend"),
-      Arguments.of("DME", "DME", "Dame"),
-      Arguments.of("DR", "DR", "Dr"),
-      Arguments.of("LDY", "LDY", "Lady"),
-      Arguments.of("LRD", "LRD", "Lord"),
-      Arguments.of("SIR", "SIR", "Sir"),
-      Arguments.of("Invalid", "UN", "Unknown"),
-      Arguments.of(null, null, null),
+      Arguments.of("MR", "MR"),
+      Arguments.of("MRS", "MRS"),
+      Arguments.of("MISS", "MISS"),
+      Arguments.of("MS", "MS"),
+      Arguments.of("MX", "MX"),
+      Arguments.of("REV", "REV"),
+      Arguments.of("DME", "DME"),
+      Arguments.of("DR", "DR"),
+      Arguments.of("LDY", "LDY"),
+      Arguments.of("LRD", "LRD"),
+      Arguments.of("SIR", "SIR"),
+      Arguments.of("Invalid", "UN"),
+      Arguments.of(null, null),
     )
 
     @JvmStatic
     fun prisonTitleCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("Mr", "MR", "Mr"),
-      Arguments.of("Mrs", "MRS", "Mrs"),
-      Arguments.of("Miss", "MISS", "Miss"),
-      Arguments.of("Ms", "MS", "Ms"),
-      Arguments.of("Reverend", "REV", "Reverend"),
-      Arguments.of("Father", "FR", "Father"),
-      Arguments.of("Imam", "IMAM", "Imam"),
-      Arguments.of("Rabbi", "RABBI", "Rabbi"),
-      Arguments.of("Brother", "BR", "Brother"),
-      Arguments.of("Sister", "SR", "Sister"),
-      Arguments.of("Dame", "DME", "Dame"),
-      Arguments.of("Dr", "DR", "Dr"),
-      Arguments.of("Lady", "LDY", "Lady"),
-      Arguments.of("Lord", "LRD", "Lord"),
-      Arguments.of("Sir", "SIR", "Sir"),
-      Arguments.of("Invalid", "UN", "Unknown"),
-      Arguments.of(null, null, null),
+      Arguments.of("Mr", "MR"),
+      Arguments.of("Mrs", "MRS"),
+      Arguments.of("Miss", "MISS"),
+      Arguments.of("Ms", "MS"),
+      Arguments.of("Reverend", "REV"),
+      Arguments.of("Father", "FR"),
+      Arguments.of("Imam", "IMAM"),
+      Arguments.of("Rabbi", "RABBI"),
+      Arguments.of("Brother", "BR"),
+      Arguments.of("Sister", "SR"),
+      Arguments.of("Dame", "DME"),
+      Arguments.of("Dr", "DR"),
+      Arguments.of("Lady", "LDY"),
+      Arguments.of("Lord", "LRD"),
+      Arguments.of("Sir", "SIR"),
+      Arguments.of("Invalid", "UN"),
+      Arguments.of(null, null),
     )
 
     @JvmStatic
     fun commonPlatformTitleCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("Mr", "MR", "Mr"),
-      Arguments.of("Mrs", "MRS", "Mrs"),
-      Arguments.of("Miss", "MISS", "Miss"),
-      Arguments.of("Ms", "MS", "Ms"),
-      Arguments.of("Reverend", "REV", "Reverend"),
-      Arguments.of("Father", "FR", "Father"),
-      Arguments.of("Imam", "IMAM", "Imam"),
-      Arguments.of("Rabbi", "RABBI", "Rabbi"),
-      Arguments.of("Brother", "BR", "Brother"),
-      Arguments.of("Sister", "SR", "Sister"),
-      Arguments.of("Dame", "DME", "Dame"),
-      Arguments.of("Dr", "DR", "Dr"),
-      Arguments.of("Lady", "LDY", "Lady"),
-      Arguments.of("Lord", "LRD", "Lord"),
-      Arguments.of("Sir", "SIR", "Sir"),
-      Arguments.of("Invalid", "UN", "Unknown"),
-      Arguments.of(null, null, null),
+      Arguments.of("Mr", "MR"),
+      Arguments.of("Mrs", "MRS"),
+      Arguments.of("Miss", "MISS"),
+      Arguments.of("Ms", "MS"),
+      Arguments.of("Reverend", "REV"),
+      Arguments.of("Father", "FR"),
+      Arguments.of("Imam", "IMAM"),
+      Arguments.of("Rabbi", "RABBI"),
+      Arguments.of("Brother", "BR"),
+      Arguments.of("Sister", "SR"),
+      Arguments.of("Dame", "DME"),
+      Arguments.of("Dr", "DR"),
+      Arguments.of("Lady", "LDY"),
+      Arguments.of("Lord", "LRD"),
+      Arguments.of("Sir", "SIR"),
+      Arguments.of("Invalid", "UN"),
+      Arguments.of(null, null),
     )
 
     @JvmStatic
