@@ -119,8 +119,11 @@ data class Person(
         Reference.from(identifierType = IdentifierType.CRO, identifierValue = defendant.cro?.croId),
       )
 
-      val nationalities: List<Nationality> =
-        NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.nationalityCode)?.let { listOf(Nationality(it)) } ?: emptyList()
+      val nationalities: List<Nationality> = listOf(
+        NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.nationalityCode),
+        NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.additionalNationalityCode)
+      ).mapNotNull { it }
+        .map { Nationality(it) }
 
       return Person(
         titleCode = TitleCode.from(defendant.personDefendant?.personDetails?.title.nullIfBlank()),

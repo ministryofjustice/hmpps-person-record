@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribu
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttributes
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NationalityEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
@@ -178,6 +179,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val ethnicity = randomCommonPlatformEthnicity()
 
     val firstNationality = randomCommonPlatformNationalityCode()
+    val firstAdditionalNationality = randomCommonPlatformNationalityCode()
     val secondNationality = randomCommonPlatformNationalityCode()
 
     val firstSexCode = randomCommonPlatformSexCode()
@@ -199,6 +201,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
               CommonPlatformHearingSetupAlias(firstName = "aliasFirstName2", lastName = "aliasLastName2"),
             ),
             nationalityCode = firstNationality,
+            additionalNationalityCode = firstAdditionalNationality,
             ethnicity = ethnicity,
             nationalInsuranceNumber = firstDefendantNINumber,
           ),
@@ -235,9 +238,11 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getPrimaryName().lastName).isEqualTo(lastName)
     assertThat(firstPerson.contacts).isEmpty()
     assertThat(firstPerson.addresses).isNotEmpty()
-    assertThat(firstPerson.nationalities.size).isEqualTo(1)
-    assertThat(firstPerson.nationalities.first().nationalityCode?.code).isEqualTo(firstNationality.getNationalityCodeEntityFromCommonPlatformCode()?.code)
-    assertThat(firstPerson.nationalities.first().nationalityCode?.description).isEqualTo(firstNationality.getNationalityCodeEntityFromCommonPlatformCode()?.description)
+    assertThat(firstPerson.nationalities.size).isEqualTo(2)
+    val person1Nationalities = firstPerson.nationalities.map { it.nationalityCode?.code }
+    assertThat(person1Nationalities).containsAll(listOf(firstAdditionalNationality.getNationalityCodeEntityFromCommonPlatformCode()?.code, firstNationality.getNationalityCodeEntityFromCommonPlatformCode()?.code))
+    val person1NationalityDescription = firstPerson.nationalities.map { it.nationalityCode?.description }
+    assertThat(person1NationalityDescription).containsAll(listOf(firstAdditionalNationality.getNationalityCodeEntityFromCommonPlatformCode()?.description, firstNationality.getNationalityCodeEntityFromCommonPlatformCode()?.description))
     assertThat(firstPerson.getAliases().size).isEqualTo(2)
     assertThat(firstPerson.getAliases()[0].titleCode).isNull()
     assertThat(firstPerson.getAliases()[0].firstName).isEqualTo("aliasFirstName1")

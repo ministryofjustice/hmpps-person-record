@@ -19,5 +19,6 @@ data class PersonDetails(
   val contact: Contact? = null,
   val ethnicity: Ethnicity? = null,
   val nationalityCode: String? = null,
+  val additionalNationalityCode: String? = null,
   val nationalInsuranceNumber: String? = null,
 )
