@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.Nationa
 class NationalityFactory(
   private val nationalityCodeRepository: NationalityCodeRepository,
 ) {
+  // TODO simplify - will not have to handle empty nationalities
   fun buildNationalities(person: Person): List<NationalityEntity> = person.nationalities.mapNotNull { it.build() }
 
   private fun Nationality.build(): NationalityEntity? = NationalityEntity.from(this, lookupNationalityCode(this.code))

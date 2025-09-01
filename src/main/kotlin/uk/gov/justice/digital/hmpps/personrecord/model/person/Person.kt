@@ -71,9 +71,8 @@ data class Person(
           identifierValue = probationCase.identifiers.nationalInsuranceNumber,
         ),
       )
-      val nationalities: List<Nationality> = listOf(
-        Nationality(NationalityCode.fromProbationMapping(probationCase.nationality?.value)),
-      )
+      val nationalities: List<Nationality> =
+        NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.let { listOf(Nationality(it)) } ?: emptyList()
       return Person(
         titleCode = TitleCode.from(probationCase.title?.value),
         firstName = probationCase.name.firstName.nullIfBlank(),
@@ -120,9 +119,8 @@ data class Person(
         Reference.from(identifierType = IdentifierType.CRO, identifierValue = defendant.cro?.croId),
       )
 
-      val nationalities: List<Nationality> = listOf(
-        Nationality(NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.nationalityCode)),
-      )
+      val nationalities: List<Nationality> =
+        NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.nationalityCode)?.let { listOf(Nationality(it)) } ?: emptyList()
 
       return Person(
         titleCode = TitleCode.from(defendant.personDefendant?.personDetails?.title.nullIfBlank()),
@@ -152,9 +150,11 @@ data class Person(
         Reference.from(identifierType = IdentifierType.PNC, identifierValue = libraHearingEvent.pnc?.toString()),
       )
       val nationalities: List<Nationality> = listOf(
-        Nationality(NationalityCode.fromLibraMapping(libraHearingEvent.nationality1)),
-        Nationality(NationalityCode.fromLibraMapping(libraHearingEvent.nationality2)),
-      )
+        NationalityCode.fromLibraMapping(libraHearingEvent.nationality1),
+        NationalityCode.fromLibraMapping(libraHearingEvent.nationality2),
+      ).mapNotNull { it }
+        .map { Nationality(it) }
+
       return Person(
         titleCode = TitleCode.from(libraHearingEvent.name?.title),
         firstName = libraHearingEvent.name?.firstName.nullIfBlank(),
@@ -190,9 +190,7 @@ data class Person(
           identifierValue = prisoner.identifiers.getType("DL")?.value,
         ),
       )
-      val nationalities: List<Nationality> = listOf(
-        Nationality(NationalityCode.fromPrisonMapping(prisoner.nationality)),
-      )
+      val nationalities: List<Nationality> = NationalityCode.fromPrisonMapping(prisoner.nationality)?.let { listOf(Nationality(it)) } ?: emptyList()
 
       return Person(
         prisonNumber = prisoner.prisonNumber.nullIfBlank(),
