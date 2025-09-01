@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
@@ -459,7 +460,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
+      cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
       cluster.assertClusterIsOfSize(2)
 
       unmergedPerson.assertLinkedToCluster(cluster)

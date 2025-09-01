@@ -40,7 +40,7 @@ class PersonKeyEntity(
 
   @Column
   @Enumerated(STRING)
-  val statusReason: UUIDStatusReasonType? = null,
+  var statusReason: UUIDStatusReasonType? = null,
 
   @Version
   var version: Int = 0,
@@ -50,6 +50,20 @@ class PersonKeyEntity(
   fun isActive(): Boolean = status == UUIDStatusType.ACTIVE
 
   fun isNeedsAttention(): Boolean = status == UUIDStatusType.NEEDS_ATTENTION
+
+  fun setAsActive() {
+    this.apply {
+      this.status = UUIDStatusType.ACTIVE
+      this.statusReason = null
+    }
+  }
+
+  fun setAsNeedsAttention(reason: UUIDStatusReasonType) {
+    this.apply {
+      this.status = UUIDStatusType.NEEDS_ATTENTION
+      this.statusReason = reason
+    }
+  }
 
   fun markAsMerged(to: PersonKeyEntity) {
     this.apply {
