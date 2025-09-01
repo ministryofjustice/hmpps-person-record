@@ -17,11 +17,14 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECL
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.NewReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
@@ -34,7 +37,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
   @Autowired
-  private lateinit var reclusterService: ReclusterService
+  private lateinit var reclusterService: NewReclusterService
 
   @Nested
   inner class ClusterAlreadySetAsNeedsAttention {
@@ -57,6 +60,62 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       )
 
       cluster.assertClusterIsOfSize(2)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
+    }
+
+    @Test
+    fun `should set a broken cluster to active if the cluster has one record in it after a delete`() {
+      val recordA = createPerson(createRandomProbationPersonDetails())
+      val recordToDelete = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+        .addPerson(recordA)
+        .addPerson(recordToDelete)
+
+      stubDeletePersonMatch()
+
+      val domainEvent = probationDomainEvent(OFFENDER_DELETION, recordToDelete.crn!!)
+      publishDomainEvent(OFFENDER_DELETION, domainEvent)
+
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordToDelete.crn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+
+      cluster.assertClusterIsOfSize(1)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+
+      stubPersonMatchUpsert()
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = recordA.crn))
+
+      cluster.assertClusterIsOfSize(1)
+      cluster.assertClusterStatus(ACTIVE)
+    }
+
+    @Test
+    fun `should retain needs attention if the cluster has one record in it after a delete but was a override conflict`() {
+      val recordA = createPerson(createRandomProbationPersonDetails())
+      val recordToDelete = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
+        .addPerson(recordA)
+        .addPerson(recordToDelete)
+
+      stubDeletePersonMatch()
+
+      val domainEvent = probationDomainEvent(OFFENDER_DELETION, recordToDelete.crn!!)
+      publishDomainEvent(OFFENDER_DELETION, domainEvent)
+
+      checkTelemetry(
+        CPR_RECORD_DELETED,
+        mapOf("CRN" to recordToDelete.crn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      )
+
+      cluster.assertClusterIsOfSize(1)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
+
+      stubPersonMatchUpsert()
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = recordA.crn))
+
+      cluster.assertClusterIsOfSize(1)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
     }
 

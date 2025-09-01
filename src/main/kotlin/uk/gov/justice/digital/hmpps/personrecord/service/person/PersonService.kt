@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION_EXCLUDE
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.NewReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
@@ -24,7 +25,7 @@ class PersonService(
   private val personFactory: PersonFactory,
   private val personKeyService: PersonKeyService,
   private val personMatchService: PersonMatchService,
-  private val reclusterService: ReclusterService,
+  private val reclusterService: NewReclusterService,
   private val publisher: ApplicationEventPublisher,
 ) {
 
