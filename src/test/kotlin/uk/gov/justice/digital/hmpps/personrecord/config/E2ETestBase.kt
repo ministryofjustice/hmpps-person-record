@@ -26,5 +26,5 @@ class E2ETestBase : MessagingTestBase() {
     personMatchService.saveToPersonMatch(excludingRecord)
   }
 
-  internal fun createProbationPersonFrom(from: Person, crn: String = randomCrn()): Person = from.copy(crn=crn)
+  internal fun createProbationPersonFrom(from: Person, crn: String = randomCrn()): Person = from.copy(crn = crn)
 }
