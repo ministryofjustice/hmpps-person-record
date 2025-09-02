@@ -32,8 +32,6 @@ data class LibraHearingEvent(
   val cId: String? = null,
   val defendantType: String? = null,
   val defendantSex: String? = null,
-  val nationality1: String? = null,
-  val nationality2: String? = null,
 ) {
   fun isPerson(): Boolean = defendantType == PERSON.value
 }

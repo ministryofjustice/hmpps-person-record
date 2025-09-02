@@ -25,7 +25,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
-import uk.gov.justice.digital.hmpps.personrecord.test.randomLibraNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLibraSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
@@ -53,8 +52,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val dependentLocality = randomName()
     val postTown = randomName()
 
-    val nationality = randomLibraNationalityCode()
-
     val sexCode = randomLibraSexCode()
 
     stubPersonMatchUpsert()
@@ -77,7 +74,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         line3 = thoroughfareName,
         line4 = dependentLocality,
         line5 = postTown,
-        nationality1 = nationality,
       ),
     )
 
@@ -110,9 +106,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.personKey).isNotNull()
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
     assertThat(person.sexCode).isEqualTo(sexCode.value)
-    assertThat(person.nationalities.size).isEqualTo(1)
-    assertThat(person.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromLibraCode()?.code)
-    assertThat(person.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeEntityFromLibraCode()?.description)
   }
 
   @Test
