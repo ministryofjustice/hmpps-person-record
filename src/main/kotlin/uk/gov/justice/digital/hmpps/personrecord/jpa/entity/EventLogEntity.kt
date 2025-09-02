@@ -115,6 +115,9 @@ class EventLogEntity(
   @GeneratedColumn("event_timestamp")
   val eventTimestamp: LocalDateTime? = null,
 
+  @Column(name = "status_reason")
+  val statusReason: String? = null,
+
 ) {
   companion object {
 
@@ -146,6 +149,7 @@ class EventLogEntity(
       recordMergedTo = eventLog.recordMergedTo,
       clusterComposition = clusterComposition,
       eventTimestamp = LocalDateTime.now(),
+      statusReason = eventLog.statusReason,
     )
 
     private fun List<String>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
