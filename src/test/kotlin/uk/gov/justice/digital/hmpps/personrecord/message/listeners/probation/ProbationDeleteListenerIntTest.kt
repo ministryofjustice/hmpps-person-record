@@ -373,8 +373,10 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     excludeRecord(personA, personB)
 
     val domainEvent = probationDomainEvent(OFFENDER_DELETION, personA.crn!!)
-
     publishDomainEvent(OFFENDER_DELETION, domainEvent)
+
+    val domainEvent2 = probationDomainEvent(OFFENDER_DELETION, personB.crn!!)
+    publishDomainEvent(OFFENDER_DELETION, domainEvent2)
 
     checkTelemetry(
       CPR_RECORD_DELETED,
