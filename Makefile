@@ -33,7 +33,7 @@ endif
 e2e-start-containers:
 	docker compose -f docker-compose-e2e-test.yml up -d
 
-e2e-test: e2e-test-setup format
+e2e-test: e2e-start-containers format
 	export _JAVA_OPTIONS=${JAVA_OPTS} && ./gradlew e2eTest
 
 e2e-stop-containers:
