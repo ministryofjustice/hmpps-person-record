@@ -375,9 +375,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = probationDomainEvent(OFFENDER_DELETION, personA.crn!!)
     publishDomainEvent(OFFENDER_DELETION, domainEvent)
 
-    val domainEvent2 = probationDomainEvent(OFFENDER_DELETION, personB.crn!!)
-    publishDomainEvent(OFFENDER_DELETION, domainEvent2)
-
     checkTelemetry(
       CPR_RECORD_DELETED,
       mapOf("CRN" to personA.crn, "UUID" to personA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
@@ -389,6 +386,9 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     personA.assertPersonDeleted()
     personA.personKey?.assertPersonKeyDeleted()
+
+    personB.assertHasOverrideMarker()
+    personB.assertOverrideScopeSize(1)
   }
 
   private fun PersonEntity.linkToProbationRecord(probationRecord: PersonEntity) = courtProbationLinkRepository.save(CourtProbationLinkEntity(defendantId = this.defendantId!!, crn = probationRecord.crn!!))
