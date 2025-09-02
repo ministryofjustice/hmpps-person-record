@@ -325,7 +325,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val crn = randomCrn()
       val gender = randomProbationSexCode()
       val originalEthnicity = randomProbationEthnicity()
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc, gender = gender.key, ethnicity = originalEthnicity, title = "Mrs"))
+      val nationality = randomProbationNationalityCode()
+      val secondaryNationality = randomProbationNationalityCode()
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc, gender = gender.key, ethnicity = originalEthnicity, title = "Mrs", nationality = nationality, secondaryNationality = secondaryNationality))
       val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.sexCode).isEqualTo(gender.value)
@@ -340,14 +342,14 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val changedPnc = randomPnc()
       val changedDateOfBirth = randomDate()
       val changedEthnicity = randomProbationEthnicity()
-      val nationality = randomProbationNationalityCode()
-      val updateSexCode = randomProbationSexCode()
-      probationEventAndResponseSetup(OFFENDER_ALIAS_CHANGED, ApiResponseSetup(crn = crn, pnc = changedPnc, gender = updateSexCode.key, dateOfBirth = changedDateOfBirth, ethnicity = changedEthnicity, nationality = nationality, title = "MR"))
+      val changedNationality = randomProbationNationalityCode()
+      val changedSexCode = randomProbationSexCode()
+      probationEventAndResponseSetup(OFFENDER_ALIAS_CHANGED, ApiResponseSetup(crn = crn, pnc = changedPnc, gender = changedSexCode.key, dateOfBirth = changedDateOfBirth, ethnicity = changedEthnicity, nationality = changedNationality, title = "MR"))
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
       val updatedPersonEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(changedPnc)
-      assertThat(updatedPersonEntity.sexCode).isEqualTo(updateSexCode.value)
+      assertThat(updatedPersonEntity.sexCode).isEqualTo(changedSexCode.value)
 
       val updatedLastModified = updatedPersonEntity.lastModified
 
@@ -359,7 +361,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.ethnicityCode?.code).isEqualTo(changedEthnicityCode.code)
       assertThat(updatedPersonEntity.ethnicityCode?.description).isEqualTo(changedEthnicityCode.description)
 
-      checkNationalities(updatedPersonEntity, nationality)
+      checkNationalities(updatedPersonEntity, changedNationality)
 
       assertThat(updatedPersonEntity.getPrimaryName().titleCode?.code).isEqualTo("MR")
       assertThat(updatedPersonEntity.getPrimaryName().titleCode?.description).isEqualTo("Mr")
