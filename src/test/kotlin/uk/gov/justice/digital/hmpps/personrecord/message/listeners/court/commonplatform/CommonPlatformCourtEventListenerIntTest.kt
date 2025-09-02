@@ -72,17 +72,22 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val pnc = randomPnc()
     val cro = randomCro()
     val lastName = randomName()
+    val nationality = randomCommonPlatformNationalityCode()
+    val additionalNationality = randomCommonPlatformNationalityCode()
 
     stubNoMatchesPersonMatch()
 
     publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(gender = randomCommonPlatformSexCode().key, pnc = pnc, lastName = lastName, cro = cro, defendantId = defendantId))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(gender = randomCommonPlatformSexCode().key, pnc = pnc, lastName = lastName, cro = cro, defendantId = defendantId, nationalityCode = nationality, additionalNationalityCode = additionalNationality))),
     )
-    awaitNotNullPerson { personRepository.findByDefendantId(defendantId) }
+    val newPerson = awaitNotNullPerson { personRepository.findByDefendantId(defendantId) }
+    checkNationalities(newPerson, nationality, additionalNationality)
     val changedLastName = randomName()
-    val updatedSexCode = randomCommonPlatformSexCode()
+    val changedSexCode = randomCommonPlatformSexCode()
+    val changedNationality = randomCommonPlatformNationalityCode()
+    val changedAdditionalNationality = randomCommonPlatformNationalityCode()
     publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(gender = updatedSexCode.key, pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(gender = changedSexCode.key, pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId, nationalityCode = changedNationality, additionalNationalityCode = changedAdditionalNationality))),
     )
 
     awaitAssert {
@@ -91,7 +96,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
       assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
-      assertThat(updatedPersonEntity.sexCode).isEqualTo(updatedSexCode.value)
+      assertThat(updatedPersonEntity.sexCode).isEqualTo(changedSexCode.value)
+      checkNationalities(updatedPersonEntity, changedNationality, changedAdditionalNationality)
     }
 
     checkTelemetry(
@@ -178,6 +184,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val ethnicity = randomCommonPlatformEthnicity()
 
     val firstNationality = randomCommonPlatformNationalityCode()
+    val firstAdditionalNationality = randomCommonPlatformNationalityCode()
     val secondNationality = randomCommonPlatformNationalityCode()
 
     val firstSexCode = randomCommonPlatformSexCode()
@@ -199,6 +206,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
               CommonPlatformHearingSetupAlias(firstName = "aliasFirstName2", lastName = "aliasLastName2"),
             ),
             nationalityCode = firstNationality,
+            additionalNationalityCode = firstAdditionalNationality,
             ethnicity = ethnicity,
             nationalInsuranceNumber = firstDefendantNINumber,
           ),
@@ -235,9 +243,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getPrimaryName().lastName).isEqualTo(lastName)
     assertThat(firstPerson.contacts).isEmpty()
     assertThat(firstPerson.addresses).isNotEmpty()
-    assertThat(firstPerson.nationalities.size).isEqualTo(1)
-    assertThat(firstPerson.nationalities.first().nationalityCode?.code).isEqualTo(firstNationality.getNationalityCodeEntityFromCommonPlatformCode()?.code)
-    assertThat(firstPerson.nationalities.first().nationalityCode?.description).isEqualTo(firstNationality.getNationalityCodeEntityFromCommonPlatformCode()?.description)
+    checkNationalities(firstPerson, firstAdditionalNationality, firstNationality)
+
     assertThat(firstPerson.getAliases().size).isEqualTo(2)
     assertThat(firstPerson.getAliases()[0].titleCode).isNull()
     assertThat(firstPerson.getAliases()[0].firstName).isEqualTo("aliasFirstName1")
@@ -271,9 +278,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPerson.contacts[1].contactValue).isEqualTo("078590345677")
     assertThat(secondPerson.masterDefendantId).isEqualTo(secondDefendantId)
     assertThat(secondPerson.sexCode).isEqualTo(secondSexCode.value)
-    assertThat(secondPerson.nationalities.size).isEqualTo(1)
-    assertThat(secondPerson.nationalities.first().nationalityCode?.code).isEqualTo(secondNationality.getNationalityCodeEntityFromCommonPlatformCode()?.code)
-    assertThat(secondPerson.nationalities.first().nationalityCode?.description).isEqualTo(secondNationality.getNationalityCodeEntityFromCommonPlatformCode()?.description)
+    checkNationalities(secondPerson, secondNationality)
   }
 
   @Test
@@ -596,6 +601,16 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     ).join().asUtf8String()
 
     return Pair(body, sqsMessage)
+  }
+
+  private fun checkNationalities(
+    person: PersonEntity,
+    vararg nationalities: String,
+  ) {
+    assertThat(person.nationalities.size).isEqualTo(nationalities.size)
+    val actual = person.nationalities.map { Pair(it.nationalityCode?.code, it.nationalityCode?.description) }
+    val expected = nationalities.map { it.getNationalityCodeEntityFromCommonPlatformCode() }.map { Pair(it?.code, it?.description) }
+    assertThat(actual).containsAll(expected)
   }
 
   @Nested
