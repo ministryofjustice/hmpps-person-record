@@ -76,6 +76,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val addressEndDate = randomDate()
       val ethnicity = randomProbationEthnicity()
       val nationality = randomProbationNationalityCode()
+      val secondaryNationality = randomProbationNationalityCode()
       val sentenceDate = randomDate()
       val aliasFirstName = randomName()
       val aliasMiddleName = randomName()
@@ -101,6 +102,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         aliases = listOf(ApiResponseSetupAlias(firstName = aliasFirstName, middleName = aliasMiddleName, lastName = aliasLastName, dateOfBirth = aliasDateOfBirth)),
         ethnicity = ethnicity,
         nationality = nationality,
+        secondaryNationality = secondaryNationality,
         sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
         gender = gender.key,
       )
@@ -155,7 +157,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.matchId).isNotNull()
       assertThat(personEntity.lastModified).isNotNull()
       assertThat(personEntity.sexCode).isEqualTo(gender.value)
-      checkNationalities(personEntity, nationality)
+      checkNationalities(personEntity, nationality, secondaryNationality)
 
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
