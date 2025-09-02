@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
+import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -17,7 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 
 @ActiveProfiles("e2e")
-class ProbationUnmergeEventListenerE2ETest : MessagingTestBase() {
+class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
@@ -57,13 +58,6 @@ class ProbationUnmergeEventListenerE2ETest : MessagingTestBase() {
         assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
         assertThat(eventLog.excludeOverrideMarkers).contains(unmergedPerson.id)
       }
-//      checkEventLog(unmergedPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
-//        assertThat(eventLogs).hasSize(2)
-//        val eventLog = eventLogs.first()
-//        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
-//        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
-//        assertThat(eventLog.excludeOverrideMarkers).contains(reactivatedPerson.id)
-//      }
 
       checkTelemetry(
         CPR_RECORD_UNMERGED,
