@@ -272,19 +272,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPerson.contacts[1].contactValue).isEqualTo("078590345677")
     assertThat(secondPerson.masterDefendantId).isEqualTo(secondDefendantId)
     assertThat(secondPerson.sexCode).isEqualTo(secondSexCode.value)
-    assertThat(secondPerson.nationalities.size).isEqualTo(1)
-    assertThat(secondPerson.nationalities.first().nationalityCode?.code).isEqualTo(secondNationality.getNationalityCodeEntityFromCommonPlatformCode()?.code)
-    assertThat(secondPerson.nationalities.first().nationalityCode?.description).isEqualTo(secondNationality.getNationalityCodeEntityFromCommonPlatformCode()?.description)
-  }
-
-  private fun checkNationalities(
-    person: PersonEntity,
-    vararg nationalities: String,
-  ) {
-    assertThat(person.nationalities.size).isEqualTo(nationalities.size)
-    val actual = person.nationalities.map { Pair(it.nationalityCode?.code, it.nationalityCode?.description) }
-    val expected = nationalities.map { it.getNationalityCodeEntityFromCommonPlatformCode() }.map { Pair(it?.code, it?.description) }
-    assertThat(actual).containsAll(expected)
+    checkNationalities(secondPerson, secondNationality)
   }
 
   @Test
@@ -607,6 +595,16 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     ).join().asUtf8String()
 
     return Pair(body, sqsMessage)
+  }
+
+  private fun checkNationalities(
+    person: PersonEntity,
+    vararg nationalities: String,
+  ) {
+    assertThat(person.nationalities.size).isEqualTo(nationalities.size)
+    val actual = person.nationalities.map { Pair(it.nationalityCode?.code, it.nationalityCode?.description) }
+    val expected = nationalities.map { it.getNationalityCodeEntityFromCommonPlatformCode() }.map { Pair(it?.code, it?.description) }
+    assertThat(actual).containsAll(expected)
   }
 
   @Nested
