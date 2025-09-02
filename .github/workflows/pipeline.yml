@@ -56,7 +56,6 @@ jobs:
       localstack-services: 'sqs,sns,s3'
   e2e_test:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
     name: Run e2e Tests
     steps:
       - name: Checkout code
