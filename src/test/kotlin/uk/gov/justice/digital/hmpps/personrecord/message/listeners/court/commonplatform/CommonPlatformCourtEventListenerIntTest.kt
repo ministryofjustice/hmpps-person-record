@@ -237,11 +237,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getPrimaryName().lastName).isEqualTo(lastName)
     assertThat(firstPerson.contacts).isEmpty()
     assertThat(firstPerson.addresses).isNotEmpty()
-    assertThat(firstPerson.nationalities.size).isEqualTo(2)
-    val person1Nationalities = firstPerson.nationalities.map { it.nationalityCode?.code }
-    assertThat(person1Nationalities).containsAll(listOf(firstAdditionalNationality.getNationalityCodeEntityFromCommonPlatformCode()?.code, firstNationality.getNationalityCodeEntityFromCommonPlatformCode()?.code))
-    val person1NationalityDescription = firstPerson.nationalities.map { it.nationalityCode?.description }
-    assertThat(person1NationalityDescription).containsAll(listOf(firstAdditionalNationality.getNationalityCodeEntityFromCommonPlatformCode()?.description, firstNationality.getNationalityCodeEntityFromCommonPlatformCode()?.description))
+    checkNationalities(firstPerson, firstAdditionalNationality, firstNationality)
+
     assertThat(firstPerson.getAliases().size).isEqualTo(2)
     assertThat(firstPerson.getAliases()[0].titleCode).isNull()
     assertThat(firstPerson.getAliases()[0].firstName).isEqualTo("aliasFirstName1")
@@ -278,6 +275,16 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPerson.nationalities.size).isEqualTo(1)
     assertThat(secondPerson.nationalities.first().nationalityCode?.code).isEqualTo(secondNationality.getNationalityCodeEntityFromCommonPlatformCode()?.code)
     assertThat(secondPerson.nationalities.first().nationalityCode?.description).isEqualTo(secondNationality.getNationalityCodeEntityFromCommonPlatformCode()?.description)
+  }
+
+  private fun checkNationalities(
+    person: PersonEntity,
+    vararg nationalities: String,
+  ) {
+    assertThat(person.nationalities.size).isEqualTo(nationalities.size)
+    val actual = person.nationalities.map { Pair(it.nationalityCode?.code, it.nationalityCode?.description) }
+    val expected = nationalities.map { it.getNationalityCodeEntityFromCommonPlatformCode() }.map { Pair(it?.code, it?.description) }
+    assertThat(actual).containsAll(expected)
   }
 
   @Test
