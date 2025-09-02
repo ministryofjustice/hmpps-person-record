@@ -72,17 +72,22 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val pnc = randomPnc()
     val cro = randomCro()
     val lastName = randomName()
+    val nationality = randomCommonPlatformNationalityCode()
+    val additionalNationality = randomCommonPlatformNationalityCode()
 
     stubNoMatchesPersonMatch()
 
     publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(gender = randomCommonPlatformSexCode().key, pnc = pnc, lastName = lastName, cro = cro, defendantId = defendantId))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(gender = randomCommonPlatformSexCode().key, pnc = pnc, lastName = lastName, cro = cro, defendantId = defendantId, nationalityCode = nationality, additionalNationalityCode = additionalNationality))),
     )
-    awaitNotNullPerson { personRepository.findByDefendantId(defendantId) }
+    val newPerson = awaitNotNullPerson { personRepository.findByDefendantId(defendantId) }
+    checkNationalities(newPerson, nationality, additionalNationality)
     val changedLastName = randomName()
-    val updatedSexCode = randomCommonPlatformSexCode()
+    val changedSexCode = randomCommonPlatformSexCode()
+    val changedNationality = randomCommonPlatformNationalityCode()
+    val changedAdditionalNationality = randomCommonPlatformNationalityCode()
     publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(gender = updatedSexCode.key, pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(gender = changedSexCode.key, pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId, nationalityCode = changedNationality, additionalNationalityCode = changedAdditionalNationality))),
     )
 
     awaitAssert {
@@ -91,7 +96,8 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
       assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
-      assertThat(updatedPersonEntity.sexCode).isEqualTo(updatedSexCode.value)
+      assertThat(updatedPersonEntity.sexCode).isEqualTo(changedSexCode.value)
+      checkNationalities(updatedPersonEntity, changedNationality, changedAdditionalNationality)
     }
 
     checkTelemetry(
