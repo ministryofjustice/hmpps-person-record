@@ -33,7 +33,7 @@ endif
 e2e-test-setup: restart-containers e2e-shutdown
 	docker compose -f docker-compose-e2e-test.yml up -d
 
-e2e-test: e2e-test-setup
+e2e-test: e2e-test-setup format
 	./gradlew e2eTest
 
 e2e-shutdown:

@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEED
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
 @ActiveProfiles("e2e")
 class ReclusterServiceE2ETest : E2ETestBase() {

@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 
-class E2ETestBase: MessagingTestBase() {
+class E2ETestBase : MessagingTestBase() {
 
   @Autowired
   private lateinit var personMatchService: PersonMatchService
