@@ -1291,6 +1291,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
         val eventLog = eventLogs.first()
         assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(NEEDS_ATTENTION)
+        assertThat(eventLog.statusReason).isEqualTo(BROKEN_CLUSTER.name)
       }
     }
 
