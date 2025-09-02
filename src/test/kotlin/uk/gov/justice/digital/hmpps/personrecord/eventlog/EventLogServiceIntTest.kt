@@ -12,7 +12,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.EventLogService
@@ -83,6 +85,7 @@ class EventLogServiceIntTest : IntegrationTestBase() {
     assertThat(eventLog.includeOverrideMarkers.size).isEqualTo(0)
     assertThat(eventLog.overrideMarker).isNull()
     assertThat(eventLog.overrideScopes).isEmpty()
+    assertThat(eventLog.statusReason).isNull()
   }
 
   @Test
@@ -158,5 +161,15 @@ class EventLogServiceIntTest : IntegrationTestBase() {
     assertThat(eventLog.sentenceDates.size).isEqualTo(2)
     assertThat(eventLog.sentenceDates[0]).isEqualTo(LocalDate.of(1980, 1, 1))
     assertThat(eventLog.sentenceDates[1]).isEqualTo(LocalDate.of(1990, 1, 1))
+  }
+
+  @Test
+  fun `should map status reason to event log when in needs attention`() {
+    val person = createPerson(createRandomProbationPersonDetails())
+    createPersonKey(status = NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
+      .addPerson(person)
+
+    val eventLog = eventLogService.logEvent(RecordEventLog.from(CPRLogEvents.CPR_RECORD_CREATED, person))
+    assertThat(eventLog.statusReason).isEqualTo(OVERRIDE_CONFLICT.name)
   }
 }

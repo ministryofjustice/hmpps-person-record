@@ -37,6 +37,7 @@ data class RecordEventLog(
   val eventType: CPRLogEvents,
   val recordMergedTo: Long? = null,
   val clusterComposition: List<ValidCluster>? = null,
+  val statusReason: String? = null,
 ) {
   companion object {
     fun from(
@@ -70,6 +71,7 @@ data class RecordEventLog(
         eventType = eventType,
         recordMergedTo = personEntity.mergedTo,
         clusterComposition = clusterComposition,
+        statusReason = personEntity.personKey?.statusReason?.name,
       )
     }
   }
