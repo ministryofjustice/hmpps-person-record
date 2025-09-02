@@ -33,6 +33,7 @@ data class ApiResponseSetup(
   val lastName: String? = randomName(),
   val aliases: List<ApiResponseSetupAlias> = listOf(ApiResponseSetupAlias(firstName = randomName(), middleName = randomName(), lastName = randomName(), dateOfBirth = randomDate())),
   val nationality: String? = null,
+  val secondaryNationality: String? = null,
   val religion: String? = null,
   val prisonNumber: String? = null,
   val ethnicity: String? = null,

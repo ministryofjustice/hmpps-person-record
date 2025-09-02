@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
@@ -75,6 +76,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val addressEndDate = randomDate()
       val ethnicity = randomProbationEthnicity()
       val nationality = randomProbationNationalityCode()
+      val secondaryNationality = randomProbationNationalityCode()
       val sentenceDate = randomDate()
       val aliasFirstName = randomName()
       val aliasMiddleName = randomName()
@@ -100,6 +102,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         aliases = listOf(ApiResponseSetupAlias(firstName = aliasFirstName, middleName = aliasMiddleName, lastName = aliasLastName, dateOfBirth = aliasDateOfBirth)),
         ethnicity = ethnicity,
         nationality = nationality,
+        secondaryNationality = secondaryNationality,
         sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
         gender = gender.key,
       )
@@ -154,9 +157,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.matchId).isNotNull()
       assertThat(personEntity.lastModified).isNotNull()
       assertThat(personEntity.sexCode).isEqualTo(gender.value)
-      assertThat(personEntity.nationalities.size).isEqualTo(1)
-      assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromProbationCode()?.code)
-      assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeEntityFromProbationCode()?.description)
+      checkNationalities(personEntity, nationality, secondaryNationality)
 
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
@@ -324,7 +325,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val crn = randomCrn()
       val gender = randomProbationSexCode()
       val originalEthnicity = randomProbationEthnicity()
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc, gender = gender.key, ethnicity = originalEthnicity, title = "Mrs"))
+      val nationality = randomProbationNationalityCode()
+      val secondaryNationality = randomProbationNationalityCode()
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc, gender = gender.key, ethnicity = originalEthnicity, title = "Mrs", nationality = nationality, secondaryNationality = secondaryNationality))
       val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.sexCode).isEqualTo(gender.value)
@@ -339,14 +342,14 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val changedPnc = randomPnc()
       val changedDateOfBirth = randomDate()
       val changedEthnicity = randomProbationEthnicity()
-      val nationality = randomProbationNationalityCode()
-      val updateSexCode = randomProbationSexCode()
-      probationEventAndResponseSetup(OFFENDER_ALIAS_CHANGED, ApiResponseSetup(crn = crn, pnc = changedPnc, gender = updateSexCode.key, dateOfBirth = changedDateOfBirth, ethnicity = changedEthnicity, nationality = nationality, title = "MR"))
+      val changedNationality = randomProbationNationalityCode()
+      val changedSexCode = randomProbationSexCode()
+      probationEventAndResponseSetup(OFFENDER_ALIAS_CHANGED, ApiResponseSetup(crn = crn, pnc = changedPnc, gender = changedSexCode.key, dateOfBirth = changedDateOfBirth, ethnicity = changedEthnicity, nationality = changedNationality, title = "MR"))
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
       val updatedPersonEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(changedPnc)
-      assertThat(updatedPersonEntity.sexCode).isEqualTo(updateSexCode.value)
+      assertThat(updatedPersonEntity.sexCode).isEqualTo(changedSexCode.value)
 
       val updatedLastModified = updatedPersonEntity.lastModified
 
@@ -358,9 +361,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.ethnicityCode?.code).isEqualTo(changedEthnicityCode.code)
       assertThat(updatedPersonEntity.ethnicityCode?.description).isEqualTo(changedEthnicityCode.description)
 
-      assertThat(updatedPersonEntity.nationalities.size).isEqualTo(1)
-      assertThat(updatedPersonEntity.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromProbationCode()?.code)
-      assertThat(updatedPersonEntity.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeEntityFromProbationCode()?.description)
+      checkNationalities(updatedPersonEntity, changedNationality)
 
       assertThat(updatedPersonEntity.getPrimaryName().titleCode?.code).isEqualTo("MR")
       assertThat(updatedPersonEntity.getPrimaryName().titleCode?.description).isEqualTo("Mr")
@@ -486,6 +487,16 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     probationDomainEventAndResponseSetup(event, ApiResponseSetup(crn = crn))
     checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
     checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
+  }
+
+  private fun checkNationalities(
+    person: PersonEntity,
+    vararg nationalities: String,
+  ) {
+    assertThat(person.nationalities.size).isEqualTo(nationalities.size)
+    val actual = person.nationalities.map { Pair(it.nationalityCode?.code, it.nationalityCode?.description) }
+    val expected = nationalities.map { it.getNationalityCodeEntityFromProbationCode() }.map { Pair(it?.code, it?.description) }
+    assertThat(actual).containsAll(expected)
   }
 
   companion object {

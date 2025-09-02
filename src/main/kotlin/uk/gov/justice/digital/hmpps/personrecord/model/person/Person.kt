@@ -71,8 +71,13 @@ data class Person(
           identifierValue = probationCase.identifiers.nationalInsuranceNumber,
         ),
       )
-      val nationalities: List<Nationality> =
-        NationalityCode.fromProbationMapping(probationCase.nationality?.value)?.let { listOf(Nationality(it)) } ?: emptyList()
+
+      val nationalities: List<Nationality> = listOf(
+        NationalityCode.fromProbationMapping(probationCase.nationality?.value),
+        NationalityCode.fromProbationMapping(probationCase.secondaryNationality?.value),
+      ).mapNotNull { it }
+        .map { Nationality(it) }
+
       return Person(
         titleCode = TitleCode.from(probationCase.title?.value),
         firstName = probationCase.name.firstName.nullIfBlank(),
