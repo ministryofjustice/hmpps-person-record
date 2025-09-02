@@ -87,6 +87,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
@@ -184,7 +185,7 @@ class IntegrationTestBase {
   internal fun createRandomProbationPersonDetails(crn: String = randomCrn()): Person = Person.from(
     ProbationCase(
       name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
-      identifiers = Identifiers(crn = crn),
+      identifiers = Identifiers(crn = crn, pnc = randomPnc()),
       addresses = listOf(
         ProbationAddress(postcode = randomPostcode()),
         ProbationAddress(postcode = randomPostcode()),

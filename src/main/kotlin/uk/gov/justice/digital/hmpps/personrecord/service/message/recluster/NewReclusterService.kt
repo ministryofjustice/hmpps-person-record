@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyReposit
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.BROKEN_CLUSTER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
@@ -86,7 +87,7 @@ class NewReclusterService(
           mergeClusters(it, clusterDetails.cluster)
         }
       },
-      isNotValid = { clusterComposition -> handleInvalidClusterComposition(clusterDetails, clusterComposition) },
+      isNotValid = { clusterComposition -> handleExclusionsBetweenMatchedClusters(clusterDetails, clusterComposition) },
     )
   }
 
@@ -98,6 +99,24 @@ class NewReclusterService(
     publisher.publishEvent(
       RecordClusterTelemetry(
         TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
+        clusterDetails.cluster,
+      ),
+    )
+    publisher.publishEvent(
+      RecordEventLog.from(
+        CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION,
+        clusterDetails.changedRecord,
+        clusterDetails.cluster,
+        clusterComposition,
+      ),
+    )
+  }
+
+  private fun handleExclusionsBetweenMatchedClusters(clusterDetails: ClusterDetails, clusterComposition: List<ValidCluster>) {
+    setToNeedsAttention(clusterDetails.cluster, reason = OVERRIDE_CONFLICT)
+    publisher.publishEvent(
+      RecordClusterTelemetry(
+        TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
         clusterDetails.cluster,
       ),
     )

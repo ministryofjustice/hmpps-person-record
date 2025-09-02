@@ -1157,42 +1157,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should merge to an excluded cluster that has exclusion to the updated cluster`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
-
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val cluster2 = createPersonKey()
-        .addPerson(personB)
-
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val cluster3 = createPersonKey()
-        .addPerson(personC)
-
-      excludeRecord(personA, personC)
-      excludeRecord(personB, personC)
-
-      stubXPersonMatches(
-        matchId = personA.matchId,
-        aboveJoin = listOf(
-          personB.matchId,
-          personC.matchId,
-        ),
-      )
-
-      recluster(personA)
-
-      cluster1.assertClusterIsOfSize(2)
-      cluster2.assertClusterIsOfSize(0)
-      cluster3.assertClusterIsOfSize(1)
-
-      cluster1.assertClusterStatus(ACTIVE)
-      cluster2.assertClusterStatus(RECLUSTER_MERGE)
-      cluster3.assertClusterStatus(ACTIVE)
-    }
-
-    @Test
     fun `should mark active cluster needs attention when the update record exclude another record in the matched cluster`() {
       val personA = createPerson(createRandomProbationPersonDetails())
       val cluster1 = createPersonKey()
@@ -1220,6 +1184,15 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
           personD.matchId,
         ),
       )
+      stubClusterIsNotValid(
+        clusters = listOf(
+          ValidCluster(
+            listOf(personA.matchId.toString(), personC.matchId.toString()),
+          ),
+          ValidCluster(listOf(personC.matchId.toString())),
+          ValidCluster(listOf(personD.matchId.toString())),
+        ),
+      )
 
       recluster(personA)
 
@@ -1239,6 +1212,7 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster4.assertClusterStatus(ACTIVE)
     }
 
+    // TODO: add to e2e
     @Test
     fun `should mark active cluster needs attention when the update record exclude multiple records in the matched cluster`() {
       val personA = createPerson(createRandomProbationPersonDetails())
