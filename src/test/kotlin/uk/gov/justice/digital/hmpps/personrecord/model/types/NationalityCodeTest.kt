@@ -24,6 +24,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.Nationa
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.ANTIG
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.ARGEN
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.ASM
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.HKG
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.KOS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.UNKNOWN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -108,6 +110,8 @@ class NationalityCodeTest {
       Arguments.of("AG", AG),
       Arguments.of("ANTIG", ANTIG),
       Arguments.of("ARGEN", ARGEN),
+      Arguments.of("HK", HKG),
+      Arguments.of("KSV", KOS),
       Arguments.of("UNKNOWN", UNKNOWN),
       Arguments.of("INVALID NATIONALITY CODE", UNKNOWN),
     )
