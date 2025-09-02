@@ -70,7 +70,7 @@ class PersonEntity(
   @Column(name = "override_marker")
   var overrideMarker: UUID? = null,
 
-  @ManyToMany(cascade = [ALL], fetch = EAGER)
+  @ManyToMany(fetch = EAGER)
   @JoinTable(
     name = "person_override_scope",
     joinColumns = [JoinColumn(name = "person_id")],
