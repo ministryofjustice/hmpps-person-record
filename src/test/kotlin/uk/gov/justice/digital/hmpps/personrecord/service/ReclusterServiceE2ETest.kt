@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
@@ -13,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECL
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
-@ActiveProfiles("e2e")
 class ReclusterServiceE2ETest : E2ETestBase() {
 
   @Autowired
