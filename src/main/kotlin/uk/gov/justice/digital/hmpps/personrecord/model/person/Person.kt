@@ -121,7 +121,7 @@ data class Person(
 
       val nationalities: List<Nationality> = listOf(
         NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.nationalityCode),
-        NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.additionalNationalityCode)
+        NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.additionalNationalityCode),
       ).mapNotNull { it }
         .map { Nationality(it) }
 
