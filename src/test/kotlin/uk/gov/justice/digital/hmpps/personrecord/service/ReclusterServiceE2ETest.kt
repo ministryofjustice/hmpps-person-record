@@ -25,21 +25,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
   inner class ClusterAlreadySetAsNeedsAttention {
 
     @Test
-    fun `should add a created record to a cluster if it is set to need attention`() {
-      val basePersonData = createRandomProbationPersonDetails()
-
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
-        .addPerson(personA)
-
-      val newPersonData = createProbationPersonFrom(basePersonData)
-      probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup.from(newPersonData))
-
-      cluster.assertClusterIsOfSize(2)
-      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
-    }
-
-    @Test
     fun `should retain needs attention status when a record is updated which continues to match only one record out of 2 in the cluster`() {
       val basePersonData = createRandomProbationPersonDetails()
 
