@@ -262,10 +262,6 @@ enum class NationalityCode {
       COMMON_PLATFORM_NATIONALITY_MAPPING,
     ).also { if (it == UNKNOWN) log.info("Unknown nationality code common platform: $code") }
 
-    fun fromLibraMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
-      LIBRA_NATIONALITY_MAPPINGS,
-    ).also { if (it == UNKNOWN) log.info("Unknown nationality code libra: $code") }
-
     private fun String?.getNationalityOrUnknown(nationalityMap: Map<String, NationalityCode>): NationalityCode? = this.normalize()?.let {
       nationalityMap[it] ?: UNKNOWN
     }

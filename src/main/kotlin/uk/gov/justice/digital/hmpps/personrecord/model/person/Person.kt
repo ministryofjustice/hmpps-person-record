@@ -157,11 +157,6 @@ data class Person(
         Reference.from(identifierType = IdentifierType.CRO, identifierValue = libraHearingEvent.cro?.toString()),
         Reference.from(identifierType = IdentifierType.PNC, identifierValue = libraHearingEvent.pnc?.toString()),
       )
-      val nationalities: List<Nationality> = listOf(
-        NationalityCode.fromLibraMapping(libraHearingEvent.nationality1),
-        NationalityCode.fromLibraMapping(libraHearingEvent.nationality2),
-      ).mapNotNull { it }
-        .map { Nationality(it) }
 
       return Person(
         titleCode = TitleCode.from(libraHearingEvent.name?.title),
@@ -171,7 +166,6 @@ data class Person(
         dateOfBirth = libraHearingEvent.dateOfBirth,
         addresses = addresses,
         references = references,
-        nationalities = nationalities,
         sourceSystem = LIBRA,
         cId = libraHearingEvent.cId.nullIfBlank(),
         sexCode = SexCode.from(libraHearingEvent),

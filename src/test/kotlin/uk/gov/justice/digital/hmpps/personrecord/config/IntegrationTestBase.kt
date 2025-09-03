@@ -593,8 +593,6 @@ class IntegrationTestBase {
 
   internal fun String?.getNationalityCodeEntityFromProbationCode(): NationalityCodeEntity? = NationalityCode.fromProbationMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
 
-  internal fun String?.getNationalityCodeEntityFromLibraCode(): NationalityCodeEntity? = NationalityCode.fromLibraMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
-
   internal fun String?.getNationalityCodeEntityFromCommonPlatformCode(): NationalityCodeEntity? = NationalityCode.fromCommonPlatformMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
 
   internal fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.personEntities?.size).isEqualTo(size) }
