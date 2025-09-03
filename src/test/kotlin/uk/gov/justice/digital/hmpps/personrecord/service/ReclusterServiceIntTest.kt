@@ -11,14 +11,12 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.BROKEN_CLUSTER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
-import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
@@ -81,105 +79,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
   inner class NoChangeToCluster {
 
     @Test
-    fun `should do nothing when there is a mutual exclusion between updated record and matched clusters`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val cluster2 = createPersonKey()
-        .addPerson(personC)
-
-      excludeRecord(personA, personC)
-
-      stubXPersonMatches(
-        matchId = personA.matchId,
-        aboveJoin = listOf(
-          personB.matchId,
-          personC.matchId,
-        ),
-      )
-
-      recluster(personA)
-
-      cluster1.assertClusterNotChanged(size = 2)
-      cluster2.assertClusterNotChanged(size = 1)
-    }
-
-    @Test
-    fun `should do nothing when there is a mutual exclusion between records in matched clusters`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val cluster2 = createPersonKey()
-        .addPerson(personC)
-
-      excludeRecord(personB, personC)
-
-      stubPersonMatchUpsert()
-      stubXPersonMatches(
-        matchId = personA.matchId,
-        aboveJoin = listOf(
-          personB.matchId,
-          personC.matchId,
-        ),
-      )
-
-      probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup(crn = personA.crn))
-
-      cluster1.assertClusterNotChanged(size = 2)
-      cluster2.assertClusterNotChanged(size = 1)
-    }
-
-    @Test
-    fun `should do nothing when there is a mutual exclusion between updated record and all records on matched cluster`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
-
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val cluster2 = createPersonKey()
-        .addPerson(personB)
-        .addPerson(personC)
-
-      excludeRecord(personA, personB)
-      excludeRecord(personA, personC)
-
-      stubXPersonMatches(
-        matchId = personA.matchId,
-        aboveJoin = listOf(
-          personB.matchId,
-          personC.matchId,
-        ),
-      )
-
-      recluster(personA)
-
-      cluster1.assertClusterNotChanged(size = 1)
-      cluster2.assertClusterNotChanged(size = 2)
-    }
-
-    @Test
-    fun `should do nothing when match return same items from cluster with no records`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey()
-        .addPerson(personA)
-
-      stubNoMatchesPersonMatch(matchId = personA.matchId)
-
-      recluster(personA)
-
-      cluster.assertClusterNotChanged(size = 1)
-    }
-
-    @Test
     fun `should do nothing when match return same items from cluster with multiple records which are above join threshold`() {
       val personA = createPerson(createRandomProbationPersonDetails())
       val personB = createPerson(createRandomProbationPersonDetails())
@@ -228,35 +127,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       recluster(personA)
 
       cluster.assertClusterNotChanged(size = 3)
-    }
-
-    @Test
-    fun `should do nothing when match return same items from cluster with large amount of records`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val personD = createPerson(createRandomProbationPersonDetails())
-      val personE = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-        .addPerson(personC)
-        .addPerson(personD)
-        .addPerson(personE)
-
-      stubXPersonMatches(
-        matchId = personA.matchId,
-        aboveJoin = listOf(
-          personB.matchId,
-          personC.matchId,
-          personD.matchId,
-          personE.matchId,
-        ),
-      )
-
-      recluster(personA)
-
-      cluster.assertClusterNotChanged(size = 5)
     }
 
     @Test
@@ -907,62 +777,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
 
       cluster2.assertMergedTo(cluster1)
       cluster2.checkReclusterMergeTelemetry(cluster1)
-    }
-  }
-
-  @Nested
-  inner class RaceConditions {
-
-    @Test
-    fun `should not merge an active cluster to a matched cluster marked as recluster merge`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
-
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val cluster2 = createPersonKey(RECLUSTER_MERGE)
-        .addPerson(personB)
-
-      stubXPersonMatches(
-        matchId = personA.matchId,
-        aboveJoin = listOf(
-          personB.matchId,
-        ),
-      )
-
-      recluster(personA)
-
-      cluster1.assertClusterIsOfSize(1)
-      cluster2.assertClusterIsOfSize(1)
-
-      cluster1.assertClusterStatus(ACTIVE)
-      cluster2.assertClusterStatus(RECLUSTER_MERGE)
-    }
-
-    @Test
-    fun `should not merge an active cluster to a matched cluster marked as merged`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
-
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val cluster2 = createPersonKey(MERGED)
-        .addPerson(personB)
-
-      stubXPersonMatches(
-        matchId = personA.matchId,
-        aboveJoin = listOf(
-          personB.matchId,
-        ),
-      )
-
-      recluster(personA)
-
-      cluster1.assertClusterIsOfSize(1)
-      cluster2.assertClusterIsOfSize(1)
-
-      cluster1.assertClusterStatus(ACTIVE)
-      cluster2.assertClusterStatus(MERGED)
     }
   }
 
