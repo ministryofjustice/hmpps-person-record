@@ -16,6 +16,17 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.AG
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.ALBA
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.ALGE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.ANDO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.ANGOL
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.ANTIG
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.ARGEN
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.ASM
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.HKG
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.KOS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.UNKNOWN
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -91,54 +102,56 @@ class NationalityCodeTest {
 
     @JvmStatic
     fun probationCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("ALBA", NationalityCode.ALBA, "Albanian"),
-      Arguments.of("ALGE", NationalityCode.ALGE, "Algerian"),
-      Arguments.of("ASM", NationalityCode.ASM, "American Samoan"),
-      Arguments.of("ANDO", NationalityCode.ANDO, "Andorran"),
-      Arguments.of("ANGOL", NationalityCode.ANGOL, "Angolan"),
-      Arguments.of("AG", NationalityCode.AG, "Anguillan"),
-      Arguments.of("ANTIG", NationalityCode.ANTIG, "Citizen of Antigua and Barbuda"),
-      Arguments.of("ARGEN", NationalityCode.ARGEN, "Argentine"),
-      Arguments.of("UNKNOWN", NationalityCode.UNKNOWN, "Unknown"),
-      Arguments.of("INVALID NATIONALITY CODE", NationalityCode.UNKNOWN, "Unknown"),
+      Arguments.of("ALBA", ALBA),
+      Arguments.of("ALGE", ALGE),
+      Arguments.of("ASM", ASM),
+      Arguments.of("ANDO", ANDO),
+      Arguments.of("ANGOL", ANGOL),
+      Arguments.of("AG", AG),
+      Arguments.of("ANTIG", ANTIG),
+      Arguments.of("ARGEN", ARGEN),
+      Arguments.of("HK", HKG),
+      Arguments.of("KSV", KOS),
+      Arguments.of("UNKNOWN", UNKNOWN),
+      Arguments.of("INVALID NATIONALITY CODE", UNKNOWN),
     )
 
     @JvmStatic
     fun prisonCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("Albanian", NationalityCode.ALBA, "Albanian"),
-      Arguments.of("Algerian", NationalityCode.ALGE, "Algerian"),
-      Arguments.of("American Samoan", NationalityCode.ASM, "American Samoan"),
-      Arguments.of("Andorran", NationalityCode.ANDO, "Andorran"),
-      Arguments.of("Angolan", NationalityCode.ANGOL, "Angolan"),
-      Arguments.of("Anguillan", NationalityCode.AG, "Anguillan"),
-      Arguments.of("Citizen of Antigua and Barbuda", NationalityCode.ANTIG, "Citizen of Antigua and Barbuda"),
-      Arguments.of("Argentine", NationalityCode.ARGEN, "Argentine"),
-      Arguments.of("UNKNOWN", NationalityCode.UNKNOWN, "Unknown"),
-      Arguments.of("INVALID NATIONALITY CODE", NationalityCode.UNKNOWN, "Unknown"),
+      Arguments.of("Albanian", ALBA),
+      Arguments.of("Algerian", ALGE),
+      Arguments.of("American Samoan", ASM),
+      Arguments.of("Andorran", ANDO),
+      Arguments.of("Angolan", ANGOL),
+      Arguments.of("Anguillan", AG),
+      Arguments.of("Citizen of Antigua and Barbuda", ANTIG),
+      Arguments.of("Argentine", ARGEN),
+      Arguments.of("UNKNOWN", UNKNOWN),
+      Arguments.of("INVALID NATIONALITY CODE", UNKNOWN),
     )
 
     @JvmStatic
     fun commonPlatformCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("ALB", NationalityCode.ALBA, "Albanian"),
-      Arguments.of("DZA", NationalityCode.ALGE, "Algerian"),
-      Arguments.of("AND", NationalityCode.ANDO, "Andorran"),
-      Arguments.of("AGO", NationalityCode.ANGOL, "Angolan"),
-      Arguments.of("ATG", NationalityCode.ANTIG, "Citizen of Antigua and Barbuda"),
-      Arguments.of("ARG", NationalityCode.ARGEN, "Argentine"),
-      Arguments.of("UNKNOWN", NationalityCode.UNKNOWN, "Unknown"),
-      Arguments.of("INVALID NATIONALITY CODE", NationalityCode.UNKNOWN, "Unknown"),
+      Arguments.of("ALB", ALBA),
+      Arguments.of("DZA", ALGE),
+      Arguments.of("AND", ANDO),
+      Arguments.of("AGO", ANGOL),
+      Arguments.of("ATG", ANTIG),
+      Arguments.of("ARG", ARGEN),
+      Arguments.of("UNKNOWN", UNKNOWN),
+      Arguments.of("INVALID NATIONALITY CODE", UNKNOWN),
     )
 
     @JvmStatic
     fun libraCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("Albanian", NationalityCode.ALBA, "Albanian"),
-      Arguments.of("Algerian", NationalityCode.ALGE, "Algerian"),
-      Arguments.of("Andorran", NationalityCode.ANDO, "Andorran"),
-      Arguments.of("Angolan", NationalityCode.ANGOL, "Angolan"),
-      Arguments.of("Citizen of Antigua and Barbuda", NationalityCode.ANTIG, "Citizen of Antigua and Barbuda"),
-      Arguments.of("Argentinian", NationalityCode.ARGEN, "Argentine"),
-      Arguments.of("UNKNOWN", NationalityCode.UNKNOWN, "Unknown"),
-      Arguments.of("INVALID NATIONALITY CODE", NationalityCode.UNKNOWN, "Unknown"),
+      Arguments.of("Albanian", ALBA, "Albanian"),
+      Arguments.of("Algerian", ALGE, "Algerian"),
+      Arguments.of("Andorran", ANDO, "Andorran"),
+      Arguments.of("Angolan", ANGOL, "Angolan"),
+      Arguments.of("Citizen of Antigua and Barbuda", ANTIG, "Citizen of Antigua and Barbuda"),
+      Arguments.of("Argentinian", ARGEN, "Argentine"),
+      Arguments.of("UNKNOWN", UNKNOWN, "Unknown"),
+      Arguments.of("INVALID NATIONALITY CODE", UNKNOWN, "Unknown"),
     )
   }
 }
