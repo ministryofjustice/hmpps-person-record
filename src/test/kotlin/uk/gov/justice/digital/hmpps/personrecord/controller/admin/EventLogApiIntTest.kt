@@ -17,7 +17,7 @@ class EventLogApiIntTest : WebTestBase() {
   lateinit var eventLogService: EventLogService
 
   @Test
-  fun `should return not return anything if cluster does not exist`() {
+  fun `should not return anything if cluster does not exist`() {
     val uuid = UUID.randomUUID().toString()
     val response = webTestClient.get()
       .uri(eventLogUrl(uuid))
