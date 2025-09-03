@@ -29,8 +29,9 @@ class CourtAPIController(
 ) {
   @Operation(
     description = """Retrieve person record by Defendant ID. Role required is **$API_READ_ONLY** . 
-      For Identifiers the crn, prisonNumber, defendantId, cids come from all records related to this person. 
-      The other Identifiers come from just this person""",
+      For Identifiers the crn, prisonNumber, defendantId, cids come from all records related to this person.
+      The other Identifiers come from just this person
+      **cprUUID is not supplied on this endpoint.**""",
     security = [SecurityRequirement(name = "api-role")],
   )
   @GetMapping("/person/commonplatform/{defendantId}")
