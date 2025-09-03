@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
@@ -55,33 +53,6 @@ data class ApiResponseSetup(
   val gender: String? = null,
 ) {
   companion object {
-
-    fun from(personEntity: PersonEntity): ApiResponseSetup {
-      val primaryName = personEntity.getPrimaryName()
-      return ApiResponseSetup(
-        title = primaryName.titleCode?.code.toString(),
-        titleCode = primaryName.titleCode?.code.toString(),
-        firstName = primaryName.firstName,
-        middleName = primaryName.middleNames,
-        lastName = primaryName.lastName,
-        dateOfBirth = primaryName.dateOfBirth,
-        crn = personEntity.crn,
-        cro = personEntity.references.getType(IdentifierType.CRO).firstOrNull()?.identifierValue,
-        pnc = personEntity.references.getType(IdentifierType.PNC).firstOrNull()?.identifierValue,
-        aliases = personEntity.getAliases().map { ApiResponseSetupAlias(it.titleCode?.code, it.firstName, it.middleNames, it.lastName, it.dateOfBirth) },
-        nationality = personEntity.nationalities.firstOrNull()?.nationalityCode?.code,
-        secondaryNationality = personEntity.nationalities.lastOrNull()?.nationalityCode?.code,
-        religion = personEntity.religion,
-        ethnicity = personEntity.ethnicity,
-        addresses = personEntity.addresses.map { ApiResponseSetupAddress(it.noFixedAbode, it.startDate, it.endDate, it.postcode, it.fullAddress) },
-        nationalInsuranceNumber = personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).firstOrNull()?.identifierValue,
-        email = personEntity.contacts.getType(ContactType.EMAIL).firstOrNull()?.contactValue,
-        driverLicenseNumber = personEntity.references.getType(IdentifierType.DRIVER_LICENSE_NUMBER).firstOrNull()?.identifierValue,
-        identifiers = personEntity.references.mapNotNull { ref -> ref.identifierValue?.let { ApiResponseSetupIdentifier(ref.identifierType.name, it) } },
-        sentences = personEntity.sentenceInfo.map { ApiResponseSetupSentences(it.sentenceDate) },
-        gender = personEntity.sexCode?.name,
-      )
-    }
 
     fun from(person: Person): ApiResponseSetup = ApiResponseSetup(
       titleCode = person.titleCode?.name,
