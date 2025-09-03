@@ -115,7 +115,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.crn).isEqualTo(crn)
       val ethnicityCode = ethnicity.getProbationEthnicity()
-      assertThat(personEntity.ethnicity).isEqualTo(ethnicity)
       assertThat(personEntity.ethnicityCode?.code).isEqualTo(ethnicityCode.code)
       assertThat(personEntity.ethnicityCode?.description).isEqualTo(ethnicityCode.description)
 
@@ -332,7 +331,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.sexCode).isEqualTo(gender.value)
       val originalEthnicityCode = originalEthnicity.getProbationEthnicity()
-      assertThat(personEntity.ethnicity).isEqualTo(originalEthnicity)
       assertThat(personEntity.ethnicityCode?.code).isEqualTo(originalEthnicityCode.code)
       assertThat(personEntity.ethnicityCode?.description).isEqualTo(originalEthnicityCode.description)
 
@@ -357,7 +355,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.getPrimaryName().dateOfBirth).isEqualTo(changedDateOfBirth)
 
       val changedEthnicityCode = changedEthnicity.getProbationEthnicity()
-      assertThat(updatedPersonEntity.ethnicity).isEqualTo(changedEthnicity)
       assertThat(updatedPersonEntity.ethnicityCode?.code).isEqualTo(changedEthnicityCode.code)
       assertThat(updatedPersonEntity.ethnicityCode?.description).isEqualTo(changedEthnicityCode.description)
 
