@@ -128,7 +128,7 @@ class CourtApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-        .expectBody(CanonicalRecord::class.java) // TODO different class
+        .expectBody(CanonicalRecord::class.java)
         .returnResult()
         .responseBody!!
       val storedTitle = title.getTitle()
@@ -152,7 +152,7 @@ class CourtApiIntTest : WebTestBase() {
       )
       val canonicalReligion = CanonicalReligion(code = religion, description = religion)
       val canonicalEthnicity = CanonicalEthnicity(code = ethnicity, description = ethnicity)
-
+      assertThat(responseBody.cprUUID).isNull()
       assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
       assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
       assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
