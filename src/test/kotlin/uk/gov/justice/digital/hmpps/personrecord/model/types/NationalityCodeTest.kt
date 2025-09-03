@@ -8,7 +8,6 @@ import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Defendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDefendant
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
-import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
@@ -27,7 +26,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.Nationa
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.HKG
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.KOS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.UNKNOWN
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
@@ -82,22 +80,6 @@ class NationalityCodeTest {
     assertThat(person.nationalities.first().code).isEqualTo(cprCode)
   }
 
-  @Test
-  fun `should handle null libra nationality code`() {
-    val libraHearingEvent = LibraHearingEvent(cId = randomCId(), nationality1 = null, nationality2 = null)
-    val person = Person.from(libraHearingEvent)
-    assertThat(person.nationalities.size).isEqualTo(0)
-  }
-
-  @ParameterizedTest
-  @MethodSource("libraCodes")
-  fun `should map libra nationality codes to cpr nationality codes`(libraCode: String, cprCode: NationalityCode) {
-    val libraHearingEvent = LibraHearingEvent(cId = randomCId(), nationality1 = libraCode, nationality2 = libraCode)
-    val person = Person.from(libraHearingEvent)
-    assertThat(person.nationalities.size).isEqualTo(2)
-    assertThat(person.nationalities.first().code).isEqualTo(cprCode)
-  }
-
   companion object {
 
     @JvmStatic
@@ -140,18 +122,6 @@ class NationalityCodeTest {
       Arguments.of("ARG", ARGEN),
       Arguments.of("UNKNOWN", UNKNOWN),
       Arguments.of("INVALID NATIONALITY CODE", UNKNOWN),
-    )
-
-    @JvmStatic
-    fun libraCodes(): Stream<Arguments> = Stream.of(
-      Arguments.of("Albanian", ALBA, "Albanian"),
-      Arguments.of("Algerian", ALGE, "Algerian"),
-      Arguments.of("Andorran", ANDO, "Andorran"),
-      Arguments.of("Angolan", ANGOL, "Angolan"),
-      Arguments.of("Citizen of Antigua and Barbuda", ANTIG, "Citizen of Antigua and Barbuda"),
-      Arguments.of("Argentinian", ARGEN, "Argentine"),
-      Arguments.of("UNKNOWN", UNKNOWN, "Unknown"),
-      Arguments.of("INVALID NATIONALITY CODE", UNKNOWN, "Unknown"),
     )
   }
 }
