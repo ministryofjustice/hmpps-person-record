@@ -96,7 +96,6 @@ data class ApiResponseSetup(
       nationality = person.nationalities.firstOrNull()?.code?.name,
       secondaryNationality = person.nationalities.lastOrNull()?.code?.name,
       religion = person.religion,
-      ethnicity = person.ethnicity,
       addresses = person.addresses.map { ApiResponseSetupAddress(it.noFixedAbode, it.startDate, it.endDate, it.postcode, it.fullAddress) },
       nationalInsuranceNumber = person.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).firstOrNull()?.identifierValue,
       email = person.contacts.getType(ContactType.EMAIL).firstOrNull()?.contactValue,

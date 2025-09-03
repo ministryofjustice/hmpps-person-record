@@ -180,7 +180,6 @@ class PersonEntity(
     this.crn = person.crn
     this.prisonNumber = person.prisonNumber
     this.masterDefendantId = person.masterDefendantId
-    this.ethnicity = person.ethnicity
     this.religion = person.religion
     this.cId = person.cId
     this.sexCode = person.sexCode
@@ -251,7 +250,6 @@ class PersonEntity(
         prisonNumber = person.prisonNumber,
         masterDefendantId = person.masterDefendantId,
         sourceSystem = person.sourceSystem,
-        ethnicity = person.ethnicity,
         religion = person.religion,
         matchId = UUID.randomUUID(),
         cId = person.cId,

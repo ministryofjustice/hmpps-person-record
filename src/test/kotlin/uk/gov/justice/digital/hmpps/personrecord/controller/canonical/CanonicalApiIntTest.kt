@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -56,7 +57,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val postcode = randomPostcode()
     val nationality = randomNationalityCode()
     val religion = randomReligion()
-    val ethnicity = randomPrisonEthnicity()
+    val ethnicity = randomCommonPlatformEthnicity()
 
     val buildingName = randomName()
     val buildingNumber = randomBuildingNumber()
@@ -81,7 +82,6 @@ class CanonicalApiIntTest : WebTestBase() {
         crn = crn, // this is not realistic - a person will only have pne of crn, cid,defendantId or prison number
         sexCode = SexCode.M,
         prisonNumber = prisonNumber,
-        ethnicity = ethnicity,
         nationalities = listOf(Nationality(nationality)),
         religion = religion,
         cId = cid,
@@ -111,7 +111,8 @@ class CanonicalApiIntTest : WebTestBase() {
     val canonicalNationality = nationality.getEntity()?.let { listOf(CanonicalNationality(it.code, it.description)) }
     val canonicalAddress = CanonicalAddress(noFixedAbode = noFixedAbode, startDate = startDate.toString(), endDate = endDate.toString(), postcode = postcode, buildingName = buildingName, buildingNumber = buildingNumber, thoroughfareName = thoroughfareName, dependentLocality = dependentLocality, postTown = postTown)
     val canonicalReligion = CanonicalReligion(code = religion, description = religion)
-    val canonicalEthnicity = CanonicalEthnicity(code = ethnicity, description = ethnicity)
+    val cpEthnicity = ethnicity.getCommonPlatformEthnicity()
+    val canonicalEthnicity = CanonicalEthnicity(code = cpEthnicity.code, description = cpEthnicity.description)
 
     assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personUUID.toString())
     assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
@@ -328,7 +329,6 @@ class CanonicalApiIntTest : WebTestBase() {
         sourceSystem = NOMIS,
         crn = personOneCrn,
         prisonNumber = randomPrisonNumber(),
-        ethnicity = randomPrisonEthnicity(),
         nationalities = listOf(Nationality(randomNationalityCode())),
         religion = randomReligion(),
         cId = randomCId(),
@@ -354,7 +354,6 @@ class CanonicalApiIntTest : WebTestBase() {
         sourceSystem = NOMIS,
         crn = personTwoCrn,
         prisonNumber = randomPrisonNumber(),
-        ethnicity = randomPrisonEthnicity(),
         nationalities = listOf(Nationality(randomNationalityCode())),
         religion = randomReligion(),
         cId = randomCId(),
@@ -403,7 +402,6 @@ class CanonicalApiIntTest : WebTestBase() {
         middleNames = randomName(),
         dateOfBirth = randomDate(),
         sourceSystem = NOMIS,
-        ethnicity = randomPrisonEthnicity(),
         nationalities = listOf(Nationality(randomNationalityCode())),
         religion = randomReligion(),
         masterDefendantId = randomDefendantId(),
