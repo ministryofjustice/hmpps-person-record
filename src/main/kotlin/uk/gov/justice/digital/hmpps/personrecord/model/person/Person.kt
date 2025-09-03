@@ -53,6 +53,8 @@ data class Person(
 
   companion object {
 
+    fun List<Contact>.getType(type: ContactType): List<Contact> = this.filter { it.contactType == type }
+
     fun List<Reference>.getType(type: IdentifierType): List<Reference> = this.filter { it.identifierType == type }
 
     fun List<Reference>.toString(): String = this.joinToString { it.identifierValue.toString() }

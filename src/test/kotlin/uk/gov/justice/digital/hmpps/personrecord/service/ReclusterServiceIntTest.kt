@@ -40,45 +40,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
   inner class ClusterAlreadySetAsNeedsAttention {
 
     @Test
-    fun `should add a created record to a cluster if it is set to need attention`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
-        .addPerson(personA)
-
-      stubPersonMatchUpsert()
-      stubOnePersonMatchAboveJoinThreshold(matchedRecord = personA.matchId)
-
-      val newPersonCrn = randomCrn()
-      probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup(crn = newPersonCrn))
-
-      checkTelemetry(
-        TelemetryEventType.CPR_RECORD_CREATED,
-        mapOf("CRN" to newPersonCrn),
-      )
-
-      cluster.assertClusterIsOfSize(2)
-      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
-    }
-
-    @Test
-    fun `should retain needs attention status when a record is updated which continues to match another record in the cluster and the cluster remains invalid`() {
-      val recordA = createPerson(createRandomProbationPersonDetails())
-      val matchesA = createPerson(createRandomProbationPersonDetails())
-      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-        .addPerson(recordA)
-        .addPerson(matchesA)
-        .addPerson(doesNotMatch)
-
-      stubPersonMatchUpsert()
-      stubClusterIsNotValid()
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = recordA.crn))
-
-      cluster.assertClusterIsOfSize(3)
-      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-    }
-
-    @Test
     fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster above the join threshold`() {
       val recordA = createPerson(createRandomProbationPersonDetails())
       val matchesA = createPerson(createRandomProbationPersonDetails())
@@ -116,55 +77,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster.assertClusterStatus(ACTIVE)
     }
 
-    @Test
-    fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster plus another one which is added to the cluster`() {
-      val recordA = createPerson(createRandomProbationPersonDetails())
-      val matchesA = createPerson(createRandomProbationPersonDetails())
-      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
-      val recordToJoinCluster = createPersonWithNewKey(createRandomProbationPersonDetails())
-      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-        .addPerson(recordA)
-        .addPerson(matchesA)
-        .addPerson(doesNotMatch)
-
-      stubPersonMatchUpsert()
-      stubXPersonMatches(matchId = doesNotMatch.matchId, aboveJoin = listOf(matchesA.matchId, recordA.matchId, recordToJoinCluster.matchId))
-      stubClusterIsValid(clusters = listOf(recordA.matchId, matchesA.matchId, doesNotMatch.matchId))
-
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = doesNotMatch.crn))
-
-      recordToJoinCluster.assertLinkedToCluster(cluster)
-
-      cluster.assertClusterIsOfSize(4)
-      cluster.assertClusterStatus(ACTIVE)
-      recordToJoinCluster.personKey?.assertMergedTo(cluster)
-    }
-
-    @Test
-    fun `should not set a cluster to active if it is set to needs attention and an update does change the cluster composition`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-        .addPerson(personA)
-
-      stubPersonMatchUpsert()
-      stubClusterIsNotValid()
-      val newPersonCrn = randomCrn()
-      stubOnePersonMatchAboveJoinThreshold(matchedRecord = personA.matchId)
-      probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup(crn = newPersonCrn))
-
-      checkTelemetry(
-        TelemetryEventType.CPR_RECORD_CREATED,
-        mapOf("CRN" to newPersonCrn),
-      )
-
-      cluster.assertClusterIsOfSize(2)
-      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = newPersonCrn))
-
-      cluster.assertClusterIsOfSize(2)
-      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-    }
   }
 
   @Nested
