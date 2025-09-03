@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
-
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.AG
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.ALBA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.ALGE
@@ -27,7 +26,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.Nationa
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.HKG
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.KOS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode.UNKNOWN
-
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
@@ -125,6 +123,5 @@ class NationalityCodeTest {
       Arguments.of("UNKNOWN", UNKNOWN),
       Arguments.of("INVALID NATIONALITY CODE", UNKNOWN),
     )
-
   }
 }
