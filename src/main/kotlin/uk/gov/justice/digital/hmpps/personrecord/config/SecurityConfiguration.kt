@@ -21,7 +21,6 @@ class SecurityConfiguration {
         "/queue-admin/retry-all-dlqs",
         "/jobs/recordcountreport",
         "/admin/recluster",
-        "/migrate/ethnicity-codes",
         "/admin/delete",
       )
     }

@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 import io.hypersistence.utils.hibernate.type.array.LocalDateArrayType
 import io.hypersistence.utils.hibernate.type.array.LongArrayType
 import io.hypersistence.utils.hibernate.type.array.StringArrayType
+import io.hypersistence.utils.hibernate.type.array.UUIDArrayType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType.STRING
@@ -90,6 +91,13 @@ class EventLogEntity(
   @Column(name = "include_override_markers", columnDefinition = "bigint[]")
   val includeOverrideMarkers: Array<Long> = emptyArray<Long>(),
 
+  @Column(name = "override_marker")
+  val overrideMarker: UUID? = null,
+
+  @Type(UUIDArrayType::class)
+  @Column(name = "override_scopes", columnDefinition = "uuid[]")
+  val overrideScopes: Array<UUID> = emptyArray<UUID>(),
+
   @Enumerated(STRING)
   @Column(name = "source_system")
   val sourceSystem: SourceSystemType? = null,
@@ -106,6 +114,9 @@ class EventLogEntity(
 
   @GeneratedColumn("event_timestamp")
   val eventTimestamp: LocalDateTime? = null,
+
+  @Column(name = "status_reason")
+  val statusReason: String? = null,
 
 ) {
   companion object {
@@ -131,14 +142,19 @@ class EventLogEntity(
       sentenceDates = eventLog.sentenceDates.dedupeAndSortedArray(),
       excludeOverrideMarkers = eventLog.excludeOverrideMarkers.dedupeAndSortedArray(),
       includeOverrideMarkers = eventLog.includeOverrideMarkers.dedupeAndSortedArray(),
+      overrideMarker = eventLog.overrideMarker,
+      overrideScopes = eventLog.overrideScopes.dedupeAndSortedArray(),
       sourceSystem = eventLog.sourceSystem,
       eventType = eventLog.eventType,
       recordMergedTo = eventLog.recordMergedTo,
       clusterComposition = clusterComposition,
       eventTimestamp = LocalDateTime.now(),
+      statusReason = eventLog.statusReason,
     )
 
     private fun List<String>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
+
+    private fun List<UUID>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
 
     private fun List<Long>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
 

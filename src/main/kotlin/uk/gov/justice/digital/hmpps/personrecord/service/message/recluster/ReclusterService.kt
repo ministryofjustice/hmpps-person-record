@@ -10,8 +10,10 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.BROKEN_CLUSTER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
@@ -116,7 +118,7 @@ class ReclusterService(
   }
 
   private fun handleExclusionsBetweenMatchedClusters(clusterDetails: ClusterDetails) {
-    setToNeedsAttention(clusterDetails.cluster)
+    setToNeedsAttention(clusterDetails.cluster, reason = OVERRIDE_CONFLICT)
     publisher.publishEvent(
       RecordClusterTelemetry(
         TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
@@ -136,7 +138,7 @@ class ReclusterService(
     clusterDetails: ClusterDetails,
     clusterComposition: List<ValidCluster>? = null,
   ) {
-    setToNeedsAttention(clusterDetails.cluster)
+    setToNeedsAttention(clusterDetails.cluster, reason = BROKEN_CLUSTER)
     publisher.publishEvent(
       RecordClusterTelemetry(
         TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
@@ -153,13 +155,13 @@ class ReclusterService(
     )
   }
 
-  private fun setToNeedsAttention(personKeyEntity: PersonKeyEntity) {
-    personKeyEntity.status = NEEDS_ATTENTION
+  private fun setToNeedsAttention(personKeyEntity: PersonKeyEntity, reason: UUIDStatusReasonType) {
+    personKeyEntity.setAsNeedsAttention(reason)
     personKeyRepository.save(personKeyEntity)
   }
 
   private fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity, changedRecord: PersonEntity) {
-    personKeyEntity.status = ACTIVE
+    personKeyEntity.setAsActive()
     personKeyRepository.save(personKeyEntity)
     publisher.publishEvent(
       RecordEventLog.from(

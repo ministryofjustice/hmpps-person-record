@@ -31,10 +31,13 @@ data class RecordEventLog(
   val sentenceDates: List<LocalDate> = emptyList(),
   val excludeOverrideMarkers: List<Long> = emptyList(),
   val includeOverrideMarkers: List<Long> = emptyList(),
+  val overrideMarker: UUID? = null,
+  val overrideScopes: List<UUID> = emptyList(),
   val sourceSystem: SourceSystemType? = null,
   val eventType: CPRLogEvents,
   val recordMergedTo: Long? = null,
   val clusterComposition: List<ValidCluster>? = null,
+  val statusReason: String? = null,
 ) {
   companion object {
     fun from(
@@ -62,10 +65,13 @@ data class RecordEventLog(
         sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate },
         excludeOverrideMarkers = personEntity.getExcludeOverrideMarkers().mapNotNull { it.markerValue },
         includeOverrideMarkers = personEntity.getIncludeOverrideMarkers().mapNotNull { it.markerValue },
+        overrideMarker = personEntity.overrideMarker,
+        overrideScopes = personEntity.overrideScopes.map { it.scope },
         sourceSystem = personEntity.sourceSystem,
         eventType = eventType,
         recordMergedTo = personEntity.mergedTo,
         clusterComposition = clusterComposition,
+        statusReason = personEntity.personKey?.statusReason?.name,
       )
     }
   }

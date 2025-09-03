@@ -13,13 +13,14 @@ data class CommonPlatformHearingSetup(
   val middleName: String? = null,
   val lastName: String = randomName(),
   val title: String? = null,
-  val ethnicity: CommonPlatformHearingSetupEthnicity? = null,
+  val ethnicity: String? = null,
   val dateOfBirth: String = randomDate().toString(),
   val cro: String = randomCro(),
   val defendantId: String = randomDefendantId(),
   val aliases: List<CommonPlatformHearingSetupAlias>? = null,
   val contact: CommonPlatformHearingSetupContact? = null,
   val nationalityCode: String? = null,
+  val additionalNationalityCode: String? = null,
   val nationalInsuranceNumber: String = randomNationalInsuranceNumber(),
   val hearingId: String = randomHearingId(),
   val isYouth: Boolean? = false,
@@ -37,9 +38,6 @@ data class CommonPlatformHearingSetupContact(
   val work: String = "0203788776",
   val mobile: String = "078590345677",
   val primaryEmail: String = "email@email.com",
-)
-data class CommonPlatformHearingSetupEthnicity(
-  val selfDefinedEthnicityCode: String? = null,
 )
 
 data class CommonPlatformHearingSetupAddress(val buildingName: String, val buildingNumber: String, val thoroughfareName: String, val dependentLocality: String, val postTown: String, val postcode: String)
@@ -112,10 +110,6 @@ private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) = 
                   }
                 ],
                 ${commonPlatformHearingSetup.isPerson.takeIf { it }?.let { personDefendant(commonPlatformHearingSetup)} ?: organisationDefendant(commonPlatformHearingSetup)}
-                "ethnicity": {
-                   "observedEthnicityDescription": "observedEthnicityDescription",
-                   "selfDefinedEthnicityDescription": "selfDefinedEthnicityDescription"
-                },
                 ${commonPlatformHearingSetup.aliases?.let {
   """ "aliases": [${commonPlatformHearingSetup.aliases.joinToString(",") { alias(it) }
   }], """.trimIndent()
@@ -163,7 +157,7 @@ private fun personDefendant(commonPlatformHearingSetup: CommonPlatformHearingSet
       ${commonPlatformHearingSetup.ethnicity?.let {
   """
         "ethnicity": {
-        "selfDefinedEthnicityCode": "${commonPlatformHearingSetup.ethnicity.selfDefinedEthnicityCode}"
+        "selfDefinedEthnicityCode": "${commonPlatformHearingSetup.ethnicity}"
          }, 
   """.trimIndent()
 } ?: ""} 
@@ -174,6 +168,7 @@ private fun personDefendant(commonPlatformHearingSetup: CommonPlatformHearingSet
       "lastName": "${commonPlatformHearingSetup.lastName}",
       "title": "${commonPlatformHearingSetup.title}",
       "nationalityCode": "${commonPlatformHearingSetup.nationalityCode ?: ""}",
+      "additionalNationalityCode": "${commonPlatformHearingSetup.additionalNationalityCode ?: ""}",
       "nationalInsuranceNumber": "${commonPlatformHearingSetup.nationalInsuranceNumber}"
     }
   },

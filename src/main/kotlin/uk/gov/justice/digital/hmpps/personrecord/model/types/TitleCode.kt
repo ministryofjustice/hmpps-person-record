@@ -1,5 +1,4 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
-
 import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
 
 enum class TitleCode {
@@ -23,26 +22,29 @@ enum class TitleCode {
   ;
 
   companion object {
+    val titleCodeMap: Map<String, TitleCode> = mapOf(
+      "MR" to MR,
+      "MRS" to MRS,
+      "MISS" to MISS,
+      "MS" to MS,
+      "MX" to MX,
+      "REVEREND" to REV,
+      "REV" to REV,
+      "FATHER" to FR,
+      "IMAM" to IMAM,
+      "RABBI" to RABBI,
+      "BROTHER" to BR,
+      "SISTER" to SR,
+      "DAME" to DME,
+      "DME" to DME,
+      "DR" to DR,
+      "LDY" to LDY,
+      "LADY" to LDY,
+      "LRD" to LRD,
+      "LORD" to LRD,
+      "SIR" to SIR,
+    )
 
-    fun from(title: String?): TitleCode? = when (title?.nullIfBlank()?.uppercase()?.trim()) {
-      "MR" -> MR
-      "MRS" -> MRS
-      "MISS" -> MISS
-      "MS" -> MS
-      "MX" -> MX
-      "REVEREND", "REV" -> REV
-      "FATHER" -> FR
-      "IMAM" -> IMAM
-      "RABBI" -> RABBI
-      "BROTHER" -> BR
-      "SISTER" -> SR
-      "DAME", "DME" -> DME
-      "DR" -> DR
-      "LDY", "LADY" -> LDY
-      "LRD", "LORD" -> LRD
-      "SIR" -> SIR
-      null -> null
-      else -> UN
-    }
+    fun from(title: String?): TitleCode? = title?.nullIfBlank()?.let { titleCodeMap.getOrDefault(it.uppercase().trim(), UN) }
   }
 }

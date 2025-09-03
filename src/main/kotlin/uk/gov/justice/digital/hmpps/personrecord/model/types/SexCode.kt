@@ -15,37 +15,45 @@ enum class SexCode(val description: String) {
 
   companion object {
 
-    fun from(libraHearingEvent: LibraHearingEvent?): SexCode? = when (libraHearingEvent?.defendantSex.nullIfBlank()) {
-      "M" -> M
-      "F" -> F
-      "NS" -> NS
-      null -> null
-      else -> N
+    val libraSexCode: Map<String, SexCode> = mapOf(
+      "M" to M,
+      "F" to F,
+      "NS" to NS,
+    )
+
+    val commonPlatformSexCode: Map<String, SexCode> = mapOf(
+      "MALE" to M,
+      "FEMALE" to F,
+      "NOT SPECIFIED" to NS,
+    )
+
+    val probationSexCode: Map<String, SexCode> = mapOf(
+      "M" to M,
+      "F" to F,
+      "N" to N,
+    )
+
+    val prisonSexCode: Map<String, SexCode> = mapOf(
+      "Male" to M,
+      "Female" to F,
+      "Not Known / Not Recorded" to N,
+      "Not Specified (Indeterminate)" to NS,
+    )
+
+    fun from(libraHearingEvent: LibraHearingEvent?): SexCode? = libraHearingEvent?.defendantSex.nullIfBlank()?.let {
+      libraSexCode.getOrDefault(it, N)
     }
 
-    fun from(personDetails: PersonDetails?): SexCode? = when (personDetails?.gender.nullIfBlank()) {
-      "MALE" -> M
-      "FEMALE" -> F
-      "NOT SPECIFIED" -> NS
-      null -> null
-      else -> N
+    fun from(personDetails: PersonDetails?): SexCode? = personDetails?.gender.nullIfBlank()?.let {
+      commonPlatformSexCode.getOrDefault(it, N)
     }
 
-    fun from(probationCase: ProbationCase?): SexCode? = when (probationCase?.gender?.value.nullIfBlank()) {
-      "M" -> M
-      "F" -> F
-      "N" -> N
-      null -> null
-      else -> NS
+    fun from(probationCase: ProbationCase?): SexCode? = probationCase?.gender?.value.nullIfBlank()?.let {
+      probationSexCode.getOrDefault(it, NS)
     }
 
-    fun from(prisoner: Prisoner): SexCode? = when (prisoner.gender.nullIfBlank()) {
-      "Male" -> M
-      "Female" -> F
-      "Not Known / Not Recorded" -> N
-      "Not Specified (Indeterminate)" -> NS
-      null -> null
-      else -> N
+    fun from(prisoner: Prisoner): SexCode? = prisoner.gender.nullIfBlank()?.let {
+      prisonSexCode.getOrDefault(it, N)
     }
   }
 }

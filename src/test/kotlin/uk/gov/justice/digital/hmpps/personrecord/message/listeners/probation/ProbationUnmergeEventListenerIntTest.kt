@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
@@ -47,6 +48,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(eventLog.personUUID).isNotEqualTo(cluster.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
         assertThat(eventLog.excludeOverrideMarkers).contains(unmergedPerson.id)
+        assertThat(eventLog.overrideMarker).isNotNull()
+        assertThat(eventLog.overrideScopes).isNotEmpty()
       }
       checkEventLog(unmergedPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
         assertThat(eventLogs).hasSize(2)
@@ -54,6 +57,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
         assertThat(eventLog.excludeOverrideMarkers).contains(reactivatedPerson.id)
+        assertThat(eventLog.overrideMarker).isNotNull()
+        assertThat(eventLog.overrideScopes).isNotEmpty()
       }
       checkTelemetry(
         CPR_RECORD_UPDATED,
@@ -93,6 +98,13 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       reactivatedPerson.assertNotLinkedToCluster(unmergedPerson.personKey!!)
       reactivatedPerson.assertExcludedFrom(unmergedPerson)
       reactivatedPerson.assertNotMerged()
+
+      unmergedPerson.assertHasOverrideMarker()
+      reactivatedPerson.assertHasOverrideMarker()
+      unmergedPerson.assertOverrideScopeSize(1)
+      reactivatedPerson.assertOverrideScopeSize(1)
+      unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
+      unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
     }
 
     @Test
@@ -137,6 +149,11 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       unmergedPerson.personKey?.assertClusterIsOfSize(1)
       unmergedPerson.assertNotLinkedToCluster(reactivatedPerson.personKey!!)
       unmergedPerson.assertExcludedFrom(reactivatedPerson)
+
+      unmergedPerson.assertHasOverrideMarker()
+      reactivatedPerson.assertHasOverrideMarker()
+      unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
+      unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
     }
 
     @Test
@@ -177,6 +194,11 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       unmergedPerson.assertHasLinkToCluster()
       unmergedPerson.assertExcludedFrom(reactivatedPerson)
+
+      unmergedPerson.assertHasOverrideMarker()
+      reactivatedPerson.assertHasOverrideMarker()
+      unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
+      unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
     }
 
     @Test
@@ -216,6 +238,11 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       reactivatedPerson.assertHasLinkToCluster()
       reactivatedPerson.assertNotLinkedToCluster(unmergedPerson.personKey!!)
       reactivatedPerson.assertExcludedFrom(unmergedPerson)
+
+      unmergedPerson.assertHasOverrideMarker()
+      reactivatedPerson.assertHasOverrideMarker()
+      unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
+      unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
     }
 
     @Test
@@ -240,6 +267,11 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       unmergedRecord.assertLinkedToCluster(cluster)
       reactivatedRecord.assertNotLinkedToCluster(cluster)
+
+      unmergedRecord.assertHasOverrideMarker()
+      reactivatedRecord.assertHasOverrideMarker()
+      unmergedRecord.assertHasDifferentOverrideMarker(reactivatedRecord)
+      unmergedRecord.assertHasSameOverrideScope(reactivatedRecord)
     }
 
     @Test
@@ -263,6 +295,11 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       unmergedRecord.assertLinkedToCluster(cluster)
       reactivatedRecord.assertNotLinkedToCluster(cluster)
+
+      unmergedRecord.assertHasOverrideMarker()
+      reactivatedRecord.assertHasOverrideMarker()
+      unmergedRecord.assertHasDifferentOverrideMarker(reactivatedRecord)
+      unmergedRecord.assertHasSameOverrideScope(reactivatedRecord)
     }
 
     @Test
@@ -295,6 +332,79 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       matchedPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       matchedPerson.personKey?.assertClusterIsOfSize(2)
+
+      matchedPerson.assertDoesNotHaveOverrideMarker()
+      unmergedRecord.assertHasOverrideMarker()
+      reactivatedRecord.assertHasOverrideMarker()
+
+      unmergedRecord.assertHasDifferentOverrideMarker(reactivatedRecord)
+      unmergedRecord.assertHasSameOverrideScope(reactivatedRecord)
+    }
+
+    @Test
+    fun `should unmerge 2 records from existing one record`() {
+      val cluster = createPersonKey()
+      val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
+
+      val firstReactivatedRecord = createPerson(createRandomProbationPersonDetails())
+      val secondReactivatedRecord = createPerson(createRandomProbationPersonDetails())
+
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, firstReactivatedRecord.crn!!, unmergedRecord.crn!!)
+
+      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to firstReactivatedRecord.crn!!))
+
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, secondReactivatedRecord.crn!!, unmergedRecord.crn!!)
+
+      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to secondReactivatedRecord.crn!!))
+
+      firstReactivatedRecord.assertNotMerged()
+      secondReactivatedRecord.assertNotMerged()
+
+      firstReactivatedRecord.assertExcludedFrom(unmergedRecord)
+      secondReactivatedRecord.assertExcludedFrom(unmergedRecord)
+      unmergedRecord.assertExcludedFrom(firstReactivatedRecord)
+
+      cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
+      cluster.assertClusterIsOfSize(1)
+
+      unmergedRecord.assertLinkedToCluster(cluster)
+      firstReactivatedRecord.assertNotLinkedToCluster(cluster)
+      secondReactivatedRecord.assertNotLinkedToCluster(cluster)
+
+      unmergedRecord.assertHasOverrideMarker()
+      firstReactivatedRecord.assertHasOverrideMarker()
+      secondReactivatedRecord.assertHasOverrideMarker()
+
+      unmergedRecord.assertHasDifferentOverrideMarker(firstReactivatedRecord)
+      unmergedRecord.assertHasDifferentOverrideMarker(secondReactivatedRecord)
+
+      firstReactivatedRecord.assertHasDifferentOverrideMarker(secondReactivatedRecord)
+
+      unmergedRecord.assertHasSameOverrideScope(firstReactivatedRecord)
+      unmergedRecord.assertHasSameOverrideScope(secondReactivatedRecord)
+      firstReactivatedRecord.assertHasDifferentOverrideScope(secondReactivatedRecord)
+
+      unmergedRecord.assertOverrideScopeSize(2)
+    }
+
+    @Test
+    fun `should not overwrite existing override marker`() {
+      val cluster = createPersonKey()
+      val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
+      val firstReactivatedRecord = createPerson(createRandomProbationPersonDetails())
+      val secondReactivatedRecord = createPerson(createRandomProbationPersonDetails())
+
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, firstReactivatedRecord.crn!!, unmergedRecord.crn!!)
+      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to firstReactivatedRecord.crn!!))
+
+      val initialOverrideMarker = awaitNotNullPerson { personRepository.findByCrn(unmergedRecord.crn!!) }.overrideMarker
+      assertThat(initialOverrideMarker).isNotNull()
+
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, secondReactivatedRecord.crn!!, unmergedRecord.crn!!)
+      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to secondReactivatedRecord.crn!!))
+
+      val finalOverrideMarker = awaitNotNullPerson { personRepository.findByCrn(unmergedRecord.crn!!) }.overrideMarker
+      assertThat(initialOverrideMarker).isEqualTo(finalOverrideMarker)
     }
   }
 
@@ -350,7 +460,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION)
+      cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
       cluster.assertClusterIsOfSize(2)
 
       unmergedPerson.assertLinkedToCluster(cluster)
@@ -360,6 +470,11 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       reactivatedPerson.assertHasLinkToCluster()
       reactivatedPerson.assertNotLinkedToCluster(cluster)
       reactivatedPerson.assertExcludedFrom(unmergedPerson)
+
+      unmergedPerson.assertHasOverrideMarker()
+      reactivatedPerson.assertHasOverrideMarker()
+      unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
+      unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
     }
   }
 

@@ -71,9 +71,13 @@ data class Person(
           identifierValue = probationCase.identifiers.nationalInsuranceNumber,
         ),
       )
+
       val nationalities: List<Nationality> = listOf(
-        Nationality(NationalityCode.fromProbationMapping(probationCase.nationality?.value)),
-      )
+        NationalityCode.fromProbationMapping(probationCase.nationality?.value),
+        NationalityCode.fromProbationMapping(probationCase.secondaryNationality?.value),
+      ).mapNotNull { it }
+        .map { Nationality(it) }
+
       return Person(
         titleCode = TitleCode.from(probationCase.title?.value),
         firstName = probationCase.name.firstName.nullIfBlank(),
@@ -82,7 +86,7 @@ data class Person(
         dateOfBirth = probationCase.dateOfBirth,
         crn = probationCase.identifiers.crn,
         ethnicity = probationCase.ethnicity?.value.nullIfBlank(),
-        ethnicityCode = EthnicityCode.from(probationCase.ethnicity?.value),
+        ethnicityCode = EthnicityCode.fromProbation(probationCase.ethnicity?.value),
         nationalities = nationalities,
         aliases = probationCase.aliases?.map { Alias.from(it) } ?: emptyList(),
         addresses = Address.fromOffenderAddressList(probationCase.addresses),
@@ -94,7 +98,7 @@ data class Person(
       )
     }
 
-    fun from(defendant: Defendant, sourceSystemType: SourceSystemType = COMMON_PLATFORM): Person {
+    fun from(defendant: Defendant): Person {
       val contacts: List<Contact> = listOfNotNull(
         Contact.from(ContactType.HOME, defendant.personDefendant?.personDetails?.contact?.home),
         Contact.from(ContactType.MOBILE, defendant.personDefendant?.personDetails?.contact?.mobile),
@@ -121,8 +125,10 @@ data class Person(
       )
 
       val nationalities: List<Nationality> = listOf(
-        Nationality(NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.nationalityCode)),
-      )
+        NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.nationalityCode),
+        NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.additionalNationalityCode),
+      ).mapNotNull { it }
+        .map { Nationality(it) }
 
       return Person(
         titleCode = TitleCode.from(defendant.personDefendant?.personDetails?.title.nullIfBlank()),
@@ -130,7 +136,7 @@ data class Person(
         lastName = defendant.personDefendant?.personDetails?.lastName.nullIfBlank(),
         middleNames = defendant.personDefendant?.personDetails?.middleName.nullIfBlank(),
         dateOfBirth = defendant.personDefendant?.personDetails?.dateOfBirth,
-        ethnicityCode = EthnicityCode.from(defendant.personDefendant?.personDetails?.ethnicity?.selfDefinedEthnicityCode),
+        ethnicityCode = EthnicityCode.fromCommonPlatform(defendant.personDefendant?.personDetails?.ethnicity?.selfDefinedEthnicityCode),
         defendantId = defendant.id.nullIfBlank(),
         masterDefendantId = defendant.masterDefendantId.nullIfBlank(),
         contacts = contacts,
@@ -138,7 +144,7 @@ data class Person(
         references = references,
         nationalities = nationalities,
         aliases = defendant.aliases?.map { Alias.from(it) } ?: emptyList(),
-        sourceSystem = sourceSystemType,
+        sourceSystem = COMMON_PLATFORM,
         sexCode = SexCode.from(defendant.personDefendant?.personDetails),
       )
     }
@@ -152,9 +158,11 @@ data class Person(
         Reference.from(identifierType = IdentifierType.PNC, identifierValue = libraHearingEvent.pnc?.toString()),
       )
       val nationalities: List<Nationality> = listOf(
-        Nationality(NationalityCode.fromLibraMapping(libraHearingEvent.nationality1)),
-        Nationality(NationalityCode.fromLibraMapping(libraHearingEvent.nationality2)),
-      )
+        NationalityCode.fromLibraMapping(libraHearingEvent.nationality1),
+        NationalityCode.fromLibraMapping(libraHearingEvent.nationality2),
+      ).mapNotNull { it }
+        .map { Nationality(it) }
+
       return Person(
         titleCode = TitleCode.from(libraHearingEvent.name?.title),
         firstName = libraHearingEvent.name?.firstName.nullIfBlank(),
@@ -190,9 +198,7 @@ data class Person(
           identifierValue = prisoner.identifiers.getType("DL")?.value,
         ),
       )
-      val nationalities: List<Nationality> = listOf(
-        Nationality(NationalityCode.fromPrisonMapping(prisoner.nationality)),
-      )
+      val nationalities: List<Nationality> = NationalityCode.fromPrisonMapping(prisoner.nationality)?.let { listOf(Nationality(it)) } ?: emptyList()
 
       return Person(
         prisonNumber = prisoner.prisonNumber.nullIfBlank(),
@@ -202,7 +208,7 @@ data class Person(
         lastName = prisoner.lastName.nullIfBlank(),
         dateOfBirth = prisoner.dateOfBirth,
         ethnicity = prisoner.ethnicity.nullIfBlank(),
-        ethnicityCode = EthnicityCode.from(prisoner.ethnicity.nullIfBlank()),
+        ethnicityCode = EthnicityCode.fromPrison(prisoner.ethnicity.nullIfBlank()),
         aliases = prisoner.aliases.map { Alias.from(it) },
         contacts = contacts,
         addresses = addresses,
