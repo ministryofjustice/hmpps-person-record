@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifie
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Nationality
@@ -124,7 +123,7 @@ class CourtApiIntTest : WebTestBase() {
       )
 
       val responseBody = webTestClient.get()
-        .uri(commonPLatformApiUrl(person))
+        .uri(commonPlatformApiUrl(person.defendantId))
         .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
@@ -173,7 +172,7 @@ class CourtApiIntTest : WebTestBase() {
       assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
       assertThat(responseBody.ethnicity.description).isEqualTo(canonicalEthnicity.description)
       assertThat(responseBody.aliases).isEqualTo(listOf(canonicalAlias))
-      assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro)) // TODO not a list
+      assertThat(responseBody.identifiers.cros).isEqualTo(listOf(cro))
       assertThat(responseBody.identifiers.pncs).isEqualTo(listOf(pnc))
       assertThat(responseBody.identifiers.crns).isEqualTo(listOf(crn))
       assertThat(responseBody.identifiers.defendantIds).isEqualTo(listOf(defendantId))
@@ -181,8 +180,6 @@ class CourtApiIntTest : WebTestBase() {
       assertThat(responseBody.identifiers.cids).isEqualTo(listOf(cid))
       assertThat(responseBody.addresses).isEqualTo(listOf(canonicalAddress))
     }
-
-    private fun commonPLatformApiUrl(person: PersonEntity) = "/person/commonplatform/${person.defendantId}"
 
     @Test
     fun `should return null when values are null or empty for get canonical record`() {
@@ -196,7 +193,7 @@ class CourtApiIntTest : WebTestBase() {
       )
 
       val responseBody = webTestClient.get()
-        .uri(commonPLatformApiUrl(person))
+        .uri(commonPlatformApiUrl(person.defendantId))
         .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
@@ -254,7 +251,7 @@ class CourtApiIntTest : WebTestBase() {
       )
 
       val responseBody = webTestClient.get()
-        .uri(commonPLatformApiUrl(person))
+        .uri(commonPlatformApiUrl(person.defendantId))
         .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
@@ -285,7 +282,7 @@ class CourtApiIntTest : WebTestBase() {
       )
 
       val responseBody = webTestClient.get()
-        .uri(commonPLatformApiUrl(person))
+        .uri(commonPlatformApiUrl(person.defendantId))
         .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
@@ -404,7 +401,7 @@ class CourtApiIntTest : WebTestBase() {
       )
 
       val responseBody = webTestClient.get()
-        .uri(commonPLatformApiUrl(personOne))
+        .uri(commonPlatformApiUrl(personOne.defendantId))
         .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
@@ -467,7 +464,7 @@ class CourtApiIntTest : WebTestBase() {
       )
 
       val responseBody = webTestClient.get()
-        .uri(commonPLatformApiUrl(person))
+        .uri(commonPlatformApiUrl(person.defendantId))
         .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
@@ -512,7 +509,7 @@ class CourtApiIntTest : WebTestBase() {
       defendantId.assertLinksToCrn(crn)
 
       val responseBody = webTestClient.get()
-        .uri("/person/commonplatform/$defendantId")
+        .uri(commonPlatformApiUrl(defendantId))
         .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
@@ -530,11 +527,11 @@ class CourtApiIntTest : WebTestBase() {
   inner class ErrorScenarios {
 
     @Test
-    fun `should return not found 404 with userMessage to show that the UUID is not found`() {
+    fun `should return not found 404 with userMessage to show that the defendantId is not found`() {
       val nonExistentDefendantId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
       val expectedErrorMessage = "Not found: $nonExistentDefendantId"
       webTestClient.get()
-        .uri("/person/commonplatform/$nonExistentDefendantId")
+        .uri(commonPlatformApiUrl(nonExistentDefendantId))
         .authorised(listOf(API_READ_ONLY))
         .exchange()
         .expectStatus()
@@ -548,7 +545,7 @@ class CourtApiIntTest : WebTestBase() {
     fun `should return Access Denied 403 when role is wrong`() {
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.get()
-        .uri("/person/commonplatform/accessdenied")
+        .uri(commonPlatformApiUrl("accessdenied"))
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .exchange()
         .expectStatus()
@@ -561,10 +558,12 @@ class CourtApiIntTest : WebTestBase() {
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
       webTestClient.get()
-        .uri("/person/commonplatform/unauthorised")
+        .uri(commonPlatformApiUrl("unauthorised"))
         .exchange()
         .expectStatus()
         .isUnauthorized
     }
   }
+
+  private fun commonPlatformApiUrl(defendantId: String?) = "/person/commonplatform/$defendantId"
 }
