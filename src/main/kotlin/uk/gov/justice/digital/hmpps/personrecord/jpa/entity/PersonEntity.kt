@@ -19,6 +19,7 @@ import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
@@ -235,6 +236,8 @@ class PersonEntity(
     }
 
     fun List<ReferenceEntity>.getType(type: IdentifierType): List<ReferenceEntity> = this.filter { it.identifierType == type }
+
+    fun List<ContactEntity>.getType(type: ContactType): List<ContactEntity> = this.filter { it.contactType == type }
 
     fun PersonEntity?.exists(no: () -> PersonEntity, yes: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {
       this == empty -> no()

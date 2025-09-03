@@ -5,8 +5,10 @@ import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.person.SentenceInfo
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 
 @ActiveProfiles("e2e")
 class E2ETestBase : MessagingTestBase() {
@@ -27,4 +29,10 @@ class E2ETestBase : MessagingTestBase() {
   }
 
   internal fun createProbationPersonFrom(from: Person, crn: String = randomCrn()): Person = from.copy(crn = crn)
+
+  internal fun Person.withChangedMatchDetails(): Person = this.copy(
+    sentences = this.sentences + SentenceInfo(
+      randomDate(),
+    ),
+  )
 }
