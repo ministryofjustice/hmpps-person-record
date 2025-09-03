@@ -89,23 +89,21 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val basePersonData = createRandomProbationPersonDetails()
 
       val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(personA)
+        .addPerson(doesNotMatch)
 
-      val newPersonData = createProbationPersonFrom(basePersonData)
-      probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup.from(newPersonData))
+      val newPersonCData = createProbationPersonFrom(basePersonData)
+      probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup.from(newPersonCData))
 
-      checkTelemetry(
-        TelemetryEventType.CPR_RECORD_CREATED,
-        mapOf("CRN" to newPersonData.crn, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-
-      cluster.assertClusterIsOfSize(2)
+      cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(newPersonData))
+      val updatedPersonCData = newPersonCData.withChangedMatchDetails()
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedPersonCData))
 
-      cluster.assertClusterIsOfSize(2)
+      cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
     }
   }
