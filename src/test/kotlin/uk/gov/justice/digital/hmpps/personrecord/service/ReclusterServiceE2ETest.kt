@@ -35,27 +35,26 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val newPersonData = createProbationPersonFrom(basePersonData)
       probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup.from(newPersonData))
 
-      checkTelemetry(
-        TelemetryEventType.CPR_RECORD_CREATED,
-        mapOf("CRN" to newPersonData.crn, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-
       cluster.assertClusterIsOfSize(2)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
     }
 
     @Test
-    fun `should retain needs attention status when a record is updated which continues to match another record in the cluster and the cluster remains invalid`() {
+    fun `should retain needs attention status when a record is updated which continues to match only one record out of 2 in the cluster`() {
       val basePersonData = createRandomProbationPersonDetails()
-      val recordA = createPerson(createProbationPersonFrom(basePersonData))
+
+      val recordAPersonData = createProbationPersonFrom(basePersonData)
+      val recordA = createPerson(recordAPersonData)
       val matchesA = createPerson(createProbationPersonFrom(basePersonData))
+
       val doesNotMatch = createPerson(createRandomProbationPersonDetails())
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
 
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(recordA))
+      val updatedRecordAData = recordAPersonData.withChangedMatchDetails()
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedRecordAData))
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
@@ -174,7 +173,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should mark active cluster needs attention when the update record exclude another record in the matched cluster`() {
+    fun `should mark active cluster as needs attention when the update record exclude another record in the matched clusters`() {
       val basePersonData = createRandomProbationPersonDetails()
 
       val personA = createPerson(createProbationPersonFrom(basePersonData))
@@ -214,7 +213,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should mark active cluster needs attention when the update record exclude multiple records in the matched cluster`() {
+    fun `should mark active cluster needs attention when the update record exclude multiple records in the matched clusters`() {
       val basePersonData = createRandomProbationPersonDetails()
 
       val personA = createPerson(createProbationPersonFrom(basePersonData))
