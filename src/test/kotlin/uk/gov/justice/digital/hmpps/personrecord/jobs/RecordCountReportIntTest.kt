@@ -14,31 +14,7 @@ class RecordCountReportIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should report record count to telemetry`() {
-    createPerson(createRandomProbationPersonDetails())
-    createPerson(createRandomPrisonPersonDetails())
-    createPerson(createRandomLibraPersonDetails())
-    createPerson(createRandomCommonPlatformPersonDetails())
-
-    webTestClient.post()
-      .uri("/jobs/recordcountreport")
-      .exchange()
-      .expectStatus()
-      .isOk
-
-    checkTelemetry(
-      TelemetryEventType.CPR_RECORD_COUNT_REPORT,
-      mapOf(
-        "NOMIS" to "1",
-        "DELIUS" to "1",
-        "COMMON_PLATFORM" to "1",
-        "LIBRA" to "1",
-      ),
-    )
-  }
-
-  @Test
-  fun `should not include record in telemetry`() {
+  fun `should not include merged record in telemetry`() {
     val merged = createPerson(createRandomProbationPersonDetails())
     val active = createPerson(createRandomProbationPersonDetails())
     createPerson(createRandomPrisonPersonDetails())
