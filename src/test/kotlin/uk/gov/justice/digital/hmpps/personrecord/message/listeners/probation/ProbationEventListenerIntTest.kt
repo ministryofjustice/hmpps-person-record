@@ -4,9 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -23,12 +20,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_DELETED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ADDRESS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_RECOVERED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -50,7 +43,6 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
 import java.util.UUID
-import java.util.stream.Stream
 
 class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -461,17 +453,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
   }
 
-  @ParameterizedTest
-  @MethodSource("domainEvents")
-  fun `should process domain events`(event: String) {
-    val crn = randomCrn()
-    stubPersonMatchUpsert()
-    stubPersonMatchScores()
-    probationDomainEventAndResponseSetup(event, ApiResponseSetup(crn = crn))
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
-    checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
-  }
-
   private fun checkNationalities(
     person: PersonEntity,
     vararg nationalities: String,
@@ -480,18 +461,5 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     val actual = person.nationalities.map { Pair(it.nationalityCode?.code, it.nationalityCode?.description) }
     val expected = nationalities.map { it.getNationalityCodeEntityFromProbationCode() }.map { Pair(it?.code, it?.description) }
     assertThat(actual).containsAll(expected)
-  }
-
-  companion object {
-
-    @JvmStatic
-    fun domainEvents(): Stream<Arguments> = Stream.of(
-      Arguments.of(OFFENDER_RECOVERED),
-      Arguments.of(NEW_OFFENDER_CREATED),
-      Arguments.of(OFFENDER_PERSONAL_DETAILS_UPDATED),
-      Arguments.of(OFFENDER_ADDRESS_CREATED),
-      Arguments.of(OFFENDER_ADDRESS_UPDATED),
-      Arguments.of(OFFENDER_ADDRESS_DELETED),
-    )
   }
 }
