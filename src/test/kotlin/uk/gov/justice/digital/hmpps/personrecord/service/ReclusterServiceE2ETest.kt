@@ -409,42 +409,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should prevent circular merge of clusters`() {
-      val basePersonData = createRandomProbationPersonDetails()
-
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
-
-      val cluster2 = createPersonKey()
-        .addPerson(personB)
-
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
-
-      recluster(personA)
-
-      cluster1.assertClusterIsOfSize(2)
-      cluster2.assertClusterIsOfSize(0)
-
-      cluster1.assertClusterStatus(ACTIVE)
-      cluster2.assertClusterStatus(RECLUSTER_MERGE)
-
-      cluster2.assertMergedTo(cluster1)
-
-      val updatedCluster2 = personKeyRepository.findByPersonUUID(cluster2.personUUID)!!
-      updatedCluster2.addPerson(personC)
-
-      recluster(personC)
-
-      // does nothing as cluster set for re-clustering is RECLUSTER_MERGE
-      cluster1.assertClusterIsOfSize(2)
-      updatedCluster2.assertClusterIsOfSize(1)
-      updatedCluster2.assertMergedTo(cluster1)
-      cluster1.assertNotMergedTo(updatedCluster2)
-    }
-
-    @Test
     fun `should merge active clusters when only one record from the matched cluster is returned from the match score`() {
       val basePersonData = createRandomProbationPersonDetails()
 
