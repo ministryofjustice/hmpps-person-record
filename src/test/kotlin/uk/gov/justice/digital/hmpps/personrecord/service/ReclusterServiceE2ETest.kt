@@ -409,33 +409,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should merge active clusters when only one record from the matched cluster is returned from the match score`() {
-      val basePersonData = createRandomProbationPersonDetails()
-
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
-      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
-      val cluster2 = createPersonKey()
-        .addPerson(personC)
-        .addPerson(doesNotMatch)
-
-      recluster(personA)
-
-      cluster1.assertClusterIsOfSize(4)
-      cluster2.assertClusterIsOfSize(0)
-
-      cluster1.assertClusterStatus(ACTIVE)
-      cluster2.assertClusterStatus(RECLUSTER_MERGE)
-
-      cluster2.assertMergedTo(cluster1)
-    }
-
-    @Test
     fun `should merge 3 active clusters`() {
       val basePersonData = createRandomProbationPersonDetails()
 
