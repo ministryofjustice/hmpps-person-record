@@ -1,8 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import com.fasterxml.jackson.module.kotlin.readValue
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -12,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTI
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
+import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
@@ -377,6 +381,385 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     }
   }
 
+  @Nested
+  inner class ShouldMergeClusters {
+
+    @Test
+    fun `should merge two active clusters`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+
+      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster2 = createPersonKey()
+        .addPerson(personC)
+
+      recluster(personA)
+
+      cluster1.assertClusterIsOfSize(3)
+      cluster2.assertClusterIsOfSize(0)
+
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(RECLUSTER_MERGE)
+
+      cluster2.assertMergedTo(cluster1)
+    }
+
+    @Test
+    fun `should merge 3 active clusters`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+
+      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster2 = createPersonKey()
+        .addPerson(personB)
+
+      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster3 = createPersonKey()
+        .addPerson(personC)
+
+      recluster(personA)
+
+      cluster1.assertClusterIsOfSize(3)
+      cluster2.assertClusterIsOfSize(0)
+      cluster3.assertClusterIsOfSize(0)
+
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(RECLUSTER_MERGE)
+      cluster3.assertClusterStatus(RECLUSTER_MERGE)
+
+      cluster2.assertMergedTo(cluster1)
+      cluster3.assertMergedTo(cluster1)
+    }
+
+    @Test
+    fun `should merge 2 active clusters when match score returns all records from the matched cluster`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+
+      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val personD = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster2 = createPersonKey()
+        .addPerson(personC)
+        .addPerson(personD)
+
+      recluster(personA)
+
+      cluster1.assertClusterIsOfSize(4)
+      cluster2.assertClusterIsOfSize(0)
+
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(RECLUSTER_MERGE)
+
+      cluster2.assertMergedTo(cluster1)
+    }
+
+    @Test
+    fun `should merge 3 active clusters when match score returns multiple clusters with a cluster that contain unmatched records`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+
+      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val personD = createPerson(createRandomProbationPersonDetails())
+      val cluster2 = createPersonKey()
+        .addPerson(personB)
+        .addPerson(personC)
+        .addPerson(personD)
+
+      val personE = createPerson(createProbationPersonFrom(basePersonData))
+      val personF = createPerson(createRandomProbationPersonDetails())
+      val cluster3 = createPersonKey()
+        .addPerson(personE)
+        .addPerson(personF)
+
+      recluster(personA)
+
+      cluster1.assertClusterIsOfSize(6)
+      cluster2.assertClusterIsOfSize(0)
+      cluster3.assertClusterIsOfSize(0)
+
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(RECLUSTER_MERGE)
+      cluster3.assertClusterStatus(RECLUSTER_MERGE)
+
+      cluster2.assertMergedTo(cluster1)
+      cluster3.assertMergedTo(cluster1)
+    }
+
+    @Test
+    fun `should merge 3 active cluster if matched cluster has a override marker to unrelated record`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+
+      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster2 = createPersonKey()
+        .addPerson(personB)
+
+      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster3 = createPersonKey()
+        .addPerson(personC)
+
+      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val cluster4 = createPersonKey()
+        .addPerson(doesNotMatch)
+
+      excludeRecord(personB, doesNotMatch)
+
+      recluster(personA)
+
+      cluster1.assertClusterIsOfSize(3)
+      cluster2.assertClusterIsOfSize(0)
+      cluster3.assertClusterIsOfSize(0)
+      cluster4.assertClusterIsOfSize(1)
+
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(RECLUSTER_MERGE)
+      cluster3.assertClusterStatus(RECLUSTER_MERGE)
+      cluster4.assertClusterStatus(ACTIVE)
+
+      cluster2.assertMergedTo(cluster1)
+      cluster3.assertMergedTo(cluster1)
+    }
+
+    @Test
+    fun `should only merge active cluster to active clusters and exclude clusters marked as needs attention`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+
+      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster2 = createPersonKey(NEEDS_ATTENTION)
+        .addPerson(personB)
+
+      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster3 = createPersonKey()
+        .addPerson(personC)
+
+      recluster(personA)
+
+      cluster1.assertClusterIsOfSize(2)
+      cluster2.assertClusterIsOfSize(1)
+      cluster3.assertClusterIsOfSize(0)
+
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(NEEDS_ATTENTION)
+      cluster3.assertClusterStatus(RECLUSTER_MERGE)
+
+      cluster3.assertMergedTo(cluster1)
+    }
+  }
+
+  @Nested
+  inner class ShouldMarkAsNeedsAttention {
+
+    @Test
+    fun `should mark as need attention when only matches one in cluster with multiple records`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(doesNotMatch)
+
+      recluster(personA)
+
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+    }
+
+    @Test
+    fun `should mark as need attention when matches no record in cluster with multiple records`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      recluster(personA)
+
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+    }
+
+    @Test
+    fun `should mark as need attention when matches less records in cluster and contains matches from another cluster`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personBDoesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val personCDoesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personBDoesNotMatch)
+        .addPerson(personCDoesNotMatch)
+
+      val personD = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster2 = createPersonKey()
+        .addPerson(personD)
+
+      recluster(personA)
+
+      cluster1.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+      cluster2.assertClusterStatus(ACTIVE)
+    }
+  }
+
+  @Nested
+  inner class EventLog {
+
+    @Test
+    fun `should log record merged when 2 active clusters merge on recluster`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+
+      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val personD = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster2 = createPersonKey()
+        .addPerson(personC)
+        .addPerson(personD)
+
+      recluster(personA)
+
+      cluster1.assertClusterIsOfSize(4)
+      cluster2.assertMergedTo(cluster1)
+
+      checkTelemetry(
+        TelemetryEventType.CPR_RECLUSTER_MERGE,
+        mapOf(
+          "FROM_UUID" to cluster2.personUUID.toString(),
+          "TO_UUID" to cluster1.personUUID.toString(),
+        ),
+      )
+
+      checkEventLogByUUID(cluster2.personUUID!!, CPRLogEvents.CPR_RECLUSTER_UUID_MERGED, timeout = 6) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        val eventLog = eventLogs.first()
+        assertThat(eventLog.personUUID).isEqualTo(cluster2.personUUID)
+        assertThat(eventLog.uuidStatusType).isEqualTo(RECLUSTER_MERGE)
+      }
+      checkEventLogExist(personC.crn!!, CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED)
+      checkEventLogExist(personD.crn!!, CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED)
+    }
+
+    @Test
+    fun `should log needs attention when changed record has no matches`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      recluster(personA)
+
+      checkTelemetry(
+        TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
+        mapOf("UUID" to cluster.personUUID.toString()),
+      )
+
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+      checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        val eventLog = eventLogs.first()
+        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
+        assertThat(eventLog.uuidStatusType).isEqualTo(NEEDS_ATTENTION)
+        assertThat(eventLog.statusReason).isEqualTo(BROKEN_CLUSTER.name)
+      }
+    }
+
+    @Test
+    fun `should log back to active when cluster moves from needs attention to active`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster = createPersonKey(status = NEEDS_ATTENTION)
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      cluster.assertClusterStatus(NEEDS_ATTENTION)
+
+      recluster(personA)
+
+      checkEventLog(personA.crn!!, CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        val eventLog = eventLogs.first()
+        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
+        assertThat(eventLog.uuidStatusType).isEqualTo(ACTIVE)
+        assertThat(eventLog.statusReason).isNull()
+      }
+
+      cluster.assertClusterStatus(ACTIVE)
+    }
+
+    @Test
+    fun `should log cluster composition when isClusterValid is false`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(doesNotMatch)
+
+      recluster(personA)
+
+      checkTelemetry(
+        TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
+        mapOf("UUID" to cluster.personUUID.toString()),
+      )
+
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+
+      val clusterComposition = listOf(
+        ValidCluster(listOf(doesNotMatch.matchId.toString())),
+        ValidCluster(listOf(personA.matchId.toString(), personB.matchId.toString())),
+      )
+      checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        val eventLog = eventLogs.first()
+        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
+        assertThat(eventLog.uuidStatusType).isEqualTo(NEEDS_ATTENTION)
+        assertThat(eventLog.statusReason).isEqualTo(BROKEN_CLUSTER)
+        eventLog.clusterComposition.assertHasClusterComposition(clusterComposition)
+      }
+    }
+  }
+
   private fun recluster(person: PersonEntity) {
     personRepository.findByMatchId(person.matchId)?.let {
       reclusterService.recluster(it)
@@ -386,5 +769,10 @@ class ReclusterServiceE2ETest : E2ETestBase() {
   private fun PersonKeyEntity.assertClusterNotChanged(size: Int) {
     assertClusterStatus(ACTIVE)
     assertClusterIsOfSize(size)
+  }
+
+  private fun String?.assertHasClusterComposition(expectedClusterComposition: List<ValidCluster>) = this?.let {
+    val actualClusterComposition = objectMapper.readValue<List<ValidCluster>>(this)
+    assertThat(actualClusterComposition.map { it.records.toSet() }.toSet()).isEqualTo(expectedClusterComposition.map { it.records.toSet() }.toSet())
   }
 }
