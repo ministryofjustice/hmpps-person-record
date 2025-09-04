@@ -13,11 +13,35 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.discardNotFoundEx
 @Component
 class PersonMatchClient(private val personMatchWebClient: WebClient) {
 
-  fun isClusterValid(requestBody: List<String>): IsClusterValidResponse = personMatchWebClient.post().uri("/is-cluster-valid").bodyValue(requestBody).retrieve().bodyToMono(IsClusterValidResponse::class.java).block()!!
+  fun isClusterValid(requestBody: List<String>): IsClusterValidResponse = personMatchWebClient
+    .post()
+    .uri("/is-cluster-valid")
+    .bodyValue(requestBody)
+    .retrieve()
+    .bodyToMono(IsClusterValidResponse::class.java)
+    .block()!!
 
-  fun getPersonScores(matchId: String): List<PersonMatchScore> = personMatchWebClient.get().uri("/person/score/$matchId").retrieve().bodyToMono<List<PersonMatchScore>>().block()!!
+  fun getPersonScores(matchId: String): List<PersonMatchScore> = personMatchWebClient
+    .get()
+    .uri("/person/score/$matchId")
+    .retrieve()
+    .bodyToMono<List<PersonMatchScore>>()
+    .block()!!
 
-  fun postPerson(personMatchRecord: PersonMatchRecord) = personMatchWebClient.post().uri("/person").bodyValue(personMatchRecord).retrieve().toBodilessEntity().block()
+  fun postPerson(personMatchRecord: PersonMatchRecord) = personMatchWebClient
+    .post()
+    .uri("/person")
+    .bodyValue(personMatchRecord)
+    .retrieve()
+    .toBodilessEntity()
+    .block()
 
-  fun deletePerson(personMatchIdentifier: PersonMatchIdentifier) = personMatchWebClient.method(HttpMethod.DELETE).uri("/person").bodyValue(personMatchIdentifier).retrieve().toBodilessEntity().discardNotFoundException().block()
+  fun deletePerson(personMatchIdentifier: PersonMatchIdentifier) = personMatchWebClient
+    .method(HttpMethod.DELETE)
+    .uri("/person")
+    .bodyValue(personMatchIdentifier)
+    .retrieve()
+    .toBodilessEntity()
+    .discardNotFoundException()
+    .block()
 }
