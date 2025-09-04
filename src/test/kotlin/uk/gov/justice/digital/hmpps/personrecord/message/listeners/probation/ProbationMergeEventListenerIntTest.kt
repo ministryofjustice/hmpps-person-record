@@ -256,21 +256,24 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `should retry on a 500 error from person match delete`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
-      val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
-      val targetPerson = createPerson(createRandomProbationPersonDetails(targetCrn))
+      val sourcePerson = createRandomProbationPersonDetails(sourceCrn)
+      val sourcePersonEntity = createPerson(sourcePerson)
+      val targetPerson = createRandomProbationPersonDetails(targetCrn)
+      val targetPersonEntity = createPerson(targetPerson)
       createPersonKey()
-        .addPerson(sourcePerson)
-        .addPerson(targetPerson)
+        .addPerson(sourcePersonEntity)
+        .addPerson(targetPersonEntity)
 
       // stubs for failed delete
-      stubSingleProbationResponse(ApiResponseSetup.from(targetPerson), BASE_SCENARIO, "Started", "Started")
+      val response = ApiResponseSetup.from(targetPerson)
+      stubSingleProbationResponse(response, BASE_SCENARIO, "Started", "Started")
       stubDeletePersonMatch(status = 500, nextScenarioState = "deleteWillWork") // scenario state changes so next calls will succeed
 
       // stubs for successful delete
       stubDeletePersonMatch(currentScenarioState = "deleteWillWork")
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn, currentScenarioState = "deleteWillWork", nextScenarioState = "deleteWillWork", apiResponseSetup = ApiResponseSetup.from(targetPerson))
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn, currentScenarioState = "deleteWillWork", nextScenarioState = "deleteWillWork", apiResponseSetup = response)
 
-      sourcePerson.assertMergedTo(targetPerson)
+      sourcePersonEntity.assertMergedTo(targetPersonEntity)
     }
 
     @Test
