@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -255,17 +256,24 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `should retry on a 500 error from person match delete`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
-      val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
-      val targetPerson = createPerson(createRandomProbationPersonDetails(targetCrn))
+      val sourcePerson = createRandomProbationPersonDetails(sourceCrn)
+      val sourcePersonEntity = createPerson(sourcePerson)
+      val targetPerson = createRandomProbationPersonDetails(targetCrn)
+      val targetPersonEntity = createPerson(targetPerson)
       createPersonKey()
-        .addPerson(sourcePerson)
-        .addPerson(targetPerson)
+        .addPerson(sourcePersonEntity)
+        .addPerson(targetPersonEntity)
 
-      stubDeletePersonMatch(status = 500, nextScenarioState = "deleteWillWork")
+      // stubs for failed delete
+      val response = ApiResponseSetup.from(targetPerson)
+      stubSingleProbationResponse(response, BASE_SCENARIO, "Started", "Started")
+      stubDeletePersonMatch(status = 500, nextScenarioState = "deleteWillWork") // scenario state changes so next calls will succeed
+
+      // stubs for successful delete
       stubDeletePersonMatch(currentScenarioState = "deleteWillWork")
-      stubPersonMatchUpsert()
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn)
-      sourcePerson.assertMergedTo(targetPerson)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn, currentScenarioState = "deleteWillWork", nextScenarioState = "deleteWillWork", apiResponseSetup = response)
+
+      sourcePersonEntity.assertMergedTo(targetPersonEntity)
     }
 
     @Test
