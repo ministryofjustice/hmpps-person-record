@@ -267,9 +267,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubDeletePersonMatch(status = 500, nextScenarioState = "deleteWillWork") // scenario state changes so next calls will succeed
 
       // stubs for successful delete
-      stubPersonMatchUpsert(currentScenarioState = "deleteWillWork")
       stubDeletePersonMatch(currentScenarioState = "deleteWillWork")
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn, currentScenarioState = "deleteWillWork", nextScenarioState = "deleteWillWork")
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn, currentScenarioState = "deleteWillWork", nextScenarioState = "deleteWillWork", apiResponseSetup = ApiResponseSetup.from(targetPerson))
 
       sourcePerson.assertMergedTo(targetPerson)
     }
