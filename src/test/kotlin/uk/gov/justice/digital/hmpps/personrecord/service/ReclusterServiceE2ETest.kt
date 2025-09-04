@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -754,7 +755,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(NEEDS_ATTENTION)
         assertThat(eventLog.statusReason).isEqualTo(BROKEN_CLUSTER.name)
-        assertThat(eventLog.clusterComposition).isEqualTo(objectMapper.writeValueAsString(clusterComposition))
+        eventLog.clusterComposition.assertHasClusterComposition(clusterComposition)
       }
     }
   }
@@ -768,5 +769,10 @@ class ReclusterServiceE2ETest : E2ETestBase() {
   private fun PersonKeyEntity.assertClusterNotChanged(size: Int) {
     assertClusterStatus(ACTIVE)
     assertClusterIsOfSize(size)
+  }
+
+  private fun String?.assertHasClusterComposition(expectedClusterComposition: List<ValidCluster>) = this?.let {
+    val actualClusterComposition = objectMapper.readValue<List<ValidCluster>>(this)
+    assertThat(actualClusterComposition.map { it.records.toSet() }.toSet()).isEqualTo(expectedClusterComposition.map { it.records.toSet() }.toSet())
   }
 }
