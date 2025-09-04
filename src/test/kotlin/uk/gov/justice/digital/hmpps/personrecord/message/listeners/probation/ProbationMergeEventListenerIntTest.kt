@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -261,10 +262,15 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         .addPerson(sourcePerson)
         .addPerson(targetPerson)
 
-      stubDeletePersonMatch(status = 500, nextScenarioState = "deleteWillWork")
+      // stubs for failed delete
+      stubSingleProbationResponse(ApiResponseSetup.from(targetPerson), BASE_SCENARIO, "Started", "Started")
+      stubDeletePersonMatch(status = 500, nextScenarioState = "deleteWillWork") // scenario state changes so next calls will succeed
+
+      // stubs for successful delete
+      stubPersonMatchUpsert(currentScenarioState = "deleteWillWork")
       stubDeletePersonMatch(currentScenarioState = "deleteWillWork")
-      stubPersonMatchUpsert()
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn, currentScenarioState = "deleteWillWork", nextScenarioState = "deleteWillWork")
+
       sourcePerson.assertMergedTo(targetPerson)
     }
 

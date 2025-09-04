@@ -58,7 +58,7 @@ class PersonMatchService(
 
   fun saveToPersonMatch(personEntity: PersonEntity): ResponseEntity<Void>? = runBlocking { personMatchClient.postPerson(PersonMatchRecord.from(personEntity)) }
 
-  fun deleteFromPersonMatch(personEntity: PersonEntity) = runBlocking { runCatching { personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity)) } }
+  fun deleteFromPersonMatch(personEntity: PersonEntity) = runBlocking { personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity)) }
 
   private suspend fun handleNotFoundRecordsIsClusterValid(cluster: PersonKeyEntity, exception: NotFound): IsClusterValidResponse {
     val missingRecords = handleDecodeOfNotFoundException(exception)
