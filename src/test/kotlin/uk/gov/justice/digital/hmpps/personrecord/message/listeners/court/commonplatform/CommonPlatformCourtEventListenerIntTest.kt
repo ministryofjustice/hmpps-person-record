@@ -127,7 +127,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       prisonNumber = person.prisonNumber,
       masterDefendantId = person.masterDefendantId,
       sourceSystem = person.sourceSystem,
-      ethnicity = person.ethnicity,
       religion = person.religion,
       matchId = UUID.randomUUID(),
       cId = person.cId,
