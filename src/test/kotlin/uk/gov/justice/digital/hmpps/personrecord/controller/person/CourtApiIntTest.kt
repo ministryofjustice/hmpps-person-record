@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Nationality
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
+import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
@@ -88,10 +89,10 @@ class CourtApiIntTest : WebTestBase() {
           crn = crn,
           sexCode = SexCode.M,
           prisonNumber = prisonNumber,
-          ethnicity = ethnicity,
           nationalities = listOf(Nationality(nationality)),
           religion = religion,
           cId = cid,
+          ethnicityCode = EthnicityCode.fromCommonPlatform(ethnicity),
           defendantId = defendantId,
           aliases = listOf(
             Alias(
@@ -151,7 +152,7 @@ class CourtApiIntTest : WebTestBase() {
         postTown = postTown,
       )
       val canonicalReligion = CanonicalReligion(code = religion, description = religion)
-      val canonicalEthnicity = CanonicalEthnicity(code = ethnicity, description = ethnicity)
+      val canonicalEthnicity = CanonicalEthnicity.from(ethnicity.getCommonPlatformEthnicity())
       assertThat(responseBody.cprUUID).isNull()
       assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
       assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
@@ -339,7 +340,6 @@ class CourtApiIntTest : WebTestBase() {
           sourceSystem = NOMIS,
           crn = personOneCrn,
           prisonNumber = randomPrisonNumber(),
-          ethnicity = randomCommonPlatformEthnicity(),
           nationalities = listOf(Nationality(randomNationalityCode())),
           religion = randomReligion(),
           cId = randomCId(),
@@ -374,7 +374,6 @@ class CourtApiIntTest : WebTestBase() {
           sourceSystem = NOMIS,
           crn = personTwoCrn,
           prisonNumber = randomPrisonNumber(),
-          ethnicity = randomCommonPlatformEthnicity(),
           nationalities = listOf(Nationality(randomNationalityCode())),
           religion = randomReligion(),
           cId = randomCId(),
@@ -454,7 +453,6 @@ class CourtApiIntTest : WebTestBase() {
           middleNames = randomName(),
           dateOfBirth = randomDate(),
           sourceSystem = COMMON_PLATFORM,
-          ethnicity = randomCommonPlatformEthnicity(),
           nationalities = listOf(Nationality(randomNationalityCode())),
           religion = randomReligion(),
           masterDefendantId = randomDefendantId(),
