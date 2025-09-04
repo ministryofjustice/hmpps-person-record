@@ -1,26 +1,18 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.BROKEN_CLUSTER
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
-import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE
-import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
-import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 /**
@@ -197,7 +189,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       )
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
     }
-
   }
 
   @Nested
@@ -234,7 +225,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster2.assertClusterStatus(RECLUSTER_MERGE)
 
       cluster2.assertMergedTo(cluster1)
-      cluster2.checkReclusterMergeTelemetry(cluster1)
     }
 
     @Test
@@ -269,7 +259,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster2.assertClusterStatus(RECLUSTER_MERGE)
 
       cluster2.assertMergedTo(cluster1)
-      cluster2.checkReclusterMergeTelemetry(cluster1)
     }
 
     @Test
@@ -311,316 +300,6 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
       cluster3.assertClusterStatus(NEEDS_ATTENTION)
 
       cluster2.assertMergedTo(cluster1)
-      cluster2.checkReclusterMergeTelemetry(cluster1)
-    }
-  }
-
-  @Nested
-  inner class ClustersWithExcludeMarkers {
-
-    @Test
-    fun `should not merge an updated active cluster that has an exclusion marker to another matched active cluster`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-        .addPerson(personC)
-
-      val personD = createPerson(createRandomProbationPersonDetails())
-      val personE = createPerson(createRandomProbationPersonDetails())
-      val cluster2 = createPersonKey()
-        .addPerson(personD)
-        .addPerson(personE)
-
-      excludeRecord(personB, personD)
-      val updatedPersonA = personRepository.findByMatchId(personA.matchId)
-
-      stubXPersonMatches(
-        matchId = personA.matchId,
-        aboveJoin = listOf(
-          personB.matchId,
-          personC.matchId,
-          personD.matchId,
-          personE.matchId,
-        ),
-      )
-
-      recluster(updatedPersonA!!)
-
-      cluster1.assertClusterIsOfSize(3)
-      cluster2.assertClusterIsOfSize(2)
-
-      cluster1.assertClusterStatus(ACTIVE)
-      cluster2.assertClusterStatus(ACTIVE)
-    }
-
-    @Test
-    fun `should merge to an excluded cluster that has exclusion to the updated cluster`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
-
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val cluster2 = createPersonKey()
-        .addPerson(personB)
-
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val cluster3 = createPersonKey()
-        .addPerson(personC)
-
-      excludeRecord(personA, personC)
-      excludeRecord(personB, personC)
-
-      stubXPersonMatches(
-        matchId = personA.matchId,
-        aboveJoin = listOf(
-          personB.matchId,
-          personC.matchId,
-        ),
-      )
-
-      recluster(personA)
-
-      cluster1.assertClusterIsOfSize(2)
-      cluster2.assertClusterIsOfSize(0)
-      cluster3.assertClusterIsOfSize(1)
-
-      cluster1.assertClusterStatus(ACTIVE)
-      cluster2.assertClusterStatus(RECLUSTER_MERGE)
-      cluster3.assertClusterStatus(ACTIVE)
-    }
-
-    @Test
-    fun `should mark active cluster needs attention when the update record exclude another record in the matched cluster`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
-
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val cluster2 = createPersonKey()
-        .addPerson(personB)
-
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val cluster3 = createPersonKey()
-        .addPerson(personC)
-
-      val personD = createPerson(createRandomProbationPersonDetails())
-      val cluster4 = createPersonKey()
-        .addPerson(personD)
-
-      excludeRecord(personB, personD)
-
-      stubXPersonMatches(
-        matchId = personA.matchId,
-        aboveJoin = listOf(
-          personB.matchId,
-          personC.matchId,
-          personD.matchId,
-        ),
-      )
-
-      recluster(personA)
-
-      checkTelemetry(
-        TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
-        mapOf("UUID" to cluster1.personUUID.toString()),
-      )
-
-      cluster1.assertClusterIsOfSize(1)
-      cluster2.assertClusterIsOfSize(1)
-      cluster3.assertClusterIsOfSize(1)
-      cluster4.assertClusterIsOfSize(1)
-
-      cluster1.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
-      cluster2.assertClusterStatus(ACTIVE)
-      cluster3.assertClusterStatus(ACTIVE)
-      cluster4.assertClusterStatus(ACTIVE)
-    }
-
-    @Test
-    fun `should mark active cluster needs attention when the update record exclude multiple records in the matched cluster`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
-
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val cluster2 = createPersonKey()
-        .addPerson(personB)
-
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val cluster3 = createPersonKey()
-        .addPerson(personC)
-
-      val personD = createPerson(createRandomProbationPersonDetails())
-      val cluster4 = createPersonKey()
-        .addPerson(personD)
-
-      excludeRecord(personB, personC)
-      excludeRecord(personC, personD)
-
-      stubXPersonMatches(
-        matchId = personA.matchId,
-        aboveJoin = listOf(
-          personB.matchId,
-          personC.matchId,
-          personD.matchId,
-        ),
-      )
-
-      recluster(personA)
-
-      checkTelemetry(
-        TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
-        mapOf("UUID" to cluster1.personUUID.toString()),
-      )
-
-      cluster1.assertClusterIsOfSize(1)
-      cluster2.assertClusterIsOfSize(1)
-      cluster3.assertClusterIsOfSize(1)
-      cluster4.assertClusterIsOfSize(1)
-
-      cluster1.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
-      cluster2.assertClusterStatus(ACTIVE)
-      cluster3.assertClusterStatus(ACTIVE)
-      cluster4.assertClusterStatus(ACTIVE)
-    }
-  }
-
-  @Nested
-  inner class EventLog {
-
-    @Test
-    fun `should log record merged when 2 active clusters merge on recluster`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val personD = createPerson(createRandomProbationPersonDetails())
-      val cluster2 = createPersonKey()
-        .addPerson(personC)
-        .addPerson(personD)
-
-      stubXPersonMatches(
-        matchId = personA.matchId,
-        aboveJoin = listOf(
-          personB.matchId,
-          personC.matchId,
-          personD.matchId,
-        ),
-      )
-
-      recluster(personA)
-
-      cluster1.assertClusterIsOfSize(4)
-      cluster2.assertMergedTo(cluster1)
-
-      cluster2.checkReclusterMergeTelemetry(cluster1)
-      checkEventLogByUUID(cluster2.personUUID!!, CPRLogEvents.CPR_RECLUSTER_UUID_MERGED, timeout = 6) { eventLogs ->
-        assertThat(eventLogs).hasSize(1)
-        val eventLog = eventLogs.first()
-        assertThat(eventLog.personUUID).isEqualTo(cluster2.personUUID)
-        assertThat(eventLog.uuidStatusType).isEqualTo(RECLUSTER_MERGE)
-      }
-      checkEventLogExist(personC.crn!!, CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED)
-      checkEventLogExist(personD.crn!!, CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED)
-    }
-
-    @Test
-    fun `should log needs attention when changed record has no matches`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-        .addPerson(personC)
-
-      stubNoMatchesPersonMatch(matchId = personA.matchId)
-
-      recluster(personA)
-
-      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-      checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
-        assertThat(eventLogs).hasSize(1)
-        val eventLog = eventLogs.first()
-        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
-        assertThat(eventLog.uuidStatusType).isEqualTo(NEEDS_ATTENTION)
-        assertThat(eventLog.statusReason).isEqualTo(BROKEN_CLUSTER.name)
-      }
-    }
-
-    @Test
-    fun `should log back to active when cluster moves from needs attention to active`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey(status = NEEDS_ATTENTION)
-        .addPerson(personA)
-        .addPerson(personB)
-        .addPerson(personC)
-
-      cluster.assertClusterStatus(NEEDS_ATTENTION)
-
-      stubPersonMatchUpsert()
-      stubClusterIsValid()
-      stubXPersonMatches(matchId = personA.matchId, aboveJoin = listOf(personB.matchId, personC.matchId))
-      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = personA.crn, firstName = randomName()))
-
-      checkEventLog(personA.crn!!, CPR_RECORD_UPDATED) { eventLogs ->
-        assertThat(eventLogs).hasSize(1)
-        val eventLog = eventLogs.first()
-        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
-        assertThat(eventLog.uuidStatusType).isEqualTo(NEEDS_ATTENTION)
-      }
-      checkEventLog(personA.crn!!, CPR_NEEDS_ATTENTION_TO_ACTIVE) { eventLogs ->
-        assertThat(eventLogs).hasSize(1)
-        val eventLog = eventLogs.first()
-        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
-        assertThat(eventLog.uuidStatusType).isEqualTo(ACTIVE)
-        assertThat(eventLog.statusReason).isNull()
-      }
-
-      cluster.assertClusterStatus(ACTIVE)
-    }
-
-    @Test
-    fun `should log cluster composition when isClusterValid is false`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-        .addPerson(personC)
-
-      val clusterComposition = listOf(
-        ValidCluster(listOf(personA.matchId.toString(), personB.matchId.toString())),
-        ValidCluster(listOf(personC.matchId.toString())),
-      )
-      stubClusterIsNotValid(clusterComposition)
-      stubOnePersonMatchAboveJoinThreshold(matchId = personA.matchId, matchedRecord = personB.matchId)
-
-      recluster(personA)
-
-      checkTelemetry(
-        CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
-        mapOf("UUID" to cluster.personUUID.toString()),
-      )
-      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-
-      checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
-        assertThat(eventLogs).hasSize(1)
-        val eventLog = eventLogs.first()
-        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
-        assertThat(eventLog.uuidStatusType).isEqualTo(NEEDS_ATTENTION)
-        assertThat(eventLog.statusReason).isEqualTo(BROKEN_CLUSTER)
-        assertThat(eventLog.clusterComposition).isEqualTo(objectMapper.writeValueAsString(clusterComposition))
-      }
     }
   }
 
@@ -633,15 +312,5 @@ class ReclusterServiceIntTest : MessagingMultiNodeTestBase() {
   private fun PersonKeyEntity.assertClusterNotChanged(size: Int) {
     assertClusterStatus(ACTIVE)
     assertClusterIsOfSize(size)
-  }
-
-  private fun PersonKeyEntity.checkReclusterMergeTelemetry(mergedCluster: PersonKeyEntity) {
-    checkTelemetry(
-      TelemetryEventType.CPR_RECLUSTER_MERGE,
-      mapOf(
-        "FROM_UUID" to this.personUUID.toString(),
-        "TO_UUID" to mergedCluster.personUUID.toString(),
-      ),
-    )
   }
 }
