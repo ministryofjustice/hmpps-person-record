@@ -116,6 +116,7 @@ class EventLogEntity(
   @GeneratedColumn("event_timestamp")
   val eventTimestamp: LocalDateTime? = null,
 
+  @Enumerated(STRING)
   @Column(name = "status_reason")
   val statusReason: UUIDStatusReasonType? = null,
 
