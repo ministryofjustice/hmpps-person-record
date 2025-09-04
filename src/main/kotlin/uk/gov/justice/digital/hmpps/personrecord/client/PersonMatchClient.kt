@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchI
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.discardNotFoundException
 
 @Component
 class PersonMatchClient(private val personMatchWebClient: WebClient) {
@@ -18,5 +19,5 @@ class PersonMatchClient(private val personMatchWebClient: WebClient) {
 
   fun postPerson(personMatchRecord: PersonMatchRecord) = personMatchWebClient.post().uri("/person").bodyValue(personMatchRecord).retrieve().toBodilessEntity().block()
 
-  fun deletePerson(personMatchIdentifier: PersonMatchIdentifier) = personMatchWebClient.method(HttpMethod.DELETE).uri("/person").bodyValue(personMatchIdentifier).retrieve().toBodilessEntity().block()
+  fun deletePerson(personMatchIdentifier: PersonMatchIdentifier) = personMatchWebClient.method(HttpMethod.DELETE).uri("/person").bodyValue(personMatchIdentifier).retrieve().toBodilessEntity().discardNotFoundException().block()
 }
