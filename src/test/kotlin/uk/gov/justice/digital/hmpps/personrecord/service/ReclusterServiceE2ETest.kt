@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.Reclu
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class ReclusterServiceE2ETest : E2ETestBase() {
@@ -29,6 +30,44 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
   @Nested
   inner class ClusterAlreadySetAsNeedsAttention {
+
+    @Test
+    fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster above the join threshold`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val recordA = createPerson(createProbationPersonFrom(basePersonData))
+      val matchesA = createPerson(createProbationPersonFrom(basePersonData))
+      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+        .addPerson(recordA)
+        .addPerson(matchesA)
+        .addPerson(doesNotMatch)
+
+      val nowMatchesA = createProbationPersonFrom(basePersonData, crn = doesNotMatch.crn!!)
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(nowMatchesA))
+
+      cluster.assertClusterIsOfSize(3)
+      cluster.assertClusterStatus(ACTIVE)
+    }
+
+    @Test
+    fun `should change from needs attention status to active when the non-matching record is updated to match the other records in the cluster above the fracture threshold`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val recordA = createPerson(createProbationPersonFrom(basePersonData))
+      val matchesA = createPerson(createProbationPersonFrom(basePersonData))
+      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+        .addPerson(recordA)
+        .addPerson(matchesA)
+        .addPerson(doesNotMatch)
+
+      val nowMatchesAboveFracture = createProbationPersonFrom(basePersonData, doesNotMatch.crn!!).aboveFracture() // makes sure this still isnt a join weight
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(nowMatchesAboveFracture))
+
+      cluster.assertClusterIsOfSize(3)
+      cluster.assertClusterStatus(ACTIVE)
+    }
 
     @Test
     fun `should retain needs attention status when a record is updated which continues to match only one record out of 2 in the cluster`() {
@@ -247,6 +286,49 @@ class ReclusterServiceE2ETest : E2ETestBase() {
   inner class NoChangeToCluster {
 
     @Test
+    fun `should do nothing when only matches records in cluster above fracture threshold`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createPerson(
+        createProbationPersonFrom(basePersonData)
+          .aboveFracture(),
+      )
+      val personC = createPerson(
+        createProbationPersonFrom(basePersonData)
+          .aboveFracture(),
+      )
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      recluster(personA)
+
+      cluster.assertClusterNotChanged(size = 3)
+    }
+
+    @Test
+    fun `should do nothing when matches only one record in cluster with multiple records but is still a valid cluster`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personC = createPerson(
+        createProbationPersonFrom(basePersonData)
+          .aboveFracture(),
+      )
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      recluster(personA)
+
+      cluster.assertClusterNotChanged(size = 3)
+    }
+
+    @Test
     fun `should do nothing when there is a mutual exclusion between updated record and a matched clusters`() {
       val basePersonData = createRandomProbationPersonDetails()
 
@@ -332,6 +414,31 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       recluster(personA)
 
       cluster.assertClusterNotChanged(size = 5)
+    }
+
+    @Test
+    fun `should do nothing when cluster is valid but matches to other clusters below the join threshold`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+
+      val personC = createPerson(
+        createProbationPersonFrom(basePersonData)
+          .aboveFracture(),
+      )
+      val cluster2 = createPersonKey()
+        .addPerson(personC)
+
+      recluster(personA)
+
+      cluster1.assertClusterNotChanged(size = 2)
+      cluster2.assertClusterNotChanged(size = 1)
+
+      cluster2.assertNotMergedTo(cluster1)
     }
   }
 
@@ -568,6 +675,75 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster3.assertMergedTo(cluster1)
     }
+
+    @Test
+    fun `should merge clusters when record in a cluster only match above fracture threshold and match another cluster above join`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createPerson(
+        createProbationPersonFrom(basePersonData)
+          .aboveFracture(),
+      )
+      val personC = createPerson(
+        createProbationPersonFrom(basePersonData)
+          .aboveFracture(),
+      )
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      val personD = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster2 = createPersonKey()
+        .addPerson(personD)
+
+      recluster(personA)
+
+      cluster1.assertClusterIsOfSize(4)
+      cluster2.assertClusterIsOfSize(0)
+
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(RECLUSTER_MERGE)
+
+      cluster2.assertMergedTo(cluster1)
+    }
+
+    @Test
+    fun `should merge to active cluster but not a needs attention cluster even if not all records matched but the cluster is valid`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personC = createPerson(
+        createProbationPersonFrom(basePersonData)
+          .aboveFracture(),
+      )
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      val personD = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster2 = createPersonKey()
+        .addPerson(personD)
+
+      val personE = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster3 = createPersonKey(status = NEEDS_ATTENTION)
+        .addPerson(personE)
+
+      recluster(personA)
+
+      cluster1.assertClusterIsOfSize(4)
+      cluster2.assertClusterIsOfSize(0)
+      cluster3.assertClusterIsOfSize(1)
+
+      cluster1.assertClusterStatus(ACTIVE)
+      cluster2.assertClusterStatus(RECLUSTER_MERGE)
+      cluster3.assertClusterStatus(NEEDS_ATTENTION)
+
+      cluster2.assertMergedTo(cluster1)
+    }
   }
 
   @Nested
@@ -625,6 +801,27 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster1.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
       cluster2.assertClusterStatus(ACTIVE)
+    }
+
+    @Test
+    fun `should mark as need attention when only matches one above fracture threshold cluster with multiple records`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createPerson(
+        createProbationPersonFrom(basePersonData)
+          .aboveFracture(),
+      )
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      recluster(personA)
+
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+      cluster.assertClusterIsOfSize(3)
     }
   }
 
