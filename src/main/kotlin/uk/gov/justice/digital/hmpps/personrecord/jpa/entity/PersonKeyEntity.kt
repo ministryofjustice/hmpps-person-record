@@ -49,7 +49,7 @@ class PersonKeyEntity(
 
   fun isActive(): Boolean = status == UUIDStatusType.ACTIVE
 
-  fun isNeedsAttention(): Boolean = status == UUIDStatusType.NEEDS_ATTENTION
+  fun isNeedsAttention(withReason: UUIDStatusReasonType): Boolean = status == UUIDStatusType.NEEDS_ATTENTION && statusReason == withReason
 
   fun setAsActive() {
     this.apply {

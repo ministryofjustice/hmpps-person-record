@@ -51,7 +51,19 @@ class PersonMatchService(
       onSuccess = { it },
       onFailure = { exception ->
         when {
-          exception is NotFound -> handleNotFoundRecordsIsClusterValid(cluster, exception)
+          exception is NotFound -> handleNotFoundRecordsIsClusterValid(exception) { runBlocking { checkClusterIsValid(cluster).getOrThrow() } }
+          else -> throw exception
+        }
+      },
+    )
+  }
+
+  fun examineIsClusterMergeValid(currentCluster: PersonKeyEntity, matchedClusters: List<PersonKeyEntity>): IsClusterValidResponse = runBlocking {
+    checkClusterMergeIsValid(currentCluster, matchedClusters).fold(
+      onSuccess = { it },
+      onFailure = { exception ->
+        when {
+          exception is NotFound -> handleNotFoundRecordsIsClusterValid(exception) { runBlocking { checkClusterMergeIsValid(currentCluster, matchedClusters).getOrThrow() } }
           else -> throw exception
         }
       },
@@ -68,12 +80,14 @@ class PersonMatchService(
     }
   }
 
-  private suspend fun handleNotFoundRecordsIsClusterValid(cluster: PersonKeyEntity, exception: NotFound): IsClusterValidResponse {
+  private suspend fun handleNotFoundRecordsIsClusterValid(exception: NotFound, isClusterAction: () -> IsClusterValidResponse): IsClusterValidResponse {
     val missingRecords = handleDecodeOfNotFoundException(exception)
-    missingRecords.unknownIds.forEach { matchId ->
-      personRepository.findByMatchId(UUID.fromString(matchId))?.let { saveToPersonMatch(it) }
-    }
-    return checkClusterIsValid(cluster).getOrThrow()
+    missingRecords.upsertMissingRecords()
+    return isClusterAction()
+  }
+
+  private fun IsClusterValidMissingRecordResponse.upsertMissingRecords() = this.unknownIds.forEach { matchId ->
+    personRepository.findByMatchId(UUID.fromString(matchId))?.let { saveToPersonMatch(it) }
   }
 
   private fun handleDecodeOfNotFoundException(exception: NotFound): IsClusterValidMissingRecordResponse {
@@ -143,6 +157,10 @@ class PersonMatchService(
 
   private suspend fun checkClusterIsValid(cluster: PersonKeyEntity): Result<IsClusterValidResponse> = runCatching {
     personMatchClient.isClusterValid(cluster.getRecordsMatchIds())
+  }
+
+  private suspend fun checkClusterMergeIsValid(currentCluster: PersonKeyEntity, matchedClusters: List<PersonKeyEntity>): Result<IsClusterValidResponse> = runCatching {
+    personMatchClient.isClusterValid(currentCluster.getRecordsMatchIds() + matchedClusters.map { it.getRecordsMatchIds() }.flatten())
   }
 
   private fun PersonKeyEntity.getRecordsMatchIds(): List<String> = this.personEntities.map { it.matchId.toString() }

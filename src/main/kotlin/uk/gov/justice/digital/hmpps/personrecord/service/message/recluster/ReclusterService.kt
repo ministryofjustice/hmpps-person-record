@@ -28,15 +28,15 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 class ReclusterService(
   private val personMatchService: PersonMatchService,
   private val personKeyRepository: PersonKeyRepository,
-  private val personRepository: PersonRepository,
   private val publisher: ApplicationEventPublisher,
+  private val personRepository: PersonRepository,
 ) {
 
   @Transactional
   fun recluster(changedRecord: PersonEntity) {
     val cluster = changedRecord.personKey!!
     when {
-      clusterIsNeedsAttentionAndCanBecomeActive(cluster) -> settingNeedsAttentionClusterToActive(cluster, changedRecord)
+      cluster.clusterIsBrokenAndCanBecomeActive() -> settingNeedsAttentionClusterToActive(cluster, changedRecord)
     }
     when {
       cluster.isActive() -> processRecluster(cluster, changedRecord)
@@ -59,6 +59,16 @@ class ReclusterService(
     }
   }
 
+  private fun handleUnmatchedRecords(clusterDetails: ClusterDetails) {
+    when {
+      clusterDetails.relationship.notMatchedToAnyRecord() -> handleInvalidClusterComposition(clusterDetails)
+      else -> personMatchService.examineIsClusterValid(clusterDetails.cluster).result(
+        isValid = { handleMergeClusters(clusterDetails) },
+        isNotValid = { clusterComposition -> handleInvalidClusterComposition(clusterDetails, clusterComposition) },
+      )
+    }
+  }
+
   private fun handleMergeClusters(clusterDetails: ClusterDetails) {
     val matchedRecordsClusters: List<PersonKeyEntity> =
       clusterDetails.shouldJoinRecords
@@ -66,19 +76,58 @@ class ReclusterService(
         .removeUpdatedCluster(clusterDetails.cluster)
         .getActiveClusters()
     when {
-      hasExcludeMarkerBetweenClusters(matchedRecordsClusters) -> handleExclusionsBetweenMatchedClusters(clusterDetails)
-      else -> matchedRecordsClusters.forEach {
-        mergeClusters(it, clusterDetails.cluster)
-      }
+      matchedRecordsClusters.isNotEmpty() -> checkCombinedClustersIsAValidClusterAndMerge(matchedRecordsClusters, clusterDetails)
     }
   }
 
-  private fun hasExcludeMarkerBetweenClusters(clusters: List<PersonKeyEntity>): Boolean {
-    val allRecordsIdsFromClusters = clusters.map { it.getRecordIds() }.flatten().toSet()
-    return clusters.any { cluster ->
-      val excludeMarkerRecordIds = cluster.collectExcludeOverrideMarkers().map { it.markerValue }.toSet()
-      allRecordsIdsFromClusters.intersect(excludeMarkerRecordIds).isNotEmpty()
-    }
+  private fun checkCombinedClustersIsAValidClusterAndMerge(matchedRecordsClusters: List<PersonKeyEntity>, clusterDetails: ClusterDetails) {
+    personMatchService.examineIsClusterMergeValid(clusterDetails.cluster, matchedRecordsClusters).result(
+      isValid = {
+        matchedRecordsClusters.forEach {
+          mergeClusters(it, clusterDetails.cluster)
+        }
+      },
+      isNotValid = { clusterComposition -> handleExclusionsBetweenMatchedClusters(clusterDetails, clusterComposition) },
+    )
+  }
+
+  private fun handleInvalidClusterComposition(
+    clusterDetails: ClusterDetails,
+    clusterComposition: List<ValidCluster>? = null,
+  ) {
+    setToNeedsAttention(clusterDetails.cluster, reason = BROKEN_CLUSTER)
+    publisher.publishEvent(
+      RecordClusterTelemetry(
+        TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
+        clusterDetails.cluster,
+      ),
+    )
+    publisher.publishEvent(
+      RecordEventLog.from(
+        CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION,
+        clusterDetails.changedRecord,
+        clusterDetails.cluster,
+        clusterComposition,
+      ),
+    )
+  }
+
+  private fun handleExclusionsBetweenMatchedClusters(clusterDetails: ClusterDetails, clusterComposition: List<ValidCluster>) {
+    setToNeedsAttention(clusterDetails.cluster, reason = OVERRIDE_CONFLICT)
+    publisher.publishEvent(
+      RecordClusterTelemetry(
+        TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
+        clusterDetails.cluster,
+      ),
+    )
+    publisher.publishEvent(
+      RecordEventLog.from(
+        CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION,
+        clusterDetails.changedRecord,
+        clusterDetails.cluster,
+        clusterComposition,
+      ),
+    )
   }
 
   private fun mergeClusters(from: PersonKeyEntity, to: PersonKeyEntity) {
@@ -107,54 +156,6 @@ class ReclusterService(
     )
   }
 
-  private fun handleUnmatchedRecords(clusterDetails: ClusterDetails) {
-    when {
-      clusterDetails.relationship.notMatchedToAnyRecord() -> handleInvalidClusterComposition(clusterDetails)
-      else -> personMatchService.examineIsClusterValid(clusterDetails.cluster).result(
-        isValid = { handleMergeClusters(clusterDetails) },
-        isNotValid = { clusterComposition -> handleInvalidClusterComposition(clusterDetails, clusterComposition) },
-      )
-    }
-  }
-
-  private fun handleExclusionsBetweenMatchedClusters(clusterDetails: ClusterDetails) {
-    setToNeedsAttention(clusterDetails.cluster, reason = OVERRIDE_CONFLICT)
-    publisher.publishEvent(
-      RecordClusterTelemetry(
-        TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
-        clusterDetails.cluster,
-      ),
-    )
-    publisher.publishEvent(
-      RecordEventLog.from(
-        CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION,
-        clusterDetails.changedRecord,
-        clusterDetails.cluster,
-      ),
-    )
-  }
-
-  private fun handleInvalidClusterComposition(
-    clusterDetails: ClusterDetails,
-    clusterComposition: List<ValidCluster>? = null,
-  ) {
-    setToNeedsAttention(clusterDetails.cluster, reason = BROKEN_CLUSTER)
-    publisher.publishEvent(
-      RecordClusterTelemetry(
-        TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
-        clusterDetails.cluster,
-      ),
-    )
-    publisher.publishEvent(
-      RecordEventLog.from(
-        CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION,
-        clusterDetails.changedRecord,
-        clusterDetails.cluster,
-        clusterComposition,
-      ),
-    )
-  }
-
   private fun setToNeedsAttention(personKeyEntity: PersonKeyEntity, reason: UUIDStatusReasonType) {
     personKeyEntity.setAsNeedsAttention(reason)
     personKeyRepository.save(personKeyEntity)
@@ -172,7 +173,11 @@ class ReclusterService(
     )
   }
 
-  private fun clusterIsNeedsAttentionAndCanBecomeActive(cluster: PersonKeyEntity): Boolean = cluster.isNeedsAttention() && personMatchService.examineIsClusterValid(cluster).isClusterValid
+  private fun PersonKeyEntity.clusterIsBrokenAndCanBecomeActive() = this.isNeedsAttention(BROKEN_CLUSTER) && this.clusterIsValid()
+
+  private fun PersonKeyEntity.clusterIsValid() = if (this.hasOneRecord()) true else personMatchService.examineIsClusterValid(this).isClusterValid
+
+  private fun PersonKeyEntity.hasOneRecord() = this.personEntities.size == 1
 
   private fun List<PersonKeyEntity>.removeUpdatedCluster(cluster: PersonKeyEntity) = this.filterNot { it.id == cluster.id }
 
