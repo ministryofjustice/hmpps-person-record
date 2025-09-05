@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import java.time.LocalDate
@@ -37,7 +38,7 @@ data class RecordEventLog(
   val eventType: CPRLogEvents,
   val recordMergedTo: Long? = null,
   val clusterComposition: List<ValidCluster>? = null,
-  val statusReason: String? = null,
+  val statusReason: UUIDStatusReasonType? = null,
 ) {
   companion object {
     fun from(
@@ -71,7 +72,7 @@ data class RecordEventLog(
         eventType = eventType,
         recordMergedTo = personEntity.mergedTo,
         clusterComposition = clusterComposition,
-        statusReason = personEntity.personKey?.statusReason?.name,
+        statusReason = personEntity.personKey?.statusReason,
       )
     }
   }

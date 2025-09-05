@@ -693,7 +693,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         val eventLog = eventLogs.first()
         assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(NEEDS_ATTENTION)
-        assertThat(eventLog.statusReason).isEqualTo(BROKEN_CLUSTER.name)
+        assertThat(eventLog.statusReason).isEqualTo(BROKEN_CLUSTER)
       }
     }
 
@@ -754,7 +754,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         val eventLog = eventLogs.first()
         assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(NEEDS_ATTENTION)
-        assertThat(eventLog.statusReason).isEqualTo(BROKEN_CLUSTER.name)
+        assertThat(eventLog.statusReason).isEqualTo(BROKEN_CLUSTER)
         eventLog.clusterComposition.assertHasClusterComposition(clusterComposition)
       }
     }

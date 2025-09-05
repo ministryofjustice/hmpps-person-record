@@ -15,6 +15,7 @@ import jakarta.persistence.Table
 import org.hibernate.annotations.GeneratedColumn
 import org.hibernate.annotations.Type
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -115,8 +116,9 @@ class EventLogEntity(
   @GeneratedColumn("event_timestamp")
   val eventTimestamp: LocalDateTime? = null,
 
+  @Enumerated(STRING)
   @Column(name = "status_reason")
-  val statusReason: String? = null,
+  val statusReason: UUIDStatusReasonType? = null,
 
 ) {
   companion object {
