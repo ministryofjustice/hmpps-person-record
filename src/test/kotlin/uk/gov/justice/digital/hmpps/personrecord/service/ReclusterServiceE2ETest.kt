@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERG
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.NewReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
@@ -27,7 +27,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 class ReclusterServiceE2ETest : E2ETestBase() {
 
   @Autowired
-  private lateinit var reclusterService: NewReclusterService
+  private lateinit var reclusterService: ReclusterService
 
   @Nested
   inner class ClusterAlreadySetAsNeedsAttention {
@@ -273,11 +273,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       recluster(personA)
 
-      checkTelemetry(
-        TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
-        mapOf("UUID" to cluster1.personUUID.toString()),
-      )
-
       cluster1.assertClusterIsOfSize(1)
       cluster2.assertClusterIsOfSize(1)
       cluster3.assertClusterIsOfSize(1)
@@ -313,11 +308,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       excludeRecord(personC, personD)
 
       recluster(personA)
-
-      checkTelemetry(
-        TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
-        mapOf("UUID" to cluster1.personUUID.toString()),
-      )
 
       cluster1.assertClusterIsOfSize(1)
       cluster2.assertClusterIsOfSize(1)
@@ -623,7 +613,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should merge 3 active clusters when match score returns multiple clusters with a cluster that contain unmatched records`() {
+    fun `should merge 3 active clusters when match score returns multiple clusters with a cluster that contain unmatched records below join threshold`() {
       val basePersonData = createRandomProbationPersonDetails()
 
       val personA = createPerson(createProbationPersonFrom(basePersonData))
@@ -631,15 +621,15 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(personA)
 
       val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val personD = createPerson(createRandomProbationPersonDetails())
+      val personC = createPerson(createProbationPersonFrom(basePersonData).aboveFracture())
+      val personD = createPerson(createProbationPersonFrom(basePersonData).aboveFracture())
       val cluster2 = createPersonKey()
         .addPerson(personB)
         .addPerson(personC)
         .addPerson(personD)
 
       val personE = createPerson(createProbationPersonFrom(basePersonData))
-      val personF = createPerson(createRandomProbationPersonDetails())
+      val personF = createPerson(createProbationPersonFrom(basePersonData).aboveFracture())
       val cluster3 = createPersonKey()
         .addPerson(personE)
         .addPerson(personF)
@@ -934,6 +924,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       )
 
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+
       checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
@@ -950,14 +941,16 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val personA = createPerson(createProbationPersonFrom(basePersonData))
       val personB = createPerson(createProbationPersonFrom(basePersonData))
       val personC = createPerson(createProbationPersonFrom(basePersonData))
-      val cluster = createPersonKey(status = NEEDS_ATTENTION)
+      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(personA)
         .addPerson(personB)
         .addPerson(personC)
 
-      cluster.assertClusterStatus(NEEDS_ATTENTION)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
       recluster(personA)
+
+      cluster.assertClusterStatus(ACTIVE)
 
       checkEventLog(personA.crn!!, CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
@@ -966,8 +959,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         assertThat(eventLog.uuidStatusType).isEqualTo(ACTIVE)
         assertThat(eventLog.statusReason).isNull()
       }
-
-      cluster.assertClusterStatus(ACTIVE)
     }
 
     @Test

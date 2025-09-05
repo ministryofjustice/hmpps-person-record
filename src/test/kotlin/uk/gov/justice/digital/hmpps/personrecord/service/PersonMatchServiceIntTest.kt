@@ -104,7 +104,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
         clusters = listOf(personA.matchId, personB.matchId, personC.matchId, personD.matchId),
       )
 
-      val result = personMatchService.examineIsClusterMergeValid(listOf(cluster1, cluster2))
+      val result = personMatchService.examineIsClusterMergeValid(cluster1, listOf(cluster2))
       assertThat(result.isClusterValid).isTrue()
     }
   }

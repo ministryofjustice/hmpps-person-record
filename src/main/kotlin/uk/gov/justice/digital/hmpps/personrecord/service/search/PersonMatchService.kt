@@ -58,12 +58,12 @@ class PersonMatchService(
     )
   }
 
-  fun examineIsClusterMergeValid(clusters: List<PersonKeyEntity>): IsClusterValidResponse = runBlocking {
-    checkClusterMergeIsValid(clusters).fold(
+  fun examineIsClusterMergeValid(currentCluster: PersonKeyEntity, matchedClusters: List<PersonKeyEntity>): IsClusterValidResponse = runBlocking {
+    checkClusterMergeIsValid(currentCluster, matchedClusters).fold(
       onSuccess = { it },
       onFailure = { exception ->
         when {
-          exception is NotFound -> handleNotFoundRecordsIsClusterValid(exception) { runBlocking { checkClusterMergeIsValid(clusters).getOrThrow() } }
+          exception is NotFound -> handleNotFoundRecordsIsClusterValid(exception) { runBlocking { checkClusterMergeIsValid(currentCluster, matchedClusters).getOrThrow() } }
           else -> throw exception
         }
       },
@@ -159,8 +159,8 @@ class PersonMatchService(
     personMatchClient.isClusterValid(cluster.getRecordsMatchIds())
   }
 
-  private suspend fun checkClusterMergeIsValid(clusters: List<PersonKeyEntity>): Result<IsClusterValidResponse> = runCatching {
-    personMatchClient.isClusterValid(clusters.map { it.getRecordsMatchIds() }.flatten())
+  private suspend fun checkClusterMergeIsValid(currentCluster: PersonKeyEntity, matchedClusters: List<PersonKeyEntity>): Result<IsClusterValidResponse> = runCatching {
+    personMatchClient.isClusterValid(currentCluster.getRecordsMatchIds() + matchedClusters.map { it.getRecordsMatchIds() }.flatten())
   }
 
   private fun PersonKeyEntity.getRecordsMatchIds(): List<String> = this.personEntities.map { it.matchId.toString() }
