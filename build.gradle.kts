@@ -76,14 +76,12 @@ tasks.register<Test>("initialiseDatabase") {
   testClassesDirs = files(test.map { it.sources.output.classesDirs })
   classpath = files(test.map { it.sources.runtimeClasspath })
   include("**/InitialiseDatabase.class")
-  onlyIf { gradle.startParameter.taskNames.contains("initialiseDatabase") }
 }
 
 tasks.register<Test>("e2eTest") {
   testClassesDirs = files(test.map { it.sources.output.classesDirs })
   classpath = files(test.map { it.sources.runtimeClasspath })
   include("**/**E2ETest.class")
-  onlyIf { gradle.startParameter.taskNames.contains("e2eTest") }
 }
 
 tasks {
