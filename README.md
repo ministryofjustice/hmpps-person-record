@@ -17,8 +17,23 @@ For any service enquiries / troubleshooting see the [runbook](./runbooks/000-Per
 - JDK 21
 
 ### Running tests
-```
+
+Run Unit + Int tests:
+
+```shell
 $ make test
+```
+
+Run end-2-end tests:
+
+```shell
+$ make e2e-test
+```
+
+Run all tests:
+
+```shell
+$ make test-e2e
 ```
 
 ### Deployment

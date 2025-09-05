@@ -70,7 +70,7 @@ jobs:
       - name: Run e2e tests
         shell: bash
         run: |
-          make start-containers
+          make start-all-containers
           ./gradlew e2eTest
   build:
     name: Build docker image from hmpps-github-actions

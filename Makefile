@@ -1,10 +1,10 @@
 SHELL     := /bin/bash
 JAVA_OPTS := "-Xmx4096m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=true -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.workers.max=1"
 
-test: start-containers format
+test: int-start-containers format
 	export _JAVA_OPTIONS=${JAVA_OPTS} && ./gradlew check
 
-e2e-test: start-containers format
+test-e2e: start-all-containers format
 	export _JAVA_OPTIONS=${JAVA_OPTS} && ./gradlew e2eTest
 
 test-all: test e2e-test
@@ -12,23 +12,19 @@ test-all: test e2e-test
 format:
 	./gradlew ktlintFormat
 
-start-containers:
-ifeq (0,$(shell docker compose ps --services --filter "status=running" | grep 'hmpps-person-record' | wc -l | xargs))
+start-all-containers:
 	$(MAKE) int-start-containers
 	$(MAKE) e2e-start-containers
-else
-	@echo "containers already running"
-endif
 
-stop-containers:
+stop-all-containers:
 	$(MAKE) int-stop-containers
 	$(MAKE) e2e-stop-containers
 
-restart-containers: stop-containers
+restart-all-containers: stop-all-containers
 	$(MAKE) int-start-containers
 	$(MAKE) e2e-start-containers
 
-run-local: start-containers
+run-local: int-start-containers
 	./gradlew bootRun --args='--spring.profiles.active=local'
 
 run-with-match:
