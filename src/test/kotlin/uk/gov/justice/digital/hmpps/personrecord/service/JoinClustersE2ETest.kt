@@ -1,9 +1,8 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.listeners.court.commonplatform
+package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.test.context.ActiveProfiles
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION_EXCLUDE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
@@ -17,8 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
 
-@ActiveProfiles("e2e")
-class JoinClustersE2ETest : MessagingTestBase() {
+class JoinClustersE2ETest : E2ETestBase() {
 
   @Test
   fun `should create 2 people who do not match followed by a third which matches both and all end up on same cluster`() {

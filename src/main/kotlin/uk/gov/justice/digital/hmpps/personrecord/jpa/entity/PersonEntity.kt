@@ -19,6 +19,7 @@ import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
@@ -70,7 +71,7 @@ class PersonEntity(
   @Column(name = "override_marker")
   var overrideMarker: UUID? = null,
 
-  @ManyToMany(cascade = [ALL], fetch = EAGER)
+  @ManyToMany(fetch = EAGER)
   @JoinTable(
     name = "person_override_scope",
     joinColumns = [JoinColumn(name = "person_id")],
@@ -116,9 +117,6 @@ class PersonEntity(
     referencedColumnName = "id",
   )
   var ethnicityCode: EthnicityCodeEntity? = null,
-
-  @Column
-  var ethnicity: String? = null,
 
   @Column(name = "merged_to")
   var mergedTo: Long? = null,
@@ -179,7 +177,6 @@ class PersonEntity(
     this.crn = person.crn
     this.prisonNumber = person.prisonNumber
     this.masterDefendantId = person.masterDefendantId
-    this.ethnicity = person.ethnicity
     this.religion = person.religion
     this.cId = person.cId
     this.sexCode = person.sexCode
@@ -236,6 +233,8 @@ class PersonEntity(
 
     fun List<ReferenceEntity>.getType(type: IdentifierType): List<ReferenceEntity> = this.filter { it.identifierType == type }
 
+    fun List<ContactEntity>.getType(type: ContactType): List<ContactEntity> = this.filter { it.contactType == type }
+
     fun PersonEntity?.exists(no: () -> PersonEntity, yes: (personEntity: PersonEntity) -> PersonEntity): PersonEntity = when {
       this == empty -> no()
       else -> yes(this)
@@ -248,7 +247,6 @@ class PersonEntity(
         prisonNumber = person.prisonNumber,
         masterDefendantId = person.masterDefendantId,
         sourceSystem = person.sourceSystem,
-        ethnicity = person.ethnicity,
         religion = person.religion,
         matchId = UUID.randomUUID(),
         cId = person.cId,

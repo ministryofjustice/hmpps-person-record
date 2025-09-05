@@ -22,7 +22,6 @@ data class PersonMatchRecord(
   val sourceSystemId: String? = "",
   val overrideMarker: String? = "",
   val overrideScopes: List<String> = emptyList(),
-
 ) {
 
   fun matchingFieldsAreDifferent(personMatchRecord: PersonMatchRecord): Boolean = this != personMatchRecord
@@ -44,8 +43,7 @@ data class PersonMatchRecord(
       sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.map { it.toString() }.distinct().sorted(),
       sourceSystemId = personEntity.extractSourceSystemId(),
       overrideMarker = personEntity.overrideMarker?.toString() ?: "",
-      overrideScopes = personEntity.overrideScopes.mapNotNull { overrideScope -> overrideScope.scope.toString() },
-
+      overrideScopes = personEntity.overrideScopes.map { overrideScope -> overrideScope.scope.toString() },
     )
   }
 }

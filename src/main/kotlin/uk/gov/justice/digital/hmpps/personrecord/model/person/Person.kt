@@ -38,7 +38,6 @@ data class Person(
   val masterDefendantId: String? = null,
   val nationalities: List<Nationality> = emptyList(),
   val religion: String? = null,
-  val ethnicity: String? = null,
   val ethnicityCode: EthnicityCode? = null,
   val contacts: List<Contact> = emptyList(),
   val addresses: List<Address> = emptyList(),
@@ -52,6 +51,8 @@ data class Person(
 ) {
 
   companion object {
+
+    fun List<Contact>.getType(type: ContactType): List<Contact> = this.filter { it.contactType == type }
 
     fun List<Reference>.getType(type: IdentifierType): List<Reference> = this.filter { it.identifierType == type }
 
@@ -71,9 +72,13 @@ data class Person(
           identifierValue = probationCase.identifiers.nationalInsuranceNumber,
         ),
       )
+
       val nationalities: List<Nationality> = listOf(
-        Nationality(NationalityCode.fromProbationMapping(probationCase.nationality?.value)),
-      )
+        NationalityCode.fromProbationMapping(probationCase.nationality?.value),
+        NationalityCode.fromProbationMapping(probationCase.secondaryNationality?.value),
+      ).mapNotNull { it }
+        .map { Nationality(it) }
+
       return Person(
         titleCode = TitleCode.from(probationCase.title?.value),
         firstName = probationCase.name.firstName.nullIfBlank(),
@@ -81,7 +86,6 @@ data class Person(
         lastName = probationCase.name.lastName.nullIfBlank(),
         dateOfBirth = probationCase.dateOfBirth,
         crn = probationCase.identifiers.crn,
-        ethnicity = probationCase.ethnicity?.value.nullIfBlank(),
         ethnicityCode = EthnicityCode.fromProbation(probationCase.ethnicity?.value),
         nationalities = nationalities,
         aliases = probationCase.aliases?.map { Alias.from(it) } ?: emptyList(),
@@ -121,8 +125,10 @@ data class Person(
       )
 
       val nationalities: List<Nationality> = listOf(
-        Nationality(NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.nationalityCode)),
-      )
+        NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.nationalityCode),
+        NationalityCode.fromCommonPlatformMapping(defendant.personDefendant?.personDetails?.additionalNationalityCode),
+      ).mapNotNull { it }
+        .map { Nationality(it) }
 
       return Person(
         titleCode = TitleCode.from(defendant.personDefendant?.personDetails?.title.nullIfBlank()),
@@ -151,10 +157,7 @@ data class Person(
         Reference.from(identifierType = IdentifierType.CRO, identifierValue = libraHearingEvent.cro?.toString()),
         Reference.from(identifierType = IdentifierType.PNC, identifierValue = libraHearingEvent.pnc?.toString()),
       )
-      val nationalities: List<Nationality> = listOf(
-        Nationality(NationalityCode.fromLibraMapping(libraHearingEvent.nationality1)),
-        Nationality(NationalityCode.fromLibraMapping(libraHearingEvent.nationality2)),
-      )
+
       return Person(
         titleCode = TitleCode.from(libraHearingEvent.name?.title),
         firstName = libraHearingEvent.name?.firstName.nullIfBlank(),
@@ -163,7 +166,6 @@ data class Person(
         dateOfBirth = libraHearingEvent.dateOfBirth,
         addresses = addresses,
         references = references,
-        nationalities = nationalities,
         sourceSystem = LIBRA,
         cId = libraHearingEvent.cId.nullIfBlank(),
         sexCode = SexCode.from(libraHearingEvent),
@@ -190,9 +192,7 @@ data class Person(
           identifierValue = prisoner.identifiers.getType("DL")?.value,
         ),
       )
-      val nationalities: List<Nationality> = listOf(
-        Nationality(NationalityCode.fromPrisonMapping(prisoner.nationality)),
-      )
+      val nationalities: List<Nationality> = NationalityCode.fromPrisonMapping(prisoner.nationality)?.let { listOf(Nationality(it)) } ?: emptyList()
 
       return Person(
         prisonNumber = prisoner.prisonNumber.nullIfBlank(),
@@ -201,7 +201,6 @@ data class Person(
         middleNames = prisoner.middleNames.nullIfBlank(),
         lastName = prisoner.lastName.nullIfBlank(),
         dateOfBirth = prisoner.dateOfBirth,
-        ethnicity = prisoner.ethnicity.nullIfBlank(),
         ethnicityCode = EthnicityCode.fromPrison(prisoner.ethnicity.nullIfBlank()),
         aliases = prisoner.aliases.map { Alias.from(it) },
         contacts = contacts,
@@ -227,7 +226,6 @@ data class Person(
       aliases = existingPersonEntity.getAliases().map { Alias.from(it) },
       masterDefendantId = existingPersonEntity.masterDefendantId,
       religion = existingPersonEntity.religion,
-      ethnicity = existingPersonEntity.ethnicity,
       contacts = existingPersonEntity.contacts.map { Contact.convertEntityToContact(it) },
       addresses = existingPersonEntity.addresses.map { Address.from(it) },
       references = existingPersonEntity.references.map { Reference.from(it) },

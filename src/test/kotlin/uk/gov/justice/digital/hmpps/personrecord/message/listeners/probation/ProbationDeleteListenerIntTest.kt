@@ -365,5 +365,31 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     courtPerson.defendantId?.assertNotLinksToCrn(probationPerson.crn!!)
   }
 
+  @Test
+  fun `should process offender delete with override marker`() {
+    val personA = createPersonWithNewKey(createRandomProbationPersonDetails())
+    val personB = createPersonWithNewKey(createRandomProbationPersonDetails())
+
+    excludeRecord(personA, personB)
+
+    val domainEvent = probationDomainEvent(OFFENDER_DELETION, personA.crn!!)
+    publishDomainEvent(OFFENDER_DELETION, domainEvent)
+
+    checkTelemetry(
+      CPR_RECORD_DELETED,
+      mapOf("CRN" to personA.crn, "UUID" to personA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+    )
+    checkTelemetry(
+      CPR_UUID_DELETED,
+      mapOf("CRN" to personA.crn, "UUID" to personA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+    )
+
+    personA.assertPersonDeleted()
+    personA.personKey?.assertPersonKeyDeleted()
+
+    personB.assertHasOverrideMarker()
+    personB.assertOverrideScopeSize(1)
+  }
+
   private fun PersonEntity.linkToProbationRecord(probationRecord: PersonEntity) = courtProbationLinkRepository.save(CourtProbationLinkEntity(defendantId = this.defendantId!!, crn = probationRecord.crn!!))
 }

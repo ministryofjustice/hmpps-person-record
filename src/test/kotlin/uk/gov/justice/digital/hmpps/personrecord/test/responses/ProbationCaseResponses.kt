@@ -33,6 +33,10 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
         ${probationCase.nationality?.let { """ "code": "${probationCase.nationality}", """.trimIndent() } ?: ""}
         "description": "string"
       },
+      "secondaryNationality": {
+        ${probationCase.secondaryNationality?.let { """ "code": "${probationCase.secondaryNationality}", """.trimIndent() } ?: ""}
+        "description": "string"
+      },
       "contactDetails": {
         "telephone": "01234567890",
         "mobile": "01234567890",

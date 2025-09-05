@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.search
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
@@ -18,6 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.DiscardableNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import java.util.UUID
 
@@ -70,7 +72,13 @@ class PersonMatchService(
 
   fun saveToPersonMatch(personEntity: PersonEntity): ResponseEntity<Void>? = runBlocking { personMatchClient.postPerson(PersonMatchRecord.from(personEntity)) }
 
-  fun deleteFromPersonMatch(personEntity: PersonEntity) = runBlocking { runCatching { personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity)) } }
+  fun deleteFromPersonMatch(personEntity: PersonEntity) = runBlocking {
+    try {
+      personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity))
+    } catch (_: DiscardableNotFoundException) {
+      log.info("ignoring 404 from person match because record has already been deleted")
+    }
+  }
 
   private suspend fun handleNotFoundRecordsIsClusterValid(exception: NotFound, isClusterAction: () -> IsClusterValidResponse): IsClusterValidResponse {
     val missingRecords = handleDecodeOfNotFoundException(exception)
@@ -158,6 +166,10 @@ class PersonMatchService(
   private fun PersonKeyEntity.getRecordsMatchIds(): List<String> = this.personEntities.map { it.matchId.toString() }
 
   private fun List<PersonMatchResult>.collectDistinctClusters(): List<PersonKeyEntity> = this.map { it.personEntity }.groupBy { it.personKey!! }.map { it.key }.distinctBy { it.id }
+
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
+  }
 }
 
 class PersonMatchResult(

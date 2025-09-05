@@ -84,6 +84,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
@@ -185,7 +186,7 @@ class IntegrationTestBase {
   internal fun createRandomProbationPersonDetails(crn: String = randomCrn()): Person = Person.from(
     ProbationCase(
       name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
-      identifiers = Identifiers(crn = crn, pnc = randomPnc()),
+      identifiers = Identifiers(crn = crn, pnc = randomPnc(), cro = randomCro()),
       addresses = listOf(
         ProbationAddress(postcode = randomPostcode()),
         ProbationAddress(postcode = randomPostcode()),
@@ -591,8 +592,6 @@ class IntegrationTestBase {
   internal fun String?.getNationalityCodeEntityFromPrisonCode(): NationalityCodeEntity? = NationalityCode.fromPrisonMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
 
   internal fun String?.getNationalityCodeEntityFromProbationCode(): NationalityCodeEntity? = NationalityCode.fromProbationMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
-
-  internal fun String?.getNationalityCodeEntityFromLibraCode(): NationalityCodeEntity? = NationalityCode.fromLibraMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
 
   internal fun String?.getNationalityCodeEntityFromCommonPlatformCode(): NationalityCodeEntity? = NationalityCode.fromCommonPlatformMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
 
