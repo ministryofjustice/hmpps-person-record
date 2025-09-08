@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECL
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -151,8 +152,15 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val personB = createProbationPersonFrom(personBData)
       val personC = createProbationPersonFrom(personCData)
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personA.crn!!, personC.crn!!, reactivatedSetup = ApiResponseSetup.from(personA))
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personB.crn!!, personC.crn, reactivatedSetup = ApiResponseSetup.from(personB))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personA))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personB))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personC))
+
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personA.crn!!, personC.crn!!)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personB.crn!!, personC.crn)
+
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personA.crn, personC.crn, reactivatedSetup = ApiResponseSetup.from(personA))
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personB.crn, personC.crn, reactivatedSetup = ApiResponseSetup.from(personB))
 
       val clusterA = awaitNotNullPerson { personRepository.findByCrn(personA.crn) }.personKey
       clusterA?.assertClusterIsOfSize(1)
