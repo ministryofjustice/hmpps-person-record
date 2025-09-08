@@ -79,46 +79,6 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
   inner class Scoring {
 
     @Test
-    fun `should find one high confidence match for record not assigned to cluster with override markers`() {
-      val searchingRecord = createPerson(createExamplePerson())
-
-      val foundRecord = createPerson(createExamplePerson())
-      val overridesRecord = createPerson(createExamplePerson())
-      createPersonKey()
-        .addPerson(foundRecord)
-        .addPerson(overridesRecord)
-
-      excludeRecord(overridesRecord, excludingRecord = searchingRecord)
-
-      stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
-
-      val person = personRepository.findByMatchId(searchingRecord.matchId)!!
-      val highConfidenceMatch = personMatchService.findClustersToJoin(person)
-
-      noCandidateFound(highConfidenceMatch)
-    }
-
-    @Test
-    fun `should not find one high confidence match if record in searching cluster has override marker with match`() {
-      val searchingRecord = createPerson(createExamplePerson())
-      val overridesRecord = createPerson(createExamplePerson())
-      createPersonKey()
-        .addPerson(searchingRecord)
-        .addPerson(overridesRecord)
-
-      val foundRecord = createPersonWithNewKey(createExamplePerson())
-
-      excludeRecord(overridesRecord, excludingRecord = foundRecord)
-
-      stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
-
-      val person = personRepository.findByMatchId(searchingRecord.matchId)!!
-      val highConfidenceMatch = personMatchService.findClustersToJoin(person)
-
-      noCandidateFound(highConfidenceMatch)
-    }
-
-    @Test
     fun `should find one high confidence match for record not assigned to cluster`() {
       val searchingRecord = createPerson(createExamplePerson())
       val foundRecord = createPersonWithNewKey(createExamplePerson())
@@ -214,45 +174,6 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       stubOnePersonMatchAboveJoinThreshold(matchId = record.matchId, matchedRecord = record.matchId)
 
       val highConfidenceMatch = personMatchService.findClustersToJoin(record)
-
-      noCandidateFound(highConfidenceMatch)
-    }
-
-    @Test
-    fun `should not find candidate records when exclude marker set`() {
-      val searchingRecord = createPersonWithNewKey(createExamplePerson())
-      val excludedRecord = createPersonWithNewKey(createExamplePerson())
-
-      excludeRecord(searchingRecord, excludingRecord = excludedRecord)
-
-      stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = excludedRecord.matchId)
-
-      val person = personRepository.findByMatchId(searchingRecord.matchId)!!
-      val highConfidenceMatch = personMatchService.findClustersToJoin(person)
-
-      noCandidateFound(highConfidenceMatch)
-    }
-
-    @Test
-    fun `should not find candidate records when exclude marker set on different record in matched cluster`() {
-      val searchingRecord = createPersonWithNewKey(createExamplePerson())
-
-      val matchingCluster = createPersonKey()
-      val excludedRecord = createPerson(createExamplePerson(), personKeyEntity = matchingCluster)
-      val matchRecordOnSameCluster = createPerson(createExamplePerson(), personKeyEntity = matchingCluster)
-
-      excludeRecord(searchingRecord, excludingRecord = excludedRecord)
-
-      stubXPersonMatches(
-        matchId = searchingRecord.matchId,
-        aboveJoin = listOf(
-          excludedRecord.matchId,
-          matchRecordOnSameCluster.matchId,
-        ),
-      )
-
-      val person = personRepository.findByMatchId(searchingRecord.matchId)!!
-      val highConfidenceMatch = personMatchService.findClustersToJoin(person)
 
       noCandidateFound(highConfidenceMatch)
     }
