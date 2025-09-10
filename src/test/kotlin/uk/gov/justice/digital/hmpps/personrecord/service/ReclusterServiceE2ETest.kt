@@ -352,22 +352,30 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should set record to active when inclusive links within cluster`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
-      val personB = createPerson(createRandomProbationPersonDetails())
-      val personC = createPerson(createRandomProbationPersonDetails())
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personC = createPerson(createProbationPersonFrom(basePersonData))
       val cluster = createPersonKey()
         .addPerson(personA)
         .addPerson(personB)
         .addPerson(personC)
 
-      recluster(personA)
+      probationDomainEventAndResponseSetup(
+        eventType = OFFENDER_PERSONAL_DETAILS_UPDATED,
+        ApiResponseSetup.from(createRandomProbationPersonDetails(crn = personB.crn!!)),
+      )
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
       includeRecords(personA, personB, personC)
 
-      recluster(personA)
+      probationDomainEventAndResponseSetup(
+        eventType = OFFENDER_PERSONAL_DETAILS_UPDATED,
+        ApiResponseSetup.from(createProbationPersonFrom(basePersonData, crn = personA.crn!!).withChangedMatchDetails()),
+      )
 
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(ACTIVE)
