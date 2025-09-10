@@ -19,9 +19,10 @@ import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class ReclusterServiceE2ETest : E2ETestBase() {
@@ -191,33 +192,57 @@ class ReclusterServiceE2ETest : E2ETestBase() {
   inner class ClusterWithExclusionOverride {
 
     @Test
-    fun `should merge to an excluded cluster that has exclusion to the updated cluster`() {
-      val basePersonData = createRandomProbationPersonDetails()
+    fun `should merge matched clusters taking into account the exclusion marker`() {
+      /*
+      Given three person records are created A B C
+      And A and C match
+      And A is merged into C
+      And B is merged into C
+      And B is unmerged from C
+      And A is unmerged from C
+      And B is updated to match A and C
+      Then A joins B on the same cluster
+      And C does not because it is excluded
+       */
+      val personAData = createRandomProbationPersonDetails()
+      val personBData = createRandomProbationPersonDetails()
 
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
+      val personA = createProbationPersonFrom(personAData)
+      val personB = createProbationPersonFrom(personBData)
+      val personC = createProbationPersonFrom(personAData)
 
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val cluster2 = createPersonKey()
-        .addPerson(personB)
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personA))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personB))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personC))
 
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
-      val cluster3 = createPersonKey()
-        .addPerson(personC)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personA.crn!!, personC.crn!!)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personB.crn!!, personC.crn)
 
-      excludeRecord(personA, personC)
-      excludeRecord(personB, personC)
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personA.crn, personC.crn, reactivatedSetup = ApiResponseSetup.from(personA))
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personB.crn, personC.crn, reactivatedSetup = ApiResponseSetup.from(personB))
 
-      recluster(personA)
+      val clusterA = awaitNotNullPerson { personRepository.findByCrn(personA.crn) }.personKey
+      clusterA?.assertClusterIsOfSize(1)
 
-      cluster1.assertClusterIsOfSize(2)
-      cluster2.assertClusterIsOfSize(0)
-      cluster3.assertClusterIsOfSize(1)
+      val clusterB = awaitNotNullPerson { personRepository.findByCrn(personB.crn) }.personKey
+      clusterB?.assertClusterIsOfSize(1)
 
-      cluster1.assertClusterStatus(ACTIVE)
-      cluster2.assertClusterStatus(RECLUSTER_MERGE)
-      cluster3.assertClusterStatus(ACTIVE)
+      val clusterC = awaitNotNullPerson { personRepository.findByCrn(personC.crn) }.personKey
+      clusterC?.assertClusterIsOfSize(1)
+
+      val updatePersonBSoItMatchesPersonA = personA.copy(crn = personB.crn)
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatePersonBSoItMatchesPersonA))
+
+      clusterA?.assertClusterStatus(RECLUSTER_MERGE)
+      clusterA?.assertClusterIsOfSize(0)
+
+      val updatedClusterWithPersonB = awaitNotNullPerson { personRepository.findByCrn(personB.crn) }.personKey
+      updatedClusterWithPersonB?.assertClusterIsOfSize(2)
+      updatedClusterWithPersonB?.assertClusterStatus(ACTIVE)
+
+      val updatedClusterWithPersonC = awaitNotNullPerson { personRepository.findByCrn(personC.crn) }.personKey
+      updatedClusterWithPersonC?.assertClusterIsOfSize(1)
+      updatedClusterWithPersonC?.assertClusterStatus(ACTIVE)
     }
 
     @Test
