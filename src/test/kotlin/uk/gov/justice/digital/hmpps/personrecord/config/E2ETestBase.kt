@@ -25,8 +25,8 @@ class E2ETestBase : MessagingTestBase() {
 
   override fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
     super.excludeRecord(sourceRecord, excludingRecord)
-    personMatchService.saveToPersonMatch(sourceRecord)
-    personMatchService.saveToPersonMatch(excludingRecord)
+    personMatchService.saveToPersonMatch(personRepository.findByMatchId(sourceRecord.matchId)!!)
+    personMatchService.saveToPersonMatch(personRepository.findByMatchId(excludingRecord.matchId)!!)
   }
 
   internal fun createProbationPersonFrom(from: Person, crn: String = randomCrn()): Person = from.copy(crn = crn)
