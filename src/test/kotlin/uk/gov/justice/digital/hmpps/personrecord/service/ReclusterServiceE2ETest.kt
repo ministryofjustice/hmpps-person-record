@@ -322,6 +322,34 @@ class ReclusterServiceE2ETest : E2ETestBase() {
   }
 
   @Nested
+  inner class ClusterWithInclusionOverride {
+
+    @Test
+    fun `should set record to active when inclusive links within cluster`() {
+      val personA = createPerson(createRandomProbationPersonDetails())
+      val personB = createPerson(createRandomProbationPersonDetails())
+      val personC = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      recluster(personA)
+
+      cluster.assertClusterIsOfSize(3)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+
+      includeRecords(personA, personB, personC)
+
+      recluster(personA)
+
+      cluster.assertClusterIsOfSize(3)
+      cluster.assertClusterStatus(ACTIVE)
+    }
+
+  }
+
+  @Nested
   inner class NoChangeToCluster {
 
     @Test
