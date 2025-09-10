@@ -346,7 +346,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(ACTIVE)
     }
-
   }
 
   @Nested
