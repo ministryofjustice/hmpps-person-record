@@ -22,7 +22,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class ReclusterServiceE2ETest : E2ETestBase() {
@@ -216,18 +217,18 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personC))
 
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, personA.crn!!, personC.crn!!)
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personB.crn!!, personC.crn)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personB.crn!!, personC.crn!!)
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personA.crn, personC.crn, reactivatedSetup = ApiResponseSetup.from(personA))
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personB.crn, personC.crn, reactivatedSetup = ApiResponseSetup.from(personB))
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personA.crn!!, personC.crn!!, reactivatedSetup = ApiResponseSetup.from(personA))
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personB.crn!!, personC.crn!!, reactivatedSetup = ApiResponseSetup.from(personB))
 
-      val clusterA = awaitNotNullPerson { personRepository.findByCrn(personA.crn) }.personKey
+      val clusterA = awaitNotNullPerson { personRepository.findByCrn(personA.crn!!) }.personKey
       clusterA?.assertClusterIsOfSize(1)
 
-      val clusterB = awaitNotNullPerson { personRepository.findByCrn(personB.crn) }.personKey
+      val clusterB = awaitNotNullPerson { personRepository.findByCrn(personB.crn!!) }.personKey
       clusterB?.assertClusterIsOfSize(1)
 
-      val clusterC = awaitNotNullPerson { personRepository.findByCrn(personC.crn) }.personKey
+      val clusterC = awaitNotNullPerson { personRepository.findByCrn(personC.crn!!) }.personKey
       clusterC?.assertClusterIsOfSize(1)
 
       val updatePersonBSoItMatchesPersonA = personA.copy(crn = personB.crn)
@@ -236,11 +237,11 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       clusterA?.assertClusterStatus(RECLUSTER_MERGE)
       clusterA?.assertClusterIsOfSize(0)
 
-      val updatedClusterWithPersonB = awaitNotNullPerson { personRepository.findByCrn(personB.crn) }.personKey
+      val updatedClusterWithPersonB = awaitNotNullPerson { personRepository.findByCrn(personB.crn!!) }.personKey
       updatedClusterWithPersonB?.assertClusterIsOfSize(2)
       updatedClusterWithPersonB?.assertClusterStatus(ACTIVE)
 
-      val updatedClusterWithPersonC = awaitNotNullPerson { personRepository.findByCrn(personC.crn) }.personKey
+      val updatedClusterWithPersonC = awaitNotNullPerson { personRepository.findByCrn(personC.crn!!) }.personKey
       updatedClusterWithPersonC?.assertClusterIsOfSize(1)
       updatedClusterWithPersonC?.assertClusterStatus(ACTIVE)
     }
@@ -941,7 +942,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       cluster2.assertMergedTo(cluster1)
 
       checkTelemetry(
-        TelemetryEventType.CPR_RECLUSTER_MERGE,
+        CPR_RECLUSTER_MERGE,
         mapOf(
           "FROM_UUID" to cluster2.personUUID.toString(),
           "TO_UUID" to cluster1.personUUID.toString(),
