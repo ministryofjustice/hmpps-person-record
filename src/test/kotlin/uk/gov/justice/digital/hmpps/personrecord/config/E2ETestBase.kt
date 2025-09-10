@@ -28,8 +28,8 @@ class E2ETestBase : MessagingTestBase() {
 
   override fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
     super.excludeRecord(sourceRecord, excludingRecord)
-    personRepository.findByMatchId(sourceRecord.matchId)?.let { personMatchService.saveToPersonMatch(it) }
-    personRepository.findByMatchId(excludingRecord.matchId)?.let { personMatchService.saveToPersonMatch(it) }
+    personMatchService.saveToPersonMatch(personRepository.findByMatchId(sourceRecord.matchId)!!)
+    personMatchService.saveToPersonMatch(personRepository.findByMatchId(excludingRecord.matchId)!!)
   }
 
   internal fun includeRecords(vararg records: PersonEntity) {
