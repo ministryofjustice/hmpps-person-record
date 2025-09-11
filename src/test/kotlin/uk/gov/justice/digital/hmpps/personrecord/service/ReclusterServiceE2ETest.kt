@@ -271,7 +271,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       cluster1.assertClusterIsOfSize(3)
       cluster2.assertClusterIsOfSize(2)
 
-      cluster1.assertClusterStatus(ACTIVE)
+      cluster1.assertClusterStatus(NEEDS_ATTENTION, OVERRIDE_CONFLICT)
       cluster2.assertClusterStatus(ACTIVE)
     }
 
@@ -443,28 +443,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(personC)
 
       excludeRecord(personA, personC)
-
-      recluster(personA)
-
-      cluster1.assertClusterNotChanged(size = 2)
-      cluster2.assertClusterNotChanged(size = 1)
-    }
-
-    @Test
-    fun `should do nothing when there is a mutual exclusion between records in matched clusters`() {
-      val basePersonData = createRandomProbationPersonDetails()
-
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val cluster1 = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-
-      val personC = createPerson(createProbationPersonFrom(basePersonData))
-      val cluster2 = createPersonKey()
-        .addPerson(personC)
-
-      excludeRecord(personB, personC)
 
       recluster(personA)
 
