@@ -47,15 +47,12 @@ class PersonMatchService(
   }
 
   fun examineIsClusterValid(cluster: PersonKeyEntity): IsClusterValidResponse = runBlocking {
-    checkClusterIsValid(cluster).fold(
-      onSuccess = { it },
-      onFailure = { exception ->
-        when {
-          exception is NotFound -> handleNotFoundRecordsIsClusterValid(cluster, exception)
-          else -> throw exception
-        }
-      },
-    )
+    cluster.getRecordsMatchIds().checkClusterIsValid()
+  }
+
+  fun examineIsClusterMergeValid(currentCluster: PersonKeyEntity, matchedClusters: List<PersonKeyEntity>): IsClusterValidResponse = runBlocking {
+    val records = currentCluster.getRecordsMatchIds() + matchedClusters.map { it.getRecordsMatchIds() }.flatten()
+    records.checkClusterIsValid()
   }
 
   fun saveToPersonMatch(personEntity: PersonEntity): ResponseEntity<Void>? = runBlocking { personMatchClient.postPerson(PersonMatchRecord.from(personEntity)) }
@@ -68,12 +65,8 @@ class PersonMatchService(
     }
   }
 
-  private suspend fun handleNotFoundRecordsIsClusterValid(cluster: PersonKeyEntity, exception: NotFound): IsClusterValidResponse {
-    val missingRecords = handleDecodeOfNotFoundException(exception)
-    missingRecords.unknownIds.forEach { matchId ->
-      personRepository.findByMatchId(UUID.fromString(matchId))?.let { saveToPersonMatch(it) }
-    }
-    return checkClusterIsValid(cluster).getOrThrow()
+  private fun IsClusterValidMissingRecordResponse.upsertMissingRecords() = this.unknownIds.forEach { matchId ->
+    personRepository.findByMatchId(UUID.fromString(matchId))?.let { saveToPersonMatch(it) }
   }
 
   private fun handleDecodeOfNotFoundException(exception: NotFound): IsClusterValidMissingRecordResponse {
@@ -141,9 +134,18 @@ class PersonMatchService(
     return this
   }
 
-  private suspend fun checkClusterIsValid(cluster: PersonKeyEntity): Result<IsClusterValidResponse> = runCatching {
-    personMatchClient.isClusterValid(cluster.getRecordsMatchIds())
-  }
+  private suspend fun List<String>.checkClusterIsValid(): IsClusterValidResponse = runCatching { personMatchClient.isClusterValid(this) }.fold(
+    onSuccess = { it },
+    onFailure = { exception ->
+      when {
+        exception is NotFound -> {
+          handleDecodeOfNotFoundException(exception).upsertMissingRecords()
+          return personMatchClient.isClusterValid(this)
+        }
+        else -> throw exception
+      }
+    },
+  )
 
   private fun PersonKeyEntity.getRecordsMatchIds(): List<String> = this.personEntities.map { it.matchId.toString() }
 

@@ -18,10 +18,12 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECL
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class ReclusterServiceE2ETest : E2ETestBase() {
@@ -63,7 +65,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(matchesA)
         .addPerson(doesNotMatch)
 
-      val nowMatchesAboveFracture = createProbationPersonFrom(basePersonData, doesNotMatch.crn!!).aboveFracture() // makes sure this still isnt a join weight
+      val nowMatchesAboveFracture = createProbationPersonFrom(basePersonData, doesNotMatch.crn!!).aboveFracture()
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(nowMatchesAboveFracture))
 
       cluster.assertClusterIsOfSize(3)
@@ -137,6 +139,54 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
     }
+
+    @Test
+    fun `should set a broken cluster to active if the cluster has one record in it after a delete`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val recordAPersonData = createProbationPersonFrom(basePersonData)
+      val recordA = createPerson(recordAPersonData)
+      val recordToDelete = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+        .addPerson(recordA)
+        .addPerson(recordToDelete)
+
+      val domainEvent = probationDomainEvent(OFFENDER_DELETION, recordToDelete.crn!!)
+      publishDomainEvent(OFFENDER_DELETION, domainEvent)
+
+      cluster.assertClusterIsOfSize(1)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+
+      val updatedRecordAData = recordAPersonData.withChangedMatchDetails()
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedRecordAData))
+
+      cluster.assertClusterIsOfSize(1)
+      cluster.assertClusterStatus(ACTIVE)
+    }
+
+    @Test
+    fun `should retain needs attention if the cluster has one record in it after a delete but was a override conflict`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val recordAPersonData = createProbationPersonFrom(basePersonData)
+      val recordA = createPerson(recordAPersonData)
+      val recordToDelete = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
+        .addPerson(recordA)
+        .addPerson(recordToDelete)
+
+      val domainEvent = probationDomainEvent(OFFENDER_DELETION, recordToDelete.crn!!)
+      publishDomainEvent(OFFENDER_DELETION, domainEvent)
+
+      cluster.assertClusterIsOfSize(1)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
+
+      val updatedRecordAData = recordAPersonData.withChangedMatchDetails()
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedRecordAData))
+
+      cluster.assertClusterIsOfSize(1)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
+    }
   }
 
   @Nested
@@ -167,18 +217,18 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personC))
 
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, personA.crn!!, personC.crn!!)
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personB.crn!!, personC.crn)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personB.crn!!, personC.crn!!)
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personA.crn, personC.crn, reactivatedSetup = ApiResponseSetup.from(personA))
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personB.crn, personC.crn, reactivatedSetup = ApiResponseSetup.from(personB))
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personA.crn!!, personC.crn!!, reactivatedSetup = ApiResponseSetup.from(personA))
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personB.crn!!, personC.crn!!, reactivatedSetup = ApiResponseSetup.from(personB))
 
-      val clusterA = awaitNotNullPerson { personRepository.findByCrn(personA.crn) }.personKey
+      val clusterA = awaitNotNullPerson { personRepository.findByCrn(personA.crn!!) }.personKey
       clusterA?.assertClusterIsOfSize(1)
 
-      val clusterB = awaitNotNullPerson { personRepository.findByCrn(personB.crn) }.personKey
+      val clusterB = awaitNotNullPerson { personRepository.findByCrn(personB.crn!!) }.personKey
       clusterB?.assertClusterIsOfSize(1)
 
-      val clusterC = awaitNotNullPerson { personRepository.findByCrn(personC.crn) }.personKey
+      val clusterC = awaitNotNullPerson { personRepository.findByCrn(personC.crn!!) }.personKey
       clusterC?.assertClusterIsOfSize(1)
 
       val updatePersonBSoItMatchesPersonA = personA.copy(crn = personB.crn)
@@ -187,11 +237,11 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       clusterA?.assertClusterStatus(RECLUSTER_MERGE)
       clusterA?.assertClusterIsOfSize(0)
 
-      val updatedClusterWithPersonB = awaitNotNullPerson { personRepository.findByCrn(personB.crn) }.personKey
+      val updatedClusterWithPersonB = awaitNotNullPerson { personRepository.findByCrn(personB.crn!!) }.personKey
       updatedClusterWithPersonB?.assertClusterIsOfSize(2)
       updatedClusterWithPersonB?.assertClusterStatus(ACTIVE)
 
-      val updatedClusterWithPersonC = awaitNotNullPerson { personRepository.findByCrn(personC.crn) }.personKey
+      val updatedClusterWithPersonC = awaitNotNullPerson { personRepository.findByCrn(personC.crn!!) }.personKey
       updatedClusterWithPersonC?.assertClusterIsOfSize(1)
       updatedClusterWithPersonC?.assertClusterStatus(ACTIVE)
     }
@@ -249,11 +299,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       recluster(personA)
 
-      checkTelemetry(
-        TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
-        mapOf("UUID" to cluster1.personUUID.toString()),
-      )
-
       cluster1.assertClusterIsOfSize(1)
       cluster2.assertClusterIsOfSize(1)
       cluster3.assertClusterIsOfSize(1)
@@ -290,11 +335,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       recluster(personA)
 
-      checkTelemetry(
-        TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
-        mapOf("UUID" to cluster1.personUUID.toString()),
-      )
-
       cluster1.assertClusterIsOfSize(1)
       cluster2.assertClusterIsOfSize(1)
       cluster3.assertClusterIsOfSize(1)
@@ -304,6 +344,41 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       cluster2.assertClusterStatus(ACTIVE)
       cluster3.assertClusterStatus(ACTIVE)
       cluster4.assertClusterStatus(ACTIVE)
+    }
+  }
+
+  @Nested
+  inner class ClusterWithInclusionOverride {
+
+    @Test
+    fun `should set record to active when inclusive links within cluster`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(personC)
+
+      probationDomainEventAndResponseSetup(
+        eventType = OFFENDER_PERSONAL_DETAILS_UPDATED,
+        ApiResponseSetup.from(createRandomProbationPersonDetails(crn = personB.crn!!)),
+      )
+
+      cluster.assertClusterIsOfSize(3)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+
+      includeRecords(personA, personB, personC)
+
+      probationDomainEventAndResponseSetup(
+        eventType = OFFENDER_PERSONAL_DETAILS_UPDATED,
+        ApiResponseSetup.from(createProbationPersonFrom(basePersonData, crn = personA.crn!!).withChangedMatchDetails()),
+      )
+
+      cluster.assertClusterIsOfSize(3)
+      cluster.assertClusterStatus(ACTIVE)
     }
   }
 
@@ -599,7 +674,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should merge 3 active clusters when match score returns multiple clusters with a cluster that contain unmatched records`() {
+    fun `should merge 3 active clusters when match score returns multiple clusters with a cluster that contain unmatched records below join threshold`() {
       val basePersonData = createRandomProbationPersonDetails()
 
       val personA = createPerson(createProbationPersonFrom(basePersonData))
@@ -607,15 +682,15 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(personA)
 
       val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val personC = createPerson(createRandomProbationPersonDetails())
-      val personD = createPerson(createRandomProbationPersonDetails())
+      val personC = createPerson(createProbationPersonFrom(basePersonData).aboveFracture())
+      val personD = createPerson(createProbationPersonFrom(basePersonData).aboveFracture())
       val cluster2 = createPersonKey()
         .addPerson(personB)
         .addPerson(personC)
         .addPerson(personD)
 
       val personE = createPerson(createProbationPersonFrom(basePersonData))
-      val personF = createPerson(createRandomProbationPersonDetails())
+      val personF = createPerson(createProbationPersonFrom(basePersonData).aboveFracture())
       val cluster3 = createPersonKey()
         .addPerson(personE)
         .addPerson(personF)
@@ -875,7 +950,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       cluster2.assertMergedTo(cluster1)
 
       checkTelemetry(
-        TelemetryEventType.CPR_RECLUSTER_MERGE,
+        CPR_RECLUSTER_MERGE,
         mapOf(
           "FROM_UUID" to cluster2.personUUID.toString(),
           "TO_UUID" to cluster1.personUUID.toString(),
@@ -905,11 +980,12 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       recluster(personA)
 
       checkTelemetry(
-        TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
+        CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
         mapOf("UUID" to cluster.personUUID.toString()),
       )
 
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+
       checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
@@ -926,14 +1002,16 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val personA = createPerson(createProbationPersonFrom(basePersonData))
       val personB = createPerson(createProbationPersonFrom(basePersonData))
       val personC = createPerson(createProbationPersonFrom(basePersonData))
-      val cluster = createPersonKey(status = NEEDS_ATTENTION)
+      val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(personA)
         .addPerson(personB)
         .addPerson(personC)
 
-      cluster.assertClusterStatus(NEEDS_ATTENTION)
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
       recluster(personA)
+
+      cluster.assertClusterStatus(ACTIVE)
 
       checkEventLog(personA.crn!!, CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
@@ -942,8 +1020,6 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         assertThat(eventLog.uuidStatusType).isEqualTo(ACTIVE)
         assertThat(eventLog.statusReason).isNull()
       }
-
-      cluster.assertClusterStatus(ACTIVE)
     }
 
     @Test
@@ -961,7 +1037,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       recluster(personA)
 
       checkTelemetry(
-        TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
+        CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
         mapOf("UUID" to cluster.personUUID.toString()),
       )
 

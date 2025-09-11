@@ -107,7 +107,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 class IntegrationTestBase {
 
   @Autowired
-  private lateinit var overrideScopeRepository: OverrideScopeRepository
+  lateinit var overrideScopeRepository: OverrideScopeRepository
 
   @Autowired
   private lateinit var personService: PersonService
@@ -282,7 +282,7 @@ class IntegrationTestBase {
     return personKeyRepository.save(this)
   }
 
-  internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE): PersonEntity = createPerson(person, createPersonKey(status))
+  internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonEntity = createPerson(person, createPersonKey(status, reason))
 
   internal fun createPerson(person: Person, personKeyEntity: PersonKeyEntity? = null): PersonEntity {
     val personEntity = personFactory.create(person)

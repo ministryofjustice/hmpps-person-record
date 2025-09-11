@@ -7,6 +7,7 @@ import org.springframework.http.MediaType
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminReclusterRecord
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.BROKEN_CLUSTER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -118,10 +119,8 @@ class ReclusterApiIntTest : WebTestBase() {
 
     @Test
     fun `should set needs attention to active when cluster is valid`() {
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION)
+      val person = createPersonWithNewKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
       val request = listOf(AdminReclusterRecord(SourceSystemType.DELIUS, person.crn!!))
-
-      stubClusterIsValid(clusters = listOf(person.matchId))
 
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_URL)
