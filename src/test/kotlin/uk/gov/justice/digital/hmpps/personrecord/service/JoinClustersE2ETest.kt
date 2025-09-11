@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION_EXCLUDE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
@@ -44,7 +45,8 @@ class JoinClustersE2ETest : E2ETestBase() {
     assertThat(firstPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
     assertThat(firstPersonRecord.getPnc()).isEqualTo(pnc)
     assertThat(firstPersonRecord.addresses.size).isEqualTo(1)
-    assertThat(firstPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
+    firstPersonRecord.personKey?.assertClusterStatus(ACTIVE)
+    firstPersonRecord.personKey?.assertClusterIsOfSize(1)
 
     checkTelemetry(
       CPR_RECORD_CREATED,
@@ -66,7 +68,8 @@ class JoinClustersE2ETest : E2ETestBase() {
     val secondPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(secondCrnWithCro) })
     assertThat(secondPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
     assertThat(secondPersonRecord.getCro()).isEqualTo(cro)
-    assertThat(secondPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
+    secondPersonRecord.personKey?.assertClusterStatus(ACTIVE)
+    secondPersonRecord.personKey?.assertClusterIsOfSize(1)
     assertThat(secondPersonRecord.personKey!!.personUUID).isNotEqualTo(firstPersonRecord.personKey!!.personUUID)
 
     val thirdSetup = ApiResponseSetup(
@@ -87,7 +90,8 @@ class JoinClustersE2ETest : E2ETestBase() {
     assertThat(thirdPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
     assertThat(thirdPersonRecord.getCro()).isEqualTo(cro)
     assertThat(thirdPersonRecord.getPnc()).isEqualTo(pnc)
-    assertThat(thirdPersonRecord.personKey!!.personEntities.size).isEqualTo(3)
+    thirdPersonRecord.personKey?.assertClusterStatus(ACTIVE)
+    thirdPersonRecord.personKey?.assertClusterIsOfSize(3)
   }
 
   @Test
