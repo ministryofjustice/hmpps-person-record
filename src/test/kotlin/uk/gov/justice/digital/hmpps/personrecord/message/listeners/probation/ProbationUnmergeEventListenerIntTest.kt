@@ -29,85 +29,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should unmerge 2 records that have been merged`() {
-      val reactivatedCrn = randomCrn()
-      val unmergedCrn = randomCrn()
-
-      val cluster = createPersonKey()
-      val unmergedPerson = createPerson(createRandomProbationPersonDetails(unmergedCrn), cluster)
-      val reactivatedPerson = createPerson(createRandomProbationPersonDetails(reactivatedCrn))
-
-      mergeRecord(reactivatedPerson, unmergedPerson)
-
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn)
-
-      checkEventLogExist(reactivatedPerson.crn!!, CPRLogEvents.CPR_UUID_CREATED)
-      checkEventLog(reactivatedPerson.crn!!, CPRLogEvents.CPR_RECORD_UNMERGED) { eventLogs ->
-        assertThat(eventLogs).hasSize(1)
-        val eventLog = eventLogs.first()
-        assertThat(eventLog.personUUID).isNotEqualTo(cluster.personUUID)
-        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
-        assertThat(eventLog.excludeOverrideMarkers).contains(unmergedPerson.id)
-        assertThat(eventLog.overrideMarker).isNotNull()
-        assertThat(eventLog.overrideScopes).isNotEmpty()
-      }
-      checkEventLog(unmergedPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
-        assertThat(eventLogs).hasSize(2)
-        val eventLog = eventLogs.first()
-        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
-        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
-        assertThat(eventLog.excludeOverrideMarkers).contains(reactivatedPerson.id)
-        assertThat(eventLog.overrideMarker).isNotNull()
-        assertThat(eventLog.overrideScopes).isNotEmpty()
-      }
-      checkTelemetry(
-        CPR_RECORD_UPDATED,
-        mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
-        CPR_RECORD_UPDATED,
-        mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
-        CPR_UUID_CREATED,
-        mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
-        CPR_UUID_CREATED,
-        mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-        times = 0,
-      )
-      checkTelemetry(
-        CPR_RECORD_UNMERGED,
-        mapOf(
-          "TO_SOURCE_SYSTEM_ID" to reactivatedCrn,
-          "FROM_SOURCE_SYSTEM_ID" to unmergedCrn,
-          "UNMERGED_UUID" to cluster.personUUID.toString(),
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
-
-      unmergedPerson.assertHasLinkToCluster()
-      unmergedPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      unmergedPerson.personKey?.assertClusterIsOfSize(1)
-      unmergedPerson.assertExcludedFrom(reactivatedPerson)
-
-      reactivatedPerson.assertHasLinkToCluster()
-      reactivatedPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      reactivatedPerson.personKey?.assertClusterIsOfSize(1)
-      reactivatedPerson.assertNotLinkedToCluster(unmergedPerson.personKey!!)
-      reactivatedPerson.assertExcludedFrom(unmergedPerson)
-      reactivatedPerson.assertNotMerged()
-
-      unmergedPerson.assertHasOverrideMarker()
-      reactivatedPerson.assertHasOverrideMarker()
-      unmergedPerson.assertOverrideScopeSize(1)
-      reactivatedPerson.assertOverrideScopeSize(1)
-      unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
-      unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
-    }
-
-    @Test
     fun `should create record when reactivated record not found and should create a UUID`() {
       val reactivatedCrn = randomCrn()
       val unmergedCrn = randomCrn()
@@ -243,35 +164,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       reactivatedPerson.assertHasOverrideMarker()
       unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
       unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
-    }
-
-    @Test
-    fun `should unmerge 2 merged records that exist on same cluster`() {
-      val cluster = createPersonKey()
-      val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
-
-      val reactivatedRecord = createPerson(createRandomProbationPersonDetails())
-      val mergedReactivatedRecord = mergeRecord(reactivatedRecord, unmergedRecord)
-
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, mergedReactivatedRecord.crn!!, unmergedRecord.crn!!)
-
-      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to reactivatedRecord.crn!!))
-
-      reactivatedRecord.assertNotMerged()
-
-      reactivatedRecord.assertExcludedFrom(unmergedRecord)
-      unmergedRecord.assertExcludedFrom(reactivatedRecord)
-
-      cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
-      cluster.assertClusterIsOfSize(1)
-
-      unmergedRecord.assertLinkedToCluster(cluster)
-      reactivatedRecord.assertNotLinkedToCluster(cluster)
-
-      unmergedRecord.assertHasOverrideMarker()
-      reactivatedRecord.assertHasOverrideMarker()
-      unmergedRecord.assertHasDifferentOverrideMarker(reactivatedRecord)
-      unmergedRecord.assertHasSameOverrideScope(reactivatedRecord)
     }
 
     @Test

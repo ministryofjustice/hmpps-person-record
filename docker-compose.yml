@@ -1,7 +1,7 @@
 services:
 
   postgres-hmpps-person-record:
-    image: postgres:16.1-alpine
+    image: postgres:17.4-alpine
     ports:
       - 5432:5432
     networks:
@@ -13,7 +13,7 @@ services:
       - /var/lib/postgresql
 
   localstack-hmpps-person-record:
-    image: localstack/localstack:3
+    image: localstack/localstack:4
     networks:
       - hmpps
     container_name: localstack-hmpps-person-record

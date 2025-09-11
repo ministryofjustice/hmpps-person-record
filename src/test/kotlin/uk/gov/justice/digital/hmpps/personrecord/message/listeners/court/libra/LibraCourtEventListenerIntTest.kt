@@ -203,33 +203,18 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process and create libra message and link to two different source system records in separate clusters and all three records end up on the same cluster`() {
-    val firstName = randomName()
-    val lastName = randomName()
-    val dateOfBirth = randomDate()
     val cId = randomCId()
-    val firstPersonFromProbation = Person(
-      firstName = firstName,
-      lastName = lastName,
-      dateOfBirth = dateOfBirth,
-      addresses = listOf(Address(postcode = randomPostcode())),
-      sourceSystem = DELIUS,
-    )
-    val personKeyEntity = createPersonKey()
-    val existingPerson = createPerson(firstPersonFromProbation, personKeyEntity = personKeyEntity)
-    val secondPersonFromProbation = Person(
-      firstName = firstName,
-      lastName = lastName,
-      dateOfBirth = dateOfBirth,
-      addresses = listOf(Address(postcode = randomPostcode())),
-      sourceSystem = DELIUS,
-    )
-    val secondPersonKeyEntity = createPersonKey()
-    val secondExistingPerson = createPerson(secondPersonFromProbation, personKeyEntity = secondPersonKeyEntity)
+
+    val firstPersonFromProbation = createPersonWithNewKey(createRandomProbationPersonDetails())
+    val secondPersonFromNomis = createPersonWithNewKey(createRandomPrisonPersonDetails())
 
     stubPersonMatchUpsert()
-    stubXPersonMatches(aboveJoin = listOf(existingPerson.matchId, secondExistingPerson.matchId))
+    stubXPersonMatches(aboveJoin = listOf(firstPersonFromProbation.matchId, secondPersonFromNomis.matchId))
+    stubClusterIsValid()
 
-    publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = ""))
+    val personToCreateLibraHearing = libraHearing(firstName = randomName(), lastName = randomName(), cId = cId, dateOfBirth = randomDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+
+    publishLibraMessage(personToCreateLibraHearing)
 
     checkTelemetry(
       CPR_CANDIDATE_RECORD_SEARCH,
@@ -248,12 +233,11 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf(
         "SOURCE_SYSTEM" to LIBRA.name,
         "CLUSTER_SIZE" to "1",
-        "UUID" to personKeyEntity.personUUID.toString(),
+        "UUID" to firstPersonFromProbation.personKey?.personUUID.toString(),
       ),
     )
 
-    val personKey = personKeyRepository.findByPersonUUID(personKeyEntity.personUUID)
-    assertThat(personKey?.personEntities?.size).isEqualTo(3)
+    firstPersonFromProbation.personKey?.assertClusterIsOfSize(3)
   }
 
   @Test
