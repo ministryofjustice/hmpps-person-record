@@ -47,7 +47,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideScopeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
@@ -309,20 +308,7 @@ class IntegrationTestBase {
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
     val source = personRepository.findByMatchId(sourceRecord.matchId)
     val target = personRepository.findByMatchId(excludingRecord.matchId)
-    source?.overrideMarkers?.add(
-      OverrideMarkerEntity(
-        markerType = EXCLUDE,
-        markerValue = excludingRecord.id,
-        person = sourceRecord,
-      ),
-    )
-    target?.overrideMarkers?.add(
-      OverrideMarkerEntity(
-        markerType = EXCLUDE,
-        markerValue = sourceRecord.id,
-        person = excludingRecord,
-      ),
-    )
+
     val scope = overrideScopeRepository.save(
       OverrideScopeEntity.new(
         ConfidenceType.VERIFIED,
