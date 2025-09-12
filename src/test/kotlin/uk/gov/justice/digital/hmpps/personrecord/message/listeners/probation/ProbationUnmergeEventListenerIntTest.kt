@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBa
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
@@ -196,41 +197,43 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `should unmerge 2 merged records that exist on same cluster and then link to another cluster`() {
+      val recordA = createPerson(createRandomProbationPersonDetails())
+      val recordB = createPerson(createRandomProbationPersonDetails())
       val cluster = createPersonKey()
-      val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
+        .addPerson(recordA)
+        .addPerson(recordB)
+      stubDeletePersonMatch()
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordA.crn!!, recordB.crn!!)
 
-      val reactivatedRecord = createPerson(createRandomProbationPersonDetails())
-      val mergedReactivatedRecord = mergeRecord(reactivatedRecord, unmergedRecord)
+      recordA.assertMergedTo(recordB)
 
-      val matchedPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+      val matchedRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
 
-      stubOnePersonMatchAboveJoinThreshold(matchId = reactivatedRecord.matchId, matchedRecord = matchedPerson.matchId)
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, mergedReactivatedRecord.crn!!, unmergedRecord.crn!!)
+      stubOnePersonMatchAboveJoinThreshold(matchId = recordA.matchId, matchedRecord = matchedRecord.matchId)
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, recordA.crn!!, recordB.crn!!)
 
-      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to reactivatedRecord.crn!!))
-      checkEventLog(unmergedRecord.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
-        assertThat(eventLogs).hasSize(0)
-      }
-      reactivatedRecord.assertNotMerged()
+      checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to recordB.crn!!, "TO_SOURCE_SYSTEM_ID" to recordA.crn!!))
+      recordB.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      recordA.assertNotMerged()
 
-      reactivatedRecord.assertExcludedFrom(unmergedRecord)
-      unmergedRecord.assertExcludedFrom(reactivatedRecord)
+      recordA.assertExcludedFrom(recordB)
+      recordB.assertExcludedFrom(recordA)
 
       cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
       cluster.assertClusterIsOfSize(1)
 
-      unmergedRecord.assertLinkedToCluster(cluster)
-      reactivatedRecord.assertLinkedToCluster(matchedPerson.personKey!!)
+      recordB.assertLinkedToCluster(cluster)
+      recordA.assertLinkedToCluster(matchedRecord.personKey!!)
 
-      matchedPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      matchedPerson.personKey?.assertClusterIsOfSize(2)
+      matchedRecord.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      matchedRecord.personKey?.assertClusterIsOfSize(2)
 
-      matchedPerson.assertDoesNotHaveOverrideMarker()
-      unmergedRecord.assertHasOverrideMarker()
-      reactivatedRecord.assertHasOverrideMarker()
+      matchedRecord.assertDoesNotHaveOverrideMarker()
+      recordB.assertHasOverrideMarker()
+      recordA.assertHasOverrideMarker()
 
-      unmergedRecord.assertHasDifferentOverrideMarker(reactivatedRecord)
-      unmergedRecord.assertHasSameOverrideScope(reactivatedRecord)
+      recordB.assertHasDifferentOverrideMarker(recordA)
+      recordB.assertHasSameOverrideScope(recordA)
     }
 
     @Test

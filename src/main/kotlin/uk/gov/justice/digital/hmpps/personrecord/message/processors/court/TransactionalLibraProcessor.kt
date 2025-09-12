@@ -1,22 +1,23 @@
-package uk.gov.justice.digital.hmpps.personrecord.message.processors.probation
+package uk.gov.justice.digital.hmpps.personrecord.message.processors.court
 
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
 
 @Component
-class ProbationEventProcessor(
-  private val createUpdateService: CreateUpdateService,
+class TransactionalLibraProcessor(
   private val personRepository: PersonRepository,
+  private val createUpdateService: CreateUpdateService,
 ) {
 
   @Transactional(isolation = REPEATABLE_READ)
-  fun processEvent(person: Person) {
-    createUpdateService.processPerson(person) {
-      personRepository.findByCrn(person.crn!!)
+  fun processLibraPerson(person: Person): PersonEntity = createUpdateService.processPerson(person) {
+    person.cId?.let {
+      personRepository.findByCId(it)
     }
   }
 }

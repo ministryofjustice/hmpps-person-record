@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
-import jakarta.transaction.Transactional
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CircularMergeException
@@ -20,7 +19,6 @@ class MergeService(
   private val publisher: ApplicationEventPublisher,
 ) {
 
-  @Transactional
   fun processMerge(from: PersonEntity?, to: PersonEntity) {
     when {
       fromClusterHasOneRecord(from) -> markClusterAsMerged(from, to)
