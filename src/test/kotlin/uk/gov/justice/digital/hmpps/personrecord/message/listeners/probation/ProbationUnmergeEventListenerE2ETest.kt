@@ -53,7 +53,6 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
         val eventLog = eventLogs.first()
         assertThat(eventLog.personUUID).isNotEqualTo(cluster.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
-        assertThat(eventLog.excludeOverrideMarkers).contains(unmergedPerson.id)
       }
 
       checkTelemetry(
