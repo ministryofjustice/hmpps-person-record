@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchR
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION_EXCLUDE
@@ -19,7 +18,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchServi
 
 @Component
 class PersonService(
-  private val personRepository: PersonRepository,
   private val personKeyRepository: PersonKeyRepository,
   private val personFactory: PersonFactory,
   private val personKeyService: PersonKeyService,
