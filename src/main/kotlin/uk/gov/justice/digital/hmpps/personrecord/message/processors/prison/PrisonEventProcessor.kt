@@ -18,12 +18,9 @@ class PrisonEventProcessor(
 ) {
 
   @Transactional(isolation = REPEATABLE_READ)
-  fun processEvent(domainEvent: DomainEvent) {
-    val prisonNumber = domainEvent.getPrisonNumber()
-    prisonerSearchClient.getPrisoner(prisonNumber)?.let {
-      createUpdateService.processPerson(Person.from(it)) {
-        personRepository.findByPrisonNumber(prisonNumber)
-      }
+  fun processEvent(person: Person) {
+    createUpdateService.processPerson(person) {
+      personRepository.findByPrisonNumber(person.prisonNumber!!)
     }
   }
 }
