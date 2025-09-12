@@ -5,6 +5,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.jayway.jsonpath.JsonPath
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
+import org.springframework.transaction.annotation.Transactional
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
@@ -34,6 +36,7 @@ class CommonPlatformEventProcessor(
     const val MAX_MESSAGE_SIZE = 256 * 1024
   }
 
+  @Transactional(isolation = REPEATABLE_READ)
   fun processEvent(sqsMessage: SQSMessage) {
     val commonPlatformHearing: String = when {
       sqsMessage.isLargeMessage() -> runBlocking { getPayloadFromS3(sqsMessage) }

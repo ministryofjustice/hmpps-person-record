@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.jayway.jsonpath.JsonPath
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -20,6 +22,7 @@ class LibraEventProcessor(
   private val personRepository: PersonRepository,
 ) {
 
+  @Transactional(isolation = REPEATABLE_READ)
   fun processEvent(sqsMessage: SQSMessage) {
     val libraHearingEvent = objectMapper.readValue<LibraHearingEvent>(sqsMessage.message)
     val person = Person.from(libraHearingEvent)

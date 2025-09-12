@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -38,6 +40,7 @@ class ProbationAPIController(
       description = "OK",
     ),
   )
+  @Transactional(isolation = REPEATABLE_READ)
   fun createProbationRecord(
     @PathVariable(name = "defendantId") defendantId: String,
     @RequestBody probationCase: ProbationCase,
