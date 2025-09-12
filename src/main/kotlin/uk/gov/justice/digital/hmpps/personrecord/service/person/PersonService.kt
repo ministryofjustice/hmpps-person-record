@@ -58,7 +58,7 @@ class PersonService(
     return personEntity
   }
 
-  fun linkRecordToPersonKey(personEntity: PersonEntity): PersonEntity {
+  fun linkRecordToPersonKey(personEntity: PersonEntity) {
     val matches = personMatchService.findClustersToJoin(personEntity)
     if (matches.containsExcluded().isNotEmpty()) {
       matches.containsExcluded().forEach {
@@ -69,7 +69,7 @@ class PersonService(
       personEntity.personKey?.status = NEEDS_ATTENTION_EXCLUDE
 
       personKeyRepository.save(personEntity.personKey!!)
-      return personRepository.saveAndFlush(personEntity)
+      return
     }
     if (matches.isEmpty()) {
       personKeyService.assignPersonToNewPersonKey(personEntity)
@@ -79,8 +79,6 @@ class PersonService(
         reclusterService.recluster(personEntity)
       }
     }
-
-    return personRepository.saveAndFlush(personEntity)
   }
 }
 
