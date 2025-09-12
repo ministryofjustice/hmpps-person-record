@@ -5,8 +5,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.jayway.jsonpath.JsonPath
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
-import org.springframework.transaction.annotation.Transactional
 import software.amazon.awssdk.core.async.AsyncResponseTransformer
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
@@ -20,14 +18,13 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.CourtMessagePublisher
 
 @Component
 class CommonPlatformEventProcessor(
   private val personRepository: PersonRepository,
   private val objectMapper: ObjectMapper,
-  private val createUpdateService: CreateUpdateService,
+  private val transactionalCommonPlatformProcessor: TransactionalCommonPlatformProcessor,
   private val courtMessagePublisher: CourtMessagePublisher,
   private val s3AsyncClient: S3AsyncClient,
 ) {
@@ -36,7 +33,6 @@ class CommonPlatformEventProcessor(
     const val MAX_MESSAGE_SIZE = 256 * 1024
   }
 
-  @Transactional(isolation = REPEATABLE_READ)
   fun processEvent(sqsMessage: SQSMessage) {
     val commonPlatformHearing: String = when {
       sqsMessage.isLargeMessage() -> runBlocking { getPayloadFromS3(sqsMessage) }
@@ -54,7 +50,7 @@ class CommonPlatformEventProcessor(
       .map { defendant -> Person.from(defendant) }
       .filter { it.isPerson() }
       .map {
-        processCommonPlatformPerson(it)
+        transactionalCommonPlatformProcessor.processCommonPlatformPerson(it)
       }
       .toList()
 
@@ -62,12 +58,6 @@ class CommonPlatformEventProcessor(
     when (messageLargerThanThreshold(commonPlatformHearing)) {
       true -> courtMessagePublisher.publishLargeMessage(sqsMessage, updatedMessage)
       else -> courtMessagePublisher.publishMessage(sqsMessage, updatedMessage)
-    }
-  }
-
-  private fun processCommonPlatformPerson(person: Person): PersonEntity = createUpdateService.processPerson(person) {
-    person.defendantId?.let {
-      personRepository.findByDefendantId(it)
     }
   }
 
