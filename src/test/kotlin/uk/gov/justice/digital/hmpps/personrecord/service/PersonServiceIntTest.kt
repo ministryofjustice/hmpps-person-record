@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 class PersonServiceIntTest : MessagingMultiNodeTestBase() {

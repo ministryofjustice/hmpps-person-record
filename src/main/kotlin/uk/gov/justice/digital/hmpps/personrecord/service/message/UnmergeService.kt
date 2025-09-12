@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
-import jakarta.transaction.Transactional
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideScopeEntity
@@ -27,7 +26,6 @@ class UnmergeService(
   private val overrideScopeRepository: OverrideScopeRepository,
 ) {
 
-  @Transactional
   fun processUnmerge(reactivated: PersonEntity, existing: PersonEntity) {
     when {
       clusterContainsAdditionalRecords(reactivated, existing) -> setClusterAsNeedsAttention(existing)
@@ -42,7 +40,6 @@ class UnmergeService(
 
     existing.addExcludeOverrideMarker(excludeRecord = reactivated)
     existing.addOverrideMarker(scopeEntity)
-    personRepository.save(existing)
     personMatchService.saveToPersonMatch(existing)
 
     reactivated.personKey?.let { reactivated.removePersonKeyLink() }

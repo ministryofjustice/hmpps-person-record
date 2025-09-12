@@ -202,7 +202,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val cluster = createPersonKey()
         .addPerson(recordA)
         .addPerson(recordB)
-
+      stubDeletePersonMatch()
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, recordA.crn!!, recordB.crn!!)
 
       recordA.assertMergedTo(recordB)
