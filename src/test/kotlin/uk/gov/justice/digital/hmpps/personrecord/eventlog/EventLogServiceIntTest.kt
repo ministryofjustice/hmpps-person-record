@@ -110,8 +110,6 @@ class EventLogServiceIntTest : IntegrationTestBase() {
 
     val eventLog = eventLogService.logEvent(RecordEventLog.from(CPRLogEvents.CPR_RECORD_CREATED, updatedToRecord))
 
-    assertThat(eventLog.excludeOverrideMarkers.size).isEqualTo(1)
-    assertThat(eventLog.excludeOverrideMarkers.first()).isEqualTo(fromRecord.id)
     assertThat(eventLog.overrideMarker).isNotNull()
     assertThat(eventLog.overrideScopes).isNotEmpty()
   }

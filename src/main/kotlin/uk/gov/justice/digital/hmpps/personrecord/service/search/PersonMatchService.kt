@@ -40,7 +40,6 @@ class PersonMatchService(
       .allowMatchesWithUUID()
       .removeMergedRecords()
       .removeMatchesWhereClusterInInvalidState()
-      .removeMatchesWhereClusterHasExcludeMarker(personEntity)
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
       .sortedByDescending { it.matchWeight }
     return@runBlocking aboveFractureThresholdPersonRecords
@@ -105,14 +104,6 @@ class PersonMatchService(
 
   private fun List<PersonMatchResult>.removeMergedRecords(): List<PersonMatchResult> = this.filter { it.personEntity.mergedTo == null }
 
-  private fun List<PersonMatchResult>.removeMatchesWhereClusterHasExcludeMarker(personEntity: PersonEntity): List<PersonMatchResult> {
-    val updatedClusterRecordIds = personEntity.personKey?.getRecordIds() ?: listOf(personEntity.id)
-    val excludedClusters = this.collectDistinctClusters().filter { cluster ->
-      cluster.collectExcludeOverrideMarkers().any { updatedClusterRecordIds.contains(it.markerValue) }
-    }.map { it.id }
-    return this.filterNot { match -> excludedClusters.contains(match.personEntity.personKey?.id) }
-  }
-
   private fun List<PersonMatchResult>.removeMatchesWhereClusterInInvalidState(): List<PersonMatchResult> {
     val validStatuses = listOf(UUIDStatusType.ACTIVE, UUIDStatusType.NEEDS_ATTENTION)
     return this.filter { candidate -> validStatuses.contains(candidate.personEntity.personKey?.status) }
@@ -148,8 +139,6 @@ class PersonMatchService(
   )
 
   private fun PersonKeyEntity.getRecordsMatchIds(): List<String> = this.personEntities.map { it.matchId.toString() }
-
-  private fun List<PersonMatchResult>.collectDistinctClusters(): List<PersonKeyEntity> = this.map { it.personEntity }.groupBy { it.personKey!! }.map { it.key }.distinctBy { it.id }
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
