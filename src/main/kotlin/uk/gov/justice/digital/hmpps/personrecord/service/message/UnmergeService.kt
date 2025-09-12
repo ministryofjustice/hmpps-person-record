@@ -41,7 +41,6 @@ class UnmergeService(
     )
 
     existing.addExcludeOverrideMarker(excludeRecord = reactivated)
-    // Check that we need to add the scope to the rest of the records in the cluster for analysis
     existing.addOverrideMarker(scopeEntity)
     personRepository.save(existing)
     personMatchService.saveToPersonMatch(existing)
