@@ -23,6 +23,7 @@ class PersonKeyService(
 
   fun assignToPersonKeyOfHighestConfidencePerson(personEntity: PersonEntity, personKey: PersonKeyEntity) {
     publisher.publishEvent(PersonKeyFound(personEntity, personKey))
+    personKey.personEntities.add(personEntity)
     personEntity.personKey = personKey
   }
 }
