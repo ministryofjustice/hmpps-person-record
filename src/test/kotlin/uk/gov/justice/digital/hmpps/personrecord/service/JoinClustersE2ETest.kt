@@ -35,12 +35,14 @@ class JoinClustersE2ETest : E2ETestBase() {
   private lateinit var personMatchClient: PersonMatchClient
 
   @Test
-  fun `should duplicate the scenario from prod`() {
-    val deliusRecordCrn = randomCrn()
+  fun `two records match below fracture threshold then the next matches both above join so a cluster of 3 formed`() {
+    val crn = randomCrn()
+    val cId = randomCId()
+    val defendantId = randomDefendantId()
+
     val pnc1 = randomPnc()
     val cro1 = randomCro()
     val cro2 = randomCro()
-    val defendantId = randomDefendantId()
     val firstName = randomName()
     val middleName = randomName()
     val lastName = randomName()
@@ -48,7 +50,7 @@ class JoinClustersE2ETest : E2ETestBase() {
     val date1 = randomDate()
 
     val deliusSetup = ApiResponseSetup(
-      crn = deliusRecordCrn,
+      crn = crn,
       cro = cro1,
       pnc = pnc1,
       firstName = firstName,
@@ -61,15 +63,15 @@ class JoinClustersE2ETest : E2ETestBase() {
       sentences = listOf(),
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, deliusSetup)
-    awaitNotNullPerson { personRepository.findByCrn(deliusRecordCrn) }
+    val deliusPersonRecord = awaitNotNullPerson { personRepository.findByCrn(crn) }
 
-    val cId = randomCId()
     publishLibraMessage(libraHearing(cro = cro2, firstName = firstName, foreName2 = middleName, cId = cId, lastName = lastName, postcode = postCode1, dateOfBirth = date1.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
     val libraPersonRecord = awaitNotNullPerson { personRepository.findByCId(cId) }
 
     awaitAssert {
       val libraVsDelius = personMatchClient.getPersonScores(libraPersonRecord.matchId.toString())[0].candidateMatchWeight
       assertThat(libraVsDelius).isLessThan(16F)
+      println("Libra vs Delius score is $libraVsDelius")
     }
 
     publishCommonPlatformMessage(
@@ -89,16 +91,30 @@ class JoinClustersE2ETest : E2ETestBase() {
       ),
     )
 
-    val cpPersonRecord = awaitNotNullPerson { personRepository.findByDefendantId(defendantId) }
+    val commonPlatformPersonRecord = awaitNotNullPerson { personRepository.findByDefendantId(defendantId) }
     awaitAssert {
-      val scores = personMatchClient.getPersonScores(cpPersonRecord.matchId.toString())
+      val commonPlatformMatchId = commonPlatformPersonRecord.matchId.toString()
+      val deliusMatchId = deliusPersonRecord.matchId.toString()
+      val libraMatchId = libraPersonRecord.matchId.toString()
+
+      val scores = personMatchClient.getPersonScores(commonPlatformMatchId)
       val commonPlatformVsDelius = scores[0].candidateMatchWeight
       val commonPlatformVsLibra = scores[1].candidateMatchWeight
       assertThat(commonPlatformVsDelius).isGreaterThan(24F)
       assertThat(commonPlatformVsLibra).isGreaterThan(24F)
+      println("Common Platform vs Delius score is  $commonPlatformVsDelius")
+      println("Common Platform vs Libra score is $commonPlatformVsLibra")
+
+      val commonPlatformVsDeliusValid = personMatchClient.isClusterValid(listOf(commonPlatformMatchId, deliusMatchId)).isClusterValid
+      val commonPlatformVsLibraValid = personMatchClient.isClusterValid(listOf(commonPlatformMatchId, libraMatchId)).isClusterValid
+      val deliusVsLibraValid = personMatchClient.isClusterValid(listOf(deliusMatchId, libraMatchId)).isClusterValid
+      assertThat(commonPlatformVsDeliusValid).isTrue()
+      assertThat(commonPlatformVsLibraValid).isTrue()
+      assertThat(deliusVsLibraValid).isTrue()
     }
-    cpPersonRecord.personKey!!.assertClusterStatus(ACTIVE)
-    cpPersonRecord.personKey!!.assertClusterIsOfSize(3)
+
+    commonPlatformPersonRecord.personKey!!.assertClusterStatus(ACTIVE)
+    commonPlatformPersonRecord.personKey!!.assertClusterIsOfSize(3)
   }
 
   @Test
