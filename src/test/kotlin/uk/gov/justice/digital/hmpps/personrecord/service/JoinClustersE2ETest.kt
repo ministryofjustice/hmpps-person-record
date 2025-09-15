@@ -69,9 +69,8 @@ class JoinClustersE2ETest : E2ETestBase() {
     val libraPersonRecord = awaitNotNullPerson { personRepository.findByCId(cId) }
 
     awaitAssert {
-      val libraVsDelius = personMatchClient.getPersonScores(libraPersonRecord.matchId.toString())[0].candidateMatchWeight
-      assertThat(libraVsDelius).isLessThan(16F)
-      println("Libra vs Delius score is $libraVsDelius")
+      val libraVsDeliusShouldFracture = personMatchClient.getPersonScores(libraPersonRecord.matchId.toString())[0].candidateShouldFracture
+      assertThat(libraVsDeliusShouldFracture).isTrue()
     }
 
     publishCommonPlatformMessage(
@@ -98,12 +97,10 @@ class JoinClustersE2ETest : E2ETestBase() {
       val libraMatchId = libraPersonRecord.matchId.toString()
 
       val scores = personMatchClient.getPersonScores(commonPlatformMatchId)
-      val commonPlatformVsDelius = scores[0].candidateMatchWeight
-      val commonPlatformVsLibra = scores[1].candidateMatchWeight
-      assertThat(commonPlatformVsDelius).isGreaterThan(24F)
-      assertThat(commonPlatformVsLibra).isGreaterThan(24F)
-      println("Common Platform vs Delius score is  $commonPlatformVsDelius")
-      println("Common Platform vs Libra score is $commonPlatformVsLibra")
+      val commonPlatformVsDeliusShouldJoin = scores[0].candidateShouldJoin
+      val commonPlatformVsLibraShouldJoin = scores[1].candidateShouldJoin
+      assertThat(commonPlatformVsDeliusShouldJoin).isTrue()
+      assertThat(commonPlatformVsLibraShouldJoin).isTrue()
 
       val commonPlatformVsDeliusValid = personMatchClient.isClusterValid(listOf(commonPlatformMatchId, deliusMatchId)).isClusterValid
       val commonPlatformVsLibraValid = personMatchClient.isClusterValid(listOf(commonPlatformMatchId, libraMatchId)).isClusterValid
