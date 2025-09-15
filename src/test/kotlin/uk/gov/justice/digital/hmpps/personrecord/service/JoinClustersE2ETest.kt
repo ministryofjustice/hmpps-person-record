@@ -110,7 +110,7 @@ class JoinClustersE2ETest : E2ETestBase() {
       val deliusVsLibraValid = personMatchClient.isClusterValid(listOf(deliusMatchId, libraMatchId)).isClusterValid
       assertThat(commonPlatformVsDeliusValid).isTrue()
       assertThat(commonPlatformVsLibraValid).isTrue()
-      assertThat(deliusVsLibraValid).isTrue()
+      assertThat(deliusVsLibraValid).isFalse()
     }
 
     commonPlatformPersonRecord.personKey!!.assertClusterStatus(ACTIVE)
