@@ -14,13 +14,13 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordClusterTelemetry
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.TransactionalReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @RestController
 class ReclusterController(
-  private val reclusterService: ReclusterService,
+  private val transactionalReclusterService: TransactionalReclusterService,
   private val personRepository: PersonRepository,
   private val personMatchService: PersonMatchService,
   private val publisher: ApplicationEventPublisher,
@@ -50,7 +50,7 @@ class ReclusterController(
     adminReclusterRecords.forEachPersonAndLog(RECLUSTER_PROCESS_NAME) { person ->
       person.personKey?.let { cluster ->
         publisher.publishEvent(RecordClusterTelemetry(TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED, cluster))
-        reclusterService.recluster(person)
+        transactionalReclusterService.triggerRecluster(person)
       }
     }
   }

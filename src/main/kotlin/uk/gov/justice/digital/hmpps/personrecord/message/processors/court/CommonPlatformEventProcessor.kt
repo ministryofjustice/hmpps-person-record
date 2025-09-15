@@ -18,14 +18,13 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.CourtMessagePublisher
 
 @Component
 class CommonPlatformEventProcessor(
   private val personRepository: PersonRepository,
   private val objectMapper: ObjectMapper,
-  private val createUpdateService: CreateUpdateService,
+  private val transactionalCommonPlatformProcessor: TransactionalCommonPlatformProcessor,
   private val courtMessagePublisher: CourtMessagePublisher,
   private val s3AsyncClient: S3AsyncClient,
 ) {
@@ -51,7 +50,7 @@ class CommonPlatformEventProcessor(
       .map { defendant -> Person.from(defendant) }
       .filter { it.isPerson() }
       .map {
-        processCommonPlatformPerson(it)
+        transactionalCommonPlatformProcessor.processCommonPlatformPerson(it)
       }
       .toList()
 
@@ -59,12 +58,6 @@ class CommonPlatformEventProcessor(
     when (messageLargerThanThreshold(commonPlatformHearing)) {
       true -> courtMessagePublisher.publishLargeMessage(sqsMessage, updatedMessage)
       else -> courtMessagePublisher.publishMessage(sqsMessage, updatedMessage)
-    }
-  }
-
-  private fun processCommonPlatformPerson(person: Person): PersonEntity = createUpdateService.processPerson(person) {
-    person.defendantId?.let {
-      personRepository.findByDefendantId(it)
     }
   }
 
