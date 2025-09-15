@@ -285,7 +285,6 @@ class JoinClustersE2ETest : E2ETestBase() {
 
     secondPersonRecord.assertExcludedFrom(firstPersonRecord)
 
-    // create a new person which matches both
     val thirdSetup = ApiResponseSetup(
       crn = thirdCrn,
       cro = cro,
