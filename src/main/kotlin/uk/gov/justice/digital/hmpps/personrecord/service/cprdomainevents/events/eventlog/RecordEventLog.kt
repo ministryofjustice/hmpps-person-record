@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonTyp
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 data class RecordEventLog(
@@ -39,6 +40,7 @@ data class RecordEventLog(
   val recordMergedTo: Long? = null,
   val clusterComposition: List<ValidCluster>? = null,
   val statusReason: UUIDStatusReasonType? = null,
+  val eventTimestamp: LocalDateTime = LocalDateTime.now(),
 ) {
   companion object {
     fun from(
