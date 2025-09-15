@@ -27,10 +27,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-class JoinClustersE2ETest() : E2ETestBase() {
+class JoinClustersE2ETest : E2ETestBase() {
 
   @Autowired
   private lateinit var personMatchClient: PersonMatchClient
@@ -38,76 +37,68 @@ class JoinClustersE2ETest() : E2ETestBase() {
   @Test
   fun `should duplicate the scenario from prod`() {
     val deliusRecordCrn = randomCrn()
-    val pnc = randomPnc()
-    val cro = randomCro()
+    val pnc1 = randomPnc()
+    val cro1 = randomCro()
+    val cro2 = randomCro()
     val defendantId = randomDefendantId()
     val firstName = randomName()
+    val middleName = randomName()
     val lastName = randomName()
     val postCode1 = randomPostcode()
-    val postCode2 = randomPostcode()
-    val postCode3 = randomPostcode()
     val date1 = randomDate()
-    val date2 = randomDate()
-    val date3 = randomDate()
-    // create Delius record
-    createRandomProbationPersonDetails(deliusRecordCrn)
+
     val deliusSetup = ApiResponseSetup(
       crn = deliusRecordCrn,
-      cro = cro,
-      pnc = pnc,
+      cro = cro1,
+      pnc = pnc1,
       firstName = firstName,
       middleName = null,
       lastName = lastName,
       dateOfBirth = date1,
       addresses = listOf(
         ApiResponseSetupAddress(postcode = postCode1, fullAddress = null),
-//        ApiResponseSetupAddress(postcode = postCode2, fullAddress = null),
-//        ApiResponseSetupAddress(postcode = postCode3, fullAddress = null)
       ),
-      sentences = listOf(
-        ApiResponseSetupSentences(date1),
-        ApiResponseSetupSentences(date2),
-        ApiResponseSetupSentences(date3)
-      )
+      sentences = listOf(),
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, deliusSetup)
-    val deliusPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(deliusRecordCrn) })
+    awaitNotNullPerson { personRepository.findByCrn(deliusRecordCrn) }
 
-    // create Libra Record
     val cId = randomCId()
-    createRandomLibraPersonDetails(cId = cId)
-    publishLibraMessage(libraHearing(cro = cro, firstName = firstName, cId = cId, lastName = lastName, postcode = postCode1, dateOfBirth = date1.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
-    val libraPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCId(cId) })
+    publishLibraMessage(libraHearing(cro = cro2, firstName = firstName, foreName2 = middleName, cId = cId, lastName = lastName, postcode = postCode1, dateOfBirth = date1.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
+    val libraPersonRecord = awaitNotNullPerson { personRepository.findByCId(cId) }
 
     awaitAssert {
-      val scores = personMatchClient.getPersonScores(libraPersonRecord.matchId.toString())
-      println("libra record scores are - $scores")
+      val libraVsDelius = personMatchClient.getPersonScores(libraPersonRecord.matchId.toString())[0].candidateMatchWeight
+      assertThat(libraVsDelius).isLessThan(16F)
     }
 
-
-    // create CP record
     publishCommonPlatformMessage(
       commonPlatformHearing(
         listOf(
           CommonPlatformHearingSetup(
             firstName = firstName,
-            pnc = pnc,
-            cro = cro,
+            middleName = middleName,
+            pnc = pnc1,
+            cro = cro2,
             lastName = lastName,
             defendantId = defendantId,
             address = CommonPlatformHearingSetupAddress(buildingName = "", buildingNumber = "", thoroughfareName = "", dependentLocality = "", postTown = "", postcode = postCode1),
-            dateOfBirth = date1.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-          )
-        )
+            dateOfBirth = date1.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+          ),
+        ),
       ),
     )
-    // assert 1 cluster with 3 records
-    val cpPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByDefendantId(defendantId) })
-//    cpPersonRecord.personKey!!.assertClusterIsOfSize(2)
+
+    val cpPersonRecord = awaitNotNullPerson { personRepository.findByDefendantId(defendantId) }
     awaitAssert {
       val scores = personMatchClient.getPersonScores(cpPersonRecord.matchId.toString())
-      println("cp record scores are - $scores")
+      val commonPlatformVsDelius = scores[0].candidateMatchWeight
+      val commonPlatformVsLibra = scores[1].candidateMatchWeight
+      assertThat(commonPlatformVsDelius).isGreaterThan(24F)
+      assertThat(commonPlatformVsLibra).isGreaterThan(24F)
     }
+    cpPersonRecord.personKey!!.assertClusterStatus(ACTIVE)
+    cpPersonRecord.personKey!!.assertClusterIsOfSize(3)
   }
 
   @Test
