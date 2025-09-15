@@ -2,22 +2,120 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION_EXCLUDE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.commonPlatformHearing
+import uk.gov.justice.digital.hmpps.personrecord.test.messages.libraHearing
+import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAlias
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupSentences
+import java.time.format.DateTimeFormatter
 
 class JoinClustersE2ETest : E2ETestBase() {
+
+  @Autowired
+  private lateinit var personMatchClient: PersonMatchClient
+
+  @Test
+  fun `two records match below fracture threshold then the next matches both above join so a cluster of 3 formed`() {
+    val crn = randomCrn()
+    val cId = randomCId()
+    val defendantId = randomDefendantId()
+
+    val pnc1 = randomPnc()
+    val cro1 = randomCro()
+    val cro2 = randomCro()
+    val firstName = randomName()
+    val middleName = randomName()
+    val lastName = randomName()
+    val postCode1 = randomPostcode()
+    val date1 = randomDate()
+
+    val deliusSetup = ApiResponseSetup(
+      crn = crn,
+      cro = cro1,
+      pnc = pnc1,
+      firstName = firstName,
+      middleName = null,
+      lastName = lastName,
+      dateOfBirth = date1,
+      addresses = listOf(
+        ApiResponseSetupAddress(postcode = postCode1, fullAddress = null),
+      ),
+      sentences = listOf(),
+    )
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, deliusSetup)
+    val deliusPersonRecord = awaitNotNullPerson { personRepository.findByCrn(crn) }
+
+    publishLibraMessage(libraHearing(cro = cro2, firstName = firstName, foreName2 = middleName, cId = cId, lastName = lastName, postcode = postCode1, dateOfBirth = date1.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
+    val libraPersonRecord = awaitNotNullPerson { personRepository.findByCId(cId) }
+
+    awaitAssert {
+      val libraVsDelius = personMatchClient.getPersonScores(libraPersonRecord.matchId.toString())[0].candidateMatchWeight
+      assertThat(libraVsDelius).isLessThan(16F)
+      println("Libra vs Delius score is $libraVsDelius")
+    }
+
+    publishCommonPlatformMessage(
+      commonPlatformHearing(
+        listOf(
+          CommonPlatformHearingSetup(
+            firstName = firstName,
+            middleName = middleName,
+            pnc = pnc1,
+            cro = cro2,
+            lastName = lastName,
+            defendantId = defendantId,
+            address = CommonPlatformHearingSetupAddress(buildingName = "", buildingNumber = "", thoroughfareName = "", dependentLocality = "", postTown = "", postcode = postCode1),
+            dateOfBirth = date1.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+          ),
+        ),
+      ),
+    )
+
+    val commonPlatformPersonRecord = awaitNotNullPerson { personRepository.findByDefendantId(defendantId) }
+    awaitAssert {
+      val commonPlatformMatchId = commonPlatformPersonRecord.matchId.toString()
+      val deliusMatchId = deliusPersonRecord.matchId.toString()
+      val libraMatchId = libraPersonRecord.matchId.toString()
+
+      val scores = personMatchClient.getPersonScores(commonPlatformMatchId)
+      val commonPlatformVsDelius = scores[0].candidateMatchWeight
+      val commonPlatformVsLibra = scores[1].candidateMatchWeight
+      assertThat(commonPlatformVsDelius).isGreaterThan(24F)
+      assertThat(commonPlatformVsLibra).isGreaterThan(24F)
+      println("Common Platform vs Delius score is  $commonPlatformVsDelius")
+      println("Common Platform vs Libra score is $commonPlatformVsLibra")
+
+      val commonPlatformVsDeliusValid = personMatchClient.isClusterValid(listOf(commonPlatformMatchId, deliusMatchId)).isClusterValid
+      val commonPlatformVsLibraValid = personMatchClient.isClusterValid(listOf(commonPlatformMatchId, libraMatchId)).isClusterValid
+      val deliusVsLibraValid = personMatchClient.isClusterValid(listOf(deliusMatchId, libraMatchId)).isClusterValid
+      assertThat(commonPlatformVsDeliusValid).isTrue()
+      assertThat(commonPlatformVsLibraValid).isTrue()
+      assertThat(deliusVsLibraValid).isTrue()
+    }
+
+    commonPlatformPersonRecord.personKey!!.assertClusterStatus(ACTIVE)
+    commonPlatformPersonRecord.personKey!!.assertClusterIsOfSize(3)
+  }
 
   @Test
   fun `should create 2 people who do not match followed by a third which matches both and all end up on same cluster`() {
