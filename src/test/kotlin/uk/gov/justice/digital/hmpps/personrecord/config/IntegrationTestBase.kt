@@ -47,7 +47,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideMarkerEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideScopeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
@@ -78,7 +77,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.Nationa
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ActorType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ConfidenceType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.telemetry.TelemetryTestRepository
@@ -108,9 +106,6 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var overrideScopeRepository: OverrideScopeRepository
-
-  @Autowired
-  private lateinit var personService: PersonService
 
   @Autowired
   private lateinit var personFactory: PersonFactory
@@ -309,20 +304,7 @@ class IntegrationTestBase {
   internal fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
     val source = personRepository.findByMatchId(sourceRecord.matchId)
     val target = personRepository.findByMatchId(excludingRecord.matchId)
-    source?.overrideMarkers?.add(
-      OverrideMarkerEntity(
-        markerType = EXCLUDE,
-        markerValue = excludingRecord.id,
-        person = sourceRecord,
-      ),
-    )
-    target?.overrideMarkers?.add(
-      OverrideMarkerEntity(
-        markerType = EXCLUDE,
-        markerValue = sourceRecord.id,
-        person = excludingRecord,
-      ),
-    )
+
     val scope = overrideScopeRepository.save(
       OverrideScopeEntity.new(
         ConfidenceType.VERIFIED,
