@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.processors.prison
 
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getPrisonNumber
@@ -18,6 +19,7 @@ class PrisonMergeEventProcessor(
   private val createUpdateService: CreateUpdateService,
 ) {
 
+  @Transactional
   fun processEvent(domainEvent: DomainEvent) {
     val prisonNumber = domainEvent.getPrisonNumber()
     prisonerSearchClient.getPrisoner(prisonNumber)?.let {

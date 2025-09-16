@@ -172,6 +172,11 @@ class PersonEntity(
     this.personKey = null
   }
 
+  fun assignToPersonKey(personKey: PersonKeyEntity) {
+    this.personKey = personKey
+    personKey.personEntities.add(this)
+  }
+
   fun update(person: Person) {
     this.defendantId = person.defendantId
     this.crn = person.crn
