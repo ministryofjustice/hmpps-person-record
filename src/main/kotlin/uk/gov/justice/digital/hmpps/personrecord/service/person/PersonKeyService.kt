@@ -17,12 +17,12 @@ class PersonKeyService(
   fun assignPersonToNewPersonKey(personEntity: PersonEntity) {
     val personKey = PersonKeyEntity.new()
     publisher.publishEvent(PersonKeyCreated(personEntity, personKey))
+    personEntity.assignToPersonKey(personKey)
     personKeyRepository.save(personKey)
-    personEntity.personKey = personKey
   }
 
   fun assignToPersonKeyOfHighestConfidencePerson(personEntity: PersonEntity, personKey: PersonKeyEntity) {
     publisher.publishEvent(PersonKeyFound(personEntity, personKey))
-    personEntity.personKey = personKey
+    personEntity.assignToPersonKey(personKey)
   }
 }

@@ -1,13 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
-import jakarta.transaction.Transactional
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideScopeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OverrideScopeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ActorType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ConfidenceType
@@ -21,13 +19,11 @@ import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchServi
 class UnmergeService(
   private val personService: PersonService,
   private val personKeyRepository: PersonKeyRepository,
-  private val personRepository: PersonRepository,
   private val publisher: ApplicationEventPublisher,
   private val personMatchService: PersonMatchService,
   private val overrideScopeRepository: OverrideScopeRepository,
 ) {
 
-  @Transactional
   fun processUnmerge(reactivated: PersonEntity, existing: PersonEntity) {
     when {
       clusterContainsAdditionalRecords(reactivated, existing) -> setClusterAsNeedsAttention(existing)
@@ -41,9 +37,7 @@ class UnmergeService(
     )
 
     existing.addExcludeOverrideMarker(excludeRecord = reactivated)
-    // Check that we need to add the scope to the rest of the records in the cluster for analysis
     existing.addOverrideMarker(scopeEntity)
-    personRepository.save(existing)
     personMatchService.saveToPersonMatch(existing)
 
     reactivated.personKey?.let { reactivated.removePersonKeyLink() }
