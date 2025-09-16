@@ -66,8 +66,6 @@ data class RecordEventLog(
         cros = personEntity.references.getType(IdentifierType.CRO).mapNotNull { it.identifierValue },
         pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue },
         sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate },
-        excludeOverrideMarkers = personEntity.getExcludeOverrideMarkers().mapNotNull { it.markerValue },
-        includeOverrideMarkers = personEntity.getIncludeOverrideMarkers().mapNotNull { it.markerValue },
         overrideMarker = personEntity.overrideMarker,
         overrideScopes = personEntity.overrideScopes.map { it.scope },
         sourceSystem = personEntity.sourceSystem,
