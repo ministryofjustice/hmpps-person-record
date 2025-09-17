@@ -138,7 +138,7 @@ class JoinClustersE2ETest : E2ETestBase() {
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
 
-    val firstPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(firstCrnWithPnc) })
+    val firstPersonRecord = awaitNotNullPerson { personRepository.findByCrn(firstCrnWithPnc) }
     assertThat(firstPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
     assertThat(firstPersonRecord.getPnc()).isEqualTo(pnc)
     assertThat(firstPersonRecord.addresses.size).isEqualTo(1)
@@ -162,7 +162,7 @@ class JoinClustersE2ETest : E2ETestBase() {
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, secondSetup)
 
-    val secondPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(secondCrnWithCro) })
+    val secondPersonRecord = awaitNotNullPerson { personRepository.findByCrn(secondCrnWithCro) }
     assertThat(secondPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
     assertThat(secondPersonRecord.getCro()).isEqualTo(cro)
     secondPersonRecord.personKey?.assertClusterStatus(ACTIVE)
@@ -183,7 +183,7 @@ class JoinClustersE2ETest : E2ETestBase() {
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, thirdSetup)
 
-    val thirdPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(thirdCrnWithBoth) })
+    val thirdPersonRecord = awaitNotNullPerson { personRepository.findByCrn(thirdCrnWithBoth) }
     assertThat(thirdPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
     assertThat(thirdPersonRecord.getCro()).isEqualTo(cro)
     assertThat(thirdPersonRecord.getPnc()).isEqualTo(pnc)
@@ -212,7 +212,7 @@ class JoinClustersE2ETest : E2ETestBase() {
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
 
-    val firstPersonRecord = awaitNotNullPerson(function = { personRepository.findByCrn(firstCrnWithPnc) })
+    val firstPersonRecord = awaitNotNullPerson { personRepository.findByCrn(firstCrnWithPnc) }
     assertThat(firstPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
     assertThat(firstPersonRecord.getPnc()).isEqualTo(pnc)
     firstPersonRecord.personKey?.assertClusterIsOfSize(1)
@@ -234,7 +234,7 @@ class JoinClustersE2ETest : E2ETestBase() {
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, secondSetup)
 
-    val secondPersonRecord = awaitNotNullPerson(function = { personRepository.findByCrn(secondCrnWithCro) })
+    val secondPersonRecord = awaitNotNullPerson { personRepository.findByCrn(secondCrnWithCro) }
     assertThat(secondPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
     assertThat(secondPersonRecord.getCro()).isEqualTo(cro)
     secondPersonRecord.personKey?.assertClusterIsOfSize(2)
@@ -264,7 +264,7 @@ class JoinClustersE2ETest : E2ETestBase() {
     )
 
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
-    var firstPersonRecord = awaitNotNullPerson(timeout = 70, function = { personRepository.findByCrn(firstCrn) })
+    var firstPersonRecord = awaitNotNullPerson { personRepository.findByCrn(firstCrn) }
     assertThat(firstPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
 
     val secondSetup = ApiResponseSetup(
@@ -281,7 +281,7 @@ class JoinClustersE2ETest : E2ETestBase() {
     )
     probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, secondCrn, firstCrn, reactivatedSetup = secondSetup, unmergedSetup = firstSetup)
     awaitAssert { assertThat(personRepository.findByCrn(secondCrn)?.personKey).isNotNull() }
-    var secondPersonRecord = awaitNotNullPerson(timeout = 70, function = { personRepository.findByCrn(secondCrn) })
+    var secondPersonRecord = awaitNotNullPerson { personRepository.findByCrn(secondCrn) }
     assertThat(secondPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
 
     secondPersonRecord.assertExcludedFrom(firstPersonRecord)
@@ -301,17 +301,17 @@ class JoinClustersE2ETest : E2ETestBase() {
 
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, thirdSetup)
 
-    val thirdPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(thirdCrn) })
+    val thirdPersonRecord = awaitNotNullPerson { personRepository.findByCrn(thirdCrn) }
     thirdPersonRecord.personKey!!.assertClusterStatus(NEEDS_ATTENTION, OVERRIDE_CONFLICT)
     thirdPersonRecord.personKey!!.assertClusterIsOfSize(1)
 
     checkEventLogExist(thirdCrn, CPRLogEvents.CPR_RECORD_CREATED_NEEDS_ATTENTION)
 
-    secondPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(secondCrn) })
+    secondPersonRecord = awaitNotNullPerson { personRepository.findByCrn(secondCrn) }
     secondPersonRecord.personKey!!.assertClusterStatus(ACTIVE)
     secondPersonRecord.personKey!!.assertClusterIsOfSize(1)
 
-    firstPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(firstCrn) })
+    firstPersonRecord = awaitNotNullPerson { personRepository.findByCrn(firstCrn) }
     firstPersonRecord.personKey!!.assertClusterStatus(ACTIVE)
     firstPersonRecord.personKey!!.assertClusterIsOfSize(1)
   }
