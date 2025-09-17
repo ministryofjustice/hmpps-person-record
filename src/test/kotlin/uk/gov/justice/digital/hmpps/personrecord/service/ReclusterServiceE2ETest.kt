@@ -130,13 +130,13 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       val newPersonCData = createProbationPersonFrom(basePersonData)
       probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup.from(newPersonCData))
 
-      cluster.assertClusterIsOfSize(2)
+      cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
       val updatedPersonCData = newPersonCData.withChangedMatchDetails()
       probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(updatedPersonCData))
 
-      cluster.assertClusterIsOfSize(2)
+      cluster.assertClusterIsOfSize(3)
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
     }
 

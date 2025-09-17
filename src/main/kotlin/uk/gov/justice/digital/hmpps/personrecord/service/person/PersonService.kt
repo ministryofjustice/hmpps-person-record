@@ -15,7 +15,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.Reclu
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
-import java.util.UUID
 
 @Component
 class PersonService(
@@ -90,21 +89,17 @@ class PersonService(
   }
 
   private fun List<PersonMatchResult>.containsExcluded(): Boolean {
-//  val scopes: Set<OverrideScopeEntity> = this.map { it.personEntity.overrideScopes }.flatten().toSet()
-//  val scopedOverrideMarker: List<List<UUID>> = scopes.map { scope -> scope.personEntities.mapNotNull { it.overrideMarker } }
-    val distinctCluster = this.collectDistinctClusters()
-    val explodedScopesPerCluster = distinctCluster.map { cluster ->
-      cluster.personEntities.map { person ->
-        person.overrideMarker?.let { ExplodedScope(it, person.overrideScopes.map { scopeEntity -> scopeEntity.scope }) }
+    val scopesPerCluster = this.collectDistinctClusters().map { cluster ->
+      cluster.personEntities.flatMap { person ->
+        person.overrideScopes
+          .map { scopeEntity -> scopeEntity.scope }
+          .toSet()
       }
     }
-    return false
+    val allScopesAcrossClusters = scopesPerCluster.flatten()
+    val hasSameScopes = allScopesAcrossClusters.size != allScopesAcrossClusters.toSet().size
+    return hasSameScopes
   }
-
-  private data class ExplodedScope(
-    val overrideMarker: UUID,
-    val overrideScopes: List<UUID>
-  )
 
   private fun List<PersonMatchResult>.collectDistinctClusters(): List<PersonKeyEntity> = this.map { it.personEntity }.groupBy { it.personKey!! }.map { it.key }.distinctBy { it.id }
 }
