@@ -13,9 +13,7 @@ class OverrideService(
 ) {
 
   fun systemExclude(vararg records: PersonEntity) {
-    val scopeEntity: OverrideScopeEntity = overrideScopeRepository.save(
-      OverrideScopeEntity.new(confidence = ConfidenceType.VERIFIED, actor = ActorType.SYSTEM),
-    )
+    val scopeEntity = createScope()
     records.forEach {
       it.addOverrideMarker(OverrideScopeEntity.newMarker(), scopeEntity)
     }
@@ -23,12 +21,13 @@ class OverrideService(
 
   fun systemInclude(vararg records: PersonEntity) {
     val marker = OverrideScopeEntity.newMarker()
-    val scopeEntity: OverrideScopeEntity = overrideScopeRepository.save(
-      OverrideScopeEntity.new(confidence = ConfidenceType.VERIFIED, actor = ActorType.SYSTEM),
-    )
+    val scopeEntity = createScope()
     records.forEach {
       it.addOverrideMarker(marker, scopeEntity)
     }
   }
 
+  private fun createScope(): OverrideScopeEntity = overrideScopeRepository.save(
+    OverrideScopeEntity.new(ConfidenceType.VERIFIED, ActorType.SYSTEM),
+  )
 }
