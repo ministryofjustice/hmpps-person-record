@@ -5,8 +5,10 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.PersonMatchClient
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION_EXCLUDE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -210,11 +212,10 @@ class JoinClustersE2ETest : E2ETestBase() {
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
 
-    val firstPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(firstCrnWithPnc) })
+    val firstPersonRecord = awaitNotNullPerson(function = { personRepository.findByCrn(firstCrnWithPnc) })
     assertThat(firstPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
     assertThat(firstPersonRecord.getPnc()).isEqualTo(pnc)
-    assertThat(firstPersonRecord.addresses.size).isEqualTo(1)
-    assertThat(firstPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
+    firstPersonRecord.personKey?.assertClusterIsOfSize(1)
 
     checkTelemetry(
       CPR_RECORD_CREATED,
@@ -233,11 +234,11 @@ class JoinClustersE2ETest : E2ETestBase() {
     )
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, secondSetup)
 
-    val secondPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(secondCrnWithCro) })
+    val secondPersonRecord = awaitNotNullPerson(function = { personRepository.findByCrn(secondCrnWithCro) })
     assertThat(secondPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
     assertThat(secondPersonRecord.getCro()).isEqualTo(cro)
-    assertThat(secondPersonRecord.personKey!!.personEntities.size).isEqualTo(2)
-    assertThat(secondPersonRecord.personKey!!.personUUID).isEqualTo(firstPersonRecord.personKey!!.personUUID)
+    secondPersonRecord.personKey?.assertClusterIsOfSize(2)
+    firstPersonRecord.personKey?.assertClusterStatus(RECLUSTER_MERGE)
   }
 
   @Test
@@ -299,17 +300,17 @@ class JoinClustersE2ETest : E2ETestBase() {
     )
 
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, thirdSetup)
+
     val thirdPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(thirdCrn) })
-    assertThat(thirdPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
+    thirdPersonRecord.personKey!!.assertClusterStatus(NEEDS_ATTENTION, OVERRIDE_CONFLICT)
+    thirdPersonRecord.personKey!!.assertClusterIsOfSize(1)
 
-    assertThat(thirdPersonRecord.personKey!!.status).isEqualTo(NEEDS_ATTENTION_EXCLUDE)
     secondPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(secondCrn) })
-    assertThat(secondPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
-
-    assertThat(secondPersonRecord.personKey!!.status).isEqualTo(NEEDS_ATTENTION_EXCLUDE)
+    secondPersonRecord.personKey!!.assertClusterStatus(ACTIVE)
+    secondPersonRecord.personKey!!.assertClusterIsOfSize(1)
 
     firstPersonRecord = awaitNotNullPerson(timeout = 7, function = { personRepository.findByCrn(firstCrn) })
-    assertThat(firstPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
-    assertThat(firstPersonRecord.personKey!!.status).isEqualTo(NEEDS_ATTENTION_EXCLUDE)
+    firstPersonRecord.personKey!!.assertClusterStatus(ACTIVE)
+    firstPersonRecord.personKey!!.assertClusterIsOfSize(1)
   }
 }

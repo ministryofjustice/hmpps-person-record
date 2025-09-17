@@ -8,7 +8,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION_EXCLUDE
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
@@ -57,25 +56,10 @@ class PersonService(
   }
 
   fun linkRecordToPersonKey(personEntity: PersonEntity) {
+    personKeyService.assignPersonToNewPersonKey(personEntity)
     val matches = personMatchService.findClustersToJoin(personEntity)
-    if (matches.containsExcluded().isNotEmpty()) {
-      matches.containsExcluded().forEach {
-        it.status = NEEDS_ATTENTION_EXCLUDE
-        personKeyRepository.save(it)
-      }
-      personKeyService.assignPersonToNewPersonKey(personEntity)
-      personEntity.personKey?.status = NEEDS_ATTENTION_EXCLUDE
-
-      personKeyRepository.save(personEntity.personKey!!)
-      return
-    }
-    if (matches.isEmpty()) {
-      personKeyService.assignPersonToNewPersonKey(personEntity)
-    } else {
-      personKeyService.assignToPersonKeyOfHighestConfidencePerson(personEntity, matches.first().personEntity.personKey!!)
-      if (matches.size > 1) {
-        reclusterService.recluster(personEntity)
-      }
+    if (matches.isNotEmpty()) {
+      reclusterService.recluster(personEntity)
     }
   }
 }
