@@ -2,16 +2,13 @@ package uk.gov.justice.digital.hmpps.personrecord.service.message
 
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideScopeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OverrideScopeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ActorType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ConfidenceType
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.unmerge.PersonUnmerged
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
@@ -21,7 +18,7 @@ class UnmergeService(
   private val personKeyRepository: PersonKeyRepository,
   private val publisher: ApplicationEventPublisher,
   private val personMatchService: PersonMatchService,
-  private val overrideScopeRepository: OverrideScopeRepository,
+  private val overrideService: OverrideService,
 ) {
 
   fun processUnmerge(reactivated: PersonEntity, existing: PersonEntity) {
@@ -32,19 +29,16 @@ class UnmergeService(
   }
 
   private fun unmerge(reactivated: PersonEntity, existing: PersonEntity) {
-    val scopeEntity: OverrideScopeEntity = overrideScopeRepository.save(
-      OverrideScopeEntity.new(confidence = ConfidenceType.VERIFIED, actor = ActorType.SYSTEM),
-    )
-
     existing.addExcludeOverrideMarker(excludeRecord = reactivated)
-    existing.addOverrideMarker(scopeEntity)
-    personMatchService.saveToPersonMatch(existing)
 
     reactivated.personKey?.let { reactivated.removePersonKeyLink() }
     reactivated.removeMergedLink()
 
     reactivated.addExcludeOverrideMarker(excludeRecord = existing)
-    reactivated.addOverrideMarker(scopeEntity)
+
+    overrideService.systemExclude(reactivated, existing)
+
+    personMatchService.saveToPersonMatch(existing)
     personMatchService.saveToPersonMatch(reactivated)
 
     personService.linkRecordToPersonKey(reactivated)
