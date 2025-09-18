@@ -6,16 +6,19 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OverrideScopeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ActorType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ConfidenceType
+import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
 class OverrideService(
   private val overrideScopeRepository: OverrideScopeRepository,
+  private val personMatchService: PersonMatchService,
 ) {
 
   fun systemExclude(vararg records: PersonEntity) {
     val scopeEntity = createScope()
     records.forEach {
-      it.addOverrideMarker(OverrideScopeEntity.newMarker(), scopeEntity)
+      it.addOverrideMarker(scopeEntity)
+      personMatchService.saveToPersonMatch(it)
     }
   }
 
@@ -23,7 +26,8 @@ class OverrideService(
     val marker = OverrideScopeEntity.newMarker()
     val scopeEntity = createScope()
     records.forEach {
-      it.addOverrideMarker(marker, scopeEntity)
+      it.addOverrideMarker(scopeEntity, marker)
+      personMatchService.saveToPersonMatch(it)
     }
   }
 

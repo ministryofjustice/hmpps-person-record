@@ -152,8 +152,8 @@ class PersonEntity(
     )
   }
 
-  fun addOverrideMarker(marker: UUID, scope: OverrideScopeEntity) {
-    this.overrideMarker = marker
+  fun addOverrideMarker(scope: OverrideScopeEntity, marker: UUID = OverrideScopeEntity.newMarker()) {
+    this.overrideMarker = this.overrideMarker ?: marker
     this.overrideScopes.add(scope)
   }
 

@@ -10,14 +10,12 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
-import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Component
 class UnmergeService(
   private val personService: PersonService,
   private val personKeyRepository: PersonKeyRepository,
   private val publisher: ApplicationEventPublisher,
-  private val personMatchService: PersonMatchService,
   private val overrideService: OverrideService,
 ) {
 
@@ -37,9 +35,6 @@ class UnmergeService(
     reactivated.addExcludeOverrideMarker(excludeRecord = existing)
 
     overrideService.systemExclude(reactivated, existing)
-
-    personMatchService.saveToPersonMatch(existing)
-    personMatchService.saveToPersonMatch(reactivated)
 
     personService.linkRecordToPersonKey(reactivated)
     publisher.publishEvent(PersonUnmerged(reactivated, existing))
