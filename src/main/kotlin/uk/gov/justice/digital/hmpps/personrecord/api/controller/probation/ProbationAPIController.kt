@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.transaction.annotation.Isolation.REPEATABLE_READ
 import org.springframework.transaction.annotation.Transactional
@@ -13,19 +14,27 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.CourtProbationLinkEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtProbationLinkRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
+import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @Tag(name = "HMPPS CPR Probation API")
 @RestController
 @PreAuthorize("hasRole('$PROBATION_API_READ_WRITE')")
 class ProbationAPIController(
   private val personRepository: PersonRepository,
-  private val createUpdateService: CreateUpdateService,
+  private val personService: PersonService,
+  private val overrideService: OverrideService,
   private val courtProbationLinkRepository: CourtProbationLinkRepository,
 ) {
   @Operation(
@@ -45,17 +54,19 @@ class ProbationAPIController(
     @PathVariable(name = "defendantId") defendantId: String,
     @RequestBody probationCase: ProbationCase,
   ) {
-    probationCase.createPerson()
+    val defendant: PersonEntity = retrieveDefendant(defendantId)
+    val offender: PersonEntity = probationCase.createPersonWithoutLinking()
+    defendant.personKey?.let {
+      offender.assignToPersonKey(it)
+    }
+    overrideService.systemInclude(defendant, offender)
+    // Old way will remove once updated
     probationCase.storeLink(defendantId)
   }
 
-  private fun ProbationCase.createPerson() {
-    createUpdateService.processPerson(Person.from(this)) {
-      this.identifiers.crn?.let {
-        personRepository.findByCrn(it)
-      }
-    }
-  }
+  private fun retrieveDefendant(defendantId: String): PersonEntity = personRepository.findByDefendantId(defendantId) ?: throw ResourceNotFoundException(defendantId)
+
+  private fun ProbationCase.createPersonWithoutLinking(): PersonEntity = personService.handlePersonCreation(Person.from(this).doNotLinkOnCreate())
 
   private fun ProbationCase.storeLink(defendantId: String) = this.identifiers.crn?.let {
     courtProbationLinkRepository.save(CourtProbationLinkEntity.from(defendantId, it))
