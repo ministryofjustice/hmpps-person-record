@@ -35,14 +35,10 @@ class PersonService(
 
   fun update(person: Person, personEntity: PersonEntity): PersonEntity {
     val ctx = personFactory.update(person, personEntity)
+      .reclusterIf { ctx -> person.reclusterOnUpdate && ctx.matchingFieldsChanged }
       .saveToPersonMatch()
     publisher.publishEvent(PersonUpdated(ctx.personEntity, ctx.matchingFieldsChanged))
-    personEntity.personKey?.let {
-      if (person.reclusterOnUpdate && ctx.matchingFieldsChanged) {
-        reclusterService.recluster(personEntity)
-      }
-    }
-    return personEntity
+    return ctx.personEntity
   }
 
   fun linkRecordToPersonKey(personEntity: PersonEntity) {
@@ -63,6 +59,13 @@ class PersonService(
   private fun PersonChainable.linkToPersonKey(): PersonChainable {
     when {
       this.linkOnCreate -> linkRecordToPersonKey(this.personEntity)
+    }
+    return this
+  }
+
+  private fun PersonChainable.reclusterIf(condition: (ctx: PersonChainable) -> Boolean): PersonChainable {
+    when {
+      condition(this) -> this.personEntity.personKey?.let { reclusterService.recluster(this.personEntity) }
     }
     return this
   }
