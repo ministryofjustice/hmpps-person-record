@@ -26,19 +26,19 @@ class PersonService(
 ) {
 
   fun create(person: Person): PersonEntity {
-    val chainable = personFactory.create(person)
+    val ctx = personFactory.create(person)
       .linkToPersonKey()
       .saveToPersonMatch()
-    publisher.publishEvent(PersonCreated(chainable.personEntity))
-    return chainable.personEntity
+    publisher.publishEvent(PersonCreated(ctx.personEntity))
+    return ctx.personEntity
   }
 
   fun update(person: Person, personEntity: PersonEntity): PersonEntity {
-    val chainable = personFactory.update(person, personEntity)
+    val ctx = personFactory.update(person, personEntity)
       .saveToPersonMatch()
-    publisher.publishEvent(PersonUpdated(chainable.personEntity, chainable.matchingFieldsChanged))
+    publisher.publishEvent(PersonUpdated(ctx.personEntity, ctx.matchingFieldsChanged))
     personEntity.personKey?.let {
-      if (person.reclusterOnUpdate && chainable.matchingFieldsChanged) {
+      if (person.reclusterOnUpdate && ctx.matchingFieldsChanged) {
         reclusterService.recluster(personEntity)
       }
     }
