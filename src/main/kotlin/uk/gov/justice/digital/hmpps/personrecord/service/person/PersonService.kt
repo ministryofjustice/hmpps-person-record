@@ -90,8 +90,8 @@ class PersonService(
 
   private fun List<PersonMatchResult>.containsExcluded(): Boolean {
     val scopesPerCluster = this.collectDistinctClusters().map { cluster ->
-      cluster.personEntities.
-      flatMap { person ->
+      cluster.personEntities
+        .flatMap { person ->
         person.overrideScopes
           .map { scopeEntity -> scopeEntity.scope }
           .toSet()
