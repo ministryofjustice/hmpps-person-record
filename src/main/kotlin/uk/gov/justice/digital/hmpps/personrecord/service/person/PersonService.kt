@@ -97,7 +97,7 @@ class PersonService(
               .map { scopeEntity -> scopeEntity.scope }
               .toSet()
           }
-    }
+      }
     val allScopesAcrossClusters = scopesPerCluster.flatten()
     val hasSameScopes = allScopesAcrossClusters.size != allScopesAcrossClusters.toSet().size
     return hasSameScopes
