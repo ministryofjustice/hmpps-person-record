@@ -63,14 +63,14 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val reactivatedPerson = awaitNotNullPerson { personRepository.findByCrn(reactivatedCrn) }
       reactivatedPerson.assertHasLinkToCluster()
       reactivatedPerson.assertNotLinkedToCluster(unmergedPerson.personKey!!)
-      reactivatedPerson.assertExcludedFrom(unmergedPerson)
+      reactivatedPerson.assertExcluded(unmergedPerson)
       reactivatedPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       reactivatedPerson.personKey?.assertClusterIsOfSize(1)
 
       unmergedPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       unmergedPerson.personKey?.assertClusterIsOfSize(1)
       unmergedPerson.assertNotLinkedToCluster(reactivatedPerson.personKey!!)
-      unmergedPerson.assertExcludedFrom(reactivatedPerson)
+      unmergedPerson.assertExcluded(reactivatedPerson)
 
       unmergedPerson.assertHasOverrideMarker()
       reactivatedPerson.assertHasOverrideMarker()
@@ -112,10 +112,10 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       reactivatedPerson.assertHasLinkToCluster()
       reactivatedPerson.assertNotLinkedToCluster(unmergedPerson.personKey!!)
-      reactivatedPerson.assertExcludedFrom(unmergedPerson)
+      reactivatedPerson.assertExcluded(unmergedPerson)
 
       unmergedPerson.assertHasLinkToCluster()
-      unmergedPerson.assertExcludedFrom(reactivatedPerson)
+      unmergedPerson.assertExcluded(reactivatedPerson)
 
       unmergedPerson.assertHasOverrideMarker()
       reactivatedPerson.assertHasOverrideMarker()
@@ -154,12 +154,12 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
       val unmergedPerson = awaitNotNullPerson { personRepository.findByCrn(unmergedCrn) }
       unmergedPerson.assertHasLinkToCluster()
-      unmergedPerson.assertExcludedFrom(reactivatedPerson)
+      unmergedPerson.assertExcluded(reactivatedPerson)
       unmergedPerson.assertNotLinkedToCluster(reactivatedPerson.personKey!!)
 
       reactivatedPerson.assertHasLinkToCluster()
       reactivatedPerson.assertNotLinkedToCluster(unmergedPerson.personKey!!)
-      reactivatedPerson.assertExcludedFrom(unmergedPerson)
+      reactivatedPerson.assertExcluded(unmergedPerson)
 
       unmergedPerson.assertHasOverrideMarker()
       reactivatedPerson.assertHasOverrideMarker()
@@ -180,8 +180,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       reactivatedRecord.assertNotMerged()
 
-      reactivatedRecord.assertExcludedFrom(unmergedRecord)
-      unmergedRecord.assertExcludedFrom(reactivatedRecord)
+      reactivatedRecord.assertExcluded(unmergedRecord)
+      unmergedRecord.assertExcluded(reactivatedRecord)
 
       cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
       cluster.assertClusterIsOfSize(1)
@@ -216,8 +216,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       recordB.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       recordA.assertNotMerged()
 
-      recordA.assertExcludedFrom(recordB)
-      recordB.assertExcludedFrom(recordA)
+      recordA.assertExcluded(recordB)
+      recordB.assertExcluded(recordA)
 
       cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
       cluster.assertClusterIsOfSize(1)
@@ -255,9 +255,9 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       firstReactivatedRecord.assertNotMerged()
       secondReactivatedRecord.assertNotMerged()
 
-      firstReactivatedRecord.assertExcludedFrom(unmergedRecord)
-      secondReactivatedRecord.assertExcludedFrom(unmergedRecord)
-      unmergedRecord.assertExcludedFrom(firstReactivatedRecord)
+      firstReactivatedRecord.assertExcluded(unmergedRecord)
+      secondReactivatedRecord.assertExcluded(unmergedRecord)
+      unmergedRecord.assertExcluded(firstReactivatedRecord)
 
       cluster.assertClusterStatus(UUIDStatusType.ACTIVE)
       cluster.assertClusterIsOfSize(1)
@@ -359,12 +359,12 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       cluster.assertClusterIsOfSize(2)
 
       unmergedPerson.assertLinkedToCluster(cluster)
-      unmergedPerson.assertExcludedFrom(reactivatedPerson)
+      unmergedPerson.assertExcluded(reactivatedPerson)
 
       reactivatedPerson.assertNotMerged()
       reactivatedPerson.assertHasLinkToCluster()
       reactivatedPerson.assertNotLinkedToCluster(cluster)
-      reactivatedPerson.assertExcludedFrom(unmergedPerson)
+      reactivatedPerson.assertExcluded(unmergedPerson)
 
       unmergedPerson.assertHasOverrideMarker()
       reactivatedPerson.assertHasOverrideMarker()

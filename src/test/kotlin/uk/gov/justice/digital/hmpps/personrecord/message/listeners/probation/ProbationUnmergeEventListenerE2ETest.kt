@@ -68,13 +68,13 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       unmergedPerson.assertHasLinkToCluster()
       unmergedPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       unmergedPerson.personKey?.assertClusterIsOfSize(1)
-      unmergedPerson.assertExcludedFrom(reactivatedPersonEntity)
+      unmergedPerson.assertExcluded(reactivatedPersonEntity)
 
       reactivatedPersonEntity.assertHasLinkToCluster()
       reactivatedPersonEntity.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
       reactivatedPersonEntity.personKey?.assertClusterIsOfSize(1)
       reactivatedPersonEntity.assertNotLinkedToCluster(unmergedPerson.personKey!!)
-      reactivatedPersonEntity.assertExcludedFrom(unmergedPerson)
+      reactivatedPersonEntity.assertExcluded(unmergedPerson)
       reactivatedPersonEntity.assertNotMerged()
 
       unmergedPerson.assertHasOverrideMarker()

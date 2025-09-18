@@ -618,12 +618,6 @@ class IntegrationTestBase {
       .isEqualTo(personRepository.findByMatchId(personEntity.matchId)?.overrideMarker)
   }
 
-  internal fun PersonEntity.assertExcludedFrom(personEntity: PersonEntity) = awaitAssert {
-    assertThat(
-      personRepository.findByMatchId(this.matchId)?.overrideMarkers?.filter { it.markerType == EXCLUDE && it.markerValue == personEntity.id },
-    ).hasSize(1)
-  }
-
   internal fun PersonEntity.assertHasOverrideMarker() = awaitAssert {
     assertThat(personRepository.findByMatchId(this.matchId)?.overrideMarker).isNotNull()
   }

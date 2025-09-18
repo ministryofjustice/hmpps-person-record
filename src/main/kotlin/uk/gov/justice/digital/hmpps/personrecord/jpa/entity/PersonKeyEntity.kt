@@ -12,7 +12,6 @@ import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
-import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import java.util.*
@@ -71,10 +70,6 @@ class PersonKeyEntity(
       this.status = UUIDStatusType.MERGED
     }
   }
-
-  fun getRecordIds(): List<Long> = this.personEntities.mapNotNull { it.id }
-
-  fun collectExcludeOverrideMarkers(): List<OverrideMarkerEntity> = this.personEntities.map { it.overrideMarkers }.flatten().filter { it.markerType == OverrideMarkerType.EXCLUDE }
 
   companion object {
     val empty: PersonKeyEntity? = null
