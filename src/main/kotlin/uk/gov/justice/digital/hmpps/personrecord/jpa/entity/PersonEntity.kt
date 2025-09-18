@@ -22,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
@@ -142,18 +141,8 @@ class PersonEntity(
   fun getAliases(): List<PseudonymEntity> = this.pseudonyms.filter { it.nameType.equals(NameType.ALIAS) }.sortedBy { it.id }
   fun getPrimaryName(): PseudonymEntity = this.pseudonyms.firstOrNull { it.nameType.equals(NameType.PRIMARY) } ?: PseudonymEntity(nameType = NameType.PRIMARY)
 
-  fun getExcludeOverrideMarkers() = this.overrideMarkers.filter { it.markerType == OverrideMarkerType.EXCLUDE }
-
-  fun getIncludeOverrideMarkers() = this.overrideMarkers.filter { it.markerType == OverrideMarkerType.INCLUDE }
-
-  fun addExcludeOverrideMarker(excludeRecord: PersonEntity) {
-    this.overrideMarkers.add(
-      OverrideMarkerEntity(markerType = OverrideMarkerType.EXCLUDE, markerValue = excludeRecord.id, person = this),
-    )
-  }
-
-  fun addOverrideMarker(scope: OverrideScopeEntity) {
-    this.overrideMarker = this.overrideMarker ?: OverrideScopeEntity.newMarker()
+  fun addOverrideMarker(scope: OverrideScopeEntity, marker: UUID = OverrideScopeEntity.newMarker()) {
+    this.overrideMarker = this.overrideMarker ?: marker
     this.overrideScopes.add(scope)
   }
 

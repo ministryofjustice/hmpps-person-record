@@ -59,7 +59,7 @@ class PersonMatchRecordTest {
   }
 
   @Test
-  fun `should build override marker and override scopea`() {
+  fun `should build override marker and override scopes`() {
     val overrideMarker = UUID.randomUUID()
     val overrideScope1 = UUID.randomUUID()
     val overrideScope2 = UUID.randomUUID()

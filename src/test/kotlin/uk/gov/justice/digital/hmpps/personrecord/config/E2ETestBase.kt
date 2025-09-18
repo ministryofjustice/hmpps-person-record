@@ -2,14 +2,11 @@ package uk.gov.justice.digital.hmpps.personrecord.config
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ActiveProfiles
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.OverrideScopeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.SentenceInfo
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ActorType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.overridescopes.ConfidenceType
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
@@ -24,32 +21,6 @@ class E2ETestBase : MessagingTestBase() {
     val personEntity = super.createPerson(person, personKeyEntity)
     personMatchService.saveToPersonMatch(personEntity)
     return personEntity
-  }
-
-  override fun excludeRecord(sourceRecord: PersonEntity, excludingRecord: PersonEntity) {
-    super.excludeRecord(sourceRecord, excludingRecord)
-    personMatchService.saveToPersonMatch(personRepository.findByMatchId(sourceRecord.matchId)!!)
-    personMatchService.saveToPersonMatch(personRepository.findByMatchId(excludingRecord.matchId)!!)
-  }
-
-  internal fun includeRecords(vararg records: PersonEntity) {
-    val scope = overrideScopeRepository.save(
-      OverrideScopeEntity.new(
-        ConfidenceType.VERIFIED,
-        ActorType.SYSTEM,
-      ),
-    )
-    val marker = OverrideScopeEntity.newMarker()
-    records.forEach { record ->
-      personRepository.findByMatchId(record.matchId)?.let {
-        it.apply {
-          overrideScopes.add(scope)
-          overrideMarker = marker
-        }
-        personRepository.saveAndFlush(it)
-        personMatchService.saveToPersonMatch(it)
-      }
-    }
   }
 
   internal fun createProbationPersonFrom(from: Person, crn: String = randomCrn()): Person = from.copy(crn = crn)

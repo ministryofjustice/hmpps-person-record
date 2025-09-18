@@ -370,6 +370,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val personA = createPersonWithNewKey(createRandomProbationPersonDetails())
     val personB = createPersonWithNewKey(createRandomProbationPersonDetails())
 
+    stubPersonMatchUpsert()
     excludeRecord(personA, personB)
 
     val domainEvent = probationDomainEvent(OFFENDER_DELETION, personA.crn!!)

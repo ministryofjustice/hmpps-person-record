@@ -104,6 +104,7 @@ class EventLogServiceIntTest : IntegrationTestBase() {
     val toRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
     val fromRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
 
+    stubPersonMatchUpsert()
     excludeRecord(toRecord, fromRecord)
 
     val updatedToRecord = personRepository.findByMatchId(toRecord.matchId)!!
