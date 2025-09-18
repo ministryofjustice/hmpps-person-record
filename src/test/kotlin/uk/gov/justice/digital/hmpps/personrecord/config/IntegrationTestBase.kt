@@ -66,7 +66,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person.Companion.g
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
-import uk.gov.justice.digital.hmpps.personrecord.model.types.OverrideMarkerType.EXCLUDE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
@@ -616,12 +615,6 @@ class IntegrationTestBase {
   internal fun PersonEntity.assertHasSameOverrideMarker(personEntity: PersonEntity) = awaitAssert {
     assertThat(personRepository.findByMatchId(this.matchId)?.overrideMarker)
       .isEqualTo(personRepository.findByMatchId(personEntity.matchId)?.overrideMarker)
-  }
-
-  internal fun PersonEntity.assertExcludedFrom(personEntity: PersonEntity) = awaitAssert {
-    assertThat(
-      personRepository.findByMatchId(this.matchId)?.overrideMarkers?.filter { it.markerType == EXCLUDE && it.markerValue == personEntity.id },
-    ).hasSize(1)
   }
 
   internal fun PersonEntity.assertHasOverrideMarker() = awaitAssert {

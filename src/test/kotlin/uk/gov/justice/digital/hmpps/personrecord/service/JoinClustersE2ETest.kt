@@ -284,7 +284,7 @@ class JoinClustersE2ETest : E2ETestBase() {
     var secondPersonRecord = awaitNotNullPerson { personRepository.findByCrn(secondCrn) }
     assertThat(secondPersonRecord.personKey!!.personEntities.size).isEqualTo(1)
 
-    secondPersonRecord.assertExcludedFrom(firstPersonRecord)
+    secondPersonRecord.assertExcluded(firstPersonRecord)
 
     val thirdSetup = ApiResponseSetup(
       crn = thirdCrn,

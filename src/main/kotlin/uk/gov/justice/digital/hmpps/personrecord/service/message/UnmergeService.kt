@@ -27,12 +27,8 @@ class UnmergeService(
   }
 
   private fun unmerge(reactivated: PersonEntity, existing: PersonEntity) {
-    existing.addExcludeOverrideMarker(excludeRecord = reactivated)
-
     reactivated.personKey?.let { reactivated.removePersonKeyLink() }
     reactivated.removeMergedLink()
-
-    reactivated.addExcludeOverrideMarker(excludeRecord = existing)
 
     overrideService.systemExclude(reactivated, existing)
 
