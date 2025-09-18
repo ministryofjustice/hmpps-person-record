@@ -90,7 +90,8 @@ class PersonService(
 
   private fun List<PersonMatchResult>.containsExcluded(): Boolean {
     val scopesPerCluster = this.collectDistinctClusters().map { cluster ->
-      cluster.personEntities.flatMap { person ->
+      cluster.personEntities.
+      flatMap { person ->
         person.overrideScopes
           .map { scopeEntity -> scopeEntity.scope }
           .toSet()
@@ -101,5 +102,9 @@ class PersonService(
     return hasSameScopes
   }
 
-  private fun List<PersonMatchResult>.collectDistinctClusters(): List<PersonKeyEntity> = this.map { it.personEntity }.groupBy { it.personKey!! }.map { it.key }.distinctBy { it.id }
+  private fun List<PersonMatchResult>.collectDistinctClusters(): List<PersonKeyEntity> = this
+    .map { it.personEntity }
+    .groupBy { it.personKey!! }
+    .map { it.key }
+    .distinctBy { it.id }
 }
