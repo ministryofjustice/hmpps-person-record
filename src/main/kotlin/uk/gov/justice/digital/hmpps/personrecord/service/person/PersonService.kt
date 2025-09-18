@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.person
 
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -12,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonChainable
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
@@ -25,30 +25,20 @@ class PersonService(
   private val publisher: ApplicationEventPublisher,
 ) {
 
-  fun handlePersonCreation(person: Person): PersonEntity {
-    val personEntity = personFactory.create(person)
-    personMatchService.saveToPersonMatch(personEntity)
-    if (person.linkOnCreate) {
-      linkRecordToPersonKey(personEntity)
-    }
-    publisher.publishEvent(PersonCreated(personEntity))
-    return personEntity
+  fun create(person: Person): PersonEntity {
+    val chainable = personFactory.create(person)
+      .linkToPersonKey()
+      .saveToPersonMatch()
+    publisher.publishEvent(PersonCreated(chainable.personEntity))
+    return chainable.personEntity
   }
 
-  fun handlePersonUpdate(person: Person, personEntity: PersonEntity): PersonEntity {
-    val oldMatchingDetails = PersonMatchRecord.from(personEntity)
-    personFactory.update(person, personEntity)
-    val matchingFieldsHaveChanged = oldMatchingDetails.matchingFieldsAreDifferent(
-      PersonMatchRecord.from(
-        personEntity,
-      ),
-    )
-    when {
-      matchingFieldsHaveChanged -> personMatchService.saveToPersonMatch(personEntity)
-    }
-    publisher.publishEvent(PersonUpdated(personEntity, matchingFieldsHaveChanged))
+  fun update(person: Person, personEntity: PersonEntity): PersonEntity {
+    val chainable = personFactory.update(person, personEntity)
+      .saveToPersonMatch()
+    publisher.publishEvent(PersonUpdated(chainable.personEntity, chainable.matchingFieldsChanged))
     personEntity.personKey?.let {
-      if (person.reclusterOnUpdate && matchingFieldsHaveChanged) {
+      if (person.reclusterOnUpdate && chainable.matchingFieldsChanged) {
         reclusterService.recluster(personEntity)
       }
     }
@@ -61,6 +51,20 @@ class PersonService(
       matches.containsExcluded() -> personEntity.setAsOverrideConflict()
       else -> personEntity.selectClusterToAssignTo(matches)
     }
+  }
+
+  private fun PersonChainable.saveToPersonMatch(): PersonChainable {
+    when {
+      this.matchingFieldsChanged -> personMatchService.saveToPersonMatch(this.personEntity)
+    }
+    return this
+  }
+
+  private fun PersonChainable.linkToPersonKey(): PersonChainable {
+    when {
+      this.linkOnCreate -> linkRecordToPersonKey(this.personEntity)
+    }
+    return this
   }
 
   private fun PersonEntity.selectClusterToAssignTo(matches: List<PersonMatchResult>) {
