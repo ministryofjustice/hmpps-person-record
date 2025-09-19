@@ -84,14 +84,6 @@ class EventLogEntity(
   @Column(name = "sentence_dates", columnDefinition = "date[]")
   val sentenceDates: Array<LocalDate> = emptyArray<LocalDate>(),
 
-  @Type(LongArrayType::class)
-  @Column(name = "exclude_override_markers", columnDefinition = "bigint[]")
-  val excludeOverrideMarkers: Array<Long> = emptyArray<Long>(),
-
-  @Type(LongArrayType::class)
-  @Column(name = "include_override_markers", columnDefinition = "bigint[]")
-  val includeOverrideMarkers: Array<Long> = emptyArray<Long>(),
-
   @Column(name = "override_marker")
   val overrideMarker: UUID? = null,
 

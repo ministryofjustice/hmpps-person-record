@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.controller.syscon
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.syscon
 
 import org.junit.jupiter.api.Test
 import reactor.core.publisher.Mono
