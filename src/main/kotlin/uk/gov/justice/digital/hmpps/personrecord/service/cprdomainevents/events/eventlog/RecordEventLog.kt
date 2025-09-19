@@ -31,8 +31,6 @@ data class RecordEventLog(
   val cros: List<String> = emptyList(),
   val pncs: List<String> = emptyList(),
   val sentenceDates: List<LocalDate> = emptyList(),
-  val excludeOverrideMarkers: List<Long> = emptyList(),
-  val includeOverrideMarkers: List<Long> = emptyList(),
   val overrideMarker: UUID? = null,
   val overrideScopes: List<UUID> = emptyList(),
   val sourceSystem: SourceSystemType? = null,
