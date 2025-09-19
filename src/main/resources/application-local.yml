@@ -4,7 +4,7 @@ person-match:
   client-id: hmpps-person-match
 
 nomis-oauth:
-  base-url: http://localhost:8081
+  base-url: http://localhost:9090
 
 prisoner-search:
   base-url: https://prisoner-search-dev.prison.service.justice.gov.uk
