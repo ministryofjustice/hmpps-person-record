@@ -27,16 +27,16 @@ class PersonService(
 
   fun create(person: Person): PersonEntity {
     val ctx = personFactory.create(person)
-      .linkToPersonKey()
       .saveToPersonMatch()
+      .linkToPersonKey()
     publisher.publishEvent(PersonCreated(ctx.personEntity))
     return ctx.personEntity
   }
 
   fun update(person: Person, personEntity: PersonEntity): PersonEntity {
     val ctx = personFactory.update(person, personEntity)
-      .reclusterIf { ctx -> person.reclusterOnUpdate && ctx.matchingFieldsChanged }
       .saveToPersonMatch()
+      .reclusterIf { ctx -> person.reclusterOnUpdate && ctx.matchingFieldsChanged }
     publisher.publishEvent(PersonUpdated(ctx.personEntity, ctx.matchingFieldsChanged))
     return ctx.personEntity
   }
