@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
 import io.hypersistence.utils.hibernate.type.array.LocalDateArrayType
-import io.hypersistence.utils.hibernate.type.array.LongArrayType
 import io.hypersistence.utils.hibernate.type.array.StringArrayType
 import io.hypersistence.utils.hibernate.type.array.UUIDArrayType
 import jakarta.persistence.Column
