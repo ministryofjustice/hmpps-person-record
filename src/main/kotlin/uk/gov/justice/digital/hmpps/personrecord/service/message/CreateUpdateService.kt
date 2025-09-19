@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.message
 
-import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
@@ -15,14 +14,12 @@ class CreateUpdateService(
   fun processPerson(
     person: Person,
     findPerson: () -> PersonEntity?,
-  ): PersonEntity = runBlocking {
-    return@runBlocking findPerson().exists(
-      no = {
-        personService.handlePersonCreation(person)
-      },
-      yes = {
-        personService.handlePersonUpdate(person, it)
-      },
-    )
-  }
+  ): PersonEntity = findPerson().exists(
+    no = {
+      personService.create(person)
+    },
+    yes = {
+      personService.update(person, it)
+    },
+  )
 }
