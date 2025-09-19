@@ -73,8 +73,7 @@ class EventLogApiIntTest : WebTestBase() {
     assertThat(response.uuid).isEqualTo(person.personKey?.personUUID.toString())
     assertThat(response.eventLogs[0].eventType).isEqualTo(CPR_RECORD_UPDATED.name)
     assertThat(response.eventLogs[0].overrideMarker).isEqualTo(excludedPerson.overrideMarker.toString())
-    assertThat(response.eventLogs[0].overrideScopes).isEqualTo(excludedPerson.overrideScopes.map{it.scope.toString()}.toTypedArray())
-
+    assertThat(response.eventLogs[0].overrideScopes).isEqualTo(excludedPerson.overrideScopes.map { it.scope.toString() }.toTypedArray())
   }
 
   @Test
@@ -103,6 +102,7 @@ class EventLogApiIntTest : WebTestBase() {
       .responseBody!!
     return response
   }
+
   @Test
   fun `should return Access Denied 403 when role is wrong`() {
     val expectedErrorMessage = "Forbidden: Access Denied"
