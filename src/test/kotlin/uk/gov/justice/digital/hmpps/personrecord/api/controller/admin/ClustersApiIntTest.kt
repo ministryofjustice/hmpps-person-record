@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.controller.admin
+package uk.gov.justice.digital.hmpps.personrecord.api.controller.admin
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
