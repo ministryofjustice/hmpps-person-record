@@ -142,8 +142,6 @@ class EventLogEntity(
       cros = eventLog.cros.dedupeAndSortedArray(),
       pncs = eventLog.pncs.dedupeAndSortedArray(),
       sentenceDates = eventLog.sentenceDates.dedupeAndSortedArray(),
-      excludeOverrideMarkers = eventLog.excludeOverrideMarkers.dedupeAndSortedArray(),
-      includeOverrideMarkers = eventLog.includeOverrideMarkers.dedupeAndSortedArray(),
       overrideMarker = eventLog.overrideMarker,
       overrideScopes = eventLog.overrideScopes.dedupeAndSortedArray(),
       sourceSystem = eventLog.sourceSystem,
@@ -157,8 +155,6 @@ class EventLogEntity(
     private fun List<String>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
 
     private fun List<UUID>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
-
-    private fun List<Long>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
 
     private fun List<LocalDate>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
   }
