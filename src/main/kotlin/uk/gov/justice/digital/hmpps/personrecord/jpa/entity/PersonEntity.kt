@@ -63,10 +63,6 @@ class PersonEntity(
   @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var sentenceInfo: MutableList<SentenceInfoEntity> = mutableListOf(),
 
-  @Column
-  @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
-  var overrideMarkers: MutableList<OverrideMarkerEntity> = mutableListOf(),
-
   @Column(name = "override_marker")
   var overrideMarker: UUID? = null,
 
