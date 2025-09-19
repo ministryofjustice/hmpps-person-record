@@ -2,9 +2,9 @@ package uk.gov.justice.digital.hmpps.personrecord.service
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.personrecord.config.MessagingTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 
-class OverrideServiceIntTest : MessagingTestBase() {
+class OverrideServiceIntTest : IntegrationTestBase() {
 
   @BeforeEach
   fun beforeEach() {
