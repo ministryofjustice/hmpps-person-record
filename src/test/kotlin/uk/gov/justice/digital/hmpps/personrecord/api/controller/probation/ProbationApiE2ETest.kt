@@ -179,7 +179,7 @@ class ProbationApiE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should update record if it exists already and join cluster where it does not dont match above join`() {
+    fun `should set include override on existing probation record on different cluster as the court record and clusters them together`() {
       val defendantId = randomDefendantId()
       val defendant = createPersonWithNewKey(createRandomCommonPlatformPersonDetails(defendantId))
 
@@ -218,7 +218,7 @@ class ProbationApiE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should update record if it exists already and join cluster where it does match above join`() {
+    fun `should set include override on existing probation record on the same cluster as the court record`() {
       val basePersonData = createRandomCommonPlatformPersonDetails()
 
       val defendantId = randomDefendantId()
