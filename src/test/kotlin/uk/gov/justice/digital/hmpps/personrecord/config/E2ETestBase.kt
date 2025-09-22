@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.config
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.QUEUE_ADMIN
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -10,9 +12,18 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
 @ActiveProfiles("e2e")
 class E2ETestBase : MessagingTestBase() {
+
+  @Autowired
+  lateinit var webTestClient: WebTestClient
+
+  @Autowired
+  internal lateinit var jwtAuthorisationHelper: JwtAuthorisationHelper
+
+  internal fun WebTestClient.RequestHeadersSpec<*>.authorised(roles: List<String> = listOf(QUEUE_ADMIN)): WebTestClient.RequestBodySpec = headers(jwtAuthorisationHelper.setAuthorisationHeader(roles = roles)) as WebTestClient.RequestBodySpec
 
   @Autowired
   private lateinit var personMatchService: PersonMatchService
@@ -24,6 +35,8 @@ class E2ETestBase : MessagingTestBase() {
   }
 
   internal fun createProbationPersonFrom(from: Person, crn: String = randomCrn()): Person = from.copy(crn = crn)
+
+  internal fun createCommonPlatformPersonFrom(from: Person, defendantId: String = randomCrn()): Person = from.copy(defendantId = defendantId)
 
   /*
   Remove matching fields to reduce match weight below the join threshold but keep above fracture threshold

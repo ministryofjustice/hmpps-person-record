@@ -46,8 +46,7 @@ data class Person(
   val sentences: List<SentenceInfo> = emptyList(),
   val cId: String? = null,
   val sexCode: SexCode? = null,
-  var reclusterOnUpdate: Boolean = true,
-  var linkOnCreate: Boolean = true,
+  val behaviour: Behaviour = Behaviour(),
 ) {
 
   companion object {
@@ -236,12 +235,12 @@ data class Person(
   }
 
   fun doNotReclusterOnUpdate(): Person {
-    reclusterOnUpdate = false
+    this.behaviour.reclusterOnUpdate = false
     return this
   }
 
   fun doNotLinkOnCreate(): Person {
-    linkOnCreate = false
+    this.behaviour.linkOnCreate = false
     return this
   }
 
@@ -253,3 +252,8 @@ data class Person(
 
   private fun lastNameIsPresent() = lastName?.isNotEmpty() == true
 }
+
+data class Behaviour(
+  var reclusterOnUpdate: Boolean = true,
+  var linkOnCreate: Boolean = true,
+)

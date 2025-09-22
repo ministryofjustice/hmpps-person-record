@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.probation
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
@@ -12,12 +11,14 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
-import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
+import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -32,21 +33,17 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
-class ProbationApiIntTest : WebTestBase() {
+class ProbationApiE2ETest : E2ETestBase() {
 
   @Nested
   inner class SuccessfulProcessing {
 
-    @BeforeEach
-    fun beforeEach() {
-      stubPersonMatchUpsert()
-    }
-
     @Test
     fun `should return ok for a create`() {
       val defendantId = randomDefendantId()
-      createPersonWithNewKey(createRandomCommonPlatformPersonDetails(defendantId))
+      val defendant = createPersonWithNewKey(createRandomCommonPlatformPersonDetails(defendantId))
 
       val title = TitleCode.MR
       val firstName = randomName()
@@ -121,8 +118,6 @@ class ProbationApiIntTest : WebTestBase() {
         gender = Value(gender),
       )
 
-      stubPersonMatchUpsert()
-
       webTestClient.put()
         .uri(probationApiUrl(defendantId))
         .authorised(listOf(PROBATION_API_READ_WRITE))
@@ -131,9 +126,9 @@ class ProbationApiIntTest : WebTestBase() {
         .expectStatus()
         .isOk
 
-      val defendant = awaitNotNullPerson { personRepository.findByDefendantId(defendantId) }
       val offender = awaitNotNullPerson { personRepository.findByCrn(crn) }
 
+      offender.personKey?.assertClusterStatus(ACTIVE)
       offender.personKey?.assertClusterIsOfSize(2)
       offender.assertIncluded(defendant)
 
@@ -181,89 +176,94 @@ class ProbationApiIntTest : WebTestBase() {
         CPR_RECORD_CREATED,
         mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
       )
-
-      defendantId.assertLinksToCrn(crn)
     }
 
-//    @Test
-//    fun `should update record if it exists already`() {
-//      val defendantId = randomDefendantId()
-//      createPersonWithNewKey(createRandomCommonPlatformPersonDetails(defendantId))
-//
-//      val crn = randomCrn()
-//      createPerson(createRandomProbationPersonDetails(crn))
-//
-//      val probationCase = ProbationCase(
-//        name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
-//        identifiers = Identifiers(crn = crn),
-//      )
-//
-//      webTestClient.put()
-//        .uri(probationApiUrl(defendantId))
-//        .authorised(listOf(PROBATION_API_READ_WRITE))
-//        .bodyValue(probationCase)
-//        .exchange()
-//        .expectStatus()
-//        .isOk
-//
-//      checkTelemetry(
-//        CPR_RECORD_UPDATED,
-//        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
-//      )
-//
-//      defendantId.assertLinksToCrn(crn)
-//    }
-//
-//    @Test
-//    fun `should update crn against a defendant id`() {
-//      val defendantId = randomDefendantId()
-//      createPersonWithNewKey(createRandomCommonPlatformPersonDetails(defendantId))
-//
-//      val crn = randomCrn()
-//      val probationCase = ProbationCase(
-//        name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
-//        identifiers = Identifiers(crn = crn),
-//      )
-//
-//      stubNoMatchesPersonMatch()
-//
-//      webTestClient.put()
-//        .uri(probationApiUrl(defendantId))
-//        .authorised(listOf(PROBATION_API_READ_WRITE))
-//        .bodyValue(probationCase)
-//        .exchange()
-//        .expectStatus()
-//        .isOk
-//
-//      checkTelemetry(
-//        CPR_RECORD_CREATED,
-//        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
-//      )
-//
-//      defendantId.assertLinksToCrn(crn)
-//
-//      val newCrn = randomCrn()
-//      val probationCaseUpdate = ProbationCase(
-//        name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
-//        identifiers = Identifiers(crn = newCrn),
-//      )
-//
-//      webTestClient.put()
-//        .uri(probationApiUrl(defendantId))
-//        .authorised(listOf(PROBATION_API_READ_WRITE))
-//        .bodyValue(probationCaseUpdate)
-//        .exchange()
-//        .expectStatus()
-//        .isOk
-//
-//      checkTelemetry(
-//        CPR_RECORD_CREATED,
-//        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
-//      )
-//
-//      defendantId.assertLinksToCrn(newCrn)
-//      defendantId.assertNotLinksToCrn(crn)
-//    }
+    @Test
+    fun `should update record if it exists already and join cluster where it does not dont match above join`() {
+      val defendantId = randomDefendantId()
+      val defendant = createPersonWithNewKey(createRandomCommonPlatformPersonDetails(defendantId))
+
+      val crn = randomCrn()
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(createRandomProbationPersonDetails(crn)))
+
+      val offender = awaitNotNullPerson { personRepository.findByCrn(crn) }
+
+      assertThat(offender.personKey?.personUUID.toString()).isNotEqualTo(defendant.personKey?.personUUID.toString())
+
+      val probationCase = ProbationCase(
+        name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
+        identifiers = Identifiers(crn = crn),
+      )
+
+      webTestClient.put()
+        .uri(probationApiUrl(defendantId))
+        .authorised(listOf(PROBATION_API_READ_WRITE))
+        .bodyValue(probationCase)
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      checkTelemetry(
+        CPR_RECORD_UPDATED,
+        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
+      )
+
+      defendant.personKey?.assertClusterStatus(RECLUSTER_MERGE)
+      defendant.personKey?.assertMergedTo(offender.personKey!!)
+
+      offender.personKey?.assertClusterStatus(ACTIVE)
+      offender.personKey?.assertClusterIsOfSize(2)
+
+      offender.assertIncluded(defendant)
+    }
+
+    @Test
+    fun `should update record if it exists already and join cluster where it does match above join`() {
+      val basePersonData = createRandomCommonPlatformPersonDetails()
+
+      val defendantId = randomDefendantId()
+      val defendant = createPersonWithNewKey(createCommonPlatformPersonFrom(basePersonData, defendantId = defendantId))
+
+      val crn = randomCrn()
+      val offenderData = createProbationPersonFrom(basePersonData, crn = crn)
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(offenderData))
+
+      val offender = awaitNotNullPerson { personRepository.findByCrn(crn) }
+
+      assertThat(offender.personKey?.personUUID.toString()).isEqualTo(defendant.personKey?.personUUID.toString())
+
+      val probationCase = ProbationCase(
+        name = ProbationCaseName(
+          firstName = offenderData.firstName,
+          middleNames = offenderData.middleNames,
+          lastName = offenderData.lastName,
+        ),
+        identifiers = Identifiers(
+          crn = crn,
+          pnc = offenderData.getPnc(),
+          cro = offenderData.getCro(),
+        ),
+        dateOfBirth = offenderData.dateOfBirth,
+      )
+
+      webTestClient.put()
+        .uri(probationApiUrl(defendantId))
+        .authorised(listOf(PROBATION_API_READ_WRITE))
+        .bodyValue(probationCase)
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      checkTelemetry(
+        CPR_RECORD_UPDATED,
+        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
+      )
+
+      offender.personKey?.assertClusterStatus(ACTIVE)
+      offender.personKey?.assertClusterIsOfSize(2)
+
+      offender.assertIncluded(defendant)
+    }
   }
 
   @Nested
