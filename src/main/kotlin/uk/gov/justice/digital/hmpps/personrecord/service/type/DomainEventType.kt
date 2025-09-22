@@ -7,8 +7,6 @@ const val PRISONER_MERGED = "prison-offender-events.prisoner.merged"
 const val NEW_OFFENDER_CREATED = "probation-case.engagement.created"
 const val OFFENDER_PERSONAL_DETAILS_UPDATED = "probation-case.personal-details.updated"
 
-const val OFFENDER_ALIAS_CHANGED = "OFFENDER_ALIAS_CHANGED"
-
 const val OFFENDER_MERGED = "probation-case.merge.completed"
 const val OFFENDER_UNMERGED = "probation-case.unmerge.completed"
 const val OFFENDER_GDPR_DELETION = "probation-case.deleted.gdpr"
