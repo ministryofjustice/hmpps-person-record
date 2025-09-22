@@ -230,12 +230,11 @@ class IntegrationTestBase {
   internal fun checkEventLog(
     sourceSystemId: String,
     event: CPRLogEvents,
-    timeout: Long = 3,
     matchingEvents: (logEvents: List<EventLogEntity>) -> Unit,
   ) {
     awaitAssert(function = {
       matchingEvents(eventLogRepository.findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(event, sourceSystemId) ?: emptyList())
-    }, timeout)
+    })
   }
 
   internal fun checkEventLogByUUID(
