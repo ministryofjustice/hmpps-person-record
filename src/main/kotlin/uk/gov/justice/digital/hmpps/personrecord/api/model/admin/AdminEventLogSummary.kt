@@ -33,7 +33,6 @@ data class AdminEventLogDetails(
   val recordMergedTo: Long?,
   val eventTimestamp: String,
   val sentenceDates: Array<String>,
-  val excludeOverrideMarkers: Array<Long>,
   val overrideMarker: String?,
   val overrideScopes: Array<String>,
 
@@ -57,7 +56,6 @@ data class AdminEventLogDetails(
       recordMergedTo = eventLogEntity.recordMergedTo,
       eventTimestamp = eventLogEntity.eventTimestamp.toString(),
       sentenceDates = eventLogEntity.sentenceDates.map { it.toString() }.toTypedArray(),
-      excludeOverrideMarkers = emptyArray(),
       overrideMarker = eventLogEntity.overrideMarker?.toString(),
       overrideScopes = eventLogEntity.overrideScopes.map { it.toString() }.toTypedArray(),
     )
