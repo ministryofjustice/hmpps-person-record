@@ -217,18 +217,18 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(personC))
 
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, personA.crn!!, personC.crn!!)
-      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personB.crn!!, personC.crn!!)
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, personB.crn!!, personC.crn)
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personA.crn!!, personC.crn!!, reactivatedSetup = ApiResponseSetup.from(personA))
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personB.crn!!, personC.crn!!, reactivatedSetup = ApiResponseSetup.from(personB))
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personA.crn, personC.crn, reactivatedSetup = ApiResponseSetup.from(personA))
+      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personB.crn, personC.crn, reactivatedSetup = ApiResponseSetup.from(personB))
 
-      val clusterA = awaitNotNullPerson { personRepository.findByCrn(personA.crn!!) }.personKey
+      val clusterA = awaitNotNullPerson { personRepository.findByCrn(personA.crn) }.personKey
       clusterA?.assertClusterIsOfSize(1)
 
-      val clusterB = awaitNotNullPerson { personRepository.findByCrn(personB.crn!!) }.personKey
+      val clusterB = awaitNotNullPerson { personRepository.findByCrn(personB.crn) }.personKey
       clusterB?.assertClusterIsOfSize(1)
 
-      val clusterC = awaitNotNullPerson { personRepository.findByCrn(personC.crn!!) }.personKey
+      val clusterC = awaitNotNullPerson { personRepository.findByCrn(personC.crn) }.personKey
       clusterC?.assertClusterIsOfSize(1)
 
       val updatePersonBSoItMatchesPersonA = personA.copy(crn = personB.crn)
@@ -237,11 +237,11 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       clusterA?.assertClusterStatus(RECLUSTER_MERGE)
       clusterA?.assertClusterIsOfSize(0)
 
-      val updatedClusterWithPersonB = awaitNotNullPerson { personRepository.findByCrn(personB.crn!!) }.personKey
+      val updatedClusterWithPersonB = awaitNotNullPerson { personRepository.findByCrn(personB.crn) }.personKey
       updatedClusterWithPersonB?.assertClusterIsOfSize(2)
       updatedClusterWithPersonB?.assertClusterStatus(ACTIVE)
 
-      val updatedClusterWithPersonC = awaitNotNullPerson { personRepository.findByCrn(personC.crn!!) }.personKey
+      val updatedClusterWithPersonC = awaitNotNullPerson { personRepository.findByCrn(personC.crn) }.personKey
       updatedClusterWithPersonC?.assertClusterIsOfSize(1)
       updatedClusterWithPersonC?.assertClusterStatus(ACTIVE)
     }
@@ -935,7 +935,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         ),
       )
 
-      checkEventLogByUUID(cluster2.personUUID!!, CPRLogEvents.CPR_RECLUSTER_UUID_MERGED, timeout = 6) { eventLogs ->
+      checkEventLogByUUID(cluster2.personUUID!!, CPRLogEvents.CPR_RECLUSTER_UUID_MERGED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
         assertThat(eventLog.personUUID).isEqualTo(cluster2.personUUID)

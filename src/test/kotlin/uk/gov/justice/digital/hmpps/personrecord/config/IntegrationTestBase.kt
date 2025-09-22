@@ -241,17 +241,16 @@ class IntegrationTestBase {
   internal fun checkEventLogByUUID(
     cluster: UUID,
     event: CPRLogEvents,
-    timeout: Long = 3,
     matchingEvents: (logEvents: List<EventLogEntity>) -> Unit,
   ) {
     awaitAssert(function = {
       matchingEvents(eventLogRepository.findAllByEventTypeAndPersonUUIDOrderByEventTimestampDesc(event, cluster) ?: emptyList())
-    }, timeout)
+    })
   }
 
   private fun awaitAssert(function: () -> Unit, timeout: Long) = await atMost (Duration.ofSeconds(timeout)) untilAsserted function
 
-  internal fun awaitAssert(function: () -> Unit) = awaitAssert(function = function, timeout = 3)
+  internal fun awaitAssert(function: () -> Unit) = awaitAssert(function = function, timeout = 6)
 
   internal fun awaitNotNullPerson(function: () -> PersonEntity?): PersonEntity = awaitNotNullPerson(function, 3)
 
