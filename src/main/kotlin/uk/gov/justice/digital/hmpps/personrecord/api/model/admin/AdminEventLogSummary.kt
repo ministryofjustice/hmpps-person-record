@@ -46,7 +46,7 @@ data class AdminEventLogDetails(
       middleNames = eventLogEntity.middleNames,
       lastName = eventLogEntity.lastName,
       lastNameAliases = eventLogEntity.lastNameAliases,
-      dateOfBirth = eventLogEntity.dateOfBirth.toString(),
+      dateOfBirth = eventLogEntity.dateOfBirth?.toString(),
       dateOfBirthAliases = eventLogEntity.dateOfBirthAliases.map { it.toString() }.toTypedArray(),
       postcodes = eventLogEntity.postcodes,
       pncs = eventLogEntity.pncs,
@@ -58,7 +58,7 @@ data class AdminEventLogDetails(
       eventTimestamp = eventLogEntity.eventTimestamp.toString(),
       sentenceDates = eventLogEntity.sentenceDates.map { it.toString() }.toTypedArray(),
       excludeOverrideMarkers = emptyArray(),
-      overrideMarker = eventLogEntity.overrideMarker.toString(),
+      overrideMarker = eventLogEntity.overrideMarker?.toString(),
       overrideScopes = eventLogEntity.overrideScopes.map { it.toString() }.toTypedArray(),
     )
   }
