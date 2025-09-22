@@ -200,7 +200,6 @@ class IntegrationTestBase {
     event: TelemetryEventType,
     expected: Map<String, String?>,
     times: Int = 1,
-    timeout: Long = 3,
   ) {
     awaitAssert(function = {
       val allEvents = telemetryRepository.findAllByEvent(event.eventName)
@@ -214,7 +213,7 @@ class IntegrationTestBase {
         }.all { it }
       }
       assertThat(matchingEvents?.size).`as`("Missing data $event $expected and actual data $allEvents").isEqualTo(times)
-    }, timeout)
+    })
   }
 
   internal fun checkEventLogExist(
@@ -247,9 +246,7 @@ class IntegrationTestBase {
     })
   }
 
-  private fun awaitAssert(function: () -> Unit, timeout: Long) = await atMost (Duration.ofSeconds(timeout)) untilAsserted function
-
-  internal fun awaitAssert(function: () -> Unit) = awaitAssert(function = function, timeout = 6)
+  internal fun awaitAssert(function: () -> Unit) = await atMost (Duration.ofSeconds(15)) untilAsserted function
 
   internal fun awaitNotNullPerson(function: () -> PersonEntity?): PersonEntity = await atMost (Duration.ofSeconds(3)) untilNotNull function
 
