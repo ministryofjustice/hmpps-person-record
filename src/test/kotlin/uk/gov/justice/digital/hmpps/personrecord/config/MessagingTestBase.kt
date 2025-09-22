@@ -11,7 +11,6 @@ import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.COMMON_PLATFORM_HEARING
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.MessageType.LIBRA_COURT_CASE
-import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.PersonIdentifier
@@ -147,19 +146,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     expectNoMessagesOn(prisonEventsQueue)
   }
 
-  fun publishProbationEvent(eventType: String, probationEvent: ProbationEvent) {
-    publishEvent(
-      objectMapper.writeValueAsString(probationEvent),
-      domainEventsTopic,
-      mapOf(
-        "eventType" to MessageAttributeValue.builder().dataType("String")
-          .stringValue(eventType).build(),
-      ),
-      eventType,
-    )
-    expectNoMessagesOn(probationEventsQueue)
-  }
-
   private fun publishEvent(
     message: String,
     topic: HmppsTopic?,
@@ -247,19 +233,6 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   fun probationDomainEvent(eventType: String, crn: String, additionalInformation: AdditionalInformation? = null) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("CRN", crn))), additionalInformation)
 
   fun prisonDomainEvent(eventType: String, prisonNumber: String, additionalInformation: AdditionalInformation? = null) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))), additionalInformation)
-
-  fun probationEventAndResponseSetup(
-    eventType: String,
-    apiResponseSetup: ApiResponseSetup,
-    scenario: String = BASE_SCENARIO,
-    currentScenarioState: String = STARTED,
-    nextScenarioState: String = STARTED,
-  ) {
-    stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
-
-    val probationEvent = ProbationEvent(apiResponseSetup.crn!!)
-    publishProbationEvent(eventType, probationEvent)
-  }
 
   fun prisonMergeEventAndResponseSetup(
     eventType: String,
