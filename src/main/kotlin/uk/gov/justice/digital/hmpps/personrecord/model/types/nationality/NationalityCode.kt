@@ -248,19 +248,17 @@ enum class NationalityCode {
   ;
 
   companion object {
-    private val log = LoggerFactory.getLogger(this::class.java)
-
     fun fromProbationMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
       PROBATION_NATIONALITY_MAPPING,
-    ).also { if (it == UNKNOWN) log.info("Unknown nationality code probation: $code") }
+    )
 
     fun fromPrisonMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
       PRISON_NATIONALITY_MAPPING,
-    ).also { if (it == UNKNOWN) log.info("Unknown nationality code prison: $code") }
+    )
 
     fun fromCommonPlatformMapping(code: String?): NationalityCode? = code?.getNationalityOrUnknown(
       COMMON_PLATFORM_NATIONALITY_MAPPING,
-    ).also { if (it == UNKNOWN) log.info("Unknown nationality code common platform: $code") }
+    )
 
     private fun String?.getNationalityOrUnknown(nationalityMap: Map<String, NationalityCode>): NationalityCode? = this.normalize()?.let {
       nationalityMap[it] ?: UNKNOWN
