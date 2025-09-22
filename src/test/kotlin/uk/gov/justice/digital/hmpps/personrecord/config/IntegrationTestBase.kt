@@ -204,9 +204,9 @@ class IntegrationTestBase {
   ) {
     awaitAssert(function = {
       val allEvents = telemetryRepository.findAllByEvent(event.eventName)
-      val matchingEvents = allEvents?.filter {
+      val matchingEvents = allEvents?.filter { event ->
         expected.entries.map { (k, v) ->
-          val jsonObject = JSONObject(it.properties)
+          val jsonObject = JSONObject(event.properties)
           when {
             (jsonObject.has(k)) -> jsonObject.get(k).equals(v)
             else -> false
