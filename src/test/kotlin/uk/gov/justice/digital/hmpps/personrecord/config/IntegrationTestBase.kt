@@ -38,7 +38,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
@@ -57,7 +56,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtProbationLi
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.NationalityCodeRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OverrideScopeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.TitleCodeRepository
@@ -100,9 +98,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
 class IntegrationTestBase {
-
-  @Autowired
-  lateinit var overrideScopeRepository: OverrideScopeRepository
 
   @Autowired
   private lateinit var personFactory: PersonFactory
@@ -417,8 +412,6 @@ class IntegrationTestBase {
     clusters: List<UUID>,
   ) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = true, clusters = listOf(clusters.map { it.toString() })), scenario, currentScenarioState, nextScenarioState)
 
-  internal fun stubClusterIsNotValid(clusters: List<ValidCluster> = listOf()) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = false, clusters = clusters.map { cluster -> cluster.records }))
-
   internal fun stubPersonMatchUpsert(
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
@@ -453,22 +446,6 @@ class IntegrationTestBase {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(404),
-        ),
-    )
-  }
-
-  fun stubGetRequestWithTimeout(url: String, currentScenarioState: String, nextScenarioState: String) {
-    authSetup()
-    wiremock.stubFor(
-      WireMock.get(url)
-        .inScenario(BASE_SCENARIO)
-        .whenScenarioStateIs(currentScenarioState)
-        .willSetStateTo(nextScenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withFixedDelay(210),
         ),
     )
   }
