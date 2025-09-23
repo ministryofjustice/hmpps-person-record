@@ -15,9 +15,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.CourtProbationLinkEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtProbationLinkRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
@@ -32,7 +30,6 @@ class ProbationAPIController(
   private val createUpdateService: CreateUpdateService,
   private val overrideService: OverrideService,
   private val reclusterService: ReclusterService,
-  private val courtProbationLinkRepository: CourtProbationLinkRepository,
 ) {
   @Operation(
     description = """Create person record by CRN. Role required is **$PROBATION_API_READ_WRITE** . 
@@ -57,12 +54,7 @@ class ProbationAPIController(
     }
     overrideService.systemInclude(defendant, offender)
     reclusterService.recluster(offender)
-    probationCase.storeLink(defendantId)
   }
 
   private fun retrieveDefendant(defendantId: String): PersonEntity = personRepository.findByDefendantId(defendantId) ?: throw ResourceNotFoundException(defendantId)
-
-  private fun ProbationCase.storeLink(defendantId: String) = this.identifiers.crn?.let {
-    courtProbationLinkRepository.save(CourtProbationLinkEntity.from(defendantId, it))
-  }
 }
