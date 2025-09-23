@@ -23,11 +23,13 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import java.util.UUID
 
 @RestController
 class ClustersController(
   private val personKeyRepository: PersonKeyRepository,
+  private val personMatchService: PersonMatchService,
 ) {
 
   @Hidden
@@ -39,7 +41,9 @@ class ClustersController(
     val personKeyEntity = withContext(Dispatchers.IO) {
       personKeyRepository.findByPersonUUID(uuid)
     } ?: throw ResourceNotFoundException(uuid.toString())
-    return AdminClusterDetail.from(personKeyEntity)
+    val clusterVisualisationSpec = personMatchService.retrieveClusterVisualisationSpec(personKeyEntity)
+      ?: throw ResourceNotFoundException(uuid.toString())
+    return AdminClusterDetail.from(personKeyEntity, clusterVisualisationSpec)
   }
 
   @Hidden
