@@ -133,7 +133,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.addresses[0].postcode).isEqualTo("LS1 1AB")
       assertThat(personEntity.addresses[0].fullAddress).isEqualTo("abc street")
       assertThat(personEntity.addresses[0].type).isEqualTo(null)
-      assertThat(personEntity.addresses[1].noFixedAbode).isEqualTo(null)
+      assertThat(personEntity.addresses[1].noFixedAbode).isNull()
       assertThat(personEntity.addresses[1].postcode).isEqualTo("M21 9LX")
       assertThat(personEntity.addresses[1].fullAddress).isEqualTo("abc street")
       assertThat(personEntity.addresses[1].type).isEqualTo(null)

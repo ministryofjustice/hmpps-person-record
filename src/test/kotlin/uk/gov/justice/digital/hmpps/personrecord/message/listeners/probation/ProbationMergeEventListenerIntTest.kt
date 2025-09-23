@@ -333,7 +333,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val recordACrn = randomCrn()
       val recordBCrn = randomCrn()
 
-      val recordA = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
+      createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
       val recordB = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
 
       stubDeletePersonMatch()
