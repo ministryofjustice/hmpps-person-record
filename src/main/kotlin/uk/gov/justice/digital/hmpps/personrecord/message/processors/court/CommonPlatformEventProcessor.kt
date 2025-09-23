@@ -46,8 +46,8 @@ class CommonPlatformEventProcessor(
       .flatMap { it.defendants }
       .filterNot { it.isYouth }
       .distinctBy { it.id }
-      .map { defendant -> populateIdentifiersFromDefendantWhenMissing(defendant) }
-      .map { defendant -> Person.from(defendant) }
+      .map { populateIdentifiersFromDefendantWhenMissing(it) }
+      .map { Person.from(it) }
       .filter { it.isPerson() }
       .map {
         transactionalCommonPlatformProcessor.processCommonPlatformPerson(it)
