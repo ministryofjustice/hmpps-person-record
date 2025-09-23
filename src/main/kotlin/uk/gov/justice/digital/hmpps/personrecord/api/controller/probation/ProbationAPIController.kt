@@ -23,14 +23,12 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Tag(name = "HMPPS CPR Probation API")
 @RestController
 @PreAuthorize("hasRole('$PROBATION_API_READ_WRITE')")
 class ProbationAPIController(
   private val personRepository: PersonRepository,
-  private val personService: PersonService,
   private val createUpdateService: CreateUpdateService,
   private val overrideService: OverrideService,
   private val reclusterService: ReclusterService,
