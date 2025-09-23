@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchR
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidMissingRecordResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.visualisecluster.VisualiseCluster
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -34,7 +35,7 @@ class PersonMatchService(
   fun findClustersToJoin(personEntity: PersonEntity) = findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity)
     .getClustersThatItCanJoin()
 
-  fun findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity: PersonEntity): List<PersonMatchResult> = runBlocking {
+  fun findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity: PersonEntity): List<PersonMatchResult> {
     val personScores = handleCollectingPersonScores(personEntity).removeSelf(personEntity)
     val aboveFractureThresholdPersonRecords = getPersonRecords(personScores.getClustersAboveFractureThreshold())
       .allowMatchesWithUUID()
@@ -42,7 +43,7 @@ class PersonMatchService(
       .removeMatchesWhereClusterInInvalidState()
       .logCandidateSearchSummary(personEntity, totalNumberOfScores = personScores.size)
       .sortedByDescending { it.matchWeight }
-    return@runBlocking aboveFractureThresholdPersonRecords
+    return aboveFractureThresholdPersonRecords
   }
 
   fun examineIsClusterValid(cluster: PersonKeyEntity): IsClusterValidResponse = runBlocking {
@@ -54,14 +55,14 @@ class PersonMatchService(
     records.checkClusterIsValid()
   }
 
-  fun saveToPersonMatch(personEntity: PersonEntity): ResponseEntity<Void>? = runBlocking { personMatchClient.postPerson(PersonMatchRecord.from(personEntity)) }
+  fun retrieveClusterVisualisationSpec(cluster: PersonKeyEntity): VisualiseCluster = personMatchClient.postVisualiseCluster(cluster.getRecordsMatchIds())
 
-  fun deleteFromPersonMatch(personEntity: PersonEntity) = runBlocking {
-    try {
-      personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity))
-    } catch (_: DiscardableNotFoundException) {
-      log.info("ignoring 404 from person match because record has already been deleted")
-    }
+  fun saveToPersonMatch(personEntity: PersonEntity): ResponseEntity<Void>? = personMatchClient.postPerson(PersonMatchRecord.from(personEntity))
+
+  fun deleteFromPersonMatch(personEntity: PersonEntity) = try {
+    personMatchClient.deletePerson(PersonMatchIdentifier.from(personEntity))
+  } catch (_: DiscardableNotFoundException) {
+    log.info("ignoring 404 from person match because record has already been deleted")
   }
 
   private fun IsClusterValidMissingRecordResponse.upsertMissingRecords() = this.unknownIds.forEach { matchId ->
