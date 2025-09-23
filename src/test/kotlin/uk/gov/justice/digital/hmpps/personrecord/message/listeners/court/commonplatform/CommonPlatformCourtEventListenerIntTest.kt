@@ -255,7 +255,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val ethnicityCode = ethnicity.getCommonPlatformEthnicity()
     assertThat(firstPerson.ethnicityCode?.code).isEqualTo(ethnicityCode.code)
     assertThat(firstPerson.ethnicityCode?.description).isEqualTo(ethnicityCode.description)
-    assertThat(firstPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(firstDefendantNINumber)
+    assertThat(firstPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(firstDefendantNINumber)
 
     assertThat(secondPerson.getAliases()).isEmpty()
     assertThat(secondPerson.addresses).isNotEmpty()

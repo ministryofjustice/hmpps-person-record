@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 
-fun List<ReferenceEntity>.getCROs(): List<String> = this.filter { it.identifierType == CRO }.mapNotNull { it.identifierValue }
-fun List<ReferenceEntity>.getPNCs(): List<String> = this.filter { it.identifierType == PNC }.mapNotNull { it.identifierValue }
+fun List<ReferenceEntity>.getCROs(): List<String> = this.getType(CRO)
+fun List<ReferenceEntity>.getPNCs(): List<String> = this.getType(PNC)
 
-fun List<ReferenceEntity>.getType(type: IdentifierType): List<ReferenceEntity> = this.filter { it.identifierType == type }
+fun List<ReferenceEntity>.getType(type: IdentifierType): List<String> = this.filter { it.identifierType == type }.mapNotNull { it.identifierValue }
