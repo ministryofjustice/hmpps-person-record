@@ -137,6 +137,13 @@ class PersonEntity(
   fun getAliases(): List<PseudonymEntity> = this.pseudonyms.filter { it.nameType.equals(NameType.ALIAS) }.sortedBy { it.id }
   fun getPrimaryName(): PseudonymEntity = this.pseudonyms.firstOrNull { it.nameType.equals(NameType.PRIMARY) } ?: PseudonymEntity(nameType = NameType.PRIMARY)
 
+  fun extractSourceSystemId(): String? = mapOf(
+    DELIUS to this.crn,
+    NOMIS to this.prisonNumber,
+    COMMON_PLATFORM to this.defendantId,
+    LIBRA to this.cId,
+  )[this.sourceSystem]
+
   fun addOverrideMarker(scope: OverrideScopeEntity, marker: UUID = OverrideScopeEntity.newMarker()) {
     this.overrideMarker = this.overrideMarker ?: marker
     this.overrideScopes.add(scope)
@@ -212,14 +219,6 @@ class PersonEntity(
   companion object {
 
     val empty = null
-
-    fun PersonEntity?.extractSourceSystemId(): String? = when (this?.sourceSystem) {
-      DELIUS -> this.crn
-      NOMIS -> this.prisonNumber
-      COMMON_PLATFORM -> this.defendantId
-      LIBRA -> this.cId
-      else -> null
-    }
 
     fun List<ReferenceEntity>.getType(type: IdentifierType): List<ReferenceEntity> = this.filter { it.identifierType == type }
 
