@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.match
 
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 
 data class PersonMatchRecord(
