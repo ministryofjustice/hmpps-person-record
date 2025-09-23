@@ -46,6 +46,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
@@ -639,7 +640,7 @@ class IntegrationTestBase {
   fun Person.getCro(): String? = this.references.getType(CRO).first().identifierValue
   fun PersonEntity.getCro(): String? = this.references.getCROs().firstOrNull()
   fun Person.getPnc(): String? = this.references.getType(PNC).first().identifierValue
-  fun PersonEntity.getPnc(): String? = this.references.getType(PNC).firstOrNull()?.identifierValue
+  fun PersonEntity.getPnc(): String? = this.references.getPNCs().firstOrNull()
   fun String.getTitle(): TitleCodeEntity = titleCodeRepository.findByCode(TitleCode.from(this)!!.name)!!
   fun String.getCommonPlatformEthnicity(): EthnicityCodeEntity = EthnicityCode.fromCommonPlatform(this)?.let { ethnicityCodeRepository.findByCode(it.name) }!!
   fun String.getPrisonEthnicity(): EthnicityCodeEntity = EthnicityCode.fromPrison(this)?.let { ethnicityCodeRepository.findByCode(it.name) }!!

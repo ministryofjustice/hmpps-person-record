@@ -18,9 +18,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribu
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttributes
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
@@ -307,10 +307,10 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val personWithEmptyPnc = awaitNotNullPerson {
       personRepository.findByDefendantId(firstDefendantId)
     }
-    assertThat(personWithEmptyPnc.references.getType(PNC)).isEqualTo(emptyList<ReferenceEntity>())
+    assertThat(personWithEmptyPnc.references.getPNCs()).isEmpty()
 
     val personWithNullPnc = personRepository.findByDefendantId(secondDefendantId)
-    assertThat(personWithNullPnc?.references?.getType(PNC)).isEqualTo(emptyList<ReferenceEntity>())
+    assertThat(personWithNullPnc?.references?.getPNCs()).isEmpty()
   }
 
   @Test

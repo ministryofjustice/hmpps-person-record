@@ -1,9 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.match
 
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
-import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 
 data class PersonMatchRecord(
   val matchId: String,
@@ -39,7 +38,7 @@ data class PersonMatchRecord(
       dateOfBirthAliases = personEntity.getAliases().mapNotNull { it.dateOfBirth }.map { it.toString() }.distinct().sorted(),
       postcodes = personEntity.addresses.mapNotNull { it.postcode }.distinct().sorted(),
       cros = personEntity.references.getCROs().distinct().sorted(),
-      pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue }.distinct().sorted(),
+      pncs = personEntity.references.getPNCs().distinct().sorted(),
       sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.map { it.toString() }.distinct().sorted(),
       sourceSystemId = personEntity.extractSourceSystemId(),
       overrideMarker = personEntity.overrideMarker?.toString() ?: "",
