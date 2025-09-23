@@ -38,7 +38,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
@@ -57,7 +56,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtProbationLi
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.NationalityCodeRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OverrideScopeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.TitleCodeRepository
@@ -102,9 +100,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
 class IntegrationTestBase {
-
-  @Autowired
-  lateinit var overrideScopeRepository: OverrideScopeRepository
 
   @Autowired
   private lateinit var personFactory: PersonFactory
@@ -219,13 +214,12 @@ class IntegrationTestBase {
     event: TelemetryEventType,
     expected: Map<String, String?>,
     times: Int = 1,
-    timeout: Long = 3,
   ) {
     awaitAssert(function = {
       val allEvents = telemetryRepository.findAllByEvent(event.eventName)
-      val matchingEvents = allEvents?.filter {
+      val matchingEvents = allEvents?.filter { event ->
         expected.entries.map { (k, v) ->
-          val jsonObject = JSONObject(it.properties)
+          val jsonObject = JSONObject(event.properties)
           when {
             (jsonObject.has(k)) -> jsonObject.get(k).equals(v)
             else -> false
@@ -233,7 +227,7 @@ class IntegrationTestBase {
         }.all { it }
       }
       assertThat(matchingEvents?.size).`as`("Missing data $event $expected and actual data $allEvents").isEqualTo(times)
-    }, timeout)
+    })
   }
 
   internal fun checkEventLogExist(
@@ -249,32 +243,26 @@ class IntegrationTestBase {
   internal fun checkEventLog(
     sourceSystemId: String,
     event: CPRLogEvents,
-    timeout: Long = 3,
     matchingEvents: (logEvents: List<EventLogEntity>) -> Unit,
   ) {
     awaitAssert(function = {
       matchingEvents(eventLogRepository.findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(event, sourceSystemId) ?: emptyList())
-    }, timeout)
+    })
   }
 
   internal fun checkEventLogByUUID(
     cluster: UUID,
     event: CPRLogEvents,
-    timeout: Long = 3,
     matchingEvents: (logEvents: List<EventLogEntity>) -> Unit,
   ) {
     awaitAssert(function = {
       matchingEvents(eventLogRepository.findAllByEventTypeAndPersonUUIDOrderByEventTimestampDesc(event, cluster) ?: emptyList())
-    }, timeout)
+    })
   }
 
-  private fun awaitAssert(function: () -> Unit, timeout: Long) = await atMost (Duration.ofSeconds(timeout)) untilAsserted function
+  internal fun awaitAssert(function: () -> Unit) = await atMost (Duration.ofSeconds(15)) untilAsserted function
 
-  internal fun awaitAssert(function: () -> Unit) = awaitAssert(function = function, timeout = 3)
-
-  internal fun awaitNotNullPerson(function: () -> PersonEntity?): PersonEntity = awaitNotNullPerson(function, 3)
-
-  internal fun awaitNotNullPerson(function: () -> PersonEntity?, timeout: Long): PersonEntity = await atMost (Duration.ofSeconds(timeout)) untilNotNull function
+  internal fun awaitNotNullPerson(function: () -> PersonEntity?): PersonEntity = await atMost (Duration.ofSeconds(3)) untilNotNull function
 
   internal fun createPersonKey(status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
@@ -431,8 +419,6 @@ class IntegrationTestBase {
     clusters: List<UUID>,
   ) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = true, clusters = listOf(clusters.map { it.toString() })), scenario, currentScenarioState, nextScenarioState)
 
-  internal fun stubClusterIsNotValid(clusters: List<ValidCluster> = listOf()) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = false, clusters = clusters.map { cluster -> cluster.records }))
-
   internal fun stubPersonMatchUpsert(
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
@@ -467,22 +453,6 @@ class IntegrationTestBase {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(404),
-        ),
-    )
-  }
-
-  fun stubGetRequestWithTimeout(url: String, currentScenarioState: String, nextScenarioState: String) {
-    authSetup()
-    wiremock.stubFor(
-      WireMock.get(url)
-        .inScenario(BASE_SCENARIO)
-        .whenScenarioStateIs(currentScenarioState)
-        .willSetStateTo(nextScenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withFixedDelay(210),
         ),
     )
   }
