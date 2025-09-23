@@ -59,6 +59,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.NationalityCodeR
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.TitleCodeRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
@@ -193,7 +195,19 @@ class IntegrationTestBase {
   internal fun createRandomLibraPersonDetails(cId: String = randomCId()): Person = Person.from(LibraHearingEvent(name = LibraName(firstName = randomName(), lastName = randomName()), cId = cId))
 
   internal fun createRandomCommonPlatformPersonDetails(defendantId: String = randomDefendantId()): Person = Person.from(
-    Defendant(id = defendantId, personDefendant = PersonDefendant(personDetails = PersonDetails(firstName = randomName(), lastName = randomName()))),
+    Defendant(
+      id = defendantId,
+      personDefendant = PersonDefendant(
+        personDetails = PersonDetails(
+          firstName = randomName(),
+          middleName = randomName(),
+          lastName = randomName(),
+          dateOfBirth = randomDate(),
+        ),
+      ),
+      pncId = PNCIdentifier.from(randomPnc()),
+      cro = CROIdentifier.from(randomCro()),
+    ),
   )
 
   internal fun checkTelemetry(
