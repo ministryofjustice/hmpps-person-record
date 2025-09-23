@@ -42,7 +42,6 @@ class ClustersController(
       personKeyRepository.findByPersonUUID(uuid)
     } ?: throw ResourceNotFoundException(uuid.toString())
     val clusterVisualisationSpec = personMatchService.retrieveClusterVisualisationSpec(personKeyEntity).spec
-    println(clusterVisualisationSpec)
     return AdminClusterDetail.from(personKeyEntity, clusterVisualisationSpec)
   }
 
