@@ -4,8 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.CourtProbationLinkEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_DELETION
@@ -13,7 +11,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_GDPR_DELE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_DELETED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 
 class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
@@ -339,33 +336,6 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should delete court link on delete`() {
-    val crn = randomCrn()
-    val defendantId = randomDefendantId()
-    val probationPerson = createPerson(createRandomProbationPersonDetails(crn))
-    val courtPerson = createPerson(createRandomCommonPlatformPersonDetails(defendantId))
-    val cluster = createPersonKey()
-      .addPerson(probationPerson)
-      .addPerson(courtPerson)
-
-    courtPerson.linkToProbationRecord(probationPerson)
-    courtPerson.defendantId?.assertLinksToCrn(probationPerson.crn!!)
-
-    val domainEvent = probationDomainEvent(OFFENDER_DELETION, crn)
-    publishDomainEvent(OFFENDER_DELETION, domainEvent)
-
-    checkTelemetry(
-      CPR_RECORD_DELETED,
-      mapOf("CRN" to crn, "UUID" to cluster.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
-    )
-    checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_DELETED)
-
-    probationPerson.assertPersonDeleted()
-
-    courtPerson.defendantId?.assertNotLinksToCrn(probationPerson.crn!!)
-  }
-
-  @Test
   fun `should process offender delete with override marker`() {
     val personA = createPersonWithNewKey(createRandomProbationPersonDetails())
     val personB = createPersonWithNewKey(createRandomProbationPersonDetails())
@@ -391,6 +361,4 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     personB.assertHasOverrideMarker()
     personB.assertOverrideScopeSize(1)
   }
-
-  private fun PersonEntity.linkToProbationRecord(probationRecord: PersonEntity) = courtProbationLinkRepository.save(CourtProbationLinkEntity(defendantId = this.defendantId!!, crn = probationRecord.crn!!))
 }

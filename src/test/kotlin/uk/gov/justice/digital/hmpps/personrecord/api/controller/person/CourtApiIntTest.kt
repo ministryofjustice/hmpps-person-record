@@ -482,7 +482,7 @@ class CourtApiIntTest : WebTestBase() {
       val crn = randomCrn()
       val defendantId = randomDefendantId()
 
-      createPersonWithNewKey(createRandomCommonPlatformPersonDetails(defendantId))
+      val defendant = createPersonWithNewKey(createRandomCommonPlatformPersonDetails(defendantId))
 
       val probationCase = ProbationCase(
         name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
@@ -490,7 +490,7 @@ class CourtApiIntTest : WebTestBase() {
       )
 
       stubPersonMatchUpsert()
-      stubNoMatchesPersonMatch()
+      stubOnePersonMatchAboveJoinThreshold(matchedRecord = defendant.matchId)
 
       webTestClient.put()
         .uri("/person/probation/$defendantId")
@@ -504,7 +504,6 @@ class CourtApiIntTest : WebTestBase() {
         CPR_RECORD_CREATED,
         mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
       )
-      defendantId.assertLinksToCrn(crn)
 
       val responseBody = webTestClient.get()
         .uri(commonPlatformApiUrl(defendantId))
