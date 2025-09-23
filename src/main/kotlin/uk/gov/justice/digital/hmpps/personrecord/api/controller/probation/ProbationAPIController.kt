@@ -54,24 +54,15 @@ class ProbationAPIController(
     @RequestBody probationCase: ProbationCase,
   ) {
     val defendant: PersonEntity = retrieveDefendant(defendantId)
-    val offender: PersonEntity = probationCase.createPersonWithoutLinkingAndClustering()
-    overrideService.systemInclude(defendant, offender)
-    when {
-      offender.personKey == null -> personService.linkRecordToPersonKey(offender)
+    val offender: PersonEntity = createUpdateService.processPerson(Person.from(probationCase)) {
+      personRepository.findByCrn(probationCase.identifiers.crn!!)
     }
+    overrideService.systemInclude(defendant, offender)
     reclusterService.recluster(offender)
     probationCase.storeLink(defendantId)
   }
 
   private fun retrieveDefendant(defendantId: String): PersonEntity = personRepository.findByDefendantId(defendantId) ?: throw ResourceNotFoundException(defendantId)
-
-  private fun ProbationCase.createPersonWithoutLinkingAndClustering(): PersonEntity = createUpdateService.processPerson(
-    Person.from(this)
-      .doNotLinkOnCreate()
-      .doNotReclusterOnUpdate(),
-  ) {
-    personRepository.findByCrn(this.identifiers.crn!!)
-  }
 
   private fun ProbationCase.storeLink(defendantId: String) = this.identifiers.crn?.let {
     courtProbationLinkRepository.save(CourtProbationLinkEntity.from(defendantId, it))
