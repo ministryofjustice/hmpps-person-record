@@ -14,10 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.API_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
-import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalIdentifiers
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtProbationLinkRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 
 @Tag(name = "HMPPS Person API")
@@ -25,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 @PreAuthorize("hasRole('$API_READ_ONLY')")
 class CourtAPIController(
   private val personRepository: PersonRepository,
-  private val courtProbationLinkRepository: CourtProbationLinkRepository,
 ) {
   @Operation(
     description = """Retrieve person record by Defendant ID. Role required is **$API_READ_ONLY** . 
@@ -53,13 +49,7 @@ class CourtAPIController(
     val personEntity = personRepository.findByDefendantId(defendantID)
     return when {
       personEntity == null -> throw ResourceNotFoundException(defendantID)
-      else -> ResponseEntity.ok(personEntity.buildRecord())
+      else -> ResponseEntity.ok(CanonicalRecord.from(personEntity))
     }
-  }
-
-  private fun PersonEntity.buildRecord(): CanonicalRecord {
-    val courtLink = courtProbationLinkRepository.findByDefendantId(this.defendantId!!)
-    val canonicalIdentifiers: CanonicalIdentifiers = CanonicalIdentifiers.from(this, additionalCrn = courtLink?.crn)
-    return CanonicalRecord.from(this, identifiers = canonicalIdentifiers)
   }
 }

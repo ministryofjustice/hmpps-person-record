@@ -53,7 +53,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.NationalityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.TitleCodeEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtProbationLinkRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.NationalityCodeRepository
@@ -126,9 +125,6 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var nationalityCodeRepository: NationalityCodeRepository
-
-  @Autowired
-  lateinit var courtProbationLinkRepository: CourtProbationLinkRepository
 
   @Autowired
   lateinit var ethnicityCodeRepository: EthnicityCodeRepository
@@ -668,14 +664,6 @@ class IntegrationTestBase {
   fun PersonEntity.assertPersonDeleted() = awaitAssert { assertThat(personRepository.findByMatchId(this.matchId)).isNull() }
 
   fun PersonKeyEntity.assertPersonKeyDeleted() = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)).isNull() }
-
-  internal fun String.assertLinksToCrn(crn: String) = awaitAssert {
-    assertThat(courtProbationLinkRepository.findByDefendantId(this)?.crn).isEqualTo(crn)
-  }
-
-  internal fun String.assertNotLinksToCrn(crn: String) = awaitAssert {
-    assertThat(courtProbationLinkRepository.findByDefendantId(this)?.crn).isNotEqualTo(crn)
-  }
 
   fun Person.getCro(): String? = this.references.getType(CRO).first().identifierValue
   fun PersonEntity.getCro(): String? = this.references.getType(CRO).firstOrNull()?.identifierValue
