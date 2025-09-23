@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -60,7 +61,7 @@ data class RecordEventLog(
         lastNameAliases = aliases.mapNotNull { it.lastName },
         dateOfBirthAliases = aliases.mapNotNull { it.dateOfBirth },
         postcodes = personEntity.addresses.mapNotNull { it.postcode },
-        cros = personEntity.references.getType(IdentifierType.CRO).mapNotNull { it.identifierValue },
+        cros = personEntity.references.getCROs(),
         pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue },
         sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate },
         overrideMarker = personEntity.overrideMarker,

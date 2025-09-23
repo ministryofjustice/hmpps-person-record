@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.client.model.match
 
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -37,7 +38,7 @@ data class PersonMatchRecord(
       lastNameAliases = personEntity.getAliases().mapNotNull { it.lastName }.distinct().sorted(),
       dateOfBirthAliases = personEntity.getAliases().mapNotNull { it.dateOfBirth }.map { it.toString() }.distinct().sorted(),
       postcodes = personEntity.addresses.mapNotNull { it.postcode }.distinct().sorted(),
-      cros = personEntity.references.getType(IdentifierType.CRO).mapNotNull { it.identifierValue }.distinct().sorted(),
+      cros = personEntity.references.getCROs().distinct().sorted(),
       pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue }.distinct().sorted(),
       sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.map { it.toString() }.distinct().sorted(),
       sourceSystemId = personEntity.extractSourceSystemId(),
