@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.person
 
-import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
+import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import java.time.LocalDate
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.Address as CommonPlatformAddress

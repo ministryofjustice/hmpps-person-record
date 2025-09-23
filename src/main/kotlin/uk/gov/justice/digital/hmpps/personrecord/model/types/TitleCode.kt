@@ -1,5 +1,5 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
-import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
+import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 
 enum class TitleCode {
   MR,

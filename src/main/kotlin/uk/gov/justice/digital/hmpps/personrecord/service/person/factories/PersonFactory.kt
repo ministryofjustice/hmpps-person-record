@@ -27,7 +27,7 @@ class PersonFactory(
     return PersonChainable(
       personEntity = personRepository.save(personEntity),
       matchingFieldsChanged = true,
-      linkOnCreate = person.linkOnCreate,
+      linkOnCreate = person.behaviour.linkOnCreate,
     )
   }
 
@@ -39,7 +39,7 @@ class PersonFactory(
     return PersonChainable(
       personEntity = personRepository.save(personEntity),
       matchingFieldsChanged = matchingFieldsHaveChanged,
-      linkOnCreate = person.linkOnCreate,
+      linkOnCreate = person.behaviour.linkOnCreate,
     )
   }
 

@@ -4,7 +4,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
-import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
+import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 
 enum class SexCode(val description: String) {
   M("Male"),
