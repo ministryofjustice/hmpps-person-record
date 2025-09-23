@@ -287,7 +287,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
           "CRN" to crn,
         ),
         29,
-        timeout = 15,
       )
     }
 
