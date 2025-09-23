@@ -36,7 +36,7 @@ class PersonService(
   fun update(person: Person, personEntity: PersonEntity): PersonEntity {
     val ctx = personFactory.update(person, personEntity)
       .saveToPersonMatch()
-      .reclusterIf { ctx -> person.reclusterOnUpdate && ctx.matchingFieldsChanged }
+      .reclusterIf { ctx -> person.behaviour.reclusterOnUpdate && ctx.matchingFieldsChanged }
     publisher.publishEvent(PersonUpdated(ctx.personEntity, ctx.matchingFieldsChanged))
     return ctx.personEntity
   }
