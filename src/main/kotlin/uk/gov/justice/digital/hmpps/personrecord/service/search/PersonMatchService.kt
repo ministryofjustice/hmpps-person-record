@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchR
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidMissingRecordResponse
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.visualisecluster.VisualiseCluster
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -21,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.TelemetryService
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DiscardableNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
-import java.util.Dictionary
 import java.util.UUID
 
 @Component
@@ -55,7 +55,7 @@ class PersonMatchService(
     records.checkClusterIsValid()
   }
 
-  fun retrieveClusterVisualisationSpec(cluster: PersonKeyEntity): Any? = personMatchClient.postVisualiseCluster(cluster.getRecordsMatchIds())
+  fun retrieveClusterVisualisationSpec(cluster: PersonKeyEntity): VisualiseCluster = personMatchClient.postVisualiseCluster(cluster.getRecordsMatchIds())
 
   fun saveToPersonMatch(personEntity: PersonEntity): ResponseEntity<Void>? = personMatchClient.postPerson(PersonMatchRecord.from(personEntity))
 

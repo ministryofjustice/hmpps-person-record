@@ -8,8 +8,8 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchI
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.visualisecluster.VisualiseCluster
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.discardNotFoundException
-import java.util.Dictionary
 
 @Component
 class PersonMatchClient(private val personMatchWebClient: WebClient) {
@@ -22,13 +22,13 @@ class PersonMatchClient(private val personMatchWebClient: WebClient) {
     .bodyToMono(IsClusterValidResponse::class.java)
     .block()!!
 
-  fun postVisualiseCluster(requestBody: List<String>): Any? = personMatchWebClient
+  fun postVisualiseCluster(requestBody: List<String>): VisualiseCluster = personMatchWebClient
     .post()
     .uri("/visualise-cluster")
     .bodyValue(requestBody)
     .retrieve()
-    .bodyToMono<Any>()
-    .block()
+    .bodyToMono(VisualiseCluster::class.java)
+    .block()!!
 
   fun getPersonScores(matchId: String): List<PersonMatchScore> = personMatchWebClient
     .get()

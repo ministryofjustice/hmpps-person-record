@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster
 
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
-import java.util.Dictionary
 
 data class AdminClusterDetail(
   val uuid: String,
