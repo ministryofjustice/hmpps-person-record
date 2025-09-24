@@ -606,7 +606,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should return null for pnc and cro if provided but are set to null`() {
+  fun `should return null for pnc and cro if provided but are set to empty strings`() {
     val defendantId = randomDefendantId()
 
     stubPersonMatchUpsert()

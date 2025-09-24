@@ -98,14 +98,20 @@ class CommonPlatformEventProcessor(
   private fun populateIdentifiersFromDefendantWhenMissing(defendant: Defendant): Defendant {
     if (defendant.isPncMissing || defendant.isCroMissing) {
       defendant.id?.let { personRepository.findByDefendantId(it) }?.let { existingDefendant ->
-        when {
-          defendant.isPncMissing -> defendant.pncId =
-            PNCIdentifier.from(existingDefendant.references.getType(IdentifierType.PNC).firstOrNull()?.identifierValue)
-          defendant.isCroMissing -> defendant.cro =
-            CROIdentifier.from(existingDefendant.references.getType(IdentifierType.CRO).firstOrNull()?.identifierValue)
-        }
+        defendant.retainPncOrCro(existingDefendant)
       }
     }
     return defendant
+  }
+
+  private fun Defendant.retainPncOrCro(personEntity: PersonEntity) {
+    when {
+      this.isPncMissing ->
+        this.pncId =
+          PNCIdentifier.from(personEntity.references.getType(IdentifierType.PNC).firstOrNull()?.identifierValue)
+      this.isCroMissing ->
+        this.cro =
+          CROIdentifier.from(personEntity.references.getType(IdentifierType.CRO).firstOrNull()?.identifierValue)
+    }
   }
 }
