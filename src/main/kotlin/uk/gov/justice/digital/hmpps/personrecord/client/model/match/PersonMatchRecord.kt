@@ -19,6 +19,7 @@ data class PersonMatchRecord(
   val pncs: List<String> = listOf(),
   val sentenceDates: List<String> = listOf(),
   val sourceSystemId: String? = "",
+  val masterDefendantId: String? = "",
   val overrideMarker: String? = "",
   val overrideScopes: List<String> = emptyList(),
 ) {
@@ -41,6 +42,7 @@ data class PersonMatchRecord(
       pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue }.distinct().sorted(),
       sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.map { it.toString() }.distinct().sorted(),
       sourceSystemId = personEntity.extractSourceSystemId(),
+      masterDefendantId = personEntity.masterDefendantId,
       overrideMarker = personEntity.overrideMarker?.toString() ?: "",
       overrideScopes = personEntity.overrideScopes.map { overrideScope -> overrideScope.scope.toString() },
     )
