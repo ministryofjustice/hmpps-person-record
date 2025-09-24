@@ -13,6 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.Common
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.LargeMessageBody
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
@@ -95,15 +96,22 @@ class CommonPlatformEventProcessor(
   }
 
   private fun populateIdentifiersFromDefendantWhenMissing(defendant: Defendant): Defendant {
-    if (defendant.isPncMissing && defendant.isCroMissing) {
+    if (defendant.isPncMissing || defendant.isCroMissing) {
       defendant.id?.let { personRepository.findByDefendantId(it) }?.let { existingDefendant ->
-
-        defendant.pncId =
-          PNCIdentifier.from(existingDefendant.references.firstOrNull { it.identifierType == IdentifierType.PNC }?.identifierValue)
-        defendant.cro =
-          CROIdentifier.from(existingDefendant.references.firstOrNull { it.identifierType == IdentifierType.CRO }?.identifierValue)
+        defendant.retainPncOrCro(existingDefendant)
       }
     }
     return defendant
+  }
+
+  private fun Defendant.retainPncOrCro(personEntity: PersonEntity) {
+    when {
+      this.isPncMissing ->
+        this.pncId =
+          PNCIdentifier.from(personEntity.references.getType(IdentifierType.PNC).firstOrNull()?.identifierValue)
+      this.isCroMissing ->
+        this.cro =
+          CROIdentifier.from(personEntity.references.getType(IdentifierType.CRO).firstOrNull()?.identifierValue)
+    }
   }
 }

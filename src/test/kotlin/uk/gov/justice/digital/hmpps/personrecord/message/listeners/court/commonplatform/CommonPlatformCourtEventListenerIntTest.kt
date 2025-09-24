@@ -507,16 +507,15 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should preserve pnc and cro if originally set then missing from an update`() {
+  fun `should preserve pnc if originally set then missing from an update`() {
     val defendantId = randomDefendantId()
-    val cro = randomCro()
     val pnc = randomPnc()
 
     stubPersonMatchUpsert()
     stubPersonMatchScores()
 
     publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = cro, pnc = pnc))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, pnc = pnc))),
     )
 
     awaitNotNullPerson {
@@ -526,7 +525,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     purgeQueueAndDlq(testOnlyCourtEventsQueue)
 
     publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, croMissing = true, pncMissing = true))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, pncMissing = true))),
     )
 
     val updatedPerson = awaitNotNullPerson {
@@ -534,7 +533,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     assertThat(updatedPerson.getPnc()).isEqualTo(pnc)
-    assertThat(updatedPerson.getCro()).isEqualTo(cro)
     expectOneMessageOn(testOnlyCourtEventsQueue)
 
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
@@ -542,7 +540,42 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }!!
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
     assertThat(sqsMessage.message.contains("pncId")).isFalse()
-    assertThat(sqsMessage.message.contains("croNumber")).isFalse()
+  }
+
+  @Test
+  fun `should preserve cro if originally set then missing from an update`() {
+    val defendantId = randomDefendantId()
+    val cro = randomCro()
+
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = cro))),
+    )
+
+    awaitNotNullPerson {
+      personRepository.findByDefendantId(defendantId)
+    }
+
+    purgeQueueAndDlq(testOnlyCourtEventsQueue)
+
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, croMissing = true))),
+    )
+
+    val updatedPerson = awaitNotNullPerson {
+      personRepository.findByDefendantId(defendantId)
+    }
+
+    assertThat(updatedPerson.getCro()).isEqualTo(cro)
+    expectOneMessageOn(testOnlyCourtEventsQueue)
+
+    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
+
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }!!
+    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
+    assertThat(sqsMessage.message.contains("croId")).isFalse()
   }
 
   @Test
@@ -562,6 +595,33 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     publishCommonPlatformMessage(
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, croMissing = true, pncMissing = true))),
+    )
+
+    val updatedPerson = awaitNotNullPerson {
+      personRepository.findByDefendantId(defendantId)
+    }
+
+    assertThat(updatedPerson.getPnc()).isNull()
+    assertThat(updatedPerson.getCro()).isNull()
+  }
+
+  @Test
+  fun `should return null for pnc and cro if provided but are set to empty strings`() {
+    val defendantId = randomDefendantId()
+
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = randomCro(), pnc = randomPnc()))),
+    )
+
+    awaitNotNullPerson {
+      personRepository.findByDefendantId(defendantId)
+    }
+
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = "", pnc = ""))),
     )
 
     val updatedPerson = awaitNotNullPerson {
