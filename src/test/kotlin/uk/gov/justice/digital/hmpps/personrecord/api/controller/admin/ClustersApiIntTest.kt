@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.core.ParameterizedTypeReference
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
-import uk.gov.justice.digital.hmpps.personrecord.api.controller.admin.PaginatedResponse
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminCluster
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
@@ -28,6 +27,8 @@ class ClustersApiIntTest : WebTestBase() {
     @Test
     fun `should return cluster record with one record details`() {
       val person = createPersonWithNewKey(createRandomProbationPersonDetails())
+
+      stubVisualiseCluster()
 
       val response = webTestClient.get()
         .uri(clusterUrl(person.personKey?.personUUID.toString()))
@@ -56,6 +57,8 @@ class ClustersApiIntTest : WebTestBase() {
         .addPerson(createPerson(createRandomLibraPersonDetails()))
         .addPerson(createPerson(createRandomPrisonPersonDetails()))
         .addPerson(createPerson(createRandomCommonPlatformPersonDetails()))
+
+      stubVisualiseCluster()
 
       val response = webTestClient.get()
         .uri(clusterUrl(personKey.personUUID.toString()))
@@ -108,6 +111,12 @@ class ClustersApiIntTest : WebTestBase() {
     }
 
     private fun clusterUrl(uuid: String) = ADMIN_CLUSTER_URL + uuid
+
+    private fun stubVisualiseCluster() = stubPostRequest(
+      url = "/visualise-cluster",
+      status = 200,
+      responseBody = """ { "spec": {} } """.trimIndent(),
+    )
   }
 
   @Nested
