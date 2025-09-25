@@ -52,6 +52,7 @@ class EventLogApiIntTest : WebTestBase() {
     assertThat(response.eventLogs[0].uuidStatusType).isEqualTo("ACTIVE")
     assertThat(response.eventLogs[0].sourceSystem).isEqualTo("DELIUS")
     assertThat(response.eventLogs[0].sourceSystemId).isEqualTo(person.crn)
+    assertThat(response.eventLogs[0].masterDefendantId).isNull()
     assertThat(response.eventLogs[1].eventType).isEqualTo(CPR_RECORD_CREATED.name)
     assertThat(response.eventLogs[1].uuidStatusType).isEqualTo("ACTIVE")
     assertThat(response.eventLogs[1].sourceSystem).isEqualTo("DELIUS")
