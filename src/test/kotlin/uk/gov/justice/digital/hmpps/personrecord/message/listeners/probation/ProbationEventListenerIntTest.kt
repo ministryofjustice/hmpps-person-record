@@ -6,9 +6,8 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
@@ -236,7 +235,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = null))
       val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
 
-      assertThat(personEntity.references.getType(IdentifierType.PNC)).isEqualTo(emptyList<ReferenceEntity>())
+      assertThat(personEntity.references.getPNCs()).isEmpty()
 
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
@@ -250,7 +249,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
 
-      assertThat(personEntity.references.getType(IdentifierType.PNC)).isEqualTo(emptyList<ReferenceEntity>())
+      assertThat(personEntity.references.getPNCs()).isEmpty()
 
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
