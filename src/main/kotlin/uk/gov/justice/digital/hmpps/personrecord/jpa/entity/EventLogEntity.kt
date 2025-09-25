@@ -33,6 +33,9 @@ class EventLogEntity(
   @Column(name = "source_system_id")
   val sourceSystemId: String? = null,
 
+  @Column(name = "master_defendant_id")
+  val masterDefendantId: String? = null,
+
   @Column(name = "match_id")
   val matchId: UUID? = null,
 
@@ -119,6 +122,7 @@ class EventLogEntity(
       clusterComposition: String? = null,
     ): EventLogEntity = EventLogEntity(
       sourceSystemId = eventLog.sourceSystemId,
+      masterDefendantId = eventLog.masterDefendantId,
       matchId = eventLog.matchId,
       personUUID = eventLog.personUUID,
       uuidStatusType = eventLog.uuidStatusType,
