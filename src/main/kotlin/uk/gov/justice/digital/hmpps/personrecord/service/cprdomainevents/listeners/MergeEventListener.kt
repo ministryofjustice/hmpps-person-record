@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.listen
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionalEventListener
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.extractSourceSystemId
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.ClusterMerged
@@ -39,7 +38,7 @@ class MergeEventListener(
       RecordTelemetry(
         TelemetryEventType.CPR_RECORD_MERGED,
         mapOf(
-          EventKeys.FROM_SOURCE_SYSTEM_ID to personMerged.from.extractSourceSystemId(),
+          EventKeys.FROM_SOURCE_SYSTEM_ID to personMerged.from?.extractSourceSystemId(),
           EventKeys.TO_SOURCE_SYSTEM_ID to personMerged.to.extractSourceSystemId(),
           EventKeys.SOURCE_SYSTEM to personMerged.to.sourceSystem.name,
         ),

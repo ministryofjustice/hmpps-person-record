@@ -79,11 +79,10 @@ class EventLogServiceIntTest : IntegrationTestBase() {
     assertThat(eventLog.clusterComposition).isNull()
     assertThat(eventLog.eventTimestamp).isNotNull()
     assertThat(eventLog.eventType).isEqualTo(CPRLogEvents.CPR_RECORD_UPDATED)
-    assertThat(eventLog.excludeOverrideMarkers.size).isEqualTo(0)
-    assertThat(eventLog.includeOverrideMarkers.size).isEqualTo(0)
     assertThat(eventLog.overrideMarker).isNull()
     assertThat(eventLog.overrideScopes).isEmpty()
     assertThat(eventLog.statusReason).isNull()
+    assertThat(eventLog.masterDefendantId).isNull()
   }
 
   @Test

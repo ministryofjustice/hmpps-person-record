@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.person.factories
 
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NationalityEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
@@ -20,16 +21,36 @@ class PersonFactory(
 
 ) {
 
-  fun create(person: Person): PersonEntity {
+  fun create(person: Person): PersonChainable {
     val personEntity = PersonEntity.new(person)
     personEntity.buildChildEntities(person)
-    return personRepository.save(personEntity)
+    return PersonChainable(
+      personEntity = personRepository.save(personEntity),
+      matchingFieldsChanged = true,
+      linkOnCreate = person.behaviour.linkOnCreate,
+    )
   }
 
-  fun update(person: Person, personEntity: PersonEntity) {
-    personEntity.update(person)
-    personEntity.buildChildEntities(person)
-    personRepository.save(personEntity)
+  fun update(person: Person, personEntity: PersonEntity): PersonChainable {
+    val matchingFieldsHaveChanged = personEntity.evaluateMatchingFields {
+      it.update(person)
+      it.buildChildEntities(person)
+    }
+    return PersonChainable(
+      personEntity = personRepository.save(personEntity),
+      matchingFieldsChanged = matchingFieldsHaveChanged,
+      linkOnCreate = person.behaviour.linkOnCreate,
+    )
+  }
+
+  private fun PersonEntity.evaluateMatchingFields(change: (PersonEntity) -> Unit): Boolean {
+    val oldMatchingDetails = PersonMatchRecord.from(this)
+    change(this)
+    return oldMatchingDetails.matchingFieldsAreDifferent(
+      PersonMatchRecord.from(
+        this,
+      ),
+    )
   }
 
   private fun PersonEntity.buildChildEntities(person: Person) {

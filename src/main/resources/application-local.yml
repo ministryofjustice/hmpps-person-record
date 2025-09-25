@@ -4,7 +4,7 @@ person-match:
   client-id: hmpps-person-match
 
 nomis-oauth:
-  base-url: http://localhost:8081
+  base-url: http://localhost:9090
 
 prisoner-search:
   base-url: https://prisoner-search-dev.prison.service.justice.gov.uk
@@ -25,7 +25,7 @@ hmpps.sqs:
       queueName: cpr_delius_offender_events_queue
       dlqName: cpr_delius_offender_events_queue_dlq
       subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ "probation-case.engagement.created", "probation-case.address.created", "probation-case.address.updated", "probation-case.address.deleted", "probation-case.personal-details.updated", "OFFENDER_ALIAS_CHANGED", "probation-case.engagement.recovered" ] }'
+      subscribeFilter: '{"eventType":[ "probation-case.engagement.created", "probation-case.address.created", "probation-case.address.updated", "probation-case.address.deleted", "probation-case.personal-details.updated", "probation-case.alias.created","probation-case.alias.updated","probation-case.alias.deleted", "probation-case.engagement.recovered" ] }'
       dlqMaxReceiveCount: 2
     cprdeliusmergeeventsqueue:
       queueName: cpr_delius_merge_events_queue

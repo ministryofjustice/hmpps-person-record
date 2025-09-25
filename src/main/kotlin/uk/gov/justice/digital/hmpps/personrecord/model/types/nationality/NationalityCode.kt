@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types.nationality
 
 import org.slf4j.LoggerFactory
-import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
+import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 
 enum class NationalityCode {
   AFGA,

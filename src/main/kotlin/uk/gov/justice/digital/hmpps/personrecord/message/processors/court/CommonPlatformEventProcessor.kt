@@ -12,12 +12,13 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.LargeMessageBody
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.CourtMessagePublisher
 
 @Component
@@ -46,8 +47,8 @@ class CommonPlatformEventProcessor(
       .flatMap { it.defendants }
       .filterNot { it.isYouth }
       .distinctBy { it.id }
-      .map { defendant -> populateIdentifiersFromDefendantWhenMissing(defendant) }
-      .map { defendant -> Person.from(defendant) }
+      .map { populateIdentifiersFromDefendantWhenMissing(it) }
+      .map { Person.from(it) }
       .filter { it.isPerson() }
       .map {
         transactionalCommonPlatformProcessor.processCommonPlatformPerson(it)
@@ -95,15 +96,22 @@ class CommonPlatformEventProcessor(
   }
 
   private fun populateIdentifiersFromDefendantWhenMissing(defendant: Defendant): Defendant {
-    if (defendant.isPncMissing && defendant.isCroMissing) {
+    if (defendant.isPncMissing || defendant.isCroMissing) {
       defendant.id?.let { personRepository.findByDefendantId(it) }?.let { existingDefendant ->
-
-        defendant.pncId =
-          PNCIdentifier.from(existingDefendant.references.firstOrNull { it.identifierType == IdentifierType.PNC }?.identifierValue)
-        defendant.cro =
-          CROIdentifier.from(existingDefendant.references.firstOrNull { it.identifierType == IdentifierType.CRO }?.identifierValue)
+        defendant.retainPncOrCro(existingDefendant)
       }
     }
     return defendant
+  }
+
+  private fun Defendant.retainPncOrCro(personEntity: PersonEntity) {
+    when {
+      this.isPncMissing ->
+        this.pncId =
+          PNCIdentifier.from(personEntity.references.getPNCs().firstOrNull())
+      this.isCroMissing ->
+        this.cro =
+          CROIdentifier.from(personEntity.references.getCROs().firstOrNull())
+    }
   }
 }

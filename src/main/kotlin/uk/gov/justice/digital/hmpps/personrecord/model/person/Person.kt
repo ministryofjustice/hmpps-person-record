@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraH
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner.Companion.getType
-import uk.gov.justice.digital.hmpps.personrecord.extentions.nullIfBlank
+import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
@@ -46,15 +46,10 @@ data class Person(
   val sentences: List<SentenceInfo> = emptyList(),
   val cId: String? = null,
   val sexCode: SexCode? = null,
-  var reclusterOnUpdate: Boolean = true,
-  var linkOnCreate: Boolean = true,
+  val behaviour: Behaviour = Behaviour(),
 ) {
 
   companion object {
-
-    fun List<Contact>.getType(type: ContactType): List<Contact> = this.filter { it.contactType == type }
-
-    fun List<Reference>.getType(type: IdentifierType): List<Reference> = this.filter { it.identifierType == type }
 
     fun List<Reference>.toString(): String = this.joinToString { it.identifierValue.toString() }
 
@@ -236,12 +231,12 @@ data class Person(
   }
 
   fun doNotReclusterOnUpdate(): Person {
-    reclusterOnUpdate = false
+    this.behaviour.reclusterOnUpdate = false
     return this
   }
 
   fun doNotLinkOnCreate(): Person {
-    linkOnCreate = false
+    this.behaviour.linkOnCreate = false
     return this
   }
 
@@ -253,3 +248,8 @@ data class Person(
 
   private fun lastNameIsPresent() = lastName?.isNotEmpty() == true
 }
+
+data class Behaviour(
+  var reclusterOnUpdate: Boolean = true,
+  var linkOnCreate: Boolean = true,
+)

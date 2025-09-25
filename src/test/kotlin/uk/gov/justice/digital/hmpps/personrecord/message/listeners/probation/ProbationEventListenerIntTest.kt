@@ -6,9 +6,8 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
@@ -20,7 +19,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_ALIAS_CHANGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
@@ -134,7 +132,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.addresses[0].postcode).isEqualTo("LS1 1AB")
       assertThat(personEntity.addresses[0].fullAddress).isEqualTo("abc street")
       assertThat(personEntity.addresses[0].type).isEqualTo(null)
-      assertThat(personEntity.addresses[1].noFixedAbode).isEqualTo(null)
+      assertThat(personEntity.addresses[1].noFixedAbode).isNull()
       assertThat(personEntity.addresses[1].postcode).isEqualTo("M21 9LX")
       assertThat(personEntity.addresses[1].fullAddress).isEqualTo("abc street")
       assertThat(personEntity.addresses[1].type).isEqualTo(null)
@@ -237,7 +235,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = null))
       val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
 
-      assertThat(personEntity.references.getType(IdentifierType.PNC)).isEqualTo(emptyList<ReferenceEntity>())
+      assertThat(personEntity.references.getPNCs()).isEmpty()
 
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
@@ -251,7 +249,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
 
-      assertThat(personEntity.references.getType(IdentifierType.PNC)).isEqualTo(emptyList<ReferenceEntity>())
+      assertThat(personEntity.references.getPNCs()).isEmpty()
 
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
       checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
@@ -288,13 +286,11 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
           "CRN" to crn,
         ),
         29,
-        timeout = 15,
       )
     }
 
     @Test
-    fun `should process OFFENDER_ALIAS_CHANGED events successfully`() {
-      // this is the only test which updates an existing probation record. Do not just delete this when we get rid of OFFENDER_ALIAS_CHANGED events
+    fun `should process personals details updated events successfully`() {
       val pnc = randomPnc()
       val crn = randomCrn()
       val gender = randomProbationSexCode()
@@ -317,7 +313,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val changedEthnicity = randomProbationEthnicity()
       val changedNationality = randomProbationNationalityCode()
       val changedSexCode = randomProbationSexCode()
-      probationEventAndResponseSetup(OFFENDER_ALIAS_CHANGED, ApiResponseSetup(crn = crn, pnc = changedPnc, gender = changedSexCode.key, dateOfBirth = changedDateOfBirth, ethnicity = changedEthnicity, nationality = changedNationality, title = "MR"))
+      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, pnc = changedPnc, gender = changedSexCode.key, dateOfBirth = changedDateOfBirth, ethnicity = changedEthnicity, nationality = changedNationality, title = "MR"))
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
       val updatedPersonEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }

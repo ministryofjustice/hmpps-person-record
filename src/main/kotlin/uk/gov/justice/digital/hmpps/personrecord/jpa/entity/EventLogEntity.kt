@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity
 
 import io.hypersistence.utils.hibernate.type.array.LocalDateArrayType
-import io.hypersistence.utils.hibernate.type.array.LongArrayType
 import io.hypersistence.utils.hibernate.type.array.StringArrayType
 import io.hypersistence.utils.hibernate.type.array.UUIDArrayType
 import jakarta.persistence.Column
@@ -33,6 +32,9 @@ class EventLogEntity(
 
   @Column(name = "source_system_id")
   val sourceSystemId: String? = null,
+
+  @Column(name = "master_defendant_id")
+  val masterDefendantId: String? = null,
 
   @Column(name = "match_id")
   val matchId: UUID? = null,
@@ -84,14 +86,6 @@ class EventLogEntity(
   @Column(name = "sentence_dates", columnDefinition = "date[]")
   val sentenceDates: Array<LocalDate> = emptyArray<LocalDate>(),
 
-  @Type(LongArrayType::class)
-  @Column(name = "exclude_override_markers", columnDefinition = "bigint[]")
-  val excludeOverrideMarkers: Array<Long> = emptyArray<Long>(),
-
-  @Type(LongArrayType::class)
-  @Column(name = "include_override_markers", columnDefinition = "bigint[]")
-  val includeOverrideMarkers: Array<Long> = emptyArray<Long>(),
-
   @Column(name = "override_marker")
   val overrideMarker: UUID? = null,
 
@@ -128,6 +122,7 @@ class EventLogEntity(
       clusterComposition: String? = null,
     ): EventLogEntity = EventLogEntity(
       sourceSystemId = eventLog.sourceSystemId,
+      masterDefendantId = eventLog.masterDefendantId,
       matchId = eventLog.matchId,
       personUUID = eventLog.personUUID,
       uuidStatusType = eventLog.uuidStatusType,
@@ -142,8 +137,6 @@ class EventLogEntity(
       cros = eventLog.cros.dedupeAndSortedArray(),
       pncs = eventLog.pncs.dedupeAndSortedArray(),
       sentenceDates = eventLog.sentenceDates.dedupeAndSortedArray(),
-      excludeOverrideMarkers = eventLog.excludeOverrideMarkers.dedupeAndSortedArray(),
-      includeOverrideMarkers = eventLog.includeOverrideMarkers.dedupeAndSortedArray(),
       overrideMarker = eventLog.overrideMarker,
       overrideScopes = eventLog.overrideScopes.dedupeAndSortedArray(),
       sourceSystem = eventLog.sourceSystem,
@@ -157,8 +150,6 @@ class EventLogEntity(
     private fun List<String>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
 
     private fun List<UUID>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
-
-    private fun List<Long>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
 
     private fun List<LocalDate>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
   }

@@ -13,12 +13,14 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PROBATION_API_READ_WRITE
+import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.ResourceNotFoundException
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.CourtProbationLinkEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtProbationLinkRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 
 @Tag(name = "HMPPS CPR Probation API")
 @RestController
@@ -26,7 +28,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateSer
 class ProbationAPIController(
   private val personRepository: PersonRepository,
   private val createUpdateService: CreateUpdateService,
-  private val courtProbationLinkRepository: CourtProbationLinkRepository,
+  private val overrideService: OverrideService,
+  private val reclusterService: ReclusterService,
 ) {
   @Operation(
     description = """Create person record by CRN. Role required is **$PROBATION_API_READ_WRITE** . 
@@ -45,19 +48,13 @@ class ProbationAPIController(
     @PathVariable(name = "defendantId") defendantId: String,
     @RequestBody probationCase: ProbationCase,
   ) {
-    probationCase.createPerson()
-    probationCase.storeLink(defendantId)
-  }
-
-  private fun ProbationCase.createPerson() {
-    createUpdateService.processPerson(Person.from(this)) {
-      this.identifiers.crn?.let {
-        personRepository.findByCrn(it)
-      }
+    val defendant: PersonEntity = retrieveDefendant(defendantId)
+    val offender: PersonEntity = createUpdateService.processPerson(Person.from(probationCase)) {
+      personRepository.findByCrn(probationCase.identifiers.crn!!)
     }
+    overrideService.systemInclude(defendant, offender)
+    reclusterService.recluster(offender)
   }
 
-  private fun ProbationCase.storeLink(defendantId: String) = this.identifiers.crn?.let {
-    courtProbationLinkRepository.save(CourtProbationLinkEntity.from(defendantId, it))
-  }
+  private fun retrieveDefendant(defendantId: String): PersonEntity = personRepository.findByDefendantId(defendantId) ?: throw ResourceNotFoundException(defendantId)
 }

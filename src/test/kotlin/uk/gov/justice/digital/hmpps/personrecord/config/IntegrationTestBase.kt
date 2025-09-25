@@ -38,7 +38,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationAddress
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
@@ -46,6 +45,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Sentences
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.EventLogEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
@@ -53,16 +55,15 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.NationalityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.TitleCodeEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtProbationLinkRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.NationalityCodeRepository
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.OverrideScopeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.TitleCodeRepository
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
+import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
@@ -102,9 +103,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 class IntegrationTestBase {
 
   @Autowired
-  lateinit var overrideScopeRepository: OverrideScopeRepository
-
-  @Autowired
   private lateinit var personFactory: PersonFactory
 
   @Autowired
@@ -124,9 +122,6 @@ class IntegrationTestBase {
 
   @Autowired
   lateinit var nationalityCodeRepository: NationalityCodeRepository
-
-  @Autowired
-  lateinit var courtProbationLinkRepository: CourtProbationLinkRepository
 
   @Autowired
   lateinit var ethnicityCodeRepository: EthnicityCodeRepository
@@ -198,20 +193,31 @@ class IntegrationTestBase {
   internal fun createRandomLibraPersonDetails(cId: String = randomCId()): Person = Person.from(LibraHearingEvent(name = LibraName(firstName = randomName(), lastName = randomName()), cId = cId))
 
   internal fun createRandomCommonPlatformPersonDetails(defendantId: String = randomDefendantId()): Person = Person.from(
-    Defendant(id = defendantId, personDefendant = PersonDefendant(personDetails = PersonDetails(firstName = randomName(), lastName = randomName()))),
+    Defendant(
+      id = defendantId,
+      personDefendant = PersonDefendant(
+        personDetails = PersonDetails(
+          firstName = randomName(),
+          middleName = randomName(),
+          lastName = randomName(),
+          dateOfBirth = randomDate(),
+        ),
+      ),
+      pncId = PNCIdentifier.from(randomPnc()),
+      cro = CROIdentifier.from(randomCro()),
+    ),
   )
 
   internal fun checkTelemetry(
     event: TelemetryEventType,
     expected: Map<String, String?>,
     times: Int = 1,
-    timeout: Long = 3,
   ) {
     awaitAssert(function = {
       val allEvents = telemetryRepository.findAllByEvent(event.eventName)
-      val matchingEvents = allEvents?.filter {
+      val matchingEvents = allEvents?.filter { event ->
         expected.entries.map { (k, v) ->
-          val jsonObject = JSONObject(it.properties)
+          val jsonObject = JSONObject(event.properties)
           when {
             (jsonObject.has(k)) -> jsonObject.get(k).equals(v)
             else -> false
@@ -219,7 +225,7 @@ class IntegrationTestBase {
         }.all { it }
       }
       assertThat(matchingEvents?.size).`as`("Missing data $event $expected and actual data $allEvents").isEqualTo(times)
-    }, timeout)
+    })
   }
 
   internal fun checkEventLogExist(
@@ -235,32 +241,26 @@ class IntegrationTestBase {
   internal fun checkEventLog(
     sourceSystemId: String,
     event: CPRLogEvents,
-    timeout: Long = 3,
     matchingEvents: (logEvents: List<EventLogEntity>) -> Unit,
   ) {
     awaitAssert(function = {
       matchingEvents(eventLogRepository.findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(event, sourceSystemId) ?: emptyList())
-    }, timeout)
+    })
   }
 
   internal fun checkEventLogByUUID(
     cluster: UUID,
     event: CPRLogEvents,
-    timeout: Long = 3,
     matchingEvents: (logEvents: List<EventLogEntity>) -> Unit,
   ) {
     awaitAssert(function = {
       matchingEvents(eventLogRepository.findAllByEventTypeAndPersonUUIDOrderByEventTimestampDesc(event, cluster) ?: emptyList())
-    }, timeout)
+    })
   }
 
-  private fun awaitAssert(function: () -> Unit, timeout: Long) = await atMost (Duration.ofSeconds(timeout)) untilAsserted function
+  internal fun awaitAssert(function: () -> Unit) = await atMost (Duration.ofSeconds(15)) untilAsserted function
 
-  internal fun awaitAssert(function: () -> Unit) = awaitAssert(function = function, timeout = 3)
-
-  internal fun awaitNotNullPerson(function: () -> PersonEntity?): PersonEntity = awaitNotNullPerson(function, 3)
-
-  internal fun awaitNotNullPerson(function: () -> PersonEntity?, timeout: Long): PersonEntity = await atMost (Duration.ofSeconds(timeout)) untilNotNull function
+  internal fun awaitNotNullPerson(function: () -> PersonEntity?): PersonEntity = await atMost (Duration.ofSeconds(3)) untilNotNull function
 
   internal fun createPersonKey(status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
@@ -280,7 +280,7 @@ class IntegrationTestBase {
   internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonEntity = createPerson(person, createPersonKey(status, reason))
 
   internal fun createPerson(person: Person, personKeyEntity: PersonKeyEntity? = null): PersonEntity {
-    val personEntity = personFactory.create(person)
+    val personEntity = personFactory.create(person).personEntity
     personEntity.personKey = personKeyEntity
     personKeyEntity?.personEntities?.add(personEntity)
     return personRepository.saveAndFlush(personEntity)
@@ -417,8 +417,6 @@ class IntegrationTestBase {
     clusters: List<UUID>,
   ) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = true, clusters = listOf(clusters.map { it.toString() })), scenario, currentScenarioState, nextScenarioState)
 
-  internal fun stubClusterIsNotValid(clusters: List<ValidCluster> = listOf()) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = false, clusters = clusters.map { cluster -> cluster.records }))
-
   internal fun stubPersonMatchUpsert(
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
@@ -453,22 +451,6 @@ class IntegrationTestBase {
           WireMock.aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(404),
-        ),
-    )
-  }
-
-  fun stubGetRequestWithTimeout(url: String, currentScenarioState: String, nextScenarioState: String) {
-    authSetup()
-    wiremock.stubFor(
-      WireMock.get(url)
-        .inScenario(BASE_SCENARIO)
-        .whenScenarioStateIs(currentScenarioState)
-        .willSetStateTo(nextScenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(200)
-            .withFixedDelay(210),
         ),
     )
   }
@@ -655,18 +637,10 @@ class IntegrationTestBase {
 
   fun PersonKeyEntity.assertPersonKeyDeleted() = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)).isNull() }
 
-  internal fun String.assertLinksToCrn(crn: String) = awaitAssert {
-    assertThat(courtProbationLinkRepository.findByDefendantId(this)?.crn).isEqualTo(crn)
-  }
-
-  internal fun String.assertNotLinksToCrn(crn: String) = awaitAssert {
-    assertThat(courtProbationLinkRepository.findByDefendantId(this)?.crn).isNotEqualTo(crn)
-  }
-
   fun Person.getCro(): String? = this.references.getType(CRO).first().identifierValue
-  fun PersonEntity.getCro(): String? = this.references.getType(CRO).firstOrNull()?.identifierValue
+  fun PersonEntity.getCro(): String? = this.references.getCROs().firstOrNull()
   fun Person.getPnc(): String? = this.references.getType(PNC).first().identifierValue
-  fun PersonEntity.getPnc(): String? = this.references.getType(PNC).firstOrNull()?.identifierValue
+  fun PersonEntity.getPnc(): String? = this.references.getPNCs().firstOrNull()
   fun String.getTitle(): TitleCodeEntity = titleCodeRepository.findByCode(TitleCode.from(this)!!.name)!!
   fun String.getCommonPlatformEthnicity(): EthnicityCodeEntity = EthnicityCode.fromCommonPlatform(this)?.let { ethnicityCodeRepository.findByCode(it.name) }!!
   fun String.getPrisonEthnicity(): EthnicityCodeEntity = EthnicityCode.fromPrison(this)?.let { ethnicityCodeRepository.findByCode(it.name) }!!

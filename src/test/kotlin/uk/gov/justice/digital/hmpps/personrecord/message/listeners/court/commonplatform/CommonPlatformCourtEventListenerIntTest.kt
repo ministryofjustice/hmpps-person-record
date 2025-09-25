@@ -18,9 +18,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribu
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttributes
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
@@ -62,7 +62,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Autowired
   lateinit var s3AsyncClient: S3AsyncClient
 
-  @Value("\${aws.court-message-bucket-name}")
+  @Value($$"${aws.court-message-bucket-name}")
   lateinit var s3Bucket: String
 
   @Test
@@ -255,7 +255,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val ethnicityCode = ethnicity.getCommonPlatformEthnicity()
     assertThat(firstPerson.ethnicityCode?.code).isEqualTo(ethnicityCode.code)
     assertThat(firstPerson.ethnicityCode?.description).isEqualTo(ethnicityCode.description)
-    assertThat(firstPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(firstDefendantNINumber)
+    assertThat(firstPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(firstDefendantNINumber)
 
     assertThat(secondPerson.getAliases()).isEmpty()
     assertThat(secondPerson.addresses).isNotEmpty()
@@ -307,10 +307,10 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val personWithEmptyPnc = awaitNotNullPerson {
       personRepository.findByDefendantId(firstDefendantId)
     }
-    assertThat(personWithEmptyPnc.references.getType(PNC)).isEqualTo(emptyList<ReferenceEntity>())
+    assertThat(personWithEmptyPnc.references.getPNCs()).isEmpty()
 
     val personWithNullPnc = personRepository.findByDefendantId(secondDefendantId)
-    assertThat(personWithNullPnc?.references?.getType(PNC)).isEqualTo(emptyList<ReferenceEntity>())
+    assertThat(personWithNullPnc?.references?.getPNCs()).isEmpty()
   }
 
   @Test
@@ -507,16 +507,15 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should preserve pnc and cro if originally set then missing from an update`() {
+  fun `should preserve pnc if originally set then missing from an update`() {
     val defendantId = randomDefendantId()
-    val cro = randomCro()
     val pnc = randomPnc()
 
     stubPersonMatchUpsert()
     stubPersonMatchScores()
 
     publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = cro, pnc = pnc))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, pnc = pnc))),
     )
 
     awaitNotNullPerson {
@@ -526,7 +525,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     purgeQueueAndDlq(testOnlyCourtEventsQueue)
 
     publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, croMissing = true, pncMissing = true))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, pncMissing = true))),
     )
 
     val updatedPerson = awaitNotNullPerson {
@@ -534,7 +533,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     assertThat(updatedPerson.getPnc()).isEqualTo(pnc)
-    assertThat(updatedPerson.getCro()).isEqualTo(cro)
     expectOneMessageOn(testOnlyCourtEventsQueue)
 
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
@@ -542,7 +540,42 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }!!
     assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
     assertThat(sqsMessage.message.contains("pncId")).isFalse()
-    assertThat(sqsMessage.message.contains("croNumber")).isFalse()
+  }
+
+  @Test
+  fun `should preserve cro if originally set then missing from an update`() {
+    val defendantId = randomDefendantId()
+    val cro = randomCro()
+
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = cro))),
+    )
+
+    awaitNotNullPerson {
+      personRepository.findByDefendantId(defendantId)
+    }
+
+    purgeQueueAndDlq(testOnlyCourtEventsQueue)
+
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, croMissing = true))),
+    )
+
+    val updatedPerson = awaitNotNullPerson {
+      personRepository.findByDefendantId(defendantId)
+    }
+
+    assertThat(updatedPerson.getCro()).isEqualTo(cro)
+    expectOneMessageOn(testOnlyCourtEventsQueue)
+
+    val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
+
+    val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }!!
+    assertThat(sqsMessage.messageAttributes?.eventType).isEqualTo(MessageAttribute("commonplatform.case.received"))
+    assertThat(sqsMessage.message.contains("croId")).isFalse()
   }
 
   @Test
@@ -562,6 +595,33 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     publishCommonPlatformMessage(
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, croMissing = true, pncMissing = true))),
+    )
+
+    val updatedPerson = awaitNotNullPerson {
+      personRepository.findByDefendantId(defendantId)
+    }
+
+    assertThat(updatedPerson.getPnc()).isNull()
+    assertThat(updatedPerson.getCro()).isNull()
+  }
+
+  @Test
+  fun `should return null for pnc and cro if provided but are set to empty strings`() {
+    val defendantId = randomDefendantId()
+
+    stubPersonMatchUpsert()
+    stubPersonMatchScores()
+
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = randomCro(), pnc = randomPnc()))),
+    )
+
+    awaitNotNullPerson {
+      personRepository.findByDefendantId(defendantId)
+    }
+
+    publishCommonPlatformMessage(
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = "", pnc = ""))),
     )
 
     val updatedPerson = awaitNotNullPerson {
@@ -627,6 +687,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       val lastName = randomName()
       val aliasFirstName = randomName()
       val aliasLastName = randomName()
+      val masterDefendantId = randomDefendantId()
 
       publishCommonPlatformMessage(
         commonPlatformHearing(
@@ -635,6 +696,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
               pnc = pnc,
               firstName = firstName,
               lastName = lastName,
+              masterDefendantId = masterDefendantId,
               cro = cro,
               defendantId = defendantId,
               aliases = listOf(
@@ -658,6 +720,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(createdLog.lastNameAliases).isEqualTo(arrayOf(aliasLastName))
         assertThat(createdLog.personUUID).isNotNull()
         assertThat(createdLog.uuidStatusType).isEqualTo(ACTIVE)
+        assertThat(createdLog.masterDefendantId).isEqualTo(masterDefendantId)
       }
       checkEventLogExist(defendantId, CPRLogEvents.CPR_UUID_CREATED)
     }

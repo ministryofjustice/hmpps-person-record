@@ -1,12 +1,11 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.extractSourceSystemId
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
@@ -17,6 +16,7 @@ import java.util.UUID
 
 data class RecordEventLog(
   val sourceSystemId: String? = null,
+  val masterDefendantId: String? = null,
   val matchId: UUID? = null,
   val personUUID: UUID? = null,
   val uuidStatusType: UUIDStatusType? = null,
@@ -31,8 +31,6 @@ data class RecordEventLog(
   val cros: List<String> = emptyList(),
   val pncs: List<String> = emptyList(),
   val sentenceDates: List<LocalDate> = emptyList(),
-  val excludeOverrideMarkers: List<Long> = emptyList(),
-  val includeOverrideMarkers: List<Long> = emptyList(),
   val overrideMarker: UUID? = null,
   val overrideScopes: List<UUID> = emptyList(),
   val sourceSystem: SourceSystemType? = null,
@@ -52,6 +50,7 @@ data class RecordEventLog(
       val aliases: List<PseudonymEntity> = personEntity.getAliases()
       return RecordEventLog(
         sourceSystemId = personEntity.extractSourceSystemId(),
+        masterDefendantId = personEntity.masterDefendantId,
         matchId = personEntity.matchId,
         personUUID = personKeyEntity?.personUUID ?: personEntity.personKey?.personUUID,
         uuidStatusType = personKeyEntity?.status ?: personEntity.personKey?.status,
@@ -63,8 +62,8 @@ data class RecordEventLog(
         lastNameAliases = aliases.mapNotNull { it.lastName },
         dateOfBirthAliases = aliases.mapNotNull { it.dateOfBirth },
         postcodes = personEntity.addresses.mapNotNull { it.postcode },
-        cros = personEntity.references.getType(IdentifierType.CRO).mapNotNull { it.identifierValue },
-        pncs = personEntity.references.getType(IdentifierType.PNC).mapNotNull { it.identifierValue },
+        cros = personEntity.references.getCROs(),
+        pncs = personEntity.references.getPNCs(),
         sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate },
         overrideMarker = personEntity.overrideMarker,
         overrideScopes = personEntity.overrideScopes.map { it.scope },

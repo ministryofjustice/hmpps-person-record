@@ -33,7 +33,9 @@ data class AdminEventLogDetails(
   val recordMergedTo: Long?,
   val eventTimestamp: String,
   val sentenceDates: Array<String>,
-  val excludeOverrideMarkers: Array<Long>,
+  val overrideMarker: String?,
+  val overrideScopes: Array<String>,
+
 ) {
   companion object {
     fun from(eventLogEntity: EventLogEntity): AdminEventLogDetails = AdminEventLogDetails(
@@ -43,7 +45,7 @@ data class AdminEventLogDetails(
       middleNames = eventLogEntity.middleNames,
       lastName = eventLogEntity.lastName,
       lastNameAliases = eventLogEntity.lastNameAliases,
-      dateOfBirth = eventLogEntity.dateOfBirth.toString(),
+      dateOfBirth = eventLogEntity.dateOfBirth?.toString(),
       dateOfBirthAliases = eventLogEntity.dateOfBirthAliases.map { it.toString() }.toTypedArray(),
       postcodes = eventLogEntity.postcodes,
       pncs = eventLogEntity.pncs,
@@ -54,7 +56,8 @@ data class AdminEventLogDetails(
       recordMergedTo = eventLogEntity.recordMergedTo,
       eventTimestamp = eventLogEntity.eventTimestamp.toString(),
       sentenceDates = eventLogEntity.sentenceDates.map { it.toString() }.toTypedArray(),
-      excludeOverrideMarkers = eventLogEntity.excludeOverrideMarkers,
+      overrideMarker = eventLogEntity.overrideMarker?.toString(),
+      overrideScopes = eventLogEntity.overrideScopes.map { it.toString() }.toTypedArray(),
     )
   }
 }

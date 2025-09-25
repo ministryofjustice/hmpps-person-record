@@ -5,10 +5,8 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.CourtProbationLinkRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyDeleted
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
@@ -19,7 +17,6 @@ class DeletionService(
   private val personKeyRepository: PersonKeyRepository,
   private val personMatchService: PersonMatchService,
   private val publisher: ApplicationEventPublisher,
-  private val courtProbationLinkRepository: CourtProbationLinkRepository,
 ) {
 
   @Transactional
@@ -35,28 +32,16 @@ class DeletionService(
   }
 
   private fun handleMergedRecords(personEntity: PersonEntity) {
-    personEntity.id?.let {
-      personRepository.findByMergedTo(it).forEach {
+    personEntity.id?.let { id ->
+      personRepository.findByMergedTo(id).forEach {
         fetchRecordAndDelete { it }
       }
     }
   }
 
   private fun deletePersonRecord(personEntity: PersonEntity) {
-    when {
-      personEntity.sourceSystem == SourceSystemType.DELIUS -> personEntity.removeCourtLink()
-    }
     personRepository.delete(personEntity)
     publisher.publishEvent(PersonDeleted(personEntity))
-  }
-
-  private fun PersonEntity.removeCourtLink() {
-    this.crn?.let {
-      val link = courtProbationLinkRepository.findByCrn(it)
-      when {
-        link != null -> courtProbationLinkRepository.delete(link)
-      }
-    }
   }
 
   private fun handlePersonKeyDeletion(personEntity: PersonEntity) {

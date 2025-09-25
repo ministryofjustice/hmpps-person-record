@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.personrecord.controller
+package uk.gov.justice.digital.hmpps.personrecord.api.controller
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 

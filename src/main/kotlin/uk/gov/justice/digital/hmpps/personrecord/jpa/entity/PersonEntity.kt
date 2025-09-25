@@ -20,8 +20,8 @@ import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
@@ -62,10 +62,6 @@ class PersonEntity(
   @Column
   @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
   var sentenceInfo: MutableList<SentenceInfoEntity> = mutableListOf(),
-
-  @Column
-  @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
-  var overrideMarkers: MutableList<OverrideMarkerEntity> = mutableListOf(),
 
   @Column(name = "override_marker")
   var overrideMarker: UUID? = null,
@@ -138,8 +134,16 @@ class PersonEntity(
 
 ) {
 
-  fun getAliases(): List<PseudonymEntity> = this.pseudonyms.filter { it.nameType.equals(NameType.ALIAS) }.sortedBy { it.id }
-  fun getPrimaryName(): PseudonymEntity = this.pseudonyms.firstOrNull { it.nameType.equals(NameType.PRIMARY) } ?: PseudonymEntity(nameType = NameType.PRIMARY)
+  fun getAliases(): List<PseudonymEntity> = this.pseudonyms.filter { it.nameType == ALIAS }.sortedBy { it.id }
+
+  fun getPrimaryName(): PseudonymEntity = this.pseudonyms.firstOrNull { it.nameType == PRIMARY } ?: PseudonymEntity(nameType = PRIMARY)
+
+  fun extractSourceSystemId(): String? = mapOf(
+    DELIUS to this.crn,
+    NOMIS to this.prisonNumber,
+    COMMON_PLATFORM to this.defendantId,
+    LIBRA to this.cId,
+  )[this.sourceSystem]
 
   fun addOverrideMarker(scope: OverrideScopeEntity, marker: UUID = OverrideScopeEntity.newMarker()) {
     this.overrideMarker = this.overrideMarker ?: marker
@@ -216,16 +220,6 @@ class PersonEntity(
   companion object {
 
     val empty = null
-
-    fun PersonEntity?.extractSourceSystemId(): String? = when (this?.sourceSystem) {
-      DELIUS -> this.crn
-      NOMIS -> this.prisonNumber
-      COMMON_PLATFORM -> this.defendantId
-      LIBRA -> this.cId
-      else -> null
-    }
-
-    fun List<ReferenceEntity>.getType(type: IdentifierType): List<ReferenceEntity> = this.filter { it.identifierType == type }
 
     fun List<ContactEntity>.getType(type: ContactType): List<ContactEntity> = this.filter { it.contactType == type }
 

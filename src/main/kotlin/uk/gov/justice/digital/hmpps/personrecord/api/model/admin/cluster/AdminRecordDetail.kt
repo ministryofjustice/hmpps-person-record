@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster
 
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.extractSourceSystemId
 
 data class AdminRecordDetail(
   val sourceSystemId: String?,
