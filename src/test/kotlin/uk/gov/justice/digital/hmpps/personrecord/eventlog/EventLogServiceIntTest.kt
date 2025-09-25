@@ -82,6 +82,7 @@ class EventLogServiceIntTest : IntegrationTestBase() {
     assertThat(eventLog.overrideMarker).isNull()
     assertThat(eventLog.overrideScopes).isEmpty()
     assertThat(eventLog.statusReason).isNull()
+    assertThat(eventLog.masterDefendantId).isNull()
   }
 
   @Test
