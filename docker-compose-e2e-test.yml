@@ -23,8 +23,8 @@ services:
       hmpps-auth:
         condition: service_healthy
     ports:
-      - 5000:5000
-      - 5678:5678
+      - "5000:5000"
+      - "5678:5678"
 
   migrations:
     image: ghcr.io/ministryofjustice/hmpps-person-match

@@ -1,6 +1,5 @@
 # hmpps-person-record
 [![repo standards badge](https://img.shields.io/badge/dynamic/json?color=blue&style=flat&logo=github&label=MoJ%20Compliant&query=%24.message&url=https%3A%2F%2Foperations-engineering-reports.cloud-platform.service.justice.gov.uk%2Fapi%2Fv1%2Fcompliant_public_repositories%2Fhmpps-person-record)](https://operations-engineering-reports.cloud-platform.service.justice.gov.uk/public-report/hmpps-person-record "Link to report")
-[![CircleCI](https://circleci.com/gh/ministryofjustice/hmpps-person-record/tree/main.svg?style=svg)](https://circleci.com/gh/ministryofjustice/hmpps-person-record)
 
 ## About
 
@@ -22,8 +21,7 @@ $ make test
 ```
 
 ### Deployment
-
-Builds and deployments are set up in `Circle CI` and configured in the [config file](./.circleci/config.yml).  
+ 
 Helm is used to deploy the service to a Kubernetes Cluster using templates in the [`helm_deploy` folder](./helm_deploy).
 
 ### Running Service Locally

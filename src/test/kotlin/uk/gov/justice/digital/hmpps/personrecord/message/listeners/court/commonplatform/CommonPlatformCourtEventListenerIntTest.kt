@@ -18,9 +18,9 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttribu
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.MessageAttributes
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
@@ -62,7 +62,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Autowired
   lateinit var s3AsyncClient: S3AsyncClient
 
-  @Value("\${aws.court-message-bucket-name}")
+  @Value($$"${aws.court-message-bucket-name}")
   lateinit var s3Bucket: String
 
   @Test
@@ -255,7 +255,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val ethnicityCode = ethnicity.getCommonPlatformEthnicity()
     assertThat(firstPerson.ethnicityCode?.code).isEqualTo(ethnicityCode.code)
     assertThat(firstPerson.ethnicityCode?.description).isEqualTo(ethnicityCode.description)
-    assertThat(firstPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first().identifierValue).isEqualTo(firstDefendantNINumber)
+    assertThat(firstPerson.references.getType(NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(firstDefendantNINumber)
 
     assertThat(secondPerson.getAliases()).isEmpty()
     assertThat(secondPerson.addresses).isNotEmpty()
@@ -307,10 +307,10 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val personWithEmptyPnc = awaitNotNullPerson {
       personRepository.findByDefendantId(firstDefendantId)
     }
-    assertThat(personWithEmptyPnc.references.getType(PNC)).isEqualTo(emptyList<ReferenceEntity>())
+    assertThat(personWithEmptyPnc.references.getPNCs()).isEmpty()
 
     val personWithNullPnc = personRepository.findByDefendantId(secondDefendantId)
-    assertThat(personWithNullPnc?.references?.getType(PNC)).isEqualTo(emptyList<ReferenceEntity>())
+    assertThat(personWithNullPnc?.references?.getPNCs()).isEmpty()
   }
 
   @Test

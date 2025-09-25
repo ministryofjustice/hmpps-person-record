@@ -8,13 +8,13 @@ kotlin {
 }
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.1"
   kotlin("plugin.spring") version "2.2.20"
   kotlin("jvm") version "2.2.20"
   kotlin("plugin.jpa") version "2.2.20"
   id("io.gitlab.arturbosch.detekt") version "1.23.8"
   id("org.jetbrains.kotlinx.kover") version "0.9.2"
-  id("org.owasp.dependencycheck") version "12.1.5"
+  id("org.owasp.dependencycheck") version "12.1.6"
 }
 
 dependencyCheck {
