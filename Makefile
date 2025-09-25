@@ -25,7 +25,7 @@ run-local: start-containers
 
 run-with-match:
 ifeq (0,$(shell docker ps --filter "status=running" | grep 'hmpps-person-match' | wc -l | xargs))
-	@echo "please, run make start-containers in hmpps-person-match before running this target"
+	@echo "please run make start-containers-local in hmpps-person-match before running this target"
 else
 	docker compose up -d localstack-hmpps-person-record && ./gradlew bootRun --args='--spring.profiles.active=local'
 endif
