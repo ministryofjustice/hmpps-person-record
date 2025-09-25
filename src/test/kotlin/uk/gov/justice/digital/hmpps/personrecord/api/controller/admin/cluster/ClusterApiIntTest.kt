@@ -246,7 +246,7 @@ class ClusterApiIntTest : WebTestBase() {
 
   companion object {
     private const val ADMIN_UUID_CLUSTER_URL = "/admin/cluster/"
-    private const val ADMIN_CRN_CLUSTER_URL = "/admin/cluster/offender/"
-    private const val ADMIN_PRISON_NUMBER_CLUSTER_URL = "/admin/cluster/prisoner/"
+    private const val ADMIN_CRN_CLUSTER_URL = "/admin/cluster/probation/"
+    private const val ADMIN_PRISON_NUMBER_CLUSTER_URL = "/admin/cluster/prison/"
   }
 }
