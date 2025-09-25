@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminCl
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
-import java.util.*
+import java.util.UUID
 
 @RestController
 class ClusterController(
@@ -37,7 +37,7 @@ class ClusterController(
 
   @Hidden
   @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")
-  @GetMapping("/admin/cluster/offender/{crn}")
+  @GetMapping("/admin/cluster/probation/{crn}")
   suspend fun getClusterFromCRN(
     @PathVariable(name = "crn") crn: String,
   ): AdminClusterDetail {
@@ -50,7 +50,7 @@ class ClusterController(
 
   @Hidden
   @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")
-  @GetMapping("/admin/cluster/prisoner/{prisonNumber}")
+  @GetMapping("/admin/cluster/prison/{prisonNumber}")
   suspend fun getClusterFromPrisonNumber(
     @PathVariable(name = "prisonNumber") prisonNumber: String,
   ): AdminClusterDetail {
