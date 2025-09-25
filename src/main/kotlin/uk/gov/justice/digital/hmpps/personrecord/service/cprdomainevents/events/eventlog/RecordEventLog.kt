@@ -16,6 +16,7 @@ import java.util.UUID
 
 data class RecordEventLog(
   val sourceSystemId: String? = null,
+  val masterDefendantId: String? = null,
   val matchId: UUID? = null,
   val personUUID: UUID? = null,
   val uuidStatusType: UUIDStatusType? = null,
@@ -49,6 +50,7 @@ data class RecordEventLog(
       val aliases: List<PseudonymEntity> = personEntity.getAliases()
       return RecordEventLog(
         sourceSystemId = personEntity.extractSourceSystemId(),
+        masterDefendantId = personEntity.masterDefendantId,
         matchId = personEntity.matchId,
         personUUID = personKeyEntity?.personUUID ?: personEntity.personKey?.personUUID,
         uuidStatusType = personKeyEntity?.status ?: personEntity.personKey?.status,

@@ -17,6 +17,7 @@ data class CommonPlatformHearingSetup(
   val dateOfBirth: String = randomDate().toString(),
   val cro: String = randomCro(),
   val defendantId: String = randomDefendantId(),
+  val masterDefendantId: String = defendantId,
   val aliases: List<CommonPlatformHearingSetupAlias>? = null,
   val contact: CommonPlatformHearingSetupContact? = null,
   val nationalityCode: String? = null,
@@ -87,7 +88,7 @@ fun commonPlatformHearing(commonPlatformHearingSetup: List<CommonPlatformHearing
 
 private fun defendant(commonPlatformHearingSetup: CommonPlatformHearingSetup) = """{ 
                 "id": "${commonPlatformHearingSetup.defendantId}",
-                "masterDefendantId": "${commonPlatformHearingSetup.defendantId}",
+                "masterDefendantId": "${commonPlatformHearingSetup.masterDefendantId}",
                 ${pncId(commonPlatformHearingSetup)}
                 ${croNumber(commonPlatformHearingSetup)}
                 ${isYouth(commonPlatformHearingSetup)}
