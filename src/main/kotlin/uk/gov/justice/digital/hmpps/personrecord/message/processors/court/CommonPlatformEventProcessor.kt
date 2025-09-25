@@ -12,13 +12,13 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.CommonPlatformHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.LargeMessageBody
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.CourtMessagePublisher
 
 @Component
@@ -108,10 +108,10 @@ class CommonPlatformEventProcessor(
     when {
       this.isPncMissing ->
         this.pncId =
-          PNCIdentifier.from(personEntity.references.getType(IdentifierType.PNC).firstOrNull()?.identifierValue)
+          PNCIdentifier.from(personEntity.references.getPNCs().firstOrNull())
       this.isCroMissing ->
         this.cro =
-          CROIdentifier.from(personEntity.references.getType(IdentifierType.CRO).firstOrNull()?.identifierValue)
+          CROIdentifier.from(personEntity.references.getCROs().firstOrNull())
     }
   }
 }
