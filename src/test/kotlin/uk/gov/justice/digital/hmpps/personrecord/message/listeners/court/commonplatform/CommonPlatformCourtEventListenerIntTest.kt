@@ -687,6 +687,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       val lastName = randomName()
       val aliasFirstName = randomName()
       val aliasLastName = randomName()
+      val masterDefendantId = randomDefendantId()
 
       publishCommonPlatformMessage(
         commonPlatformHearing(
@@ -695,6 +696,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
               pnc = pnc,
               firstName = firstName,
               lastName = lastName,
+              masterDefendantId = masterDefendantId,
               cro = cro,
               defendantId = defendantId,
               aliases = listOf(
@@ -718,6 +720,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(createdLog.lastNameAliases).isEqualTo(arrayOf(aliasLastName))
         assertThat(createdLog.personUUID).isNotNull()
         assertThat(createdLog.uuidStatusType).isEqualTo(ACTIVE)
+        assertThat(createdLog.masterDefendantId).isEqualTo(masterDefendantId)
       }
       checkEventLogExist(defendantId, CPRLogEvents.CPR_UUID_CREATED)
     }
