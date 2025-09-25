@@ -120,7 +120,7 @@ complexity:
       - 'run'
       - 'use'
       - 'with'
-    excludes: ['**/TitleCode.kt','**/EthnicityCode.kt','**/PersonMatchRecord.kt']
+    excludes: ['**/TitleCode.kt','**/EthnicityCode.kt']
   LabeledExpression:
     active: false
     ignoredLabels: []
