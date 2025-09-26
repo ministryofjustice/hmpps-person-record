@@ -32,8 +32,8 @@ class DeletionService(
   }
 
   private fun handleMergedRecords(personEntity: PersonEntity) {
-    personEntity.id?.let {
-      personRepository.findByMergedTo(it).forEach {
+    personEntity.id?.let { id ->
+      personRepository.findByMergedTo(id).forEach {
         fetchRecordAndDelete { it }
       }
     }

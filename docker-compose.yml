@@ -3,7 +3,7 @@ services:
   postgres-hmpps-person-record:
     image: postgres:17.4-alpine
     ports:
-      - 5432:5432
+      - "5432:5432"
     networks:
       - hmpps
     environment:
