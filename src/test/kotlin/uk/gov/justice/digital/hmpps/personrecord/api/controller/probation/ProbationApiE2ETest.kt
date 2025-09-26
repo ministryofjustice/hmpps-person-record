@@ -179,9 +179,11 @@ class ProbationApiE2ETest : E2ETestBase() {
     }
 
     @Test
-    fun `should set include override on existing probation record on different cluster as the court record and clusters them together`() {
+    fun `should set probation and court records that are on different clusters onto same cluster`() {
       val defendantId = randomDefendantId()
-      val defendant = createPersonWithNewKey(createRandomCommonPlatformPersonDetails(defendantId))
+
+      val person = createRandomCommonPlatformPersonDetails(defendantId)
+      val defendant = createPersonWithNewKey(person)
 
       val crn = randomCrn()
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(createRandomProbationPersonDetails(crn)))
@@ -191,8 +193,9 @@ class ProbationApiE2ETest : E2ETestBase() {
       assertThat(offender.personKey?.personUUID.toString()).isNotEqualTo(defendant.personKey?.personUUID.toString())
 
       val probationCase = ProbationCase(
-        name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
+        name = ProbationCaseName(firstName = person.firstName, lastName = person.lastName),
         identifiers = Identifiers(crn = crn),
+        dateOfBirth = person.dateOfBirth,
       )
 
       webTestClient.put()
@@ -213,8 +216,6 @@ class ProbationApiE2ETest : E2ETestBase() {
 
       offender.personKey?.assertClusterStatus(ACTIVE)
       offender.personKey?.assertClusterIsOfSize(2)
-
-      offender.assertIncluded(defendant)
     }
 
     @Test

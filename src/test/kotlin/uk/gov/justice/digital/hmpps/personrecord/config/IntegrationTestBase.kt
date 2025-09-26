@@ -194,6 +194,7 @@ class IntegrationTestBase {
   internal fun createRandomCommonPlatformPersonDetails(defendantId: String = randomDefendantId()): Person = Person.from(
     Defendant(
       id = defendantId,
+      masterDefendantId = randomDefendantId(),
       personDefendant = PersonDefendant(
         personDetails = PersonDetails(
           firstName = randomName(),

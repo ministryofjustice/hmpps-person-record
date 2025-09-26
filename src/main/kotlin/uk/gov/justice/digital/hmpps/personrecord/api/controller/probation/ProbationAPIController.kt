@@ -49,10 +49,15 @@ class ProbationAPIController(
     @RequestBody probationCase: ProbationCase,
   ) {
     val defendant: PersonEntity = retrieveDefendant(defendantId)
-    val offender: PersonEntity = createUpdateService.processPerson(Person.from(probationCase)) {
+
+
+    val person = Person.from(probationCase)
+    person.masterDefendantId = defendant.masterDefendantId
+
+    val offender: PersonEntity = createUpdateService.processPerson(person) {
       personRepository.findByCrn(probationCase.identifiers.crn!!)
     }
-    overrideService.systemInclude(defendant, offender)
+
     reclusterService.recluster(offender)
   }
 
