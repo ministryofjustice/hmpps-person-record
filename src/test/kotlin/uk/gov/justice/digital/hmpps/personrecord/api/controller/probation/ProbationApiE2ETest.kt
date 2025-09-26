@@ -12,27 +12,29 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
-import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 
 class ProbationApiE2ETest : E2ETestBase() {
@@ -43,81 +45,20 @@ class ProbationApiE2ETest : E2ETestBase() {
     @Test
     fun `should return ok for a create`() {
       val defendantId = randomDefendantId()
-      val defendant = createPersonWithNewKey(createRandomCommonPlatformPersonDetails(defendantId))
 
-      val title = TitleCode.MR
-      val firstName = randomName()
-      val middleName = randomName()
-      val lastName = randomName()
-
-      val crn = randomCrn()
-      val pnc = randomPnc()
-      val cro = randomCro()
-
-      val dateOfBirth = randomDate()
-
-      val aliasFirstName = randomName()
-      val aliasMiddleName = randomName()
-      val aliasLastName = randomName()
-      val aliasDateOfBirth = randomDate()
-
-      val telephone = randomPhoneNumber()
-      val mobile = randomPhoneNumber()
-      val email = randomEmail()
-
-      val noFixedAbode = false
-      val startDate = randomDate()
-      val endDate = randomDate()
-      val postcode = randomPostcode()
-      val fullAddress = randomFullAddress()
-
-      val nationality = randomProbationNationalityCode()
-      val ethnicity = randomProbationEthnicity()
-
-      val gender = "M"
-
+      val defendant = createRandomCommonPlatformPersonDetails(defendantId)
       val probationCase = ProbationCase(
-        title = Value(value = title.name),
-        name = ProbationCaseName(
-          firstName = firstName,
-          middleNames = middleName,
-          lastName = lastName,
-        ),
-        identifiers = Identifiers(
-          crn = crn,
-          pnc = pnc,
-          cro = cro,
-        ),
-        dateOfBirth = dateOfBirth,
-        aliases = listOf(
-          ProbationCaseAlias(
-            name = ProbationCaseName(
-              firstName = aliasFirstName,
-              middleNames = aliasMiddleName,
-              lastName = aliasLastName,
-            ),
-            dateOfBirth = aliasDateOfBirth,
-          ),
-        ),
-        contactDetails = ContactDetails(
-          telephone = telephone,
-          mobile = mobile,
-          email = email,
-        ),
-        addresses = listOf(
-          ProbationAddress(
-            noFixedAbode = noFixedAbode,
-            startDate = startDate,
-            endDate = endDate,
-            postcode = postcode,
-            fullAddress = fullAddress,
-          ),
-        ),
-        nationality = Value(nationality),
-        ethnicity = Value(ethnicity),
-        gender = Value(gender),
+        title = Value(randomTitle()),
+        name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
+        identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
+        dateOfBirth = randomDate(),
+        aliases = listOf(ProbationCaseAlias(name = ProbationCaseName(firstName = randomName(), lastName = randomName()))),
+        addresses = listOf(ProbationAddress(noFixedAbode = false, startDate = randomDate(), endDate = randomDate(), postcode = randomPostcode(), fullAddress = randomFullAddress())),
+        contactDetails = ContactDetails(email = randomEmail(), mobile = randomPhoneNumber(), telephone = randomPhoneNumber()),
+        gender = Value(randomProbationSexCode().key),
+        nationality = Value(randomProbationNationalityCode()),
       )
-
+      createPersonWithNewKey(defendant)
       webTestClient.put()
         .uri(probationApiUrl(defendantId))
         .authorised(listOf(PROBATION_API_READ_WRITE))
@@ -126,55 +67,55 @@ class ProbationApiE2ETest : E2ETestBase() {
         .expectStatus()
         .isOk
 
-      val offender = awaitNotNullPerson { personRepository.findByCrn(crn) }
+      val offender = awaitNotNullPerson { personRepository.findByCrn(probationCase.identifiers.crn!!) }
 
       offender.personKey?.assertClusterStatus(ACTIVE)
       offender.personKey?.assertClusterIsOfSize(2)
-      offender.assertIncluded(defendant)
 
-      assertThat(offender.getPnc()).isEqualTo(pnc)
-      assertThat(offender.crn).isEqualTo(crn)
-      assertThat(offender.ethnicityCode?.code).isEqualTo(ethnicity.getProbationEthnicity().code)
-      assertThat(offender.ethnicityCode?.description).isEqualTo(ethnicity.getProbationEthnicity().description)
-      assertThat(offender.getCro()).isEqualTo(cro)
+      assertThat(offender.getPnc()).isEqualTo(probationCase.identifiers.pnc)
+      assertThat(offender.ethnicityCode?.code).isEqualTo(probationCase.ethnicity?.value?.getProbationEthnicity()?.code)
+      assertThat(offender.ethnicityCode?.code).isEqualTo(probationCase.ethnicity?.value?.getProbationEthnicity()?.description)
+      assertThat(offender.getCro()).isEqualTo(probationCase.identifiers.cro)
       assertThat(offender.getAliases().size).isEqualTo(1)
-      assertThat(offender.getAliases()[0].firstName).isEqualTo(aliasFirstName)
-      assertThat(offender.getAliases()[0].middleNames).isEqualTo(aliasMiddleName)
-      assertThat(offender.getAliases()[0].lastName).isEqualTo(aliasLastName)
-      assertThat(offender.getAliases()[0].dateOfBirth).isEqualTo(aliasDateOfBirth)
-      assertThat(offender.getAliases()[0].nameType).isEqualTo(NameType.ALIAS)
-      assertThat(offender.getPrimaryName().firstName).isEqualTo(firstName)
-      assertThat(offender.getPrimaryName().middleNames).isEqualTo(middleName)
-      assertThat(offender.getPrimaryName().lastName).isEqualTo(lastName)
-      assertThat(offender.getPrimaryName().nameType).isEqualTo(NameType.PRIMARY)
-      assertThat(offender.getPrimaryName().titleCode?.code).isEqualTo("MR")
-      assertThat(offender.getPrimaryName().titleCode?.description).isEqualTo("Mr")
-      assertThat(offender.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
+      val firstOffenderAlias = offender.getAliases()[0]
+      val firstProbationCaseAlias = probationCase.aliases?.get(0)
+      assertThat(firstOffenderAlias.firstName).isEqualTo(firstProbationCaseAlias?.name?.firstName)
+      assertThat(firstOffenderAlias.middleNames).isEqualTo(firstProbationCaseAlias?.name?.middleNames)
+      assertThat(firstOffenderAlias.lastName).isEqualTo(firstProbationCaseAlias?.name?.lastName)
+      assertThat(firstOffenderAlias.dateOfBirth).isEqualTo(firstProbationCaseAlias?.dateOfBirth)
+      assertThat(firstOffenderAlias.nameType).isEqualTo(ALIAS)
+      assertThat(offender.getPrimaryName().firstName).isEqualTo(probationCase.name.firstName)
+      assertThat(offender.getPrimaryName().middleNames).isEqualTo(probationCase.name.middleNames)
+      assertThat(offender.getPrimaryName().lastName).isEqualTo(probationCase.name.lastName)
+      assertThat(offender.getPrimaryName().nameType).isEqualTo(PRIMARY)
+      assertThat(offender.getPrimaryName().titleCode?.code).isEqualTo(probationCase.title?.value?.getTitle()?.code)
+      assertThat(offender.getPrimaryName().titleCode?.description).isEqualTo(probationCase.title?.value?.getTitle()?.description)
+      assertThat(offender.getPrimaryName().dateOfBirth).isEqualTo(probationCase.dateOfBirth)
 
       assertThat(offender.addresses.size).isEqualTo(1)
-      assertThat(offender.addresses[0].noFixedAbode).isEqualTo(noFixedAbode)
-      assertThat(offender.addresses[0].startDate).isEqualTo(startDate)
-      assertThat(offender.addresses[0].endDate).isEqualTo(endDate)
-      assertThat(offender.addresses[0].postcode).isEqualTo(postcode)
-      assertThat(offender.addresses[0].fullAddress).isEqualTo(fullAddress)
+      assertThat(offender.addresses[0].noFixedAbode).isEqualTo(probationCase.addresses[0].noFixedAbode)
+      assertThat(offender.addresses[0].startDate).isEqualTo(probationCase.addresses[0].startDate)
+      assertThat(offender.addresses[0].endDate).isEqualTo(probationCase.addresses[0].endDate)
+      assertThat(offender.addresses[0].postcode).isEqualTo(probationCase.addresses[0].postcode)
+      assertThat(offender.addresses[0].fullAddress).isEqualTo(probationCase.addresses[0].fullAddress)
       assertThat(offender.addresses[0].type).isEqualTo(null)
       assertThat(offender.contacts.size).isEqualTo(3)
-      assertThat(offender.contacts[0].contactType).isEqualTo(ContactType.HOME)
-      assertThat(offender.contacts[0].contactValue).isEqualTo(telephone)
-      assertThat(offender.contacts[1].contactType).isEqualTo(ContactType.MOBILE)
-      assertThat(offender.contacts[1].contactValue).isEqualTo(mobile)
-      assertThat(offender.contacts[2].contactType).isEqualTo(ContactType.EMAIL)
-      assertThat(offender.contacts[2].contactValue).isEqualTo(email)
+      assertThat(offender.contacts[0].contactType).isEqualTo(HOME)
+      assertThat(offender.contacts[0].contactValue).isEqualTo(probationCase.contactDetails?.telephone)
+      assertThat(offender.contacts[1].contactType).isEqualTo(MOBILE)
+      assertThat(offender.contacts[1].contactValue).isEqualTo(probationCase.contactDetails?.mobile)
+      assertThat(offender.contacts[2].contactType).isEqualTo(EMAIL)
+      assertThat(offender.contacts[2].contactValue).isEqualTo(probationCase.contactDetails?.email)
       assertThat(offender.matchId).isNotNull()
       assertThat(offender.lastModified).isNotNull()
-      assertThat(offender.sexCode).isEqualTo(SexCode.M)
+      assertThat(offender.sexCode).isEqualTo(SexCode.from(probationCase))
       assertThat(offender.nationalities.size).isEqualTo(1)
-      assertThat(offender.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromProbationCode()?.code)
-      assertThat(offender.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeEntityFromProbationCode()?.description)
+      assertThat(offender.nationalities.first().nationalityCode?.code).isEqualTo(probationCase.nationality?.value.getNationalityCodeEntityFromProbationCode()?.code)
+      assertThat(offender.nationalities.first().nationalityCode?.description).isEqualTo(probationCase.nationality?.value.getNationalityCodeEntityFromProbationCode()?.description)
 
       checkTelemetry(
         CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
+        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to probationCase.identifiers.crn),
       )
     }
 

@@ -173,16 +173,17 @@ class IntegrationTestBase {
   fun probationUrl(crn: String) = "/probation-cases/$crn"
 
   internal fun createRandomProbationPersonDetails(crn: String = randomCrn()): Person = Person.from(
-    ProbationCase(
-      name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
-      identifiers = Identifiers(crn = crn, pnc = randomPnc(), cro = randomCro()),
-      addresses = listOf(
-        ProbationAddress(postcode = randomPostcode()),
-        ProbationAddress(postcode = randomPostcode()),
-      ),
-      aliases = listOf(ProbationCaseAlias(ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), dateOfBirth = randomDate())),
-      sentences = listOf(Sentences(randomDate())),
+    createRandomProbationCase(crn),
+  )
+  internal fun createRandomProbationCase(crn: String = randomCrn()) = ProbationCase(
+    name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
+    identifiers = Identifiers(crn = crn, pnc = randomPnc(), cro = randomCro()),
+    addresses = listOf(
+      ProbationAddress(postcode = randomPostcode()),
+      ProbationAddress(postcode = randomPostcode()),
     ),
+    aliases = listOf(ProbationCaseAlias(ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), dateOfBirth = randomDate())),
+    sentences = listOf(Sentences(randomDate())),
   )
 
   internal fun createRandomPrisonPersonDetails(prisonNumber: String = randomPrisonNumber()): Person = Person.from(
