@@ -158,7 +158,6 @@ class ProbationApiE2ETest : E2ETestBase() {
       offender.personKey?.assertClusterStatus(ACTIVE)
       offender.personKey?.assertClusterIsOfSize(2)
     }
-
   }
 
   @Nested
