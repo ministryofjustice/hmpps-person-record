@@ -48,7 +48,7 @@ class PersonKeyEntity(
 
   fun isActive(): Boolean = status == UUIDStatusType.ACTIVE
 
-  fun isNeedsAttention(withReason: UUIDStatusReasonType): Boolean = status == UUIDStatusType.NEEDS_ATTENTION && statusReason == withReason
+  fun isNotOverrideConflict(): Boolean = status == UUIDStatusType.NEEDS_ATTENTION && statusReason != UUIDStatusReasonType.OVERRIDE_CONFLICT
 
   fun setAsActive() {
     this.apply {

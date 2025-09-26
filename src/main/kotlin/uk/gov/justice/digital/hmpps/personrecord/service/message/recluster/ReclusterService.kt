@@ -171,7 +171,7 @@ class ReclusterService(
     )
   }
 
-  private fun PersonKeyEntity.clusterIsBrokenAndCanBecomeActive() = this.isNeedsAttention(BROKEN_CLUSTER) && this.clusterIsValid()
+  private fun PersonKeyEntity.clusterIsBrokenAndCanBecomeActive() = this.isNotOverrideConflict() && this.clusterIsValid()
 
   private fun PersonKeyEntity.clusterIsValid() = if (this.hasOneRecord()) true else personMatchService.examineIsClusterValid(this).isClusterValid
 
