@@ -30,10 +30,10 @@ data class PersonMatchRecord(
     fun from(personEntity: PersonEntity): PersonMatchRecord = PersonMatchRecord(
       matchId = personEntity.matchId.toString(),
       sourceSystem = personEntity.sourceSystem.name,
-      firstName = personEntity.getPrimaryName().firstName ?: "",
-      middleNames = personEntity.getPrimaryName().middleNames ?: "",
-      lastName = personEntity.getPrimaryName().lastName ?: "",
-      dateOfBirth = personEntity.getPrimaryName().dateOfBirth?.toString() ?: "",
+      firstName = personEntity.getPrimaryName().firstName,
+      middleNames = personEntity.getPrimaryName().middleNames,
+      lastName = personEntity.getPrimaryName().lastName,
+      dateOfBirth = personEntity.getPrimaryName().dateOfBirth?.toString(),
       firstNameAliases = personEntity.getAliases().mapNotNull { it.firstName }.distinct().sorted(),
       lastNameAliases = personEntity.getAliases().mapNotNull { it.lastName }.distinct().sorted(),
       dateOfBirthAliases = personEntity.getAliases().mapNotNull { it.dateOfBirth }.map { it.toString() }.distinct().sorted(),
@@ -43,7 +43,7 @@ data class PersonMatchRecord(
       sentenceDates = personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.map { it.toString() }.distinct().sorted(),
       sourceSystemId = personEntity.extractSourceSystemId(),
       masterDefendantId = personEntity.masterDefendantId,
-      overrideMarker = personEntity.overrideMarker?.toString() ?: "",
+      overrideMarker = personEntity.overrideMarker?.toString(),
       overrideScopes = personEntity.overrideScopes.map { overrideScope -> overrideScope.scope.toString() },
     )
   }

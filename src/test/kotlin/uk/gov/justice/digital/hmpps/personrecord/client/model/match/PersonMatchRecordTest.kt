@@ -17,28 +17,6 @@ import java.util.UUID
 class PersonMatchRecordTest {
 
   @Test
-  fun `should return empty strings when building request if is null`() {
-    val personEntity = PersonEntity(
-      matchId = UUID.randomUUID(),
-      sourceSystem = DELIUS,
-      pseudonyms = mutableListOf(PseudonymEntity(nameType = NameType.PRIMARY, lastName = "MANDATORY FIELD")),
-    )
-    val personMatchRecord = PersonMatchRecord.from(personEntity)
-    assertThat(personMatchRecord.firstName).isEmpty()
-    assertThat(personMatchRecord.middleNames).isEmpty()
-    assertThat(personMatchRecord.dateOfBirth).isEmpty()
-    assertThat(personMatchRecord.firstNameAliases).isEmpty()
-    assertThat(personMatchRecord.lastNameAliases).isEmpty()
-    assertThat(personMatchRecord.dateOfBirthAliases).isEmpty()
-    assertThat(personMatchRecord.postcodes).isEmpty()
-    assertThat(personMatchRecord.cros).isEmpty()
-    assertThat(personMatchRecord.pncs).isEmpty()
-    assertThat(personMatchRecord.sentenceDates).isEmpty()
-    assertThat(personMatchRecord.overrideMarker).isEmpty()
-    assertThat(personMatchRecord.overrideScopes).isEmpty()
-  }
-
-  @Test
   fun `should build dates in correct YYYY-MM-dd format`() {
     val date = LocalDate.of(1970, 1, 1)
     val personEntity = PersonEntity(
