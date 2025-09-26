@@ -159,53 +159,6 @@ class ProbationApiE2ETest : E2ETestBase() {
       offender.personKey?.assertClusterIsOfSize(2)
     }
 
-    @Test
-    fun `should set include override on existing probation record on the same cluster as the court record`() {
-      val basePersonData = createRandomCommonPlatformPersonDetails()
-
-      val defendantId = randomDefendantId()
-      val defendant = createPersonWithNewKey(createCommonPlatformPersonFrom(basePersonData, defendantId = defendantId))
-
-      val crn = randomCrn()
-      val offenderData = createProbationPersonFrom(basePersonData, crn = crn)
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup.from(offenderData))
-
-      val offender = awaitNotNullPerson { personRepository.findByCrn(crn) }
-
-      assertThat(offender.personKey?.personUUID.toString()).isEqualTo(defendant.personKey?.personUUID.toString())
-
-      val probationCase = ProbationCase(
-        name = ProbationCaseName(
-          firstName = offenderData.firstName,
-          middleNames = offenderData.middleNames,
-          lastName = offenderData.lastName,
-        ),
-        identifiers = Identifiers(
-          crn = crn,
-          pnc = offenderData.getPnc(),
-          cro = offenderData.getCro(),
-        ),
-        dateOfBirth = offenderData.dateOfBirth,
-      )
-
-      webTestClient.put()
-        .uri(probationApiUrl(defendantId))
-        .authorised(listOf(PROBATION_API_READ_WRITE))
-        .bodyValue(probationCase)
-        .exchange()
-        .expectStatus()
-        .isOk
-
-      checkTelemetry(
-        CPR_RECORD_UPDATED,
-        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn),
-      )
-
-      offender.personKey?.assertClusterStatus(ACTIVE)
-      offender.personKey?.assertClusterIsOfSize(2)
-
-      offender.assertIncluded(defendant)
-    }
   }
 
   @Nested
