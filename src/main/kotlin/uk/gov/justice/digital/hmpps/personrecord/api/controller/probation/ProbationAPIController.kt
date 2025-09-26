@@ -50,7 +50,6 @@ class ProbationAPIController(
   ) {
     val defendant: PersonEntity = retrieveDefendant(defendantId)
 
-
     val person = Person.from(probationCase)
     person.masterDefendantId = defendant.masterDefendantId
 
