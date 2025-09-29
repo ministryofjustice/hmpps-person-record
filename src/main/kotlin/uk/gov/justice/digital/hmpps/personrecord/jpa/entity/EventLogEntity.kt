@@ -13,6 +13,8 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.GeneratedColumn
 import org.hibernate.annotations.Type
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getCROs
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
@@ -117,35 +119,35 @@ class EventLogEntity(
 ) {
   companion object {
 
-    fun from(
-      eventLog: RecordEventLog,
-      clusterComposition: String? = null,
-    ): EventLogEntity = EventLogEntity(
-      sourceSystemId = eventLog.sourceSystemId,
-      masterDefendantId = eventLog.masterDefendantId,
-      matchId = eventLog.matchId,
-      personUUID = eventLog.personUUID,
-      uuidStatusType = eventLog.uuidStatusType,
-      firstName = eventLog.firstName,
-      middleNames = eventLog.middleNames,
-      lastName = eventLog.lastName,
-      dateOfBirth = eventLog.dateOfBirth,
-      firstNameAliases = eventLog.firstNameAliases.dedupeAndSortedArray(),
-      lastNameAliases = eventLog.lastNameAliases.dedupeAndSortedArray(),
-      dateOfBirthAliases = eventLog.dateOfBirthAliases.dedupeAndSortedArray(),
-      postcodes = eventLog.postcodes.dedupeAndSortedArray(),
-      cros = eventLog.cros.dedupeAndSortedArray(),
-      pncs = eventLog.pncs.dedupeAndSortedArray(),
-      sentenceDates = eventLog.sentenceDates.dedupeAndSortedArray(),
-      overrideMarker = eventLog.overrideMarker,
-      overrideScopes = eventLog.overrideScopes.dedupeAndSortedArray(),
-      sourceSystem = eventLog.sourceSystem,
-      eventType = eventLog.eventType,
-      recordMergedTo = eventLog.recordMergedTo,
-      clusterComposition = clusterComposition,
-      statusReason = eventLog.statusReason,
-      eventTimestamp = eventLog.eventTimestamp,
-    )
+    fun from(eventLog: RecordEventLog, clusterComposition: String? = null): EventLogEntity {
+      val aliases: List<PseudonymEntity> = eventLog.personEntity.getAliases()
+      return EventLogEntity(
+        sourceSystemId = eventLog.personEntity.extractSourceSystemId(),
+        masterDefendantId = eventLog.personEntity.masterDefendantId,
+        matchId = eventLog.personEntity.matchId,
+        personUUID = eventLog.personKeyEntity?.personUUID ?: eventLog.personEntity.personKey?.personUUID,
+        uuidStatusType = eventLog.personKeyEntity?.status ?: eventLog.personEntity.personKey?.status,
+        firstName = eventLog.personEntity.getPrimaryName().firstName,
+        middleNames = eventLog.personEntity.getPrimaryName().middleNames,
+        lastName = eventLog.personEntity.getPrimaryName().lastName,
+        dateOfBirth = eventLog.personEntity.getPrimaryName().dateOfBirth,
+        firstNameAliases = aliases.mapNotNull { it.firstName }.dedupeAndSortedArray(),
+        lastNameAliases = aliases.mapNotNull { it.lastName }.dedupeAndSortedArray(),
+        dateOfBirthAliases = aliases.mapNotNull { it.dateOfBirth }.dedupeAndSortedArray(),
+        postcodes = eventLog.personEntity.addresses.mapNotNull { it.postcode }.dedupeAndSortedArray(),
+        cros = eventLog.personEntity.references.getCROs().dedupeAndSortedArray(),
+        pncs = eventLog.personEntity.references.getPNCs().dedupeAndSortedArray(),
+        sentenceDates = eventLog.personEntity.sentenceInfo.mapNotNull { it.sentenceDate }.dedupeAndSortedArray(),
+        overrideMarker = eventLog.personEntity.overrideMarker,
+        overrideScopes = eventLog.personEntity.overrideScopes.map { it.scope }.dedupeAndSortedArray(),
+        sourceSystem = eventLog.personEntity.sourceSystem,
+        eventType = eventLog.eventType,
+        recordMergedTo = eventLog.personEntity.mergedTo,
+        clusterComposition = clusterComposition,
+        statusReason = eventLog.personEntity.personKey?.statusReason,
+        eventTimestamp = eventLog.eventTimestamp,
+      )
+    }
 
     private fun List<String>.dedupeAndSortedArray() = this.sorted().distinct().toTypedArray()
 

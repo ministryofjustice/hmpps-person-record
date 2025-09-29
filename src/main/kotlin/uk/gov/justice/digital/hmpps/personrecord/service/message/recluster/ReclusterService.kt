@@ -101,7 +101,7 @@ class ReclusterService(
       ),
     )
     publisher.publishEvent(
-      RecordEventLog.from(
+      RecordEventLog(
         CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION,
         clusterDetails.changedRecord,
         clusterDetails.cluster,
@@ -119,7 +119,7 @@ class ReclusterService(
       ),
     )
     publisher.publishEvent(
-      RecordEventLog.from(
+      RecordEventLog(
         CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION,
         clusterDetails.changedRecord,
         clusterDetails.cluster,
@@ -135,11 +135,11 @@ class ReclusterService(
     from.mergedTo = to.id
     from.status = RECLUSTER_MERGE
     personKeyRepository.save(from)
-    publisher.publishEvent(RecordEventLog.from(CPRLogEvents.CPR_RECLUSTER_UUID_MERGED, from.personEntities.first(), from))
+    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_UUID_MERGED, from.personEntities.first(), from))
 
     from.personEntities.forEach { personEntity ->
       personEntity.personKey = to
-      publisher.publishEvent(RecordEventLog.from(CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED, personEntity))
+      publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_RECORD_MERGED, personEntity))
     }
     personRepository.saveAll(from.personEntities)
 
@@ -163,7 +163,7 @@ class ReclusterService(
     personKeyEntity.setAsActive()
     personKeyRepository.save(personKeyEntity)
     publisher.publishEvent(
-      RecordEventLog.from(
+      RecordEventLog(
         CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE,
         changedRecord,
         personKeyEntity,
