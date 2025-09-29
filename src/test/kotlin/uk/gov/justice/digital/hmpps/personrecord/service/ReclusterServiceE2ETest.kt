@@ -966,7 +966,8 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should log needs attention when changed record has no matches`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
+      val personData = createRandomProbationPersonDetails()
+      val personA = createPerson(personData)
       val personB = createPerson(createRandomProbationPersonDetails())
       val personC = createPerson(createRandomProbationPersonDetails())
       val cluster = createPersonKey()
@@ -974,7 +975,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(personB)
         .addPerson(personC)
 
-      recluster(personA)
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(createProbationPersonFrom(personData.withChangedMatchDetails(), crn = personA.crn!!)))
 
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
@@ -983,6 +984,13 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
+      checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        val eventLog = eventLogs.first()
+        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
+        assertThat(eventLog.uuidStatusType).isEqualTo(NEEDS_ATTENTION)
+        assertThat(eventLog.statusReason).isEqualTo(BROKEN_CLUSTER)
+      }
       checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()

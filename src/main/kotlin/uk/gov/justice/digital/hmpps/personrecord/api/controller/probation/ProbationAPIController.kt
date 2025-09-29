@@ -20,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
-import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 
 @Tag(name = "HMPPS CPR Probation API")
 @RestController
@@ -28,7 +27,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 class ProbationAPIController(
   private val personRepository: PersonRepository,
   private val createUpdateService: CreateUpdateService,
-  private val overrideService: OverrideService,
   private val reclusterService: ReclusterService,
 ) {
   @Operation(
@@ -48,11 +46,15 @@ class ProbationAPIController(
     @PathVariable(name = "defendantId") defendantId: String,
     @RequestBody probationCase: ProbationCase,
   ) {
-    val defendant: PersonEntity = retrieveDefendant(defendantId)
-    val offender: PersonEntity = createUpdateService.processPerson(Person.from(probationCase)) {
+    val masterDefendantId: String? = retrieveDefendant(defendantId).masterDefendantId
+
+    val person = Person.from(probationCase)
+    person.masterDefendantId = masterDefendantId
+
+    val offender: PersonEntity = createUpdateService.processPerson(person) {
       personRepository.findByCrn(probationCase.identifiers.crn!!)
     }
-    overrideService.systemInclude(defendant, offender)
+
     reclusterService.recluster(offender)
   }
 
