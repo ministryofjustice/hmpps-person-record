@@ -88,7 +88,7 @@ class PersonService(
     personKeyService.assignPersonToNewPersonKey(this)
     this.personKey?.setAsNeedsAttention(OVERRIDE_CONFLICT)
     publisher.publishEvent(
-      RecordEventLog.from(
+      RecordEventLog(
         CPRLogEvents.CPR_RECORD_CREATED_NEEDS_ATTENTION,
         this,
       ),
