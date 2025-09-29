@@ -49,7 +49,10 @@ class ClustersController(
     val totalFoundClusters = processed.size.toLong()
     val currentIndex = (page - 1) * DEFAULT_PAGE_SIZE
     val isLast = (totalFoundClusters - currentIndex) <= DEFAULT_PAGE_SIZE
-    val totalPages = (totalFoundClusters / DEFAULT_PAGE_SIZE) + 1
+    val totalPages = when {
+      totalFoundClusters > 0 -> (totalFoundClusters / DEFAULT_PAGE_SIZE) + 1
+      else -> 0
+    }
 
     val lastIndex = when {
       isLast -> (totalFoundClusters % DEFAULT_PAGE_SIZE) + currentIndex

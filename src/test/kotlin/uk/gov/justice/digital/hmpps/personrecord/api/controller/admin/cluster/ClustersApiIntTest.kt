@@ -100,24 +100,24 @@ class ClustersApiIntTest : WebTestBase() {
     assertThat(response.pagination.isLastPage).isTrue
     assertThat(response.pagination.totalPages).isEqualTo(1)
 
-    assertThat(response.content[0].uuid).isEqualTo(cluster1.personUUID.toString())
-    assertThat(response.content[0].recordComposition[0].count).isEqualTo(1)
-    assertThat(response.content[0].recordComposition[0].sourceSystem).isEqualTo(COMMON_PLATFORM)
-    assertThat(response.content[0].recordComposition[1].count).isEqualTo(1)
-    assertThat(response.content[0].recordComposition[1].sourceSystem).isEqualTo(DELIUS)
-    assertThat(response.content[0].recordComposition[2].count).isEqualTo(1)
-    assertThat(response.content[0].recordComposition[2].sourceSystem).isEqualTo(LIBRA)
-    assertThat(response.content[0].recordComposition[3].count).isEqualTo(1)
-    assertThat(response.content[0].recordComposition[3].sourceSystem).isEqualTo(NOMIS)
-
-    assertThat(response.content[1].uuid).isEqualTo(cluster2.personUUID.toString())
-    assertThat(response.content[1].recordComposition.first { it.sourceSystem == COMMON_PLATFORM }.count).isEqualTo(0)
-    assertThat(response.content[1].recordComposition[1].count).isEqualTo(2)
+    assertThat(response.content[1].uuid).isEqualTo(cluster1.personUUID.toString())
+    assertThat(response.content[1].recordComposition[0].count).isEqualTo(1)
+    assertThat(response.content[1].recordComposition[0].sourceSystem).isEqualTo(COMMON_PLATFORM)
+    assertThat(response.content[1].recordComposition[1].count).isEqualTo(1)
     assertThat(response.content[1].recordComposition[1].sourceSystem).isEqualTo(DELIUS)
-    assertThat(response.content[1].recordComposition[2].count).isEqualTo(0)
+    assertThat(response.content[1].recordComposition[2].count).isEqualTo(1)
     assertThat(response.content[1].recordComposition[2].sourceSystem).isEqualTo(LIBRA)
-    assertThat(response.content[1].recordComposition[3].count).isEqualTo(0)
+    assertThat(response.content[1].recordComposition[3].count).isEqualTo(1)
     assertThat(response.content[1].recordComposition[3].sourceSystem).isEqualTo(NOMIS)
+
+    assertThat(response.content[0].uuid).isEqualTo(cluster2.personUUID.toString())
+    assertThat(response.content[0].recordComposition.first { it.sourceSystem == COMMON_PLATFORM }.count).isEqualTo(0)
+    assertThat(response.content[0].recordComposition[1].count).isEqualTo(2)
+    assertThat(response.content[0].recordComposition[1].sourceSystem).isEqualTo(DELIUS)
+    assertThat(response.content[0].recordComposition[2].count).isEqualTo(0)
+    assertThat(response.content[0].recordComposition[2].sourceSystem).isEqualTo(LIBRA)
+    assertThat(response.content[0].recordComposition[3].count).isEqualTo(0)
+    assertThat(response.content[0].recordComposition[3].sourceSystem).isEqualTo(NOMIS)
   }
 
   @Test
