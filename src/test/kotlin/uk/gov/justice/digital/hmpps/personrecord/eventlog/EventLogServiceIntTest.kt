@@ -49,7 +49,7 @@ class EventLogServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val eventLog = eventLogService.logEvent(RecordEventLog.from(CPRLogEvents.CPR_RECORD_UPDATED, personEntity))
+    val eventLog = eventLogService.logEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_UPDATED, personEntity))
 
     assertThat(eventLog).isNotNull()
     assertThat(eventLog.sourceSystemId).isEqualTo(personEntity.crn)
@@ -92,7 +92,7 @@ class EventLogServiceIntTest : IntegrationTestBase() {
 
     mergedToPerson = mergeRecord(mergedToPerson, mergedIntoPerson)
 
-    val eventLog = eventLogService.logEvent(RecordEventLog.from(CPRLogEvents.CPR_RECORD_CREATED, mergedToPerson))
+    val eventLog = eventLogService.logEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_CREATED, mergedToPerson))
 
     assertThat(eventLog).isNotNull()
     assertThat(mergedToPerson.mergedTo).isEqualTo(mergedIntoPerson.id)
@@ -108,7 +108,7 @@ class EventLogServiceIntTest : IntegrationTestBase() {
 
     val updatedToRecord = personRepository.findByMatchId(toRecord.matchId)!!
 
-    val eventLog = eventLogService.logEvent(RecordEventLog.from(CPRLogEvents.CPR_RECORD_CREATED, updatedToRecord))
+    val eventLog = eventLogService.logEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_CREATED, updatedToRecord))
 
     assertThat(eventLog.overrideMarker).isNotNull()
     assertThat(eventLog.overrideScopes).isNotEmpty()
@@ -141,7 +141,7 @@ class EventLogServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    val eventLog = eventLogService.logEvent(RecordEventLog.from(CPRLogEvents.CPR_RECORD_CREATED, personEntity))
+    val eventLog = eventLogService.logEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_CREATED, personEntity))
 
     assertThat(eventLog.postcodes.size).isEqualTo(2)
     assertThat(eventLog.postcodes[0]).isEqualTo("AB1 2BC")

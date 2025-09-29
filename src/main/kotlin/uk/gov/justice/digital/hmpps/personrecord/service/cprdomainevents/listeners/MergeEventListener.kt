@@ -18,7 +18,7 @@ class MergeEventListener(
 
   @TransactionalEventListener
   fun onClusterMergeEvent(clusterMerged: ClusterMerged) {
-    publisher.publishEvent(RecordEventLog.from(CPRLogEvents.CPR_UUID_MERGED, clusterMerged.from, clusterMerged.fromMergedPersonKeyEntity))
+    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_UUID_MERGED, clusterMerged.from, clusterMerged.fromMergedPersonKeyEntity))
     publisher.publishEvent(
       RecordTelemetry(
         TelemetryEventType.CPR_UUID_MERGED,
@@ -33,7 +33,7 @@ class MergeEventListener(
 
   @TransactionalEventListener
   fun onMergeEvent(personMerged: PersonMerged) {
-    personMerged.from?.let { publisher.publishEvent(RecordEventLog.from(CPRLogEvents.CPR_RECORD_MERGED, it)) }
+    personMerged.from?.let { publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_MERGED, it)) }
     publisher.publishEvent(
       RecordTelemetry(
         TelemetryEventType.CPR_RECORD_MERGED,
