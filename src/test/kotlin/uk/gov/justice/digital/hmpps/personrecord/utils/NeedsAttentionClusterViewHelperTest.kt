@@ -59,7 +59,7 @@ class NeedsAttentionClusterViewHelperTest {
         uuid = "",
         recordComposition = listOf(
           commonPlatform,
-          delius
+          delius,
         ),
       ),
       AdminCluster(
@@ -83,7 +83,7 @@ class NeedsAttentionClusterViewHelperTest {
         uuid = "",
         recordComposition = listOf(
           commonPlatform,
-          delius
+          delius,
         ),
       ),
     )
