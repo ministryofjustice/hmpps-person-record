@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_PERSONAL_DETAILS_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
@@ -120,6 +121,44 @@ class ProbationApiE2ETest : E2ETestBase() {
     }
 
     @Test
+    fun `should retain master defendant id on update on probation record`() {
+      val defendantId = randomDefendantId()
+
+      val defendant = createRandomCommonPlatformPersonDetails(defendantId)
+      val probationCase = ProbationCase(
+        title = Value(randomTitle()),
+        name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
+        identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
+        dateOfBirth = randomDate(),
+        aliases = listOf(ProbationCaseAlias(name = ProbationCaseName(firstName = randomName(), lastName = randomName()))),
+        addresses = listOf(ProbationAddress(noFixedAbode = false, startDate = randomDate(), endDate = randomDate(), postcode = randomPostcode(), fullAddress = randomFullAddress())),
+        contactDetails = ContactDetails(email = randomEmail(), mobile = randomPhoneNumber(), telephone = randomPhoneNumber()),
+        gender = Value(randomProbationSexCode().key),
+        nationality = Value(randomProbationNationalityCode()),
+      )
+      createPersonWithNewKey(defendant)
+      webTestClient.put()
+        .uri(probationApiUrl(defendantId))
+        .authorised(listOf(PROBATION_API_READ_WRITE))
+        .bodyValue(probationCase)
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      val offender = awaitNotNullPerson { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+
+      offender.personKey?.assertClusterStatus(ACTIVE)
+      offender.personKey?.assertClusterIsOfSize(2)
+
+      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(dateOfBirth = randomDate()))
+
+      assertThat(offender.masterDefendantId).isNotNull
+
+
+
+    }
+
+    @Test
     fun `should set probation and court records that are on different clusters onto same cluster`() {
       val defendantId = randomDefendantId()
 
@@ -160,7 +199,7 @@ class ProbationApiE2ETest : E2ETestBase() {
     }
   }
 
-  @Nested
+@Nested
   inner class ErrorScenarios {
 
     @Test
