@@ -12,6 +12,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import java.util.*
@@ -44,6 +45,9 @@ class PersonKeyEntity(
   @Version
   var version: Int = 0,
 
+  @Transient
+  var clusterComposition: List<ValidCluster>? = null,
+
 ) {
 
   fun isActive(): Boolean = status == UUIDStatusType.ACTIVE
@@ -68,6 +72,12 @@ class PersonKeyEntity(
     this.apply {
       this.mergedTo = to.id
       this.status = UUIDStatusType.MERGED
+    }
+  }
+
+  fun holdResultingClusterComposition(composition: List<ValidCluster>) {
+    this.apply {
+      clusterComposition = composition
     }
   }
 

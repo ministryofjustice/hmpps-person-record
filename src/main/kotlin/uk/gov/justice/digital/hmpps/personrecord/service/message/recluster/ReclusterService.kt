@@ -93,37 +93,21 @@ class ReclusterService(
     clusterDetails: ClusterDetails,
     clusterComposition: List<ValidCluster>? = null,
   ) {
-    setToNeedsAttention(clusterDetails.cluster, reason = BROKEN_CLUSTER)
+    setToNeedsAttentionWithComposition(clusterDetails.cluster, reason = BROKEN_CLUSTER, clusterComposition)
     publisher.publishEvent(
       RecordClusterTelemetry(
         TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
         clusterDetails.cluster,
       ),
     )
-    publisher.publishEvent(
-      RecordEventLog(
-        CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION,
-        clusterDetails.changedRecord,
-        clusterDetails.cluster,
-        clusterComposition,
-      ),
-    )
   }
 
   private fun handleExclusionsBetweenMatchedClusters(clusterDetails: ClusterDetails, clusterComposition: List<ValidCluster>) {
-    setToNeedsAttention(clusterDetails.cluster, reason = OVERRIDE_CONFLICT)
+    setToNeedsAttentionWithComposition(clusterDetails.cluster, reason = OVERRIDE_CONFLICT, clusterComposition)
     publisher.publishEvent(
       RecordClusterTelemetry(
         TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
         clusterDetails.cluster,
-      ),
-    )
-    publisher.publishEvent(
-      RecordEventLog(
-        CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION,
-        clusterDetails.changedRecord,
-        clusterDetails.cluster,
-        clusterComposition,
       ),
     )
   }
@@ -154,8 +138,9 @@ class ReclusterService(
     )
   }
 
-  private fun setToNeedsAttention(personKeyEntity: PersonKeyEntity, reason: UUIDStatusReasonType) {
+  private fun setToNeedsAttentionWithComposition(personKeyEntity: PersonKeyEntity, reason: UUIDStatusReasonType, clusterComposition: List<ValidCluster>? = null) {
     personKeyEntity.setAsNeedsAttention(reason)
+    clusterComposition?.let { personKeyEntity.holdResultingClusterComposition(clusterComposition) }
     personKeyRepository.save(personKeyEntity)
   }
 
