@@ -17,7 +17,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
-import uk.gov.justice.digital.hmpps.personrecord.utils.NeedsAttentionClusterViewHelper
+import uk.gov.justice.digital.hmpps.personrecord.utils.sortClusters
 
 @RestController
 class ClustersController(
@@ -44,7 +44,7 @@ class ClustersController(
       )
     }
 
-    val processed = NeedsAttentionClusterViewHelper.process(clusters)
+    val processed = sortClusters(clusters)
 
     val totalFoundClusters = processed.size.toLong()
     val currentIndex = (page - 1) * DEFAULT_PAGE_SIZE
