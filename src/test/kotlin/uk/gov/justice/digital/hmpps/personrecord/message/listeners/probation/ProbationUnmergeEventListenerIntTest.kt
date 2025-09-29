@@ -337,8 +337,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkEventLog(reactivatedCrn, CPRLogEvents.CPR_RECORD_UNMERGED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
-        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
-        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
+        assertThat(eventLog.personUUID).isNotEqualTo(cluster.personUUID)
+        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
       }
 
       checkTelemetry(
