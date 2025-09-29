@@ -151,7 +151,6 @@ class ProbationApiE2ETest : E2ETestBase() {
       offender.personKey?.assertClusterStatus(ACTIVE)
       offender.personKey?.assertClusterIsOfSize(2)
 
-
       probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(Person.from(probationCase).aboveFracture()))
 
       checkTelemetry(
