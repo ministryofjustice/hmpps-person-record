@@ -47,4 +47,43 @@ class NeedsAttentionClusterViewHelperTest {
 
     assertThat(result).isEqualTo(expected)
   }
+
+  @Test
+  fun `should give priority to clusters with only delius records over clusters with both delius and commonPlatform records`() {
+    val clusters: List<AdminCluster> = listOf(
+      AdminCluster(
+        uuid = "",
+        recordComposition = listOf(
+          commonPlatform,
+          delius
+        ),
+      ),
+      AdminCluster(
+        uuid = "",
+        recordComposition = listOf(
+          delius,
+        ),
+      ),
+    )
+
+    val result = NeedsAttentionClusterViewHelper.process(clusters)
+
+    val expected: List<AdminCluster> = listOf(
+      AdminCluster(
+        uuid = "",
+        recordComposition = listOf(
+          delius,
+        ),
+      ),
+      AdminCluster(
+        uuid = "",
+        recordComposition = listOf(
+          commonPlatform,
+          delius
+        ),
+      ),
+    )
+
+    assertThat(result).isEqualTo(expected)
+  }
 }
