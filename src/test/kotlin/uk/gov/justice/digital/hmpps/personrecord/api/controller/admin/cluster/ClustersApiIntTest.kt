@@ -5,7 +5,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.core.ParameterizedTypeReference
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
-import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminCluster
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -28,7 +27,7 @@ class ClustersApiIntTest : WebTestBase() {
   fun `should return list of clusters with composition`() {
     val person = createPersonWithNewKey(createRandomProbationPersonDetails(), status = UUIDStatusType.NEEDS_ATTENTION)
 
-    val responseType = object : ParameterizedTypeReference<PaginatedResponse<AdminCluster>>() {}
+    val responseType = object : ParameterizedTypeReference<PaginatedResponse>() {}
     val response = webTestClient.get()
       .uri(ADMIN_CLUSTERS_URL)
       .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
@@ -59,7 +58,7 @@ class ClustersApiIntTest : WebTestBase() {
     createPersonWithNewKey(createRandomProbationPersonDetails(), status = MERGED)
     createPersonWithNewKey(createRandomProbationPersonDetails(), status = RECLUSTER_MERGE)
 
-    val responseType = object : ParameterizedTypeReference<PaginatedResponse<AdminCluster>>() {}
+    val responseType = object : ParameterizedTypeReference<PaginatedResponse>() {}
     val response = webTestClient.get()
       .uri(ADMIN_CLUSTERS_URL)
       .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
@@ -86,7 +85,7 @@ class ClustersApiIntTest : WebTestBase() {
       .addPerson(createPerson(createRandomProbationPersonDetails()))
       .addPerson(createPerson(createRandomProbationPersonDetails()))
 
-    val responseType = object : ParameterizedTypeReference<PaginatedResponse<AdminCluster>>() {}
+    val responseType = object : ParameterizedTypeReference<PaginatedResponse>() {}
     val response = webTestClient.get()
       .uri(ADMIN_CLUSTERS_URL)
       .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
@@ -128,7 +127,7 @@ class ClustersApiIntTest : WebTestBase() {
 
     val nextPageCluster = createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION).addPerson(createPerson(createRandomProbationPersonDetails()))
 
-    val responseType = object : ParameterizedTypeReference<PaginatedResponse<AdminCluster>>() {}
+    val responseType = object : ParameterizedTypeReference<PaginatedResponse>() {}
     val response = webTestClient.get()
       .uri("$ADMIN_CLUSTERS_URL?page=2")
       .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))

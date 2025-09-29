@@ -29,7 +29,7 @@ class ClustersController(
   @GetMapping("/admin/clusters")
   suspend fun getClusters(
     @RequestParam(defaultValue = "1") page: Int,
-  ): PaginatedResponse<AdminCluster> {
+  ): PaginatedResponse {
     val paginatedClusters = personKeyRepository.findAllByStatus(UUIDStatusType.NEEDS_ATTENTION)
 
     val clusters = paginatedClusters.map {
@@ -44,28 +44,32 @@ class ClustersController(
       )
     }
 
-    val processed = sortClusters(clusters)
+    return paginate(sortClusters(clusters), page)
+  }
 
-    val totalFoundClusters = processed.size.toLong()
+  private fun paginate(
+    clusters: List<AdminCluster>,
+    page: Int,
+  ): PaginatedResponse {
+    val totalFoundClusters = clusters.size.toLong()
     val currentIndex = (page - 1) * DEFAULT_PAGE_SIZE
     val isLast = (totalFoundClusters - currentIndex) <= DEFAULT_PAGE_SIZE
     val totalPages = when {
       totalFoundClusters > 0 -> (totalFoundClusters / DEFAULT_PAGE_SIZE) + 1
       else -> 0
-    }
+    }.toInt()
 
     val lastIndex = when {
       isLast -> (totalFoundClusters % DEFAULT_PAGE_SIZE) + currentIndex
       else -> currentIndex + DEFAULT_PAGE_SIZE
-    }
+    }.toInt()
 
-    val content = processed.subList(currentIndex, lastIndex.toInt())
-
+    val content = clusters.subList(currentIndex, lastIndex)
     return PaginatedResponse(
       content = content,
       pagination = Pagination(
         isLastPage = isLast,
-        totalPages = totalPages.toInt(),
+        totalPages = totalPages,
       ),
     )
   }
@@ -77,8 +81,8 @@ class ClustersController(
   }
 }
 
-class PaginatedResponse<T>(
-  val content: List<T>,
+class PaginatedResponse(
+  val content: List<AdminCluster>,
   val pagination: Pagination,
 )
 
