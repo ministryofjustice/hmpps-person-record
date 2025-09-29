@@ -15,6 +15,43 @@ class NeedsAttentionClusterViewHelperTest {
   val libra = SourceSystemComposition(sourceSystem = LIBRA, count = 1)
   val nomis = SourceSystemComposition(sourceSystem = NOMIS, count = 1)
 
+
+  @Test
+  fun `common platform and LIBRA records come last`() {
+    val commonPlatformCluster = AdminCluster(
+      uuid = "",
+      recordComposition = listOf(
+        commonPlatform,
+      ),
+    )
+    val libraCluster = AdminCluster(
+      uuid = "",
+      recordComposition = listOf(
+        libra,
+      ),
+    )
+    val clusters: List<AdminCluster> = listOf(
+      commonPlatformCluster,
+      AdminCluster(
+        uuid = "",
+        recordComposition = listOf(
+          delius,
+        ),
+      ),
+      libraCluster,
+      AdminCluster(
+        uuid = "",
+        recordComposition = listOf(
+          nomis,
+        ),
+      ),
+    )
+    val result = NeedsAttentionClusterViewHelper.process(clusters)
+    val firstTwo = listOf(result[0], result[1])
+    assertThat(firstTwo).doesNotContain(commonPlatformCluster)
+    assertThat(firstTwo).doesNotContain(libraCluster)
+  }
+
   @Test
   fun `should give priority to clusters with delius records over commonPlatform records`() {
     val clusters: List<AdminCluster> = listOf(
