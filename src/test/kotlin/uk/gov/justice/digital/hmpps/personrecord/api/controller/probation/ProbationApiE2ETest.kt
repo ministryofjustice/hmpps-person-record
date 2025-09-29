@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
@@ -150,12 +151,16 @@ class ProbationApiE2ETest : E2ETestBase() {
       offender.personKey?.assertClusterStatus(ACTIVE)
       offender.personKey?.assertClusterIsOfSize(2)
 
-      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(dateOfBirth = randomDate()))
 
+      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(Person.from(probationCase).aboveFracture()))
+
+      checkTelemetry(
+        CPR_RECORD_UPDATED,
+        mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to probationCase.identifiers.crn),
+      )
+      offender.personKey?.assertClusterStatus(ACTIVE)
+      offender.personKey?.assertClusterIsOfSize(2)
       assertThat(offender.masterDefendantId).isNotNull
-
-
-
     }
 
     @Test
@@ -199,7 +204,7 @@ class ProbationApiE2ETest : E2ETestBase() {
     }
   }
 
-@Nested
+  @Nested
   inner class ErrorScenarios {
 
     @Test
