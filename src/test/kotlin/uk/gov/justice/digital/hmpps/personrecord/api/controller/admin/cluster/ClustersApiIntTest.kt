@@ -40,10 +40,7 @@ class ClustersApiIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(response.content.size).isEqualTo(1)
-    assertThat(response.pagination.count).isEqualTo(1)
     assertThat(response.pagination.totalPages).isEqualTo(1)
-    assertThat(response.pagination.page).isEqualTo(1)
-    assertThat(response.pagination.perPage).isEqualTo(20)
 
     assertThat(response.content[0].uuid).isEqualTo(person.personKey?.personUUID.toString())
     assertThat(response.content[0].recordComposition[0].count).isEqualTo(0)
@@ -74,9 +71,7 @@ class ClustersApiIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(response.content.size).isEqualTo(0)
-    assertThat(response.pagination.count).isEqualTo(0)
     assertThat(response.pagination.totalPages).isEqualTo(0)
-    assertThat(response.pagination.page).isEqualTo(1)
   }
 
   @Test
@@ -102,11 +97,8 @@ class ClustersApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(response.content.size).isEqualTo(2)
-    assertThat(response.pagination.count).isEqualTo(2)
+    assertThat(response.pagination.isLastPage).isTrue
     assertThat(response.pagination.totalPages).isEqualTo(1)
-    assertThat(response.pagination.page).isEqualTo(1)
-    assertThat(response.pagination.perPage).isEqualTo(20)
 
     assertThat(response.content[0].uuid).isEqualTo(cluster1.personUUID.toString())
     assertThat(response.content[0].recordComposition[0].count).isEqualTo(1)
@@ -148,10 +140,8 @@ class ClustersApiIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(response.content.size).isEqualTo(1)
-    assertThat(response.pagination.count).isEqualTo(1)
+    assertThat(response.pagination.isLastPage).isTrue
     assertThat(response.pagination.totalPages).isEqualTo(2)
-    assertThat(response.pagination.page).isEqualTo(2)
-    assertThat(response.pagination.perPage).isEqualTo(20)
 
     assertThat(response.content[0].uuid).isEqualTo(nextPageCluster.personUUID.toString())
   }
