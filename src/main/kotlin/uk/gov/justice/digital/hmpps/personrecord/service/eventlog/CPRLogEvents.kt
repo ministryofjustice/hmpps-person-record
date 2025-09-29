@@ -11,7 +11,6 @@ enum class CPRLogEvents {
   CPR_UUID_CREATED,
   CPR_UUID_DELETED,
   CPR_UUID_MERGED,
-  CPR_NEEDS_ATTENTION_TO_ACTIVE,
   CPR_RECORD_SEEDED,
 
   // Deprecated Events. Still kept in enum so we can still decode old events.
@@ -20,4 +19,7 @@ enum class CPRLogEvents {
 
   @Deprecated("Replaced by setting NEEDS ATTENTION on create")
   CPR_RECORD_CREATED_NEEDS_ATTENTION,
+
+  @Deprecated("Replaced by setting ACTIVE on recluster")
+  CPR_NEEDS_ATTENTION_TO_ACTIVE,
 }

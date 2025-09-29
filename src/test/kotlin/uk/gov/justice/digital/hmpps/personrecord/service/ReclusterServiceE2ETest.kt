@@ -1007,11 +1007,11 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
-      recluster(personA)
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(createProbationPersonFrom(basePersonData.withChangedMatchDetails(), crn = personA.crn!!)))
 
       cluster.assertClusterStatus(ACTIVE)
 
-      checkEventLog(personA.crn!!, CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE) { eventLogs ->
+      checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
         assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)

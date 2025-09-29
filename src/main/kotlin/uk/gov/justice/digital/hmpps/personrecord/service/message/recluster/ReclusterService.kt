@@ -34,7 +34,7 @@ class ReclusterService(
   fun recluster(changedRecord: PersonEntity) {
     val cluster = changedRecord.personKey!!
     when {
-      cluster.clusterIsBrokenAndCanBecomeActive() -> settingNeedsAttentionClusterToActive(cluster, changedRecord)
+      cluster.clusterIsBrokenAndCanBecomeActive() -> settingNeedsAttentionClusterToActive(cluster)
     }
     when {
       cluster.isActive() -> processRecluster(cluster, changedRecord)
@@ -144,16 +144,9 @@ class ReclusterService(
     personKeyRepository.save(personKeyEntity)
   }
 
-  private fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity, changedRecord: PersonEntity) {
+  private fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity) {
     personKeyEntity.setAsActive()
     personKeyRepository.save(personKeyEntity)
-    publisher.publishEvent(
-      RecordEventLog(
-        CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE,
-        changedRecord,
-        personKeyEntity,
-      ),
-    )
   }
 
   private fun PersonKeyEntity.clusterIsBrokenAndCanBecomeActive() = this.isNotOverrideConflict() && this.clusterIsValid()
