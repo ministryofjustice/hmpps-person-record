@@ -9,7 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 
-class ProbationMergeEventListenerE2ETest: E2ETestBase() {
+class ProbationMergeEventListenerE2ETest : E2ETestBase() {
   @Test
   fun `processes offender merge event with records on same cluster`() {
     val sourceMasterDefendantId = randomDefendantId()
@@ -26,7 +26,6 @@ class ProbationMergeEventListenerE2ETest: E2ETestBase() {
     val cluster = createPersonKey()
       .addPerson(sourcePerson)
       .addPerson(targetPerson)
-
 
     probationMergeEventAndResponseSetup(
       OFFENDER_MERGED,
@@ -51,6 +50,7 @@ class ProbationMergeEventListenerE2ETest: E2ETestBase() {
     checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
     val mergedSource = awaitNotNullPerson { personRepository.findByCrn(sourceCrn) }
     assertThat(mergedSource.masterDefendantId).isEqualTo(sourceMasterDefendantId)
+
     val mergedTarget = awaitNotNullPerson { personRepository.findByCrn(targetCrn) }
     assertThat(mergedTarget.masterDefendantId).isEqualTo(targetMasterDefendantId)
   }

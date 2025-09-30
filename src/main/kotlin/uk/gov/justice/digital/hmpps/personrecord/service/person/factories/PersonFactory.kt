@@ -33,6 +33,7 @@ class PersonFactory(
 
   fun update(person: Person, personEntity: PersonEntity): PersonChainable {
     val matchingFieldsHaveChanged = personEntity.evaluateMatchingFields {
+      person.masterDefendantId = personEntity.masterDefendantId
       it.update(person)
       it.buildChildEntities(person)
     }

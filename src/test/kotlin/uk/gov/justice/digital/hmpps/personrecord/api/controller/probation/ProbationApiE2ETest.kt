@@ -178,7 +178,7 @@ class ProbationApiE2ETest : E2ETestBase() {
 
       val probationCase = ProbationCase(
         name = ProbationCaseName(firstName = person.firstName, lastName = person.lastName),
-        identifiers = Identifiers(crn = crn),
+        identifiers = Identifiers(crn = crn, pnc = person.getPnc(), cro = person.getCro()),
         dateOfBirth = person.dateOfBirth,
       )
 

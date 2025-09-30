@@ -15,10 +15,8 @@ class ProbationEventProcessor(
 
   @Transactional(isolation = REPEATABLE_READ)
   fun processEvent(person: Person) {
-    val offender = personRepository.findByCrn(person.crn!!)
-    person.masterDefendantId = offender?.masterDefendantId
     createUpdateService.processPerson(person) {
-      personRepository.findByCrn(person.crn)
+      personRepository.findByCrn(person.crn!!)
     }
   }
 }
