@@ -1,11 +1,9 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
@@ -966,7 +964,8 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
     @Test
     fun `should log needs attention when changed record has no matches`() {
-      val personA = createPerson(createRandomProbationPersonDetails())
+      val personData = createRandomProbationPersonDetails()
+      val personA = createPerson(personData)
       val personB = createPerson(createRandomProbationPersonDetails())
       val personC = createPerson(createRandomProbationPersonDetails())
       val cluster = createPersonKey()
@@ -974,7 +973,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         .addPerson(personB)
         .addPerson(personC)
 
-      recluster(personA)
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(createProbationPersonFrom(personData.withChangedMatchDetails(), crn = personA.crn!!)))
 
       checkTelemetry(
         CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
@@ -983,7 +982,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
-      checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
+      checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
         assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
@@ -1006,51 +1005,16 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
-      recluster(personA)
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(createProbationPersonFrom(basePersonData.withChangedMatchDetails(), crn = personA.crn!!)))
 
       cluster.assertClusterStatus(ACTIVE)
 
-      checkEventLog(personA.crn!!, CPRLogEvents.CPR_NEEDS_ATTENTION_TO_ACTIVE) { eventLogs ->
+      checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val eventLog = eventLogs.first()
         assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
         assertThat(eventLog.uuidStatusType).isEqualTo(ACTIVE)
         assertThat(eventLog.statusReason).isNull()
-      }
-    }
-
-    @Test
-    fun `should log cluster composition when isClusterValid is false`() {
-      val basePersonData = createRandomProbationPersonDetails()
-
-      val personA = createPerson(createProbationPersonFrom(basePersonData))
-      val personB = createPerson(createProbationPersonFrom(basePersonData))
-      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
-      val cluster = createPersonKey()
-        .addPerson(personA)
-        .addPerson(personB)
-        .addPerson(doesNotMatch)
-
-      recluster(personA)
-
-      checkTelemetry(
-        CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
-        mapOf("UUID" to cluster.personUUID.toString()),
-      )
-
-      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-
-      val clusterComposition = listOf(
-        ValidCluster(listOf(doesNotMatch.matchId.toString())),
-        ValidCluster(listOf(personA.matchId.toString(), personB.matchId.toString())),
-      )
-      checkEventLog(personA.crn!!, CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION) { eventLogs ->
-        assertThat(eventLogs).hasSize(1)
-        val eventLog = eventLogs.first()
-        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
-        assertThat(eventLog.uuidStatusType).isEqualTo(NEEDS_ATTENTION)
-        assertThat(eventLog.statusReason).isEqualTo(BROKEN_CLUSTER)
-        eventLog.clusterComposition.assertHasClusterComposition(clusterComposition)
       }
     }
   }
@@ -1064,10 +1028,5 @@ class ReclusterServiceE2ETest : E2ETestBase() {
   private fun PersonKeyEntity.assertClusterNotChanged(size: Int) {
     assertClusterStatus(ACTIVE)
     assertClusterIsOfSize(size)
-  }
-
-  private fun String?.assertHasClusterComposition(expectedClusterComposition: List<ValidCluster>) = this?.let {
-    val actualClusterComposition = objectMapper.readValue<List<ValidCluster>>(this)
-    assertThat(actualClusterComposition.map { it.records.toSet() }.toSet()).isEqualTo(expectedClusterComposition.map { it.records.toSet() }.toSet())
   }
 }

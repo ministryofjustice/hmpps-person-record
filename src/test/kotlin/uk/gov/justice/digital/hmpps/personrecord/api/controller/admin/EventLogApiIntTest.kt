@@ -41,8 +41,8 @@ class EventLogApiIntTest : WebTestBase() {
   fun `should return list of event logs`() {
     val person = createPersonWithNewKey(createRandomProbationPersonDetails())
 
-    eventLogService.logEvent(RecordEventLog.from(CPR_RECORD_CREATED, person))
-    eventLogService.logEvent(RecordEventLog.from(CPR_UUID_CREATED, person))
+    eventLogService.logEvent(RecordEventLog(CPR_RECORD_CREATED, person))
+    eventLogService.logEvent(RecordEventLog(CPR_UUID_CREATED, person))
 
     val response = getSummary(person)
 
@@ -69,7 +69,7 @@ class EventLogApiIntTest : WebTestBase() {
     excludeRecord(person, otherPerson)
 
     val excludedPerson = personRepository.findByCrn(person.crn!!)!!
-    eventLogService.logEvent(RecordEventLog.from(CPR_RECORD_UPDATED, excludedPerson))
+    eventLogService.logEvent(RecordEventLog(CPR_RECORD_UPDATED, excludedPerson))
 
     val response = getSummary(person)
 
@@ -83,7 +83,7 @@ class EventLogApiIntTest : WebTestBase() {
   fun `should return seeded event log`() {
     val person = createPersonWithNewKey(createRandomProbationPersonDetails())
 
-    eventLogService.logEvent(RecordEventLog.from(CPR_RECORD_SEEDED, person))
+    eventLogService.logEvent(RecordEventLog(CPR_RECORD_SEEDED, person))
 
     val response = getSummary(person)
 

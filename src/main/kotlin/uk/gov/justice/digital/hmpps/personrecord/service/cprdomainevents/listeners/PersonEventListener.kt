@@ -20,20 +20,20 @@ class PersonEventListener(
   @EventListener
   fun onPersonCreated(personCreated: PersonCreated) {
     publisher.publishEvent(RecordPersonTelemetry(TelemetryEventType.CPR_RECORD_CREATED, personCreated.personEntity))
-    publisher.publishEvent(RecordEventLog.from(CPRLogEvents.CPR_RECORD_CREATED, personCreated.personEntity))
+    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_CREATED, personCreated.personEntity))
   }
 
   @EventListener
   fun onPersonUpdated(personUpdated: PersonUpdated) {
     publisher.publishEvent(RecordPersonTelemetry(TelemetryEventType.CPR_RECORD_UPDATED, personUpdated.personEntity))
     if (personUpdated.matchingFieldsHaveChanged) {
-      publisher.publishEvent(RecordEventLog.from(CPRLogEvents.CPR_RECORD_UPDATED, personUpdated.personEntity))
+      publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_UPDATED, personUpdated.personEntity))
     }
   }
 
   @EventListener
   fun onPersonDeleted(personDeleted: PersonDeleted) {
     publisher.publishEvent(RecordPersonTelemetry(TelemetryEventType.CPR_RECORD_DELETED, personDeleted.personEntity, mapOf(EventKeys.UUID to personDeleted.personEntity.personKey?.personUUID?.toString())))
-    publisher.publishEvent(RecordEventLog.from(CPRLogEvents.CPR_RECORD_DELETED, personDeleted.personEntity))
+    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_DELETED, personDeleted.personEntity))
   }
 }

@@ -6,10 +6,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
-import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonChainable
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
@@ -87,12 +85,6 @@ class PersonService(
   private fun PersonEntity.setAsOverrideConflict() {
     personKeyService.assignPersonToNewPersonKey(this)
     this.personKey?.setAsNeedsAttention(OVERRIDE_CONFLICT)
-    publisher.publishEvent(
-      RecordEventLog.from(
-        CPRLogEvents.CPR_RECORD_CREATED_NEEDS_ATTENTION,
-        this,
-      ),
-    )
   }
 
   private fun List<PersonMatchResult>.containsExcluded(): Boolean {

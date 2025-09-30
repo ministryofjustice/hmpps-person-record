@@ -5,9 +5,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.unmerge.PersonUnmerged
-import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
@@ -40,7 +38,6 @@ class UnmergeService(
     existing.personKey?.let {
       it.setAsNeedsAttention(UUIDStatusReasonType.OVERRIDE_CONFLICT)
       personKeyRepository.save(it)
-      publisher.publishEvent(RecordEventLog.from(CPRLogEvents.CPR_RECLUSTER_NEEDS_ATTENTION, existing, it))
     }
   }
 
