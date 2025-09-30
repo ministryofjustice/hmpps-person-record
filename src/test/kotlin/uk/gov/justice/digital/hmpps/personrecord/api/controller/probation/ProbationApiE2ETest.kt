@@ -127,15 +127,9 @@ class ProbationApiE2ETest : E2ETestBase() {
 
       val defendant = createRandomCommonPlatformPersonDetails(defendantId)
       val probationCase = ProbationCase(
-        title = Value(randomTitle()),
         name = ProbationCaseName(firstName = defendant.firstName, lastName = defendant.lastName),
         identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
         dateOfBirth = defendant.dateOfBirth,
-        aliases = listOf(ProbationCaseAlias(name = ProbationCaseName(firstName = randomName(), lastName = randomName()))),
-        addresses = listOf(),
-        contactDetails = ContactDetails(email = randomEmail(), mobile = randomPhoneNumber(), telephone = randomPhoneNumber()),
-        gender = Value(randomProbationSexCode().key),
-        nationality = Value(randomProbationNationalityCode()),
       )
       createPersonWithNewKey(defendant)
       webTestClient.put()
