@@ -528,7 +528,7 @@ class IntegrationTestBase {
     nextScenarioState: String? = currentScenarioState,
   ) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/prisoner/${apiResponseSetup.prisonNumber}", prisonerSearchResponse(apiResponseSetup))
 
-  internal fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String, nextScenarioState: String) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
+  internal fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
 
   internal fun blitz(actionCount: Int, threadCount: Int, action: () -> Unit) {
     val blitzer = Blitzer(actionCount, threadCount)
