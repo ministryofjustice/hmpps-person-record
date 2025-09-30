@@ -10,5 +10,5 @@ import java.util.*
 interface PersonKeyRepository : JpaRepository<PersonKeyEntity, Long> {
   fun findByPersonUUID(personUUID: UUID?): PersonKeyEntity?
 
-  fun findAllByStatus(uuidStatus: UUIDStatusType): List<PersonKeyEntity>
+  fun findAllByStatusOrderById(uuidStatus: UUIDStatusType): List<PersonKeyEntity>
 }

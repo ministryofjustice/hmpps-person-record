@@ -30,7 +30,7 @@ class ClustersController(
   suspend fun getClusters(
     @RequestParam(defaultValue = "1") page: Int,
   ): PaginatedResponse {
-    val paginatedClusters = personKeyRepository.findAllByStatus(UUIDStatusType.NEEDS_ATTENTION)
+    val paginatedClusters = personKeyRepository.findAllByStatusOrderById(UUIDStatusType.NEEDS_ATTENTION)
 
     val clusters = paginatedClusters.map {
       AdminCluster(
