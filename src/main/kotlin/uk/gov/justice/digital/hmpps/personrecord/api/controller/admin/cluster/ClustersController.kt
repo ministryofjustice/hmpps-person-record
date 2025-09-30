@@ -10,18 +10,18 @@ import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminCluster
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.SourceSystemComposition
 import uk.gov.justice.digital.hmpps.personrecord.extensions.sort
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.admin.AdminPersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AdminClusterRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 
 @RestController
 class ClustersController(
-  private val personKeyRepository: PersonKeyRepository,
+  private val adminPersonKeyRepository: AdminClusterRepository,
 ) {
 
   @Hidden
@@ -30,16 +30,16 @@ class ClustersController(
   fun getClusters(
     @RequestParam(defaultValue = "1") page: Int,
   ): PaginatedResponse {
-    val paginatedClusters = personKeyRepository.findAllByStatusOrderById(UUIDStatusType.NEEDS_ATTENTION)
+    val paginatedClusters = adminPersonKeyRepository.findAllByStatusOrderById(NEEDS_ATTENTION)
 
     val clusters = paginatedClusters.map {
       AdminCluster(
         uuid = it.personUUID.toString(),
         recordComposition = listOf(
-          SourceSystemComposition(COMMON_PLATFORM, it.personEntities.getRecordCountBySourceSystem(COMMON_PLATFORM)),
-          SourceSystemComposition(DELIUS, it.personEntities.getRecordCountBySourceSystem(DELIUS)),
-          SourceSystemComposition(LIBRA, it.personEntities.getRecordCountBySourceSystem(LIBRA)),
-          SourceSystemComposition(NOMIS, it.personEntities.getRecordCountBySourceSystem(NOMIS)),
+          SourceSystemComposition(COMMON_PLATFORM, it.adminPersonEntities.getRecordCountBySourceSystem(COMMON_PLATFORM)),
+          SourceSystemComposition(DELIUS, it.adminPersonEntities.getRecordCountBySourceSystem(DELIUS)),
+          SourceSystemComposition(LIBRA, it.adminPersonEntities.getRecordCountBySourceSystem(LIBRA)),
+          SourceSystemComposition(NOMIS, it.adminPersonEntities.getRecordCountBySourceSystem(NOMIS)),
         ),
       )
     }
@@ -76,7 +76,7 @@ class ClustersController(
     )
   }
 
-  private fun List<PersonEntity>.getRecordCountBySourceSystem(sourceSystemType: SourceSystemType): Int = this.filter { record -> record.sourceSystem == sourceSystemType }.size
+  private fun List<AdminPersonEntity>.getRecordCountBySourceSystem(sourceSystemType: SourceSystemType): Int = this.filter { record -> record.sourceSystem == sourceSystemType }.size
 
   companion object {
     private const val DEFAULT_PAGE_SIZE = 20
