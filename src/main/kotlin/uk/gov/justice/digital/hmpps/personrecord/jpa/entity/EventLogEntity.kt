@@ -119,7 +119,7 @@ class EventLogEntity(
 ) {
   companion object {
 
-    fun from(eventLog: RecordEventLog, clusterComposition: String? = null): EventLogEntity {
+    fun from(eventLog: RecordEventLog): EventLogEntity {
       val aliases: List<PseudonymEntity> = eventLog.personEntity.getAliases()
       return EventLogEntity(
         sourceSystemId = eventLog.personEntity.extractSourceSystemId(),
@@ -143,7 +143,7 @@ class EventLogEntity(
         sourceSystem = eventLog.personEntity.sourceSystem,
         eventType = eventLog.eventType,
         recordMergedTo = eventLog.personEntity.mergedTo,
-        clusterComposition = clusterComposition,
+        clusterComposition = null,
         statusReason = eventLog.personEntity.personKey?.statusReason,
         eventTimestamp = eventLog.eventTimestamp,
       )
