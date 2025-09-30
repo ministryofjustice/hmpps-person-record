@@ -210,7 +210,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     stubPersonMatchUpsert()
     stubXPersonMatches(aboveJoin = listOf(firstPersonFromProbation.matchId, secondPersonFromNomis.matchId))
-    stubClusterIsValid()
+    stubClusterIsValid(clusters = listOf(firstPersonFromProbation.personKey!!.personUUID!!, secondPersonFromNomis.personKey!!.personUUID!!))
 
     val personToCreateLibraHearing = libraHearing(firstName = randomName(), lastName = randomName(), cId = cId, dateOfBirth = randomDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
 
