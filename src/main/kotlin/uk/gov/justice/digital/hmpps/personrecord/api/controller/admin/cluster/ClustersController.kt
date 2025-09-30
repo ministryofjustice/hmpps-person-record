@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminCluster
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.SourceSystemComposition
+import uk.gov.justice.digital.hmpps.personrecord.extensions.sort
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
@@ -17,7 +18,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
-import uk.gov.justice.digital.hmpps.personrecord.utils.sortClusters
 
 @RestController
 class ClustersController(
@@ -44,7 +44,7 @@ class ClustersController(
       )
     }
 
-    return paginate(sortClusters(clusters), page)
+    return paginate(clusters.sort(), page)
   }
 
   private fun paginate(
