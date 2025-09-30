@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
@@ -28,6 +29,8 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       val cluster = createPersonKey()
       val unmergedPerson = createPerson(createRandomProbationPersonDetails(unmergedCrn), cluster)
       val reactivatedPerson = createRandomProbationPersonDetails(reactivatedCrn)
+      val masterDefendantId = randomDefendantId()
+      reactivatedPerson.masterDefendantId = masterDefendantId
       val reactivatedPersonEntity = createPerson(reactivatedPerson)
       val reactivatedSetup = ApiResponseSetup(
         crn = reactivatedCrn,
@@ -76,6 +79,8 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       reactivatedPersonEntity.assertNotLinkedToCluster(unmergedPerson.personKey!!)
       reactivatedPersonEntity.assertExcluded(unmergedPerson)
       reactivatedPersonEntity.assertNotMerged()
+      val updatedReactivatedPersonEntity = awaitNotNullPerson { personRepository.findByCrn(reactivatedCrn) }
+      assertThat(updatedReactivatedPersonEntity.masterDefendantId).isEqualTo(masterDefendantId)
 
       unmergedPerson.assertHasOverrideMarker()
       reactivatedPersonEntity.assertHasOverrideMarker()
