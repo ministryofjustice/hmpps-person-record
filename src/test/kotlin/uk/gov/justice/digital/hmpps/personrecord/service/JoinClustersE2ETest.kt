@@ -305,7 +305,10 @@ class JoinClustersE2ETest : E2ETestBase() {
     thirdPersonRecord.personKey!!.assertClusterStatus(NEEDS_ATTENTION, OVERRIDE_CONFLICT)
     thirdPersonRecord.personKey!!.assertClusterIsOfSize(1)
 
-    checkEventLogExist(thirdCrn, CPRLogEvents.CPR_RECORD_CREATED_NEEDS_ATTENTION)
+    checkEventLog(thirdCrn, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
+      assertThat(eventLogs).hasSize(1)
+      assertThat(eventLogs.first().uuidStatusType).isEqualTo(NEEDS_ATTENTION)
+    }
 
     secondPersonRecord = awaitNotNullPerson { personRepository.findByCrn(secondCrn) }
     secondPersonRecord.personKey!!.assertClusterStatus(ACTIVE)
