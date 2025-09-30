@@ -51,24 +51,26 @@ class ClustersController(
     clusters: List<AdminCluster>,
     page: Int,
   ): PaginatedResponse {
-    val totalFoundClusters = clusters.size.toLong()
-    val currentIndex = (page - 1) * DEFAULT_PAGE_SIZE
-    val isLast = (totalFoundClusters - currentIndex) <= DEFAULT_PAGE_SIZE
+    val totalClusters = clusters.size
+    val first = (page - 1) * DEFAULT_PAGE_SIZE
+    val isLastPage = (totalClusters - first) <= DEFAULT_PAGE_SIZE
+
     val totalPages = when {
-      totalFoundClusters > 0 -> (totalFoundClusters / DEFAULT_PAGE_SIZE) + 1
+      totalClusters > 0 -> (totalClusters / DEFAULT_PAGE_SIZE) + 1
       else -> 0
-    }.toInt()
+    }
 
-    val lastIndex = when {
-      isLast -> (totalFoundClusters % DEFAULT_PAGE_SIZE) + currentIndex
-      else -> currentIndex + DEFAULT_PAGE_SIZE
-    }.toInt()
+    val last = when {
+      isLastPage -> (totalClusters % DEFAULT_PAGE_SIZE) + first
+      else -> first + DEFAULT_PAGE_SIZE
+    }
 
-    val content = clusters.subList(currentIndex, lastIndex)
+    val content = clusters.subList(first, last)
+
     return PaginatedResponse(
       content = content,
       pagination = Pagination(
-        isLastPage = isLast,
+        isLastPage = isLastPage,
         totalPages = totalPages,
       ),
     )
