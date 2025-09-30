@@ -30,16 +30,14 @@ class ClustersController(
   fun getClusters(
     @RequestParam(defaultValue = "1") page: Int,
   ): PaginatedResponse {
-    val paginatedClusters = adminPersonKeyRepository.findAllByStatusOrderById(NEEDS_ATTENTION)
-
-    val clusters = paginatedClusters.map {
+    val clusters = adminPersonKeyRepository.findAllByStatusOrderById(NEEDS_ATTENTION).map {
       AdminCluster(
         uuid = it.personUUID.toString(),
         recordComposition = listOf(
-          SourceSystemComposition(COMMON_PLATFORM, it.adminPersonEntities.getRecordCountBySourceSystem(COMMON_PLATFORM)),
-          SourceSystemComposition(DELIUS, it.adminPersonEntities.getRecordCountBySourceSystem(DELIUS)),
-          SourceSystemComposition(LIBRA, it.adminPersonEntities.getRecordCountBySourceSystem(LIBRA)),
-          SourceSystemComposition(NOMIS, it.adminPersonEntities.getRecordCountBySourceSystem(NOMIS)),
+           it.adminPersonEntities.getRecordCountBySourceSystem(COMMON_PLATFORM),
+           it.adminPersonEntities.getRecordCountBySourceSystem(DELIUS),
+           it.adminPersonEntities.getRecordCountBySourceSystem(LIBRA),
+           it.adminPersonEntities.getRecordCountBySourceSystem(NOMIS),
         ),
       )
     }
@@ -76,7 +74,8 @@ class ClustersController(
     )
   }
 
-  private fun List<AdminPersonEntity>.getRecordCountBySourceSystem(sourceSystemType: SourceSystemType): Int = this.filter { record -> record.sourceSystem == sourceSystemType }.size
+  private fun List<AdminPersonEntity>.getRecordCountBySourceSystem(sourceSystemType: SourceSystemType): SourceSystemComposition =
+    SourceSystemComposition(sourceSystemType,this.filter { record -> record.sourceSystem == sourceSystemType }.size)
 
   companion object {
     private const val DEFAULT_PAGE_SIZE = 20
