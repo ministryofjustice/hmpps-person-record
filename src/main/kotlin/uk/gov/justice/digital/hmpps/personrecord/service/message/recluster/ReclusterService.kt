@@ -4,7 +4,6 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.api.controller.exceptions.CircularMergeException
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.IsClusterValidResponse.Companion.result
-import uk.gov.justice.digital.hmpps.personrecord.client.model.match.isclustervalid.ValidCluster
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
@@ -62,7 +61,7 @@ class ReclusterService(
       clusterDetails.relationship.notMatchedToAnyRecord() -> handleInvalidClusterComposition(clusterDetails)
       else -> personMatchService.examineIsClusterValid(clusterDetails.cluster).result(
         isValid = { handleMergeClusters(clusterDetails) },
-        isNotValid = { clusterComposition -> handleInvalidClusterComposition(clusterDetails, clusterComposition) },
+        isNotValid = { handleInvalidClusterComposition(clusterDetails) },
       )
     }
   }
@@ -85,15 +84,12 @@ class ReclusterService(
           mergeClusters(it, clusterDetails.cluster)
         }
       },
-      isNotValid = { clusterComposition -> handleExclusionsBetweenMatchedClusters(clusterDetails, clusterComposition) },
+      isNotValid = { handleExclusionsBetweenMatchedClusters(clusterDetails) },
     )
   }
 
-  private fun handleInvalidClusterComposition(
-    clusterDetails: ClusterDetails,
-    clusterComposition: List<ValidCluster>? = null,
-  ) {
-    setToNeedsAttentionWithComposition(clusterDetails.cluster, reason = BROKEN_CLUSTER, clusterComposition)
+  private fun handleInvalidClusterComposition(clusterDetails: ClusterDetails) {
+    clusterDetails.cluster.setToNeedsAttention(BROKEN_CLUSTER)
     publisher.publishEvent(
       RecordClusterTelemetry(
         TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
@@ -102,8 +98,8 @@ class ReclusterService(
     )
   }
 
-  private fun handleExclusionsBetweenMatchedClusters(clusterDetails: ClusterDetails, clusterComposition: List<ValidCluster>) {
-    setToNeedsAttentionWithComposition(clusterDetails.cluster, reason = OVERRIDE_CONFLICT, clusterComposition)
+  private fun handleExclusionsBetweenMatchedClusters(clusterDetails: ClusterDetails) {
+    clusterDetails.cluster.setToNeedsAttention(OVERRIDE_CONFLICT)
     publisher.publishEvent(
       RecordClusterTelemetry(
         TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
@@ -138,10 +134,9 @@ class ReclusterService(
     )
   }
 
-  private fun setToNeedsAttentionWithComposition(personKeyEntity: PersonKeyEntity, reason: UUIDStatusReasonType, clusterComposition: List<ValidCluster>? = null) {
-    personKeyEntity.setAsNeedsAttention(reason)
-    clusterComposition?.let { personKeyEntity.holdResultingClusterComposition(clusterComposition) }
-    personKeyRepository.save(personKeyEntity)
+  private fun PersonKeyEntity.setToNeedsAttention(reason: UUIDStatusReasonType) {
+    this.setAsNeedsAttention(reason)
+    personKeyRepository.save(this)
   }
 
   private fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity) {
