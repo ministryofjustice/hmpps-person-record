@@ -34,10 +34,10 @@ class ClustersController(
       AdminCluster(
         uuid = it.personUUID.toString(),
         recordComposition = listOf(
-           it.adminPersonEntities.getRecordCountBySourceSystem(COMMON_PLATFORM),
-           it.adminPersonEntities.getRecordCountBySourceSystem(DELIUS),
-           it.adminPersonEntities.getRecordCountBySourceSystem(LIBRA),
-           it.adminPersonEntities.getRecordCountBySourceSystem(NOMIS),
+          it.adminPersonEntities.getRecordCountBySourceSystem(COMMON_PLATFORM),
+          it.adminPersonEntities.getRecordCountBySourceSystem(DELIUS),
+          it.adminPersonEntities.getRecordCountBySourceSystem(LIBRA),
+          it.adminPersonEntities.getRecordCountBySourceSystem(NOMIS),
         ),
       )
     }
@@ -74,8 +74,7 @@ class ClustersController(
     )
   }
 
-  private fun List<AdminPersonEntity>.getRecordCountBySourceSystem(sourceSystemType: SourceSystemType): SourceSystemComposition =
-    SourceSystemComposition(sourceSystemType,this.filter { record -> record.sourceSystem == sourceSystemType }.size)
+  private fun List<AdminPersonEntity>.getRecordCountBySourceSystem(sourceSystemType: SourceSystemType): SourceSystemComposition = SourceSystemComposition(sourceSystemType, this.filter { record -> record.sourceSystem == sourceSystemType }.size)
 
   companion object {
     private const val DEFAULT_PAGE_SIZE = 20
