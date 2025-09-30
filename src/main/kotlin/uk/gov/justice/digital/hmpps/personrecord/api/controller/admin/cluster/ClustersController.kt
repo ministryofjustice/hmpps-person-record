@@ -27,7 +27,7 @@ class ClustersController(
   @Hidden
   @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")
   @GetMapping("/admin/clusters")
-  suspend fun getClusters(
+  fun getClusters(
     @RequestParam(defaultValue = "1") page: Int,
   ): PaginatedResponse {
     val paginatedClusters = personKeyRepository.findAllByStatusOrderById(UUIDStatusType.NEEDS_ATTENTION)
