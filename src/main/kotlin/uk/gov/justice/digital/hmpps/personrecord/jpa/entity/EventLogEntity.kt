@@ -106,9 +106,6 @@ class EventLogEntity(
   @Column(name = "record_merged_to")
   val recordMergedTo: Long? = null,
 
-  @Column(name = "cluster_composition")
-  val clusterComposition: String? = null,
-
   @GeneratedColumn("event_timestamp")
   val eventTimestamp: LocalDateTime? = null,
 
@@ -143,7 +140,6 @@ class EventLogEntity(
         sourceSystem = eventLog.personEntity.sourceSystem,
         eventType = eventLog.eventType,
         recordMergedTo = eventLog.personEntity.mergedTo,
-        clusterComposition = null,
         statusReason = eventLog.personEntity.personKey?.statusReason,
         eventTimestamp = eventLog.eventTimestamp,
       )
