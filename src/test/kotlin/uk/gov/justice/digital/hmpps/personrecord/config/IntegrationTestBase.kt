@@ -408,8 +408,7 @@ class IntegrationTestBase {
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
-    clusters: List<UUID>,
-  ) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = true, clusters = listOf(clusters.map { it.toString() })), scenario, currentScenarioState, nextScenarioState)
+  ) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = true), scenario, currentScenarioState, nextScenarioState)
 
   internal fun stubPersonMatchUpsert(
     scenario: String = BASE_SCENARIO,

@@ -67,7 +67,6 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       stubPersonMatchUpsert(currentScenarioState = "FOUND ALL RECORDS", nextScenarioState = "CLUSTER IS VALID")
       stubClusterIsValid(
         currentScenarioState = "CLUSTER IS VALID",
-        clusters = listOf(personA.matchId, personB.matchId),
       )
 
       val result = personMatchService.examineIsClusterValid(cluster)
@@ -101,7 +100,6 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       stubPersonMatchUpsert(currentScenarioState = "FOUND ALL RECORDS", nextScenarioState = "CLUSTER IS VALID")
       stubClusterIsValid(
         currentScenarioState = "CLUSTER IS VALID",
-        clusters = listOf(personA.matchId, personB.matchId, personC.matchId, personD.matchId),
       )
 
       val result = personMatchService.examineIsClusterMergeValid(cluster1, listOf(cluster2))
