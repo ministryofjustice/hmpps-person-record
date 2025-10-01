@@ -1,12 +1,8 @@
 package uk.gov.justice.digital.hmpps.personrecord.message.listeners.probation
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.awspring.cloud.sqs.annotation.SqsListener
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.CorePersonRecordAndDeliusClient
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
-import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getCrn
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues.PROBATION_EVENT_QUEUE_ID
@@ -16,18 +12,12 @@ import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSListenerServic
 class ProbationEventListener(
   private val sqsListenerService: SQSListenerService,
   private val eventProcessor: ProbationEventProcessor,
-  private val objectMapper: ObjectMapper,
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
 ) {
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = sqsListenerService.processSQSMessage(rawMessage) {
-    handleDomainEvent(it)
-  }
-
-  private fun handleDomainEvent(sqsMessage: SQSMessage) {
-    val domainEvent = objectMapper.readValue<DomainEvent>(sqsMessage.message)
-    val crn = domainEvent.getCrn()
+  fun onDomainEvent(rawMessage: String) = sqsListenerService.processDomainEvent(rawMessage) {
+    event -> val crn = event.getCrn()
     corePersonRecordAndDeliusClient.getPerson(crn).let {
       eventProcessor.processEvent(it)
     }
