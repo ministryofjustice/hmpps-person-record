@@ -12,10 +12,11 @@ import uk.gov.justice.digital.hmpps.personrecord.service.message.MergeService
 @Component
 class ProbationMergeEventProcessor(
   private val personRepository: PersonRepository,
-  private val createUpdateService: CreateUpdateService,
   private val mergeService: MergeService,
   private val corePersonRecordAndDeliusClient: CorePersonRecordAndDeliusClient,
-) {
+  private val probationProcessor: ProbationProcessor,
+
+  ) {
 
   @Transactional
   fun processEvent(mergeDomainEvent: DomainEvent) {
@@ -24,12 +25,9 @@ class ProbationMergeEventProcessor(
 
     corePersonRecordAndDeliusClient.getPerson(toCrn).let {
       val from: PersonEntity? = personRepository.findByCrn(fromCrn)
-      val offender = personRepository.findByCrn(it.crn!!)
-      it.masterDefendantId = offender?.masterDefendantId
-      val to: PersonEntity = createUpdateService.processPerson(
-        it.doNotReclusterOnUpdate(),
-      ) { personRepository.findByCrn(toCrn) }
+      val to = probationProcessor.processProbationEvent(it.doNotReclusterOnUpdate())
+
       mergeService.processMerge(from, to)
     }
+    }
   }
-}
