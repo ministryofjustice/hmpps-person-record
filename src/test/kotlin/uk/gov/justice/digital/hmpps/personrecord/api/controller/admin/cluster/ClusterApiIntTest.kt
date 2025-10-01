@@ -46,8 +46,11 @@ class ClusterApiIntTest : WebTestBase() {
 
     @Test
     fun `should return needs attention cluster record details`() {
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails(),
-        UUIDStatusType.NEEDS_ATTENTION, UUIDStatusReasonType.BROKEN_CLUSTER)
+      val person = createPersonWithNewKey(
+        createRandomProbationPersonDetails(),
+        UUIDStatusType.NEEDS_ATTENTION,
+        UUIDStatusReasonType.BROKEN_CLUSTER,
+      )
 
       stubVisualiseCluster()
 
