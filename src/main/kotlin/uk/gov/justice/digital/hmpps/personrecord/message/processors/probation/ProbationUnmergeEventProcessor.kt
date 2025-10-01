@@ -22,6 +22,8 @@ class ProbationUnmergeEventProcessor(
     val existingPerson = corePersonRecordAndDeliusClient
       .getPersonErrorIfNotFound(unmergedCrn)
       .let {
+        val offender = personRepository.findByCrn(it.crn!!)
+        it.masterDefendantId = offender?.masterDefendantId
         createUpdateService.processPerson(
           it,
         ) { personRepository.findByCrn(unmergedCrn) }
@@ -31,6 +33,8 @@ class ProbationUnmergeEventProcessor(
     val reactivatedPerson = corePersonRecordAndDeliusClient
       .getPersonErrorIfNotFound(reactivatedCrn)
       .let {
+        val offender = personRepository.findByCrn(it.crn!!)
+        it.masterDefendantId = offender?.masterDefendantId
         createUpdateService.processPerson(
           it.doNotLinkOnCreate(),
         ) { personRepository.findByCrn(reactivatedCrn) }

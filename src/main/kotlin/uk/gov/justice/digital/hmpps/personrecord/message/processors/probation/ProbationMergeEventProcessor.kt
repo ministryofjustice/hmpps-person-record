@@ -24,6 +24,8 @@ class ProbationMergeEventProcessor(
 
     corePersonRecordAndDeliusClient.getPerson(toCrn).let {
       val from: PersonEntity? = personRepository.findByCrn(fromCrn)
+      val offender = personRepository.findByCrn(it.crn!!)
+      it.masterDefendantId = offender?.masterDefendantId
       val to: PersonEntity = createUpdateService.processPerson(
         it.doNotReclusterOnUpdate(),
       ) { personRepository.findByCrn(toCrn) }
