@@ -5,6 +5,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 data class AdminClusterDetail(
   val uuid: String,
   val status: String,
+  val statusReasonCode: String?,
   val records: List<AdminRecordDetail>,
   val clusterSpec: Any,
 ) {
@@ -12,6 +13,7 @@ data class AdminClusterDetail(
     fun from(personKeyEntity: PersonKeyEntity, clusterSpec: Any): AdminClusterDetail = AdminClusterDetail(
       uuid = personKeyEntity.personUUID.toString(),
       status = personKeyEntity.status.name,
+      statusReasonCode = personKeyEntity.statusReason?.name,
       records = personKeyEntity.personEntities.map { AdminRecordDetail.from(it) },
       clusterSpec = clusterSpec,
     )
