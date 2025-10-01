@@ -16,8 +16,8 @@ class ProbationEventListener(
 ) {
 
   @SqsListener(PROBATION_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = sqsListenerService.processDomainEvent(rawMessage) {
-    event -> val crn = event.getCrn()
+  fun onDomainEvent(rawMessage: String) = sqsListenerService.processDomainEvent(rawMessage) { event ->
+    val crn = event.getCrn()
     corePersonRecordAndDeliusClient.getPerson(crn).let {
       eventProcessor.processEvent(it)
     }
