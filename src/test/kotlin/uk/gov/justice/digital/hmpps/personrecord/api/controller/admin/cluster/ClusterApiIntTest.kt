@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import java.util.UUID
@@ -33,6 +35,36 @@ class ClusterApiIntTest : WebTestBase() {
 
       assertThat(response.uuid).isEqualTo(person.personKey?.personUUID.toString())
       assertThat(response.status).isEqualTo("ACTIVE")
+      assertThat(response.statusReason).isNull()
+      assertThat(response.records.size).isEqualTo(1)
+      assertThat(response.records[0].sourceSystem).isEqualTo("DELIUS")
+      assertThat(response.records[0].sourceSystemId).isEqualTo(person.crn)
+      assertThat(response.records[0].firstName).isEqualTo(person.getPrimaryName().firstName)
+      assertThat(response.records[0].middleName).isEqualTo(person.getPrimaryName().middleNames)
+      assertThat(response.records[0].lastName).isEqualTo(person.getPrimaryName().lastName)
+    }
+
+    @Test
+    fun `should return needs attention cluster record details`() {
+      val person = createPersonWithNewKey(createRandomProbationPersonDetails(),
+        UUIDStatusType.NEEDS_ATTENTION, UUIDStatusReasonType.BROKEN_CLUSTER)
+
+      stubVisualiseCluster()
+
+      val response = webTestClient.get()
+        .uri(uuidClusterUrl(person.personKey?.personUUID.toString()))
+        .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
+        .exchange()
+        .expectStatus()
+        .isOk
+        .expectBody(AdminClusterDetail::class.java)
+        .returnResult()
+        .responseBody!!
+
+      assertThat(response.uuid).isEqualTo(person.personKey?.personUUID.toString())
+      assertThat(response.status).isEqualTo("NEEDS_ATTENTION")
+      assertThat(response.statusReason?.code).isEqualTo(UUIDStatusReasonType.BROKEN_CLUSTER.name)
+      assertThat(response.statusReason?.description).isEqualTo("Some records within the cluster no longer meet the similarity threshold.")
       assertThat(response.records.size).isEqualTo(1)
       assertThat(response.records[0].sourceSystem).isEqualTo("DELIUS")
       assertThat(response.records[0].sourceSystemId).isEqualTo(person.crn)
