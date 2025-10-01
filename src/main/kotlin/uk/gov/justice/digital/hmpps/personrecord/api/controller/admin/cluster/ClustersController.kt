@@ -2,6 +2,9 @@ package uk.gov.justice.digital.hmpps.personrecord.api.controller.admin.cluster
 
 import io.swagger.v3.oas.annotations.Hidden
 import io.swagger.v3.oas.annotations.media.Schema
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.springframework.data.domain.Pageable
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -9,89 +12,77 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminCluster
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.SourceSystemComposition
-import uk.gov.justice.digital.hmpps.personrecord.extensions.sort
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.admin.AdminPersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.AdminClusterRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 
 @RestController
 class ClustersController(
-  private val adminPersonKeyRepository: AdminClusterRepository,
+  private val personKeyRepository: PersonKeyRepository,
 ) {
 
   @Hidden
   @PreAuthorize("hasRole('${Roles.PERSON_RECORD_ADMIN_READ_ONLY}')")
   @GetMapping("/admin/clusters")
-  fun getClusters(
+  suspend fun getClusters(
     @RequestParam(defaultValue = "1") page: Int,
-  ): PaginatedResponse {
-    val clusters = adminPersonKeyRepository.findAllByStatusOrderById(NEEDS_ATTENTION).map {
+  ): PaginatedResponse<AdminCluster> {
+    val evaluatedPageable: Pageable = Pageable.ofSize(DEFAULT_PAGE_SIZE).withPage(page - 1)
+    val paginatedClusters = withContext(Dispatchers.IO) {
+      personKeyRepository.findAllByStatusOrderById(UUIDStatusType.NEEDS_ATTENTION, evaluatedPageable)
+    }
+    val clusters = paginatedClusters.content.map {
       AdminCluster(
         uuid = it.personUUID.toString(),
         recordComposition = listOf(
-          it.adminPersonEntities.countBySourceSystem(COMMON_PLATFORM),
-          it.adminPersonEntities.countBySourceSystem(DELIUS),
-          it.adminPersonEntities.countBySourceSystem(LIBRA),
-          it.adminPersonEntities.countBySourceSystem(NOMIS),
+          SourceSystemComposition(COMMON_PLATFORM, it.personEntities.getRecordCountBySourceSystem(COMMON_PLATFORM)),
+          SourceSystemComposition(DELIUS, it.personEntities.getRecordCountBySourceSystem(DELIUS)),
+          SourceSystemComposition(LIBRA, it.personEntities.getRecordCountBySourceSystem(LIBRA)),
+          SourceSystemComposition(NOMIS, it.personEntities.getRecordCountBySourceSystem(NOMIS)),
         ),
       )
     }
-
-    return paginate(clusters.sort(), page)
-  }
-
-  private fun paginate(
-    clusters: List<AdminCluster>,
-    page: Int,
-  ): PaginatedResponse {
-    val totalClusters = clusters.size
-    val first = (page - 1) * DEFAULT_PAGE_SIZE
-    val isLastPage = (totalClusters - first) <= DEFAULT_PAGE_SIZE
-
-    val totalPages = when {
-      totalClusters > 0 -> (totalClusters / DEFAULT_PAGE_SIZE) + 1
-      else -> 0
-    }
-
-    val last = when {
-      isLastPage -> (totalClusters % DEFAULT_PAGE_SIZE) + first
-      else -> first + DEFAULT_PAGE_SIZE
-    }
-
-    val content = clusters.subList(first, last)
-
     return PaginatedResponse(
-      content = content,
+      content = clusters,
       pagination = Pagination(
-        isLastPage = isLastPage,
-        totalPages = totalPages,
+        isLastPage = paginatedClusters.isLast,
+        count = paginatedClusters.numberOfElements,
+        page = paginatedClusters.number + 1,
+        perPage = paginatedClusters.size,
+        totalCount = paginatedClusters.totalElements,
+        totalPages = paginatedClusters.totalPages,
       ),
     )
   }
 
-  private fun List<AdminPersonEntity>.countBySourceSystem(sourceSystemType: SourceSystemType): SourceSystemComposition = SourceSystemComposition(
-    sourceSystemType,
-    this.filter { record -> record.sourceSystem == sourceSystemType }.size,
-  )
+  private fun List<PersonEntity>.getRecordCountBySourceSystem(sourceSystemType: SourceSystemType): Int = this.filter { record -> record.sourceSystem == sourceSystemType }.size
 
   companion object {
     private const val DEFAULT_PAGE_SIZE = 20
   }
 }
 
-class PaginatedResponse(
-  val content: List<AdminCluster>,
+class PaginatedResponse<T>(
+  val content: List<T>,
   val pagination: Pagination,
 )
 
 data class Pagination(
   @Schema(description = "Is the current page the last one?", example = "true")
   val isLastPage: Boolean,
+  @Schema(description = "The number of results in `data` for the current page", example = "1")
+  val count: Int,
+  @Schema(description = "The current page number", example = "1")
+  val page: Int,
+  @Schema(description = "The maximum number of results in `data` for a page", example = "10")
+  val perPage: Int,
+  @Schema(description = "The total number of results in `data` across all pages", example = "1")
+  val totalCount: Long,
   @Schema(description = "The total number of pages", example = "1")
   val totalPages: Int,
 )
