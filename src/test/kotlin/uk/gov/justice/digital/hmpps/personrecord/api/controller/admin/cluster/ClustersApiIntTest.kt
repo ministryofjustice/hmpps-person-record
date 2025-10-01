@@ -4,15 +4,16 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.core.ParameterizedTypeReference
-import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_ADMIN_READ_ONLY
+import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles
+import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminCluster
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 
 class ClustersApiIntTest : WebTestBase() {
@@ -25,12 +26,12 @@ class ClustersApiIntTest : WebTestBase() {
 
   @Test
   fun `should return list of clusters with composition`() {
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION)
+    val person = createPersonWithNewKey(createRandomProbationPersonDetails(), status = UUIDStatusType.NEEDS_ATTENTION)
 
-    val responseType = object : ParameterizedTypeReference<PaginatedResponse>() {}
+    val responseType = object : ParameterizedTypeReference<PaginatedResponse<AdminCluster>>() {}
     val response = webTestClient.get()
       .uri(ADMIN_CLUSTERS_URL)
-      .authorised(roles = listOf(PERSON_RECORD_ADMIN_READ_ONLY))
+      .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
@@ -39,7 +40,10 @@ class ClustersApiIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(response.content.size).isEqualTo(1)
+    assertThat(response.pagination.count).isEqualTo(1)
     assertThat(response.pagination.totalPages).isEqualTo(1)
+    assertThat(response.pagination.page).isEqualTo(1)
+    assertThat(response.pagination.perPage).isEqualTo(20)
 
     assertThat(response.content[0].uuid).isEqualTo(person.personKey?.personUUID.toString())
     assertThat(response.content[0].recordComposition[0].count).isEqualTo(0)
@@ -58,10 +62,10 @@ class ClustersApiIntTest : WebTestBase() {
     createPersonWithNewKey(createRandomProbationPersonDetails(), status = MERGED)
     createPersonWithNewKey(createRandomProbationPersonDetails(), status = RECLUSTER_MERGE)
 
-    val responseType = object : ParameterizedTypeReference<PaginatedResponse>() {}
+    val responseType = object : ParameterizedTypeReference<PaginatedResponse<AdminCluster>>() {}
     val response = webTestClient.get()
       .uri(ADMIN_CLUSTERS_URL)
-      .authorised(roles = listOf(PERSON_RECORD_ADMIN_READ_ONLY))
+      .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
@@ -70,25 +74,27 @@ class ClustersApiIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(response.content.size).isEqualTo(0)
+    assertThat(response.pagination.count).isEqualTo(0)
     assertThat(response.pagination.totalPages).isEqualTo(0)
+    assertThat(response.pagination.page).isEqualTo(1)
   }
 
   @Test
-  fun `should return sorted list of multiple clusters with composition`() {
-    val cluster1 = createPersonKey(status = NEEDS_ATTENTION)
+  fun `should return list of multiple clusters with composition`() {
+    val cluster1 = createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION)
       .addPerson(createPerson(createRandomProbationPersonDetails()))
       .addPerson(createPerson(createRandomPrisonPersonDetails()))
       .addPerson(createPerson(createRandomCommonPlatformPersonDetails()))
       .addPerson(createPerson(createRandomLibraPersonDetails()))
 
-    val cluster2 = createPersonKey(status = NEEDS_ATTENTION)
+    val cluster2 = createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION)
       .addPerson(createPerson(createRandomProbationPersonDetails()))
       .addPerson(createPerson(createRandomProbationPersonDetails()))
 
-    val responseType = object : ParameterizedTypeReference<PaginatedResponse>() {}
+    val responseType = object : ParameterizedTypeReference<PaginatedResponse<AdminCluster>>() {}
     val response = webTestClient.get()
       .uri(ADMIN_CLUSTERS_URL)
-      .authorised(roles = listOf(PERSON_RECORD_ADMIN_READ_ONLY))
+      .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
@@ -96,41 +102,44 @@ class ClustersApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(response.pagination.isLastPage).isTrue
+    assertThat(response.content.size).isEqualTo(2)
+    assertThat(response.pagination.count).isEqualTo(2)
     assertThat(response.pagination.totalPages).isEqualTo(1)
+    assertThat(response.pagination.page).isEqualTo(1)
+    assertThat(response.pagination.perPage).isEqualTo(20)
 
-    assertThat(response.content[0].uuid).isEqualTo(cluster2.personUUID.toString())
-    assertThat(response.content[0].recordComposition.first { it.sourceSystem == COMMON_PLATFORM }.count).isEqualTo(0)
-    assertThat(response.content[0].recordComposition[1].count).isEqualTo(2)
+    assertThat(response.content[0].uuid).isEqualTo(cluster1.personUUID.toString())
+    assertThat(response.content[0].recordComposition[0].count).isEqualTo(1)
+    assertThat(response.content[0].recordComposition[0].sourceSystem).isEqualTo(COMMON_PLATFORM)
+    assertThat(response.content[0].recordComposition[1].count).isEqualTo(1)
     assertThat(response.content[0].recordComposition[1].sourceSystem).isEqualTo(DELIUS)
-    assertThat(response.content[0].recordComposition[2].count).isEqualTo(0)
+    assertThat(response.content[0].recordComposition[2].count).isEqualTo(1)
     assertThat(response.content[0].recordComposition[2].sourceSystem).isEqualTo(LIBRA)
-    assertThat(response.content[0].recordComposition[3].count).isEqualTo(0)
+    assertThat(response.content[0].recordComposition[3].count).isEqualTo(1)
     assertThat(response.content[0].recordComposition[3].sourceSystem).isEqualTo(NOMIS)
 
-    assertThat(response.content[1].uuid).isEqualTo(cluster1.personUUID.toString())
-    assertThat(response.content[1].recordComposition[0].count).isEqualTo(1)
-    assertThat(response.content[1].recordComposition[0].sourceSystem).isEqualTo(COMMON_PLATFORM)
-    assertThat(response.content[1].recordComposition[1].count).isEqualTo(1)
+    assertThat(response.content[1].uuid).isEqualTo(cluster2.personUUID.toString())
+    assertThat(response.content[1].recordComposition.first { it.sourceSystem == COMMON_PLATFORM }.count).isEqualTo(0)
+    assertThat(response.content[1].recordComposition[1].count).isEqualTo(2)
     assertThat(response.content[1].recordComposition[1].sourceSystem).isEqualTo(DELIUS)
-    assertThat(response.content[1].recordComposition[2].count).isEqualTo(1)
+    assertThat(response.content[1].recordComposition[2].count).isEqualTo(0)
     assertThat(response.content[1].recordComposition[2].sourceSystem).isEqualTo(LIBRA)
-    assertThat(response.content[1].recordComposition[3].count).isEqualTo(1)
+    assertThat(response.content[1].recordComposition[3].count).isEqualTo(0)
     assertThat(response.content[1].recordComposition[3].sourceSystem).isEqualTo(NOMIS)
   }
 
   @Test
   fun `should return specified page`() {
     repeat(20) {
-      createPersonKey(status = NEEDS_ATTENTION).addPerson(createPerson(createRandomProbationPersonDetails()))
+      createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION).addPerson(createPerson(createRandomProbationPersonDetails()))
     }
 
-    val nextPageCluster = createPersonKey(status = NEEDS_ATTENTION).addPerson(createPerson(createRandomProbationPersonDetails()))
+    val nextPageCluster = createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION).addPerson(createPerson(createRandomProbationPersonDetails()))
 
-    val responseType = object : ParameterizedTypeReference<PaginatedResponse>() {}
+    val responseType = object : ParameterizedTypeReference<PaginatedResponse<AdminCluster>>() {}
     val response = webTestClient.get()
       .uri("$ADMIN_CLUSTERS_URL?page=2")
-      .authorised(roles = listOf(PERSON_RECORD_ADMIN_READ_ONLY))
+      .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
       .exchange()
       .expectStatus()
       .isOk
@@ -139,8 +148,10 @@ class ClustersApiIntTest : WebTestBase() {
       .responseBody!!
 
     assertThat(response.content.size).isEqualTo(1)
-    assertThat(response.pagination.isLastPage).isTrue
+    assertThat(response.pagination.count).isEqualTo(1)
     assertThat(response.pagination.totalPages).isEqualTo(2)
+    assertThat(response.pagination.page).isEqualTo(2)
+    assertThat(response.pagination.perPage).isEqualTo(20)
 
     assertThat(response.content[0].uuid).isEqualTo(nextPageCluster.personUUID.toString())
   }
