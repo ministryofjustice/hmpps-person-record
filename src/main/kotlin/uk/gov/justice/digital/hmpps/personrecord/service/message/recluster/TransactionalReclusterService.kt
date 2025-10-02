@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 
 @Component
-class AdminReclusterService(
+class TransactionalReclusterService(
   private val retryableReclusterService: RetryableReclusterService,
   private val publisher: ApplicationEventPublisher,
 ) {

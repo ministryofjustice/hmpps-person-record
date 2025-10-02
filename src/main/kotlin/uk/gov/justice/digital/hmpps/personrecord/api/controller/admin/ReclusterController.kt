@@ -12,12 +12,12 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminReclusterR
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
-import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.AdminReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.TransactionalReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @RestController
 class ReclusterController(
-  private val adminReclusterService: AdminReclusterService,
+  private val transactionalReclusterService: TransactionalReclusterService,
   private val personRepository: PersonRepository,
   private val personMatchService: PersonMatchService,
 ) {
@@ -43,7 +43,7 @@ class ReclusterController(
 
   fun triggerRecluster(adminReclusterRecords: List<AdminReclusterRecord>) {
     adminReclusterRecords.forEachPersonAndLog(RECLUSTER_PROCESS_NAME) {
-      adminReclusterService.recluster(it)
+      transactionalReclusterService.recluster(it)
     }
   }
 
