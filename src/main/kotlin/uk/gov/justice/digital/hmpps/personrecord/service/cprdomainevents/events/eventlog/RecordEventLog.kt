@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events
 
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import java.time.LocalDateTime
@@ -18,8 +17,6 @@ data class RecordEventLog(
 data class EventLogClusterDetail(
   val personUUID: UUID?,
   val status: UUIDStatusType?,
-  val statusReason: UUIDStatusReasonType? = null,
-  val mergedTo: Long? = null,
 ) {
 
   companion object {
