@@ -36,8 +36,6 @@ class E2ETestBase : MessagingTestBase() {
 
   internal fun createProbationPersonFrom(from: Person, crn: String = randomCrn()): Person = from.copy(crn = crn)
 
-  internal fun createCommonPlatformPersonFrom(from: Person, defendantId: String = randomCrn()): Person = from.copy(defendantId = defendantId)
-
   /*
   Remove matching fields to reduce match weight below the join threshold but keep above fracture threshold
    */
