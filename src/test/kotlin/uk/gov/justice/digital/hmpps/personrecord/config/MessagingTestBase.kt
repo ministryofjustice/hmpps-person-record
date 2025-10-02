@@ -158,8 +158,8 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     sourceCrn: String,
     targetCrn: String,
     scenario: String = BASE_SCENARIO,
-    currentScenarioState: String = STARTED,
-    nextScenarioState: String = STARTED,
+    currentScenarioState: String? = null,
+    nextScenarioState: String? = null,
     apiResponseSetup: ApiResponseSetup = ApiResponseSetup(crn = targetCrn),
   ) {
     stubSingleProbationResponse(apiResponseSetup, scenario, currentScenarioState, nextScenarioState)
