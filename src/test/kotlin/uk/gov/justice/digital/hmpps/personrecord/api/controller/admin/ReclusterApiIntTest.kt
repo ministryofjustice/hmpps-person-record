@@ -75,8 +75,14 @@ class ReclusterApiIntTest : WebTestBase() {
       stubPersonMatchUpsert()
       val person = createPersonWithNewKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
       val request = listOf(AdminReclusterRecord(DELIUS, person.crn!!))
-      stub5xxResponse(url="/person/score/" + person.matchId)
-      stubPersonMatchScores(currentScenarioState = "Next request will succeed")
+      stub5xxResponse(url = "/person/score/" + person.matchId)
+      stubPersonMatchUpsert(currentScenarioState = "Next request will succeed")
+      stubPersonMatchScores(
+        matchId = person.matchId,
+        personMatchResponse = listOf(),
+        currentScenarioState = "Next request will succeed",
+      )
+
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_URL)
         .contentType(APPLICATION_JSON)
