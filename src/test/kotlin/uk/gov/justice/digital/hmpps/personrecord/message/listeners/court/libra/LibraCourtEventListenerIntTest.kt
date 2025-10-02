@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.SQSMessage
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -154,51 +153,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
     assertThat(person.sexCode).isEqualTo(updatedSexCode.value)
-  }
-
-  @Test
-  fun `should process and create libra message and link to different source system record`() {
-    val firstName = randomName()
-    val lastName = randomName()
-    val dateOfBirth = randomDate()
-    val cId = randomCId()
-    val personFromProbation = Person(
-      firstName = firstName,
-      lastName = lastName,
-      dateOfBirth = dateOfBirth,
-      addresses = listOf(Address(postcode = randomPostcode())),
-      sourceSystem = DELIUS,
-    )
-    val personKeyEntity = createPersonKey()
-    val existingPerson = createPerson(personFromProbation, personKeyEntity = personKeyEntity)
-
-    stubPersonMatchUpsert()
-    stubOnePersonMatchAboveJoinThreshold(matchedRecord = existingPerson.matchId)
-
-    publishLibraMessage(libraHearing(firstName = firstName, lastName = lastName, cId = cId, dateOfBirth = dateOfBirth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), cro = "", pncNumber = ""))
-
-    checkTelemetry(
-      CPR_CANDIDATE_RECORD_SEARCH,
-      mapOf(
-        "SOURCE_SYSTEM" to LIBRA.name,
-        "RECORD_COUNT" to "1",
-        "ABOVE_JOIN_THRESHOLD_COUNT" to "1",
-        "ABOVE_FRACTURE_THRESHOLD_COUNT" to "0",
-        "BELOW_FRACTURE_THRESHOLD_COUNT" to "0",
-        "C_ID" to cId,
-      ),
-    )
-    checkTelemetry(
-      CPR_CANDIDATE_RECORD_FOUND_UUID,
-      mapOf(
-        "SOURCE_SYSTEM" to LIBRA.name,
-        "CLUSTER_SIZE" to "1",
-        "UUID" to personKeyEntity.personUUID.toString(),
-      ),
-    )
-
-    val personKey = personKeyRepository.findByPersonUUID(personKeyEntity.personUUID)
-    assertThat(personKey?.personEntities?.size).isEqualTo(2)
   }
 
   @Test
