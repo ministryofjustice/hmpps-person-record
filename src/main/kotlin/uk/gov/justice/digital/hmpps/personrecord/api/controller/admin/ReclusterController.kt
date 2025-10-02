@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminReclusterR
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.AdminReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @RestController

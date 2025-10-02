@@ -7,7 +7,7 @@ import org.springframework.web.reactive.function.client.WebClientException
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 
 @Component
-class TransactionalReclusterService(
+class RetryableReclusterService(
   private val reclusterService: ReclusterService,
 ) {
 
