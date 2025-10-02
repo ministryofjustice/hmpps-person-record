@@ -5,20 +5,20 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationMergeEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.probation.ProbationUnmergeEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
-import uk.gov.justice.digital.hmpps.personrecord.service.queue.SQSListenerService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 
 @Component
 class ProbationMergeEventListener(
-  private val sqsListenerService: SQSListenerService,
+  private val domainEventProcessor: DomainEventProcessor,
   private val mergeEventProcessor: ProbationMergeEventProcessor,
   private val unmergeEventProcessor: ProbationUnmergeEventProcessor,
 ) {
 
   @SqsListener(Queues.PROBATION_MERGE_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
-  fun onDomainEvent(rawMessage: String) = sqsListenerService.processDomainEvent(rawMessage) {
+  fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) {
     it
       .whenEvent(OFFENDER_MERGED) { event -> mergeEventProcessor.processEvent(event) }
       .whenEvent(OFFENDER_UNMERGED) { event -> unmergeEventProcessor.processEvent(event) }

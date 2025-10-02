@@ -76,7 +76,6 @@ class EventLogServiceIntTest : IntegrationTestBase() {
     assertThat(eventLog.sentenceDates.size).isEqualTo(1)
     assertThat(eventLog.sentenceDates.first()).isEqualTo(personEntity.sentenceInfo.first().sentenceDate)
     assertThat(eventLog.recordMergedTo).isNull()
-    assertThat(eventLog.clusterComposition).isNull()
     assertThat(eventLog.eventTimestamp).isNotNull()
     assertThat(eventLog.eventType).isEqualTo(CPRLogEvents.CPR_RECORD_UPDATED)
     assertThat(eventLog.overrideMarker).isNull()

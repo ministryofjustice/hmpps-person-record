@@ -74,11 +74,12 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val lastName = randomName()
     val nationality = randomCommonPlatformNationalityCode()
     val additionalNationality = randomCommonPlatformNationalityCode()
+    val masterDefendantId = randomDefendantId()
 
     stubNoMatchesPersonMatch()
 
     publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(gender = randomCommonPlatformSexCode().key, pnc = pnc, lastName = lastName, cro = cro, defendantId = defendantId, nationalityCode = nationality, additionalNationalityCode = additionalNationality))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(gender = randomCommonPlatformSexCode().key, pnc = pnc, lastName = lastName, cro = cro, defendantId = defendantId, nationalityCode = nationality, additionalNationalityCode = additionalNationality, masterDefendantId = randomDefendantId()))),
     )
     val newPerson = awaitNotNullPerson { personRepository.findByDefendantId(defendantId) }
     checkNationalities(newPerson, nationality, additionalNationality)
@@ -87,7 +88,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val changedNationality = randomCommonPlatformNationalityCode()
     val changedAdditionalNationality = randomCommonPlatformNationalityCode()
     publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(gender = changedSexCode.key, pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId, nationalityCode = changedNationality, additionalNationalityCode = changedAdditionalNationality))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(gender = changedSexCode.key, pnc = pnc, lastName = changedLastName, cro = cro, defendantId = defendantId, nationalityCode = changedNationality, additionalNationalityCode = changedAdditionalNationality, masterDefendantId = masterDefendantId))),
     )
 
     awaitAssert {
@@ -97,6 +98,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
       assertThat(updatedPersonEntity.sexCode).isEqualTo(changedSexCode.value)
+      assertThat(updatedPersonEntity.masterDefendantId).isEqualTo(masterDefendantId)
       checkNationalities(updatedPersonEntity, changedNationality, changedAdditionalNationality)
     }
 
