@@ -71,6 +71,13 @@ class PersonKeyEntity(
     }
   }
 
+  fun toSnapshot(): PersonKeyEntity = PersonKeyEntity(
+    personUUID = this.personUUID,
+    mergedTo = this.mergedTo,
+    status = this.status,
+    statusReason = this.statusReason,
+  )
+
   companion object {
     val empty: PersonKeyEntity? = null
 

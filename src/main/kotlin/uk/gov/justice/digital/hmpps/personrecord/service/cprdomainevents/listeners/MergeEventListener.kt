@@ -33,7 +33,7 @@ class MergeEventListener(
 
   @TransactionalEventListener
   fun onMergeEvent(personMerged: PersonMerged) {
-    personMerged.from?.let { publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_MERGED, it)) }
+    personMerged.from?.let { publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECORD_MERGED, it, personMerged.fromPersonKey)) }
     publisher.publishEvent(
       RecordTelemetry(
         TelemetryEventType.CPR_RECORD_MERGED,

@@ -36,6 +36,7 @@ class MergeService(
   }
 
   private fun merge(from: PersonEntity?, to: PersonEntity) {
+    val fromPersonKeySnapshot = from?.personKey?.toSnapshot()
     from?.let {
       it.throwIfCircularMerge(to)
       it.removePersonKeyLink()
@@ -43,7 +44,7 @@ class MergeService(
       personRepository.save(it)
       personMatchService.deleteFromPersonMatch(it)
     }
-    publisher.publishEvent(PersonMerged(from, to))
+    publisher.publishEvent(PersonMerged(from, to, fromPersonKeySnapshot))
   }
 
   private fun PersonKeyEntity.throwIfCircularMerge(to: PersonKeyEntity) {
