@@ -13,8 +13,12 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
-import java.util.*
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
+import java.util.UUID
 
 @Entity
 @Table(name = "person_key")
@@ -35,7 +39,7 @@ class PersonKeyEntity(
 
   @Column
   @Enumerated(STRING)
-  var status: UUIDStatusType = UUIDStatusType.ACTIVE,
+  var status: UUIDStatusType = ACTIVE,
 
   @Column
   @Enumerated(STRING)
@@ -46,20 +50,20 @@ class PersonKeyEntity(
 
 ) {
 
-  fun isActive(): Boolean = status == UUIDStatusType.ACTIVE
+  fun isActive(): Boolean = status == ACTIVE
 
-  fun isNotOverrideConflict(): Boolean = status == UUIDStatusType.NEEDS_ATTENTION && statusReason != UUIDStatusReasonType.OVERRIDE_CONFLICT
+  fun isNotOverrideConflict(): Boolean = status == NEEDS_ATTENTION && statusReason != OVERRIDE_CONFLICT
 
   fun setAsActive() {
     this.apply {
-      this.status = UUIDStatusType.ACTIVE
+      this.status = ACTIVE
       this.statusReason = null
     }
   }
 
   fun setAsNeedsAttention(reason: UUIDStatusReasonType) {
     this.apply {
-      this.status = UUIDStatusType.NEEDS_ATTENTION
+      this.status = NEEDS_ATTENTION
       this.statusReason = reason
     }
   }
@@ -67,7 +71,7 @@ class PersonKeyEntity(
   fun markAsMerged(to: PersonKeyEntity) {
     this.apply {
       this.mergedTo = to.id
-      this.status = UUIDStatusType.MERGED
+      this.status = MERGED
     }
   }
 
