@@ -19,8 +19,10 @@ import java.util.UUID
 
 fun randomPnc(): String {
   val year = randomYear().toString()
-  val digits = randomDigit(7)
-  val check = VALID_LETTERS[(year.takeLast(2) + digits).toInt().mod(VALID_LETTERS.length)]
+  val serialLength = listOf(6, 7).random()
+  val digits = randomDigit(serialLength)
+  val paddedForCheck = digits.padStart(7, '0')
+  val check = VALID_LETTERS[(year.takeLast(2) + paddedForCheck).toInt().mod(VALID_LETTERS.length)]
   return "$year/$digits$check"
 }
 
