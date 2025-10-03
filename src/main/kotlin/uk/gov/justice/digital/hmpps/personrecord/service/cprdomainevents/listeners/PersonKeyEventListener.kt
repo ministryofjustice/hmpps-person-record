@@ -4,6 +4,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyDeleted
@@ -22,7 +23,7 @@ class PersonKeyEventListener(
   @EventListener
   fun onPersonKeyCreated(personKeyCreated: PersonKeyCreated) {
     publisher.publishEvent(RecordPersonTelemetry(CPR_UUID_CREATED, personKeyCreated.personEntity, mapOf(EventKeys.UUID to personKeyCreated.personKeyEntity.personUUID.toString())))
-    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_UUID_CREATED, personKeyCreated.personEntity, personKeyCreated.personKeyEntity))
+    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_UUID_CREATED, personKeyCreated.personEntity, EventLogClusterDetail.from(personKeyCreated.personKeyEntity)))
   }
 
   @EventListener

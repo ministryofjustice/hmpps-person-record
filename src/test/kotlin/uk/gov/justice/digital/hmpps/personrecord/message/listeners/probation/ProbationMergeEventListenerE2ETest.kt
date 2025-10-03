@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 
 class ProbationMergeEventListenerE2ETest : E2ETestBase() {
+
   @Test
   fun `processes offender merge event with records on same cluster`() {
     val sourceMasterDefendantId = randomDefendantId()
@@ -47,7 +48,12 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
         "SOURCE_SYSTEM" to "DELIUS",
       ),
     )
-    checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
+    checkEventLog(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED) { eventLogs ->
+      assertThat(eventLogs).hasSize(1)
+      assertThat(eventLogs.first().recordMergedTo).isEqualTo(targetPerson.id)
+      assertThat(eventLogs.first().personUUID).isEqualTo(cluster.personUUID)
+    }
+
     val mergedSource = awaitNotNullPerson { personRepository.findByCrn(sourceCrn) }
     assertThat(mergedSource.masterDefendantId).isEqualTo(sourceMasterDefendantId)
 

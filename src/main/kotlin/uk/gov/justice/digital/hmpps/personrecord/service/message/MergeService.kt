@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.ClusterMerged
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.merge.PersonMerged
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
@@ -36,6 +37,7 @@ class MergeService(
   }
 
   private fun merge(from: PersonEntity?, to: PersonEntity) {
+    val fromClusterDetail = EventLogClusterDetail.from(from?.personKey)
     from?.let {
       it.throwIfCircularMerge(to)
       it.removePersonKeyLink()
@@ -43,7 +45,7 @@ class MergeService(
       personRepository.save(it)
       personMatchService.deleteFromPersonMatch(it)
     }
-    publisher.publishEvent(PersonMerged(from, to))
+    publisher.publishEvent(PersonMerged(from, fromClusterDetail, to))
   }
 
   private fun PersonKeyEntity.throwIfCircularMerge(to: PersonKeyEntity) {

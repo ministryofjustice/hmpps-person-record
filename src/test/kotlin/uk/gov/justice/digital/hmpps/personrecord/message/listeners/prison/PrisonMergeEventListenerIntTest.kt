@@ -222,7 +222,11 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
       )
       checkEventLogExist(targetPrisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
-      checkEventLogExist(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED)
+      checkEventLog(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED) { eventLogs ->
+        assertThat(eventLogs).hasSize(1)
+        assertThat(eventLogs.first().recordMergedTo).isEqualTo(targetPerson.id)
+        assertThat(eventLogs.first().personUUID).isEqualTo(sourcePerson.personKey?.personUUID)
+      }
       checkEventLog(sourcePrisonNumber, CPRLogEvents.CPR_UUID_MERGED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val event = eventLogs.first()
