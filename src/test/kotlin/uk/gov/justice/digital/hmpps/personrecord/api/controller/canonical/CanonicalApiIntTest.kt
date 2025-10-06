@@ -33,10 +33,10 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
@@ -50,7 +50,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val lastName = randomName()
     val middleNames = randomName()
     val title = randomTitle()
-    val pnc = randomPnc()
+    val pnc = randomLongPnc()
     val noFixedAbode = true
     val startDate = randomDate()
     val endDate = randomDate()
@@ -309,8 +309,8 @@ class CanonicalApiIntTest : WebTestBase() {
     val personOneCrn = randomCrn()
     val personTwoCrn = randomCrn()
 
-    val personOnePnc = randomPnc()
-    val personTwoPnc = randomPnc()
+    val personOnePnc = randomLongPnc()
+    val personTwoPnc = randomLongPnc()
 
     val personOneNationalInsuranceNumber = randomNationalInsuranceNumber()
     val personTwoNationalInsuranceNumber = randomNationalInsuranceNumber()

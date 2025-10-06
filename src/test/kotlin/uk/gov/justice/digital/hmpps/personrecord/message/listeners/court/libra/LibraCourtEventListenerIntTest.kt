@@ -25,8 +25,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomBuildingNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLibraSexCode
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
 import java.time.format.DateTimeFormatter
@@ -41,7 +41,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val forename3 = randomName()
     val lastName = randomName() + "'apostrophe"
     val postcode = randomPostcode()
-    val pnc = randomPnc()
+    val pnc = randomLongPnc()
     val dateOfBirth = randomDate()
     val cId = randomCId()
 
@@ -241,7 +241,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val firstName = randomName()
     val lastName = randomName() + "'apostrophe"
     val postcode = randomPostcode()
-    val pnc = randomPnc()
+    val pnc = randomLongPnc()
     val dateOfBirth = randomDate()
     val cId = randomCId()
 
@@ -297,7 +297,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       val firstName = randomName()
       val lastName = randomName()
       val postcode = randomPostcode()
-      val pnc = randomPnc()
+      val pnc = randomLongPnc()
       val dateOfBirth = randomDate()
       val cId = randomCId()
 

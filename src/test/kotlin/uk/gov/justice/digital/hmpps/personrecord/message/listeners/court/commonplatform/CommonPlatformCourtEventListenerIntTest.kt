@@ -48,9 +48,9 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformNation
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCommonPlatformSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
 import java.nio.charset.Charset
@@ -69,7 +69,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should update an existing person record from common platform message`() {
     stubPersonMatchUpsert()
     val defendantId = randomDefendantId()
-    val pnc = randomPnc()
+    val pnc = randomLongPnc()
     val cro = randomCro()
     val lastName = randomName()
     val nationality = randomCommonPlatformNationalityCode()
@@ -112,7 +112,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should update an existing person record from common platform message with no primary name in pseudonym table`() {
     stubPersonMatchUpsert()
     val defendantId = randomDefendantId()
-    val pnc = randomPnc()
+    val pnc = randomLongPnc()
     val cro = randomCro()
     val personKey = createPersonKey()
     val ethnicity = randomCommonPlatformEthnicity()
@@ -166,10 +166,10 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should create new people from common platform message`() {
     stubPersonMatchScores()
     stubPersonMatchUpsert()
-    val firstPnc = randomPnc()
+    val firstPnc = randomLongPnc()
     val firstName = randomName()
     val lastName = randomName()
-    val secondPnc = randomPnc()
+    val secondPnc = randomLongPnc()
 
     val firstDefendantId = randomDefendantId()
     val firstDefendantNINumber = randomNationalInsuranceNumber()
@@ -511,7 +511,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should preserve pnc if originally set then missing from an update`() {
     val defendantId = randomDefendantId()
-    val pnc = randomPnc()
+    val pnc = randomLongPnc()
 
     stubPersonMatchUpsert()
     stubPersonMatchScores()
@@ -615,7 +615,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     stubPersonMatchScores()
 
     publishCommonPlatformMessage(
-      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = randomCro(), pnc = randomPnc()))),
+      commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = randomCro(), pnc = randomLongPnc()))),
     )
 
     awaitNotNullPerson {
@@ -682,7 +682,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubPersonMatchUpsert()
       stubPersonMatchScores()
 
-      val pnc = randomPnc()
+      val pnc = randomLongPnc()
       val cro = randomCro()
       val defendantId = randomDefendantId()
       val firstName = randomName()
