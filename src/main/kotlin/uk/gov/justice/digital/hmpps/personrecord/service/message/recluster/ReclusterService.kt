@@ -143,6 +143,12 @@ class ReclusterService(
   private fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity) {
     personKeyEntity.setAsActive()
     personKeyRepository.save(personKeyEntity)
+    publisher.publishEvent(
+      RecordClusterTelemetry(
+        TelemetryEventType.CPR_RECLUSTER_SELF_HEALED,
+        personKeyEntity,
+      ),
+    )
   }
 
   private fun PersonKeyEntity.clusterIsBrokenAndCanBecomeActive() = this.isNotOverrideConflict() && this.clusterIsValid()
