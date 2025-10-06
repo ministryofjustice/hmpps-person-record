@@ -22,7 +22,7 @@ class MergeService(
 
   fun processMerge(from: PersonEntity?, to: PersonEntity) {
     when {
-      from?.personKey?.hasOneRecord() == true -> markClusterAsMerged(from, to)
+      fromClusterHasOneRecord(from) -> markClusterAsMerged(from, to)
     }
     merge(from, to)
   }
@@ -59,4 +59,6 @@ class MergeService(
       throw CircularMergeException()
     }
   }
+
+  private fun fromClusterHasOneRecord(from: PersonEntity?): Boolean = from?.personKey?.hasOneRecord() == true
 }
