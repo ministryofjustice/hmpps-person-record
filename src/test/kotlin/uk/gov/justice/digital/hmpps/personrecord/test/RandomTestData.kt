@@ -17,10 +17,18 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.PROBATI
 import java.time.LocalDate
 import java.util.UUID
 
-fun randomPnc(): String {
+fun randomLongPnc(): String {
   val year = randomYear().toString()
   val digits = randomDigit(7)
   val check = VALID_LETTERS[(year.takeLast(2) + digits).toInt().mod(VALID_LETTERS.length)]
+  return "$year/$digits$check"
+}
+
+// output 79/123456H
+fun randomShortPnc(): String {
+  val year = randomYear().toString().takeLast(2)
+  val digits = randomDigit(6)
+  val check = VALID_LETTERS[(year + digits.padStart(7, '0')).toInt().mod(VALID_LETTERS.length)]
   return "$year/$digits$check"
 }
 

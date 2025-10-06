@@ -82,8 +82,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
@@ -177,7 +177,7 @@ class IntegrationTestBase {
   )
   internal fun createRandomProbationCase(crn: String = randomCrn()) = ProbationCase(
     name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
-    identifiers = Identifiers(crn = crn, pnc = randomPnc(), cro = randomCro()),
+    identifiers = Identifiers(crn = crn, pnc = randomLongPnc(), cro = randomCro()),
     addresses = listOf(
       ProbationAddress(postcode = randomPostcode()),
       ProbationAddress(postcode = randomPostcode()),
@@ -204,7 +204,7 @@ class IntegrationTestBase {
           dateOfBirth = randomDate(),
         ),
       ),
-      pncId = PNCIdentifier.from(randomPnc()),
+      pncId = PNCIdentifier.from(randomLongPnc()),
       cro = CROIdentifier.from(randomCro()),
     ),
   )
