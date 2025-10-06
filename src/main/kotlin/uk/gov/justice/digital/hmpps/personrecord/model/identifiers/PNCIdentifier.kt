@@ -40,8 +40,8 @@ data class PNCIdentifier(val pncId: String) {
 
     private fun canonicalShortForm(pnc: String): PNC {
       val checkChar = pnc.takeLast(1)
-      val year = getYearFromLastTwoDigits(pnc.take(2).toInt()) // E.g. 79 becomes 1979
-      val serialNum = pnc.substring(2).dropLast(1) // the non-year id part 123456Z
+      val year = getYearFromLastTwoDigits(pnc.take(2).toInt())
+      val serialNum = pnc.substring(2).dropLast(1)
       return PNC(checkChar, serialNum, year)
     }
 
