@@ -112,6 +112,7 @@ generic-service:
 generic-prometheus-alerts:
   targetApplication: hmpps-person-record
   alertSeverity: hmpps-person-record-alerts-prod
+  sqsAlertsTotalMessagesThreshold: "0"
 
 cron:
   recordCountReportJob: "0 0-23 * * *"
