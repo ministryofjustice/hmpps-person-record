@@ -75,6 +75,8 @@ class PersonKeyEntity(
     }
   }
 
+  fun hasOneRecord() = this.personEntities.size == 1
+
   companion object {
     val empty: PersonKeyEntity? = null
 

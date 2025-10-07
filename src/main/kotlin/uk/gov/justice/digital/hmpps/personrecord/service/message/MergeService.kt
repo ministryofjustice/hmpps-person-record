@@ -60,5 +60,5 @@ class MergeService(
     }
   }
 
-  private fun fromClusterHasOneRecord(from: PersonEntity?): Boolean = (from?.personKey?.personEntities?.size ?: 0) == 1
+  private fun fromClusterHasOneRecord(from: PersonEntity?): Boolean = from?.personKey?.hasOneRecord() == true
 }

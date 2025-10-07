@@ -155,8 +155,6 @@ class ReclusterService(
 
   private fun PersonKeyEntity.clusterIsValid() = if (this.hasOneRecord()) true else personMatchService.examineIsClusterValid(this).isClusterValid
 
-  private fun PersonKeyEntity.hasOneRecord() = this.personEntities.size == 1
-
   private fun List<PersonKeyEntity>.removeUpdatedCluster(cluster: PersonKeyEntity) = this.filterNot { it.id == cluster.id }
 
   private fun List<PersonKeyEntity>.getActiveClusters() = this.filter { it.status == ACTIVE }
