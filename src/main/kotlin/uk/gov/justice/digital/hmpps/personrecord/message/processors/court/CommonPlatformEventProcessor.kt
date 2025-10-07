@@ -56,7 +56,7 @@ class CommonPlatformEventProcessor(
       .toList()
 
     val updatedMessage = addCprUUIDToCommonPlatform(commonPlatformHearing, defendants)
-    when (messageLargerThanThreshold(commonPlatformHearing)) {
+    when (messageLargerThanThreshold(updatedMessage)) {
       true -> courtMessagePublisher.publishLargeMessage(sqsMessage, updatedMessage)
       else -> courtMessagePublisher.publishMessage(sqsMessage, updatedMessage)
     }
