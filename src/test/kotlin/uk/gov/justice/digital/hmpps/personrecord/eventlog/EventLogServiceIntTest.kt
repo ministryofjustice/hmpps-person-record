@@ -19,8 +19,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.EventLogServic
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
 
@@ -36,7 +36,7 @@ class EventLogServiceIntTest : IntegrationTestBase() {
         ProbationCase(
           name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
           dateOfBirth = randomDate(),
-          identifiers = Identifiers(crn = randomCrn(), cro = randomCro(), pnc = randomPnc()),
+          identifiers = Identifiers(crn = randomCrn(), cro = randomCro(), pnc = randomLongPnc()),
           addresses = listOf(ProbationAddress(postcode = randomPostcode())),
           aliases = listOf(
             ProbationCaseAlias(
@@ -119,7 +119,7 @@ class EventLogServiceIntTest : IntegrationTestBase() {
       Person.from(
         ProbationCase(
           name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
-          identifiers = Identifiers(crn = randomCrn(), cro = randomCro(), pnc = randomPnc()),
+          identifiers = Identifiers(crn = randomCrn(), cro = randomCro(), pnc = randomLongPnc()),
           addresses = listOf(ProbationAddress(postcode = "ZX1 1AB"), ProbationAddress(postcode = "AB1 2BC"), ProbationAddress(postcode = "ZX1 1AB")),
           aliases = listOf(
             ProbationCaseAlias(

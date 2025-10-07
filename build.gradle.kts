@@ -8,7 +8,7 @@ kotlin {
 }
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.2"
   kotlin("plugin.spring") version "2.2.20"
   kotlin("jvm") version "2.2.20"
   kotlin("plugin.jpa") version "2.2.20"
@@ -36,7 +36,7 @@ dependencies {
 
   implementation("software.amazon.sns:sns-extended-client:2.1.0")
   implementation("com.jayway.jsonpath:json-path:2.9.0")
-  implementation("io.swagger.core.v3:swagger-annotations:2.2.37")
+  implementation("io.swagger.core.v3:swagger-annotations:2.2.38")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")

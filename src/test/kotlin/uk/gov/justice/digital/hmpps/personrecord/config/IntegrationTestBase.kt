@@ -82,8 +82,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
@@ -177,7 +177,7 @@ class IntegrationTestBase {
   )
   internal fun createRandomProbationCase(crn: String = randomCrn()) = ProbationCase(
     name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
-    identifiers = Identifiers(crn = crn, pnc = randomPnc(), cro = randomCro()),
+    identifiers = Identifiers(crn = crn, pnc = randomLongPnc(), cro = randomCro()),
     addresses = listOf(
       ProbationAddress(postcode = randomPostcode()),
       ProbationAddress(postcode = randomPostcode()),
@@ -204,7 +204,7 @@ class IntegrationTestBase {
           dateOfBirth = randomDate(),
         ),
       ),
-      pncId = PNCIdentifier.from(randomPnc()),
+      pncId = PNCIdentifier.from(randomLongPnc()),
       cro = CROIdentifier.from(randomCro()),
     ),
   )
@@ -408,15 +408,7 @@ class IntegrationTestBase {
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
-    requestBody: String = "",
-  ) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = true, clusters = listOf()), scenario, currentScenarioState, nextScenarioState, requestBody = requestBody)
-
-  internal fun stubClusterIsValid(
-    scenario: String = BASE_SCENARIO,
-    currentScenarioState: String = STARTED,
-    nextScenarioState: String = STARTED,
-    clusters: List<UUID>,
-  ) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = true, clusters = listOf(clusters.map { it.toString() })), scenario, currentScenarioState, nextScenarioState)
+  ) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = true), scenario, currentScenarioState, nextScenarioState)
 
   internal fun stubPersonMatchUpsert(
     scenario: String = BASE_SCENARIO,
@@ -535,7 +527,7 @@ class IntegrationTestBase {
     nextScenarioState: String? = currentScenarioState,
   ) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/prisoner/${apiResponseSetup.prisonNumber}", prisonerSearchResponse(apiResponseSetup))
 
-  internal fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String, nextScenarioState: String) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
+  internal fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
 
   internal fun blitz(actionCount: Int, threadCount: Int, action: () -> Unit) {
     val blitzer = Blitzer(actionCount, threadCount)

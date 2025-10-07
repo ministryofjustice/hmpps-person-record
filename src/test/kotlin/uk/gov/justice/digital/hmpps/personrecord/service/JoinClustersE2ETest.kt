@@ -22,8 +22,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.responses.ApiResponseSetupAddress
@@ -42,7 +42,7 @@ class JoinClustersE2ETest : E2ETestBase() {
     val cId = randomCId()
     val defendantId = randomDefendantId()
 
-    val pnc1 = randomPnc()
+    val pnc1 = randomLongPnc()
     val cro1 = randomCro()
     val cro2 = randomCro()
     val firstName = randomName()
@@ -121,7 +121,7 @@ class JoinClustersE2ETest : E2ETestBase() {
     val firstCrnWithPnc = randomCrn()
     val secondCrnWithCro = randomCrn()
     val thirdCrnWithBoth = randomCrn()
-    val pnc = randomPnc()
+    val pnc = randomLongPnc()
     val cro = randomCro()
     val basePerson = createRandomProbationPersonDetails(firstCrnWithPnc)
     val firstSetup = ApiResponseSetup(
@@ -196,7 +196,7 @@ class JoinClustersE2ETest : E2ETestBase() {
     val firstCrnWithPnc = randomCrn()
     val secondCrnWithCro = randomCrn()
 
-    val pnc = randomPnc()
+    val pnc = randomLongPnc()
     val cro = randomCro()
     val basePerson = createRandomProbationPersonDetails(firstCrnWithPnc)
     val firstSetup = ApiResponseSetup(
@@ -247,7 +247,7 @@ class JoinClustersE2ETest : E2ETestBase() {
     val secondCrn = randomCrn()
     val thirdCrn = randomCrn()
 
-    val pnc = randomPnc()
+    val pnc = randomLongPnc()
     val cro = randomCro()
     val basePerson = createRandomProbationPersonDetails(firstCrn)
     val firstSetup = ApiResponseSetup(

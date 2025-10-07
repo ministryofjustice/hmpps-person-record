@@ -4,12 +4,12 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.Defend
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.libra.DefendantType.PERSON
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 
 fun libraHearing(
-  pncNumber: String? = randomPnc(),
+  pncNumber: String? = randomLongPnc(),
   title: String? = null,
   firstName: String? = null,
   foreName2: String? = null,

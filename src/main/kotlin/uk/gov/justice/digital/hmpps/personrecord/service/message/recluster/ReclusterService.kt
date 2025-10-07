@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonTyp
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordClusterTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordTelemetry
@@ -115,7 +116,7 @@ class ReclusterService(
     from.mergedTo = to.id
     from.status = RECLUSTER_MERGE
     personKeyRepository.save(from)
-    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_UUID_MERGED, from.personEntities.first(), from))
+    publisher.publishEvent(RecordEventLog(CPRLogEvents.CPR_RECLUSTER_UUID_MERGED, from.personEntities.first(), EventLogClusterDetail.from(from)))
 
     from.personEntities.forEach { personEntity ->
       personEntity.personKey = to
@@ -142,13 +143,17 @@ class ReclusterService(
   private fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity) {
     personKeyEntity.setAsActive()
     personKeyRepository.save(personKeyEntity)
+    publisher.publishEvent(
+      RecordClusterTelemetry(
+        TelemetryEventType.CPR_RECLUSTER_SELF_HEALED,
+        personKeyEntity,
+      ),
+    )
   }
 
   private fun PersonKeyEntity.clusterIsBrokenAndCanBecomeActive() = this.isNotOverrideConflict() && this.clusterIsValid()
 
   private fun PersonKeyEntity.clusterIsValid() = if (this.hasOneRecord()) true else personMatchService.examineIsClusterValid(this).isClusterValid
-
-  private fun PersonKeyEntity.hasOneRecord() = this.personEntities.size == 1
 
   private fun List<PersonKeyEntity>.removeUpdatedCluster(cluster: PersonKeyEntity) = this.filterNot { it.id == cluster.id }
 

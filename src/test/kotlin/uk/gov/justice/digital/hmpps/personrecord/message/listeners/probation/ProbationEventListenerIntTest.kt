@@ -28,8 +28,8 @@ import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
+import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
-import uk.gov.justice.digital.hmpps.personrecord.test.randomPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
@@ -60,7 +60,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val firstName = randomName()
       val middleName = randomName() + " " + randomName()
       val lastName = randomName()
-      val pnc = randomPnc()
+      val pnc = randomLongPnc()
       val cro = randomCro()
       val addressStartDate = randomDate()
       val addressEndDate = randomDate()
@@ -158,7 +158,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val crn = randomCrn()
       val prisonNumber = randomPrisonNumber()
       val firstName = randomName()
-      val pnc = randomPnc()
+      val pnc = randomLongPnc()
       val cro = randomCro()
       val postcode = randomPostcode()
       val existingPrisoner = Person(
@@ -259,7 +259,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `should retry on 500 error`() {
       val crn = randomCrn()
       stub5xxResponse(probationUrl(crn), "next request will succeed", "retry")
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = randomPnc()), scenario = "retry", currentScenarioState = "next request will succeed")
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = randomLongPnc()), scenario = "retry", currentScenarioState = "next request will succeed")
       expectNoMessagesOnQueueOrDlq(probationEventsQueue)
 
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
@@ -268,9 +268,9 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `test multiple requests to probation single record process successfully`() {
-      val pnc = randomPnc()
+      val pnc = randomLongPnc()
       val crn = randomCrn()
-      blitz(30, 6) {
+      blitz(30, 15) {
         probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, pnc = pnc))
       }
 
@@ -291,7 +291,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `should process personals details updated events successfully`() {
-      val pnc = randomPnc()
+      val pnc = randomLongPnc()
       val crn = randomCrn()
       val gender = randomProbationSexCode()
       val originalEthnicity = randomProbationEthnicity()
@@ -308,7 +308,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
       val createdLastModified = personEntity.lastModified
-      val changedPnc = randomPnc()
+      val changedPnc = randomLongPnc()
       val changedDateOfBirth = randomDate()
       val changedEthnicity = randomProbationEthnicity()
       val changedNationality = randomProbationNationalityCode()
@@ -402,7 +402,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val firstName = randomName()
       val middleName = randomName()
       val lastName = randomName()
-      val pnc = randomPnc()
+      val pnc = randomLongPnc()
       val cro = randomCro()
       val postcode = randomPostcode()
       val sentenceDate = randomDate()

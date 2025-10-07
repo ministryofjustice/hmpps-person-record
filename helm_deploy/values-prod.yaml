@@ -45,6 +45,5 @@ generic-prometheus-alerts:
     - "hmpps-person-record-prod-cpr_delius_delete_events_dlq"
     - "hmpps-person-record-prod-cpr_nomis_events_dlq"
     - "hmpps-person-record-prod-cpr_nomis_merge_events_dlq"
-  sqsAlertsTotalMessagesThreshold: 0
   rdsAlertsDatabases:
     cloud-platform-325c1d58e0fe99fe: "hmpps-person-record-database"
