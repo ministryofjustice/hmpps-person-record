@@ -63,6 +63,7 @@ data class ApiResponseSetup(
       crn = person.crn,
       cro = person.references.getType(IdentifierType.CRO).firstOrNull()?.identifierValue,
       pnc = person.references.getType(IdentifierType.PNC).firstOrNull()?.identifierValue,
+      prisonNumber = person.prisonNumber,
       aliases = person.aliases.map { ApiResponseSetupAlias(it.titleCode?.name, it.firstName, it.middleNames, it.lastName, it.dateOfBirth) },
       nationality = person.nationalities.firstOrNull()?.code?.name,
       secondaryNationality = person.nationalities.lastOrNull()?.code?.name,
