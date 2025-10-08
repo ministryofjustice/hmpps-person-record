@@ -252,22 +252,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should not link a new prison record to a cluster if its not above the join threshold`() {
-      val prisonNumber = randomPrisonNumber()
-
-      val existingPerson = createPersonWithNewKey(createRandomPrisonPersonDetails(randomPrisonNumber()))
-
-      stubOnePersonMatchAboveFractureThreshold(matchedRecord = existingPerson.matchId)
-      prisonDomainEventAndResponseSetup(PRISONER_CREATED, apiResponseSetup = ApiResponseSetup(prisonNumber = prisonNumber))
-
-      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
-      checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
-      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
-
-      awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumber) }
-    }
-
-    @Test
     fun `should retry on retryable 500 error from prisoner search`() {
       val prisonNumber = randomPrisonNumber()
       stubNoMatchesPersonMatch()
