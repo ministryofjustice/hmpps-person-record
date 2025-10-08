@@ -3,7 +3,12 @@ package uk.gov.justice.digital.hmpps.personrecord.test.responses
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.PNC
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
@@ -61,16 +66,17 @@ data class ApiResponseSetup(
       lastName = person.lastName,
       dateOfBirth = person.dateOfBirth,
       crn = person.crn,
-      cro = person.references.getType(IdentifierType.CRO).firstOrNull()?.identifierValue,
-      pnc = person.references.getType(IdentifierType.PNC).firstOrNull()?.identifierValue,
+      prisonNumber = person.prisonNumber,
+      cro = person.references.getType(CRO).firstOrNull()?.identifierValue,
+      pnc = person.references.getType(PNC).firstOrNull()?.identifierValue,
       aliases = person.aliases.map { ApiResponseSetupAlias(it.titleCode?.name, it.firstName, it.middleNames, it.lastName, it.dateOfBirth) },
       nationality = person.nationalities.firstOrNull()?.code?.name,
       secondaryNationality = person.nationalities.lastOrNull()?.code?.name,
       religion = person.religion,
       addresses = person.addresses.map { ApiResponseSetupAddress(it.noFixedAbode, it.startDate, it.endDate, it.postcode, it.fullAddress) },
-      nationalInsuranceNumber = person.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).firstOrNull()?.identifierValue,
-      email = person.contacts.getType(ContactType.EMAIL).firstOrNull()?.contactValue,
-      driverLicenseNumber = person.references.getType(IdentifierType.DRIVER_LICENSE_NUMBER).firstOrNull()?.identifierValue,
+      nationalInsuranceNumber = person.references.getType(NATIONAL_INSURANCE_NUMBER).firstOrNull()?.identifierValue,
+      email = person.contacts.getType(EMAIL).firstOrNull()?.contactValue,
+      driverLicenseNumber = person.references.getType(DRIVER_LICENSE_NUMBER).firstOrNull()?.identifierValue,
       identifiers = person.references.mapNotNull { ref -> ref.identifierValue?.let { ApiResponseSetupIdentifier(ref.identifierType.name, it) } },
       sentences = person.sentences.map { ApiResponseSetupSentences(it.sentenceDate) },
       gender = person.sexCode?.name,
