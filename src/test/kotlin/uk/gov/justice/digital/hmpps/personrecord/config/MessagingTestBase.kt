@@ -236,11 +236,10 @@ abstract class MessagingTestBase : IntegrationTestBase() {
 
   fun prisonDomainEventAndResponseSetup(
     eventType: String,
-    prisonNumber: String,
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
-    apiResponseSetup: ApiResponseSetup =ApiResponseSetup(prisonNumber = prisonNumber),
+    apiResponseSetup: ApiResponseSetup,
   ) {
     stubPrisonResponse(
       apiResponseSetup,
@@ -253,7 +252,7 @@ abstract class MessagingTestBase : IntegrationTestBase() {
       eventType,
       prisonDomainEvent(
         eventType,
-        prisonNumber
+        apiResponseSetup.prisonNumber!!,
       ),
     )
   }

@@ -2,9 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER

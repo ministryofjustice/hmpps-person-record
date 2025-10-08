@@ -106,7 +106,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val gender = randomPrisonSexCode()
 
       stubNoMatchesPersonMatch()
-      prisonDomainEventAndResponseSetup(PRISONER_CREATED,prisonNumber, apiResponseSetup = ApiResponseSetup(title = title, gender = gender.key, aliases = listOf(ApiResponseSetupAlias(title, aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
+      prisonDomainEventAndResponseSetup(
+        PRISONER_CREATED,
+        apiResponseSetup = ApiResponseSetup(title = title, gender = gender.key, aliases = listOf(ApiResponseSetupAlias(title, aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))),
+      )
 
       checkTelemetry(
         CPR_RECORD_CREATED,
@@ -167,7 +170,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val prisonNumber = randomPrisonNumber()
 
       stubNoMatchesPersonMatch()
-      prisonDomainEventAndResponseSetup(PRISONER_CREATED, prisonNumber, apiResponseSetup = ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomLongPnc(), email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = randomFullAddress())), dateOfBirth = randomDate(), nationality = null, religion = null))
+      prisonDomainEventAndResponseSetup(
+        PRISONER_CREATED,
+        apiResponseSetup = ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomLongPnc(), email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = randomFullAddress())), dateOfBirth = randomDate(), nationality = null, religion = null),
+      )
 
       checkTelemetry(
         CPR_RECORD_CREATED,
@@ -189,7 +195,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sentenceStartDate = randomDate()
 
       stubNoMatchesPersonMatch()
-      prisonDomainEventAndResponseSetup(PRISONER_CREATED,prisonNumber, apiResponseSetup = ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomLongPnc(), sentenceStartDate = sentenceStartDate, primarySentence = false, email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = randomFullAddress())), dateOfBirth = randomDate(), nationality = null, religion = null))
+      prisonDomainEventAndResponseSetup(
+        PRISONER_CREATED,
+        apiResponseSetup = ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomLongPnc(), sentenceStartDate = sentenceStartDate, primarySentence = false, email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = randomFullAddress())), dateOfBirth = randomDate(), nationality = null, religion = null),
+      )
 
       checkTelemetry(
         CPR_RECORD_CREATED,
@@ -215,7 +224,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val title = randomTitle()
       val updatedSexCode = randomPrisonSexCode()
       stubNoMatchesPersonMatch(matchId = prisoner.matchId)
-      prisonDomainEventAndResponseSetup(PRISONER_UPDATED, prisonNumber, apiResponseSetup = ApiResponseSetup(gender = updatedSexCode.key, title = title, prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity))
+      prisonDomainEventAndResponseSetup(
+        PRISONER_UPDATED,
+        apiResponseSetup = ApiResponseSetup(gender = updatedSexCode.key, title = title, prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity),
+      )
       checkTelemetry(
         CPR_RECORD_UPDATED,
         mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
@@ -248,7 +260,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val existingPerson = createPersonWithNewKey(createRandomPrisonPersonDetails(randomPrisonNumber()))
 
       stubOnePersonMatchAboveFractureThreshold(matchedRecord = existingPerson.matchId)
-      prisonDomainEventAndResponseSetup(PRISONER_CREATED, prisonNumber, apiResponseSetup = ApiResponseSetup(prisonNumber = prisonNumber))
+      prisonDomainEventAndResponseSetup(PRISONER_CREATED, apiResponseSetup = ApiResponseSetup(prisonNumber = prisonNumber))
 
       checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
@@ -332,7 +344,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       stubPersonMatchUpsert()
       stubNoMatchesPersonMatch()
-      prisonDomainEventAndResponseSetup(PRISONER_CREATED, prisonNumber, apiResponseSetup = ApiResponseSetup(aliases = listOf(ApiResponseSetupAlias(firstName = aliasFirstName, middleName = aliasMiddleName, lastName = aliasLastName, dateOfBirth = aliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, sentenceStartDate = sentenceStartDate, primarySentence = true, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true, fullAddress = "")), dateOfBirth = personDateOfBirth))
+      prisonDomainEventAndResponseSetup(
+        PRISONER_CREATED,
+        apiResponseSetup = ApiResponseSetup(aliases = listOf(ApiResponseSetupAlias(firstName = aliasFirstName, middleName = aliasMiddleName, lastName = aliasLastName, dateOfBirth = aliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, sentenceStartDate = sentenceStartDate, primarySentence = true, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true, fullAddress = "")), dateOfBirth = personDateOfBirth),
+      )
 
       checkEventLog(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
         assertThat(eventLogs.size).isEqualTo(1)
