@@ -1,6 +1,5 @@
 server:
-  server.shutdown=graceful
-  spring.lifecycle.timeout-per-shutdown-phase=2s
+  address: 127.0.0.1
 
 management.endpoint:
   health.cache.time-to-live: 0
@@ -80,15 +79,6 @@ spring:
     url: jdbc:postgresql://localhost:5432/postgres?currentSchema=personrecordservice&user=root&password=dev&stringtype=unspecified
     hikari:
       maximum-pool-size: 20
-
-populate-from-nomis:
-  page-size: 2
-
-populate-from-probation:
-  page-size: 2
-
-populate-person-match:
-  batch-size: 10
 
 aws:
   endpoint: http://localhost:4566
