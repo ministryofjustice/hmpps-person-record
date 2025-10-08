@@ -10,23 +10,23 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName as OffenderName
 
-class CreateUpdateServiceIntTest : IntegrationTestBase() {
+class PersonServiceIntTest : IntegrationTestBase() {
 
   @Autowired
-  lateinit var createUpdateService: CreateUpdateService
+  lateinit var personService: PersonService
 
   @Test
   fun `should not log record update when no change in matching fields`() {
     val person = createRandomProbationPersonDetails()
     val existingPerson = createPersonWithNewKey(person)
 
-    createUpdateService.processPerson(person) { existingPerson }
+    personService.processPerson(person) { existingPerson }
 
     checkEventLogExist(existingPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED, times = 0)
   }
@@ -42,7 +42,7 @@ class CreateUpdateServiceIntTest : IntegrationTestBase() {
     val updatedPerson = Person.from(LibraHearingEvent(name = Name(firstName = randomName(), lastName = lastName), cId = cId))
     stubPersonMatchUpsert()
     stubPersonMatchScores()
-    createUpdateService.processPerson(updatedPerson) { existingPerson }
+    personService.processPerson(updatedPerson) { existingPerson }
 
     checkEventLogExist(existingPerson.cId!!, CPRLogEvents.CPR_RECORD_UPDATED)
   }
@@ -71,7 +71,7 @@ class CreateUpdateServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    createUpdateService.processPerson(updatedPerson) { existingPerson }
+    personService.processPerson(updatedPerson) { existingPerson }
 
     checkEventLogExist(existingPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED, times = 0)
   }

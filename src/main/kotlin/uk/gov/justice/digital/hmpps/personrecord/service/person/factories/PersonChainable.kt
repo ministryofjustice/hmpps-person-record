@@ -6,4 +6,5 @@ data class PersonChainable(
   val personEntity: PersonEntity,
   val matchingFieldsChanged: Boolean,
   val linkOnCreate: Boolean,
+
 )
