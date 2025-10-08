@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.getPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonEventProcessor
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.DomainEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.service.queue.Queues
 
@@ -18,9 +17,8 @@ class PrisonEventListener(
 
   @SqsListener(Queues.PRISON_EVENT_QUEUE_ID, factory = "hmppsQueueContainerFactoryProxy")
   fun onDomainEvent(rawMessage: String) = domainEventProcessor.processDomainEvent(rawMessage) {
-    val prisonNumber = it.getPrisonNumber()
-    prisonerSearchClient.getPrisoner(prisonNumber)?.let { prisoner ->
-      prisonEventProcessor.processEvent(Person.from(prisoner))
+    prisonerSearchClient.getPrisoner(it.getPrisonNumber())?.let { person ->
+      prisonEventProcessor.processEvent(person)
     }
   }
 }
