@@ -100,7 +100,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.addresses[0].postTown).isEqualTo(postTown)
     assertThat(person.addresses[0].subBuildingName).isNull()
     assertThat(person.addresses[0].county).isNull()
-    assertThat(person.addresses[0].country).isNull()
+    assertThat(person.addresses[0].countryCode).isNull()
     assertThat(person.addresses[0].uprn).isNull()
     assertThat(person.personKey).isNotNull()
     assertThat(person.sourceSystem).isEqualTo(LIBRA)

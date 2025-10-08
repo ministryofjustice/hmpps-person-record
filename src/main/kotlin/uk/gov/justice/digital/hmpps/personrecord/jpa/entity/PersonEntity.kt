@@ -89,8 +89,8 @@ class PersonEntity(
   @Column(name = "birth_place")
   val birthplace: String? = null,
 
-  @Column(name = "birth_country")
-  val birthCountry: String? = null,
+  @Column(name = "birth_country_code")
+  val birthCountryCode: String? = null,
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
