@@ -6,16 +6,16 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Component
 class TransactionalLibraProcessor(
   private val personRepository: PersonRepository,
-  private val createUpdateService: CreateUpdateService,
+  private val personService: PersonService,
 ) {
 
   @Transactional(isolation = REPEATABLE_READ)
-  fun processLibraPerson(person: Person): PersonEntity = createUpdateService.processPerson(person) {
+  fun processLibraPerson(person: Person): PersonEntity = personService.processPerson(person) {
     person.cId?.let {
       personRepository.findByCId(it)
     }
