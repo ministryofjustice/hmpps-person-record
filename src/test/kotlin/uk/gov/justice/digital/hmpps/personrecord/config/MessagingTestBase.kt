@@ -234,6 +234,30 @@ abstract class MessagingTestBase : IntegrationTestBase() {
 
   fun prisonDomainEvent(eventType: String, prisonNumber: String, additionalInformation: AdditionalInformation? = null) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))), additionalInformation)
 
+  fun prisonDomainEventAndResponseSetup(
+    eventType: String,
+    prisonNumber: String,
+    scenario: String = BASE_SCENARIO,
+    currentScenarioState: String = STARTED,
+    nextScenarioState: String = STARTED,
+    apiResponseSetup: ApiResponseSetup =ApiResponseSetup(prisonNumber = prisonNumber),
+  ) {
+    stubPrisonResponse(
+      apiResponseSetup,
+      scenario,
+      currentScenarioState,
+      nextScenarioState,
+    )
+
+    publishDomainEvent(
+      eventType,
+      prisonDomainEvent(
+        eventType,
+        prisonNumber
+      ),
+    )
+  }
+
   fun prisonMergeEventAndResponseSetup(
     eventType: String,
     sourcePrisonNumber: String,
