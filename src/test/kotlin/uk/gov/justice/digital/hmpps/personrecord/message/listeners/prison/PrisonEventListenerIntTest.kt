@@ -10,8 +10,9 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
@@ -46,7 +47,7 @@ import java.time.LocalDate
 
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun waitForMessageToBeProcessedAndDiscarded() {
-    sleep(1000)
+    sleep(500)
   }
 
   @Test
@@ -113,7 +114,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(
         CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
@@ -128,8 +129,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.religion).isEqualTo(religion)
         assertThat(personEntity.getPnc()).isEqualTo(PNCIdentifier.from(pnc).pncId)
         assertThat(personEntity.getCro()).isEqualTo(cro)
-        assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(nationalInsuranceNumber)
-        assertThat(personEntity.references.getType(IdentifierType.DRIVER_LICENSE_NUMBER).first()).isEqualTo(driverLicenseNumber)
+        assertThat(personEntity.references.getType(NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(nationalInsuranceNumber)
+        assertThat(personEntity.references.getType(DRIVER_LICENSE_NUMBER).first()).isEqualTo(driverLicenseNumber)
         assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(personDateOfBirth)
         assertThat(personEntity.getAliases().size).isEqualTo(1)
         assertThat(personEntity.getAliases()[0].titleCode?.code).isEqualTo(storedTitle.code)
@@ -162,7 +163,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
 
-      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber))
+      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
     }
 
     @Test
@@ -172,12 +173,12 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubNoMatchesPersonMatch()
       prisonDomainEventAndResponseSetup(
         PRISONER_CREATED,
-        apiResponseSetup = ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomLongPnc(), email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = randomFullAddress())), dateOfBirth = randomDate(), nationality = null, religion = null),
+        apiResponseSetup = ApiResponseSetup(prisonNumber = prisonNumber, nationality = null, religion = null),
       )
 
       checkTelemetry(
         CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
 
       awaitAssert {
@@ -186,7 +187,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.religion).isEqualTo(null)
       }
 
-      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber))
+      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
     }
 
     @Test
@@ -197,12 +198,12 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubNoMatchesPersonMatch()
       prisonDomainEventAndResponseSetup(
         PRISONER_CREATED,
-        apiResponseSetup = ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomLongPnc(), sentenceStartDate = sentenceStartDate, primarySentence = false, email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = randomFullAddress())), dateOfBirth = randomDate(), nationality = null, religion = null),
+        apiResponseSetup = ApiResponseSetup(prisonNumber = prisonNumber, sentenceStartDate = sentenceStartDate, primarySentence = false),
       )
 
       checkTelemetry(
         CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
 
       awaitAssert {
@@ -210,7 +211,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.sentenceInfo.size).isEqualTo(0)
       }
 
-      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber))
+      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
     }
 
     @Test
@@ -230,7 +231,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
       checkTelemetry(
         CPR_RECORD_UPDATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
 
@@ -281,11 +282,11 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(
         CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
       checkTelemetry(
         CPR_UUID_CREATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
     }
 
@@ -303,7 +304,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumber = prisonNumber) }
       checkTelemetry(
         CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
       expectNoMessagesOnQueueOrDlq(prisonEventsQueue)
     }
@@ -318,7 +319,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       publishDomainEvent(PRISONER_CREATED, domainEvent)
       checkTelemetry(
         CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
     }
   }
@@ -358,7 +359,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(createdLog.middleNames).isEqualTo("$middleName $middleName")
         assertThat(createdLog.lastName).isEqualTo(lastName)
         assertThat(createdLog.dateOfBirth).isEqualTo(personDateOfBirth)
-        assertThat(createdLog.sourceSystem).isEqualTo(SourceSystemType.NOMIS)
+        assertThat(createdLog.sourceSystem).isEqualTo(NOMIS)
         assertThat(createdLog.postcodes).isEqualTo(arrayOf(postcode))
         assertThat(createdLog.sentenceDates).isEqualTo(arrayOf(sentenceStartDate))
         assertThat(createdLog.firstNameAliases).isEqualTo(arrayOf(aliasFirstName))
