@@ -305,7 +305,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
       expectNoMessagesOnQueueOrDlq(prisonEventsQueue)
     }
-    
   }
 
   @Nested
