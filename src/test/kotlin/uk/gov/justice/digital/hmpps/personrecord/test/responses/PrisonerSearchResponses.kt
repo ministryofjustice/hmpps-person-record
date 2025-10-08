@@ -4,7 +4,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
   {
     "prisonerNumber": "${responseSetup.prisonNumber}",
     "pncNumber": "${responseSetup.pnc}",
-    "pncNumberCanonicalShort": "${responseSetup.pnc?.takeLast(11)}",
+    "pncNumberCanonicalShort": "${responseSetup.pnc}",
     "pncNumberCanonicalLong": "${responseSetup.pnc}",
     "croNumber": "${responseSetup.cro}",
     "bookingId": "0001200924",
