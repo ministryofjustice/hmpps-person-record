@@ -71,7 +71,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val prisonNumber = randomPrisonNumber()
     val cid = randomCId()
 
-    val person = createPersonWithNewKey(
+    val (person, personKey) = createPersonAndKey(
       Person(
         firstName = randomName(),
         lastName = randomName(),
@@ -98,7 +98,7 @@ class CanonicalApiIntTest : WebTestBase() {
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(person.personKey?.personUUID.toString()))
+      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -115,7 +115,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val cpEthnicity = ethnicity.getCommonPlatformEthnicity()
     val canonicalEthnicity = CanonicalEthnicity(code = cpEthnicity.code, description = cpEthnicity.description)
 
-    assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personUUID.toString())
+    assertThat(responseBody.cprUUID).isEqualTo(personKey.personUUID.toString())
     assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
     assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
     assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
@@ -150,10 +150,12 @@ class CanonicalApiIntTest : WebTestBase() {
     val crn = randomCrn()
 
     val personKey = createPersonKey().addPerson(
-      createPerson(Person(
-        sourceSystem = NOMIS,
-        crn = crn,
-      )),
+      createPerson(
+        Person(
+          sourceSystem = NOMIS,
+          crn = crn,
+        ),
+      ),
     )
 
     val responseBody = webTestClient.get()
@@ -207,16 +209,18 @@ class CanonicalApiIntTest : WebTestBase() {
 
     val aliasFirstName = randomName()
 
-    val person = createPersonWithNewKey(
-      Person(
-        sourceSystem = NOMIS,
-        crn = crn,
-        aliases = listOf(Alias(firstName = aliasFirstName)),
+    val personKey = createPersonKey().addPerson(
+      createPerson(
+        Person(
+          sourceSystem = NOMIS,
+          crn = crn,
+          aliases = listOf(Alias(firstName = aliasFirstName)),
+        ),
       ),
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(person.personKey?.personUUID.toString()))
+      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -239,12 +243,14 @@ class CanonicalApiIntTest : WebTestBase() {
     val postcode = randomPostcode()
 
     val personKey = createPersonKey().addPerson(
-      createPerson(Person(
-        sourceSystem = NOMIS,
-        crn = crn,
-        addresses = listOf(Address(postcode = postcode)),
-      )
-    ))
+      createPerson(
+        Person(
+          sourceSystem = NOMIS,
+          crn = crn,
+          addresses = listOf(Address(postcode = postcode)),
+        ),
+      ),
+    )
 
     val responseBody = webTestClient.get()
       .uri(canonicalAPIUrl(personKey.personUUID.toString()))

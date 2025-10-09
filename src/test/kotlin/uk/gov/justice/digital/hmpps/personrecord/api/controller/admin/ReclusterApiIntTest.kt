@@ -136,7 +136,7 @@ class ReclusterApiIntTest : WebTestBase() {
         .expectStatus()
         .isOk
 
-      recordsWithCluster.forEach { (_,personKey) ->
+      recordsWithCluster.forEach { (_, personKey) ->
         checkTelemetry(
           CPR_ADMIN_RECLUSTER_TRIGGERED,
           mapOf("UUID" to personKey.personUUID.toString()),
@@ -146,7 +146,7 @@ class ReclusterApiIntTest : WebTestBase() {
 
     @Test
     fun `should set needs attention to active when cluster is valid`() {
-      val (person,personKey) = createPersonAndKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+      val (person, personKey) = createPersonAndKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
       val request = listOf(AdminReclusterRecord(DELIUS, person.crn!!))
 
       webTestClient.post()
