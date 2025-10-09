@@ -39,7 +39,7 @@ data class Alias(
       middleNames = alias.middleNames,
       lastName = alias.lastName,
       dateOfBirth = alias.dateOfBirth,
-      sexCode = SexCode.from(alias)
+      sexCode = SexCode.from(alias),
     )
 
     fun from(pseudonymEntity: PseudonymEntity): Alias = Alias(
