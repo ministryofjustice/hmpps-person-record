@@ -46,7 +46,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should process offender delete with 1 record on single UUID`() {
     val crn = randomCrn()
     val domainEvent = probationDomainEvent(OFFENDER_DELETION, crn)
-    val (person,personKey) = createPersonAndKey(createRandomProbationPersonDetails(crn))
+    val (person, personKey) = createPersonAndKey(createRandomProbationPersonDetails(crn))
 
     publishDomainEvent(OFFENDER_DELETION, domainEvent)
 
@@ -215,7 +215,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val (recordA, recordAKey) = createPersonAndKey(createRandomProbationPersonDetails(recordACrn))
 
     // Second Record Cluster (2 Records - C merged to B)
-    val (recordB,recordBKey) = createPersonAndKey(createRandomProbationPersonDetails(recordBCrn))
+    val (recordB, recordBKey) = createPersonAndKey(createRandomProbationPersonDetails(recordBCrn))
     val recordC = createPerson(createRandomProbationPersonDetails(recordCCrn))
 
     mergeRecord(recordC, recordB)
