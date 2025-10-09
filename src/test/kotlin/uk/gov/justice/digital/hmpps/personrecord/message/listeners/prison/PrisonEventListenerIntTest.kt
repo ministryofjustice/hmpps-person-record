@@ -221,10 +221,14 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val updatedNationality = randomPrisonNationalityCode()
       val title = randomTitle()
       val updatedSexCode = randomPrisonSexCode()
+
+      val updatedAliasGender = randomPrisonSexCode()
+      val updatedAlias = ApiResponseSetupAlias(title = randomTitle(), firstName = randomName(), lastName = randomName(), gender = updatedAliasGender.key)
+
       stubNoMatchesPersonMatch(matchId = prisoner.matchId)
       prisonDomainEventAndResponseSetup(
         PRISONER_UPDATED,
-        apiResponseSetup = ApiResponseSetup(gender = updatedSexCode.key, title = title, prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity),
+        apiResponseSetup = ApiResponseSetup(gender = updatedSexCode.key, title = title, prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity, aliases = listOf(updatedAlias)),
       )
       checkTelemetry(
         CPR_RECORD_UPDATED,
@@ -240,6 +244,8 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().titleCode?.description).isEqualTo(storedTitle.description)
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
         assertThat(personEntity.sexCode).isEqualTo(updatedSexCode.value)
+
+        assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(updatedAliasGender.value)
 
         val storedPrisonEthnicity = ethnicity.getPrisonEthnicity()
         assertThat(personEntity.ethnicityCode?.code).isEqualTo(storedPrisonEthnicity.code)
