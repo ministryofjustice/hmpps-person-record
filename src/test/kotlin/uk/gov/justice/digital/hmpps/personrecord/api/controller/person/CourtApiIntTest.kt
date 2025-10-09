@@ -78,7 +78,7 @@ class CourtApiIntTest : WebTestBase() {
       val prisonNumber = randomPrisonNumber()
       val cid = randomCId()
 
-      val person = createPersonWithNewKey(
+      val (person) = createPersonAndKey(
         Person(
           firstName = randomName(),
           lastName = randomName(),
@@ -186,7 +186,7 @@ class CourtApiIntTest : WebTestBase() {
     fun `should return null when values are null or empty for get canonical record`() {
       val defendantId = randomDefendantId()
 
-      val person = createPersonWithNewKey(
+      val (person) = createPersonAndKey(
         Person(
           sourceSystem = COMMON_PLATFORM,
           defendantId = defendantId,
@@ -243,7 +243,7 @@ class CourtApiIntTest : WebTestBase() {
 
       val aliasFirstName = randomName()
 
-      val person = createPersonWithNewKey(
+      val (person) = createPersonAndKey(
         Person(
           sourceSystem = COMMON_PLATFORM,
           defendantId = defendantId,
@@ -274,7 +274,7 @@ class CourtApiIntTest : WebTestBase() {
 
       val postcode = randomPostcode()
 
-      val person = createPersonWithNewKey(
+      val (person) = createPersonAndKey(
         Person(
           sourceSystem = COMMON_PLATFORM,
           defendantId = defendantId,
@@ -308,8 +308,6 @@ class CourtApiIntTest : WebTestBase() {
 
     @Test
     fun `should add list of additional identifiers to the canonical record`() {
-      val personKey = createPersonKey()
-
       val personOneCro = randomCro()
       val personTwoCro = randomCro()
 
@@ -361,8 +359,7 @@ class CourtApiIntTest : WebTestBase() {
               identifierValue = personOneDriversLicenseNumber,
             ),
           ),
-        ),
-        personKey,
+        )
       )
 
       val personTwo = createPerson(
@@ -395,9 +392,9 @@ class CourtApiIntTest : WebTestBase() {
               identifierValue = personTwoDriversLicenseNumber,
             ),
           ),
-        ),
-        personKey,
+        )
       )
+      createPersonKey().addPerson(personOne).addPerson(personTwo)
 
       val responseBody = webTestClient.get()
         .uri(commonPlatformApiUrl(personOne.defendantId))
@@ -442,11 +439,9 @@ class CourtApiIntTest : WebTestBase() {
 
     @Test
     fun `should add an empty list of additional identifiers when null`() {
-      val personKey = createPersonKey()
-
       val defendantId = randomDefendantId()
 
-      val person = createPerson(
+      val (person) = createPersonAndKey(
         Person(
           firstName = randomName(),
           lastName = randomName(),
@@ -457,9 +452,9 @@ class CourtApiIntTest : WebTestBase() {
           religion = randomReligion(),
           masterDefendantId = randomDefendantId(),
           defendantId = defendantId,
-        ),
-        personKey,
+        )
       )
+
 
       val responseBody = webTestClient.get()
         .uri(commonPlatformApiUrl(person.defendantId))
@@ -482,7 +477,7 @@ class CourtApiIntTest : WebTestBase() {
       val crn = randomCrn()
       val defendantId = randomDefendantId()
 
-      val defendant = createPersonWithNewKey(createRandomCommonPlatformPersonDetails(defendantId))
+      val (defendant) = createPersonAndKey(createRandomCommonPlatformPersonDetails(defendantId))
 
       val probationCase = ProbationCase(
         name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
