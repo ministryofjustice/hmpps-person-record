@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.PERSON_RECORD_ADMIN_READ_ONLY
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminEventLogSummary
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents.CPR_RECORD_SEEDED
@@ -39,14 +39,14 @@ class EventLogApiIntTest : WebTestBase() {
 
   @Test
   fun `should return list of event logs`() {
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails())
+    val (person, personKey) = createPersonAndKey(createRandomProbationPersonDetails())
 
     eventLogService.logEvent(RecordEventLog(CPR_RECORD_CREATED, person))
     eventLogService.logEvent(RecordEventLog(CPR_UUID_CREATED, person))
 
-    val response = getSummary(person)
+    val response = getSummary(personKey)
 
-    assertThat(response.uuid).isEqualTo(person.personKey?.personUUID.toString())
+    assertThat(response.uuid).isEqualTo(personKey.personUUID.toString())
     assertThat(response.eventLogs.count()).isEqualTo(2)
     assertThat(response.eventLogs[0].eventType).isEqualTo(CPR_UUID_CREATED.name)
     assertThat(response.eventLogs[0].uuidStatusType).isEqualTo("ACTIVE")
@@ -63,17 +63,17 @@ class EventLogApiIntTest : WebTestBase() {
 
   @Test
   fun `should return override markers`() {
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails())
-    val otherPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+    val (person, personKey) = createPersonAndKey(createRandomProbationPersonDetails())
+    val (otherPerson) = createPersonAndKey(createRandomProbationPersonDetails())
     stubPersonMatchUpsert()
     excludeRecord(person, otherPerson)
 
     val excludedPerson = personRepository.findByCrn(person.crn!!)!!
     eventLogService.logEvent(RecordEventLog(CPR_RECORD_UPDATED, excludedPerson))
 
-    val response = getSummary(person)
+    val response = getSummary(personKey)
 
-    assertThat(response.uuid).isEqualTo(person.personKey?.personUUID.toString())
+    assertThat(response.uuid).isEqualTo(personKey.personUUID.toString())
     assertThat(response.eventLogs[0].eventType).isEqualTo(CPR_RECORD_UPDATED.name)
     assertThat(response.eventLogs[0].overrideMarker).isEqualTo(excludedPerson.overrideMarker.toString())
     assertThat(response.eventLogs[0].overrideScopes).isEqualTo(excludedPerson.overrideScopes.map { it.scope.toString() }.toTypedArray())
@@ -81,30 +81,27 @@ class EventLogApiIntTest : WebTestBase() {
 
   @Test
   fun `should return seeded event log`() {
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails())
+    val (person, personKey) = createPersonAndKey(createRandomProbationPersonDetails())
 
     eventLogService.logEvent(RecordEventLog(CPR_RECORD_SEEDED, person))
 
-    val response = getSummary(person)
+    val response = getSummary(personKey)
 
-    assertThat(response.uuid).isEqualTo(person.personKey?.personUUID.toString())
+    assertThat(response.uuid).isEqualTo(personKey.personUUID.toString())
     assertThat(response.eventLogs.count()).isEqualTo(1)
     assertThat(response.eventLogs[0].eventType).isEqualTo(CPR_RECORD_SEEDED.name)
     assertThat(response.eventLogs[0].uuidStatusType).isEqualTo("ACTIVE")
   }
 
-  private fun getSummary(person: PersonEntity): AdminEventLogSummary {
-    val response = webTestClient.get()
-      .uri(eventLogUrl(person.personKey?.personUUID.toString()))
-      .authorised(roles = listOf(PERSON_RECORD_ADMIN_READ_ONLY))
-      .exchange()
-      .expectStatus()
-      .isOk
-      .expectBody(AdminEventLogSummary::class.java)
-      .returnResult()
-      .responseBody!!
-    return response
-  }
+  private fun getSummary(personKey: PersonKeyEntity): AdminEventLogSummary = webTestClient.get()
+    .uri(eventLogUrl(personKey.personUUID.toString()))
+    .authorised(roles = listOf(PERSON_RECORD_ADMIN_READ_ONLY))
+    .exchange()
+    .expectStatus()
+    .isOk
+    .expectBody(AdminEventLogSummary::class.java)
+    .returnResult()
+    .responseBody!!
 
   @Test
   fun `should return Access Denied 403 when role is wrong`() {
