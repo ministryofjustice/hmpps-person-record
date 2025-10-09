@@ -120,6 +120,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(firstName)
         assertThat(personEntity.getPrimaryName().middleNames).isEqualTo("$middleName $middleName")
         assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
+        assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
         assertThat(personEntity.religion).isEqualTo(religion)
         assertThat(personEntity.getPnc()).isEqualTo(PNCIdentifier.from(pnc).pncId)
         assertThat(personEntity.getCro()).isEqualTo(cro)
