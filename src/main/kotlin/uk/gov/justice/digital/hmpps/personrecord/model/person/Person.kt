@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -46,6 +47,7 @@ data class Person(
   val sentences: List<SentenceInfo> = emptyList(),
   val cId: String? = null,
   val sexCode: SexCode? = null,
+  val sexualOrientation: SexualOrientation? = null,
   val behaviour: Behaviour = Behaviour(),
 ) {
 
@@ -90,6 +92,7 @@ data class Person(
         sourceSystem = DELIUS,
         sentences = probationCase.sentences?.map { SentenceInfo.from(it) } ?: emptyList(),
         sexCode = SexCode.from(probationCase),
+        sexualOrientation = SexualOrientation.from(probationCase)
       )
     }
 

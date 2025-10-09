@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -100,7 +101,8 @@ class PersonEntity(
   var religion: String? = null,
 
   @Column(name = "sexual_orientation")
-  val sexualOrientation: String? = null,
+  @Enumerated(STRING)
+  val sexualOrientation: SexualOrientation? = null,
 
   @Column(name = "sex_code")
   @Enumerated(STRING)
@@ -240,6 +242,7 @@ class PersonEntity(
         cId = person.cId,
         lastModified = LocalDateTime.now(),
         sexCode = person.sexCode,
+        sexualOrientation = person.sexualOrientation
       )
       personEntity.updateChildEntities(person)
       return personEntity
