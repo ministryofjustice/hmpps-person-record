@@ -99,7 +99,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         val crn = randomCrn()
         val prisonNumber = randomPrisonNumber()
 
-        val person = createPersonWithNewKey(
+        val (person) = createPersonAndKey(
           Person(
             firstName = randomName(),
             lastName = randomName(),
@@ -418,7 +418,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           gender = Value(randomProbationSexCode().key),
           nationality = Value(randomProbationNationalityCode()),
         )
-        createPersonWithNewKey(defendant)
+        createPersonAndKey(defendant)
         webTestClient.put()
           .uri(probationApiUrl(defendantId))
           .authorised(listOf(PROBATION_API_READ_WRITE))
@@ -489,7 +489,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           identifiers = Identifiers(crn = randomCrn(), cro = defendant.getCro(), pnc = defendant.getPnc()),
           dateOfBirth = defendant.dateOfBirth,
         )
-        createPersonWithNewKey(defendant)
+        createPersonAndKey(defendant)
         webTestClient.put()
           .uri(probationApiUrl(defendantId))
           .authorised(listOf(PROBATION_API_READ_WRITE))
@@ -522,7 +522,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         val defendantId = randomDefendantId()
 
         val person = createRandomCommonPlatformPersonDetails(defendantId)
-        val defendant = createPersonWithNewKey(person)
+        val (defendant, personKey) = createPersonAndKey(person)
 
         val crn = randomCrn()
         probationDomainEventAndResponseSetup(
@@ -532,7 +532,7 @@ class ProbationApiE2ETest : E2ETestBase() {
 
         val offender = awaitNotNullPerson { personRepository.findByCrn(crn) }
 
-        assertThat(offender.personKey?.personUUID.toString()).isNotEqualTo(defendant.personKey?.personUUID.toString())
+        assertThat(offender.personKey?.personUUID.toString()).isNotEqualTo(personKey.personUUID.toString())
 
         val probationCase = ProbationCase(
           name = ProbationCaseName(firstName = person.firstName, lastName = person.lastName),
