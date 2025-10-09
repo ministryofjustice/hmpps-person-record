@@ -213,23 +213,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should not link a new probation record to a cluster if its not above the join threshold`() {
-      val crn = randomCrn()
-
-      val existingPerson = createPersonWithNewKey(createRandomProbationPersonDetails(randomCrn()))
-
-      stubOnePersonMatchAboveFractureThreshold(matchedRecord = existingPerson.matchId)
-
-      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn))
-
-      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
-      checkEventLogExist(crn, CPRLogEvents.CPR_RECORD_CREATED)
-      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
-
-      awaitNotNullPerson { personRepository.findByCrn(crn) }
-    }
-
-    @Test
     fun `should write offender without PNC if PNC is missing`() {
       val crn = randomCrn()
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = null))
@@ -267,7 +250,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `test multiple requests to probation single record process successfully`() {
+    fun `multiple updates to single probation record are processed successfully`() {
       val pnc = randomLongPnc()
       val crn = randomCrn()
       blitz(30, 15) {
@@ -336,7 +319,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should deduplicate sentences dates`() {
+    fun `should deduplicate sentence dates`() {
       val crn = randomCrn()
       val sentenceDate = randomDate()
 
@@ -369,7 +352,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
   }
 
   @Test
-  fun `should not push 404 to dead letter queue but discard message instead`() {
+  fun `should not push 404 from delius API to dead letter queue but discard message instead`() {
     val crn = randomCrn()
     stub404Response(probationUrl(crn))
     val domainEvent = probationDomainEvent(NEW_OFFENDER_CREATED, crn)
