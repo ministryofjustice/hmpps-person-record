@@ -21,7 +21,7 @@ data class Address(
   val dependentLocality: String? = null,
   val postTown: String? = null,
   val county: String? = null,
-  val country: String? = null,
+  val countryCode: String? = null,
   val uprn: String? = null,
 
 ) {
@@ -74,7 +74,7 @@ data class Address(
       dependentLocality = addressEntity.dependentLocality,
       postTown = addressEntity.postTown,
       county = addressEntity.county,
-      country = addressEntity.country,
+      countryCode = addressEntity.countryCode,
       uprn = addressEntity.uprn,
     )
   }
