@@ -67,8 +67,8 @@ class AddressEntity(
   @Column(name = "county")
   val county: String? = null,
 
-  @Column(name = "country")
-  val country: String? = null,
+  @Column(name = "country_code")
+  val countryCode: String? = null,
 
   @Column(name = "uprn")
   val uprn: String? = null,
@@ -90,7 +90,7 @@ class AddressEntity(
       dependentLocality = address.dependentLocality,
       postTown = address.postTown,
       county = address.county,
-      country = address.country,
+      countryCode = address.countryCode,
       uprn = address.uprn,
 
     )

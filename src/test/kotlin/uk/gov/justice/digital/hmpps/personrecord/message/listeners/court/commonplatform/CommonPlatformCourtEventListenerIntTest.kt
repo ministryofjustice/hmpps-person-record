@@ -269,7 +269,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPerson.addresses[0].dependentLocality).isEqualTo(dependentLocality)
     assertThat(secondPerson.addresses[0].postTown).isEqualTo(postTown)
     assertThat(secondPerson.addresses[0].county).isNull()
-    assertThat(secondPerson.addresses[0].country).isNull()
+    assertThat(secondPerson.addresses[0].countryCode).isNull()
     assertThat(secondPerson.addresses[0].uprn).isNull()
     assertThat(secondPerson.getPnc()).isEqualTo(secondPnc)
     assertThat(secondPerson.contacts.size).isEqualTo(3)
