@@ -245,6 +245,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
         assertThat(personEntity.sexCode).isEqualTo(updatedSexCode.value)
 
+        assertThat(personEntity.pseudonyms).hasSize(1)
         assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(updatedAliasGender.value)
 
         val storedPrisonEthnicity = ethnicity.getPrisonEthnicity()
