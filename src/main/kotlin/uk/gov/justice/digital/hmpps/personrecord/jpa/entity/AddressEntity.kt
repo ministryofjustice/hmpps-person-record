@@ -92,7 +92,6 @@ class AddressEntity(
       county = address.county,
       countryCode = address.countryCode,
       uprn = address.uprn,
-
     )
 
     fun fromList(addresses: List<Address>): List<AddressEntity> = addresses.map { from(it) }
