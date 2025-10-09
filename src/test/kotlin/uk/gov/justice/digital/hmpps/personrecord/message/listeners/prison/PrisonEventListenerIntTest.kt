@@ -43,9 +43,6 @@ import java.lang.Thread.sleep
 import java.time.LocalDate
 
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
-  fun waitForMessageToBeProcessedAndDiscarded() {
-    sleep(500)
-  }
 
   @Test
   fun `should put message on dlq when exception thrown`() {
@@ -337,5 +334,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       }
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_UUID_CREATED)
     }
+  }
+
+  private fun waitForMessageToBeProcessedAndDiscarded() {
+    sleep(500)
   }
 }
