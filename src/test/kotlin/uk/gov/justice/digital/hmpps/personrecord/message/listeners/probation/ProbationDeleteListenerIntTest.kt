@@ -46,31 +46,31 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should process offender delete with 1 record on single UUID`() {
     val crn = randomCrn()
     val domainEvent = probationDomainEvent(OFFENDER_DELETION, crn)
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
+    val (person,personKey) = createPersonAndKey(createRandomProbationPersonDetails(crn))
 
     publishDomainEvent(OFFENDER_DELETION, domainEvent)
 
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to crn, "UUID" to person.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to crn, "UUID" to personKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_UUID_DELETED,
-      mapOf("CRN" to crn, "UUID" to person.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to crn, "UUID" to personKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkEventLog(crn, CPRLogEvents.CPR_UUID_DELETED) { eventLogs ->
       assertThat(eventLogs).hasSize(1)
       val eventLog = eventLogs.first()
-      assertThat(eventLog.personUUID).isEqualTo(person.personKey?.personUUID)
+      assertThat(eventLog.personUUID).isEqualTo(personKey.personUUID)
     }
     checkEventLog(crn, CPRLogEvents.CPR_RECORD_DELETED) { eventLogs ->
       assertThat(eventLogs).hasSize(1)
       val eventLog = eventLogs.first()
-      assertThat(eventLog.personUUID).isEqualTo(person.personKey?.personUUID)
+      assertThat(eventLog.personUUID).isEqualTo(personKey.personUUID)
     }
 
     person.assertPersonDeleted()
-    person.personKey?.assertPersonKeyDeleted()
+    personKey.assertPersonKeyDeleted()
   }
 
   @Test
@@ -168,29 +168,29 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val recordBCrn = randomCrn()
     val domainEvent = probationDomainEvent(OFFENDER_DELETION, recordACrn)
 
-    val mergedTo = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
-    val mergedFrom = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
+    val (mergedTo, mergedToKey) = createPersonAndKey(createRandomProbationPersonDetails(recordACrn))
+    val (mergedFrom, mergedFromKey) = createPersonAndKey(createRandomProbationPersonDetails(recordBCrn))
 
     mergeRecord(mergedFrom, mergedTo)
-    mergeUuid(mergedFrom.personKey!!, mergedTo.personKey!!)
+    mergeUuid(mergedFrom.personKey!!, mergedToKey)
 
     publishDomainEvent(OFFENDER_DELETION, domainEvent)
 
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to mergedTo.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordACrn, "UUID" to mergedToKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_UUID_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to mergedTo.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordACrn, "UUID" to mergedToKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to mergedFrom.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordBCrn, "UUID" to mergedFromKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_UUID_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to mergedFrom.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordBCrn, "UUID" to mergedFromKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_DELETED)
     checkEventLogExist(recordACrn, CPRLogEvents.CPR_UUID_DELETED)
@@ -199,8 +199,8 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     mergedFrom.assertPersonDeleted()
     mergedTo.assertPersonDeleted()
-    mergedFrom.personKey?.assertPersonKeyDeleted()
-    mergedTo.personKey?.assertPersonKeyDeleted()
+    mergedFromKey.assertPersonKeyDeleted()
+    mergedToKey.assertPersonKeyDeleted()
   }
 
   @Test
@@ -212,33 +212,33 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = probationDomainEvent(OFFENDER_DELETION, recordACrn)
 
     // First Record Cluster (1 Record)
-    val recordA = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
+    val (recordA, recordAKey) = createPersonAndKey(createRandomProbationPersonDetails(recordACrn))
 
     // Second Record Cluster (2 Records - C merged to B)
-    val recordB = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
+    val (recordB,recordBKey) = createPersonAndKey(createRandomProbationPersonDetails(recordBCrn))
     val recordC = createPerson(createRandomProbationPersonDetails(recordCCrn))
 
     mergeRecord(recordC, recordB)
     mergeRecord(recordB, recordA)
-    mergeUuid(recordB.personKey!!, recordA.personKey!!)
+    mergeUuid(recordBKey, recordAKey)
 
     publishDomainEvent(OFFENDER_DELETION, domainEvent)
 
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordACrn, "UUID" to recordAKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_UUID_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordACrn, "UUID" to recordAKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to recordB.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordBCrn, "UUID" to recordBKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_UUID_DELETED,
-      mapOf("CRN" to recordBCrn, "UUID" to recordB.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordBCrn, "UUID" to recordBKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkEventLogExist(recordACrn, CPRLogEvents.CPR_RECORD_DELETED)
     checkEventLogExist(recordACrn, CPRLogEvents.CPR_UUID_DELETED)
@@ -249,8 +249,8 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     recordA.assertPersonDeleted()
     recordB.assertPersonDeleted()
     recordC.assertPersonDeleted()
-    recordA.personKey?.assertPersonKeyDeleted()
-    recordB.personKey?.assertPersonKeyDeleted()
+    recordAKey.assertPersonKeyDeleted()
+    recordBKey.assertPersonKeyDeleted()
   }
 
   @Test
@@ -262,7 +262,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val domainEvent = probationDomainEvent(OFFENDER_DELETION, recordACrn)
 
     // Record Cluster (3 Records - B -> A <- C)
-    val recordA = createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
+    val (recordA, personKey) = createPersonAndKey(createRandomProbationPersonDetails(recordACrn))
     val recordB = createPerson(createRandomProbationPersonDetails(recordBCrn))
     val recordC = createPerson(createRandomProbationPersonDetails(recordCCrn))
 
@@ -273,11 +273,11 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordACrn, "UUID" to personKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_UUID_DELETED,
-      mapOf("CRN" to recordACrn, "UUID" to recordA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to recordACrn, "UUID" to personKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_RECORD_DELETED,
@@ -295,7 +295,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     recordA.assertPersonDeleted()
     recordB.assertPersonDeleted()
     recordC.assertPersonDeleted()
-    recordA.personKey?.assertPersonKeyDeleted()
+    personKey.assertPersonKeyDeleted()
   }
 
   @Test
@@ -337,8 +337,8 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
   @Test
   fun `should process offender delete with override marker`() {
-    val personA = createPersonWithNewKey(createRandomProbationPersonDetails())
-    val personB = createPersonWithNewKey(createRandomProbationPersonDetails())
+    val (personA, personAKey) = createPersonAndKey(createRandomProbationPersonDetails())
+    val (personB) = createPersonAndKey(createRandomProbationPersonDetails())
 
     stubPersonMatchUpsert()
     excludeRecord(personA, personB)
@@ -348,15 +348,15 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(
       CPR_RECORD_DELETED,
-      mapOf("CRN" to personA.crn, "UUID" to personA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to personA.crn, "UUID" to personAKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
     checkTelemetry(
       CPR_UUID_DELETED,
-      mapOf("CRN" to personA.crn, "UUID" to personA.personKey?.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
+      mapOf("CRN" to personA.crn, "UUID" to personAKey.personUUID.toString(), "SOURCE_SYSTEM" to "DELIUS"),
     )
 
     personA.assertPersonDeleted()
-    personA.personKey?.assertPersonKeyDeleted()
+    personAKey.assertPersonKeyDeleted()
 
     personB.assertHasOverrideMarker()
     personB.assertOverrideScopeSize(1)
