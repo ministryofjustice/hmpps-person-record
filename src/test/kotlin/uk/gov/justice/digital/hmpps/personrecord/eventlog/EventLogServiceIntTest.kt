@@ -31,7 +31,7 @@ class EventLogServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should map person to event log`() {
-    val personEntity = createPersonWithNewKey(
+    val (personEntity, personKey) = createPersonAndKey(
       Person.from(
         ProbationCase(
           name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
@@ -55,7 +55,7 @@ class EventLogServiceIntTest : IntegrationTestBase() {
     assertThat(eventLog.sourceSystemId).isEqualTo(personEntity.crn)
     assertThat(eventLog.sourceSystem).isEqualTo(SourceSystemType.DELIUS)
     assertThat(eventLog.matchId).isEqualTo(personEntity.matchId)
-    assertThat(eventLog.personUUID).isEqualTo(personEntity.personKey?.personUUID)
+    assertThat(eventLog.personUUID).isEqualTo(personKey.personUUID)
     assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
     assertThat(eventLog.firstName).isEqualTo(personEntity.getPrimaryName().firstName)
     assertThat(eventLog.middleNames).isEqualTo(personEntity.getPrimaryName().middleNames)
@@ -86,8 +86,8 @@ class EventLogServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should map a merged person to event log`() {
-    val mergedIntoPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
-    var mergedToPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+    val (mergedIntoPerson) = createPersonAndKey(createRandomProbationPersonDetails())
+    var (mergedToPerson) = createPersonAndKey(createRandomProbationPersonDetails())
 
     mergedToPerson = mergeRecord(mergedToPerson, mergedIntoPerson)
 
@@ -99,8 +99,8 @@ class EventLogServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should map exclude override to event log`() {
-    val toRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
-    val fromRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
+    val (toRecord) = createPersonAndKey(createRandomProbationPersonDetails())
+    val (fromRecord) = createPersonAndKey(createRandomProbationPersonDetails())
 
     stubPersonMatchUpsert()
     excludeRecord(toRecord, fromRecord)
