@@ -115,7 +115,7 @@ class EventLogServiceIntTest : IntegrationTestBase() {
 
   @Test
   fun `should dedupe and sort lists`() {
-    val personEntity = createPersonWithNewKey(
+    val (personEntity) = createPersonAndKey(
       Person.from(
         ProbationCase(
           name = ProbationCaseName(firstName = randomName(), lastName = randomName()),
