@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.model.types
 
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
-import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 
 enum class SexualOrientation(val description: String) {
   BIS("Bisexual"),
@@ -22,8 +21,8 @@ enum class SexualOrientation(val description: String) {
       "99" to OTH,
     )
 
-    fun from(probationCase: ProbationCase) = probationCase.sexualOrientation?.value.nullIfBlank()?.let {
-      probationSexualOrientation.get(it)
+    fun from(probationCase: ProbationCase) = probationCase.sexualOrientation?.value?.let {
+      probationSexualOrientation[it]
     }
   }
 }
