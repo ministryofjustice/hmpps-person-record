@@ -41,8 +41,8 @@ class ReclusterApiIntTest : WebTestBase() {
 
     @Test
     fun `should not recluster records that have been merged`() {
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails())
-      val mergedPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+      val (person, personKey) = createPersonAndKey(createRandomProbationPersonDetails())
+      val (mergedPerson) = createPersonAndKey(createRandomProbationPersonDetails())
 
       mergeRecord(mergedPerson, person)
 
@@ -61,7 +61,7 @@ class ReclusterApiIntTest : WebTestBase() {
 
       checkTelemetry(
         CPR_ADMIN_RECLUSTER_TRIGGERED,
-        mapOf("UUID" to person.personKey?.toString()),
+        mapOf("UUID" to personKey.toString()),
         times = 0,
       )
     }
@@ -73,7 +73,7 @@ class ReclusterApiIntTest : WebTestBase() {
     @Test
     fun `should retry if request to hmpps-person-match fails`() {
       stubPersonMatchUpsert()
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+      val (person, personKey) = createPersonAndKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
       val request = listOf(AdminReclusterRecord(DELIUS, person.crn!!))
       stub5xxResponse(url = "/person/score/" + person.matchId)
       stubPersonMatchScores(
@@ -89,7 +89,7 @@ class ReclusterApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-      person.personKey?.assertClusterStatus(ACTIVE)
+      personKey.assertClusterStatus(ACTIVE)
     }
   }
 
@@ -104,7 +104,7 @@ class ReclusterApiIntTest : WebTestBase() {
 
     @Test
     fun `should recluster single person record`() {
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails())
+      val (person, personKey) = createPersonAndKey(createRandomProbationPersonDetails())
       val request = listOf(AdminReclusterRecord(DELIUS, person.crn!!))
 
       webTestClient.post()
@@ -117,16 +117,16 @@ class ReclusterApiIntTest : WebTestBase() {
 
       checkTelemetry(
         CPR_ADMIN_RECLUSTER_TRIGGERED,
-        mapOf("UUID" to person.personKey?.personUUID.toString()),
+        mapOf("UUID" to personKey.personUUID.toString()),
       )
     }
 
     @Test
     fun `should recluster multiple person records`() {
       val recordsWithCluster = List(5) {
-        createPersonWithNewKey(createRandomProbationPersonDetails())
+        createPersonAndKey(createRandomProbationPersonDetails())
       }
-      val request = recordsWithCluster.map { AdminReclusterRecord(it.sourceSystem, it.crn!!) }
+      val request = recordsWithCluster.map { (person) -> AdminReclusterRecord(person.sourceSystem, person.crn!!) }
 
       webTestClient.post()
         .uri(ADMIN_RECLUSTER_URL)
@@ -136,17 +136,17 @@ class ReclusterApiIntTest : WebTestBase() {
         .expectStatus()
         .isOk
 
-      recordsWithCluster.forEach {
+      recordsWithCluster.forEach { (_,personKey) ->
         checkTelemetry(
           CPR_ADMIN_RECLUSTER_TRIGGERED,
-          mapOf("UUID" to it.personKey?.personUUID.toString()),
+          mapOf("UUID" to personKey.personUUID.toString()),
         )
       }
     }
 
     @Test
     fun `should set needs attention to active when cluster is valid`() {
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+      val (person,personKey) = createPersonAndKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
       val request = listOf(AdminReclusterRecord(DELIUS, person.crn!!))
 
       webTestClient.post()
@@ -159,9 +159,9 @@ class ReclusterApiIntTest : WebTestBase() {
 
       checkTelemetry(
         CPR_ADMIN_RECLUSTER_TRIGGERED,
-        mapOf("UUID" to person.personKey?.personUUID.toString()),
+        mapOf("UUID" to personKey.personUUID.toString()),
       )
-      person.personKey?.assertClusterStatus(ACTIVE)
+      personKey.assertClusterStatus(ACTIVE)
     }
   }
 
