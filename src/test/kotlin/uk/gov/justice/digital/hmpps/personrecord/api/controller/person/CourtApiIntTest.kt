@@ -359,7 +359,7 @@ class CourtApiIntTest : WebTestBase() {
               identifierValue = personOneDriversLicenseNumber,
             ),
           ),
-        )
+        ),
       )
 
       val personTwo = createPerson(
@@ -392,7 +392,7 @@ class CourtApiIntTest : WebTestBase() {
               identifierValue = personTwoDriversLicenseNumber,
             ),
           ),
-        )
+        ),
       )
       createPersonKey().addPerson(personOne).addPerson(personTwo)
 
@@ -452,9 +452,8 @@ class CourtApiIntTest : WebTestBase() {
           religion = randomReligion(),
           masterDefendantId = randomDefendantId(),
           defendantId = defendantId,
-        )
+        ),
       )
-
 
       val responseBody = webTestClient.get()
         .uri(commonPlatformApiUrl(person.defendantId))

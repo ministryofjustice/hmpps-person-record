@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBa
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -28,7 +29,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
 
-      createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
+      createPersonAndKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
       stubPersonMatchUpsert()
       prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber = sourcePrisonNumber, targetPrisonNumber = targetPrisonNumber)
@@ -52,7 +53,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `processes prisoner merge event when target record does not exist`() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
-      val sourcePerson = createPersonWithNewKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
+      val (sourcePerson) = createPersonAndKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
 
       stubPersonMatchUpsert()
       stubPersonMatchScores()
@@ -64,7 +65,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       sourcePerson.assertMergedTo(targetPerson)
       sourcePerson.assertNotLinkedToCluster()
 
-      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      targetPerson.personKey?.assertClusterStatus(ACTIVE)
       targetPerson.personKey?.assertClusterIsOfSize(1)
 
       checkTelemetry(
@@ -108,7 +109,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       sourcePerson.assertNotLinkedToCluster()
       sourcePerson.assertMergedTo(targetPerson)
-      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
+      targetPerson.personKey?.assertClusterStatus(ACTIVE)
       targetPerson.personKey?.assertClusterIsOfSize(1)
 
       checkTelemetry(
@@ -132,21 +133,21 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sourceCluster = createPersonKey()
         .addPerson(createPerson(Person(prisonNumber = randomPrisonNumber(), sourceSystem = NOMIS)))
         .addPerson(sourcePerson)
-      val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
+      val (targetPerson, targetPersonKey) = createPersonAndKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
       prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber)
 
       sourcePerson.assertNotLinkedToCluster()
       sourcePerson.assertMergedTo(targetPerson)
 
-      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      targetPerson.personKey?.assertClusterIsOfSize(1)
+      targetPersonKey.assertClusterStatus(ACTIVE)
+      targetPersonKey.assertClusterIsOfSize(1)
 
       sourceCluster.assertClusterIsOfSize(1)
-      sourceCluster.assertClusterStatus(UUIDStatusType.ACTIVE)
+      sourceCluster.assertClusterStatus(ACTIVE)
 
-      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      targetPerson.personKey?.assertClusterIsOfSize(1)
+      targetPersonKey.assertClusterStatus(ACTIVE)
+      targetPersonKey.assertClusterIsOfSize(1)
 
       checkTelemetry(
         CPR_RECORD_UPDATED,
@@ -170,15 +171,15 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sourcePrisonNumber = randomPrisonNumber()
 
       val sourcePerson = createPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
-      val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
+      val (targetPerson, targetPersonKey) = createPersonAndKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
       prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber)
 
       sourcePerson.assertNotLinkedToCluster()
       sourcePerson.assertMergedTo(targetPerson)
 
-      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      targetPerson.personKey?.assertClusterIsOfSize(1)
+      targetPersonKey.assertClusterStatus(ACTIVE)
+      targetPersonKey.assertClusterIsOfSize(1)
 
       checkTelemetry(
         CPR_RECORD_UPDATED,
@@ -200,18 +201,18 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `processes prisoner merge event with different UUIDs where source has a single record`() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
-      val sourcePerson = createPersonWithNewKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
-      val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
+      val (sourcePerson, sourcePersonKey) = createPersonAndKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
+      val (targetPerson, targetPersonKey) = createPersonAndKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
       prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber)
 
       sourcePerson.assertNotLinkedToCluster()
       sourcePerson.assertMergedTo(targetPerson)
-      sourcePerson.personKey?.assertClusterStatus(UUIDStatusType.MERGED)
-      sourcePerson.personKey?.assertClusterIsOfSize(0)
+      sourcePersonKey.assertClusterStatus(UUIDStatusType.MERGED)
+      sourcePersonKey.assertClusterIsOfSize(0)
 
-      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      targetPerson.personKey?.assertClusterIsOfSize(1)
+      targetPersonKey.assertClusterStatus(ACTIVE)
+      targetPersonKey.assertClusterIsOfSize(1)
 
       checkTelemetry(
         CPR_RECORD_MERGED,
@@ -225,12 +226,12 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkEventLog(sourcePrisonNumber, CPRLogEvents.CPR_RECORD_MERGED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         assertThat(eventLogs.first().recordMergedTo).isEqualTo(targetPerson.id)
-        assertThat(eventLogs.first().personUUID).isEqualTo(sourcePerson.personKey?.personUUID)
+        assertThat(eventLogs.first().personUUID).isEqualTo(sourcePersonKey.personUUID)
       }
       checkEventLog(sourcePrisonNumber, CPRLogEvents.CPR_UUID_MERGED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val event = eventLogs.first()
-        assertThat(event.personUUID).isEqualTo(sourcePerson.personKey?.personUUID)
+        assertThat(event.personUUID).isEqualTo(sourcePersonKey.personUUID)
         assertThat(event.uuidStatusType).isEqualTo(UUIDStatusType.MERGED)
       }
     }
@@ -239,8 +240,8 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `should retry on 500 error`() {
       val targetPrisonNumber = randomPrisonNumber()
       val sourcePrisonNumber = randomPrisonNumber()
-      createPersonWithNewKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
-      createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
+      createPersonAndKey(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
+      createPersonAndKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 
       stub5xxResponse(prisonURL(targetPrisonNumber), "next request will succeed", "retry")
 
