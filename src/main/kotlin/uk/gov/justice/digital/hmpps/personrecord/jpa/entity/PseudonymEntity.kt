@@ -84,6 +84,7 @@ class PseudonymEntity(
           dateOfBirth = alias.dateOfBirth,
           nameType = NameType.ALIAS,
           titleCode = titleCode,
+          sexCode = alias.sexCode
         )
       else -> null
     }
