@@ -149,15 +149,15 @@ class CanonicalApiIntTest : WebTestBase() {
   fun `should return null when values are null or empty for get canonical record`() {
     val crn = randomCrn()
 
-    val person = createPersonWithNewKey(
-      Person(
+    val personKey = createPersonKey().addPerson(
+      createPerson(Person(
         sourceSystem = NOMIS,
         crn = crn,
-      ),
+      )),
     )
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(person.personKey?.personUUID.toString()))
+      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
@@ -166,7 +166,7 @@ class CanonicalApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(responseBody.cprUUID).isEqualTo(person.personKey?.personUUID.toString())
+    assertThat(responseBody.cprUUID).isEqualTo(personKey.personUUID.toString())
     assertThat(responseBody.firstName).isNull()
     assertThat(responseBody.middleNames).isNull()
     assertThat(responseBody.lastName).isNull()
@@ -238,16 +238,16 @@ class CanonicalApiIntTest : WebTestBase() {
 
     val postcode = randomPostcode()
 
-    val person = createPersonWithNewKey(
-      Person(
+    val personKey = createPersonKey().addPerson(
+      createPerson(Person(
         sourceSystem = NOMIS,
         crn = crn,
         addresses = listOf(Address(postcode = postcode)),
-      ),
-    )
+      )
+    ))
 
     val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(person.personKey?.personUUID.toString()))
+      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
       .authorised(listOf(API_READ_ONLY))
       .exchange()
       .expectStatus()
