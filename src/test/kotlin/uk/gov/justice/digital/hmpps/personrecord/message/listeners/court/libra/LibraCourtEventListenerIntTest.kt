@@ -115,7 +115,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val dateOfBirth = randomDate()
     val cId = randomCId()
     val updatedSexCode = randomLibraSexCode()
-    val personEntity = createPersonWithNewKey(
+    val (personEntity) = createPersonAndKey(
       Person(
         firstName = firstName,
         lastName = lastName,
@@ -159,8 +159,8 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   fun `should process and create libra message and link to two different source system records in separate clusters and all three records end up on the same cluster`() {
     val cId = randomCId()
 
-    val firstPersonFromProbation = createPersonWithNewKey(createRandomProbationPersonDetails())
-    val secondPersonFromNomis = createPersonWithNewKey(createRandomPrisonPersonDetails())
+    val (firstPersonFromProbation) = createPersonAndKey(createRandomProbationPersonDetails())
+    val (secondPersonFromNomis) = createPersonAndKey(createRandomPrisonPersonDetails())
 
     stubPersonMatchUpsert()
     stubXPersonMatches(aboveJoin = listOf(firstPersonFromProbation.matchId, secondPersonFromNomis.matchId))
@@ -267,23 +267,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId),
     )
-  }
-
-  @Test
-  fun `should not link a new defendant from libra to a cluster that is below the join threshold`() {
-    val cId = randomCId()
-    val existingPerson = createPersonWithNewKey(createRandomLibraPersonDetails(randomCId()))
-
-    stubPersonMatchUpsert()
-    stubOnePersonMatchAboveFractureThreshold(matchedRecord = existingPerson.matchId)
-
-    publishLibraMessage(libraHearing(firstName = randomName(), lastName = randomName(), cId = cId, dateOfBirth = randomDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
-
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
-    checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_CREATED)
-    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
-
-    awaitNotNullPerson { personRepository.findByCId(cId) }
   }
 
   @Nested

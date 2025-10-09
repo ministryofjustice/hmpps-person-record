@@ -318,7 +318,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
   @Test
   fun `should not join new common platform person with a cluster which is below join threshold`() {
     val defendantId = randomDefendantId()
-    val existingPerson = createPersonWithNewKey(createRandomCommonPlatformPersonDetails(randomDefendantId()))
+    val (existingPerson) = createPersonAndKey(createRandomCommonPlatformPersonDetails(randomDefendantId()))
 
     stubPersonMatchUpsert()
     stubOnePersonMatchAboveFractureThreshold(matchedRecord = existingPerson.matchId)
