@@ -102,7 +102,7 @@ class PersonEntity(
 
   @Column(name = "sexual_orientation")
   @Enumerated(STRING)
-  val sexualOrientation: SexualOrientation? = null,
+  var sexualOrientation: SexualOrientation? = null,
 
   @Column(name = "sex_code")
   @Enumerated(STRING)
@@ -180,6 +180,7 @@ class PersonEntity(
     this.religion = person.religion
     this.cId = person.cId
     this.sexCode = person.sexCode
+    this.sexualOrientation = person.sexualOrientation
     this.lastModified = LocalDateTime.now()
     addresses.clear()
     contacts.clear()
@@ -242,7 +243,7 @@ class PersonEntity(
         cId = person.cId,
         lastModified = LocalDateTime.now(),
         sexCode = person.sexCode,
-        sexualOrientation = person.sexualOrientation
+        sexualOrientation = person.sexualOrientation,
       )
       personEntity.updateChildEntities(person)
       return personEntity

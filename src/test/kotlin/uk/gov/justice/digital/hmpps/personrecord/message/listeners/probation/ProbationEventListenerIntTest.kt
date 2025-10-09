@@ -97,7 +97,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         secondaryNationality = secondaryNationality,
         sentences = listOf(ApiResponseSetupSentences(sentenceDate)),
         gender = gender.key,
-        sexualOrientation = sexualOrientation.key
+        sexualOrientation = sexualOrientation.key,
       )
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
 
@@ -300,7 +300,8 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val changedEthnicity = randomProbationEthnicity()
       val changedNationality = randomProbationNationalityCode()
       val changedSexCode = randomProbationSexCode()
-      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, pnc = changedPnc, gender = changedSexCode.key, dateOfBirth = changedDateOfBirth, ethnicity = changedEthnicity, nationality = changedNationality, title = "MR"))
+      val sexualOrientation = randomProbationSexualOrientation()
+      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, pnc = changedPnc, gender = changedSexCode.key, dateOfBirth = changedDateOfBirth, ethnicity = changedEthnicity, nationality = changedNationality, title = "MR", sexualOrientation = sexualOrientation.key))
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
       val updatedPersonEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
@@ -320,6 +321,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       assertThat(updatedPersonEntity.getPrimaryName().titleCode?.code).isEqualTo("MR")
       assertThat(updatedPersonEntity.getPrimaryName().titleCode?.description).isEqualTo("Mr")
+      assertThat(updatedPersonEntity.sexualOrientation).isEqualTo(sexualOrientation.value)
     }
 
     @Test

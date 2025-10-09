@@ -7,7 +7,7 @@ enum class SexualOrientation(val description: String) {
   BIS("Bisexual"),
   HOM("Gay or Lesbian"),
   HET("Heterosexual or Straight"),
-  ND("Not Answered",),
+  ND("Not Answered"),
   OTH("Other"),
   REF(" Refused"),
   ;
@@ -22,7 +22,7 @@ enum class SexualOrientation(val description: String) {
       "99" to OTH,
     )
 
-    fun from(probationCase: ProbationCase) = probationCase.sexualOrientation?.value.nullIfBlank()?.let{
+    fun from(probationCase: ProbationCase) = probationCase.sexualOrientation?.value.nullIfBlank()?.let {
       probationSexualOrientation.get(it)
     }
   }
