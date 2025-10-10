@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
@@ -162,6 +161,64 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
+    fun `should process personals details updated events successfully`() {
+      val pnc = randomLongPnc()
+      val crn = randomCrn()
+      val gender = randomProbationSexCode()
+      val originalEthnicity = randomProbationEthnicity()
+      val nationality = randomProbationNationalityCode()
+      val secondaryNationality = randomProbationNationalityCode()
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc, gender = gender.key, ethnicity = originalEthnicity, title = "Mrs", nationality = nationality, secondaryNationality = secondaryNationality))
+      val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
+      assertThat(personEntity.getPnc()).isEqualTo(pnc)
+      assertThat(personEntity.sexCode).isEqualTo(gender.value)
+      val originalEthnicityCode = originalEthnicity.getProbationEthnicity()
+      assertThat(personEntity.ethnicityCode?.code).isEqualTo(originalEthnicityCode.code)
+      assertThat(personEntity.ethnicityCode?.description).isEqualTo(originalEthnicityCode.description)
+
+      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+
+      val createdLastModified = personEntity.lastModified
+      val changedPnc = randomLongPnc()
+      val changedDateOfBirth = randomDate()
+      val changedEthnicity = randomProbationEthnicity()
+      val changedNationality = randomProbationNationalityCode()
+      val changedSexCode = randomProbationSexCode()
+      val sexualOrientation = randomProbationSexualOrientation()
+      val aliasGender = randomProbationSexCode()
+      probationDomainEventAndResponseSetup(
+        OFFENDER_PERSONAL_DETAILS_UPDATED,
+        ApiResponseSetup(
+          crn = crn, pnc = changedPnc, gender = changedSexCode.key, dateOfBirth = changedDateOfBirth, ethnicity = changedEthnicity, nationality = changedNationality, title = "MR", sexualOrientation = sexualOrientation.key,
+          aliases = listOf(
+            ApiResponseSetupAlias(lastName = randomName(), gender = aliasGender.key),
+          ),
+        ),
+      )
+      checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+
+      val updatedPersonEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
+      assertThat(updatedPersonEntity.getPnc()).isEqualTo(changedPnc)
+      assertThat(updatedPersonEntity.sexCode).isEqualTo(changedSexCode.value)
+
+      val updatedLastModified = updatedPersonEntity.lastModified
+
+      assertThat(updatedLastModified).isAfter(createdLastModified)
+      assertThat(updatedPersonEntity.getPrimaryName().dateOfBirth).isEqualTo(changedDateOfBirth)
+
+      val changedEthnicityCode = changedEthnicity.getProbationEthnicity()
+      assertThat(updatedPersonEntity.ethnicityCode?.code).isEqualTo(changedEthnicityCode.code)
+      assertThat(updatedPersonEntity.ethnicityCode?.description).isEqualTo(changedEthnicityCode.description)
+
+      checkNationalities(updatedPersonEntity, changedNationality)
+
+      assertThat(updatedPersonEntity.getPrimaryName().titleCode?.code).isEqualTo("MR")
+      assertThat(updatedPersonEntity.getPrimaryName().titleCode?.description).isEqualTo("Mr")
+      assertThat(updatedPersonEntity.sexualOrientation).isEqualTo(sexualOrientation.value)
+      assertThat(updatedPersonEntity.getAliases()[0].sexCode).isEqualTo(aliasGender.value)
+    }
+
+    @Test
     fun `should link new probation record to an existing prison record`() {
       val crn = randomCrn()
       val prisonNumber = randomPrisonNumber()
@@ -278,54 +335,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
         29,
       )
-    }
-
-    @Test
-    fun `should process personals details updated events successfully`() {
-      val pnc = randomLongPnc()
-      val crn = randomCrn()
-      val gender = randomProbationSexCode()
-      val originalEthnicity = randomProbationEthnicity()
-      val nationality = randomProbationNationalityCode()
-      val secondaryNationality = randomProbationNationalityCode()
-      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc, gender = gender.key, ethnicity = originalEthnicity, title = "Mrs", nationality = nationality, secondaryNationality = secondaryNationality))
-      val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
-      assertThat(personEntity.getPnc()).isEqualTo(pnc)
-      assertThat(personEntity.sexCode).isEqualTo(gender.value)
-      val originalEthnicityCode = originalEthnicity.getProbationEthnicity()
-      assertThat(personEntity.ethnicityCode?.code).isEqualTo(originalEthnicityCode.code)
-      assertThat(personEntity.ethnicityCode?.description).isEqualTo(originalEthnicityCode.description)
-
-      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
-
-      val createdLastModified = personEntity.lastModified
-      val changedPnc = randomLongPnc()
-      val changedDateOfBirth = randomDate()
-      val changedEthnicity = randomProbationEthnicity()
-      val changedNationality = randomProbationNationalityCode()
-      val changedSexCode = randomProbationSexCode()
-      val sexualOrientation = randomProbationSexualOrientation()
-      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, pnc = changedPnc, gender = changedSexCode.key, dateOfBirth = changedDateOfBirth, ethnicity = changedEthnicity, nationality = changedNationality, title = "MR", sexualOrientation = sexualOrientation.key))
-      checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
-
-      val updatedPersonEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
-      assertThat(updatedPersonEntity.getPnc()).isEqualTo(changedPnc)
-      assertThat(updatedPersonEntity.sexCode).isEqualTo(changedSexCode.value)
-
-      val updatedLastModified = updatedPersonEntity.lastModified
-
-      assertThat(updatedLastModified).isAfter(createdLastModified)
-      assertThat(updatedPersonEntity.getPrimaryName().dateOfBirth).isEqualTo(changedDateOfBirth)
-
-      val changedEthnicityCode = changedEthnicity.getProbationEthnicity()
-      assertThat(updatedPersonEntity.ethnicityCode?.code).isEqualTo(changedEthnicityCode.code)
-      assertThat(updatedPersonEntity.ethnicityCode?.description).isEqualTo(changedEthnicityCode.description)
-
-      checkNationalities(updatedPersonEntity, changedNationality)
-
-      assertThat(updatedPersonEntity.getPrimaryName().titleCode?.code).isEqualTo("MR")
-      assertThat(updatedPersonEntity.getPrimaryName().titleCode?.description).isEqualTo("Mr")
-      assertThat(updatedPersonEntity.sexualOrientation).isEqualTo(sexualOrientation.value)
     }
 
     @Test

@@ -62,9 +62,9 @@ private fun alias(alias: ApiResponseSetupAlias) =
           },
           "dateOfBirth": "${alias.dateOfBirth ?: ""}",
           "gender": {
-           ${alias.gender?.let { """ "code": "${alias.gender}", """.trimIndent() } ?: ""}
-        "description": "string"
-        }
+            ${alias.gender?.let { """ "code": "${alias.gender}", """.trimIndent() } ?: ""}
+            "description": "string"
+          }
         }
   """.trimIndent()
 private fun address(address: ApiResponseSetupAddress) =

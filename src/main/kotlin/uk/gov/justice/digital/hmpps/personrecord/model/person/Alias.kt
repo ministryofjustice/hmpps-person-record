@@ -30,7 +30,7 @@ data class Alias(
       middleNames = alias.name.middleNames,
       lastName = alias.name.lastName,
       dateOfBirth = alias.dateOfBirth,
-      sexCode = SexCode.from(alias)
+      sexCode = SexCode.from(alias),
     )
 
     fun from(alias: PrisonerAlias) = Alias(
