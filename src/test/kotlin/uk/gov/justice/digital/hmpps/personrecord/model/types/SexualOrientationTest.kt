@@ -15,7 +15,7 @@ class SexualOrientationTest {
   }
 
   @Test
-  fun `empty string treated as null value for probation sexualOrientation`() {
+  fun `empty string treated as unknown value for probation sexualOrientation`() {
     assertThat(
       SexualOrientation.from(
         ProbationCase(
@@ -26,7 +26,7 @@ class SexualOrientationTest {
           ),
         ),
       ),
-    ).isNull()
+    ).isEqualTo(SexualOrientation.UNKNOWN)
   }
 
   @Test
