@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -89,8 +90,8 @@ class PersonEntity(
   @Column(name = "birth_place")
   val birthplace: String? = null,
 
-  @Column(name = "birth_country")
-  val birthCountry: String? = null,
+  @Column(name = "birth_country_code")
+  val birthCountryCode: String? = null,
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
@@ -100,7 +101,8 @@ class PersonEntity(
   var religion: String? = null,
 
   @Column(name = "sexual_orientation")
-  val sexualOrientation: String? = null,
+  @Enumerated(STRING)
+  var sexualOrientation: SexualOrientation? = null,
 
   @Column(name = "sex_code")
   @Enumerated(STRING)
@@ -178,6 +180,7 @@ class PersonEntity(
     this.religion = person.religion
     this.cId = person.cId
     this.sexCode = person.sexCode
+    this.sexualOrientation = person.sexualOrientation
     this.lastModified = LocalDateTime.now()
     addresses.clear()
     contacts.clear()
@@ -240,6 +243,7 @@ class PersonEntity(
         cId = person.cId,
         lastModified = LocalDateTime.now(),
         sexCode = person.sexCode,
+        sexualOrientation = person.sexualOrientation,
       )
       personEntity.updateChildEntities(person)
       return personEntity
