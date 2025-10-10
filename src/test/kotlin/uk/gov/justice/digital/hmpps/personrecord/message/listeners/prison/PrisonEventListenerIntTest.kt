@@ -98,12 +98,13 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val aliasMiddleName = randomName()
       val aliasLastName = randomName()
       val aliasDateOfBirth = randomDate()
+      val aliasGender = randomPrisonSexCode()
       val gender = randomPrisonSexCode()
 
       stubNoMatchesPersonMatch()
       prisonDomainEventAndResponseSetup(
         PRISONER_CREATED,
-        apiResponseSetup = ApiResponseSetup(title = title, gender = gender.key, aliases = listOf(ApiResponseSetupAlias(title, aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))),
+        apiResponseSetup = ApiResponseSetup(title = title, gender = gender.key, aliases = listOf(ApiResponseSetupAlias(title, aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth, aliasGender.key)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))),
       )
 
       checkTelemetry(
@@ -134,6 +135,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getAliases()[0].middleNames).isEqualTo(aliasMiddleName)
         assertThat(personEntity.getAliases()[0].lastName).isEqualTo(aliasLastName)
         assertThat(personEntity.getAliases()[0].dateOfBirth).isEqualTo(aliasDateOfBirth)
+        assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(aliasGender.value)
         assertThat(personEntity.addresses.size).isEqualTo(1)
         assertThat(personEntity.addresses[0].postcode).isEqualTo(postcode)
         assertThat(personEntity.addresses[0].fullAddress).isEqualTo(fullAddress)
@@ -219,10 +221,14 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val updatedNationality = randomPrisonNationalityCode()
       val title = randomTitle()
       val updatedSexCode = randomPrisonSexCode()
+
+      val updatedAliasGender = randomPrisonSexCode()
+      val updatedAlias = ApiResponseSetupAlias(title = randomTitle(), firstName = randomName(), lastName = randomName(), gender = updatedAliasGender.key)
+
       stubNoMatchesPersonMatch(matchId = prisoner.matchId)
       prisonDomainEventAndResponseSetup(
         PRISONER_UPDATED,
-        apiResponseSetup = ApiResponseSetup(gender = updatedSexCode.key, title = title, prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity),
+        apiResponseSetup = ApiResponseSetup(gender = updatedSexCode.key, title = title, prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity, aliases = listOf(updatedAlias)),
       )
       checkTelemetry(
         CPR_RECORD_UPDATED,
@@ -238,6 +244,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().titleCode?.description).isEqualTo(storedTitle.description)
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
         assertThat(personEntity.sexCode).isEqualTo(updatedSexCode.value)
+
+        assertThat(personEntity.getAliases()).hasSize(1)
+        assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(updatedAliasGender.value)
 
         val storedPrisonEthnicity = ethnicity.getPrisonEthnicity()
         assertThat(personEntity.ethnicityCode?.code).isEqualTo(storedPrisonEthnicity.code)

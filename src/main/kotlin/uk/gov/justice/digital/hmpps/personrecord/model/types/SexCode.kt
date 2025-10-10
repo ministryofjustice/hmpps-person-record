@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAlias
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 
 enum class SexCode(val description: String) {
@@ -53,6 +54,10 @@ enum class SexCode(val description: String) {
     }
 
     fun from(prisoner: Prisoner): SexCode? = prisoner.gender.nullIfBlank()?.let {
+      prisonSexCode.getOrDefault(it, N)
+    }
+
+    fun from(prisonerAlias: PrisonerAlias): SexCode? = prisonerAlias.gender.nullIfBlank()?.let {
       prisonSexCode.getOrDefault(it, N)
     }
   }
