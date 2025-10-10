@@ -5,4 +5,5 @@ import java.time.LocalDate
 data class ProbationCaseAlias(
   val name: ProbationCaseName,
   val dateOfBirth: LocalDate? = null,
+  val gender: Value? = null,
 )
