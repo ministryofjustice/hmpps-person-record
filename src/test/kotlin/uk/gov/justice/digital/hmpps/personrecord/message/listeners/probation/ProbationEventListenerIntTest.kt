@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getPNCs
+import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
@@ -356,6 +357,21 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
 
       assertThat(personEntity.sentenceInfo).hasSize(1)
+    }
+
+    @Test
+    fun `should not create new reference entities when updating`() {
+      val crn = randomCrn()
+      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
+      val pncEntity = person.references.find { it.identifierType == IdentifierType.PNC }
+
+      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, pnc = person.getPnc(), cro = randomCro()))
+
+      checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to person.crn))
+
+      val updatedPerson = awaitNotNullPerson { personRepository.findByCrn(crn) }
+      assertThat(updatedPerson.getPnc()).isEqualTo(pncEntity?.identifierValue)
+      assertThat(updatedPerson.references.find { it.identifierType == IdentifierType.PNC }?.id).isEqualTo(pncEntity?.id)
     }
   }
 
