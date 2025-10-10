@@ -9,6 +9,7 @@ enum class SexualOrientation(val description: String) {
   ND("Not Answered"),
   OTH("Other"),
   REF(" Refused"),
+  UNKNOWN("Unknown"),
   ;
 
   companion object {
@@ -22,7 +23,7 @@ enum class SexualOrientation(val description: String) {
     )
 
     fun from(probationCase: ProbationCase) = probationCase.sexualOrientation?.value?.let {
-      probationSexualOrientation[it]
+      probationSexualOrientation.getOrDefault(it, UNKNOWN)
     }
   }
 }

@@ -28,4 +28,17 @@ class SexualOrientationTest {
       ),
     ).isNull()
   }
+
+  @Test
+  fun `should use default value if sexualOrientation is not recognised`() {
+    assertThat(
+      SexualOrientation.from(
+        ProbationCase(
+          name = ProbationCaseName(),
+          sexualOrientation = Value("unsupported"),
+          identifiers = Identifiers(),
+        ),
+      ),
+    ).isEqualTo(SexualOrientation.UNKNOWN)
+  }
 }
