@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
@@ -73,6 +74,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val aliasMiddleName = randomName()
       val aliasLastName = randomName()
       val aliasDateOfBirth = randomDate()
+      val aliasGender = randomProbationSexCode()
       val gender = randomProbationSexCode()
       val sexualOrientation = randomProbationSexualOrientation()
 
@@ -91,7 +93,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
           ApiResponseSetupAddress(noFixedAbode = true, addressStartDate, addressEndDate, postcode = "LS1 1AB", fullAddress = "abc street"),
           ApiResponseSetupAddress(postcode = "M21 9LX", fullAddress = "abc street"),
         ),
-        aliases = listOf(ApiResponseSetupAlias(firstName = aliasFirstName, middleName = aliasMiddleName, lastName = aliasLastName, dateOfBirth = aliasDateOfBirth)),
+        aliases = listOf(ApiResponseSetupAlias(firstName = aliasFirstName, middleName = aliasMiddleName, lastName = aliasLastName, dateOfBirth = aliasDateOfBirth, gender = aliasGender.key)),
         ethnicity = ethnicity,
         nationality = nationality,
         secondaryNationality = secondaryNationality,
@@ -119,6 +121,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getAliases()[0].lastName).isEqualTo(aliasLastName)
       assertThat(personEntity.getAliases()[0].dateOfBirth).isEqualTo(aliasDateOfBirth)
       assertThat(personEntity.getAliases()[0].nameType).isEqualTo(NameType.ALIAS)
+      assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(aliasGender.value)
       assertThat(personEntity.getPrimaryName().firstName).isEqualTo(firstName)
       assertThat(personEntity.getPrimaryName().middleNames).isEqualTo(middleName)
       assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
