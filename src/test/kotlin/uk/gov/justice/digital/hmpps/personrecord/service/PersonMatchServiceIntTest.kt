@@ -113,7 +113,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
     @Test
     fun `should find one high confidence match for record not assigned to cluster`() {
       val searchingRecord = createPerson(createExamplePerson())
-      val foundRecord = createPersonWithNewKey(createExamplePerson())
+      val (foundRecord) = createPersonAndKey(createExamplePerson())
 
       stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
@@ -123,8 +123,8 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should find one high confidence match`() {
-      val searchingRecord = createPersonWithNewKey(createExamplePerson())
-      val foundRecord = createPersonWithNewKey(createExamplePerson())
+      val (searchingRecord) = createPersonAndKey(createExamplePerson())
+      val (foundRecord) = createPersonAndKey(createExamplePerson())
 
       stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
@@ -134,27 +134,27 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should find multiple high confidence match`() {
-      val searchingRecord = createPersonWithNewKey(createExamplePerson())
+      val (searchingRecord) = createPersonAndKey(createExamplePerson())
 
       val foundRecords = listOf(
-        createPersonWithNewKey(createExamplePerson()),
-        createPersonWithNewKey(createExamplePerson()),
-        createPersonWithNewKey(createExamplePerson()),
+        createPersonAndKey(createExamplePerson()),
+        createPersonAndKey(createExamplePerson()),
+        createPersonAndKey(createExamplePerson()),
       )
 
       stubXPersonMatches(
         matchId = searchingRecord.matchId,
-        aboveJoin = foundRecords.map { it.matchId },
+        aboveJoin = foundRecords.map { (record) -> record.matchId },
       )
 
       val highConfidenceMatch = personMatchService.findClustersToJoin(searchingRecord)
-      assertThat(highConfidenceMatch.first().personEntity.matchId).isEqualTo(foundRecords[0].matchId)
+      assertThat(highConfidenceMatch.first().personEntity.matchId).isEqualTo(foundRecords[0].first.matchId)
     }
 
     @Test
     fun `should not return low confidence match`() {
-      val searchingRecord = createPersonWithNewKey(createExamplePerson())
-      val lowConfidenceRecord = createPersonWithNewKey(createExamplePerson())
+      val (searchingRecord) = createPersonAndKey(createExamplePerson())
+      val (lowConfidenceRecord) = createPersonAndKey(createExamplePerson())
 
       stubOnePersonMatchBelowFractureThreshold(
         matchId = searchingRecord.matchId,
@@ -200,8 +200,8 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `should not return its self if person match sends it back`() {
-      val record = createPersonWithNewKey(createExamplePerson())
+    fun `should not return itself if person match sends it back`() {
+      val (record) = createPersonAndKey(createExamplePerson())
 
       stubOnePersonMatchAboveJoinThreshold(matchId = record.matchId, matchedRecord = record.matchId)
 
@@ -212,10 +212,10 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should return highest scoring record`() {
-      val searchingRecord = createPersonWithNewKey(createExamplePerson())
+      val (searchingRecord) = createPersonAndKey(createExamplePerson())
 
-      val highScoringRecordOne = createPersonWithNewKey(createExamplePerson())
-      val highScoringRecordTwo = createPersonWithNewKey(createExamplePerson())
+      val (highScoringRecordOne) = createPersonAndKey(createExamplePerson())
+      val (highScoringRecordTwo) = createPersonAndKey(createExamplePerson())
 
       stubPersonMatchScores(
         matchId = searchingRecord.matchId,
@@ -287,7 +287,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
     @Test
     fun `should log candidate search summary with correct number of clusters`() {
-      val searchingRecord = createPersonWithNewKey(createExamplePerson())
+      val (searchingRecord) = createPersonAndKey(createExamplePerson())
 
       val cluster1 = createPersonKey()
       val cluster1Records = listOf(
