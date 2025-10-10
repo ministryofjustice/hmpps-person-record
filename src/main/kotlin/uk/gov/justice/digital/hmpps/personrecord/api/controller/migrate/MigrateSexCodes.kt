@@ -21,36 +21,40 @@ class MigrateSexCodes(
 
   @Hidden
   @RequestMapping(method = [RequestMethod.POST], value = ["/migrate/sex-codes"])
-  suspend fun migrateSexCodes(): String {
+  suspend fun migrate(): String {
     migrateSexCodesFromPersonToPseudonym()
     return OK
   }
 
   suspend fun migrateSexCodesFromPersonToPseudonym() = coroutineScope {
-    log.info("Starting migration of sex codes")
-    val executionResults = forPage { page ->
+    SourceSystemType.COMMON_PLATFORM.migrateSexCode()
+    SourceSystemType.LIBRA.migrateSexCode()
+  }
+
+  private fun SourceSystemType.migrateSexCode() {
+    log.info("Starting ${this.name} migration of sex codes")
+    val executionResults = forPage(this) { page ->
       page.content.forEach { personEntity ->
         personEntity.getPrimaryName().sexCode = personEntity.sexCode
         personRepository.save(personEntity)
       }
     }
     log.info(
-      "Finished migrating exclude override markers," +
+      "Finished migrating ${this.name} sex codes," +
         "total elements: ${executionResults.totalElements}, " +
         "elapsed time: ${executionResults.elapsedTime}",
     )
   }
 
-  private inline fun forPage(page: (Page<PersonEntity>) -> Unit): ExecutionResult {
+  private inline fun forPage(sourceSystemType: SourceSystemType, page: (Page<PersonEntity>) -> Unit): ExecutionResult {
     var pageNumber = 0
     var personRecords: Page<PersonEntity>
     val elapsedTime: Duration = measureTime {
       do {
         val pageable = PageRequest.of(pageNumber, BATCH_SIZE)
-
-        personRecords = personRepository.findAllBySexCodeIsNotNullAndSourceSystemOrderById(pageable, SourceSystemType.COMMON_PLATFORM)
+        personRecords = personRepository.findAllBySexCodeIsNotNullAndSourceSystemOrderById(pageable, sourceSystemType)
         page(personRecords)
-
+        log.info("Migrated ${sourceSystemType.name} sex codes page: ${pageNumber + 1}/${personRecords.totalPages}")
         pageNumber++
       } while (personRecords.hasNext())
     }
