@@ -7,7 +7,8 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -26,7 +27,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `processes offender merge event with source record does not exist`() {
       val sourceCrn = randomCrn()
       val targetCrn = randomCrn()
-      val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails(targetCrn))
+      val (targetPerson) = createPersonAndKey(createRandomProbationPersonDetails(targetCrn))
 
       stubPersonMatchUpsert()
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn)
@@ -48,7 +49,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
     @Test
     fun `processes offender merge event with target record does not exist`() {
       val targetCrn = randomCrn()
-      val sourcePerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+      val (sourcePerson) = createPersonAndKey(createRandomProbationPersonDetails())
 
       stubPersonMatchUpsert()
       stubPersonMatchScores()
@@ -97,7 +98,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         .addPerson(createPerson(createRandomProbationPersonDetails()))
         .addPerson(sourcePerson)
 
-      val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails(targetCrn))
+      val (targetPerson, targetPersonKey) = createPersonAndKey(createRandomProbationPersonDetails(targetCrn))
 
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn)
 
@@ -119,14 +120,14 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkEventLogExist(targetCrn, CPRLogEvents.CPR_RECORD_UPDATED)
       checkEventLogExist(sourceCrn, CPRLogEvents.CPR_RECORD_MERGED)
 
-      sourceCluster.assertClusterStatus(UUIDStatusType.ACTIVE)
+      sourceCluster.assertClusterStatus(ACTIVE)
       sourceCluster.assertClusterIsOfSize(1)
 
       sourcePerson.assertMergedTo(targetPerson)
       sourcePerson.assertNotLinkedToCluster()
 
-      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      targetPerson.personKey?.assertClusterIsOfSize(1)
+      targetPersonKey.assertClusterStatus(ACTIVE)
+      targetPersonKey.assertClusterIsOfSize(1)
     }
 
     @Test
@@ -135,7 +136,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val targetCrn = randomCrn()
 
       val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
-      val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails(targetCrn))
+      val (targetPerson, targetPersonKey) = createPersonAndKey(createRandomProbationPersonDetails(targetCrn))
 
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourceCrn, targetCrn)
 
@@ -153,14 +154,14 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       sourcePerson.assertMergedTo(targetPerson)
       sourcePerson.assertNotLinkedToCluster()
 
-      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      targetPerson.personKey?.assertClusterIsOfSize(1)
+      targetPersonKey.assertClusterStatus(ACTIVE)
+      targetPersonKey.assertClusterIsOfSize(1)
     }
 
     @Test
     fun `processes offender merge event with different UUIDs where source has a single record`() {
-      val sourcePerson = createPersonWithNewKey(createRandomProbationPersonDetails())
-      val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails())
+      val (sourcePerson, sourcePersonKey) = createPersonAndKey(createRandomProbationPersonDetails())
+      val (targetPerson, targetPersonKey) = createPersonAndKey(createRandomProbationPersonDetails())
 
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourcePerson.crn!!, targetPerson.crn!!)
 
@@ -175,8 +176,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkTelemetry(
         CPR_UUID_MERGED,
         mapOf(
-          "FROM_UUID" to sourcePerson.personKey?.personUUID.toString(),
-          "TO_UUID" to targetPerson.personKey?.personUUID.toString(),
+          "FROM_UUID" to sourcePersonKey.personUUID.toString(),
+          "TO_UUID" to targetPersonKey.personUUID.toString(),
           "SOURCE_SYSTEM" to "DELIUS",
         ),
       )
@@ -185,17 +186,17 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       checkEventLog(sourcePerson.crn!!, CPRLogEvents.CPR_UUID_MERGED) { eventLogs ->
         assertThat(eventLogs).hasSize(1)
         val event = eventLogs.first()
-        assertThat(event.personUUID).isEqualTo(sourcePerson.personKey?.personUUID)
-        assertThat(event.uuidStatusType).isEqualTo(UUIDStatusType.MERGED)
+        assertThat(event.personUUID).isEqualTo(sourcePersonKey.personUUID)
+        assertThat(event.uuidStatusType).isEqualTo(MERGED)
       }
 
       sourcePerson.assertMergedTo(targetPerson)
-      sourcePerson.personKey?.assertMergedTo(targetPerson.personKey!!)
-      sourcePerson.personKey?.assertClusterStatus(UUIDStatusType.MERGED)
-      sourcePerson.personKey?.assertClusterIsOfSize(0)
+      sourcePersonKey.assertMergedTo(targetPerson.personKey!!)
+      sourcePersonKey.assertClusterStatus(MERGED)
+      sourcePersonKey.assertClusterIsOfSize(0)
 
-      targetPerson.personKey?.assertClusterStatus(UUIDStatusType.ACTIVE)
-      targetPerson.personKey?.assertClusterIsOfSize(1)
+      targetPersonKey.assertClusterStatus(ACTIVE)
+      targetPersonKey.assertClusterIsOfSize(1)
     }
   }
 
@@ -302,8 +303,8 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val recordACrn = randomCrn()
       val recordBCrn = randomCrn()
 
-      createPersonWithNewKey(createRandomProbationPersonDetails(recordACrn))
-      val recordB = createPersonWithNewKey(createRandomProbationPersonDetails(recordBCrn))
+      createPersonAndKey(createRandomProbationPersonDetails(recordACrn))
+      val (_, recordBKey) = createPersonAndKey(createRandomProbationPersonDetails(recordBCrn))
 
       stubDeletePersonMatch()
       stubPersonMatchUpsert()
@@ -323,7 +324,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       expectOneMessageOnDlq(probationMergeEventsQueue)
 
       awaitAssert {
-        val findRecordB = personKeyRepository.findByPersonUUID(recordB.personKey?.personUUID)
+        val findRecordB = personKeyRepository.findByPersonUUID(recordBKey.personUUID)
         assertThat(findRecordB?.mergedTo).isNull()
       }
     }

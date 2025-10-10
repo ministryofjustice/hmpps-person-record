@@ -26,7 +26,7 @@ class ClustersApiIntTest : WebTestBase() {
 
   @Test
   fun `should return list of clusters with composition`() {
-    val person = createPersonWithNewKey(createRandomProbationPersonDetails(), status = UUIDStatusType.NEEDS_ATTENTION)
+    val personKey = createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION).addPerson(createPerson(createRandomProbationPersonDetails()))
 
     val responseType = object : ParameterizedTypeReference<PaginatedResponse<AdminCluster>>() {}
     val response = webTestClient.get()
@@ -45,7 +45,7 @@ class ClustersApiIntTest : WebTestBase() {
     assertThat(response.pagination.page).isEqualTo(1)
     assertThat(response.pagination.perPage).isEqualTo(20)
 
-    assertThat(response.content[0].uuid).isEqualTo(person.personKey?.personUUID.toString())
+    assertThat(response.content[0].uuid).isEqualTo(personKey.personUUID.toString())
     assertThat(response.content[0].recordComposition[0].count).isEqualTo(0)
     assertThat(response.content[0].recordComposition[0].sourceSystem).isEqualTo(COMMON_PLATFORM)
     assertThat(response.content[0].recordComposition[1].count).isEqualTo(1)
@@ -58,9 +58,9 @@ class ClustersApiIntTest : WebTestBase() {
 
   @Test
   fun `should not return clusters that are not NEEDS ATTENTION`() {
-    createPersonWithNewKey(createRandomProbationPersonDetails(), status = ACTIVE)
-    createPersonWithNewKey(createRandomProbationPersonDetails(), status = MERGED)
-    createPersonWithNewKey(createRandomProbationPersonDetails(), status = RECLUSTER_MERGE)
+    createPersonAndKey(createRandomProbationPersonDetails(), status = ACTIVE)
+    createPersonAndKey(createRandomProbationPersonDetails(), status = MERGED)
+    createPersonAndKey(createRandomProbationPersonDetails(), status = RECLUSTER_MERGE)
 
     val responseType = object : ParameterizedTypeReference<PaginatedResponse<AdminCluster>>() {}
     val response = webTestClient.get()

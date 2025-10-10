@@ -24,7 +24,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
   @Test
   fun `should not log record update when no change in matching fields`() {
     val person = createRandomProbationPersonDetails()
-    val existingPerson = createPersonWithNewKey(person)
+    val (existingPerson) = createPersonAndKey(person)
 
     personService.processPerson(person) { existingPerson }
 
@@ -37,7 +37,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
     val firstName = randomName()
     val lastName = randomName()
     val person = Person.from(LibraHearingEvent(name = Name(firstName = firstName, lastName = lastName), cId = cId))
-    val existingPerson = createPersonWithNewKey(person)
+    val (existingPerson) = createPersonAndKey(person)
 
     val updatedPerson = Person.from(LibraHearingEvent(name = Name(firstName = randomName(), lastName = lastName), cId = cId))
     stubPersonMatchUpsert()
@@ -61,7 +61,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
         addresses = listOf(ProbationAddress(postcode = postcode1), ProbationAddress(postcode = postcode2)),
       ),
     )
-    val existingPerson = createPersonWithNewKey(person)
+    val (existingPerson) = createPersonAndKey(person)
 
     val updatedPerson = Person.from(
       ProbationCase(
