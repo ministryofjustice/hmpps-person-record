@@ -15,6 +15,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.TitleCodeE
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Alias
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import java.time.LocalDate
 
 @Entity
@@ -52,6 +53,10 @@ class PseudonymEntity(
   @Column(name = "date_of_birth")
   val dateOfBirth: LocalDate? = null,
 
+  @Column(name = "sex_code")
+  @Enumerated(STRING)
+  var sexCode: SexCode? = null,
+
   @Column(name = "name_type")
   @Enumerated(STRING)
   val nameType: NameType,
@@ -67,6 +72,7 @@ class PseudonymEntity(
       nameType = NameType.PRIMARY,
       titleCode = titleCode,
       dateOfBirth = person.dateOfBirth,
+      sexCode = person.sexCode,
     )
 
     fun aliasFrom(alias: Alias, titleCode: TitleCodeEntity?): PseudonymEntity? = when {
