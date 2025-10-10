@@ -90,6 +90,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.getPrimaryName().middleNames).isEqualTo("$forename2 $forename3")
     assertThat(person.getPrimaryName().lastName).isEqualTo(lastName)
     assertThat(person.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
+    assertThat(person.getPrimaryName().sexCode).isEqualTo(sexCode.value)
     assertThat(person.getPnc()).isEqualTo(pnc)
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)

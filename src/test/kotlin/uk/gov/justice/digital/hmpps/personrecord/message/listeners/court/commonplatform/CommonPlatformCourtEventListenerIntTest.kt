@@ -242,6 +242,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getPrimaryName().firstName).isEqualTo(firstName)
     assertThat(firstPerson.getPrimaryName().middleNames).isEqualTo("mName1 mName2")
     assertThat(firstPerson.getPrimaryName().lastName).isEqualTo(lastName)
+    assertThat(firstPerson.getPrimaryName().sexCode).isEqualTo(firstSexCode.value)
     assertThat(firstPerson.contacts).isEmpty()
     assertThat(firstPerson.addresses).isNotEmpty()
     checkNationalities(firstPerson, firstAdditionalNationality, firstNationality)

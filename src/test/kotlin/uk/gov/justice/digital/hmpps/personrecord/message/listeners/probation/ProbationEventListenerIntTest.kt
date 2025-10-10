@@ -123,6 +123,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.getPrimaryName().middleNames).isEqualTo(middleName)
       assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
       assertThat(personEntity.getPrimaryName().nameType).isEqualTo(NameType.PRIMARY)
+      assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
       val storedTitle = title.getTitle()
       assertThat(personEntity.getPrimaryName().titleCode?.code).isEqualTo(storedTitle.code)
       assertThat(personEntity.getPrimaryName().titleCode?.description).isEqualTo(storedTitle.description)
