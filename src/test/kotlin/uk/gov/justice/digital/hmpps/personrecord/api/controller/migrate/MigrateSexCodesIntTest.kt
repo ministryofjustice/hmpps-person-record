@@ -78,7 +78,6 @@ class MigrateSexCodesIntTest : WebTestBase() {
     probationRecord.sexCode = probationSexCode.value
     personRepository.save(probationRecord)
 
-
     assertThat(commonPlatformRecord.getPrimaryName().sexCode).isNull()
     assertThat(libraRecord.getPrimaryName().sexCode).isNull()
     assertThat(prisonRecord.getPrimaryName().sexCode).isNull()
