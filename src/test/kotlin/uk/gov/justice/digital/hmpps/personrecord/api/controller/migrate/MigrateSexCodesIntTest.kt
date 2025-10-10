@@ -93,7 +93,7 @@ class MigrateSexCodesIntTest : WebTestBase() {
         crn = randomCrn(),
         lastName = randomName(),
         dateOfBirth = randomDate(),
-        sourceSystem = SourceSystemType.LIBRA,
+        sourceSystem = SourceSystemType.DELIUS,
       ),
     )
     probationRecord.sexCode = probationSexCode.value
@@ -105,8 +105,14 @@ class MigrateSexCodesIntTest : WebTestBase() {
       .expectStatus()
       .isOk
 
-    assertThat(prisonRecord.getPrimaryName().sexCode).isNull()
-    assertThat(probationRecord.getPrimaryName().sexCode).isNull()
+    awaitAssert {
+      val updatedPrisonRecord = personRepository.findByPrisonNumber(prisonRecord.prisonNumber!!)
+      assertThat(updatedPrisonRecord?.getPrimaryName()?.sexCode).isNull()
+    }
+    awaitAssert {
+      val updatedProbationRecord = personRepository.findByCrn(probationRecord.crn!!)
+      assertThat(updatedProbationRecord?.getPrimaryName()?.sexCode).isNull()
+    }
   }
 
   companion object {
