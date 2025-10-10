@@ -161,7 +161,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should process personals details updated events successfully`() {
+    fun `should process personal details updated events successfully`() {
       val pnc = randomLongPnc()
       val crn = randomCrn()
       val gender = randomProbationSexCode()
