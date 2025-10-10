@@ -25,7 +25,7 @@ class MigrateSexCodesIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should migrate a sex code on the person to the primary name in pseudonym`() {
+  fun `should migrate a sex code on the person to the primary name in pseudonym but not NOMIS or DELIUS records`() {
     val commonPlatformSexCode = randomCommonPlatformSexCode()
     val commonPlatformRecord = createPersonWithNewKey(
       Person(
@@ -52,27 +52,6 @@ class MigrateSexCodesIntTest : WebTestBase() {
     libraRecord.sexCode = libraSexCode.value
     personRepository.save(libraRecord)
 
-    assertThat(commonPlatformRecord.getPrimaryName().sexCode).isNull()
-    assertThat(libraRecord.getPrimaryName().sexCode).isNull()
-
-    webTestClient.post()
-      .uri(MIGRATE_SEX_CODE_URL)
-      .exchange()
-      .expectStatus()
-      .isOk
-
-    awaitAssert {
-      val updatedCommonPlatformRecord = personRepository.findByDefendantId(commonPlatformRecord.defendantId!!)
-      assertThat(updatedCommonPlatformRecord?.getPrimaryName()?.sexCode).isEqualTo(commonPlatformSexCode.value)
-    }
-    awaitAssert {
-      val updatedLibraRecord = personRepository.findByCId(libraRecord.cId!!)
-      assertThat(updatedLibraRecord?.getPrimaryName()?.sexCode).isEqualTo(libraSexCode.value)
-    }
-  }
-
-  @Test
-  fun `should not migrate NOMIS or DELIUS records`() {
     val prisonSexCode = randomPrisonSexCode()
     val prisonRecord = createPersonWithNewKey(
       Person(
@@ -99,12 +78,26 @@ class MigrateSexCodesIntTest : WebTestBase() {
     probationRecord.sexCode = probationSexCode.value
     personRepository.save(probationRecord)
 
+
+    assertThat(commonPlatformRecord.getPrimaryName().sexCode).isNull()
+    assertThat(libraRecord.getPrimaryName().sexCode).isNull()
+    assertThat(prisonRecord.getPrimaryName().sexCode).isNull()
+    assertThat(probationRecord.getPrimaryName().sexCode).isNull()
+
     webTestClient.post()
       .uri(MIGRATE_SEX_CODE_URL)
       .exchange()
       .expectStatus()
       .isOk
 
+    awaitAssert {
+      val updatedCommonPlatformRecord = personRepository.findByDefendantId(commonPlatformRecord.defendantId!!)
+      assertThat(updatedCommonPlatformRecord?.getPrimaryName()?.sexCode).isEqualTo(commonPlatformSexCode.value)
+    }
+    awaitAssert {
+      val updatedLibraRecord = personRepository.findByCId(libraRecord.cId!!)
+      assertThat(updatedLibraRecord?.getPrimaryName()?.sexCode).isEqualTo(libraSexCode.value)
+    }
     awaitAssert {
       val updatedPrisonRecord = personRepository.findByPrisonNumber(prisonRecord.prisonNumber!!)
       assertThat(updatedPrisonRecord?.getPrimaryName()?.sexCode).isNull()
