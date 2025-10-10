@@ -42,6 +42,10 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
         "mobile": "01234567890",
         "email": "test@gmail.com"
       },
+      "sexualOrientation": {
+        ${probationCase.sexualOrientation?.let { """ "code": "${probationCase.sexualOrientation}", """.trimIndent() } ?: ""}
+        "description": "string"
+      },
       "sentences": [${probationCase.sentences?.joinToString { sentence(it) } ?: ""}]
     }
 """.trimIndent()
