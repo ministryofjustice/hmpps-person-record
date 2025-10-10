@@ -277,7 +277,7 @@ class IntegrationTestBase {
     personEntity.personKey = this
     return personKeyRepository.save(this)
   }
-  
+
   internal fun createPersonAndKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): Pair<PersonEntity, PersonKeyEntity> {
     val personKeyEntity = createPersonKey(status, reason)
     val personEntity = createPerson(person, personKeyEntity)
