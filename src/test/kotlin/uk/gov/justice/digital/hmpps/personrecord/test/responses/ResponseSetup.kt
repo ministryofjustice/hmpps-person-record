@@ -54,6 +54,7 @@ data class ApiResponseSetup(
   val sentenceStartDate: LocalDate? = null,
   val primarySentence: Boolean? = null,
   val gender: String? = null,
+  val sexualOrientation: String? = null,
 ) {
   companion object {
 
