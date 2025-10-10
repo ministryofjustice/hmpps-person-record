@@ -182,39 +182,31 @@ class PersonEntity(
     this.sexCode = person.sexCode
     this.sexualOrientation = person.sexualOrientation
     this.lastModified = LocalDateTime.now()
-    addresses.clear()
-    contacts.clear()
-    references.clear()
-    sentenceInfo.clear()
     updateChildEntities(person)
   }
 
   private fun updateChildEntities(person: Person) {
     updatePersonAddresses(person)
     updatePersonContacts(person)
-    updatePersonReferences(person)
     updatePersonSentences(person)
   }
 
   private fun updatePersonAddresses(person: Person) {
+    this.addresses.clear()
     val personAddresses = AddressEntity.fromList(person.addresses)
     personAddresses.forEach { personAddressEntity -> personAddressEntity.person = this }
     this.addresses.addAll(personAddresses)
   }
 
   private fun updatePersonContacts(person: Person) {
+    this.contacts.clear()
     val personContacts = ContactEntity.fromList(person.contacts)
     personContacts.forEach { personContactEntity -> personContactEntity.person = this }
     this.contacts.addAll(personContacts)
   }
 
-  private fun updatePersonReferences(person: Person) {
-    val personReferences = ReferenceEntity.fromList(person.references)
-    personReferences.forEach { personReferenceEntity -> personReferenceEntity.person = this }
-    this.references.addAll(personReferences)
-  }
-
   private fun updatePersonSentences(person: Person) {
+    this.sentenceInfo.clear()
     val personSentences = SentenceInfoEntity.fromList(person.sentences).distinctBy { it.sentenceDate }
     personSentences.forEach { personSentenceInfoEntity -> personSentenceInfoEntity.person = this }
     this.sentenceInfo.addAll(personSentences)
