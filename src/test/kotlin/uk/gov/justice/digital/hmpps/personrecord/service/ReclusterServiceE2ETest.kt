@@ -119,7 +119,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       val doesNotMatch = createPerson(createRandomProbationPersonDetails())
 
-      val recordToJoinCluster = createPersonWithNewKey(createProbationPersonFrom(basePersonData))
+      val (recordToJoinCluster, recordToJoinKey) = createPersonAndKey(createProbationPersonFrom(basePersonData))
       val cluster = createPersonKey(status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
         .addPerson(recordA)
         .addPerson(matchesA)
@@ -132,7 +132,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster.assertClusterIsOfSize(4)
       cluster.assertClusterStatus(ACTIVE)
-      recordToJoinCluster.personKey?.assertMergedTo(cluster)
+      recordToJoinKey.assertMergedTo(cluster)
     }
 
     @Test
