@@ -278,12 +278,14 @@ class IntegrationTestBase {
     return personKeyRepository.save(this)
   }
 
-  internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonEntity = createPerson(person, createPersonKey(status, reason))
+  internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonEntity {
+    val personEntity = createPerson(person)
+    createPersonKey(status, reason).addPerson(personEntity)
+    return personRepository.findByMatchId(personEntity.matchId)!!
+  }
 
-  internal fun createPerson(person: Person, personKeyEntity: PersonKeyEntity? = null): PersonEntity {
+  internal fun createPerson(person: Person): PersonEntity {
     val personEntity = personFactory.create(person).personEntity
-    personEntity.personKey = personKeyEntity
-    personKeyEntity?.personEntities?.add(personEntity)
     return personRepository.saveAndFlush(personEntity)
   }
 
