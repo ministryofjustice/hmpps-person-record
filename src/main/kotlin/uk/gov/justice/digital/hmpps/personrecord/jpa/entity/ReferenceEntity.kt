@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 
 @Entity
 @Table(name = "reference")
-data class ReferenceEntity(
+class ReferenceEntity(
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
