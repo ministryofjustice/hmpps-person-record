@@ -371,6 +371,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val updatedPerson = awaitNotNullPerson { personRepository.findByCrn(crn) }
       assertThat(updatedPerson.getPnc()).isEqualTo(pncEntity?.identifierValue)
       assertThat(updatedPerson.references.find { it.identifierType == IdentifierType.PNC }?.id).isEqualTo(pncEntity?.id)
+      assertThat(updatedPerson.references.find { it.identifierType == IdentifierType.PNC }?.version).isEqualTo(pncEntity?.version)
     }
   }
 
