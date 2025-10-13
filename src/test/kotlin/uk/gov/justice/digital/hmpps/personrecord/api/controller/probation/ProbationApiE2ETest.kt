@@ -202,8 +202,6 @@ class ProbationApiE2ETest : E2ETestBase() {
 
       @Test
       fun `should add list of additional identifiers to the canonical record`() {
-        val personKey = createPersonKey()
-
         val personOneCro = randomCro()
         val personTwoCro = randomCro()
 
@@ -256,7 +254,6 @@ class ProbationApiE2ETest : E2ETestBase() {
               ),
             ),
           ),
-          personKey,
         )
 
         val personTwo = createPerson(
@@ -290,9 +287,8 @@ class ProbationApiE2ETest : E2ETestBase() {
               ),
             ),
           ),
-          personKey,
         )
-
+        createPersonKey().addPerson(personOne).addPerson(personTwo)
         val responseBody = webTestClient.get()
           .uri(probationApiUrl(personOneCrn))
           .authorised(listOf(API_READ_ONLY))
