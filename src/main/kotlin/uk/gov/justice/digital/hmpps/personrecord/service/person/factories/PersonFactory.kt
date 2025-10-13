@@ -5,14 +5,12 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchR
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.NationalityEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.reference.EthnicityFactory
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.reference.NationalityFactory
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.reference.PseudonymFactory
-import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.reference.ReferenceFactory
 
 @Component
 class PersonFactory(
@@ -58,7 +56,6 @@ class PersonFactory(
     this.attachPseudonyms(pseudonymFactory.buildPseudonyms(person))
     this.attachNationalities(nationalityFactory.buildNationalities(person))
     this.attachEthnicity(ethnicityFactory.buildEthnicity(person))
-    this.attachReferences(ReferenceFactory().buildReferences(person, this.references))
   }
 
   private fun PersonEntity.attachPseudonyms(pseudonyms: List<PseudonymEntity>) {
@@ -75,11 +72,5 @@ class PersonFactory(
 
   private fun PersonEntity.attachEthnicity(ethnicityCodeEntity: EthnicityCodeEntity?) {
     this.ethnicityCode = ethnicityCodeEntity
-  }
-
-  private fun PersonEntity.attachReferences(references: List<ReferenceEntity>) {
-    this.references.clear()
-    references.forEach { referenceEntity -> referenceEntity.person = this }
-    this.references.addAll(references)
   }
 }

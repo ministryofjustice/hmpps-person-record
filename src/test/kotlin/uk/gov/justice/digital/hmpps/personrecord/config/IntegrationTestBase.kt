@@ -175,6 +175,7 @@ class IntegrationTestBase {
   internal fun createRandomProbationPersonDetails(crn: String = randomCrn()): Person = Person.from(
     createRandomProbationCase(crn),
   )
+
   internal fun createRandomProbationCase(crn: String = randomCrn()) = ProbationCase(
     name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
     identifiers = Identifiers(crn = crn, pnc = randomLongPnc(), cro = randomCro()),
