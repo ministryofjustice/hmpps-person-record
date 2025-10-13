@@ -289,25 +289,17 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
     fun `should log candidate search summary with correct number of clusters`() {
       val searchingRecord = createPersonWithNewKey(createExamplePerson())
 
-      val cluster1 = createPersonKey().addPerson(
-        createPerson(createExamplePerson()),
-      ).addPerson(
-        createPerson(createExamplePerson()),
-      )
+      val cluster1 = createPersonKey()
+        .addPerson(createExamplePerson())
+        .addPerson(createExamplePerson())
 
       val cluster2 = createPersonKey()
-        .addPerson(
-          createPerson(createExamplePerson()),
-        )
-        .addPerson(
-          createPerson(createExamplePerson()),
-        )
+        .addPerson(createExamplePerson())
+        .addPerson(createExamplePerson())
 
-      val cluster3 = createPersonKey().addPerson(
-        createPerson(createExamplePerson()),
-      ).addPerson(
-        createPerson(createExamplePerson()),
-      )
+      val cluster3 = createPersonKey()
+        .addPerson(createExamplePerson())
+        .addPerson(createExamplePerson())
 
       val aboveJoinThresholdResults = cluster1.personEntities.map {
         PersonMatchScore(
