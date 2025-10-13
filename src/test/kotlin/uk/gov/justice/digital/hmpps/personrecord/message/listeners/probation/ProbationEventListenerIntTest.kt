@@ -357,6 +357,22 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       assertThat(personEntity.sentenceInfo).hasSize(1)
     }
+
+    @Test
+    fun `should not create new reference entities when updating`() {
+      val crn = randomCrn()
+      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
+      val pncEntity = person.references.find { it.identifierType == IdentifierType.PNC }
+
+      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, pnc = person.getPnc(), cro = randomCro()))
+
+      checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to person.crn))
+
+      val updatedPerson = awaitNotNullPerson { personRepository.findByCrn(crn) }
+      assertThat(updatedPerson.getPnc()).isEqualTo(pncEntity?.identifierValue)
+      assertThat(updatedPerson.references.find { it.identifierType == IdentifierType.PNC }?.id).isEqualTo(pncEntity?.id)
+      assertThat(updatedPerson.references.find { it.identifierType == IdentifierType.PNC }?.version).isEqualTo(pncEntity?.version)
+    }
   }
 
   @Test
