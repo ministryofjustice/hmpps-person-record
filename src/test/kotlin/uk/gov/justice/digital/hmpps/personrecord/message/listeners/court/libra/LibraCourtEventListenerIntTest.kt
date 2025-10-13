@@ -269,7 +269,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId),
     )
   }
-  
+
   @Nested
   inner class EventLog {
 
