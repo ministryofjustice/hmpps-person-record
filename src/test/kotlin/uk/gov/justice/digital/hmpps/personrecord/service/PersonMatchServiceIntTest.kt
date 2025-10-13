@@ -290,20 +290,23 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       val searchingRecord = createPersonWithNewKey(createExamplePerson())
 
       val cluster1 = createPersonKey().addPerson(
-        createPerson(createExamplePerson())).addPerson(
-        createPerson(createExamplePerson())
+        createPerson(createExamplePerson()),
+      ).addPerson(
+        createPerson(createExamplePerson()),
       )
 
       val cluster2 = createPersonKey()
         .addPerson(
-        createPerson(createExamplePerson()))
+          createPerson(createExamplePerson()),
+        )
         .addPerson(
-        createPerson(createExamplePerson())
-      )
+          createPerson(createExamplePerson()),
+        )
 
       val cluster3 = createPersonKey().addPerson(
-        createPerson(createExamplePerson())).addPerson(
-        createPerson(createExamplePerson())
+        createPerson(createExamplePerson()),
+      ).addPerson(
+        createPerson(createExamplePerson()),
       )
 
       val aboveJoinThresholdResults = cluster1.personEntities.map {

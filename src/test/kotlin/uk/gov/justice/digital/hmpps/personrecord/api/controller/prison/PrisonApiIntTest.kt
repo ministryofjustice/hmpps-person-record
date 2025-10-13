@@ -224,7 +224,7 @@ class PrisonApiIntTest : WebTestBase() {
               identifierValue = personOneDriversLicenseNumber,
             ),
           ),
-        )
+        ),
       )
 
       val personTwo = createPerson(
@@ -257,7 +257,7 @@ class PrisonApiIntTest : WebTestBase() {
               identifierValue = personTwoDriversLicenseNumber,
             ),
           ),
-        )
+        ),
       )
 
       createPersonKey().addPerson(personOne).addPerson(personTwo)
