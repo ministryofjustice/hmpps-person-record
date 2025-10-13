@@ -173,8 +173,6 @@ class PrisonApiIntTest : WebTestBase() {
 
     @Test
     fun `should add list of additional identifiers to the canonical record`() {
-      val personKey = createPersonKey()
-
       val personOneCro = randomCro()
       val personTwoCro = randomCro()
 
@@ -226,8 +224,7 @@ class PrisonApiIntTest : WebTestBase() {
               identifierValue = personOneDriversLicenseNumber,
             ),
           ),
-        ),
-        personKey,
+        )
       )
 
       val personTwo = createPerson(
@@ -260,9 +257,10 @@ class PrisonApiIntTest : WebTestBase() {
               identifierValue = personTwoDriversLicenseNumber,
             ),
           ),
-        ),
-        personKey,
+        )
       )
+
+      createPersonKey().addPerson(personOne).addPerson(personTwo)
 
       val responseBody = webTestClient.get()
         .uri(prisonApiUrl(personOne.prisonNumber))
