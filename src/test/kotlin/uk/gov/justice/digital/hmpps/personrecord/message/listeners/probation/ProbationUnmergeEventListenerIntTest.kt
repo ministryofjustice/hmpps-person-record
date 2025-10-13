@@ -169,9 +169,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `should unmerge 2 records that exist on same cluster but no merge link`() {
-      val cluster = createPersonKey()
-      val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
-
+      val unmergedRecord = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey().addPerson(unmergedRecord)
       val reactivatedRecord = createPerson(createRandomProbationPersonDetails())
 
       probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedRecord.crn!!, unmergedRecord.crn!!)
@@ -238,9 +237,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `should unmerge 2 records from existing one record`() {
-      val cluster = createPersonKey()
-      val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
-
+      val unmergedRecord = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey().addPerson(unmergedRecord)
       val firstReactivatedRecord = createPerson(createRandomProbationPersonDetails())
       val secondReactivatedRecord = createPerson(createRandomProbationPersonDetails())
 
@@ -284,8 +282,8 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `should not overwrite existing override marker`() {
-      val cluster = createPersonKey()
-      val unmergedRecord = createPerson(createRandomProbationPersonDetails(), cluster)
+      val unmergedRecord = createPersonWithNewKey(createRandomProbationPersonDetails())
+
       val firstReactivatedRecord = createPerson(createRandomProbationPersonDetails())
       val secondReactivatedRecord = createPerson(createRandomProbationPersonDetails())
 
