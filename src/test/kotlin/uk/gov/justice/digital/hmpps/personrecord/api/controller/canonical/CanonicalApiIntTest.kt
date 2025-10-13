@@ -426,7 +426,7 @@ class CanonicalApiIntTest : WebTestBase() {
     val targetPersonFirstName = randomName()
 
     val sourcePersonKey = createPersonKey()
-      .addPerson(createPerson(Person.from(ProbationCase(name = ProbationCaseName(firstName = sourcePersonFirstName), identifiers = Identifiers()))))
+      .addPerson(Person.from(ProbationCase(name = ProbationCaseName(firstName = sourcePersonFirstName), identifiers = Identifiers())))
     val targetPersonKey = createPersonKey().addPerson(
       createPerson(
         Person.from(ProbationCase(name = ProbationCaseName(firstName = targetPersonFirstName), identifiers = Identifiers())),
