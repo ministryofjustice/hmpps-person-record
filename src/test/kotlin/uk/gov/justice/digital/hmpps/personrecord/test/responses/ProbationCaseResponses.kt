@@ -60,7 +60,11 @@ private fun alias(alias: ApiResponseSetupAlias) =
             "previousSurname": "previousSurname",
             "preferred": "preferred"
           },
-          "dateOfBirth": "${alias.dateOfBirth ?: ""}"
+          "dateOfBirth": "${alias.dateOfBirth ?: ""}",
+          "gender": {
+            ${alias.gender?.let { """ "code": "${alias.gender}", """.trimIndent() } ?: ""}
+            "description": "string"
+          }
         }
   """.trimIndent()
 private fun address(address: ApiResponseSetupAddress) =

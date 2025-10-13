@@ -3,7 +3,9 @@ package uk.gov.justice.digital.hmpps.personrecord.model.types
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatform.PersonDetails
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCase
+import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAlias
 import uk.gov.justice.digital.hmpps.personrecord.extensions.nullIfBlank
 
 enum class SexCode(val description: String) {
@@ -52,7 +54,15 @@ enum class SexCode(val description: String) {
       probationSexCode.getOrDefault(it, NS)
     }
 
+    fun from(probationCaseAlias: ProbationCaseAlias?): SexCode? = probationCaseAlias?.gender?.value.nullIfBlank()?.let {
+      probationSexCode.getOrDefault(it, NS)
+    }
+
     fun from(prisoner: Prisoner): SexCode? = prisoner.gender.nullIfBlank()?.let {
+      prisonSexCode.getOrDefault(it, N)
+    }
+
+    fun from(prisonerAlias: PrisonerAlias): SexCode? = prisonerAlias.gender.nullIfBlank()?.let {
       prisonSexCode.getOrDefault(it, N)
     }
   }

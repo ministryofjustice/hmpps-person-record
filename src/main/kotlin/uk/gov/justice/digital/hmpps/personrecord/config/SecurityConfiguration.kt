@@ -22,6 +22,7 @@ class SecurityConfiguration {
         "/jobs/recordcountreport",
         "/admin/recluster",
         "/admin/delete",
+        "/migrate/sex-codes",
       )
     }
   }
