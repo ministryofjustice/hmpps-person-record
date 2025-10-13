@@ -26,8 +26,8 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       val reactivatedCrn = randomCrn()
       val unmergedCrn = randomCrn()
 
-      val cluster = createPersonKey()
-      val unmergedPerson = createPerson(createRandomProbationPersonDetails(unmergedCrn), cluster)
+      val unmergedPerson = createPerson(createRandomProbationPersonDetails(unmergedCrn))
+      val cluster = createPersonKey().addPerson(unmergedPerson)
       val reactivatedPerson = createRandomProbationPersonDetails(reactivatedCrn)
       val masterDefendantId = randomDefendantId()
       reactivatedPerson.masterDefendantId = masterDefendantId

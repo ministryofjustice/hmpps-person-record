@@ -5,7 +5,6 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.personrecord.api.constants.Roles.QUEUE_ADMIN
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.SentenceInfo
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
@@ -28,8 +27,8 @@ class E2ETestBase : MessagingTestBase() {
   @Autowired
   private lateinit var personMatchService: PersonMatchService
 
-  override fun createPerson(person: Person, personKeyEntity: PersonKeyEntity?): PersonEntity {
-    val personEntity = super.createPerson(person, personKeyEntity)
+  override fun createPerson(person: Person): PersonEntity {
+    val personEntity = super.createPerson(person)
     personMatchService.saveToPersonMatch(personEntity)
     return personEntity
   }
