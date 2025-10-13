@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
@@ -21,19 +22,22 @@ class MigrateSexCodes(
 
   @Hidden
   @RequestMapping(method = [RequestMethod.POST], value = ["/migrate/sex-codes"])
-  suspend fun migrate(): String {
-    migrateSexCodesFromPersonToPseudonym()
+  suspend fun migrate(
+    @RequestParam cpPageNumber: Int = 0,
+    @RequestParam libraPageNumber: Int = 0,
+  ): String {
+    migrateSexCodesFromPersonToPseudonym(cpPageNumber, libraPageNumber)
     return OK
   }
 
-  suspend fun migrateSexCodesFromPersonToPseudonym() = coroutineScope {
-    SourceSystemType.COMMON_PLATFORM.migrateSexCode()
-    SourceSystemType.LIBRA.migrateSexCode()
+  suspend fun migrateSexCodesFromPersonToPseudonym(cpPageNumber: Int, libraPageNumber: Int) = coroutineScope {
+    SourceSystemType.COMMON_PLATFORM.migrateSexCode(cpPageNumber)
+    SourceSystemType.LIBRA.migrateSexCode(libraPageNumber)
   }
 
-  private fun SourceSystemType.migrateSexCode() {
+  private fun SourceSystemType.migrateSexCode(pageNumber: Int) {
     log.info("Starting ${this.name} migration of sex codes")
-    val executionResults = forPage(this) { page ->
+    val executionResults = forPage(this, pageNumber) { page ->
       page.content.forEach { personEntity ->
         personEntity.getPrimaryName().sexCode = personEntity.sexCode
         personRepository.save(personEntity)
@@ -46,8 +50,8 @@ class MigrateSexCodes(
     )
   }
 
-  private inline fun forPage(sourceSystemType: SourceSystemType, page: (Page<PersonEntity>) -> Unit): ExecutionResult {
-    var pageNumber = 0
+  private inline fun forPage(sourceSystemType: SourceSystemType, startPageNumber: Int, page: (Page<PersonEntity>) -> Unit): ExecutionResult {
+    var pageNumber = startPageNumber
     var personRecords: Page<PersonEntity>
     val elapsedTime: Duration = measureTime {
       do {
