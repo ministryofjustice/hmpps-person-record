@@ -290,24 +290,23 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       val (searchingRecord) = createPersonAndKey(createExamplePerson())
 
       val cluster1 = createPersonKey()
-      val cluster1Records = listOf(
-        createPerson(createExamplePerson(), personKeyEntity = cluster1),
-        createPerson(createExamplePerson(), personKeyEntity = cluster1),
-      )
+        .addPerson(createPerson(createExamplePerson()))
+        .addPerson(createPerson(createExamplePerson()))
 
-      val cluster2 = createPersonKey()
-      val cluster2Records = listOf(
-        createPerson(createExamplePerson(), personKeyEntity = cluster2),
-        createPerson(createExamplePerson(), personKeyEntity = cluster2),
+      val cluster2 = createPersonKey().addPerson(
+        createPerson(createExamplePerson()),
       )
+        .addPerson(
+          createPerson(createExamplePerson()),
+        )
 
       val cluster3 = createPersonKey()
-      val cluster3Records = listOf(
-        createPerson(createExamplePerson(), personKeyEntity = cluster3),
-        createPerson(createExamplePerson(), personKeyEntity = cluster3),
-      )
+        .addPerson(createPerson(createExamplePerson()))
+        .addPerson(
+          createPerson(createExamplePerson()),
+        )
 
-      val aboveJoinThresholdResults = cluster1Records.map {
+      val aboveJoinThresholdResults = cluster1.personEntities.map {
         PersonMatchScore(
           candidateMatchId = it.matchId.toString(),
           candidateMatchWeight = JOIN_THRESHOLD + 1F,
@@ -316,7 +315,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
           candidateShouldFracture = false,
         )
       }
-      val belowJoinThresholdResults = cluster2Records.map {
+      val belowJoinThresholdResults = cluster2.personEntities.map {
         PersonMatchScore(
           candidateMatchId = it.matchId.toString(),
           candidateMatchWeight = JOIN_THRESHOLD - 1F,
@@ -325,7 +324,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
           candidateShouldFracture = false,
         )
       }
-      val belowFractureThresholdResults = cluster3Records.map {
+      val belowFractureThresholdResults = cluster3.personEntities.map {
         PersonMatchScore(
           candidateMatchId = it.matchId.toString(),
           candidateMatchWeight = FRACTURE_THRESHOLD - 1F,

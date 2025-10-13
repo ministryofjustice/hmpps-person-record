@@ -26,7 +26,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
     val person = createRandomProbationPersonDetails()
     val (existingPerson) = createPersonAndKey(person)
 
-    personService.processPerson(person) { existingPerson }
+    personService.processPerson(person) { personRepository.findByCrn(person.crn!!) }
 
     checkEventLogExist(existingPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED, times = 0)
   }
@@ -42,7 +42,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
     val updatedPerson = Person.from(LibraHearingEvent(name = Name(firstName = randomName(), lastName = lastName), cId = cId))
     stubPersonMatchUpsert()
     stubPersonMatchScores()
-    personService.processPerson(updatedPerson) { existingPerson }
+    personService.processPerson(updatedPerson) { personRepository.findByCId(cId) }
 
     checkEventLogExist(existingPerson.cId!!, CPRLogEvents.CPR_RECORD_UPDATED)
   }
@@ -71,7 +71,7 @@ class PersonServiceIntTest : IntegrationTestBase() {
       ),
     )
 
-    personService.processPerson(updatedPerson) { existingPerson }
+    personService.processPerson(updatedPerson) { personRepository.findByCrn(crn) }
 
     checkEventLogExist(existingPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED, times = 0)
   }

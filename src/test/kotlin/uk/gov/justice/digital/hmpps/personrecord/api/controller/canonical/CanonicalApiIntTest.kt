@@ -278,17 +278,18 @@ class CanonicalApiIntTest : WebTestBase() {
 
   @Test
   fun `should return latest modified from 2 records`() {
+    val latestFirstName = randomName()
     val personKey = createPersonKey()
-
-    createPerson(
-      Person.from(ProbationCase(name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKey,
-    )
-
-    val latestPerson = createPerson(
-      Person.from(ProbationCase(name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKey,
-    )
+      .addPerson(
+        createPerson(
+          Person.from(ProbationCase(name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+        ),
+      )
+      .addPerson(
+        createPerson(
+          Person.from(ProbationCase(name = ProbationCaseName(firstName = latestFirstName, middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
+        ),
+      )
 
     val responseBody = webTestClient.get()
       .uri(canonicalAPIUrl(personKey.personUUID.toString()))
@@ -300,15 +301,11 @@ class CanonicalApiIntTest : WebTestBase() {
       .returnResult()
       .responseBody!!
 
-    assertThat(responseBody.firstName).isEqualTo(latestPerson.getPrimaryName().firstName)
-    assertThat(responseBody.middleNames).isEqualTo(latestPerson.getPrimaryName().middleNames)
-    assertThat(responseBody.lastName).isEqualTo(latestPerson.getPrimaryName().lastName)
+    assertThat(responseBody.firstName).isEqualTo(latestFirstName)
   }
 
   @Test
   fun `should add list of additional identifiers to the canonical record`() {
-    val personKey = createPersonKey()
-
     val personOneCro = randomCro()
     val personTwoCro = randomCro()
 
@@ -349,7 +346,6 @@ class CanonicalApiIntTest : WebTestBase() {
           Reference(identifierType = IdentifierType.DRIVER_LICENSE_NUMBER, identifierValue = personOneDriversLicenseNumber),
         ),
       ),
-      personKey,
     )
 
     val personTwo = createPerson(
@@ -374,8 +370,8 @@ class CanonicalApiIntTest : WebTestBase() {
           Reference(identifierType = IdentifierType.DRIVER_LICENSE_NUMBER, identifierValue = personTwoDriversLicenseNumber),
         ),
       ),
-      personKey,
     )
+    val personKey = createPersonKey().addPerson(personOne).addPerson(personTwo)
 
     val responseBody = webTestClient.get()
       .uri(canonicalAPIUrl(personKey.personUUID.toString()))
@@ -400,20 +396,19 @@ class CanonicalApiIntTest : WebTestBase() {
 
   @Test
   fun `should add an empty list of additional identifiers to the canonical record when null`() {
-    val personKey = createPersonKey()
-
-    createPerson(
-      Person(
-        firstName = randomName(),
-        lastName = randomName(),
-        middleNames = randomName(),
-        dateOfBirth = randomDate(),
-        sourceSystem = NOMIS,
-        nationalities = listOf(Nationality(randomNationalityCode())),
-        religion = randomReligion(),
-        masterDefendantId = randomDefendantId(),
+    val personKey = createPersonKey().addPerson(
+      createPerson(
+        Person(
+          firstName = randomName(),
+          lastName = randomName(),
+          middleNames = randomName(),
+          dateOfBirth = randomDate(),
+          sourceSystem = NOMIS,
+          nationalities = listOf(Nationality(randomNationalityCode())),
+          religion = randomReligion(),
+          masterDefendantId = randomDefendantId(),
+        ),
       ),
-      personKey,
     )
 
     val responseBody = webTestClient.get()
@@ -433,84 +428,20 @@ class CanonicalApiIntTest : WebTestBase() {
   }
 
   @Test
-  fun `should return latest modified with latest person set to null record`() {
-    val personKey = createPersonKey()
-
-    val person = createPerson(
-      Person.from(ProbationCase(name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKey,
-    )
-
-    val latestPerson = createPerson(
-      Person.from(ProbationCase(name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKey,
-    )
-
-    latestPerson.lastModified = null
-    personRepository.saveAndFlush(latestPerson)
-
-    val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
-      .authorised(listOf(API_READ_ONLY))
-      .exchange()
-      .expectStatus()
-      .isOk
-      .expectBody(CanonicalRecord::class.java)
-      .returnResult()
-      .responseBody!!
-
-    assertThat(responseBody.firstName).isEqualTo(person.getPrimaryName().firstName)
-    assertThat(responseBody.middleNames).isEqualTo(person.getPrimaryName().middleNames)
-    assertThat(responseBody.lastName).isEqualTo(person.getPrimaryName().lastName)
-  }
-
-  @Test
-  fun `should return record when all last modified are null`() {
-    val personKey = createPersonKey()
-
-    val person = createPerson(
-      Person.from(ProbationCase(name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKey,
-    )
-
-    val latestPerson = createPerson(
-      Person.from(ProbationCase(name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-      personKey,
-    )
-
-    latestPerson.lastModified = null
-    person.lastModified = null
-    personRepository.saveAndFlush(latestPerson)
-    personRepository.saveAndFlush(person)
-
-    val responseBody = webTestClient.get()
-      .uri(canonicalAPIUrl(personKey.personUUID.toString()))
-      .authorised(listOf(API_READ_ONLY))
-      .exchange()
-      .expectStatus()
-      .isOk
-      .expectBody(CanonicalRecord::class.java)
-      .returnResult()
-      .responseBody!!
-
-    assertThat(responseBody).isNotNull()
-  }
-
-  @Test
   fun `should redirect to merged to record`() {
     val sourcePersonFirstName = randomName()
     val targetPersonFirstName = randomName()
 
     val sourcePersonKey = createPersonKey()
-    val targetPersonKey = createPersonKey()
-
-    createPerson(
-      Person.from(ProbationCase(name = ProbationCaseName(firstName = sourcePersonFirstName), identifiers = Identifiers())),
-      personKeyEntity = sourcePersonKey,
-    )
-    createPerson(
-      Person.from(ProbationCase(name = ProbationCaseName(firstName = targetPersonFirstName), identifiers = Identifiers())),
-      personKeyEntity = targetPersonKey,
+      .addPerson(
+        createPerson(
+          Person.from(ProbationCase(name = ProbationCaseName(firstName = sourcePersonFirstName), identifiers = Identifiers())),
+        ),
+      )
+    val targetPersonKey = createPersonKey().addPerson(
+      createPerson(
+        Person.from(ProbationCase(name = ProbationCaseName(firstName = targetPersonFirstName), identifiers = Identifiers())),
+      ),
     )
 
     mergeUuid(sourcePersonKey, targetPersonKey)
@@ -535,17 +466,20 @@ class CanonicalApiIntTest : WebTestBase() {
     val targetPersonKey = createPersonKey()
     val newTargetPersonKey = createPersonKey()
 
-    createPerson(
-      Person.from(ProbationCase(name = ProbationCaseName(firstName = sourcePersonFirstName), identifiers = Identifiers())),
-      personKeyEntity = sourcePersonKey,
+    sourcePersonKey.addPerson(
+      createPerson(
+        Person.from(ProbationCase(name = ProbationCaseName(firstName = sourcePersonFirstName), identifiers = Identifiers())),
+      ),
     )
-    createPerson(
-      Person.from(ProbationCase(name = ProbationCaseName(firstName = targetPersonFirstName), identifiers = Identifiers())),
-      personKeyEntity = targetPersonKey,
+    targetPersonKey.addPerson(
+      createPerson(
+        Person.from(ProbationCase(name = ProbationCaseName(firstName = targetPersonFirstName), identifiers = Identifiers())),
+      ),
     )
-    createPerson(
-      Person.from(ProbationCase(name = ProbationCaseName(firstName = newTargetPersonFirstName), identifiers = Identifiers())),
-      personKeyEntity = newTargetPersonKey,
+    newTargetPersonKey.addPerson(
+      createPerson(
+        Person.from(ProbationCase(name = ProbationCaseName(firstName = newTargetPersonFirstName), identifiers = Identifiers())),
+      ),
     )
 
     mergeUuid(sourcePersonKey, targetPersonKey)

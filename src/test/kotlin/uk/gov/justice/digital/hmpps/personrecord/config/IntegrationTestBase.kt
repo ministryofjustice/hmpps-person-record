@@ -280,14 +280,13 @@ class IntegrationTestBase {
 
   internal fun createPersonAndKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): Pair<PersonEntity, PersonKeyEntity> {
     val personKeyEntity = createPersonKey(status, reason)
-    val personEntity = createPerson(person, personKeyEntity)
+    val personEntity = createPerson(person)
+    personKeyEntity.addPerson(personEntity)
     return Pair(personEntity, personKeyEntity)
   }
 
-  internal fun createPerson(person: Person, personKeyEntity: PersonKeyEntity? = null): PersonEntity {
+  internal fun createPerson(person: Person): PersonEntity {
     val personEntity = personFactory.create(person).personEntity
-    personEntity.personKey = personKeyEntity
-    personKeyEntity?.personEntities?.add(personEntity)
     return personRepository.saveAndFlush(personEntity)
   }
 

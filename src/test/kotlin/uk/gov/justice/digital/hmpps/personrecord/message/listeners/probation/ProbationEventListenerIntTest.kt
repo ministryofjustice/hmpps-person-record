@@ -235,8 +235,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
         addresses = listOf(Address(postcode = postcode)),
         sourceSystem = NOMIS,
       )
-      val personKeyEntity = createPersonKey()
-      val existingPerson = createPerson(existingPrisoner, personKeyEntity = personKeyEntity)
+      val (existingPerson, personKeyEntity) = createPersonAndKey(existingPrisoner)
 
       stubOnePersonMatchAboveJoinThreshold(matchedRecord = existingPerson.matchId)
 

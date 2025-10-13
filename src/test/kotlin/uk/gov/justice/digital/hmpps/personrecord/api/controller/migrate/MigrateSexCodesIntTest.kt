@@ -27,7 +27,7 @@ class MigrateSexCodesIntTest : WebTestBase() {
   @Test
   fun `should migrate a sex code on the person to the primary name in pseudonym but not NOMIS or DELIUS records`() {
     val commonPlatformSexCode = randomCommonPlatformSexCode()
-    val commonPlatformRecord = createPersonWithNewKey(
+    val (commonPlatformRecord) = createPersonAndKey(
       Person(
         firstName = randomName(),
         defendantId = randomDefendantId(),
@@ -36,11 +36,13 @@ class MigrateSexCodesIntTest : WebTestBase() {
         sourceSystem = SourceSystemType.COMMON_PLATFORM,
       ),
     )
-    commonPlatformRecord.sexCode = commonPlatformSexCode.value
-    personRepository.save(commonPlatformRecord)
+    val commonPlatformRecordToUpdate = personRepository.findByDefendantId(commonPlatformRecord.defendantId!!)!!
+    commonPlatformRecordToUpdate.sexCode = commonPlatformSexCode.value
+
+    personRepository.save(commonPlatformRecordToUpdate)
 
     val libraSexCode = randomLibraSexCode()
-    val libraRecord = createPersonWithNewKey(
+    val (libraRecord) = createPersonAndKey(
       Person(
         firstName = randomName(),
         cId = randomCId(),
@@ -49,11 +51,12 @@ class MigrateSexCodesIntTest : WebTestBase() {
         sourceSystem = SourceSystemType.LIBRA,
       ),
     )
-    libraRecord.sexCode = libraSexCode.value
-    personRepository.save(libraRecord)
+    val libraRecordToUpdate = personRepository.findByCId(libraRecord.cId!!)!!
+    libraRecordToUpdate.sexCode = libraSexCode.value
+    personRepository.save(libraRecordToUpdate)
 
     val prisonSexCode = randomPrisonSexCode()
-    val prisonRecord = createPersonWithNewKey(
+    val (prisonRecord) = createPersonAndKey(
       Person(
         firstName = randomName(),
         prisonNumber = randomPrisonNumber(),
@@ -62,11 +65,12 @@ class MigrateSexCodesIntTest : WebTestBase() {
         sourceSystem = SourceSystemType.NOMIS,
       ),
     )
-    prisonRecord.sexCode = prisonSexCode.value
-    personRepository.save(prisonRecord)
+    val prisonRecordToUpdate = personRepository.findByPrisonNumber(prisonRecord.prisonNumber!!)!!
+    prisonRecordToUpdate.sexCode = prisonSexCode.value
+    personRepository.save(prisonRecordToUpdate)
 
     val probationSexCode = randomProbationSexCode()
-    val probationRecord = createPersonWithNewKey(
+    val (probationRecord) = createPersonAndKey(
       Person(
         firstName = randomName(),
         crn = randomCrn(),
@@ -75,8 +79,9 @@ class MigrateSexCodesIntTest : WebTestBase() {
         sourceSystem = SourceSystemType.DELIUS,
       ),
     )
-    probationRecord.sexCode = probationSexCode.value
-    personRepository.save(probationRecord)
+    val probationRecordToUpdate = personRepository.findByCrn(probationRecord.crn!!)!!
+    probationRecordToUpdate.sexCode = probationSexCode.value
+    personRepository.save(probationRecordToUpdate)
 
     assertThat(commonPlatformRecord.getPrimaryName().sexCode).isNull()
     assertThat(libraRecord.getPrimaryName().sexCode).isNull()
