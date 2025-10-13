@@ -20,7 +20,6 @@ class PersonFactory(
   private val pseudonymFactory: PseudonymFactory,
   private val nationalityFactory: NationalityFactory,
   private val ethnicityFactory: EthnicityFactory,
-  private val referenceFactory: ReferenceFactory,
 ) {
 
   fun create(person: Person): PersonChainable {
@@ -59,7 +58,7 @@ class PersonFactory(
     this.attachPseudonyms(pseudonymFactory.buildPseudonyms(person))
     this.attachNationalities(nationalityFactory.buildNationalities(person))
     this.attachEthnicity(ethnicityFactory.buildEthnicity(person))
-    this.attachReferences(referenceFactory.buildReferences(person, this.references))
+    this.attachReferences(ReferenceFactory().buildReferences(person, this.references))
   }
 
   private fun PersonEntity.attachPseudonyms(pseudonyms: List<PseudonymEntity>) {
@@ -80,7 +79,7 @@ class PersonFactory(
 
   private fun PersonEntity.attachReferences(references: List<ReferenceEntity>) {
     this.references.clear()
-    references.forEach { reference -> reference.person = this }
+    references.forEach { referenceEntity -> referenceEntity.person = this }
     this.references.addAll(references)
   }
 }

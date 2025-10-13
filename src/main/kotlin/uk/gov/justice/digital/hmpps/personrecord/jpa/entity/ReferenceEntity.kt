@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
 
 @Entity
 @Table(name = "reference")
-class ReferenceEntity(
+data class ReferenceEntity(
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,6 +40,7 @@ class ReferenceEntity(
   @Version
   var version: Int = 0,
 ) {
+
   companion object {
     private fun from(reference: Reference): ReferenceEntity = ReferenceEntity(identifierType = reference.identifierType, identifierValue = reference.identifierValue)
 
