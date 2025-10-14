@@ -105,7 +105,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.addresses[0].uprn).isNull()
     assertThat(person.personKey).isNotNull()
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
-    assertThat(person.sexCode).isEqualTo(sexCode.value)
   }
 
   @Test
@@ -150,10 +149,10 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.getPrimaryName().middleNames).isEqualTo(changedForename3)
     assertThat(person.getPrimaryName().lastName).isEqualTo(lastName)
     assertThat(person.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
+    assertThat(person.getPrimaryName().sexCode).isEqualTo(updatedSexCode.value)
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
-    assertThat(person.sexCode).isEqualTo(updatedSexCode.value)
   }
 
   @Test

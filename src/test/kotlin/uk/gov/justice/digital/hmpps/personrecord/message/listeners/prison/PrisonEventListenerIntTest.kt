@@ -149,7 +149,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.contacts[2].contactType).isEqualTo(MOBILE)
         assertThat(personEntity.contacts[2].contactValue).isEqualTo("01141234567")
         assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceStartDate)
-        assertThat(personEntity.sexCode).isEqualTo(gender.value)
         assertThat(personEntity.nationalities.size).isEqualTo(1)
         assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromPrisonCode()?.code)
         assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeEntityFromPrisonCode()?.description)
@@ -243,7 +242,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().titleCode?.code).isEqualTo(storedTitle.code)
         assertThat(personEntity.getPrimaryName().titleCode?.description).isEqualTo(storedTitle.description)
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
-        assertThat(personEntity.sexCode).isEqualTo(updatedSexCode.value)
+        assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(updatedSexCode.value)
 
         assertThat(personEntity.getAliases()).hasSize(1)
         assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(updatedAliasGender.value)
