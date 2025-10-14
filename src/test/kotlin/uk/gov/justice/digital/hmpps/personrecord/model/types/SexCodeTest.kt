@@ -21,7 +21,7 @@ import java.util.stream.Stream
 class SexCodeTest {
 
   @ParameterizedTest
-  @MethodSource("commonPlatformValues")
+  @MethodSource("commonPlatform")
   fun `should map common platform gender values`(gender: String?, sexCode: SexCode?) {
     val personDetails = PersonDetails(
       gender = gender,
@@ -32,7 +32,7 @@ class SexCodeTest {
   }
 
   @ParameterizedTest
-  @MethodSource("libraEventMessage")
+  @MethodSource("libra")
   fun `should map libra event defendantSex values`(defendantSex: String?, sexCode: SexCode?) {
     val libraHearingEvent = LibraHearingEvent(defendantSex = defendantSex)
 
@@ -40,7 +40,7 @@ class SexCodeTest {
   }
 
   @ParameterizedTest
-  @MethodSource("probationEvent")
+  @MethodSource("probation")
   fun `should map from probation event gender values`(genderCode: String?, sexCode: SexCode?) {
     val probationCase = ProbationCase(name = ProbationCaseName(), identifiers = Identifiers(), gender = Value(genderCode))
 
@@ -48,19 +48,13 @@ class SexCodeTest {
   }
 
   @ParameterizedTest
-  @MethodSource("prisonEvent")
+  @MethodSource("prison")
   fun `should map from prison event gender values`(gender: String?, sexCode: SexCode?) {
     val prisoner = Prisoner(
-      prisonNumber = "", gender = gender,
-      title = "",
+      prisonNumber = "",
+      gender = gender,
       firstName = "",
-      middleNames = "",
       lastName = "",
-      nationality = "",
-      religion = "",
-      ethnicity = "",
-      pnc = null,
-      cro = null,
       dateOfBirth = randomDate(),
     )
 
@@ -69,7 +63,7 @@ class SexCodeTest {
 
   companion object {
     @JvmStatic
-    fun probationEvent(): Stream<Arguments> = Stream.of(
+    fun probation(): Stream<Arguments> = Stream.of(
       Arguments.of("M", M),
       Arguments.of("F", F),
       Arguments.of("N", N),
@@ -78,7 +72,7 @@ class SexCodeTest {
     )
 
     @JvmStatic
-    fun libraEventMessage(): Stream<Arguments> = Stream.of(
+    fun libra(): Stream<Arguments> = Stream.of(
       Arguments.of("M", M),
       Arguments.of("F", F),
       Arguments.of("NS", NS),
@@ -87,7 +81,7 @@ class SexCodeTest {
     )
 
     @JvmStatic
-    fun commonPlatformValues(): Stream<Arguments> = Stream.of(
+    fun commonPlatform(): Stream<Arguments> = Stream.of(
       Arguments.of("MALE", M),
       Arguments.of("FEMALE", F),
       Arguments.of("NOT SPECIFIED", NS),
@@ -96,7 +90,7 @@ class SexCodeTest {
     )
 
     @JvmStatic
-    fun prisonEvent(): Stream<Arguments> = Stream.of(
+    fun prison(): Stream<Arguments> = Stream.of(
       Arguments.of("Male", M),
       Arguments.of("Female", F),
       Arguments.of("Not Known / Not Recorded", N),
