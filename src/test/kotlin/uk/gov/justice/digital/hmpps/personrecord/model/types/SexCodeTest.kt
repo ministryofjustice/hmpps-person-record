@@ -11,6 +11,10 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseName
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Value
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.Prisoner
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.F
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.M
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.N
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.NS
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import java.util.stream.Stream
 
@@ -46,7 +50,7 @@ class SexCodeTest {
   @ParameterizedTest
   @MethodSource("prisonEvent")
   fun `should map from prison event gender values`(gender: String?, sexCode: SexCode?) {
-    val probationCase = Prisoner(
+    val prisoner = Prisoner(
       prisonNumber = "", gender = gender,
       title = "",
       firstName = "",
@@ -60,44 +64,44 @@ class SexCodeTest {
       dateOfBirth = randomDate(),
     )
 
-    assertThat(SexCode.from(probationCase)).isEqualTo(sexCode)
+    assertThat(SexCode.from(prisoner)).isEqualTo(sexCode)
   }
 
   companion object {
     @JvmStatic
     fun probationEvent(): Stream<Arguments> = Stream.of(
-      Arguments.of("M", SexCode.M),
-      Arguments.of("F", SexCode.F),
-      Arguments.of("N", SexCode.N),
-      Arguments.of("ANYTHING ELSE", SexCode.NS),
+      Arguments.of("M", M),
+      Arguments.of("F", F),
+      Arguments.of("N", N),
+      Arguments.of("ANYTHING ELSE", NS),
       Arguments.of(null, null),
     )
 
     @JvmStatic
     fun libraEventMessage(): Stream<Arguments> = Stream.of(
-      Arguments.of("M", SexCode.M),
-      Arguments.of("F", SexCode.F),
-      Arguments.of("NS", SexCode.NS),
-      Arguments.of("ANYTHING ELSE", SexCode.N),
+      Arguments.of("M", M),
+      Arguments.of("F", F),
+      Arguments.of("NS", NS),
+      Arguments.of("ANYTHING ELSE", N),
       Arguments.of(null, null),
     )
 
     @JvmStatic
     fun commonPlatformValues(): Stream<Arguments> = Stream.of(
-      Arguments.of("MALE", SexCode.M),
-      Arguments.of("FEMALE", SexCode.F),
-      Arguments.of("NOT SPECIFIED", SexCode.NS),
-      Arguments.of("ANYTHING ELSE", SexCode.N),
+      Arguments.of("MALE", M),
+      Arguments.of("FEMALE", F),
+      Arguments.of("NOT SPECIFIED", NS),
+      Arguments.of("ANYTHING ELSE", N),
       Arguments.of(null, null),
     )
 
     @JvmStatic
     fun prisonEvent(): Stream<Arguments> = Stream.of(
-      Arguments.of("Male", SexCode.M),
-      Arguments.of("Female", SexCode.F),
-      Arguments.of("Not Known / Not Recorded", SexCode.N),
-      Arguments.of("Not Specified (Indeterminate)", SexCode.NS),
-      Arguments.of("ANYTHING ELSE", SexCode.N),
+      Arguments.of("Male", M),
+      Arguments.of("Female", F),
+      Arguments.of("Not Known / Not Recorded", N),
+      Arguments.of("Not Specified (Indeterminate)", NS),
+      Arguments.of("ANYTHING ELSE", N),
       Arguments.of(null, null),
     )
   }
