@@ -44,10 +44,10 @@ class ClusterApiIntTest : WebTestBase() {
     @Test
     fun `should return cluster record with multiple records details`() {
       val personKey = createPersonKey()
-        .addPerson(createPerson(createRandomProbationPersonDetails()))
-        .addPerson(createPerson(createRandomLibraPersonDetails()))
-        .addPerson(createPerson(createRandomPrisonPersonDetails()))
-        .addPerson(createPerson(createRandomCommonPlatformPersonDetails()))
+        .addPerson(createRandomProbationPersonDetails())
+        .addPerson(createRandomLibraPersonDetails())
+        .addPerson(createRandomPrisonPersonDetails())
+        .addPerson(createRandomCommonPlatformPersonDetails())
 
       stubVisualiseCluster()
 
