@@ -13,6 +13,8 @@ data class CanonicalAlias(
   val middleNames: String? = null,
   @Schema(description = "Person alias title")
   val title: CanonicalTitle,
+  @Schema(description = "Person alias sex")
+  val sex: CanonicalSex,
 ) {
   companion object {
 
@@ -21,6 +23,7 @@ data class CanonicalAlias(
       middleNames = pseudonymEntity.middleNames,
       lastName = pseudonymEntity.lastName,
       title = CanonicalTitle.from(pseudonymEntity.titleCode),
+      sex = CanonicalSex.from(pseudonymEntity.sexCode),
     )
 
     fun from(person: PersonEntity?): List<CanonicalAlias>? = person?.getAliases()?.map { from(it) }
