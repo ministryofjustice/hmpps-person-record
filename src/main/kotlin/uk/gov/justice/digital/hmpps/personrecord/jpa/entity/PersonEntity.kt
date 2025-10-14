@@ -22,7 +22,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
@@ -104,10 +103,6 @@ class PersonEntity(
   @Enumerated(STRING)
   var sexualOrientation: SexualOrientation? = null,
 
-  @Column(name = "sex_code")
-  @Enumerated(STRING)
-  var sexCode: SexCode? = null,
-
   @ManyToOne(fetch = LAZY)
   @JoinColumn(
     name = "fk_ethnicity_code_id",
@@ -179,7 +174,6 @@ class PersonEntity(
     this.masterDefendantId = person.masterDefendantId
     this.religion = person.religion
     this.cId = person.cId
-    this.sexCode = person.sexCode
     this.sexualOrientation = person.sexualOrientation
     this.lastModified = LocalDateTime.now()
     updateChildEntities(person)
@@ -234,7 +228,6 @@ class PersonEntity(
         matchId = UUID.randomUUID(),
         cId = person.cId,
         lastModified = LocalDateTime.now(),
-        sexCode = person.sexCode,
         sexualOrientation = person.sexualOrientation,
       )
       personEntity.updateChildEntities(person)
