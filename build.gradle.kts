@@ -8,13 +8,13 @@ kotlin {
 }
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.2"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.3"
   kotlin("plugin.spring") version "2.2.20"
   kotlin("jvm") version "2.2.20"
   kotlin("plugin.jpa") version "2.2.20"
   id("io.gitlab.arturbosch.detekt") version "1.23.8"
   id("org.jetbrains.kotlinx.kover") version "0.9.2"
-  id("org.owasp.dependencycheck") version "12.1.6"
+  id("org.owasp.dependencycheck") version "12.1.8"
 }
 
 dependencyCheck {
@@ -27,7 +27,7 @@ configurations {
 
 dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.7.0")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.4.11")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.5.0")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("jakarta.validation:jakarta.validation-api:3.1.1")
@@ -36,7 +36,7 @@ dependencies {
 
   implementation("software.amazon.sns:sns-extended-client:2.1.0")
   implementation("com.jayway.jsonpath:json-path:2.9.0")
-  implementation("io.swagger.core.v3:swagger-annotations:2.2.38")
+  implementation("io.swagger.core.v3:swagger-annotations:2.2.39")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
