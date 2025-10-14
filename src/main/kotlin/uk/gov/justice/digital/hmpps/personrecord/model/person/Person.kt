@@ -218,6 +218,7 @@ data class Person(
       middleNames = existingPersonEntity.getPrimaryName().middleNames,
       lastName = existingPersonEntity.getPrimaryName().lastName,
       dateOfBirth = existingPersonEntity.getPrimaryName().dateOfBirth,
+      sexCode = existingPersonEntity.getPrimaryName().sexCode,
       crn = existingPersonEntity.crn,
       prisonNumber = existingPersonEntity.prisonNumber,
       defendantId = existingPersonEntity.defendantId,
@@ -229,7 +230,6 @@ data class Person(
       references = existingPersonEntity.references.map { Reference.from(it) },
       sourceSystem = existingPersonEntity.sourceSystem,
       sentences = existingPersonEntity.sentenceInfo.map { SentenceInfo.from(it) },
-      sexCode = existingPersonEntity.sexCode,
     )
   }
 

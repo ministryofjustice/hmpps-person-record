@@ -94,10 +94,10 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     awaitAssert {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
       assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(changedLastName)
+      assertThat(updatedPersonEntity.getPrimaryName().sexCode).isEqualTo(changedSexCode.value)
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
       assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
-      assertThat(updatedPersonEntity.sexCode).isEqualTo(changedSexCode.value)
       assertThat(updatedPersonEntity.masterDefendantId).isEqualTo(masterDefendantId)
       checkNationalities(updatedPersonEntity, changedNationality, changedAdditionalNationality)
     }
@@ -133,7 +133,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       matchId = UUID.randomUUID(),
       cId = person.cId,
       lastModified = now(),
-      sexCode = person.sexCode,
     )
     personEntity.personKey = personKey
     personKeyRepository.saveAndFlush(personKey)
@@ -254,7 +253,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getAliases()[1].titleCode).isNull()
     assertThat(firstPerson.getAliases()[1].firstName).isEqualTo("aliasFirstName2")
     assertThat(firstPerson.getAliases()[1].lastName).isEqualTo("aliasLastName2")
-    assertThat(firstPerson.sexCode).isEqualTo(firstSexCode.value)
+
     val ethnicityCode = ethnicity.getCommonPlatformEthnicity()
     assertThat(firstPerson.ethnicityCode?.code).isEqualTo(ethnicityCode.code)
     assertThat(firstPerson.ethnicityCode?.description).isEqualTo(ethnicityCode.description)
@@ -279,7 +278,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPerson.contacts[1].contactType).isEqualTo(MOBILE)
     assertThat(secondPerson.contacts[1].contactValue).isEqualTo("078590345677")
     assertThat(secondPerson.masterDefendantId).isEqualTo(secondDefendantId)
-    assertThat(secondPerson.sexCode).isEqualTo(secondSexCode.value)
+    assertThat(secondPerson.getPrimaryName().sexCode).isEqualTo(secondSexCode.value)
     checkNationalities(secondPerson, secondNationality)
   }
 
