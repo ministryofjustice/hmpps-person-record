@@ -319,7 +319,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       val unmergedPerson = createPerson(createRandomProbationPersonDetails(unmergedCrn))
       val cluster = createPersonKey()
         .addPerson(unmergedPerson)
-        .addPerson(createPerson(createRandomProbationPersonDetails()))
+        .addPerson(createRandomProbationPersonDetails())
 
       val mergedReactivatedRecord = mergeRecord(reactivatedPerson, unmergedPerson)
 

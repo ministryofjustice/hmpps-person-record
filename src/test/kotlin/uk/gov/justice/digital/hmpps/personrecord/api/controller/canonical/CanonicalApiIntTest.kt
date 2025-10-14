@@ -275,13 +275,9 @@ class CanonicalApiIntTest : WebTestBase() {
     val latestFirstName = randomName()
     val personKey = createPersonKey()
       .addPerson(
-        createPerson(
-          Person.from(ProbationCase(name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-        ),
+        Person.from(ProbationCase(name = ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
       ).addPerson(
-        createPerson(
-          Person.from(ProbationCase(name = ProbationCaseName(firstName = latestFirstName, middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
-        ),
+        Person.from(ProbationCase(name = ProbationCaseName(firstName = latestFirstName, middleNames = randomName(), lastName = randomName()), identifiers = Identifiers(crn = randomCrn()))),
       )
 
     val responseBody = webTestClient.get()
@@ -390,17 +386,15 @@ class CanonicalApiIntTest : WebTestBase() {
   @Test
   fun `should add an empty list of additional identifiers to the canonical record when null`() {
     val personKey = createPersonKey().addPerson(
-      createPerson(
-        Person(
-          firstName = randomName(),
-          lastName = randomName(),
-          middleNames = randomName(),
-          dateOfBirth = randomDate(),
-          sourceSystem = NOMIS,
-          nationalities = listOf(Nationality(randomNationalityCode())),
-          religion = randomReligion(),
-          masterDefendantId = randomDefendantId(),
-        ),
+      Person(
+        firstName = randomName(),
+        lastName = randomName(),
+        middleNames = randomName(),
+        dateOfBirth = randomDate(),
+        sourceSystem = NOMIS,
+        nationalities = listOf(Nationality(randomNationalityCode())),
+        religion = randomReligion(),
+        masterDefendantId = randomDefendantId(),
       ),
     )
 
@@ -426,11 +420,9 @@ class CanonicalApiIntTest : WebTestBase() {
     val targetPersonFirstName = randomName()
 
     val sourcePersonKey = createPersonKey()
-      .addPerson(createPerson(Person.from(ProbationCase(name = ProbationCaseName(firstName = sourcePersonFirstName), identifiers = Identifiers()))))
+      .addPerson(Person.from(ProbationCase(name = ProbationCaseName(firstName = sourcePersonFirstName), identifiers = Identifiers())))
     val targetPersonKey = createPersonKey().addPerson(
-      createPerson(
-        Person.from(ProbationCase(name = ProbationCaseName(firstName = targetPersonFirstName), identifiers = Identifiers())),
-      ),
+      Person.from(ProbationCase(name = ProbationCaseName(firstName = targetPersonFirstName), identifiers = Identifiers())),
     )
 
     mergeUuid(sourcePersonKey, targetPersonKey)
@@ -453,21 +445,15 @@ class CanonicalApiIntTest : WebTestBase() {
 
     val sourcePersonKey = createPersonKey()
       .addPerson(
-        createPerson(
-          Person.from(ProbationCase(name = ProbationCaseName(firstName = sourcePersonFirstName), identifiers = Identifiers())),
-        ),
+        Person.from(ProbationCase(name = ProbationCaseName(firstName = sourcePersonFirstName), identifiers = Identifiers())),
       )
     val targetPersonKey = createPersonKey()
       .addPerson(
-        createPerson(
-          Person.from(ProbationCase(name = ProbationCaseName(firstName = targetPersonFirstName), identifiers = Identifiers())),
-        ),
+        Person.from(ProbationCase(name = ProbationCaseName(firstName = targetPersonFirstName), identifiers = Identifiers())),
       )
     val newTargetPersonKey = createPersonKey()
       .addPerson(
-        createPerson(
-          Person.from(ProbationCase(name = ProbationCaseName(firstName = newTargetPersonFirstName), identifiers = Identifiers())),
-        ),
+        Person.from(ProbationCase(name = ProbationCaseName(firstName = newTargetPersonFirstName), identifiers = Identifiers())),
       )
 
     mergeUuid(sourcePersonKey, targetPersonKey)

@@ -94,7 +94,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
       val sourceCluster = createPersonKey()
-        .addPerson(createPerson(createRandomProbationPersonDetails()))
+        .addPerson(createRandomProbationPersonDetails())
         .addPerson(sourcePerson)
 
       val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails(targetCrn))
