@@ -17,8 +17,8 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ReferenceBuilder
-import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.SentenceInfoBuilder
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ReferenceBuilder.buildReferences
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.SentenceInfoBuilder.buildSentenceInfo
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
@@ -190,12 +190,20 @@ class PersonEntity(
   private fun updateChildEntities(person: Person) {
     updatePersonAddresses(person)
     updatePersonContacts(person)
-    listOf(
-      ReferenceBuilder(),
-      SentenceInfoBuilder(),
-    ).forEach {
-      it.build(person, this)
-    }
+    updatePersonReferences(buildReferences(person, this))
+    updatePersonSentences(buildSentenceInfo(person, this))
+  }
+
+  private fun updatePersonSentences(sentences: List<SentenceInfoEntity>) {
+    this.sentenceInfo.clear()
+    sentences.forEach { sentenceEntity -> sentenceEntity.person = this }
+    this.sentenceInfo.addAll(sentences)
+  }
+
+  private fun updatePersonReferences(references: List<ReferenceEntity>) {
+    this.references.clear()
+    references.forEach { referenceEntity -> referenceEntity.person = this }
+    this.references.addAll(references)
   }
 
   private fun updatePersonAddresses(person: Person) {

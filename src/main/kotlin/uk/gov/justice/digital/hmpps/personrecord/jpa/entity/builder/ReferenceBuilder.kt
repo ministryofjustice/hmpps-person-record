@@ -1,24 +1,18 @@
 package uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder
 
+import uk.gov.justice.digital.hmpps.personrecord.extensions.existsIn
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.ReferenceEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 
-class ReferenceBuilder : ChildBuilder {
+object ReferenceBuilder {
 
-  override fun build(person: Person, personEntity: PersonEntity) {
-    val builtReferences = personEntity.buildReferences(person)
-    personEntity.references.clear()
-    builtReferences.forEach { referenceEntity -> referenceEntity.person = personEntity }
-    personEntity.references.addAll(builtReferences)
-  }
-
-  private fun PersonEntity.buildReferences(person: Person): List<ReferenceEntity> = person.references
+  fun buildReferences(person: Person, personEntity: PersonEntity): List<ReferenceEntity> = person.references
     .filterNot { it.identifierValue.isNullOrEmpty() }
     .mapNotNull { reference ->
       reference.existsIn(
-        childEntities = this.references,
+        childEntities = personEntity.references,
         match = { ref, entity -> ref.matches(entity) },
         yes = { it },
         no = { ReferenceEntity.from(reference) },
