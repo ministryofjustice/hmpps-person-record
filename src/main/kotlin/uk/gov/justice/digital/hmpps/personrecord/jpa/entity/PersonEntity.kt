@@ -184,7 +184,7 @@ class PersonEntity(
     this.sexCode = person.sexCode
     this.sexualOrientation = person.sexualOrientation
     this.lastModified = LocalDateTime.now()
-    updateChildEntities(person)
+    this.updateChildEntities(person)
   }
 
   private fun updateChildEntities(person: Person) {
