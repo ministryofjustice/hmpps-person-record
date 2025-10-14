@@ -152,7 +152,6 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(personEntity.contacts[2].contactValue).isEqualTo("test@gmail.com")
       assertThat(personEntity.matchId).isNotNull()
       assertThat(personEntity.lastModified).isNotNull()
-      assertThat(personEntity.sexCode).isEqualTo(gender.value)
       assertThat(personEntity.sexualOrientation).isEqualTo(sexualOrientation.value)
       checkNationalities(personEntity, nationality, secondaryNationality)
 
@@ -172,7 +171,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc, gender = gender.key, ethnicity = originalEthnicity, title = "Mrs", nationality = nationality, secondaryNationality = secondaryNationality))
       val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
-      assertThat(personEntity.sexCode).isEqualTo(gender.value)
+      assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
       val originalEthnicityCode = originalEthnicity.getProbationEthnicity()
       assertThat(personEntity.ethnicityCode?.code).isEqualTo(originalEthnicityCode.code)
       assertThat(personEntity.ethnicityCode?.description).isEqualTo(originalEthnicityCode.description)
@@ -200,7 +199,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val updatedPersonEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(changedPnc)
-      assertThat(updatedPersonEntity.sexCode).isEqualTo(changedSexCode.value)
+      assertThat(updatedPersonEntity.getPrimaryName().sexCode).isEqualTo(changedSexCode.value)
 
       val updatedLastModified = updatedPersonEntity.lastModified
 

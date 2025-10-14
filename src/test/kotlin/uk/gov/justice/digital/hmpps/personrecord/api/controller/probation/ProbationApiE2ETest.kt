@@ -447,6 +447,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.getPrimaryName().titleCode?.code).isEqualTo(probationCase.title?.value?.getTitle()?.code)
         assertThat(offender.getPrimaryName().titleCode?.description).isEqualTo(probationCase.title?.value?.getTitle()?.description)
         assertThat(offender.getPrimaryName().dateOfBirth).isEqualTo(probationCase.dateOfBirth)
+        assertThat(offender.getPrimaryName().sexCode).isEqualTo(SexCode.from(probationCase))
 
         assertThat(offender.addresses.size).isEqualTo(1)
         assertThat(offender.addresses[0].noFixedAbode).isEqualTo(probationCase.addresses[0].noFixedAbode)
@@ -464,7 +465,6 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.contacts[2].contactValue).isEqualTo(probationCase.contactDetails?.email)
         assertThat(offender.matchId).isNotNull()
         assertThat(offender.lastModified).isNotNull()
-        assertThat(offender.sexCode).isEqualTo(SexCode.from(probationCase))
         assertThat(offender.nationalities.size).isEqualTo(1)
         assertThat(offender.nationalities.first().nationalityCode?.code).isEqualTo(probationCase.nationality?.value.getNationalityCodeEntityFromProbationCode()?.code)
         assertThat(offender.nationalities.first().nationalityCode?.description).isEqualTo(probationCase.nationality?.value.getNationalityCodeEntityFromProbationCode()?.description)
