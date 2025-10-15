@@ -17,6 +17,8 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ReferenceBuilder.buildReferences
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.SentenceInfoBuilder.buildSentenceInfo
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
@@ -176,13 +178,26 @@ class PersonEntity(
     this.cId = person.cId
     this.sexualOrientation = person.sexualOrientation
     this.lastModified = LocalDateTime.now()
-    updateChildEntities(person)
+    this.updateChildEntities(person)
   }
 
   private fun updateChildEntities(person: Person) {
     updatePersonAddresses(person)
     updatePersonContacts(person)
-    updatePersonSentences(person)
+    updatePersonReferences(buildReferences(person, this))
+    updatePersonSentences(buildSentenceInfo(person, this))
+  }
+
+  private fun updatePersonSentences(sentences: List<SentenceInfoEntity>) {
+    this.sentenceInfo.clear()
+    sentences.forEach { sentenceEntity -> sentenceEntity.person = this }
+    this.sentenceInfo.addAll(sentences)
+  }
+
+  private fun updatePersonReferences(references: List<ReferenceEntity>) {
+    this.references.clear()
+    references.forEach { referenceEntity -> referenceEntity.person = this }
+    this.references.addAll(references)
   }
 
   private fun updatePersonAddresses(person: Person) {
@@ -197,13 +212,6 @@ class PersonEntity(
     val personContacts = ContactEntity.fromList(person.contacts)
     personContacts.forEach { personContactEntity -> personContactEntity.person = this }
     this.contacts.addAll(personContacts)
-  }
-
-  private fun updatePersonSentences(person: Person) {
-    this.sentenceInfo.clear()
-    val personSentences = SentenceInfoEntity.fromList(person.sentences).distinctBy { it.sentenceDate }
-    personSentences.forEach { personSentenceInfoEntity -> personSentenceInfoEntity.person = this }
-    this.sentenceInfo.addAll(personSentences)
   }
 
   companion object {

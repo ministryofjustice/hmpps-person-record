@@ -30,6 +30,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
+import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
@@ -358,19 +359,71 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     }
 
     @Test
-    fun `should not create new reference entities when updating`() {
+    fun `should update + persist + delete reference entities when updating`() {
       val crn = randomCrn()
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails(crn))
-      val pncEntity = person.references.find { it.identifierType == IdentifierType.PNC }
+      val pnc = randomLongPnc()
+      val cro = randomCro()
+      val niNumber = randomNationalInsuranceNumber()
 
-      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, pnc = person.getPnc(), cro = randomCro()))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = pnc, cro = cro, nationalInsuranceNumber = niNumber))
 
-      checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to person.crn))
+      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+
+      val person = personRepository.findByCrn(crn)
+      val pncEntity = person?.references?.find { it.identifierType == IdentifierType.PNC }
+      val croEntity = person?.references?.find { it.identifierType == IdentifierType.CRO }
+
+      val updatedCro = randomCro()
+      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, pnc = pnc, cro = updatedCro, nationalInsuranceNumber = null))
+
+      checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
       val updatedPerson = awaitNotNullPerson { personRepository.findByCrn(crn) }
-      assertThat(updatedPerson.getPnc()).isEqualTo(pncEntity?.identifierValue)
-      assertThat(updatedPerson.references.find { it.identifierType == IdentifierType.PNC }?.id).isEqualTo(pncEntity?.id)
-      assertThat(updatedPerson.references.find { it.identifierType == IdentifierType.PNC }?.version).isEqualTo(pncEntity?.version)
+
+      assertThat(updatedPerson.references).hasSize(2)
+
+      val updatedPncEntity = updatedPerson.references.find { it.identifierType == IdentifierType.PNC }
+      assertThat(updatedPncEntity?.identifierValue).isEqualTo(pnc)
+      assertThat(updatedPncEntity?.id).isEqualTo(pncEntity?.id)
+      assertThat(updatedPncEntity?.version).isEqualTo(pncEntity?.version)
+
+      val updatedCroEntity = updatedPerson.references.find { it.identifierType == IdentifierType.CRO }
+      assertThat(updatedCroEntity?.identifierValue).isEqualTo(updatedCro)
+      assertThat(updatedCroEntity?.id).isNotEqualTo(croEntity?.id)
+    }
+
+    @Test
+    fun `should update + persist + delete sentence entities when updating`() {
+      val crn = randomCrn()
+
+      val sentenceDateOne = randomDate()
+      val sentenceDateTwo = randomDate()
+
+      val sentenceDates = listOf(ApiResponseSetupSentences(sentenceDateOne), ApiResponseSetupSentences(sentenceDateTwo))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, sentences = sentenceDates))
+
+      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+
+      val person = personRepository.findByCrn(crn)
+      val sentenceDateOneEntity = person?.sentenceInfo?.find { it.sentenceDate == sentenceDateOne }
+      val sentenceDateTwoEntity = person?.sentenceInfo?.find { it.sentenceDate == sentenceDateTwo }
+
+      val sentenceDateFour = randomDate()
+      val updateSentenceDates = listOf(ApiResponseSetupSentences(sentenceDateOne), ApiResponseSetupSentences(sentenceDateFour))
+      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, sentences = updateSentenceDates))
+
+      checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+
+      val updatedPerson = awaitNotNullPerson { personRepository.findByCrn(crn) }
+
+      assertThat(updatedPerson.sentenceInfo).hasSize(2)
+
+      val updatedSentenceDateOneEntity = updatedPerson.sentenceInfo.find { it.sentenceDate == sentenceDateOne }
+      assertThat(updatedSentenceDateOneEntity?.id).isEqualTo(sentenceDateOneEntity?.id)
+      assertThat(updatedSentenceDateOneEntity?.version).isEqualTo(sentenceDateOneEntity?.version)
+
+      val updatedSentenceDateFourEntity = updatedPerson.sentenceInfo.find { it.sentenceDate == sentenceDateFour }
+      assertThat(updatedSentenceDateFourEntity?.id).isNotEqualTo(sentenceDateTwoEntity?.id)
     }
   }
 
