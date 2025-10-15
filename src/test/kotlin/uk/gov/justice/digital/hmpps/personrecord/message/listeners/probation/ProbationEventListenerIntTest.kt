@@ -391,6 +391,40 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       assertThat(updatedCroEntity?.identifierValue).isEqualTo(updatedCro)
       assertThat(updatedCroEntity?.id).isNotEqualTo(croEntity?.id)
     }
+
+    @Test
+    fun `should update + persist + delete sentence entities when updating`() {
+      val crn = randomCrn()
+
+      val sentenceDateOne = randomDate()
+      val sentenceDateTwo = randomDate()
+
+      val sentenceDates = listOf(ApiResponseSetupSentences(sentenceDateOne), ApiResponseSetupSentences(sentenceDateTwo))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, sentences = sentenceDates))
+
+      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+
+      val person = personRepository.findByCrn(crn)
+      val sentenceDateOneEntity = person?.sentenceInfo?.find { it.sentenceDate == sentenceDateOne }
+      val sentenceDateTwoEntity = person?.sentenceInfo?.find { it.sentenceDate == sentenceDateTwo }
+
+      val sentenceDateFour = randomDate()
+      val updateSentenceDates = listOf(ApiResponseSetupSentences(sentenceDateOne),  ApiResponseSetupSentences(sentenceDateFour))
+      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, sentences = updateSentenceDates))
+
+      checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+
+      val updatedPerson = awaitNotNullPerson { personRepository.findByCrn(crn) }
+
+      assertThat(updatedPerson.sentenceInfo).hasSize(2)
+
+      val updatedSentenceDateOneEntity = updatedPerson.sentenceInfo.find { it.sentenceDate == sentenceDateOne }
+      assertThat(updatedSentenceDateOneEntity?.id).isEqualTo(sentenceDateOneEntity?.id)
+      assertThat(updatedSentenceDateOneEntity?.version).isEqualTo(sentenceDateOneEntity?.version)
+
+      val updatedSentenceDateFourEntity = updatedPerson.sentenceInfo.find { it.sentenceDate == sentenceDateFour }
+      assertThat(updatedSentenceDateFourEntity?.id).isNotEqualTo(sentenceDateTwoEntity?.id)
+    }
   }
 
   @Test
