@@ -16,7 +16,7 @@ fun List<ReferenceEntity>.getType(type: IdentifierType): List<String> = this.fil
 fun List<ContactEntity>.getHome(): ContactEntity? = this.findByType(ContactType.HOME)
 fun List<ContactEntity>.getMobile(): ContactEntity? = this.findByType(ContactType.MOBILE)
 fun List<ContactEntity>.getEmail(): ContactEntity? = this.findByType(ContactType.MOBILE)
-fun List<ContactEntity>.findByType(type: ContactType): ContactEntity? = this.find { it.contactType == type }
+private fun List<ContactEntity>.findByType(type: ContactType): ContactEntity? = this.find { it.contactType == type }
 
 // Generic
 fun <T, E> T.existsIn(childEntities: List<E>, match: (T, E) -> Boolean, yes: (E) -> E, no: () -> E?): E? {
