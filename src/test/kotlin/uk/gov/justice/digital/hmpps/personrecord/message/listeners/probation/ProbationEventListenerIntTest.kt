@@ -409,7 +409,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sentenceDateTwoEntity = person?.sentenceInfo?.find { it.sentenceDate == sentenceDateTwo }
 
       val sentenceDateFour = randomDate()
-      val updateSentenceDates = listOf(ApiResponseSetupSentences(sentenceDateOne),  ApiResponseSetupSentences(sentenceDateFour))
+      val updateSentenceDates = listOf(ApiResponseSetupSentences(sentenceDateOne), ApiResponseSetupSentences(sentenceDateFour))
       probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, sentences = updateSentenceDates))
 
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
