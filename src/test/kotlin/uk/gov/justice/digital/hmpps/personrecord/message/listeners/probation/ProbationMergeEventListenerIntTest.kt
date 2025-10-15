@@ -235,7 +235,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       // stubs for failed delete
       val response = ApiResponseSetup.from(targetPerson)
-      stubSingleProbationResponse(response, BASE_SCENARIO, "Started", "Started")
+      stubSingleProbationResponse(response)
       stubDeletePersonMatch(status = 500, nextScenarioState = "deleteWillWork") // scenario state changes so next calls will succeed
 
       // stubs for successful delete

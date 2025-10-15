@@ -182,24 +182,7 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
-  ) = probationUnmergeEventAndResponseSetup(
-    eventType,
-    reactivatedCrn,
-    unmergedCrn,
-    scenario,
-    currentScenarioState,
-    nextScenarioState,
-    ApiResponseSetup(crn = reactivatedCrn),
-  )
-
-  fun probationUnmergeEventAndResponseSetup(
-    eventType: String,
-    reactivatedCrn: String,
-    unmergedCrn: String,
-    scenario: String = BASE_SCENARIO,
-    currentScenarioState: String = STARTED,
-    nextScenarioState: String = STARTED,
-    reactivatedSetup: ApiResponseSetup,
+    reactivatedSetup: ApiResponseSetup = ApiResponseSetup(crn = reactivatedCrn),
     unmergedSetup: ApiResponseSetup = ApiResponseSetup(crn = unmergedCrn),
   ) {
     stubSingleProbationResponse(reactivatedSetup, scenario, currentScenarioState, nextScenarioState)
