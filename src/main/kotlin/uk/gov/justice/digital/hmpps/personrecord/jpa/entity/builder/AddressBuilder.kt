@@ -18,19 +18,18 @@ object AddressBuilder {
       )
     }
 
-  private fun Address.matches(entity: AddressEntity): Boolean =
-    this.noFixedAbode == entity.noFixedAbode &&
-      this.startDate == entity.startDate &&
-      this.endDate == entity.endDate &&
-      this.postcode == entity.postcode &&
-      this.fullAddress == entity.fullAddress &&
-      this.subBuildingName == entity.subBuildingName &&
-      this.buildingName == entity.buildingName &&
-      this.buildingNumber == entity.buildingNumber &&
-      this.thoroughfareName == entity.thoroughfareName &&
-      this.dependentLocality == entity.dependentLocality &&
-      this.postTown == entity.postTown &&
-      this.county == entity.county &&
-      this.countryCode == entity.countryCode &&
-      this.uprn == entity.uprn
+  private fun Address.matches(entity: AddressEntity): Boolean = this.noFixedAbode == entity.noFixedAbode &&
+    this.startDate == entity.startDate &&
+    this.endDate == entity.endDate &&
+    this.postcode == entity.postcode &&
+    this.fullAddress == entity.fullAddress &&
+    this.subBuildingName == entity.subBuildingName &&
+    this.buildingName == entity.buildingName &&
+    this.buildingNumber == entity.buildingNumber &&
+    this.thoroughfareName == entity.thoroughfareName &&
+    this.dependentLocality == entity.dependentLocality &&
+    this.postTown == entity.postTown &&
+    this.county == entity.county &&
+    this.countryCode == entity.countryCode &&
+    this.uprn == entity.uprn
 }
