@@ -19,6 +19,7 @@ import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ReferenceBuilder.buildReferences
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.SentenceInfoBuilder.buildSentenceInfo
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.AddressBuilder.buildAddresses
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
@@ -182,7 +183,7 @@ class PersonEntity(
   }
 
   private fun updateChildEntities(person: Person) {
-    updatePersonAddresses(person)
+    updatePersonAddresses(buildAddresses(person, this))
     updatePersonContacts(person)
     updatePersonReferences(buildReferences(person, this))
     updatePersonSentences(buildSentenceInfo(person, this))
@@ -200,11 +201,10 @@ class PersonEntity(
     this.references.addAll(references)
   }
 
-  private fun updatePersonAddresses(person: Person) {
+  private fun updatePersonAddresses(addresses: List<AddressEntity>) {
     this.addresses.clear()
-    val personAddresses = AddressEntity.fromList(person.addresses)
-    personAddresses.forEach { personAddressEntity -> personAddressEntity.person = this }
-    this.addresses.addAll(personAddresses)
+    addresses.forEach { personAddressEntity -> personAddressEntity.person = this }
+    this.addresses.addAll(addresses)
   }
 
   private fun updatePersonContacts(person: Person) {

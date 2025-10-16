@@ -22,7 +22,7 @@ data class ApiResponseSetupAddress(
   val startDate: LocalDate? = null,
   val endDate: LocalDate? = null,
   val postcode: String?,
-  val fullAddress: String?,
+  val fullAddress: String? = null,
 )
 
 data class ApiResponseSetupSentences(val sentenceDate: LocalDate?)
