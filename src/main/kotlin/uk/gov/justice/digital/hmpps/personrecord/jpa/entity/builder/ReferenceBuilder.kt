@@ -19,5 +19,5 @@ object ReferenceBuilder {
       )
     }
 
-  private fun Reference.matches(entity: ReferenceEntity): Boolean = this.identifierType == entity.identifierType && this.identifierValue == entity.identifierValue
+  private fun Reference.matches(entity: ReferenceEntity): Boolean = this == Reference.from(entity)
 }
