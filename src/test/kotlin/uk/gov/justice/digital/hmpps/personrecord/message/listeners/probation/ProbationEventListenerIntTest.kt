@@ -425,6 +425,40 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val updatedSentenceDateFourEntity = updatedPerson.sentenceInfo.find { it.sentenceDate == sentenceDateFour }
       assertThat(updatedSentenceDateFourEntity?.id).isNotEqualTo(sentenceDateTwoEntity?.id)
     }
+
+    @Test
+    fun `should update + persist + delete address entities when updating`() {
+      val crn = randomCrn()
+
+      val postcodeOne = randomPostcode()
+      val postcodeTwo = randomPostcode()
+
+      val addresses = listOf(ApiResponseSetupAddress(postcode = postcodeOne, fullAddress = ""), ApiResponseSetupAddress(postcode = postcodeTwo))
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, addresses = addresses))
+
+      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+
+      val person = personRepository.findByCrn(crn)
+      val postcodeOneEntity = person?.addresses?.find { it.postcode == postcodeOne }
+      val postcodeTwoEntity = person?.addresses?.find { it.postcode == postcodeTwo }
+
+      val postcodeFour = randomPostcode()
+      val updateAddresses = listOf(ApiResponseSetupAddress(postcode = postcodeOne), ApiResponseSetupAddress(postcode = postcodeFour))
+      probationDomainEventAndResponseSetup(OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup(crn = crn, addresses = updateAddresses))
+
+      checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+
+      val updatedPerson = awaitNotNullPerson { personRepository.findByCrn(crn) }
+
+      assertThat(updatedPerson.addresses).hasSize(2)
+
+      val updatedPostcodeOneEntity = updatedPerson.addresses.find { it.postcode == postcodeOne }
+      assertThat(updatedPostcodeOneEntity?.id).isEqualTo(postcodeOneEntity?.id)
+      assertThat(updatedPostcodeOneEntity?.version).isEqualTo(postcodeOneEntity?.version)
+
+      val updatedPostcodeFourEntity = updatedPerson.addresses.find { it.postcode == postcodeFour }
+      assertThat(updatedPostcodeFourEntity?.id).isNotEqualTo(postcodeTwoEntity?.id)
+    }
   }
 
   @Test
