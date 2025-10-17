@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
+
 fun probationCaseResponse(probationCase: ApiResponseSetup) = """
     {
       "identifiers": {
@@ -38,9 +40,9 @@ fun probationCaseResponse(probationCase: ApiResponseSetup) = """
         "description": "string"
       },
       "contactDetails": {
-        "telephone": "01234567890",
-        "mobile": "01234567890",
-        "email": "test@gmail.com"
+        "telephone": "${probationCase.contacts.find { it.type == ContactType.HOME }?.value ?: ""}",
+        "mobile": "${probationCase.contacts.find { it.type == ContactType.MOBILE }?.value ?: ""}",
+        "email": "${probationCase.contacts.find { it.type == ContactType.EMAIL }?.value ?: ""}"
       },
       "sexualOrientation": {
         ${probationCase.sexualOrientation?.let { """ "code": "${probationCase.sexualOrientation}", """.trimIndent() } ?: ""}

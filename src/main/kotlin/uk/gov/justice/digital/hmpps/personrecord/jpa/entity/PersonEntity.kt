@@ -18,6 +18,7 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.AddressBuilder.buildAddresses
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ContactBuilder.buildContacts
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ReferenceBuilder.buildReferences
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.SentenceInfoBuilder.buildSentenceInfo
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
@@ -184,7 +185,7 @@ class PersonEntity(
 
   private fun updateChildEntities(person: Person) {
     updatePersonAddresses(buildAddresses(person, this))
-    updatePersonContacts(person)
+    updatePersonContacts(buildContacts(person, this))
     updatePersonReferences(buildReferences(person, this))
     updatePersonSentences(buildSentenceInfo(person, this))
   }
@@ -207,11 +208,10 @@ class PersonEntity(
     this.addresses.addAll(addresses)
   }
 
-  private fun updatePersonContacts(person: Person) {
+  private fun updatePersonContacts(contacts: List<ContactEntity>) {
     this.contacts.clear()
-    val personContacts = ContactEntity.fromList(person.contacts)
-    personContacts.forEach { personContactEntity -> personContactEntity.person = this }
-    this.contacts.addAll(personContacts)
+    contacts.forEach { personContactEntity -> personContactEntity.person = this }
+    this.contacts.addAll(contacts)
   }
 
   companion object {

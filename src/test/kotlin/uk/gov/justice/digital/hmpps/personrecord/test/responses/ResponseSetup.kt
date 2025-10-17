@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.personrecord.test.responses
 
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
+import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.CRO
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
@@ -16,6 +17,8 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import java.time.LocalDate
 
 data class ApiResponseSetupIdentifier(val type: String, val value: String)
+
+data class ApiResponseSetupContact(val type: ContactType, val value: String)
 
 data class ApiResponseSetupAddress(
   val noFixedAbode: Boolean? = null,
@@ -55,6 +58,7 @@ data class ApiResponseSetup(
   val primarySentence: Boolean? = null,
   val gender: String? = null,
   val sexualOrientation: String? = null,
+  val contacts: List<ApiResponseSetupContact> = listOf(),
 ) {
   companion object {
 
@@ -79,6 +83,7 @@ data class ApiResponseSetup(
       identifiers = person.references.mapNotNull { ref -> ref.identifierValue?.let { ApiResponseSetupIdentifier(ref.identifierType.name, it) } },
       sentences = person.sentences.map { ApiResponseSetupSentences(it.sentenceDate) },
       gender = person.sexCode?.name,
+      contacts = person.contacts.mapNotNull { contact -> contact.contactValue?.let { ApiResponseSetupContact(contact.contactType, it) } },
     )
   }
 }
