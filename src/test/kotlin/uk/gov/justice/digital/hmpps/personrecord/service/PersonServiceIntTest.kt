@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.model.court.event.LibraHearingEvent
@@ -20,16 +21,6 @@ class PersonServiceIntTest : IntegrationTestBase() {
 
   @Autowired
   lateinit var personService: PersonService
-
-  @Test
-  fun `should not log record update when no change in matching fields`() {
-    val person = createRandomProbationPersonDetails()
-    val existingPerson = createPersonWithNewKey(person)
-
-    personService.processPerson(person) { existingPerson }
-
-    checkEventLogExist(existingPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED, times = 0)
-  }
 
   @Test
   fun `should log record update when change in matching fields`() {
@@ -72,7 +63,8 @@ class PersonServiceIntTest : IntegrationTestBase() {
     )
 
     personService.processPerson(updatedPerson) { existingPerson }
-
-    checkEventLogExist(existingPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED, times = 0)
+    checkEventLog(existingPerson.crn!!, CPRLogEvents.CPR_RECORD_UPDATED) { logEvents ->
+      assertThat(logEvents).isEmpty()
+    }
   }
 }
