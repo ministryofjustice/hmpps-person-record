@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.personrecord.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
-import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor
@@ -392,27 +391,15 @@ class IntegrationTestBase {
     )
   }
 
-  private fun stubIsClusterValid(isClusterValidResponse: IsClusterValidResponse, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200, requestBody: String = "") {
-    if (requestBody.isNotEmpty()) {
-      stubPostRequest(
-        scenario,
-        currentScenarioState,
-        nextScenarioState,
-        url = "/is-cluster-valid",
-        status = status,
-        responseBody = objectMapper.writeValueAsString(isClusterValidResponse),
-        requestBody = requestBody,
-      )
-    } else {
-      stubPostRequest(
-        scenario,
-        currentScenarioState,
-        nextScenarioState,
-        url = "/is-cluster-valid",
-        status = status,
-        responseBody = objectMapper.writeValueAsString(isClusterValidResponse),
-      )
-    }
+  private fun stubIsClusterValid(isClusterValidResponse: IsClusterValidResponse, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED) {
+    stubPostRequest(
+      scenario,
+      currentScenarioState,
+      nextScenarioState,
+      url = "/is-cluster-valid",
+      status = 200,
+      responseBody = objectMapper.writeValueAsString(isClusterValidResponse),
+    )
   }
 
   internal fun stubClusterIsValid(
@@ -491,24 +478,6 @@ class IntegrationTestBase {
             .withHeader("Content-Type", "application/json")
             .withStatus(status)
             .withBody(responseBody),
-        ),
-    )
-  }
-
-  internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, responseBody: String, status: Int = 200, requestBody: String, fixedDelay: Int = 0) {
-    authSetup()
-    wiremock.stubFor(
-      WireMock.post(url)
-        .withRequestBody(equalToJson(requestBody))
-        .inScenario(scenarioName)
-        .whenScenarioStateIs(currentScenarioState)
-        .willSetStateTo(nextScenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(status)
-            .withBody(responseBody)
-            .withFixedDelay(fixedDelay),
         ),
     )
   }
