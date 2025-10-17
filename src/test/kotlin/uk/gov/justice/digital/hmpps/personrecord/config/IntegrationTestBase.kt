@@ -222,7 +222,7 @@ class IntegrationTestBase {
     expected: Map<String, String?>,
     times: Int = 1,
   ) {
-    awaitAssert(function = {
+    awaitAssert {
       val allEvents = telemetryRepository.findAllByEvent(event.eventName)
       val matchingEvents = allEvents?.filter { event ->
         expected.entries.map { (k, v) ->
@@ -234,16 +234,15 @@ class IntegrationTestBase {
         }.all { it }
       }
       assertThat(matchingEvents?.size).`as`("Missing data $event $expected and actual data $allEvents").isEqualTo(times)
-    })
+    }
   }
 
   internal fun checkEventLogExist(
     sourceSystemId: String,
     event: CPRLogEvents,
-    times: Int = 1,
   ) {
     checkEventLog(sourceSystemId, event) { logEvents ->
-      assertThat(logEvents).`as`("Missing event log $event and actual data $logEvents").hasSize(times)
+      assertThat(logEvents).`as`("Missing event log $event and actual data $logEvents").hasSize(1)
     }
   }
 
@@ -252,9 +251,9 @@ class IntegrationTestBase {
     event: CPRLogEvents,
     matchingEvents: (logEvents: List<EventLogEntity>) -> Unit,
   ) {
-    awaitAssert(function = {
+    awaitAssert {
       matchingEvents(eventLogRepository.findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(event, sourceSystemId) ?: emptyList())
-    })
+    }
   }
 
   internal fun checkEventLogByUUID(
@@ -262,9 +261,9 @@ class IntegrationTestBase {
     event: CPRLogEvents,
     matchingEvents: (logEvents: List<EventLogEntity>) -> Unit,
   ) {
-    awaitAssert(function = {
+    awaitAssert {
       matchingEvents(eventLogRepository.findAllByEventTypeAndPersonUUIDOrderByEventTimestampDesc(event, cluster) ?: emptyList())
-    })
+    }
   }
 
   internal fun awaitAssert(function: () -> Unit) = await atMost (Duration.ofSeconds(12)) untilAsserted function
