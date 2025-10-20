@@ -256,7 +256,7 @@ class JoinClustersE2ETest : E2ETestBase() {
     val secondSetup = ApiResponseSetup.from(basePerson.copy(crn = secondCrn))
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, secondSetup)
 
-    val secondPersonRecord = awaitNotNullPerson { personRepository.findByCrn(secondCrn) }
+    val secondPersonRecord = awaitNotNull { personRepository.findByCrn(secondCrn) }
     checkTelemetry(
       CPR_DELIUS_MERGE_REQUEST_CREATED,
       mapOf(
