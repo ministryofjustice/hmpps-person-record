@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonTyp
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyFound
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.review.ReviewService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
@@ -18,12 +19,13 @@ class PersonKeyService(
   private val personMatchService: PersonMatchService,
   private val reclusterService: ReclusterService,
   private val publisher: ApplicationEventPublisher,
+  private val reviewService: ReviewService,
 ) {
 
   fun linkRecordToPersonKey(personEntity: PersonEntity) {
-    val matches = personMatchService.findClustersToJoin(personEntity)
+    val matches = personMatchService.findClustersToJoin(personEntity).collectDistinctClusters()
     when {
-      matches.containsExcluded() -> personEntity.setAsOverrideConflict()
+      matches.containsExcluded() -> personEntity.setAsOverrideConflict(matches)
       else -> personEntity.selectClusterToAssignTo(matches)
     }
   }
@@ -40,13 +42,13 @@ class PersonKeyService(
     personEntity.assignToPersonKey(personKey)
   }
 
-  private fun PersonEntity.selectClusterToAssignTo(matches: List<PersonMatchResult>) {
+  private fun PersonEntity.selectClusterToAssignTo(matches: List<PersonKeyEntity>) {
     if (matches.isEmpty()) {
       assignPersonToNewPersonKey(this)
     } else {
       assignToPersonKeyOfHighestConfidencePerson(
         this,
-        matches.first().personEntity.personKey!!,
+        matches.first(),
       )
       if (matches.size > 1) {
         reclusterService.recluster(this)
@@ -54,13 +56,16 @@ class PersonKeyService(
     }
   }
 
-  private fun PersonEntity.setAsOverrideConflict() {
+  private fun PersonEntity.setAsOverrideConflict(matchingClusters: List<PersonKeyEntity>) {
     assignPersonToNewPersonKey(this)
-    this.personKey?.setAsNeedsAttention(OVERRIDE_CONFLICT)
+    this.personKey?.let {
+      it.setAsNeedsAttention(OVERRIDE_CONFLICT)
+      reviewService.raiseForReview(it, matchingClusters)
+    }
   }
 
-  private fun List<PersonMatchResult>.containsExcluded(): Boolean {
-    val scopesPerCluster = this.collectDistinctClusters()
+  private fun List<PersonKeyEntity>.containsExcluded(): Boolean {
+    val scopesPerCluster = this
       .map { cluster ->
         cluster.personEntities
           .flatMap { person ->

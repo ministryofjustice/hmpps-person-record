@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordClusterTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
+import uk.gov.justice.digital.hmpps.personrecord.service.review.ReviewService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -29,6 +30,7 @@ class ReclusterService(
   private val personKeyRepository: PersonKeyRepository,
   private val publisher: ApplicationEventPublisher,
   private val personRepository: PersonRepository,
+  private val reviewService: ReviewService,
 ) {
 
   fun recluster(changedRecord: PersonEntity) {
@@ -85,12 +87,13 @@ class ReclusterService(
           mergeClusters(it, clusterDetails.cluster)
         }
       },
-      isNotValid = { handleExclusionsBetweenMatchedClusters(clusterDetails) },
+      isNotValid = { handleExclusionsBetweenMatchedClusters(clusterDetails.cluster, matchedRecordsClusters) },
     )
   }
 
   private fun handleInvalidClusterComposition(clusterDetails: ClusterDetails) {
     clusterDetails.cluster.setToNeedsAttention(BROKEN_CLUSTER)
+    reviewService.raiseForReview(clusterDetails.cluster)
     publisher.publishEvent(
       RecordClusterTelemetry(
         TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
@@ -99,12 +102,13 @@ class ReclusterService(
     )
   }
 
-  private fun handleExclusionsBetweenMatchedClusters(clusterDetails: ClusterDetails) {
-    clusterDetails.cluster.setToNeedsAttention(OVERRIDE_CONFLICT)
+  private fun handleExclusionsBetweenMatchedClusters(cluster: PersonKeyEntity, matchedRecords: List<PersonKeyEntity>) {
+    cluster.setToNeedsAttention(OVERRIDE_CONFLICT)
+    reviewService.raiseForReview(cluster, matchedRecords)
     publisher.publishEvent(
       RecordClusterTelemetry(
         TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
-        clusterDetails.cluster,
+        cluster,
       ),
     )
   }

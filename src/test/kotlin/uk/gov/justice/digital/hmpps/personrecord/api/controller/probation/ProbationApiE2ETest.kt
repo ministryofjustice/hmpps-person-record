@@ -430,7 +430,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           .expectStatus()
           .isOk
 
-        val offender = awaitNotNullPerson { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+        val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
 
         offender.personKey?.assertClusterStatus(ACTIVE)
         offender.personKey?.assertClusterIsOfSize(2)
@@ -501,7 +501,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           .expectStatus()
           .isOk
 
-        val offender = awaitNotNullPerson { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+        val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
 
         offender.personKey?.assertClusterStatus(ACTIVE)
         offender.personKey?.assertClusterIsOfSize(2)
@@ -533,7 +533,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           ApiResponseSetup.from(createRandomProbationPersonDetails(crn)),
         )
 
-        val offender = awaitNotNullPerson { personRepository.findByCrn(crn) }
+        val offender = awaitNotNull { personRepository.findByCrn(crn) }
 
         assertThat(offender.personKey?.personUUID.toString()).isNotEqualTo(defendant.personKey?.personUUID.toString())
 

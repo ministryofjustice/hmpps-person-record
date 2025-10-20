@@ -60,7 +60,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
         ),
       )
 
-      val reactivatedPerson = awaitNotNullPerson { personRepository.findByCrn(reactivatedCrn) }
+      val reactivatedPerson = awaitNotNull { personRepository.findByCrn(reactivatedCrn) }
       reactivatedPerson.assertHasLinkToCluster()
       reactivatedPerson.assertNotLinkedToCluster(unmergedPerson.personKey!!)
       reactivatedPerson.assertExcluded(unmergedPerson)
@@ -152,7 +152,7 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
           "SOURCE_SYSTEM" to "DELIUS",
         ),
       )
-      val unmergedPerson = awaitNotNullPerson { personRepository.findByCrn(unmergedCrn) }
+      val unmergedPerson = awaitNotNull { personRepository.findByCrn(unmergedCrn) }
       unmergedPerson.assertHasLinkToCluster()
       unmergedPerson.assertExcluded(reactivatedPerson)
       unmergedPerson.assertNotLinkedToCluster(reactivatedPerson.personKey!!)
@@ -290,13 +290,13 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, firstReactivatedRecord.crn!!, unmergedRecord.crn!!)
       checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to firstReactivatedRecord.crn!!))
 
-      val initialOverrideMarker = awaitNotNullPerson { personRepository.findByCrn(unmergedRecord.crn!!) }.overrideMarker
+      val initialOverrideMarker = awaitNotNull { personRepository.findByCrn(unmergedRecord.crn!!) }.overrideMarker
       assertThat(initialOverrideMarker).isNotNull()
 
       probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, secondReactivatedRecord.crn!!, unmergedRecord.crn!!)
       checkTelemetry(CPR_RECORD_UNMERGED, mapOf("FROM_SOURCE_SYSTEM_ID" to unmergedRecord.crn!!, "TO_SOURCE_SYSTEM_ID" to secondReactivatedRecord.crn!!))
 
-      val finalOverrideMarker = awaitNotNullPerson { personRepository.findByCrn(unmergedRecord.crn!!) }.overrideMarker
+      val finalOverrideMarker = awaitNotNull { personRepository.findByCrn(unmergedRecord.crn!!) }.overrideMarker
       assertThat(initialOverrideMarker).isEqualTo(finalOverrideMarker)
     }
   }

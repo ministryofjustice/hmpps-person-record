@@ -240,13 +240,13 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personA.crn, personC.crn, reactivatedSetup = ApiResponseSetup.from(personA))
       probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, personB.crn, personC.crn, reactivatedSetup = ApiResponseSetup.from(personB))
 
-      val clusterA = awaitNotNullPerson { personRepository.findByCrn(personA.crn) }.personKey
+      val clusterA = awaitNotNull { personRepository.findByCrn(personA.crn) }.personKey
       clusterA?.assertClusterIsOfSize(1)
 
-      val clusterB = awaitNotNullPerson { personRepository.findByCrn(personB.crn) }.personKey
+      val clusterB = awaitNotNull { personRepository.findByCrn(personB.crn) }.personKey
       clusterB?.assertClusterIsOfSize(1)
 
-      val clusterC = awaitNotNullPerson { personRepository.findByCrn(personC.crn) }.personKey
+      val clusterC = awaitNotNull { personRepository.findByCrn(personC.crn) }.personKey
       clusterC?.assertClusterIsOfSize(1)
 
       val updatePersonBSoItMatchesPersonA = personA.copy(crn = personB.crn)
@@ -255,11 +255,11 @@ class ReclusterServiceE2ETest : E2ETestBase() {
       clusterA?.assertClusterStatus(RECLUSTER_MERGE)
       clusterA?.assertClusterIsOfSize(0)
 
-      val updatedClusterWithPersonB = awaitNotNullPerson { personRepository.findByCrn(personB.crn) }.personKey
+      val updatedClusterWithPersonB = awaitNotNull { personRepository.findByCrn(personB.crn) }.personKey
       updatedClusterWithPersonB?.assertClusterIsOfSize(2)
       updatedClusterWithPersonB?.assertClusterStatus(ACTIVE)
 
-      val updatedClusterWithPersonC = awaitNotNullPerson { personRepository.findByCrn(personC.crn) }.personKey
+      val updatedClusterWithPersonC = awaitNotNull { personRepository.findByCrn(personC.crn) }.personKey
       updatedClusterWithPersonC?.assertClusterIsOfSize(1)
       updatedClusterWithPersonC?.assertClusterStatus(ACTIVE)
     }
@@ -1022,6 +1022,59 @@ class ReclusterServiceE2ETest : E2ETestBase() {
         assertThat(eventLog.uuidStatusType).isEqualTo(ACTIVE)
         assertThat(eventLog.statusReason).isNull()
       }
+    }
+  }
+
+  @Nested
+  inner class Review {
+
+    @Test
+    fun `should raise cluster for review when broken cluster`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val doesNotMatch = createPerson(createRandomProbationPersonDetails())
+      val cluster = createPersonKey()
+        .addPerson(personA)
+        .addPerson(personB)
+        .addPerson(doesNotMatch)
+
+      recluster(personA)
+
+      cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
+
+      cluster.getReview()
+        .hasReviewSize(1)
+        .isPrimary(cluster)
+    }
+
+    @Test
+    fun `should raise cluster for review when override conflict`() {
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val personA = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster1 = createPersonKey()
+        .addPerson(personA)
+
+      val personB = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster2 = createPersonKey()
+        .addPerson(personB)
+
+      val personC = createPerson(createProbationPersonFrom(basePersonData))
+      val cluster3 = createPersonKey()
+        .addPerson(personC)
+
+      excludeRecord(personB, personC)
+
+      recluster(personA)
+
+      cluster1.assertClusterStatus(NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
+
+      cluster1.getReview()
+        .hasReviewSize(3)
+        .isPrimary(cluster1)
+        .isAdditional(cluster2, cluster3)
     }
   }
 

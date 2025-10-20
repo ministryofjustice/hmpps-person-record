@@ -288,7 +288,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubPersonMatchScores(currentScenarioState = "will succeed")
       val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
       publishDomainEvent(PRISONER_CREATED, domainEvent)
-      awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumber = prisonNumber) }
+      awaitNotNull { personRepository.findByPrisonNumber(prisonNumber = prisonNumber) }
       checkTelemetry(
         CPR_RECORD_CREATED,
         mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),

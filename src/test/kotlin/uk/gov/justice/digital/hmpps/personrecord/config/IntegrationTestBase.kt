@@ -54,11 +54,13 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.NationalityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.TitleCodeEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.review.ReviewEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.NationalityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReviewRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.TitleCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
@@ -72,6 +74,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.review.ClusterType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
@@ -130,6 +133,9 @@ class IntegrationTestBase {
 
   @Autowired
   private lateinit var overrideService: OverrideService
+
+  @Autowired
+  private lateinit var reviewRepository: ReviewRepository
 
   fun authSetup() {
     wiremock.stubFor(
@@ -268,7 +274,7 @@ class IntegrationTestBase {
 
   internal fun awaitAssert(function: () -> Unit) = await atMost (Duration.ofSeconds(12)) untilAsserted function
 
-  internal fun awaitNotNullPerson(function: () -> PersonEntity?): PersonEntity = await atMost (Duration.ofSeconds(3)) untilNotNull function
+  internal fun <T> awaitNotNull(function: () -> T?): T = await atMost (Duration.ofSeconds(3)) untilNotNull function
 
   internal fun createPersonKey(status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
@@ -558,6 +564,32 @@ class IntegrationTestBase {
   internal fun String?.getNationalityCodeEntityFromProbationCode(): NationalityCodeEntity? = NationalityCode.fromProbationMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
 
   internal fun String?.getNationalityCodeEntityFromCommonPlatformCode(): NationalityCodeEntity? = NationalityCode.fromCommonPlatformMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
+
+  internal fun PersonKeyEntity.getReview(): ReviewEntity = awaitNotNull {
+    reviewRepository.findByClustersClusterTypeAndClustersPersonKey(
+      ClusterType.PRIMARY,
+      this,
+    )
+  }
+
+  internal fun ReviewEntity.hasReviewSize(size: Int): ReviewEntity {
+    assertThat(this.clusters).hasSize(size)
+    return this
+  }
+
+  internal fun ReviewEntity.isPrimary(personKeyEntity: PersonKeyEntity): ReviewEntity {
+    val primary = this.clusters.find { it.clusterType == ClusterType.PRIMARY }
+    assertThat(primary?.clusterType).isEqualTo(ClusterType.PRIMARY)
+    assertThat(primary?.personKey?.personUUID).isEqualTo(personKeyEntity.personUUID)
+    return this
+  }
+
+  internal fun ReviewEntity.isAdditional(vararg additionalClusters: PersonKeyEntity): ReviewEntity {
+    val additional = this.clusters.filter { it.clusterType == ClusterType.ADDITIONAL }
+    assertThat(additional).hasSize(additionalClusters.size)
+    assertThat(additional.map { it.personKey.personUUID }.toSet()).isEqualTo(additionalClusters.map { it.personUUID }.toSet())
+    return this
+  }
 
   internal fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.personEntities?.size).isEqualTo(size) }
 
