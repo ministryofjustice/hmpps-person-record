@@ -402,8 +402,8 @@ class IntegrationTestBase {
       nextScenarioState,
       url = "/is-cluster-valid",
       status = 200,
-      responseBody = objectMapper.writeValueAsString( IsClusterValidResponse(isClusterValid = true)),
-      )
+      responseBody = objectMapper.writeValueAsString(IsClusterValidResponse(isClusterValid = true)),
+    )
   }
 
   internal fun stubPersonMatchUpsert(
