@@ -11,7 +11,7 @@ class ReviewService(
   private val reviewRepository: ReviewRepository,
 ) {
 
-  fun raiseForReview(primary: PersonKeyEntity, additional: List<PersonKeyEntity>? = null): ReviewEntity {
+  fun create(primary: PersonKeyEntity, additional: List<PersonKeyEntity>? = null): ReviewEntity {
     val reviewEntity = primary.getIfReviewExists()
     return when {
       reviewEntity == null -> primary.createNewReview(additional)

@@ -17,7 +17,7 @@ class ReviewEventListener(
   @EventListener
   @TransactionalEventListener
   fun onReviewRaised(reviewRaised: ReviewRaised) {
-    reviewService.raiseForReview(reviewRaised.primaryCluster, reviewRaised.additionalClusters)
+    reviewService.create(reviewRaised.primaryCluster, reviewRaised.additionalClusters)
   }
 
   @Async
