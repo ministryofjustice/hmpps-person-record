@@ -5,10 +5,9 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonProcessingCompleted
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.DeliusMergeRequest
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonChainable
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
@@ -34,15 +33,7 @@ class PersonService(
       update(person, it)
     },
   ).also {
-    clusterHasMoreThanOneDeliusRecord(it)
-  }
-
-  private fun clusterHasMoreThanOneDeliusRecord(entity: PersonEntity) {
-    entity.personKey?.let { personKey ->
-      if (personKey.personEntities.filter { person -> person.sourceSystem == DELIUS }.size > 1) {
-        publisher.publishEvent(DeliusMergeRequest(entity, personKey))
-      }
-    }
+    publisher.publishEvent(PersonProcessingCompleted(it))
   }
 
   private fun create(person: Person): PersonEntity {
