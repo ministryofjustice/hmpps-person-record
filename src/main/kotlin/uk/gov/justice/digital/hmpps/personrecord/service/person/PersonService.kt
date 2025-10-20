@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.exists
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.DeliusMergeRequest
@@ -34,9 +34,13 @@ class PersonService(
       update(person, it)
     },
   ).also {
-    it.personKey?.let { personKey ->
-      if (personKey.personEntities.filter { person -> person.sourceSystem == SourceSystemType.DELIUS }.size > 1) {
-        publisher.publishEvent(DeliusMergeRequest(it, personKey))
+    clusterHasMoreThanOneDeliusRecord(it)
+  }
+
+  private fun clusterHasMoreThanOneDeliusRecord(entity: PersonEntity) {
+    entity.personKey?.let { personKey ->
+      if (personKey.personEntities.filter { person -> person.sourceSystem == DELIUS }.size > 1) {
+        publisher.publishEvent(DeliusMergeRequest(entity, personKey))
       }
     }
   }
