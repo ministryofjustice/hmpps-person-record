@@ -16,10 +16,11 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECL
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.review.ReviewRaised
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.review.ReviewRemoved
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordClusterTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.review.ReviewService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
@@ -30,7 +31,6 @@ class ReclusterService(
   private val personKeyRepository: PersonKeyRepository,
   private val publisher: ApplicationEventPublisher,
   private val personRepository: PersonRepository,
-  private val reviewService: ReviewService,
 ) {
 
   fun recluster(changedRecord: PersonEntity) {
@@ -93,7 +93,7 @@ class ReclusterService(
 
   private fun handleInvalidClusterComposition(clusterDetails: ClusterDetails) {
     clusterDetails.cluster.setToNeedsAttention(BROKEN_CLUSTER)
-    reviewService.raiseForReview(clusterDetails.cluster)
+    publisher.publishEvent(ReviewRaised(clusterDetails.cluster))
     publisher.publishEvent(
       RecordClusterTelemetry(
         TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
@@ -104,7 +104,7 @@ class ReclusterService(
 
   private fun handleExclusionsBetweenMatchedClusters(cluster: PersonKeyEntity, matchedRecords: List<PersonKeyEntity>) {
     cluster.setToNeedsAttention(OVERRIDE_CONFLICT)
-    reviewService.raiseForReview(cluster, matchedRecords)
+    publisher.publishEvent(ReviewRaised(cluster, matchedRecords))
     publisher.publishEvent(
       RecordClusterTelemetry(
         TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
@@ -147,6 +147,7 @@ class ReclusterService(
   private fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity) {
     personKeyEntity.setAsActive()
     personKeyRepository.save(personKeyEntity)
+    publisher.publishEvent(ReviewRemoved(personKeyEntity))
     publisher.publishEvent(
       RecordClusterTelemetry(
         TelemetryEventType.CPR_RECLUSTER_SELF_HEALED,

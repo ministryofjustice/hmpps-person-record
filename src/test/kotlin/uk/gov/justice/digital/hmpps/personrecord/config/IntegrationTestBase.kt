@@ -531,6 +531,8 @@ class IntegrationTestBase {
     )
   }
 
+  internal fun ReviewEntity.removed() = awaitAssert { assertThat(reviewRepository.findById(this.id!!)).isNotNull() }
+
   internal fun ReviewEntity.hasReviewSize(size: Int): ReviewEntity {
     assertThat(this.clusters).hasSize(size)
     return this

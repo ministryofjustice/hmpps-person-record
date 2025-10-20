@@ -8,8 +8,8 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyReposit
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyFound
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.review.ReviewRaised
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
-import uk.gov.justice.digital.hmpps.personrecord.service.review.ReviewService
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
@@ -19,7 +19,6 @@ class PersonKeyService(
   private val personMatchService: PersonMatchService,
   private val reclusterService: ReclusterService,
   private val publisher: ApplicationEventPublisher,
-  private val reviewService: ReviewService,
 ) {
 
   fun linkRecordToPersonKey(personEntity: PersonEntity) {
@@ -60,7 +59,7 @@ class PersonKeyService(
     assignPersonToNewPersonKey(this)
     this.personKey?.let {
       it.setAsNeedsAttention(OVERRIDE_CONFLICT)
-      reviewService.raiseForReview(it, matchingClusters)
+      publisher.publishEvent(ReviewRaised(it, matchingClusters))
     }
   }
 

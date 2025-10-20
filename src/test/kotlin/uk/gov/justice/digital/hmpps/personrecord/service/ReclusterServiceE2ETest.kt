@@ -1029,7 +1029,7 @@ class ReclusterServiceE2ETest : E2ETestBase() {
   inner class Review {
 
     @Test
-    fun `should raise cluster for review when broken cluster`() {
+    fun `should raise cluster for review when broken cluster and remove when self healed`() {
       val basePersonData = createRandomProbationPersonDetails()
 
       val personA = createPerson(createProbationPersonFrom(basePersonData))
@@ -1044,9 +1044,15 @@ class ReclusterServiceE2ETest : E2ETestBase() {
 
       cluster.assertClusterStatus(NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
 
-      cluster.getReview()
+      val review = cluster.getReview()
         .hasReviewSize(1)
         .isPrimary(cluster)
+
+      val nowMatchesAboveFracture = createProbationPersonFrom(basePersonData, doesNotMatch.crn!!).aboveFracture()
+      probationDomainEventAndResponseSetup(eventType = OFFENDER_PERSONAL_DETAILS_UPDATED, ApiResponseSetup.from(nowMatchesAboveFracture))
+
+      cluster.assertClusterStatus(ACTIVE)
+      review.removed()
     }
 
     @Test

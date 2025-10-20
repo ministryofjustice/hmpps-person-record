@@ -19,6 +19,8 @@ class ReviewService(
     }
   }
 
+  fun remove(cluster: PersonKeyEntity) = cluster.getIfReviewExists()?.let { reviewRepository.delete(it) }
+
   private fun PersonKeyEntity.createNewReview(additional: List<PersonKeyEntity>? = null): ReviewEntity {
     val review = ReviewEntity.new()
     review.addPrimary(this)
