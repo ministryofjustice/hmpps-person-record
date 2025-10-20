@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Companion.empty
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.review.ClusterType
 import java.time.LocalDateTime
@@ -54,5 +55,10 @@ class ReviewEntity(
     fun new(): ReviewEntity = ReviewEntity(
       createdAt = LocalDateTime.now(),
     )
+
+    fun ReviewEntity?.exists(no: () -> ReviewEntity, yes: (reviewEntity: ReviewEntity) -> ReviewEntity): ReviewEntity = when {
+      this == empty -> no()
+      else -> yes(this)
+    }
   }
 }
