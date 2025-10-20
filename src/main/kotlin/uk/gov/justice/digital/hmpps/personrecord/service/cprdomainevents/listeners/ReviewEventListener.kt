@@ -24,6 +24,6 @@ class ReviewEventListener(
   @EventListener
   @TransactionalEventListener
   fun onReviewRemoved(reviewRemoved: ReviewRemoved) {
-    reviewService.remove(reviewRemoved.primaryCluster)
+    reviewService.delete(reviewRemoved.primaryCluster)
   }
 }
