@@ -8,9 +8,12 @@ import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_DELIUS_MERGE_REQUEST_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAddress
@@ -239,6 +242,29 @@ class JoinClustersE2ETest : E2ETestBase() {
     assertThat(secondPersonRecord.getCro()).isEqualTo(cro)
     secondPersonRecord.personKey?.assertClusterIsOfSize(2)
     assertThat(secondPersonRecord.personKey!!.personUUID).isEqualTo(firstPersonRecord.personKey!!.personUUID)
+  }
+
+  @Test
+  fun `should trigger CPRDeliusMergeRequestRaised appInsight event when 2 Delius record join the same cluster`() {
+    val firstCrn = randomCrn()
+    val secondCrn = randomCrn()
+
+    val basePerson = createRandomProbationPersonDetails(firstCrn)
+    val firstSetup = ApiResponseSetup.from(basePerson)
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
+
+    val secondSetup = ApiResponseSetup.from(basePerson.copy(crn = secondCrn))
+    probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, secondSetup)
+
+    val secondPersonRecord = awaitNotNullPerson { personRepository.findByCrn(secondCrn) }
+    checkTelemetry(
+      CPR_DELIUS_MERGE_REQUEST_CREATED,
+      mapOf(
+        UUID.name to secondPersonRecord.personKey?.personUUID.toString(),
+        SOURCE_SYSTEM.name to "DELIUS",
+        EventKeys.CRNS.name to listOf(firstCrn, secondCrn).joinToString(),
+      ),
+    )
   }
 
   @Test
