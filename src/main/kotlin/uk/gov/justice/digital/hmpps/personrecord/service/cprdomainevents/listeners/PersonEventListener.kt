@@ -52,6 +52,7 @@ class PersonEventListener(
             personProcessingCompleted.personEntity,
             mapOf(
               UUID to personKey.personUUID.toString(),
+              EventKeys.CRNS to personKey.crns().joinToString(),
             ),
           ),
         )
@@ -59,5 +60,6 @@ class PersonEventListener(
     }
   }
 
-  private fun PersonKeyEntity.hasMoreThanOneProbationRecord(): Boolean = this.personEntities.filter { person -> person.sourceSystem == DELIUS }.size > 1
+  private fun PersonKeyEntity.hasMoreThanOneProbationRecord(): Boolean = this.crns().size > 1
+  private fun PersonKeyEntity.crns(): List<String?> = this.personEntities.filter { person -> person.sourceSystem == DELIUS }.map { it.crn }
 }

@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.SOURCE_SYSTEM
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
@@ -256,7 +257,14 @@ class JoinClustersE2ETest : E2ETestBase() {
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, secondSetup)
 
     val secondPersonRecord = awaitNotNullPerson { personRepository.findByCrn(secondCrn) }
-    checkTelemetry(CPR_DELIUS_MERGE_REQUEST_CREATED, mapOf(UUID.name to secondPersonRecord.personKey?.personUUID.toString()))
+    checkTelemetry(
+      CPR_DELIUS_MERGE_REQUEST_CREATED,
+      mapOf(
+        UUID.name to secondPersonRecord.personKey?.personUUID.toString(),
+        SOURCE_SYSTEM.name to "DELIUS",
+        EventKeys.CRNS.name to listOf(firstCrn, secondCrn).joinToString(),
+      ),
+    )
   }
 
   @Test
