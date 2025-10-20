@@ -8,6 +8,8 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.types.review.ClusterType
 import java.time.LocalDateTime
 
 @Entity
@@ -28,6 +30,24 @@ class ReviewEntity(
   val clusters: MutableList<ReviewClusterLinkEntity> = mutableListOf(),
 
 ) {
+
+  fun addPrimary(personKey: PersonKeyEntity) = this.clusters.add(
+    ReviewClusterLinkEntity(
+      review = this,
+      personKey = personKey,
+      clusterType = ClusterType.PRIMARY,
+    ),
+  )
+
+  fun addAdditional(personKeyEntities: List<PersonKeyEntity>) = personKeyEntities.forEach { cluster ->
+    this.clusters.add(
+      ReviewClusterLinkEntity(
+        review = this,
+        personKey = cluster,
+        clusterType = ClusterType.ADDITIONAL,
+      ),
+    )
+  }
 
   companion object {
     fun new(): ReviewEntity = ReviewEntity(
