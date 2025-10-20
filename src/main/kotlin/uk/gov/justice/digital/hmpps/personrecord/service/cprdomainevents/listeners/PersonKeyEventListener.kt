@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.PersonKeyFound
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordPersonTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_FOUND_UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_DELIUS_MERGE_REQUEST_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
@@ -32,9 +31,15 @@ class PersonKeyEventListener(
 
   @EventListener
   fun onDeliusMergeRequest(deliusMergeRequest: DeliusMergeRequest) {
-    publisher.publishEvent(RecordPersonTelemetry(
-      CPR_DELIUS_MERGE_REQUEST_CREATED, deliusMergeRequest.personEntity, mapOf(
-      UUID to deliusMergeRequest.personKeyEntity.personUUID.toString())))
+    publisher.publishEvent(
+      RecordPersonTelemetry(
+        CPR_DELIUS_MERGE_REQUEST_CREATED,
+        deliusMergeRequest.personEntity,
+        mapOf(
+          UUID to deliusMergeRequest.personKeyEntity.personUUID.toString(),
+        ),
+      ),
+    )
   }
 
   @EventListener

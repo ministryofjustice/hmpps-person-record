@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_DELIUS_MERGE_REQUEST_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
@@ -253,11 +252,11 @@ class JoinClustersE2ETest : E2ETestBase() {
     val firstSetup = ApiResponseSetup.from(basePerson)
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
 
-    val secondSetup = ApiResponseSetup.from(basePerson.copy(crn=secondCrn))
+    val secondSetup = ApiResponseSetup.from(basePerson.copy(crn = secondCrn))
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, secondSetup)
 
     val secondPersonRecord = awaitNotNullPerson { personRepository.findByCrn(secondCrn) }
-    checkTelemetry(CPR_DELIUS_MERGE_REQUEST_CREATED,mapOf(UUID.name to secondPersonRecord.personKey?.personUUID.toString()))
+    checkTelemetry(CPR_DELIUS_MERGE_REQUEST_CREATED, mapOf(UUID.name to secondPersonRecord.personKey?.personUUID.toString()))
   }
 
   @Test
