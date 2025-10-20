@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.listen
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.UUID
@@ -44,7 +45,7 @@ class PersonEventListener(
   @EventListener
   fun onPersonProcessingCompleted(personProcessingCompleted: PersonProcessingCompleted) {
     personProcessingCompleted.personEntity.personKey?.let { personKey ->
-      if (personKey.personEntities.filter { person -> person.sourceSystem == DELIUS }.size > 1) {
+      if (personKey.hasMoreThanOneProbationRecord()) {
         publisher.publishEvent(
           RecordPersonTelemetry(
             CPR_DELIUS_MERGE_REQUEST_CREATED,
@@ -57,4 +58,6 @@ class PersonEventListener(
       }
     }
   }
+
+  private fun PersonKeyEntity.hasMoreThanOneProbationRecord(): Boolean = this.personEntities.filter { person -> person.sourceSystem == DELIUS }.size > 1
 }
