@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity.Compani
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonCreated
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.person.PersonUpdated
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.personkey.DeliusMergeRequest
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonChainable
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
@@ -31,7 +32,7 @@ class PersonService(
     yes = {
       update(person, it)
     },
-  )
+  ).also { publisher.publishEvent(DeliusMergeRequest(it, it.personKey!!)) }
 
   private fun create(person: Person): PersonEntity {
     val ctx = personFactory.create(person)

@@ -8,9 +8,12 @@ import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
+import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys.UUID
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
+import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_DELIUS_MERGE_REQUEST_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetup
 import uk.gov.justice.digital.hmpps.personrecord.test.messages.CommonPlatformHearingSetupAddress
@@ -243,50 +246,18 @@ class JoinClustersE2ETest : E2ETestBase() {
 
   @Test
   fun `should trigger CPRDeliusMergeRequestRaised appInsight event when 2 Delius record join the same cluster`() {
-    val firstCrnWithPnc = randomCrn()
-    val secondCrnWithCro = firstCrnWithPnc
+    val firstCrn = randomCrn()
+    val secondCrn = randomCrn()
 
-    val basePerson = createRandomProbationPersonDetails(firstCrnWithPnc)
-    val firstSetup = ApiResponseSetup(
-      crn = firstCrnWithPnc,
-      cro = basePerson.getCro(),
-      pnc = basePerson.getPnc(),
-      firstName = basePerson.firstName,
-      middleName = basePerson.middleNames,
-      lastName = basePerson.lastName,
-      dateOfBirth = basePerson.dateOfBirth,
-      addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
-      aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
-    )
+    val basePerson = createRandomProbationPersonDetails(firstCrn)
+    val firstSetup = ApiResponseSetup.from(basePerson)
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, firstSetup)
 
-    val firstPersonRecord = awaitNotNullPerson { personRepository.findByCrn(firstCrnWithPnc) }
-    assertThat(firstPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
-    assertThat(firstPersonRecord.getPnc()).isEqualTo(pnc)
-    firstPersonRecord.personKey?.assertClusterIsOfSize(1)
-
-    checkTelemetry(
-      CPR_RECORD_CREATED,
-      mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to firstCrnWithPnc),
-    )
-    val secondSetup = ApiResponseSetup(
-      crn = secondCrnWithCro,
-      cro = cro,
-      pnc = pnc,
-      firstName = basePerson.firstName,
-      middleName = basePerson.middleNames,
-      lastName = basePerson.lastName,
-      dateOfBirth = basePerson.dateOfBirth,
-      addresses = listOf(ApiResponseSetupAddress(postcode = basePerson.addresses.first().postcode, fullAddress = randomFullAddress())),
-      aliases = listOf(ApiResponseSetupAlias(firstName = basePerson.aliases.first().firstName!!, middleName = basePerson.aliases.first().middleNames!!, lastName = basePerson.aliases.first().lastName!!, dateOfBirth = basePerson.aliases.first().dateOfBirth!!)),
-    )
+    val secondSetup = ApiResponseSetup.from(basePerson.copy(crn=secondCrn))
     probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, secondSetup)
 
-    val secondPersonRecord = awaitNotNullPerson { personRepository.findByCrn(secondCrnWithCro) }
-    assertThat(secondPersonRecord.getPrimaryName().lastName).isEqualTo(basePerson.lastName)
-    assertThat(secondPersonRecord.getCro()).isEqualTo(cro)
-    secondPersonRecord.personKey?.assertClusterIsOfSize(2)
-    assertThat(secondPersonRecord.personKey!!.personUUID).isEqualTo(firstPersonRecord.personKey!!.personUUID)
+    val secondPersonRecord = awaitNotNullPerson { personRepository.findByCrn(secondCrn) }
+    checkTelemetry(CPR_DELIUS_MERGE_REQUEST_CREATED,mapOf(UUID.name to secondPersonRecord.personKey?.personUUID.toString()))
   }
 
   @Test
