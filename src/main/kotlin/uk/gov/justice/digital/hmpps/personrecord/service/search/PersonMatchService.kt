@@ -32,8 +32,10 @@ class PersonMatchService(
   private val objectMapper: ObjectMapper,
 ) {
 
-  fun findClustersToJoin(personEntity: PersonEntity) = findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity)
+  fun findClustersToJoin(personEntity: PersonEntity): List<PersonKeyEntity> = findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity)
     .getClustersThatItCanJoin()
+    .collectDistinctClusters()
+    .removeExcludedClusters(personEntity)
 
   fun findPersonRecordsAboveFractureThresholdByMatchWeightDesc(personEntity: PersonEntity): List<PersonMatchResult> {
     val personScores = handleCollectingPersonScores(personEntity).removeSelf(personEntity)
@@ -126,6 +128,11 @@ class PersonMatchService(
     return this
   }
 
+  private fun List<PersonKeyEntity>.removeExcludedClusters(personEntity: PersonEntity): List<PersonKeyEntity> {
+    val evaluatingClusterScopes: Set<UUID> = personEntity.personKey?.getScopes()?.toSet() ?: personEntity.getScopes()
+    return this.filter {  evaluatingClusterScopes.intersect(it.getScopes().toSet()).isEmpty() }
+  }
+
   private suspend fun List<String>.checkClusterIsValid(): IsClusterValidResponse = runCatching { personMatchClient.isClusterValid(this) }.fold(
     onSuccess = { it },
     onFailure = { exception ->
@@ -140,6 +147,12 @@ class PersonMatchService(
   )
 
   private fun PersonKeyEntity.getRecordsMatchIds(): List<String> = this.personEntities.map { it.matchId.toString() }
+
+  private fun List<PersonMatchResult>.collectDistinctClusters(): List<PersonKeyEntity> = this
+    .map { it.personEntity }
+    .groupBy { it.personKey!! }
+    .map { it.key }
+    .distinctBy { it.id }
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)

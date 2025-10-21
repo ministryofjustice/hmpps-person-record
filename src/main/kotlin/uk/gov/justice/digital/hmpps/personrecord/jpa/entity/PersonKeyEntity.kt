@@ -77,6 +77,8 @@ class PersonKeyEntity(
 
   fun hasOneRecord() = this.personEntities.size == 1
 
+  fun getScopes(): List<UUID> = this.personEntities.flatMap { person -> person.getScopes() }
+
   companion object {
     val empty: PersonKeyEntity? = null
 

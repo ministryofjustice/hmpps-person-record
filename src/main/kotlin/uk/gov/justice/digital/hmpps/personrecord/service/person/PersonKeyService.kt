@@ -22,7 +22,7 @@ class PersonKeyService(
 ) {
 
   fun linkRecordToPersonKey(personEntity: PersonEntity) {
-    val matches = personMatchService.findClustersToJoin(personEntity).collectDistinctClusters()
+    val matches = personMatchService.findClustersToJoin(personEntity)
     when {
       matches.containsExcluded() -> personEntity.setAsOverrideConflict(matches)
       else -> personEntity.selectClusterToAssignTo(matches)
@@ -64,23 +64,9 @@ class PersonKeyService(
   }
 
   private fun List<PersonKeyEntity>.containsExcluded(): Boolean {
-    val scopesPerCluster = this
-      .map { cluster ->
-        cluster.personEntities
-          .flatMap { person ->
-            person.overrideScopes
-              .map { scopeEntity -> scopeEntity.scope }
-              .toSet()
-          }
-      }
+    val scopesPerCluster = this.map { cluster -> cluster.getScopes() }
     val allScopesAcrossClusters = scopesPerCluster.flatten()
     val hasSameScopes = allScopesAcrossClusters.size != allScopesAcrossClusters.toSet().size
     return hasSameScopes
   }
-
-  private fun List<PersonMatchResult>.collectDistinctClusters(): List<PersonKeyEntity> = this
-    .map { it.personEntity }
-    .groupBy { it.personKey!! }
-    .map { it.key }
-    .distinctBy { it.id }
 }
