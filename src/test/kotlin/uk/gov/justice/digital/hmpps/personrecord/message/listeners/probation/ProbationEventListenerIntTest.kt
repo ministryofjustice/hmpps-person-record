@@ -132,7 +132,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
 
-      val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
+      val personEntity = awaitNotNull { personRepository.findByCrn(crn) }
 
       assertThat(personEntity.personKey).isNotNull()
       assertThat(personEntity.personKey?.status).isEqualTo(UUIDStatusType.ACTIVE)
@@ -209,7 +209,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
           secondaryNationality = secondaryNationality,
         ),
       )
-      val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
+      val personEntity = awaitNotNull { personRepository.findByCrn(crn) }
       assertThat(personEntity.getPnc()).isEqualTo(pnc)
       assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
       val originalEthnicityCode = originalEthnicity.getProbationEthnicity()
@@ -244,7 +244,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       )
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
-      val updatedPersonEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
+      val updatedPersonEntity = awaitNotNull { personRepository.findByCrn(crn) }
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(changedPnc)
       assertThat(updatedPersonEntity.getPrimaryName().sexCode).isEqualTo(changedSexCode.value)
 
@@ -331,7 +331,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
     fun `should write offender without PNC if PNC is missing`() {
       val crn = randomCrn()
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = null))
-      val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
+      val personEntity = awaitNotNull { personRepository.findByCrn(crn) }
 
       assertThat(personEntity.references.getPNCs()).isEmpty()
 
@@ -345,7 +345,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val crn = randomCrn()
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, pnc = ""))
 
-      val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
+      val personEntity = awaitNotNull { personRepository.findByCrn(crn) }
 
       assertThat(personEntity.references.getPNCs()).isEmpty()
 
@@ -408,7 +408,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, apiResponse)
 
-      val personEntity = awaitNotNullPerson { personRepository.findByCrn(crn) }
+      val personEntity = awaitNotNull { personRepository.findByCrn(crn) }
 
       assertThat(personEntity.sentenceInfo).hasSize(1)
     }
@@ -439,7 +439,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
-      val updatedPerson = awaitNotNullPerson { personRepository.findByCrn(crn) }
+      val updatedPerson = awaitNotNull { personRepository.findByCrn(crn) }
 
       assertThat(updatedPerson.references).hasSize(2)
 
@@ -479,7 +479,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
-      val updatedPerson = awaitNotNullPerson { personRepository.findByCrn(crn) }
+      val updatedPerson = awaitNotNull { personRepository.findByCrn(crn) }
 
       assertThat(updatedPerson.sentenceInfo).hasSize(2)
 
@@ -513,7 +513,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
-      val updatedPerson = awaitNotNullPerson { personRepository.findByCrn(crn) }
+      val updatedPerson = awaitNotNull { personRepository.findByCrn(crn) }
 
       assertThat(updatedPerson.contacts).hasSize(2)
 
@@ -548,7 +548,7 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
 
-      val updatedPerson = awaitNotNullPerson { personRepository.findByCrn(crn) }
+      val updatedPerson = awaitNotNull { personRepository.findByCrn(crn) }
 
       assertThat(updatedPerson.addresses).hasSize(2)
 

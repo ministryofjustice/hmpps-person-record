@@ -79,7 +79,7 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       reactivatedPersonEntity.assertNotLinkedToCluster(unmergedPerson.personKey!!)
       reactivatedPersonEntity.assertExcluded(unmergedPerson)
       reactivatedPersonEntity.assertNotMerged()
-      val updatedReactivatedPersonEntity = awaitNotNullPerson { personRepository.findByCrn(reactivatedCrn) }
+      val updatedReactivatedPersonEntity = awaitNotNull { personRepository.findByCrn(reactivatedCrn) }
       assertThat(updatedReactivatedPersonEntity.masterDefendantId).isEqualTo(masterDefendantId)
 
       unmergedPerson.assertHasOverrideMarker()

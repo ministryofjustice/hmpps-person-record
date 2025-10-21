@@ -81,7 +81,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
 
-    val person = awaitNotNullPerson { personRepository.findByCId(cId) }
+    val person = awaitNotNull { personRepository.findByCId(cId) }
 
     val storedTitle = title.getTitle()
     assertThat(person.getPrimaryName().titleCode?.code).isEqualTo(storedTitle.code)
@@ -139,7 +139,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
     checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_UPDATED)
 
-    val person = awaitNotNullPerson {
+    val person = awaitNotNull {
       personRepository.findByCId(cId)
     }
     val storedTitle = title.getTitle()
@@ -249,7 +249,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     expectOneMessageOn(testOnlyCourtEventsQueue)
 
-    val cprUUID = awaitNotNullPerson { personRepository.findByCId(cId) }.personKey?.personUUID.toString()
+    val cprUUID = awaitNotNull { personRepository.findByCId(cId) }.personKey?.personUUID.toString()
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
     val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }

@@ -21,7 +21,7 @@ class ReviewServiceIntTest : IntegrationTestBase() {
     val primaryPersonKey = createPersonKey()
     val additionalPersonKey = createPersonKey()
 
-    val review = reviewService.raiseForReview(primaryPersonKey, listOf(additionalPersonKey))
+    val review = reviewService.create(primaryPersonKey, listOf(additionalPersonKey))
 
     assertThat(review.createdAt).isNotNull()
     assertThat(review.clusters).hasSize(2)
@@ -40,8 +40,8 @@ class ReviewServiceIntTest : IntegrationTestBase() {
     val primaryPersonKey = createPersonKey()
     val additionalPersonKey = createPersonKey()
 
-    val firstReview = reviewService.raiseForReview(primaryPersonKey, listOf(additionalPersonKey))
-    val secondReview = reviewService.raiseForReview(primaryPersonKey, listOf(additionalPersonKey))
+    val firstReview = reviewService.create(primaryPersonKey, listOf(additionalPersonKey))
+    val secondReview = reviewService.create(primaryPersonKey, listOf(additionalPersonKey))
 
     assertThat(firstReview.id).isEqualTo(secondReview.id)
   }

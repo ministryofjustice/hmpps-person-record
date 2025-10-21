@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.personrecord.service.review
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.review.ReviewEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.review.ReviewEntity.Companion.exists
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReviewRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.review.ClusterType
 
@@ -11,13 +12,14 @@ class ReviewService(
   private val reviewRepository: ReviewRepository,
 ) {
 
-  fun raiseForReview(primary: PersonKeyEntity, additional: List<PersonKeyEntity>? = null): ReviewEntity {
-    val reviewEntity = primary.getIfReviewExists()
-    return when {
-      reviewEntity == null -> primary.createNewReview(additional)
-      else -> reviewEntity
-    }
-  }
+  fun create(primary: PersonKeyEntity, additional: List<PersonKeyEntity>? = null): ReviewEntity = primary
+    .getReviewOrNull()
+    .exists(
+      no = { primary.createNewReview(additional) },
+      yes = { it },
+    )
+
+  fun delete(cluster: PersonKeyEntity) = cluster.getReviewOrNull()?.let { reviewRepository.delete(it) }
 
   private fun PersonKeyEntity.createNewReview(additional: List<PersonKeyEntity>? = null): ReviewEntity {
     val review = ReviewEntity.new()
@@ -26,5 +28,5 @@ class ReviewService(
     return reviewRepository.save(review)
   }
 
-  private fun PersonKeyEntity.getIfReviewExists() = reviewRepository.findByClustersClusterTypeAndClustersPersonKey(ClusterType.PRIMARY, this)
+  private fun PersonKeyEntity.getReviewOrNull() = reviewRepository.findByClustersClusterTypeAndClustersPersonKey(ClusterType.PRIMARY, this)
 }

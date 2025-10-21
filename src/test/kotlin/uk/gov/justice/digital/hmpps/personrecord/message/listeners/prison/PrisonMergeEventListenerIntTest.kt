@@ -59,7 +59,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubDeletePersonMatch()
       prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber)
 
-      val targetPerson = awaitNotNullPerson { personRepository.findByPrisonNumber(targetPrisonNumber) }
+      val targetPerson = awaitNotNull { personRepository.findByPrisonNumber(targetPrisonNumber) }
 
       sourcePerson.assertMergedTo(targetPerson)
       sourcePerson.assertNotLinkedToCluster()

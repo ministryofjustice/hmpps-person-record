@@ -16,6 +16,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECL
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.review.ReviewRaised
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.review.ReviewRemoved
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordClusterTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
@@ -85,12 +87,13 @@ class ReclusterService(
           mergeClusters(it, clusterDetails.cluster)
         }
       },
-      isNotValid = { handleExclusionsBetweenMatchedClusters(clusterDetails) },
+      isNotValid = { handleExclusionsBetweenMatchedClusters(clusterDetails.cluster, matchedRecordsClusters) },
     )
   }
 
   private fun handleInvalidClusterComposition(clusterDetails: ClusterDetails) {
     clusterDetails.cluster.setToNeedsAttention(BROKEN_CLUSTER)
+    publisher.publishEvent(ReviewRaised(clusterDetails.cluster))
     publisher.publishEvent(
       RecordClusterTelemetry(
         TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
@@ -99,12 +102,13 @@ class ReclusterService(
     )
   }
 
-  private fun handleExclusionsBetweenMatchedClusters(clusterDetails: ClusterDetails) {
-    clusterDetails.cluster.setToNeedsAttention(OVERRIDE_CONFLICT)
+  private fun handleExclusionsBetweenMatchedClusters(cluster: PersonKeyEntity, matchedRecords: List<PersonKeyEntity>) {
+    cluster.setToNeedsAttention(OVERRIDE_CONFLICT)
+    publisher.publishEvent(ReviewRaised(cluster, matchedRecords))
     publisher.publishEvent(
       RecordClusterTelemetry(
         TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
-        clusterDetails.cluster,
+        cluster,
       ),
     )
   }
@@ -143,6 +147,7 @@ class ReclusterService(
   private fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity) {
     personKeyEntity.setAsActive()
     personKeyRepository.save(personKeyEntity)
+    publisher.publishEvent(ReviewRemoved(personKeyEntity))
     publisher.publishEvent(
       RecordClusterTelemetry(
         TelemetryEventType.CPR_RECLUSTER_SELF_HEALED,

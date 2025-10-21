@@ -55,7 +55,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubDeletePersonMatch()
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourcePerson.crn!!, targetCrn)
 
-      val targetPerson = awaitNotNullPerson { personRepository.findByCrn(targetCrn) }
+      val targetPerson = awaitNotNull { personRepository.findByCrn(targetCrn) }
       sourcePerson.assertMergedTo(targetPerson)
 
       checkTelemetry(
