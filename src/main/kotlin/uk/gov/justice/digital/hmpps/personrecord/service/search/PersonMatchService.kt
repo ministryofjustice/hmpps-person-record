@@ -130,7 +130,7 @@ class PersonMatchService(
 
   private fun List<PersonKeyEntity>.removeExcludedClusters(personEntity: PersonEntity): List<PersonKeyEntity> {
     val evaluatingClusterScopes: Set<UUID> = personEntity.personKey?.getScopes()?.toSet() ?: personEntity.getScopes()
-    return this.filter {  evaluatingClusterScopes.intersect(it.getScopes().toSet()).isEmpty() }
+    return this.filter { evaluatingClusterScopes.intersect(it.getScopes().toSet()).isEmpty() }
   }
 
   private suspend fun List<String>.checkClusterIsValid(): IsClusterValidResponse = runCatching { personMatchClient.isClusterValid(this) }.fold(

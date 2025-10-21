@@ -9,7 +9,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
@@ -103,7 +102,7 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
 
       val basePersonData = createRandomProbationPersonDetails()
 
-      val reactivatedPersonData = createProbationPersonFrom(basePersonData,reactivatedCrn)
+      val reactivatedPersonData = createProbationPersonFrom(basePersonData, reactivatedCrn)
       val unmergedPersonData = createProbationPersonFrom(basePersonData, unmergedCrn)
       val reactivatedPerson = createPersonWithNewKey(reactivatedPersonData)
       val unmergedPerson = createPerson(unmergedPersonData)
@@ -116,9 +115,13 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_RECORD_MERGED)
       reactivatedPerson.assertMergedTo(unmergedPerson)
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn,
+      probationUnmergeEventAndResponseSetup(
+        OFFENDER_UNMERGED,
+        reactivatedCrn,
+        unmergedCrn,
         reactivatedSetup = ApiResponseSetup.from(reactivatedPersonData),
-        unmergedSetup = ApiResponseSetup.from(unmergedPersonData))
+        unmergedSetup = ApiResponseSetup.from(unmergedPersonData),
+      )
 
       checkTelemetry(
         CPR_RECORD_UNMERGED,
