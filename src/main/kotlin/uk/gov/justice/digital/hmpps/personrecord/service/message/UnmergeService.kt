@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.review.ReviewRaised
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.unmerge.PersonUnmerged
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyService
@@ -19,7 +20,7 @@ class UnmergeService(
 
   fun processUnmerge(reactivated: PersonEntity, existing: PersonEntity) {
     when {
-      clusterContainsAdditionalRecords(reactivated, existing) -> setClusterAsNeedsAttention(existing)
+      clusterContainsAdditionalRecords(reactivated, existing) -> setClusterAsNeedsAttention(existing, reactivated)
     }
     unmerge(reactivated, existing)
   }
@@ -34,10 +35,10 @@ class UnmergeService(
     publisher.publishEvent(PersonUnmerged(reactivated, existing))
   }
 
-  private fun setClusterAsNeedsAttention(existing: PersonEntity) {
+  private fun setClusterAsNeedsAttention(existing: PersonEntity, reactivated: PersonEntity) {
     existing.personKey?.let {
       it.setAsNeedsAttention(UUIDStatusReasonType.OVERRIDE_CONFLICT)
-      personKeyRepository.save(it)
+      publisher.publishEvent(ReviewRaised(it, listOf(reactivated.personKey!!)))
     }
   }
 

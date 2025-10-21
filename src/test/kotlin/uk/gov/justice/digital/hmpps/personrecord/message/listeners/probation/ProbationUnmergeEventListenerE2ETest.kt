@@ -147,6 +147,11 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       reactivatedPerson.assertHasOverrideMarker()
       unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
       unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
+
+      cluster.getReview()
+        .hasReviewSize(2)
+        .isPrimary(cluster)
+        .isAdditional(reactivatedPerson.personKey!!)
     }
   }
 }
