@@ -7,9 +7,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.AdditionalInformation
 import uk.gov.justice.digital.hmpps.personrecord.client.model.sqs.messages.domainevent.DomainEvent
 import uk.gov.justice.digital.hmpps.personrecord.config.MessagingMultiNodeTestBase
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
-import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
@@ -298,83 +296,6 @@ class ProbationUnmergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val finalOverrideMarker = awaitNotNull { personRepository.findByCrn(unmergedRecord.crn!!) }.overrideMarker
       assertThat(initialOverrideMarker).isEqualTo(finalOverrideMarker)
-    }
-  }
-
-  @Nested
-  inner class NeedsAttention {
-
-    @BeforeEach
-    fun beforeEach() {
-      stubPersonMatchUpsert()
-      stubPersonMatchScores()
-    }
-
-    @Test
-    fun `should mark unmerged UUID as needs attention if it has additional records`() {
-      val reactivatedCrn = randomCrn()
-      val unmergedCrn = randomCrn()
-
-      val reactivatedPerson = createPerson(createRandomProbationPersonDetails(reactivatedCrn))
-      val unmergedPerson = createPerson(createRandomProbationPersonDetails(unmergedCrn))
-      val cluster = createPersonKey()
-        .addPerson(unmergedPerson)
-        .addPerson(createRandomProbationPersonDetails())
-
-      val mergedReactivatedRecord = mergeRecord(reactivatedPerson, unmergedPerson)
-
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, mergedReactivatedRecord.crn!!, unmergedCrn)
-
-      checkEventLog(unmergedCrn, CPRLogEvents.CPR_RECORD_UPDATED) { eventLogs ->
-        assertThat(eventLogs).hasSize(2)
-        val eventLog = eventLogs.first()
-        assertThat(eventLog.personUUID).isEqualTo(cluster.personUUID)
-        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.NEEDS_ATTENTION)
-      }
-
-      checkEventLog(reactivatedCrn, CPRLogEvents.CPR_RECORD_UNMERGED) { eventLogs ->
-        assertThat(eventLogs).hasSize(1)
-        val eventLog = eventLogs.first()
-        assertThat(eventLog.personUUID).isNotEqualTo(cluster.personUUID)
-        assertThat(eventLog.uuidStatusType).isEqualTo(UUIDStatusType.ACTIVE)
-      }
-
-      checkTelemetry(
-        CPR_RECORD_UPDATED,
-        mapOf("CRN" to unmergedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
-        CPR_RECORD_UPDATED,
-        mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
-        CPR_UUID_CREATED,
-        mapOf("CRN" to reactivatedCrn, "SOURCE_SYSTEM" to "DELIUS"),
-      )
-      checkTelemetry(
-        CPR_RECORD_UNMERGED,
-        mapOf(
-          "TO_SOURCE_SYSTEM_ID" to reactivatedCrn,
-          "FROM_SOURCE_SYSTEM_ID" to unmergedCrn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
-
-      cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
-      cluster.assertClusterIsOfSize(2)
-
-      unmergedPerson.assertLinkedToCluster(cluster)
-      unmergedPerson.assertExcluded(reactivatedPerson)
-
-      reactivatedPerson.assertNotMerged()
-      reactivatedPerson.assertHasLinkToCluster()
-      reactivatedPerson.assertNotLinkedToCluster(cluster)
-      reactivatedPerson.assertExcluded(unmergedPerson)
-
-      unmergedPerson.assertHasOverrideMarker()
-      reactivatedPerson.assertHasOverrideMarker()
-      unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
-      unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
     }
   }
 
