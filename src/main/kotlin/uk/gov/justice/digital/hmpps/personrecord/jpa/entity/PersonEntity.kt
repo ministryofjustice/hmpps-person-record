@@ -139,6 +139,10 @@ class PersonEntity(
 
   fun getPrimaryName(): PseudonymEntity = this.pseudonyms.firstOrNull { it.nameType == PRIMARY } ?: PseudonymEntity(nameType = PRIMARY)
 
+  fun getScopes(): Set<UUID> = this.overrideScopes
+    .map { scopeEntity -> scopeEntity.scope }
+    .toSet()
+
   fun extractSourceSystemId(): String? = mapOf(
     DELIUS to this.crn,
     NOMIS to this.prisonNumber,
