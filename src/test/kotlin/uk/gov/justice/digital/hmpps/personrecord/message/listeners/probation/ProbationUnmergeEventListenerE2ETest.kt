@@ -144,12 +144,6 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       reactivatedPerson.assertHasOverrideMarker()
       unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
       unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
-
-//      val reactivatedPersonKey = awaitNotNull { personRepository.findByMatchId(reactivatedPerson.matchId) }.personKey
-//      cluster.getReview()
-//        .hasReviewSize(2)
-//        .isPrimary(unmergedPerson.personKey!!)
-//        .isAdditional(reactivatedPersonKey!!)
     }
   }
 }
