@@ -6,10 +6,10 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.personrecord.client.model.match.PersonMatchScore
 import uk.gov.justice.digital.hmpps.personrecord.config.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.LIBRA
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
-import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_CANDIDATE_RECORD_SEARCH
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCId
@@ -118,7 +118,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
       val highConfidenceMatch = personMatchService.findClustersToJoin(searchingRecord)
-      assertThat(highConfidenceMatch.first().personEntity.matchId).isEqualTo(foundRecord.matchId)
+      assertThat(highConfidenceMatch.first().personUUID).isEqualTo(foundRecord.personKey?.personUUID)
     }
 
     @Test
@@ -129,7 +129,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       stubOnePersonMatchAboveJoinThreshold(matchId = searchingRecord.matchId, matchedRecord = foundRecord.matchId)
 
       val highConfidenceMatch = personMatchService.findClustersToJoin(searchingRecord)
-      assertThat(highConfidenceMatch.first().personEntity.matchId).isEqualTo(foundRecord.matchId)
+      assertThat(highConfidenceMatch.first().personUUID).isEqualTo(foundRecord.personKey?.personUUID)
     }
 
     @Test
@@ -148,7 +148,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
       )
 
       val highConfidenceMatch = personMatchService.findClustersToJoin(searchingRecord)
-      assertThat(highConfidenceMatch.first().personEntity.matchId).isEqualTo(foundRecords[0].matchId)
+      assertThat(highConfidenceMatch.first().personUUID).isEqualTo(foundRecords[0].personKey?.personUUID)
     }
 
     @Test
@@ -216,31 +216,40 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       val highScoringRecordOne = createPersonWithNewKey(createExamplePerson())
       val highScoringRecordTwo = createPersonWithNewKey(createExamplePerson())
+      val highScoringRecordThree = createPersonWithNewKey(createExamplePerson())
 
       stubPersonMatchScores(
         matchId = searchingRecord.matchId,
         personMatchResponse = listOf(
           PersonMatchScore(
             candidateMatchId = highScoringRecordOne.matchId.toString(),
-            candidateMatchWeight = JOIN_THRESHOLD - 1,
+            candidateMatchWeight = JOIN_THRESHOLD + 1,
             candidateMatchProbability = 0.9999F,
             candidateShouldJoin = true,
             candidateShouldFracture = false,
           ),
           PersonMatchScore(
             candidateMatchId = highScoringRecordTwo.matchId.toString(),
-            candidateMatchWeight = JOIN_THRESHOLD + 1,
+            candidateMatchWeight = JOIN_THRESHOLD + 3,
             candidateMatchProbability = 0.9999F,
             candidateShouldJoin = true,
             candidateShouldFracture = false,
           ),
-
+          PersonMatchScore(
+            candidateMatchId = highScoringRecordThree.matchId.toString(),
+            candidateMatchWeight = JOIN_THRESHOLD + 2,
+            candidateMatchProbability = 0.9999F,
+            candidateShouldJoin = true,
+            candidateShouldFracture = false,
+          ),
         ),
       )
 
       val highConfidenceMatch = personMatchService.findClustersToJoin(searchingRecord)
 
-      assertThat(highConfidenceMatch.first().personEntity.matchId).isEqualTo(highScoringRecordTwo.matchId)
+      assertThat(highConfidenceMatch[0].personUUID).isEqualTo(highScoringRecordTwo.personKey?.personUUID)
+      assertThat(highConfidenceMatch[1].personUUID).isEqualTo(highScoringRecordThree.personKey?.personUUID)
+      assertThat(highConfidenceMatch[2].personUUID).isEqualTo(highScoringRecordOne.personKey?.personUUID)
     }
   }
 
@@ -335,7 +344,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
 
       val highConfidenceMatch = personMatchService.findClustersToJoin(searchingRecord)
 
-      assertThat(highConfidenceMatch.first().personEntity.matchId).isNotNull()
+      assertThat(highConfidenceMatch.first().personUUID).isNotNull()
 
       checkTelemetry(
         CPR_CANDIDATE_RECORD_SEARCH,
@@ -352,7 +361,7 @@ class PersonMatchServiceIntTest : IntegrationTestBase() {
     }
   }
 
-  private fun noCandidateFound(results: List<PersonMatchResult>) {
+  private fun noCandidateFound(results: List<PersonKeyEntity>) {
     assertThat(results).isEmpty()
   }
 

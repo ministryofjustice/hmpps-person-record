@@ -4,13 +4,12 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
-import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType.OVERRIDE_CONFLICT
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_UNMERGED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UNMERGED
-import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_MERGED
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
@@ -103,7 +102,7 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
 
       val basePersonData = createRandomProbationPersonDetails()
 
-      val reactivatedPersonData = createProbationPersonFrom(basePersonData,reactivatedCrn)
+      val reactivatedPersonData = createProbationPersonFrom(basePersonData, reactivatedCrn)
       val unmergedPersonData = createProbationPersonFrom(basePersonData, unmergedCrn)
       val reactivatedPerson = createPersonWithNewKey(reactivatedPersonData)
       val unmergedPerson = createPerson(unmergedPersonData)
@@ -113,18 +112,16 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
 
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmergedCrn, apiResponseSetup = ApiResponseSetup.from(unmergedPersonData))
 
-      checkTelemetry(
-        CPR_RECORD_MERGED,
-        mapOf(
-          "FROM_SOURCE_SYSTEM_ID" to reactivatedCrn,
-          "TO_SOURCE_SYSTEM_ID" to unmergedCrn,
-          "SOURCE_SYSTEM" to "DELIUS",
-        ),
-      )
+      checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_RECORD_MERGED)
+      reactivatedPerson.assertMergedTo(unmergedPerson)
 
-      probationUnmergeEventAndResponseSetup(OFFENDER_UNMERGED, reactivatedCrn, unmergedCrn,
+      probationUnmergeEventAndResponseSetup(
+        OFFENDER_UNMERGED,
+        reactivatedCrn,
+        unmergedCrn,
         reactivatedSetup = ApiResponseSetup.from(reactivatedPersonData),
-        unmergedSetup = ApiResponseSetup.from(unmergedPersonData))
+        unmergedSetup = ApiResponseSetup.from(unmergedPersonData),
+      )
 
       checkTelemetry(
         CPR_RECORD_UNMERGED,
@@ -135,7 +132,7 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
         ),
       )
 
-      cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION, reason = OVERRIDE_CONFLICT)
+      cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION, reason = UUIDStatusReasonType.OVERRIDE_CONFLICT)
       cluster.assertClusterIsOfSize(2)
 
       unmergedPerson.assertLinkedToCluster(cluster)
@@ -150,12 +147,6 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       reactivatedPerson.assertHasOverrideMarker()
       unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
       unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
-
-      val reactivatedPersonKey = awaitNotNull { personRepository.findByMatchId(reactivatedPerson.matchId) }.personKey
-      cluster.getReview()
-        .hasReviewSize(2)
-        .isPrimary(unmergedPerson.personKey!!)
-        .isAdditional(reactivatedPersonKey!!)
     }
   }
 }
