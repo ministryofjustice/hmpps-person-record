@@ -14,11 +14,11 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonTyp
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.RECLUSTER_MERGE
 import uk.gov.justice.digital.hmpps.personrecord.service.EventKeys
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.cluster.BrokenCluster
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.cluster.OverrideConflict
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.cluster.SelfHealed
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.EventLogClusterDetail
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.eventlog.RecordEventLog
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.review.ReviewRaised
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.review.ReviewRemoved
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordClusterTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.telemetry.RecordTelemetry
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchResult
@@ -36,7 +36,7 @@ class ReclusterService(
   fun recluster(changedRecord: PersonEntity) {
     val cluster = changedRecord.personKey!!
     when {
-      cluster.clusterIsBrokenAndCanBecomeActive() -> settingNeedsAttentionClusterToActive(cluster)
+      cluster.clusterIsBrokenAndCanBecomeActive() -> cluster.selfHeal()
     }
     when {
       cluster.isActive() -> processRecluster(cluster, changedRecord)
@@ -93,24 +93,12 @@ class ReclusterService(
 
   private fun handleInvalidClusterComposition(clusterDetails: ClusterDetails) {
     clusterDetails.cluster.setToNeedsAttention(BROKEN_CLUSTER)
-    publisher.publishEvent(ReviewRaised(clusterDetails.cluster))
-    publisher.publishEvent(
-      RecordClusterTelemetry(
-        TelemetryEventType.CPR_RECLUSTER_CLUSTER_RECORDS_NOT_LINKED,
-        clusterDetails.cluster,
-      ),
-    )
+    publisher.publishEvent(BrokenCluster(clusterDetails.cluster))
   }
 
   private fun handleExclusionsBetweenMatchedClusters(cluster: PersonKeyEntity, matchedRecords: List<PersonKeyEntity>) {
     cluster.setToNeedsAttention(OVERRIDE_CONFLICT)
-    publisher.publishEvent(ReviewRaised(cluster, matchedRecords))
-    publisher.publishEvent(
-      RecordClusterTelemetry(
-        TelemetryEventType.CPR_RECLUSTER_MATCHED_CLUSTERS_HAS_EXCLUSIONS,
-        cluster,
-      ),
-    )
+    publisher.publishEvent(OverrideConflict(cluster, matchedRecords))
   }
 
   private fun mergeClusters(from: PersonKeyEntity, to: PersonKeyEntity) {
@@ -144,16 +132,9 @@ class ReclusterService(
     personKeyRepository.save(this)
   }
 
-  private fun settingNeedsAttentionClusterToActive(personKeyEntity: PersonKeyEntity) {
-    personKeyEntity.setAsActive()
-    personKeyRepository.save(personKeyEntity)
-    publisher.publishEvent(ReviewRemoved(personKeyEntity))
-    publisher.publishEvent(
-      RecordClusterTelemetry(
-        TelemetryEventType.CPR_RECLUSTER_SELF_HEALED,
-        personKeyEntity,
-      ),
-    )
+  private fun PersonKeyEntity.selfHeal() {
+    this.setAsActive()
+    publisher.publishEvent(SelfHealed(this))
   }
 
   private fun PersonKeyEntity.clusterIsBrokenAndCanBecomeActive() = this.isNotOverrideConflict() && this.clusterIsValid()
