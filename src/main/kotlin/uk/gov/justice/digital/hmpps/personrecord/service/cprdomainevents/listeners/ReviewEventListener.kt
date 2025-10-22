@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.listeners
 
+import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionalEventListener
@@ -13,12 +14,14 @@ class ReviewEventListener(
 ) {
 
   @Async
+  @EventListener
   @TransactionalEventListener
   fun onReviewRaised(reviewRaised: ReviewRaised) {
     reviewService.create(reviewRaised.primaryCluster, reviewRaised.additionalClusters)
   }
 
   @Async
+  @EventListener
   @TransactionalEventListener
   fun onReviewRemoved(reviewRemoved: ReviewRemoved) {
     reviewService.delete(reviewRemoved.primaryCluster)
