@@ -19,7 +19,7 @@ class UnmergeService(
   fun processUnmerge(reactivated: PersonEntity, existing: PersonEntity) {
     unmerge(reactivated, existing)
     when {
-      clusterContainsAdditionalRecords(existing) -> setClusterAsNeedsAttention(existing, reactivated)
+      clusterContainsAdditionalRecords(existing) -> raiseForReview(existing, reactivated)
     }
   }
 
@@ -33,7 +33,7 @@ class UnmergeService(
     publisher.publishEvent(PersonUnmerged(reactivated, existing))
   }
 
-  private fun setClusterAsNeedsAttention(existing: PersonEntity, reactivated: PersonEntity) {
+  private fun raiseForReview(existing: PersonEntity, reactivated: PersonEntity) {
     existing.personKey?.let {
       it.setAsNeedsAttention(UUIDStatusReasonType.OVERRIDE_CONFLICT)
       publisher.publishEvent(ReviewRaised(it, listOf(reactivated.personKey!!)))
