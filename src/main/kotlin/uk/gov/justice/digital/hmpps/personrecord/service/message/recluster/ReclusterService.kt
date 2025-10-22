@@ -134,6 +134,7 @@ class ReclusterService(
 
   private fun PersonKeyEntity.selfHeal() {
     this.setAsActive()
+    personKeyRepository.save(this)
     publisher.publishEvent(SelfHealed(this))
   }
 
