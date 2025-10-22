@@ -4,7 +4,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
-import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.review.ReviewRaised
+import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.cluster.OverrideConflict
 import uk.gov.justice.digital.hmpps.personrecord.service.cprdomainevents.events.unmerge.PersonUnmerged
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonKeyService
@@ -36,7 +36,7 @@ class UnmergeService(
   private fun raiseForReview(existing: PersonEntity, reactivated: PersonEntity) {
     existing.personKey?.let {
       it.setAsNeedsAttention(UUIDStatusReasonType.OVERRIDE_CONFLICT)
-      publisher.publishEvent(ReviewRaised(it, listOf(reactivated.personKey!!)))
+      publisher.publishEvent(OverrideConflict(it, listOf(reactivated.personKey!!)))
     }
   }
 
