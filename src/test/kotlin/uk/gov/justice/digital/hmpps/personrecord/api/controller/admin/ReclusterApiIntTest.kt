@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType.APPLICATION_JSON
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminReclusterRecord
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
-import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNC
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Contact
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
@@ -189,7 +188,7 @@ class ReclusterApiIntTest : WebTestBase() {
 
       person.personKey?.assertClusterStatus(ACTIVE)
 
-      val updatedPerson = awaitNotNullPerson { personRepository.findByPrisonNumber(person.prisonNumber!!) }
+      val updatedPerson = awaitNotNull { personRepository.findByPrisonNumber(person.prisonNumber!!) }
 
       assertThat(updatedPerson.getPnc()).isEqualTo(PNCIdentifier.from(pnc).pncId)
     }
