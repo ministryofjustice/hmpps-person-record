@@ -182,24 +182,7 @@ abstract class MessagingTestBase : IntegrationTestBase() {
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
-  ) = probationUnmergeEventAndResponseSetup(
-    eventType,
-    reactivatedCrn,
-    unmergedCrn,
-    scenario,
-    currentScenarioState,
-    nextScenarioState,
-    ApiResponseSetup(crn = reactivatedCrn),
-  )
-
-  fun probationUnmergeEventAndResponseSetup(
-    eventType: String,
-    reactivatedCrn: String,
-    unmergedCrn: String,
-    scenario: String = BASE_SCENARIO,
-    currentScenarioState: String = STARTED,
-    nextScenarioState: String = STARTED,
-    reactivatedSetup: ApiResponseSetup,
+    reactivatedSetup: ApiResponseSetup = ApiResponseSetup(crn = reactivatedCrn),
     unmergedSetup: ApiResponseSetup = ApiResponseSetup(crn = unmergedCrn),
   ) {
     stubSingleProbationResponse(reactivatedSetup, scenario, currentScenarioState, nextScenarioState)
@@ -233,6 +216,29 @@ abstract class MessagingTestBase : IntegrationTestBase() {
   fun probationDomainEvent(eventType: String, crn: String, additionalInformation: AdditionalInformation? = null) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("CRN", crn))), additionalInformation)
 
   fun prisonDomainEvent(eventType: String, prisonNumber: String, additionalInformation: AdditionalInformation? = null) = DomainEvent(eventType, PersonReference(listOf(PersonIdentifier("NOMS", prisonNumber))), additionalInformation)
+
+  fun prisonDomainEventAndResponseSetup(
+    eventType: String,
+    scenario: String = BASE_SCENARIO,
+    currentScenarioState: String = STARTED,
+    nextScenarioState: String = STARTED,
+    apiResponseSetup: ApiResponseSetup,
+  ) {
+    stubPrisonResponse(
+      apiResponseSetup,
+      scenario,
+      currentScenarioState,
+      nextScenarioState,
+    )
+
+    publishDomainEvent(
+      eventType,
+      prisonDomainEvent(
+        eventType,
+        apiResponseSetup.prisonNumber!!,
+      ),
+    )
+  }
 
   fun prisonMergeEventAndResponseSetup(
     eventType: String,

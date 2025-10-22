@@ -55,7 +55,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubDeletePersonMatch()
       probationMergeEventAndResponseSetup(OFFENDER_MERGED, sourcePerson.crn!!, targetCrn)
 
-      val targetPerson = awaitNotNullPerson { personRepository.findByCrn(targetCrn) }
+      val targetPerson = awaitNotNull { personRepository.findByCrn(targetCrn) }
       sourcePerson.assertMergedTo(targetPerson)
 
       checkTelemetry(
@@ -94,7 +94,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val sourcePerson = createPerson(createRandomProbationPersonDetails(sourceCrn))
       val sourceCluster = createPersonKey()
-        .addPerson(createPerson(createRandomProbationPersonDetails()))
+        .addPerson(createRandomProbationPersonDetails())
         .addPerson(sourcePerson)
 
       val targetPerson = createPersonWithNewKey(createRandomProbationPersonDetails(targetCrn))
@@ -235,7 +235,7 @@ class ProbationMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       // stubs for failed delete
       val response = ApiResponseSetup.from(targetPerson)
-      stubSingleProbationResponse(response, BASE_SCENARIO, "Started", "Started")
+      stubSingleProbationResponse(response)
       stubDeletePersonMatch(status = 500, nextScenarioState = "deleteWillWork") // scenario state changes so next calls will succeed
 
       // stubs for successful delete

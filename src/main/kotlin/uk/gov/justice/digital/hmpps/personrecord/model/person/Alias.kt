@@ -4,6 +4,7 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.court.commonplatfo
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ProbationCaseAlias
 import uk.gov.justice.digital.hmpps.personrecord.client.model.prisoner.PrisonerAlias
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PseudonymEntity
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import java.time.LocalDate
 
@@ -14,6 +15,7 @@ data class Alias(
   val title: String? = null,
   val titleCode: TitleCode? = null,
   val dateOfBirth: LocalDate? = null,
+  val sexCode: SexCode? = null,
 ) {
   companion object {
 
@@ -28,6 +30,7 @@ data class Alias(
       middleNames = alias.name.middleNames,
       lastName = alias.name.lastName,
       dateOfBirth = alias.dateOfBirth,
+      sexCode = SexCode.from(alias),
     )
 
     fun from(alias: PrisonerAlias) = Alias(
@@ -37,6 +40,7 @@ data class Alias(
       middleNames = alias.middleNames,
       lastName = alias.lastName,
       dateOfBirth = alias.dateOfBirth,
+      sexCode = SexCode.from(alias),
     )
 
     fun from(pseudonymEntity: PseudonymEntity): Alias = Alias(
@@ -45,6 +49,7 @@ data class Alias(
       middleNames = pseudonymEntity.middleNames,
       lastName = pseudonymEntity.lastName,
       dateOfBirth = pseudonymEntity.dateOfBirth,
+      sexCode = pseudonymEntity.sexCode,
     )
   }
 }

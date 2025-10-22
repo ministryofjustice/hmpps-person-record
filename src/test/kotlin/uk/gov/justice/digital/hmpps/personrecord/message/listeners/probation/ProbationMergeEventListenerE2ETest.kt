@@ -54,10 +54,10 @@ class ProbationMergeEventListenerE2ETest : E2ETestBase() {
       assertThat(eventLogs.first().personUUID).isEqualTo(cluster.personUUID)
     }
 
-    val mergedSource = awaitNotNullPerson { personRepository.findByCrn(sourceCrn) }
+    val mergedSource = awaitNotNull { personRepository.findByCrn(sourceCrn) }
     assertThat(mergedSource.masterDefendantId).isEqualTo(sourceMasterDefendantId)
 
-    val mergedTarget = awaitNotNullPerson { personRepository.findByCrn(targetCrn) }
+    val mergedTarget = awaitNotNull { personRepository.findByCrn(targetCrn) }
     assertThat(mergedTarget.masterDefendantId).isEqualTo(targetMasterDefendantId)
   }
 }

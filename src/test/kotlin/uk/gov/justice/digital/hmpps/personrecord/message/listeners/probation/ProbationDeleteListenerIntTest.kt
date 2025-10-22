@@ -27,7 +27,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val person = createPerson(createRandomProbationPersonDetails(crn))
     val personKey = createPersonKey()
       .addPerson(person)
-      .addPerson(createPerson(createRandomProbationPersonDetails()))
+      .addPerson(createRandomProbationPersonDetails())
 
     publishDomainEvent(OFFENDER_GDPR_DELETION, domainEvent)
 
@@ -81,7 +81,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val person = createPerson(createRandomProbationPersonDetails(crn))
     val personKey = createPersonKey()
       .addPerson(person)
-      .addPerson(createPerson(createRandomProbationPersonDetails()))
+      .addPerson(createRandomProbationPersonDetails())
 
     publishDomainEvent(OFFENDER_DELETION, domainEvent)
 
@@ -312,7 +312,7 @@ class ProbationDeleteListenerIntTest : MessagingMultiNodeTestBase() {
     val cluster = createPersonKey()
       .addPerson(recordA)
       .addPerson(recordB)
-      .addPerson(createPerson(createRandomProbationPersonDetails(recordCCrn)))
+      .addPerson(createRandomProbationPersonDetails(recordCCrn))
 
     mergeRecord(recordB, recordA)
 

@@ -8,7 +8,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.cluster.AdminCl
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
-import java.util.UUID
+import java.util.UUID.randomUUID
 
 class ClusterApiIntTest : WebTestBase() {
 
@@ -44,10 +44,10 @@ class ClusterApiIntTest : WebTestBase() {
     @Test
     fun `should return cluster record with multiple records details`() {
       val personKey = createPersonKey()
-        .addPerson(createPerson(createRandomProbationPersonDetails()))
-        .addPerson(createPerson(createRandomLibraPersonDetails()))
-        .addPerson(createPerson(createRandomPrisonPersonDetails()))
-        .addPerson(createPerson(createRandomCommonPlatformPersonDetails()))
+        .addPerson(createRandomProbationPersonDetails())
+        .addPerson(createRandomLibraPersonDetails())
+        .addPerson(createRandomPrisonPersonDetails())
+        .addPerson(createRandomCommonPlatformPersonDetails())
 
       stubVisualiseCluster()
 
@@ -69,7 +69,7 @@ class ClusterApiIntTest : WebTestBase() {
     @Test
     fun `should return not found if cluster does not exist`() {
       webTestClient.get()
-        .uri(uuidClusterUrl(UUID.randomUUID().toString()))
+        .uri(uuidClusterUrl(randomUUID().toString()))
         .authorised(roles = listOf(Roles.PERSON_RECORD_ADMIN_READ_ONLY))
         .exchange()
         .expectStatus()
@@ -78,10 +78,9 @@ class ClusterApiIntTest : WebTestBase() {
 
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails())
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.get()
-        .uri(uuidClusterUrl(person.personKey?.personUUID.toString()))
+        .uri(uuidClusterUrl(randomUUID().toString()))
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .exchange()
         .expectStatus()
@@ -93,9 +92,8 @@ class ClusterApiIntTest : WebTestBase() {
 
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails())
       webTestClient.get()
-        .uri(uuidClusterUrl(person.personKey?.personUUID.toString()))
+        .uri(uuidClusterUrl(randomUUID().toString()))
         .exchange()
         .expectStatus()
         .isUnauthorized
@@ -145,10 +143,9 @@ class ClusterApiIntTest : WebTestBase() {
 
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails())
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.get()
-        .uri(crnClusterUrl(person.crn!!))
+        .uri(crnClusterUrl(randomCrn()))
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .exchange()
         .expectStatus()
@@ -160,9 +157,8 @@ class ClusterApiIntTest : WebTestBase() {
 
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails())
       webTestClient.get()
-        .uri(crnClusterUrl(person.crn!!))
+        .uri(crnClusterUrl(randomCrn()))
         .exchange()
         .expectStatus()
         .isUnauthorized
@@ -212,10 +208,9 @@ class ClusterApiIntTest : WebTestBase() {
 
     @Test
     fun `should return Access Denied 403 when role is wrong`() {
-      val person = createPersonWithNewKey(createRandomPrisonPersonDetails())
       val expectedErrorMessage = "Forbidden: Access Denied"
       webTestClient.get()
-        .uri(prisonNumberClusterUrl(person.prisonNumber!!))
+        .uri(prisonNumberClusterUrl(randomPrisonNumber()))
         .authorised(listOf("UNSUPPORTED-ROLE"))
         .exchange()
         .expectStatus()
@@ -227,9 +222,8 @@ class ClusterApiIntTest : WebTestBase() {
 
     @Test
     fun `should return UNAUTHORIZED 401 when role is not set`() {
-      val person = createPersonWithNewKey(createRandomPrisonPersonDetails())
       webTestClient.get()
-        .uri(prisonNumberClusterUrl(person.prisonNumber!!))
+        .uri(prisonNumberClusterUrl(randomPrisonNumber()))
         .exchange()
         .expectStatus()
         .isUnauthorized

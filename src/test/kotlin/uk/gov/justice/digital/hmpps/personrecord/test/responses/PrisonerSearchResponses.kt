@@ -4,7 +4,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
   {
     "prisonerNumber": "${responseSetup.prisonNumber}",
     "pncNumber": "${responseSetup.pnc}",
-    "pncNumberCanonicalShort": "${responseSetup.pnc?.takeLast(11)}",
+    "pncNumberCanonicalShort": "${responseSetup.pnc}",
     "pncNumberCanonicalLong": "${responseSetup.pnc}",
     "croNumber": "${responseSetup.cro}",
     "bookingId": "0001200924",
@@ -141,7 +141,7 @@ private fun alias(alias: ApiResponseSetupAlias) =
             "middleNames": "${alias.middleName ?: ""}",
             "lastName": "${alias.lastName ?: ""}",
             "dateOfBirth": "${alias.dateOfBirth ?: ""}",
-            "gender": "Male",
+            "gender": "${alias.gender}",
             "ethnicity": "White : Irish"
           }
   """.trimIndent()

@@ -11,6 +11,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEt
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReligion
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.ContactDetails
 import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Identifiers
@@ -59,6 +60,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPhoneNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationEthnicity
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomProbationSexCode
@@ -88,6 +90,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         val nationality = randomNationalityCode()
         val religion = randomReligion()
         val ethnicity = randomCommonPlatformEthnicity()
+        val sex = randomPrisonSexCode()
 
         val buildingName = randomName()
         val buildingNumber = randomBuildingNumber()
@@ -108,7 +111,7 @@ class ProbationApiE2ETest : E2ETestBase() {
             sourceSystem = NOMIS,
             titleCode = TitleCode.from(title),
             crn = crn,
-            sexCode = SexCode.M,
+            sexCode = sex.value,
             prisonNumber = prisonNumber,
             nationalities = listOf(Nationality(nationality)),
             religion = religion,
@@ -120,6 +123,7 @@ class ProbationApiE2ETest : E2ETestBase() {
                 lastName = lastName,
                 dateOfBirth = randomDate(),
                 titleCode = TitleCode.from(title),
+                sexCode = sex.value,
               ),
             ),
             addresses = listOf(
@@ -158,6 +162,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           lastName = lastName,
           middleNames = middleNames,
           title = CanonicalTitle(code = storedTitle.code, description = storedTitle.description),
+          sex = CanonicalSex.from(sex.value),
         )
         val canonicalNationality = nationality.getEntity()?.let { listOf(CanonicalNationality(it.code, it.description)) }
         val canonicalAddress = CanonicalAddress(
@@ -184,10 +189,12 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(responseBody.aliases.first().title.description).isEqualTo(
           person.getAliases().first().titleCode?.description,
         )
+        assertThat(responseBody.aliases.first().sex.code).isEqualTo(sex.value.name)
+        assertThat(responseBody.aliases.first().sex.description).isEqualTo(sex.value.description)
         assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality?.first()?.code)
         assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality?.first()?.description)
-        assertThat(responseBody.sex.code).isEqualTo("M")
-        assertThat(responseBody.sex.description).isEqualTo("Male")
+        assertThat(responseBody.sex.code).isEqualTo(sex.value.name)
+        assertThat(responseBody.sex.description).isEqualTo(sex.value.description)
         assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
         assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
         assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
@@ -202,8 +209,6 @@ class ProbationApiE2ETest : E2ETestBase() {
 
       @Test
       fun `should add list of additional identifiers to the canonical record`() {
-        val personKey = createPersonKey()
-
         val personOneCro = randomCro()
         val personTwoCro = randomCro()
 
@@ -256,7 +261,6 @@ class ProbationApiE2ETest : E2ETestBase() {
               ),
             ),
           ),
-          personKey,
         )
 
         val personTwo = createPerson(
@@ -290,9 +294,8 @@ class ProbationApiE2ETest : E2ETestBase() {
               ),
             ),
           ),
-          personKey,
         )
-
+        createPersonKey().addPerson(personOne).addPerson(personTwo)
         val responseBody = webTestClient.get()
           .uri(probationApiUrl(personOneCrn))
           .authorised(listOf(API_READ_ONLY))
@@ -427,7 +430,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           .expectStatus()
           .isOk
 
-        val offender = awaitNotNullPerson { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+        val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
 
         offender.personKey?.assertClusterStatus(ACTIVE)
         offender.personKey?.assertClusterIsOfSize(2)
@@ -451,6 +454,7 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.getPrimaryName().titleCode?.code).isEqualTo(probationCase.title?.value?.getTitle()?.code)
         assertThat(offender.getPrimaryName().titleCode?.description).isEqualTo(probationCase.title?.value?.getTitle()?.description)
         assertThat(offender.getPrimaryName().dateOfBirth).isEqualTo(probationCase.dateOfBirth)
+        assertThat(offender.getPrimaryName().sexCode).isEqualTo(SexCode.from(probationCase))
 
         assertThat(offender.addresses.size).isEqualTo(1)
         assertThat(offender.addresses[0].noFixedAbode).isEqualTo(probationCase.addresses[0].noFixedAbode)
@@ -468,7 +472,6 @@ class ProbationApiE2ETest : E2ETestBase() {
         assertThat(offender.contacts[2].contactValue).isEqualTo(probationCase.contactDetails?.email)
         assertThat(offender.matchId).isNotNull()
         assertThat(offender.lastModified).isNotNull()
-        assertThat(offender.sexCode).isEqualTo(SexCode.from(probationCase))
         assertThat(offender.nationalities.size).isEqualTo(1)
         assertThat(offender.nationalities.first().nationalityCode?.code).isEqualTo(probationCase.nationality?.value.getNationalityCodeEntityFromProbationCode()?.code)
         assertThat(offender.nationalities.first().nationalityCode?.description).isEqualTo(probationCase.nationality?.value.getNationalityCodeEntityFromProbationCode()?.description)
@@ -498,7 +501,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           .expectStatus()
           .isOk
 
-        val offender = awaitNotNullPerson { personRepository.findByCrn(probationCase.identifiers.crn!!) }
+        val offender = awaitNotNull { personRepository.findByCrn(probationCase.identifiers.crn!!) }
 
         offender.personKey?.assertClusterStatus(ACTIVE)
         offender.personKey?.assertClusterIsOfSize(2)
@@ -530,7 +533,7 @@ class ProbationApiE2ETest : E2ETestBase() {
           ApiResponseSetup.from(createRandomProbationPersonDetails(crn)),
         )
 
-        val offender = awaitNotNullPerson { personRepository.findByCrn(crn) }
+        val offender = awaitNotNull { personRepository.findByCrn(crn) }
 
         assertThat(offender.personKey?.personUUID.toString()).isNotEqualTo(defendant.personKey?.personUUID.toString())
 

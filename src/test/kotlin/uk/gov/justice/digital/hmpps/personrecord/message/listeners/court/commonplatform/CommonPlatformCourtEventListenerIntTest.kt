@@ -81,7 +81,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     publishCommonPlatformMessage(
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(gender = randomCommonPlatformSexCode().key, pnc = pnc, lastName = lastName, cro = cro, defendantId = defendantId, nationalityCode = nationality, additionalNationalityCode = additionalNationality, masterDefendantId = randomDefendantId()))),
     )
-    val newPerson = awaitNotNullPerson { personRepository.findByDefendantId(defendantId) }
+    val newPerson = awaitNotNull { personRepository.findByDefendantId(defendantId) }
     checkNationalities(newPerson, nationality, additionalNationality)
     val changedLastName = randomName()
     val changedSexCode = randomCommonPlatformSexCode()
@@ -94,10 +94,10 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     awaitAssert {
       val updatedPersonEntity = personRepository.findByDefendantId(defendantId)!!
       assertThat(updatedPersonEntity.getPrimaryName().lastName).isEqualTo(changedLastName)
+      assertThat(updatedPersonEntity.getPrimaryName().sexCode).isEqualTo(changedSexCode.value)
       assertThat(updatedPersonEntity.getPnc()).isEqualTo(pnc)
       assertThat(updatedPersonEntity.getCro()).isEqualTo(cro)
       assertThat(updatedPersonEntity.addresses.size).isEqualTo(1)
-      assertThat(updatedPersonEntity.sexCode).isEqualTo(changedSexCode.value)
       assertThat(updatedPersonEntity.masterDefendantId).isEqualTo(masterDefendantId)
       checkNationalities(updatedPersonEntity, changedNationality, changedAdditionalNationality)
     }
@@ -133,7 +133,6 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       matchId = UUID.randomUUID(),
       cId = person.cId,
       lastModified = now(),
-      sexCode = person.sexCode,
     )
     personEntity.personKey = personKey
     personKeyRepository.saveAndFlush(personKey)
@@ -225,11 +224,11 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     )
 
-    val firstPerson = awaitNotNullPerson {
+    val firstPerson = awaitNotNull {
       personRepository.findByDefendantId(firstDefendantId)
     }
 
-    val secondPerson = awaitNotNullPerson {
+    val secondPerson = awaitNotNull {
       personRepository.findByDefendantId(secondDefendantId)
     }
 
@@ -242,6 +241,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getPrimaryName().firstName).isEqualTo(firstName)
     assertThat(firstPerson.getPrimaryName().middleNames).isEqualTo("mName1 mName2")
     assertThat(firstPerson.getPrimaryName().lastName).isEqualTo(lastName)
+    assertThat(firstPerson.getPrimaryName().sexCode).isEqualTo(firstSexCode.value)
     assertThat(firstPerson.contacts).isEmpty()
     assertThat(firstPerson.addresses).isNotEmpty()
     checkNationalities(firstPerson, firstAdditionalNationality, firstNationality)
@@ -253,7 +253,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(firstPerson.getAliases()[1].titleCode).isNull()
     assertThat(firstPerson.getAliases()[1].firstName).isEqualTo("aliasFirstName2")
     assertThat(firstPerson.getAliases()[1].lastName).isEqualTo("aliasLastName2")
-    assertThat(firstPerson.sexCode).isEqualTo(firstSexCode.value)
+
     val ethnicityCode = ethnicity.getCommonPlatformEthnicity()
     assertThat(firstPerson.ethnicityCode?.code).isEqualTo(ethnicityCode.code)
     assertThat(firstPerson.ethnicityCode?.description).isEqualTo(ethnicityCode.description)
@@ -269,7 +269,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPerson.addresses[0].dependentLocality).isEqualTo(dependentLocality)
     assertThat(secondPerson.addresses[0].postTown).isEqualTo(postTown)
     assertThat(secondPerson.addresses[0].county).isNull()
-    assertThat(secondPerson.addresses[0].country).isNull()
+    assertThat(secondPerson.addresses[0].countryCode).isNull()
     assertThat(secondPerson.addresses[0].uprn).isNull()
     assertThat(secondPerson.getPnc()).isEqualTo(secondPnc)
     assertThat(secondPerson.contacts.size).isEqualTo(3)
@@ -278,7 +278,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(secondPerson.contacts[1].contactType).isEqualTo(MOBILE)
     assertThat(secondPerson.contacts[1].contactValue).isEqualTo("078590345677")
     assertThat(secondPerson.masterDefendantId).isEqualTo(secondDefendantId)
-    assertThat(secondPerson.sexCode).isEqualTo(secondSexCode.value)
+    assertThat(secondPerson.getPrimaryName().sexCode).isEqualTo(secondSexCode.value)
     checkNationalities(secondPerson, secondNationality)
   }
 
@@ -306,7 +306,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     )
 
-    val personWithEmptyPnc = awaitNotNullPerson {
+    val personWithEmptyPnc = awaitNotNull {
       personRepository.findByDefendantId(firstDefendantId)
     }
     assertThat(personWithEmptyPnc.references.getPNCs()).isEmpty()
@@ -335,7 +335,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkEventLogExist(defendantId, CPRLogEvents.CPR_RECORD_CREATED)
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to defendantId))
 
-    awaitNotNullPerson { personRepository.findByDefendantId(defendantId) }
+    awaitNotNull { personRepository.findByDefendantId(defendantId) }
   }
 
   @Test
@@ -438,7 +438,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     val occurrenceOfCprUUId = messageStoredInS3.split("cprUUID").size - 1
 
-    val defendant = awaitNotNullPerson {
+    val defendant = awaitNotNull {
       personRepository.findByDefendantId(defendantId)
     }
 
@@ -469,7 +469,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     assertThat(commonPlatformHearing.contains(defendantId)).isEqualTo(true)
 
-    val person = awaitNotNullPerson {
+    val person = awaitNotNull {
       personRepository.findByDefendantId(defendantId)
     }
     assertThat(commonPlatformHearing.contains("cprUUID")).isEqualTo(true)
@@ -492,7 +492,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     val defendantId = randomDefendantId()
 
     val (messageBody, sqsMessage) = publishAndReceiveLargeMessage(largeCommonPlatformHearing(defendantId))
-    val person = awaitNotNullPerson {
+    val person = awaitNotNull {
       personRepository.findByDefendantId(defendantId)
     }
 
@@ -520,7 +520,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, pnc = pnc))),
     )
 
-    awaitNotNullPerson {
+    awaitNotNull {
       personRepository.findByDefendantId(defendantId)
     }
 
@@ -530,7 +530,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, pncMissing = true))),
     )
 
-    val updatedPerson = awaitNotNullPerson {
+    val updatedPerson = awaitNotNull {
       personRepository.findByDefendantId(defendantId)
     }
 
@@ -556,7 +556,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = cro))),
     )
 
-    awaitNotNullPerson {
+    awaitNotNull {
       personRepository.findByDefendantId(defendantId)
     }
 
@@ -566,7 +566,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, croMissing = true))),
     )
 
-    val updatedPerson = awaitNotNullPerson {
+    val updatedPerson = awaitNotNull {
       personRepository.findByDefendantId(defendantId)
     }
 
@@ -591,7 +591,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = "", pnc = ""))),
     )
 
-    awaitNotNullPerson {
+    awaitNotNull {
       personRepository.findByDefendantId(defendantId)
     }
 
@@ -599,7 +599,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, croMissing = true, pncMissing = true))),
     )
 
-    val updatedPerson = awaitNotNullPerson {
+    val updatedPerson = awaitNotNull {
       personRepository.findByDefendantId(defendantId)
     }
 
@@ -618,7 +618,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = randomCro(), pnc = randomLongPnc()))),
     )
 
-    awaitNotNullPerson {
+    awaitNotNull {
       personRepository.findByDefendantId(defendantId)
     }
 
@@ -626,7 +626,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, cro = "", pnc = ""))),
     )
 
-    val updatedPerson = awaitNotNullPerson {
+    val updatedPerson = awaitNotNull {
       personRepository.findByDefendantId(defendantId)
     }
 

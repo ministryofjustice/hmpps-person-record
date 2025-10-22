@@ -59,7 +59,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubDeletePersonMatch()
       prisonMergeEventAndResponseSetup(PRISONER_MERGED, sourcePrisonNumber, targetPrisonNumber)
 
-      val targetPerson = awaitNotNullPerson { personRepository.findByPrisonNumber(targetPrisonNumber) }
+      val targetPerson = awaitNotNull { personRepository.findByPrisonNumber(targetPrisonNumber) }
 
       sourcePerson.assertMergedTo(targetPerson)
       sourcePerson.assertNotLinkedToCluster()
@@ -130,7 +130,7 @@ class PrisonMergeEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       val sourcePerson = createPerson(Person(prisonNumber = sourcePrisonNumber, sourceSystem = NOMIS))
       val sourceCluster = createPersonKey()
-        .addPerson(createPerson(Person(prisonNumber = randomPrisonNumber(), sourceSystem = NOMIS)))
+        .addPerson(Person(prisonNumber = randomPrisonNumber(), sourceSystem = NOMIS))
         .addPerson(sourcePerson)
       val targetPerson = createPersonWithNewKey(Person(prisonNumber = targetPrisonNumber, sourceSystem = NOMIS))
 

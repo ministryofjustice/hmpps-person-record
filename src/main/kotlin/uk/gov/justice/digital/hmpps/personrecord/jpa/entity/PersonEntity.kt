@@ -17,12 +17,16 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.persistence.Version
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.AddressBuilder.buildAddresses
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ContactBuilder.buildContacts
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.ReferenceBuilder.buildReferences
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.builder.SentenceInfoBuilder.buildSentenceInfo
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.ALIAS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.NameType.PRIMARY
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.COMMON_PLATFORM
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.DELIUS
@@ -89,8 +93,8 @@ class PersonEntity(
   @Column(name = "birth_place")
   val birthplace: String? = null,
 
-  @Column(name = "birth_country")
-  val birthCountry: String? = null,
+  @Column(name = "birth_country_code")
+  val birthCountryCode: String? = null,
 
   @Column
   @OneToMany(mappedBy = "person", cascade = [ALL], fetch = EAGER, orphanRemoval = true)
@@ -100,11 +104,8 @@ class PersonEntity(
   var religion: String? = null,
 
   @Column(name = "sexual_orientation")
-  val sexualOrientation: String? = null,
-
-  @Column(name = "sex_code")
   @Enumerated(STRING)
-  var sexCode: SexCode? = null,
+  var sexualOrientation: SexualOrientation? = null,
 
   @ManyToOne(fetch = LAZY)
   @JoinColumn(
@@ -137,6 +138,10 @@ class PersonEntity(
   fun getAliases(): List<PseudonymEntity> = this.pseudonyms.filter { it.nameType == ALIAS }.sortedBy { it.id }
 
   fun getPrimaryName(): PseudonymEntity = this.pseudonyms.firstOrNull { it.nameType == PRIMARY } ?: PseudonymEntity(nameType = PRIMARY)
+
+  fun getScopes(): Set<UUID> = this.overrideScopes
+    .map { scopeEntity -> scopeEntity.scope }
+    .toSet()
 
   fun extractSourceSystemId(): String? = mapOf(
     DELIUS to this.crn,
@@ -177,44 +182,40 @@ class PersonEntity(
     this.masterDefendantId = person.masterDefendantId
     this.religion = person.religion
     this.cId = person.cId
-    this.sexCode = person.sexCode
+    this.sexualOrientation = person.sexualOrientation
     this.lastModified = LocalDateTime.now()
-    addresses.clear()
-    contacts.clear()
-    references.clear()
-    sentenceInfo.clear()
-    updateChildEntities(person)
+    this.updateChildEntities(person)
   }
 
   private fun updateChildEntities(person: Person) {
-    updatePersonAddresses(person)
-    updatePersonContacts(person)
-    updatePersonReferences(person)
-    updatePersonSentences(person)
+    updatePersonAddresses(buildAddresses(person, this))
+    updatePersonContacts(buildContacts(person, this))
+    updatePersonReferences(buildReferences(person, this))
+    updatePersonSentences(buildSentenceInfo(person, this))
   }
 
-  private fun updatePersonAddresses(person: Person) {
-    val personAddresses = AddressEntity.fromList(person.addresses)
-    personAddresses.forEach { personAddressEntity -> personAddressEntity.person = this }
-    this.addresses.addAll(personAddresses)
+  private fun updatePersonSentences(sentences: List<SentenceInfoEntity>) {
+    this.sentenceInfo.clear()
+    sentences.forEach { sentenceEntity -> sentenceEntity.person = this }
+    this.sentenceInfo.addAll(sentences)
   }
 
-  private fun updatePersonContacts(person: Person) {
-    val personContacts = ContactEntity.fromList(person.contacts)
-    personContacts.forEach { personContactEntity -> personContactEntity.person = this }
-    this.contacts.addAll(personContacts)
+  private fun updatePersonReferences(references: List<ReferenceEntity>) {
+    this.references.clear()
+    references.forEach { referenceEntity -> referenceEntity.person = this }
+    this.references.addAll(references)
   }
 
-  private fun updatePersonReferences(person: Person) {
-    val personReferences = ReferenceEntity.fromList(person.references)
-    personReferences.forEach { personReferenceEntity -> personReferenceEntity.person = this }
-    this.references.addAll(personReferences)
+  private fun updatePersonAddresses(addresses: List<AddressEntity>) {
+    this.addresses.clear()
+    addresses.forEach { personAddressEntity -> personAddressEntity.person = this }
+    this.addresses.addAll(addresses)
   }
 
-  private fun updatePersonSentences(person: Person) {
-    val personSentences = SentenceInfoEntity.fromList(person.sentences).distinctBy { it.sentenceDate }
-    personSentences.forEach { personSentenceInfoEntity -> personSentenceInfoEntity.person = this }
-    this.sentenceInfo.addAll(personSentences)
+  private fun updatePersonContacts(contacts: List<ContactEntity>) {
+    this.contacts.clear()
+    contacts.forEach { personContactEntity -> personContactEntity.person = this }
+    this.contacts.addAll(contacts)
   }
 
   companion object {
@@ -239,7 +240,7 @@ class PersonEntity(
         matchId = UUID.randomUUID(),
         cId = person.cId,
         lastModified = LocalDateTime.now(),
-        sexCode = person.sexCode,
+        sexualOrientation = person.sexualOrientation,
       )
       personEntity.updateChildEntities(person)
       return personEntity

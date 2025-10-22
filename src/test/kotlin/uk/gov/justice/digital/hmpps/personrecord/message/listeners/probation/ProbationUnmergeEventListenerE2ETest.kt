@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.personrecord.config.E2ETestBase
+import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.type.OFFENDER_MERGED
@@ -26,8 +27,8 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       val reactivatedCrn = randomCrn()
       val unmergedCrn = randomCrn()
 
-      val cluster = createPersonKey()
-      val unmergedPerson = createPerson(createRandomProbationPersonDetails(unmergedCrn), cluster)
+      val unmergedPerson = createPerson(createRandomProbationPersonDetails(unmergedCrn))
+      val cluster = createPersonKey().addPerson(unmergedPerson)
       val reactivatedPerson = createRandomProbationPersonDetails(reactivatedCrn)
       val masterDefendantId = randomDefendantId()
       reactivatedPerson.masterDefendantId = masterDefendantId
@@ -79,7 +80,7 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       reactivatedPersonEntity.assertNotLinkedToCluster(unmergedPerson.personKey!!)
       reactivatedPersonEntity.assertExcluded(unmergedPerson)
       reactivatedPersonEntity.assertNotMerged()
-      val updatedReactivatedPersonEntity = awaitNotNullPerson { personRepository.findByCrn(reactivatedCrn) }
+      val updatedReactivatedPersonEntity = awaitNotNull { personRepository.findByCrn(reactivatedCrn) }
       assertThat(updatedReactivatedPersonEntity.masterDefendantId).isEqualTo(masterDefendantId)
 
       unmergedPerson.assertHasOverrideMarker()
@@ -88,6 +89,70 @@ class ProbationUnmergeEventListenerE2ETest : E2ETestBase() {
       reactivatedPersonEntity.assertOverrideScopeSize(1)
       unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPersonEntity)
       unmergedPerson.assertHasSameOverrideScope(reactivatedPersonEntity)
+    }
+  }
+
+  @Nested
+  inner class NeedsAttention {
+
+    @Test
+    fun `should mark unmerged UUID as needs attention if it has additional records`() {
+      val reactivatedCrn = randomCrn()
+      val unmergedCrn = randomCrn()
+
+      val basePersonData = createRandomProbationPersonDetails()
+
+      val reactivatedPersonData = createProbationPersonFrom(basePersonData, reactivatedCrn)
+      val unmergedPersonData = createProbationPersonFrom(basePersonData, unmergedCrn)
+      val reactivatedPerson = createPersonWithNewKey(reactivatedPersonData)
+      val unmergedPerson = createPerson(unmergedPersonData)
+      val cluster = createPersonKey()
+        .addPerson(unmergedPerson)
+        .addPerson(createProbationPersonFrom(basePersonData))
+
+      probationMergeEventAndResponseSetup(OFFENDER_MERGED, reactivatedCrn, unmergedCrn, apiResponseSetup = ApiResponseSetup.from(unmergedPersonData))
+
+      checkEventLogExist(reactivatedCrn, CPRLogEvents.CPR_RECORD_MERGED)
+      reactivatedPerson.assertMergedTo(unmergedPerson)
+
+      probationUnmergeEventAndResponseSetup(
+        OFFENDER_UNMERGED,
+        reactivatedCrn,
+        unmergedCrn,
+        reactivatedSetup = ApiResponseSetup.from(reactivatedPersonData),
+        unmergedSetup = ApiResponseSetup.from(unmergedPersonData),
+      )
+
+      checkTelemetry(
+        CPR_RECORD_UNMERGED,
+        mapOf(
+          "TO_SOURCE_SYSTEM_ID" to reactivatedCrn,
+          "FROM_SOURCE_SYSTEM_ID" to unmergedCrn,
+          "SOURCE_SYSTEM" to "DELIUS",
+        ),
+      )
+
+      cluster.assertClusterStatus(UUIDStatusType.NEEDS_ATTENTION, reason = UUIDStatusReasonType.OVERRIDE_CONFLICT)
+      cluster.assertClusterIsOfSize(2)
+
+      unmergedPerson.assertLinkedToCluster(cluster)
+      unmergedPerson.assertExcluded(reactivatedPerson)
+
+      reactivatedPerson.assertNotMerged()
+      reactivatedPerson.assertHasLinkToCluster()
+      reactivatedPerson.assertNotLinkedToCluster(cluster)
+      reactivatedPerson.assertExcluded(unmergedPerson)
+
+      unmergedPerson.assertHasOverrideMarker()
+      reactivatedPerson.assertHasOverrideMarker()
+      unmergedPerson.assertHasDifferentOverrideMarker(reactivatedPerson)
+      unmergedPerson.assertHasSameOverrideScope(reactivatedPerson)
+
+      val reactivatedPersonKey = awaitNotNull { personRepository.findByCrn(reactivatedCrn) }.personKey!!
+      cluster.getReview()
+        .hasReviewSize(2)
+        .isPrimary(cluster)
+        .isAdditional(reactivatedPersonKey)
     }
   }
 }

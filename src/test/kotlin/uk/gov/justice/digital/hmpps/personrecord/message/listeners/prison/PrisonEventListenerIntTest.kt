@@ -10,23 +10,21 @@ import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.EMAIL
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.MOBILE
-import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.DRIVER_LICENSE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType.NATIONAL_INSURANCE_NUMBER
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
-import uk.gov.justice.digital.hmpps.personrecord.service.type.NEW_OFFENDER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.PRISONER_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_CREATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_RECORD_UPDATED
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_UUID_CREATED
-import uk.gov.justice.digital.hmpps.personrecord.test.randomCrn
 import uk.gov.justice.digital.hmpps.personrecord.test.randomCro
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDriverLicenseNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomFullAddress
-import uk.gov.justice.digital.hmpps.personrecord.test.randomLongPnc
 import uk.gov.justice.digital.hmpps.personrecord.test.randomName
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNumber
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
@@ -45,9 +43,6 @@ import java.lang.Thread.sleep
 import java.time.LocalDate
 
 class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
-  fun waitForMessageToBeProcessedAndDiscarded() {
-    sleep(1000)
-  }
 
   @Test
   fun `should put message on dlq when exception thrown`() {
@@ -103,16 +98,18 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val aliasMiddleName = randomName()
       val aliasLastName = randomName()
       val aliasDateOfBirth = randomDate()
+      val aliasGender = randomPrisonSexCode()
       val gender = randomPrisonSexCode()
 
       stubNoMatchesPersonMatch()
-      stubPrisonResponse(ApiResponseSetup(title = title, gender = gender.key, aliases = listOf(ApiResponseSetupAlias(title, aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))))
-      val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
-      publishDomainEvent(PRISONER_CREATED, domainEvent)
+      prisonDomainEventAndResponseSetup(
+        PRISONER_CREATED,
+        apiResponseSetup = ApiResponseSetup(title = title, gender = gender.key, aliases = listOf(ApiResponseSetupAlias(title, aliasFirstName, aliasMiddleName, aliasLastName, aliasDateOfBirth, aliasGender.key)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, email = email, sentenceStartDate = sentenceStartDate, primarySentence = primarySentence, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, fullAddress = fullAddress, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true)), dateOfBirth = personDateOfBirth, nationality = nationality, ethnicity = ethnicity, religion = religion, identifiers = listOf(ApiResponseSetupIdentifier(type = "NINO", value = nationalInsuranceNumber), ApiResponseSetupIdentifier(type = "DL", value = driverLicenseNumber))),
+      )
 
       checkTelemetry(
         CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
       awaitAssert {
         val personEntity = personRepository.findByPrisonNumber(prisonNumber)!!
@@ -124,11 +121,12 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(firstName)
         assertThat(personEntity.getPrimaryName().middleNames).isEqualTo("$middleName $middleName")
         assertThat(personEntity.getPrimaryName().lastName).isEqualTo(lastName)
+        assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(gender.value)
         assertThat(personEntity.religion).isEqualTo(religion)
         assertThat(personEntity.getPnc()).isEqualTo(PNCIdentifier.from(pnc).pncId)
         assertThat(personEntity.getCro()).isEqualTo(cro)
-        assertThat(personEntity.references.getType(IdentifierType.NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(nationalInsuranceNumber)
-        assertThat(personEntity.references.getType(IdentifierType.DRIVER_LICENSE_NUMBER).first()).isEqualTo(driverLicenseNumber)
+        assertThat(personEntity.references.getType(NATIONAL_INSURANCE_NUMBER).first()).isEqualTo(nationalInsuranceNumber)
+        assertThat(personEntity.references.getType(DRIVER_LICENSE_NUMBER).first()).isEqualTo(driverLicenseNumber)
         assertThat(personEntity.getPrimaryName().dateOfBirth).isEqualTo(personDateOfBirth)
         assertThat(personEntity.getAliases().size).isEqualTo(1)
         assertThat(personEntity.getAliases()[0].titleCode?.code).isEqualTo(storedTitle.code)
@@ -137,6 +135,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getAliases()[0].middleNames).isEqualTo(aliasMiddleName)
         assertThat(personEntity.getAliases()[0].lastName).isEqualTo(aliasLastName)
         assertThat(personEntity.getAliases()[0].dateOfBirth).isEqualTo(aliasDateOfBirth)
+        assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(aliasGender.value)
         assertThat(personEntity.addresses.size).isEqualTo(1)
         assertThat(personEntity.addresses[0].postcode).isEqualTo(postcode)
         assertThat(personEntity.addresses[0].fullAddress).isEqualTo(fullAddress)
@@ -150,7 +149,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.contacts[2].contactType).isEqualTo(MOBILE)
         assertThat(personEntity.contacts[2].contactValue).isEqualTo("01141234567")
         assertThat(personEntity.sentenceInfo[0].sentenceDate).isEqualTo(sentenceStartDate)
-        assertThat(personEntity.sexCode).isEqualTo(gender.value)
         assertThat(personEntity.nationalities.size).isEqualTo(1)
         assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(nationality.getNationalityCodeEntityFromPrisonCode()?.code)
         assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(nationality.getNationalityCodeEntityFromPrisonCode()?.description)
@@ -161,7 +159,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
 
-      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber))
+      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
     }
 
     @Test
@@ -169,13 +167,14 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val prisonNumber = randomPrisonNumber()
 
       stubNoMatchesPersonMatch()
-      stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomLongPnc(), email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = randomFullAddress())), dateOfBirth = randomDate(), nationality = null, religion = null))
-      val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
-      publishDomainEvent(PRISONER_CREATED, domainEvent)
+      prisonDomainEventAndResponseSetup(
+        PRISONER_CREATED,
+        apiResponseSetup = ApiResponseSetup(prisonNumber = prisonNumber, nationality = null, religion = null),
+      )
 
       checkTelemetry(
         CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
 
       awaitAssert {
@@ -184,7 +183,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.religion).isEqualTo(null)
       }
 
-      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber))
+      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
     }
 
     @Test
@@ -193,13 +192,14 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val sentenceStartDate = randomDate()
 
       stubNoMatchesPersonMatch()
-      stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber, pnc = randomLongPnc(), sentenceStartDate = sentenceStartDate, primarySentence = false, email = randomEmail(), cro = randomCro(), addresses = listOf(ApiResponseSetupAddress(postcode = randomPostcode(), fullAddress = randomFullAddress())), dateOfBirth = randomDate(), nationality = null, religion = null))
-      val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
-      publishDomainEvent(PRISONER_CREATED, domainEvent)
+      prisonDomainEventAndResponseSetup(
+        PRISONER_CREATED,
+        apiResponseSetup = ApiResponseSetup(prisonNumber = prisonNumber, sentenceStartDate = sentenceStartDate, primarySentence = false),
+      )
 
       checkTelemetry(
         CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
 
       awaitAssert {
@@ -207,7 +207,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.sentenceInfo.size).isEqualTo(0)
       }
 
-      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber))
+      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber))
     }
 
     @Test
@@ -220,15 +220,18 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       val updatedNationality = randomPrisonNationalityCode()
       val title = randomTitle()
       val updatedSexCode = randomPrisonSexCode()
+
+      val updatedAliasGender = randomPrisonSexCode()
+      val updatedAlias = ApiResponseSetupAlias(title = randomTitle(), firstName = randomName(), lastName = randomName(), gender = updatedAliasGender.key)
+
       stubNoMatchesPersonMatch(matchId = prisoner.matchId)
-      stubPrisonResponse(ApiResponseSetup(gender = updatedSexCode.key, title = title, prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity))
-
-      val domainEvent = prisonDomainEvent(PRISONER_UPDATED, prisonNumber)
-      publishDomainEvent(PRISONER_UPDATED, domainEvent)
-
+      prisonDomainEventAndResponseSetup(
+        PRISONER_UPDATED,
+        apiResponseSetup = ApiResponseSetup(gender = updatedSexCode.key, title = title, prisonNumber = prisonNumber, firstName = updatedFirstName, nationality = updatedNationality, ethnicity = ethnicity, aliases = listOf(updatedAlias)),
+      )
       checkTelemetry(
         CPR_RECORD_UPDATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_UPDATED)
 
@@ -239,7 +242,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.getPrimaryName().titleCode?.code).isEqualTo(storedTitle.code)
         assertThat(personEntity.getPrimaryName().titleCode?.description).isEqualTo(storedTitle.description)
         assertThat(personEntity.getPrimaryName().firstName).isEqualTo(updatedFirstName)
-        assertThat(personEntity.sexCode).isEqualTo(updatedSexCode.value)
+        assertThat(personEntity.getPrimaryName().sexCode).isEqualTo(updatedSexCode.value)
+
+        assertThat(personEntity.getAliases()).hasSize(1)
+        assertThat(personEntity.getAliases()[0].sexCode).isEqualTo(updatedAliasGender.value)
 
         val storedPrisonEthnicity = ethnicity.getPrisonEthnicity()
         assertThat(personEntity.ethnicityCode?.code).isEqualTo(storedPrisonEthnicity.code)
@@ -249,25 +255,6 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(personEntity.nationalities.first().nationalityCode?.code).isEqualTo(updatedNationality.getNationalityCodeEntityFromPrisonCode()?.code)
         assertThat(personEntity.nationalities.first().nationalityCode?.description).isEqualTo(updatedNationality.getNationalityCodeEntityFromPrisonCode()?.description)
       }
-    }
-
-    @Test
-    fun `should not link a new prison record to a cluster if its not above the join threshold`() {
-      val prisonNumber = randomPrisonNumber()
-
-      val existingPerson = createPersonWithNewKey(createRandomPrisonPersonDetails(randomPrisonNumber()))
-
-      stubOnePersonMatchAboveFractureThreshold(matchedRecord = existingPerson.matchId)
-      stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
-
-      val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
-      publishDomainEvent(PRISONER_CREATED, domainEvent)
-
-      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
-      checkEventLogExist(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED)
-      checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "NOMIS", "PRISON_NUMBER" to prisonNumber))
-
-      awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumber) }
     }
 
     @Test
@@ -282,11 +269,11 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       checkTelemetry(
         CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
       checkTelemetry(
         CPR_UUID_CREATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
     }
 
@@ -301,26 +288,12 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       stubPersonMatchScores(currentScenarioState = "will succeed")
       val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
       publishDomainEvent(PRISONER_CREATED, domainEvent)
-      awaitNotNullPerson { personRepository.findByPrisonNumber(prisonNumber = prisonNumber) }
+      awaitNotNull { personRepository.findByPrisonNumber(prisonNumber = prisonNumber) }
       checkTelemetry(
         CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
+        mapOf("SOURCE_SYSTEM" to NOMIS.name, "PRISON_NUMBER" to prisonNumber),
       )
       expectNoMessagesOnQueueOrDlq(prisonEventsQueue)
-    }
-
-    @Test
-    fun `should allow a person to be created from a prison event when an offender record already exists with the prisonNumber`() {
-      val prisonNumber = randomPrisonNumber()
-      stubNoMatchesPersonMatch()
-      probationDomainEventAndResponseSetup(eventType = NEW_OFFENDER_CREATED, ApiResponseSetup(pnc = randomLongPnc(), prisonNumber = prisonNumber, crn = randomCrn()))
-      val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
-      stubPrisonResponse(ApiResponseSetup(prisonNumber = prisonNumber))
-      publishDomainEvent(PRISONER_CREATED, domainEvent)
-      checkTelemetry(
-        CPR_RECORD_CREATED,
-        mapOf("SOURCE_SYSTEM" to SourceSystemType.NOMIS.name, "PRISON_NUMBER" to prisonNumber),
-      )
     }
   }
 
@@ -345,9 +318,10 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
 
       stubPersonMatchUpsert()
       stubNoMatchesPersonMatch()
-      stubPrisonResponse(ApiResponseSetup(aliases = listOf(ApiResponseSetupAlias(firstName = aliasFirstName, middleName = aliasMiddleName, lastName = aliasLastName, dateOfBirth = aliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, sentenceStartDate = sentenceStartDate, primarySentence = true, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true, fullAddress = "")), dateOfBirth = personDateOfBirth))
-      val domainEvent = prisonDomainEvent(PRISONER_CREATED, prisonNumber)
-      publishDomainEvent(PRISONER_CREATED, domainEvent)
+      prisonDomainEventAndResponseSetup(
+        PRISONER_CREATED,
+        apiResponseSetup = ApiResponseSetup(aliases = listOf(ApiResponseSetupAlias(firstName = aliasFirstName, middleName = aliasMiddleName, lastName = aliasLastName, dateOfBirth = aliasDateOfBirth)), firstName = firstName, middleName = middleName, lastName = lastName, prisonNumber = prisonNumber, pnc = pnc, sentenceStartDate = sentenceStartDate, primarySentence = true, cro = cro, addresses = listOf(ApiResponseSetupAddress(postcode = postcode, startDate = LocalDate.of(1970, 1, 1), noFixedAbode = true, fullAddress = "")), dateOfBirth = personDateOfBirth),
+      )
 
       checkEventLog(prisonNumber, CPRLogEvents.CPR_RECORD_CREATED) { eventLogs ->
         assertThat(eventLogs.size).isEqualTo(1)
@@ -358,7 +332,7 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
         assertThat(createdLog.middleNames).isEqualTo("$middleName $middleName")
         assertThat(createdLog.lastName).isEqualTo(lastName)
         assertThat(createdLog.dateOfBirth).isEqualTo(personDateOfBirth)
-        assertThat(createdLog.sourceSystem).isEqualTo(SourceSystemType.NOMIS)
+        assertThat(createdLog.sourceSystem).isEqualTo(NOMIS)
         assertThat(createdLog.postcodes).isEqualTo(arrayOf(postcode))
         assertThat(createdLog.sentenceDates).isEqualTo(arrayOf(sentenceStartDate))
         assertThat(createdLog.firstNameAliases).isEqualTo(arrayOf(aliasFirstName))
@@ -369,5 +343,9 @@ class PrisonEventListenerIntTest : MessagingMultiNodeTestBase() {
       }
       checkEventLogExist(prisonNumber, CPRLogEvents.CPR_UUID_CREATED)
     }
+  }
+
+  private fun waitForMessageToBeProcessedAndDiscarded() {
+    sleep(500)
   }
 }

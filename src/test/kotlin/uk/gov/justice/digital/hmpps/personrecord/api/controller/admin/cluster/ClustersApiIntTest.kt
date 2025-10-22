@@ -82,14 +82,14 @@ class ClustersApiIntTest : WebTestBase() {
   @Test
   fun `should return list of multiple clusters with composition`() {
     val cluster1 = createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION)
-      .addPerson(createPerson(createRandomProbationPersonDetails()))
-      .addPerson(createPerson(createRandomPrisonPersonDetails()))
-      .addPerson(createPerson(createRandomCommonPlatformPersonDetails()))
-      .addPerson(createPerson(createRandomLibraPersonDetails()))
+      .addPerson(createRandomProbationPersonDetails())
+      .addPerson(createRandomPrisonPersonDetails())
+      .addPerson(createRandomCommonPlatformPersonDetails())
+      .addPerson(createRandomLibraPersonDetails())
 
     val cluster2 = createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION)
-      .addPerson(createPerson(createRandomProbationPersonDetails()))
-      .addPerson(createPerson(createRandomProbationPersonDetails()))
+      .addPerson(createRandomProbationPersonDetails())
+      .addPerson(createRandomProbationPersonDetails())
 
     val responseType = object : ParameterizedTypeReference<PaginatedResponse<AdminCluster>>() {}
     val response = webTestClient.get()
@@ -131,10 +131,10 @@ class ClustersApiIntTest : WebTestBase() {
   @Test
   fun `should return specified page`() {
     repeat(20) {
-      createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION).addPerson(createPerson(createRandomProbationPersonDetails()))
+      createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION).addPerson(createRandomProbationPersonDetails())
     }
 
-    val nextPageCluster = createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION).addPerson(createPerson(createRandomProbationPersonDetails()))
+    val nextPageCluster = createPersonKey(status = UUIDStatusType.NEEDS_ATTENTION).addPerson(createRandomProbationPersonDetails())
 
     val responseType = object : ParameterizedTypeReference<PaginatedResponse<AdminCluster>>() {}
     val response = webTestClient.get()

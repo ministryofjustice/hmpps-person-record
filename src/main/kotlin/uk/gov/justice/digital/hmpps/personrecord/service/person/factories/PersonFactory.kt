@@ -18,7 +18,6 @@ class PersonFactory(
   private val pseudonymFactory: PseudonymFactory,
   private val nationalityFactory: NationalityFactory,
   private val ethnicityFactory: EthnicityFactory,
-
 ) {
 
   fun create(person: Person): PersonChainable {

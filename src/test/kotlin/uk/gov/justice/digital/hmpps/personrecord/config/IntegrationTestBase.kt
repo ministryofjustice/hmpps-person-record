@@ -2,8 +2,8 @@ package uk.gov.justice.digital.hmpps.personrecord.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
-import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor
@@ -54,11 +54,13 @@ import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonKeyEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.EthnicityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.NationalityCodeEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.reference.TitleCodeEntity
+import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.review.ReviewEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EthnicityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.EventLogRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.NationalityCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonKeyRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
+import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.ReviewRepository
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.TitleCodeRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.CROIdentifier
 import uk.gov.justice.digital.hmpps.personrecord.model.identifiers.PNCIdentifier
@@ -72,6 +74,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.MERGED
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.review.ClusterType
 import uk.gov.justice.digital.hmpps.personrecord.service.eventlog.CPRLogEvents
 import uk.gov.justice.digital.hmpps.personrecord.service.person.OverrideService
 import uk.gov.justice.digital.hmpps.personrecord.service.person.factories.PersonFactory
@@ -131,11 +134,14 @@ class IntegrationTestBase {
   @Autowired
   private lateinit var overrideService: OverrideService
 
+  @Autowired
+  private lateinit var reviewRepository: ReviewRepository
+
   fun authSetup() {
     wiremock.stubFor(
       WireMock.post("/auth/oauth/token")
         .willReturn(
-          WireMock.aResponse()
+          aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(200)
             .withBody(
@@ -173,17 +179,25 @@ class IntegrationTestBase {
   fun probationUrl(crn: String) = "/probation-cases/$crn"
 
   internal fun createRandomProbationPersonDetails(crn: String = randomCrn()): Person = Person.from(
-    createRandomProbationCase(crn),
-  )
-  internal fun createRandomProbationCase(crn: String = randomCrn()) = ProbationCase(
-    name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
-    identifiers = Identifiers(crn = crn, pnc = randomLongPnc(), cro = randomCro()),
-    addresses = listOf(
-      ProbationAddress(postcode = randomPostcode()),
-      ProbationAddress(postcode = randomPostcode()),
+    ProbationCase(
+      name = OffenderName(firstName = randomName(), middleNames = randomName(), lastName = randomName()),
+      identifiers = Identifiers(crn = crn, pnc = randomLongPnc(), cro = randomCro()),
+      addresses = listOf(
+        ProbationAddress(postcode = randomPostcode()),
+        ProbationAddress(postcode = randomPostcode()),
+      ),
+      aliases = listOf(
+        ProbationCaseAlias(
+          ProbationCaseName(
+            firstName = randomName(),
+            middleNames = randomName(),
+            lastName = randomName(),
+          ),
+          dateOfBirth = randomDate(),
+        ),
+      ),
+      sentences = listOf(Sentences(randomDate())),
     ),
-    aliases = listOf(ProbationCaseAlias(ProbationCaseName(firstName = randomName(), middleNames = randomName(), lastName = randomName()), dateOfBirth = randomDate())),
-    sentences = listOf(Sentences(randomDate())),
   )
 
   internal fun createRandomPrisonPersonDetails(prisonNumber: String = randomPrisonNumber()): Person = Person.from(
@@ -214,7 +228,7 @@ class IntegrationTestBase {
     expected: Map<String, String?>,
     times: Int = 1,
   ) {
-    awaitAssert(function = {
+    awaitAssert {
       val allEvents = telemetryRepository.findAllByEvent(event.eventName)
       val matchingEvents = allEvents?.filter { event ->
         expected.entries.map { (k, v) ->
@@ -226,16 +240,15 @@ class IntegrationTestBase {
         }.all { it }
       }
       assertThat(matchingEvents?.size).`as`("Missing data $event $expected and actual data $allEvents").isEqualTo(times)
-    })
+    }
   }
 
   internal fun checkEventLogExist(
     sourceSystemId: String,
     event: CPRLogEvents,
-    times: Int = 1,
   ) {
     checkEventLog(sourceSystemId, event) { logEvents ->
-      assertThat(logEvents).`as`("Missing event log $event and actual data $logEvents").hasSize(times)
+      assertThat(logEvents).`as`("Missing event log $event and actual data $logEvents").hasSize(1)
     }
   }
 
@@ -244,9 +257,9 @@ class IntegrationTestBase {
     event: CPRLogEvents,
     matchingEvents: (logEvents: List<EventLogEntity>) -> Unit,
   ) {
-    awaitAssert(function = {
+    awaitAssert {
       matchingEvents(eventLogRepository.findAllByEventTypeAndSourceSystemIdOrderByEventTimestampDesc(event, sourceSystemId) ?: emptyList())
-    })
+    }
   }
 
   internal fun checkEventLogByUUID(
@@ -254,14 +267,14 @@ class IntegrationTestBase {
     event: CPRLogEvents,
     matchingEvents: (logEvents: List<EventLogEntity>) -> Unit,
   ) {
-    awaitAssert(function = {
+    awaitAssert {
       matchingEvents(eventLogRepository.findAllByEventTypeAndPersonUUIDOrderByEventTimestampDesc(event, cluster) ?: emptyList())
-    })
+    }
   }
 
   internal fun awaitAssert(function: () -> Unit) = await atMost (Duration.ofSeconds(12)) untilAsserted function
 
-  internal fun awaitNotNullPerson(function: () -> PersonEntity?): PersonEntity = await atMost (Duration.ofSeconds(3)) untilNotNull function
+  internal fun <T> awaitNotNull(function: () -> T?): T = await atMost (Duration.ofSeconds(3)) untilNotNull function
 
   internal fun createPersonKey(status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonKeyEntity {
     val personKeyEntity = PersonKeyEntity.new()
@@ -278,12 +291,16 @@ class IntegrationTestBase {
     return personKeyRepository.save(this)
   }
 
-  internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonEntity = createPerson(person, createPersonKey(status, reason))
+  internal fun PersonKeyEntity.addPerson(person: Person): PersonKeyEntity = this.addPerson(createPerson(person))
 
-  internal fun createPerson(person: Person, personKeyEntity: PersonKeyEntity? = null): PersonEntity {
+  internal fun createPersonWithNewKey(person: Person, status: UUIDStatusType = ACTIVE, reason: UUIDStatusReasonType? = null): PersonEntity {
+    val personEntity = createPerson(person)
+    createPersonKey(status, reason).addPerson(personEntity)
+    return personRepository.findByMatchId(personEntity.matchId)!!
+  }
+
+  internal fun createPerson(person: Person): PersonEntity {
     val personEntity = personFactory.create(person).personEntity
-    personEntity.personKey = personKeyEntity
-    personKeyEntity?.personEntities?.add(personEntity)
     return personRepository.saveAndFlush(personEntity)
   }
 
@@ -381,34 +398,20 @@ class IntegrationTestBase {
     )
   }
 
-  private fun stubIsClusterValid(isClusterValidResponse: IsClusterValidResponse, scenario: String = BASE_SCENARIO, currentScenarioState: String = STARTED, nextScenarioState: String = STARTED, status: Int = 200, requestBody: String = "") {
-    if (requestBody.isNotEmpty()) {
-      stubPostRequest(
-        scenario,
-        currentScenarioState,
-        nextScenarioState,
-        url = "/is-cluster-valid",
-        status = status,
-        responseBody = objectMapper.writeValueAsString(isClusterValidResponse),
-        requestBody = requestBody,
-      )
-    } else {
-      stubPostRequest(
-        scenario,
-        currentScenarioState,
-        nextScenarioState,
-        url = "/is-cluster-valid",
-        status = status,
-        responseBody = objectMapper.writeValueAsString(isClusterValidResponse),
-      )
-    }
-  }
-
   internal fun stubClusterIsValid(
     scenario: String = BASE_SCENARIO,
     currentScenarioState: String = STARTED,
     nextScenarioState: String = STARTED,
-  ) = stubIsClusterValid(isClusterValidResponse = IsClusterValidResponse(isClusterValid = true), scenario, currentScenarioState, nextScenarioState)
+  ) {
+    stubPostRequest(
+      scenario,
+      currentScenarioState,
+      nextScenarioState,
+      url = "/is-cluster-valid",
+      status = 200,
+      responseBody = objectMapper.writeValueAsString(IsClusterValidResponse(isClusterValid = true)),
+    )
+  }
 
   internal fun stubPersonMatchUpsert(
     scenario: String = BASE_SCENARIO,
@@ -428,11 +431,18 @@ class IntegrationTestBase {
   }
 
   internal fun stubDeletePersonMatch(status: Int = 200, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED) {
-    stubDeleteRequest(
-      url = "/person",
-      status = status,
-      currentScenarioState = currentScenarioState,
-      nextScenarioState = nextScenarioState,
+    authSetup()
+    wiremock.stubFor(
+      WireMock.delete("/person")
+        .inScenario(BASE_SCENARIO)
+        .whenScenarioStateIs(currentScenarioState)
+        .willSetStateTo(nextScenarioState)
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(status)
+            .withBody("{}"),
+        ),
     )
   }
 
@@ -441,7 +451,7 @@ class IntegrationTestBase {
     wiremock.stubFor(
       WireMock.get(url)
         .willReturn(
-          WireMock.aResponse()
+          aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(404),
         ),
@@ -460,7 +470,7 @@ class IntegrationTestBase {
         .whenScenarioStateIs(currentScenarioState)
         .willSetStateTo(nextScenarioState)
         .willReturn(
-          WireMock.aResponse()
+          aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(status)
             .withBody(body),
@@ -476,44 +486,10 @@ class IntegrationTestBase {
         .whenScenarioStateIs(currentScenarioState)
         .willSetStateTo(nextScenarioState)
         .willReturn(
-          WireMock.aResponse()
+          aResponse()
             .withHeader("Content-Type", "application/json")
             .withStatus(status)
             .withBody(responseBody),
-        ),
-    )
-  }
-
-  internal fun stubPostRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, responseBody: String, status: Int = 200, requestBody: String, fixedDelay: Int = 0) {
-    authSetup()
-    wiremock.stubFor(
-      WireMock.post(url)
-        .withRequestBody(equalToJson(requestBody))
-        .inScenario(scenarioName)
-        .whenScenarioStateIs(currentScenarioState)
-        .willSetStateTo(nextScenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(status)
-            .withBody(responseBody)
-            .withFixedDelay(fixedDelay),
-        ),
-    )
-  }
-
-  internal fun stubDeleteRequest(scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED, url: String, body: String = "{}", status: Int = 200) {
-    authSetup()
-    wiremock.stubFor(
-      WireMock.delete(url)
-        .inScenario(scenarioName)
-        .whenScenarioStateIs(currentScenarioState)
-        .willSetStateTo(nextScenarioState)
-        .willReturn(
-          WireMock.aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withStatus(status)
-            .withBody(body),
         ),
     )
   }
@@ -527,7 +503,7 @@ class IntegrationTestBase {
     nextScenarioState: String? = currentScenarioState,
   ) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/prisoner/${apiResponseSetup.prisonNumber}", prisonerSearchResponse(apiResponseSetup))
 
-  internal fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
+  internal fun stubSingleProbationResponse(probationCase: ApiResponseSetup, scenarioName: String? = BASE_SCENARIO, currentScenarioState: String? = STARTED, nextScenarioState: String? = STARTED) = stubGetRequest(scenarioName, currentScenarioState, nextScenarioState, "/probation-cases/${probationCase.crn}", probationCaseResponse(probationCase))
 
   internal fun blitz(actionCount: Int, threadCount: Int, action: () -> Unit) {
     val blitzer = Blitzer(actionCount, threadCount)
@@ -547,6 +523,34 @@ class IntegrationTestBase {
   internal fun String?.getNationalityCodeEntityFromProbationCode(): NationalityCodeEntity? = NationalityCode.fromProbationMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
 
   internal fun String?.getNationalityCodeEntityFromCommonPlatformCode(): NationalityCodeEntity? = NationalityCode.fromCommonPlatformMapping(this)?.let { nationalityCodeRepository.findByCode(it.name) }
+
+  internal fun PersonKeyEntity.getReview(): ReviewEntity = awaitNotNull {
+    reviewRepository.findByClustersClusterTypeAndClustersPersonKey(
+      ClusterType.PRIMARY,
+      this,
+    )
+  }
+
+  internal fun ReviewEntity.removed() = awaitAssert { assertThat(reviewRepository.findById(this.id!!)).isNotNull() }
+
+  internal fun ReviewEntity.hasReviewSize(size: Int): ReviewEntity {
+    assertThat(this.clusters).hasSize(size)
+    return this
+  }
+
+  internal fun ReviewEntity.isPrimary(personKeyEntity: PersonKeyEntity): ReviewEntity {
+    val primary = this.clusters.find { it.clusterType == ClusterType.PRIMARY }
+    assertThat(primary?.clusterType).isEqualTo(ClusterType.PRIMARY)
+    assertThat(primary?.personKey?.personUUID).isEqualTo(personKeyEntity.personUUID)
+    return this
+  }
+
+  internal fun ReviewEntity.isAdditional(vararg additionalClusters: PersonKeyEntity): ReviewEntity {
+    val additional = this.clusters.filter { it.clusterType == ClusterType.ADDITIONAL }
+    assertThat(additional).hasSize(additionalClusters.size)
+    assertThat(additional.map { it.personKey.personUUID }.toSet()).isEqualTo(additionalClusters.map { it.personUUID }.toSet())
+    return this
+  }
 
   internal fun PersonKeyEntity.assertClusterIsOfSize(size: Int) = awaitAssert { assertThat(personKeyRepository.findByPersonUUID(this.personUUID)?.personEntities?.size).isEqualTo(size) }
 

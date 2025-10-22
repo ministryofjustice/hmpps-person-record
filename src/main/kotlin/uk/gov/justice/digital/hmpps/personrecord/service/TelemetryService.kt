@@ -20,6 +20,7 @@ enum class EventKeys {
   DEFENDANT_ID,
   C_ID,
   MATCH_ID,
+  CRNS,
 
   // Merge
   TO_UUID,

@@ -24,14 +24,14 @@ import uk.gov.justice.digital.hmpps.personrecord.client.model.offender.Probation
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
-import uk.gov.justice.digital.hmpps.personrecord.service.message.CreateUpdateService
 import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.ReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.person.PersonService
 
 @Tag(name = "HMPPS Person API")
 @RestController
 class ProbationAPIController(
   private val personRepository: PersonRepository,
-  private val createUpdateService: CreateUpdateService,
+  private val personService: PersonService,
   private val reclusterService: ReclusterService,
 ) {
   @Operation(
@@ -88,7 +88,7 @@ class ProbationAPIController(
     val person = Person.from(probationCase)
     person.masterDefendantId = masterDefendantId
 
-    val offender: PersonEntity = createUpdateService.processPerson(person) {
+    val offender: PersonEntity = personService.processPerson(person) {
       personRepository.findByCrn(probationCase.identifiers.crn!!)
     }
 

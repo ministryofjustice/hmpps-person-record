@@ -9,6 +9,8 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.Companion.c
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.Companion.libraSexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.Companion.prisonSexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode.Companion.probationSexCode
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation
+import uk.gov.justice.digital.hmpps.personrecord.model.types.SexualOrientation.Companion.probationSexualOrientation
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode.Companion.titleCodeMap
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.COMMON_PLATFORM_NATIONALITY_MAPPING
 import uk.gov.justice.digital.hmpps.personrecord.model.types.nationality.NationalityCode
@@ -55,6 +57,7 @@ fun randomCommonPlatformSexCode(): Map.Entry<String, SexCode> = commonPlatformSe
 fun randomLibraSexCode(): Map.Entry<String, SexCode> = libraSexCode.entries.random()
 
 fun randomProbationSexCode(): Map.Entry<String, SexCode> = probationSexCode.entries.random()
+fun randomProbationSexualOrientation(): Map.Entry<String, SexualOrientation> = probationSexualOrientation.entries.random()
 
 fun randomPrisonSexCode(): Map.Entry<String, SexCode> = prisonSexCode.entries.random()
 

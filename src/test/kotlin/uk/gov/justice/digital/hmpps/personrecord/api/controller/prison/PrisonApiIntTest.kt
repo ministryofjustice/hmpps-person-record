@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalEt
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalNationality
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalRecord
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalReligion
+import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalSex
 import uk.gov.justice.digital.hmpps.personrecord.api.model.canonical.CanonicalTitle
 import uk.gov.justice.digital.hmpps.personrecord.config.WebTestBase
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
@@ -19,7 +20,6 @@ import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.EthnicityCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.IdentifierType
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SexCode
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType.NOMIS
 import uk.gov.justice.digital.hmpps.personrecord.model.types.TitleCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomArrestSummonNumber
@@ -37,6 +37,7 @@ import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalInsuranceNum
 import uk.gov.justice.digital.hmpps.personrecord.test.randomNationalityCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPostcode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
+import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonSexCode
 import uk.gov.justice.digital.hmpps.personrecord.test.randomReligion
 import uk.gov.justice.digital.hmpps.personrecord.test.randomTitle
 
@@ -59,6 +60,7 @@ class PrisonApiIntTest : WebTestBase() {
       val nationality = randomNationalityCode()
       val religion = randomReligion()
       val ethnicity = randomCommonPlatformEthnicity()
+      val sex = randomPrisonSexCode()
 
       val buildingName = randomName()
       val buildingNumber = randomBuildingNumber()
@@ -79,7 +81,7 @@ class PrisonApiIntTest : WebTestBase() {
           sourceSystem = NOMIS,
           titleCode = TitleCode.from(title),
           crn = crn,
-          sexCode = SexCode.M,
+          sexCode = sex.value,
           prisonNumber = prisonNumber,
           nationalities = listOf(Nationality(nationality)),
           religion = religion,
@@ -91,6 +93,7 @@ class PrisonApiIntTest : WebTestBase() {
               lastName = lastName,
               dateOfBirth = randomDate(),
               titleCode = TitleCode.from(title),
+              sexCode = sex.value,
             ),
           ),
           addresses = listOf(
@@ -129,6 +132,7 @@ class PrisonApiIntTest : WebTestBase() {
         lastName = lastName,
         middleNames = middleNames,
         title = CanonicalTitle(code = storedTitle.code, description = storedTitle.description),
+        sex = CanonicalSex.from(sex.value),
       )
       val canonicalNationality = nationality.getEntity()?.let { listOf(CanonicalNationality(it.code, it.description)) }
       val canonicalAddress = CanonicalAddress(
@@ -157,8 +161,8 @@ class PrisonApiIntTest : WebTestBase() {
       )
       assertThat(responseBody.nationalities.first().code).isEqualTo(canonicalNationality?.first()?.code)
       assertThat(responseBody.nationalities.first().description).isEqualTo(canonicalNationality?.first()?.description)
-      assertThat(responseBody.sex.code).isEqualTo("M")
-      assertThat(responseBody.sex.description).isEqualTo("Male")
+      assertThat(responseBody.aliases.first().sex.code).isEqualTo(sex.value.name)
+      assertThat(responseBody.aliases.first().sex.description).isEqualTo(sex.value.description)
       assertThat(responseBody.religion.code).isEqualTo(canonicalReligion.code)
       assertThat(responseBody.religion.description).isEqualTo(canonicalReligion.description)
       assertThat(responseBody.ethnicity.code).isEqualTo(canonicalEthnicity.code)
@@ -173,8 +177,6 @@ class PrisonApiIntTest : WebTestBase() {
 
     @Test
     fun `should add list of additional identifiers to the canonical record`() {
-      val personKey = createPersonKey()
-
       val personOneCro = randomCro()
       val personTwoCro = randomCro()
 
@@ -227,7 +229,6 @@ class PrisonApiIntTest : WebTestBase() {
             ),
           ),
         ),
-        personKey,
       )
 
       val personTwo = createPerson(
@@ -261,8 +262,9 @@ class PrisonApiIntTest : WebTestBase() {
             ),
           ),
         ),
-        personKey,
       )
+
+      createPersonKey().addPerson(personOne).addPerson(personTwo)
 
       val responseBody = webTestClient.get()
         .uri(prisonApiUrl(personOne.prisonNumber))

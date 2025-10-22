@@ -86,15 +86,6 @@ management:
 retry:
   timeout: 10000
 
-populate-from-nomis:
-  page-size: 1000
-
-populate-from-probation:
-  page-size: 1000
-
-populate-person-match:
-  batch-size: 1000
-
 aws:
   region-name: eu-west-2
 

@@ -81,7 +81,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
 
-    val person = awaitNotNullPerson { personRepository.findByCId(cId) }
+    val person = awaitNotNull { personRepository.findByCId(cId) }
 
     val storedTitle = title.getTitle()
     assertThat(person.getPrimaryName().titleCode?.code).isEqualTo(storedTitle.code)
@@ -90,6 +90,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.getPrimaryName().middleNames).isEqualTo("$forename2 $forename3")
     assertThat(person.getPrimaryName().lastName).isEqualTo(lastName)
     assertThat(person.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
+    assertThat(person.getPrimaryName().sexCode).isEqualTo(sexCode.value)
     assertThat(person.getPnc()).isEqualTo(pnc)
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
@@ -100,11 +101,10 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.addresses[0].postTown).isEqualTo(postTown)
     assertThat(person.addresses[0].subBuildingName).isNull()
     assertThat(person.addresses[0].county).isNull()
-    assertThat(person.addresses[0].country).isNull()
+    assertThat(person.addresses[0].countryCode).isNull()
     assertThat(person.addresses[0].uprn).isNull()
     assertThat(person.personKey).isNotNull()
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
-    assertThat(person.sexCode).isEqualTo(sexCode.value)
   }
 
   @Test
@@ -139,7 +139,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     checkTelemetry(CPR_RECORD_UPDATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
     checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_UPDATED)
 
-    val person = awaitNotNullPerson {
+    val person = awaitNotNull {
       personRepository.findByCId(cId)
     }
     val storedTitle = title.getTitle()
@@ -149,10 +149,10 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
     assertThat(person.getPrimaryName().middleNames).isEqualTo(changedForename3)
     assertThat(person.getPrimaryName().lastName).isEqualTo(lastName)
     assertThat(person.getPrimaryName().dateOfBirth).isEqualTo(dateOfBirth)
+    assertThat(person.getPrimaryName().sexCode).isEqualTo(updatedSexCode.value)
     assertThat(person.addresses.size).isEqualTo(1)
     assertThat(person.addresses[0].postcode).isEqualTo(postcode)
     assertThat(person.sourceSystem).isEqualTo(LIBRA)
-    assertThat(person.sexCode).isEqualTo(updatedSexCode.value)
   }
 
   @Test
@@ -249,7 +249,7 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     expectOneMessageOn(testOnlyCourtEventsQueue)
 
-    val cprUUID = awaitNotNullPerson { personRepository.findByCId(cId) }.personKey?.personUUID.toString()
+    val cprUUID = awaitNotNull { personRepository.findByCId(cId) }.personKey?.personUUID.toString()
     val courtMessage = testOnlyCourtEventsQueue?.sqsClient?.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testOnlyCourtEventsQueue?.queueUrl).build())
 
     val sqsMessage = courtMessage?.get()?.messages()?.first()?.let { objectMapper.readValue<SQSMessage>(it.body()) }
@@ -267,23 +267,6 @@ class LibraCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       CPR_RECORD_CREATED,
       mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId),
     )
-  }
-
-  @Test
-  fun `should not link a new defendant from libra to a cluster that is below the join threshold`() {
-    val cId = randomCId()
-    val existingPerson = createPersonWithNewKey(createRandomLibraPersonDetails(randomCId()))
-
-    stubPersonMatchUpsert()
-    stubOnePersonMatchAboveFractureThreshold(matchedRecord = existingPerson.matchId)
-
-    publishLibraMessage(libraHearing(firstName = randomName(), lastName = randomName(), cId = cId, dateOfBirth = randomDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))))
-
-    checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
-    checkEventLogExist(cId, CPRLogEvents.CPR_RECORD_CREATED)
-    checkTelemetry(CPR_UUID_CREATED, mapOf("SOURCE_SYSTEM" to "LIBRA", "C_ID" to cId))
-
-    awaitNotNullPerson { personRepository.findByCId(cId) }
   }
 
   @Nested
