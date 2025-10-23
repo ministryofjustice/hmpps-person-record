@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminReclusterRecord
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 
 @RestController
 class RepopulateNomisController(
@@ -26,7 +25,7 @@ class RepopulateNomisController(
   ) {
     CoroutineScope(Dispatchers.Default).launch {
       triggerNomisPNC(adminReclusterRecords)
-      log.info("$RECLUSTER_PROCESS_PREFIX Triggered. Number of records: ${adminReclusterRecords.size}.")
+      log.info("$PREFIX Triggered. Number of records: ${adminReclusterRecords.size}.")
     }
   }
 
@@ -36,21 +35,13 @@ class RepopulateNomisController(
     }
   }
 
-  private fun searchForPersonByIdentifier(record: AdminReclusterRecord): PersonEntity? = when (record.sourceSystem) {
-    SourceSystemType.COMMON_PLATFORM -> personRepository.findByDefendantId(record.sourceSystemId)
-    SourceSystemType.LIBRA -> personRepository.findByCId(record.sourceSystemId)
-    SourceSystemType.NOMIS -> personRepository.findByPrisonNumber(record.sourceSystemId)
-    SourceSystemType.DELIUS -> personRepository.findByCrn(record.sourceSystemId)
-    else -> null
-  }
-
   private fun List<AdminReclusterRecord>.forEachPersonAndLog(processName: String, action: (PersonEntity) -> Unit) {
     val total = this.count()
     log.info("Starting $processName, count: $total")
     this.forEachIndexed { idx, record ->
       val itemNumber = idx + 1
       log.info("Processing $processName, item: $itemNumber/$total")
-      searchForPersonByIdentifier(record)?.let {
+      personRepository.findByPrisonNumber(record.sourceSystemId)?.let {
         when {
           it.isNotMerged() -> action(it)
           else -> log.info("Skipping $processName, item: $itemNumber/$total it has been merged")
@@ -61,6 +52,6 @@ class RepopulateNomisController(
 
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
-    private const val RECLUSTER_PROCESS_PREFIX = "ADMIN RECLUSTER: "
+    private const val PREFIX = "ADMIN REPOPULATE PRISON DATA: "
   }
 }
