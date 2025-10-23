@@ -110,7 +110,7 @@ fun prisonerSearchResponse(responseSetup: ApiResponseSetup) = """
     ],
     "addresses": [${responseSetup.addresses.joinToString { address(it) }}],
     "emailAddresses": [
-        ${responseSetup.email?.let { """ {"email": "${responseSetup.email}" }""".trimIndent() } }
+        ${responseSetup.email?.let { """ {"email": "${responseSetup.email}" }""".trimIndent() } ?: "" }
     ],
     "phoneNumbers": [
       {
