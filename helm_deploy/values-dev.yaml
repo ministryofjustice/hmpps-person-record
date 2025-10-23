@@ -19,7 +19,7 @@ generic-service:
 
   autoscaling:
     minReplicas: 1
-    maxReplicas: 1
+    maxReplicas: 8
 
 generic-prometheus-alerts:
   businessHoursOnly: true
