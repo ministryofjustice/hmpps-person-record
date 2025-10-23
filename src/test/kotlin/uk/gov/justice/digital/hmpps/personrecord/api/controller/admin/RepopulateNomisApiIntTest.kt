@@ -111,6 +111,39 @@ class RepopulateNomisApiIntTest : WebTestBase() {
 
       awaitAssert { assertThat(personRepository.findByPrisonNumber(prisonNumber)?.getPrimaryName()?.dateOfBirth).isEqualTo(dateOfBirth) }
     }
+
+    @Test
+    fun `should ignore 404 if request to prisoner-search fails`() {
+      val person = createRandomPrisonPersonDetails()
+      val notFoundPerson = createRandomPrisonPersonDetails()
+      createPerson(notFoundPerson)
+      createPerson(person)
+      val prisonNumber = person.prisonNumber!!
+      val notFoundPrisonNumber = notFoundPerson.prisonNumber!!
+      val request = listOf(
+        AdminReclusterRecord(NOMIS, notFoundPrisonNumber),
+        AdminReclusterRecord(NOMIS, prisonNumber),
+      )
+      stub404Response(url = "/prisoner/$notFoundPrisonNumber")
+
+      val dateOfBirth = randomDate()
+      stubPrisonResponse(
+        ApiResponseSetup.from(
+          person.copy(dateOfBirth = dateOfBirth),
+        ),
+      )
+      stubPersonMatchUpsert()
+
+      webTestClient.post()
+        .uri(ADMIN_REPOPULATE_NOMIS_URL)
+        .contentType(APPLICATION_JSON)
+        .bodyValue(request)
+        .exchange()
+        .expectStatus()
+        .isOk
+
+      awaitAssert { assertThat(personRepository.findByPrisonNumber(prisonNumber)?.getPrimaryName()?.dateOfBirth).isEqualTo(dateOfBirth) }
+    }
   }
 
   @Nested

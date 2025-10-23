@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.personrecord.api.controller.admin
 
+import org.slf4j.LoggerFactory
 import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
@@ -7,6 +8,7 @@ import org.springframework.web.reactive.function.client.WebClientException
 import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonEventProcessor
+import uk.gov.justice.digital.hmpps.personrecord.service.queue.DiscardableNotFoundException
 
 @Component
 class RetryablePrisonerUpdater(
@@ -22,8 +24,16 @@ class RetryablePrisonerUpdater(
     ],
   )
   fun repopulatePrisonRecord(entity: PersonEntity) {
-    prisonerSearchClient.getPrisoner(entity.prisonNumber!!)?.let { person ->
-      prisonEventProcessor.processEvent(person)
+    try {
+      prisonerSearchClient.getPrisoner(entity.prisonNumber!!)?.let { person ->
+        prisonEventProcessor.processEvent(person)
+      }
+    } catch (e: DiscardableNotFoundException) {
+      log.info(e.message, e)
     }
+  }
+
+  companion object {
+    private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
