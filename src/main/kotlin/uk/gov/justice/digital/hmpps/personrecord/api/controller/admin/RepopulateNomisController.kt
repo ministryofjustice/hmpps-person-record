@@ -9,17 +9,14 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminReclusterRecord
-import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
 
 @RestController
 class RepopulateNomisController(
   private val personRepository: PersonRepository,
-  private val prisonerSearchClient: PrisonerSearchClient,
-  private val prisonEventProcessor: PrisonEventProcessor,
+  private val retryablePrisonerUpdater: RetryablePrisonerUpdater,
 ) {
 
   @Hidden
@@ -35,9 +32,7 @@ class RepopulateNomisController(
 
   fun triggerNomisPNC(adminReclusterRecords: List<AdminReclusterRecord>) {
     adminReclusterRecords.forEachPersonAndLog("Retrieving Nomis PNCs") {
-      prisonerSearchClient.getPrisoner(it.prisonNumber!!)?.let { person ->
-        prisonEventProcessor.processEvent(person)
-      }
+      retryablePrisonerUpdater.repopulatePrisonRecord(it)
     }
   }
 

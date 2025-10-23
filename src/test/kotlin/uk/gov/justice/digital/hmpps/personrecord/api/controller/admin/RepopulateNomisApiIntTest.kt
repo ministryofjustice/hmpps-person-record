@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusReasonTyp
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.ACTIVE
 import uk.gov.justice.digital.hmpps.personrecord.model.types.UUIDStatusType.NEEDS_ATTENTION
 import uk.gov.justice.digital.hmpps.personrecord.service.type.TelemetryEventType.CPR_ADMIN_RECLUSTER_TRIGGERED
+import uk.gov.justice.digital.hmpps.personrecord.test.randomDate
 import uk.gov.justice.digital.hmpps.personrecord.test.randomDefendantId
 import uk.gov.justice.digital.hmpps.personrecord.test.randomEmail
 import uk.gov.justice.digital.hmpps.personrecord.test.randomPrisonNumber
@@ -82,18 +83,23 @@ class RepopulateNomisApiIntTest : WebTestBase() {
   @Nested
   inner class ErrorRecovery {
 
-    @Disabled
     @Test
-    fun `should retry if request to hmpps-person-match fails`() {
-      stubPersonMatchUpsert()
-      val person = createPersonWithNewKey(createRandomProbationPersonDetails(), status = NEEDS_ATTENTION, reason = BROKEN_CLUSTER)
-      val request = listOf(AdminReclusterRecord(DELIUS, person.crn!!))
-      stub5xxResponse(url = "/person/score/" + person.matchId)
-      stubPersonMatchScores(
-        matchId = person.matchId,
-        personMatchResponse = listOf(),
+    fun `should retry if request to prisoner-search fails`() {
+      val person = createRandomPrisonPersonDetails()
+      createPerson(person)
+      val prisonNumber = person.prisonNumber!!
+      val request = listOf(AdminReclusterRecord(NOMIS, prisonNumber))
+      stub5xxResponse(url = "/prisoner/$prisonNumber", scenarioName = "retry")
+
+      val dateOfBirth = randomDate()
+      stubPrisonResponse(
+        ApiResponseSetup.from(
+          person.copy(dateOfBirth = dateOfBirth),
+        ),
+        scenarioName = "retry",
         currentScenarioState = "Next request will succeed",
       )
+      stubPersonMatchUpsert(currentScenarioState = "Next request will succeed", scenario = "retry")
 
       webTestClient.post()
         .uri(ADMIN_REPOPULATE_NOMIS_URL)
@@ -102,7 +108,8 @@ class RepopulateNomisApiIntTest : WebTestBase() {
         .exchange()
         .expectStatus()
         .isOk
-      person.personKey?.assertClusterStatus(ACTIVE)
+
+      awaitAssert { assertThat(personRepository.findByPrisonNumber(prisonNumber)?.getPrimaryName()?.dateOfBirth).isEqualTo(dateOfBirth) }
     }
   }
 
