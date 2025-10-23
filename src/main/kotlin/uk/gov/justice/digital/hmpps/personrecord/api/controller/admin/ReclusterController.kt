@@ -9,17 +9,17 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.personrecord.api.model.admin.AdminReclusterRecord
-import uk.gov.justice.digital.hmpps.personrecord.client.PrisonerSearchClient
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.repository.PersonRepository
-import uk.gov.justice.digital.hmpps.personrecord.message.processors.prison.PrisonEventProcessor
 import uk.gov.justice.digital.hmpps.personrecord.model.types.SourceSystemType
+import uk.gov.justice.digital.hmpps.personrecord.service.message.recluster.TransactionalReclusterService
+import uk.gov.justice.digital.hmpps.personrecord.service.search.PersonMatchService
 
 @RestController
 class ReclusterController(
+  private val transactionalReclusterService: TransactionalReclusterService,
   private val personRepository: PersonRepository,
-  private val prisonerSearchClient: PrisonerSearchClient,
-  private val prisonEventProcessor: PrisonEventProcessor,
+  private val personMatchService: PersonMatchService,
 ) {
 
   @Hidden
@@ -28,16 +28,22 @@ class ReclusterController(
     @RequestBody adminReclusterRecords: List<AdminReclusterRecord>,
   ) {
     CoroutineScope(Dispatchers.Default).launch {
-      triggerNomisPNC(adminReclusterRecords)
       log.info("$RECLUSTER_PROCESS_PREFIX Triggered. Number of records: ${adminReclusterRecords.size}.")
+      upsertRecords(adminReclusterRecords)
+      log.info("$RECLUSTER_PROCESS_PREFIX Records Upsert Complete.")
+      triggerRecluster(adminReclusterRecords)
+      log.info("$RECLUSTER_PROCESS_PREFIX Complete.")
+    }
+  }
+  private fun upsertRecords(adminReclusterRecords: List<AdminReclusterRecord>) {
+    adminReclusterRecords.forEachPersonAndLog(UPSERT_PROCESS_NAME) { person ->
+      personMatchService.saveToPersonMatch(person)
     }
   }
 
-  fun triggerNomisPNC(adminReclusterRecords: List<AdminReclusterRecord>) {
-    adminReclusterRecords.forEachPersonAndLog("Retrieving Nomis PNCs") {
-      prisonerSearchClient.getPrisoner(it.prisonNumber!!)?.let { person ->
-        prisonEventProcessor.processEvent(person)
-      }
+  fun triggerRecluster(adminReclusterRecords: List<AdminReclusterRecord>) {
+    adminReclusterRecords.forEachPersonAndLog(RECLUSTER_PROCESS_NAME) {
+      transactionalReclusterService.recluster(it)
     }
   }
 
@@ -67,5 +73,7 @@ class ReclusterController(
   companion object {
     private val log = LoggerFactory.getLogger(this::class.java)
     private const val RECLUSTER_PROCESS_PREFIX = "ADMIN RECLUSTER: "
+    private const val UPSERT_PROCESS_NAME = "Upsert Person Records"
+    private const val RECLUSTER_PROCESS_NAME = "Recluster Person Records"
   }
 }
