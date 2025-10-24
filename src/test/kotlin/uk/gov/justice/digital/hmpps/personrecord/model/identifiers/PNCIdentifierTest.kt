@@ -79,6 +79,7 @@ class PNCIdentifierTest {
       Arguments.of("0273319Z", "2002/0073319Z"),
       Arguments.of("79163001B", "1979/0163001B"),
       Arguments.of("033Y", "2003/0000003Y"),
+      Arguments.of("67/9893091D", "1967/9893091D"),
     )
 
     @JvmStatic
