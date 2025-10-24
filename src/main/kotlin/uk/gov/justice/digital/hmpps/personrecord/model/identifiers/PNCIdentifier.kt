@@ -15,7 +15,7 @@ data class PNCIdentifier(val pncId: String) {
 
     private const val EMPTY_PNC = ""
     private const val SLASH = "/"
-    private const val LONG_PNC_ID_LENGTH = 10
+    private const val LONG_PNC_ID_LENGTH = 12
     private const val CENTURY = 100
 
     fun from(inputPncId: String? = EMPTY_PNC): PNCIdentifier = when {
