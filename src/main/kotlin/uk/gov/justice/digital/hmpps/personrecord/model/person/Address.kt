@@ -23,7 +23,6 @@ data class Address(
   val county: String? = null,
   val countryCode: String? = null,
   val uprn: String? = null,
-
 ) {
   companion object {
     fun from(address: PrisonerAddress): Address = Address(
