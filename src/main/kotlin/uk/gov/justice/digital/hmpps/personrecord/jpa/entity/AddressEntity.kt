@@ -78,13 +78,18 @@ class AddressEntity(
 
   @Enumerated(STRING)
   @Column(name = "record_type")
-  val recordType: RecordType? = null,
+  var recordType: RecordType? = null,
 
   @Version
   var version: Int = 0,
 ) {
+
+  fun isPrimary() = this.recordType == RecordType.PRIMARY
+
+  fun isPrevious() = this.recordType == RecordType.PREVIOUS
+
   companion object {
-    fun from(address: Address): AddressEntity = AddressEntity(
+    fun from(address: Address, recordType: RecordType? = null): AddressEntity = AddressEntity(
       startDate = address.startDate,
       endDate = address.endDate,
       noFixedAbode = address.noFixedAbode,
@@ -99,6 +104,11 @@ class AddressEntity(
       county = address.county,
       countryCode = address.countryCode,
       uprn = address.uprn,
+      recordType = recordType,
     )
+
+    fun toPrimary(address: Address): AddressEntity = from(address, RecordType.PRIMARY)
+
+    fun toPrevious(address: Address): AddressEntity = from(address, RecordType.PREVIOUS)
   }
 }
