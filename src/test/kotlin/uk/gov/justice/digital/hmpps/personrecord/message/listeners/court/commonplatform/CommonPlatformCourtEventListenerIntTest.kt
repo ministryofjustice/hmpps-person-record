@@ -25,7 +25,6 @@ import uk.gov.justice.digital.hmpps.personrecord.extensions.getPrimary
 import uk.gov.justice.digital.hmpps.personrecord.extensions.getType
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.AddressEntity
 import uk.gov.justice.digital.hmpps.personrecord.jpa.entity.PersonEntity
-import uk.gov.justice.digital.hmpps.personrecord.model.person.Address
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Person
 import uk.gov.justice.digital.hmpps.personrecord.model.person.Reference
 import uk.gov.justice.digital.hmpps.personrecord.model.types.ContactType.HOME
@@ -696,15 +695,22 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       val postcode1 = randomPostcode()
 
       publishCommonPlatformMessage(
-        commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, address = CommonPlatformHearingSetupAddress(
-          buildingName = randomName(),
-          buildingNumber = randomBuildingNumber(),
-          thoroughfareName = randomName(),
-          dependentLocality = randomName(),
-          postTown = "",
-          postcode = postcode1
-        ) )),
-      ))
+        commonPlatformHearing(
+          listOf(
+            CommonPlatformHearingSetup(
+              defendantId = defendantId,
+              address = CommonPlatformHearingSetupAddress(
+                buildingName = randomName(),
+                buildingNumber = randomBuildingNumber(),
+                thoroughfareName = randomName(),
+                dependentLocality = randomName(),
+                postTown = "",
+                postcode = postcode1,
+              ),
+            ),
+          ),
+        ),
+      )
 
       val person = awaitNotNull { personRepository.findByDefendantId(defendantId) }
       assertThat(person.addresses).hasSize(1)
@@ -714,15 +720,22 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
       val postcode2 = randomPostcode()
 
       publishCommonPlatformMessage(
-        commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, address = CommonPlatformHearingSetupAddress(
-          buildingName = randomName(),
-          buildingNumber = randomBuildingNumber(),
-          thoroughfareName = randomName(),
-          dependentLocality = randomName(),
-          postTown = "",
-          postcode = postcode2
-        ) )),
-      ))
+        commonPlatformHearing(
+          listOf(
+            CommonPlatformHearingSetup(
+              defendantId = defendantId,
+              address = CommonPlatformHearingSetupAddress(
+                buildingName = randomName(),
+                buildingNumber = randomBuildingNumber(),
+                thoroughfareName = randomName(),
+                dependentLocality = randomName(),
+                postTown = "",
+                postcode = postcode2,
+              ),
+            ),
+          ),
+        ),
+      )
 
       val updatedPerson = awaitNotNull {
         personRepository.findByDefendantId(defendantId)
@@ -744,7 +757,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         thoroughfareName = randomName(),
         dependentLocality = randomName(),
         postTown = randomName(),
-        postcode = randomPostcode()
+        postcode = randomPostcode(),
       )
 
       publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, address = address))))
@@ -772,7 +785,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         thoroughfareName = randomName(),
         dependentLocality = randomName(),
         postTown = randomName(),
-        postcode = randomPostcode()
+        postcode = randomPostcode(),
       )
 
       publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, address = address))))
@@ -788,7 +801,7 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         thoroughfareName = randomName(),
         dependentLocality = randomName(),
         postTown = randomName(),
-        postcode = randomPostcode()
+        postcode = randomPostcode(),
       )
 
       publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, address = secondAddress))))
@@ -812,13 +825,16 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
 
     @Test
     fun `should move old address with record type of null to previous`() {
-      val person = createPerson(createRandomCommonPlatformPersonDetails())
+      val person = createPersonWithNewKey(createRandomCommonPlatformPersonDetails())
       val postcode = randomPostcode()
-      person.addresses.add(AddressEntity(
-        postcode = postcode,
-        recordType = null,
-        person = person
-      ))
+      person.addresses.add(
+        AddressEntity(
+          buildingNumber = randomBuildingNumber(),
+          postcode = postcode,
+          recordType = null,
+          person = person,
+        ),
+      )
 
       val existingPerson = personRepository.save(person)
       assertThat(existingPerson.addresses).hasSize(1)
@@ -831,17 +847,54 @@ class CommonPlatformCourtEventListenerIntTest : MessagingMultiNodeTestBase() {
         thoroughfareName = randomName(),
         dependentLocality = randomName(),
         postTown = randomName(),
-        postcode = randomPostcode()
+        postcode = randomPostcode(),
       )
 
-      publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = person.defendantId!!, address = updatedAddress) )))
+      publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = existingPerson.defendantId!!, address = updatedAddress))))
 
-      val updatedPerson = awaitNotNull { personRepository.findByDefendantId(person.defendantId!!) }
+      checkTelemetry(
+        CPR_RECORD_UPDATED,
+        mapOf("SOURCE_SYSTEM" to "COMMON_PLATFORM", "DEFENDANT_ID" to existingPerson.defendantId!!),
+      )
+
+      val updatedPerson = awaitNotNull { personRepository.findByDefendantId(existingPerson.defendantId!!) }
       assertThat(updatedPerson.addresses).hasSize(2)
       assertThat(updatedPerson.addresses.getPrimary().first().recordType).isEqualTo(RecordType.PRIMARY)
       assertThat(updatedPerson.addresses.getPrimary().first().postcode).isEqualTo(updatedAddress.postcode)
       assertThat(updatedPerson.addresses.getPrevious().first().recordType).isEqualTo(RecordType.PREVIOUS)
       assertThat(updatedPerson.addresses.getPrevious().first().postcode).isEqualTo(postcode)
+    }
+
+    @Test
+    fun `should not store blank address and move primary to previous`() {
+      val defendantId = randomDefendantId()
+
+      val address = CommonPlatformHearingSetupAddress(
+        buildingName = randomName(),
+        buildingNumber = randomBuildingNumber(),
+        thoroughfareName = randomName(),
+        dependentLocality = randomName(),
+        postTown = randomName(),
+        postcode = randomPostcode(),
+      )
+
+      publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, address = address))))
+
+      val blankAddress = CommonPlatformHearingSetupAddress(
+        buildingName = "",
+        buildingNumber = "",
+        thoroughfareName = "",
+        dependentLocality = "",
+        postTown = "",
+        postcode = "",
+      )
+
+      publishCommonPlatformMessage(commonPlatformHearing(listOf(CommonPlatformHearingSetup(defendantId = defendantId, address = blankAddress))))
+
+      val updatedPerson = awaitNotNull { personRepository.findByDefendantId(defendantId) }
+      assertThat(updatedPerson.addresses).hasSize(1)
+      assertThat(updatedPerson.addresses.getPrevious().first().recordType).isEqualTo(RecordType.PREVIOUS)
+      assertThat(updatedPerson.addresses.getPrevious().first().postcode).isEqualTo(address.postcode)
     }
   }
 

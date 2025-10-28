@@ -86,6 +86,14 @@ class AddressEntity(
 
   fun isPrevious() = this.recordType == RecordType.PREVIOUS
 
+  fun setToPrimary() {
+    this.recordType = RecordType.PRIMARY
+  }
+
+  fun setToPrevious() {
+    this.recordType = RecordType.PREVIOUS
+  }
+
   companion object {
     fun from(address: Address, recordType: RecordType? = null): AddressEntity = AddressEntity(
       startDate = address.startDate,
@@ -106,7 +114,5 @@ class AddressEntity(
     )
 
     fun toPrimary(address: Address): AddressEntity = from(address, RecordType.PRIMARY)
-
-    fun toPrevious(address: Address): AddressEntity = from(address, RecordType.PREVIOUS)
   }
 }
