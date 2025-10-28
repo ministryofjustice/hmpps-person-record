@@ -103,7 +103,7 @@ data class Person(
         Contact.from(ContactType.EMAIL, defendant.personDefendant?.personDetails?.contact?.primaryEmail),
       )
 
-      val addresses = listOf(Address.from(defendant.personDefendant?.personDetails?.address))
+      val addresses = listOfNotNull(Address.from(defendant.personDefendant?.personDetails?.address))
 
       val references: List<Reference> = listOfNotNull(
         Reference.from(
@@ -148,7 +148,7 @@ data class Person(
     }
 
     fun from(libraHearingEvent: LibraHearingEvent): Person {
-      val addresses = listOf(
+      val addresses = listOfNotNull(
         Address.from(libraHearingEvent.defendantAddress),
       )
       val references = listOfNotNull(
