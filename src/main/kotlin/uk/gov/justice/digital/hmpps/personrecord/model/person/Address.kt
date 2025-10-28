@@ -26,10 +26,7 @@ data class Address(
   val uprn: String? = null,
 ) {
 
-  fun allPropertiesOrNull(): Address? = when {
-    this.allPropertiesNotNull() -> this
-    else -> null
-  }
+  fun allPropertiesOrNull(): Address? = this.takeIf { it.allPropertiesNotNull() }
 
   private fun allPropertiesNotNull(): Boolean = this::class.memberProperties
     .all { it.call(this) == null }.not()
