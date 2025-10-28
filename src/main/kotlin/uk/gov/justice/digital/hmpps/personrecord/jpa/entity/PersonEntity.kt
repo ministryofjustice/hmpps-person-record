@@ -188,7 +188,8 @@ class PersonEntity(
   }
 
   private fun updateChildEntities(person: Person) {
-    updatePersonAddresses(buildAddresses(person, this))
+    val addresses = buildAddresses(person, this)
+    updatePersonAddresses(addresses)
     updatePersonContacts(buildContacts(person, this))
     updatePersonReferences(buildReferences(person, this))
     updatePersonSentences(buildSentenceInfo(person, this))

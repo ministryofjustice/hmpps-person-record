@@ -84,8 +84,6 @@ class AddressEntity(
   var version: Int = 0,
 ) {
 
-  fun isPrimary() = this.recordType == RecordType.PRIMARY
-
   fun isPrevious() = this.recordType == RecordType.PREVIOUS
 
   companion object {

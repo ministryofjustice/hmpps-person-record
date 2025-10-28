@@ -21,7 +21,7 @@ object CommonPlatformAddressBuilder {
   private fun PersonEntity.handleExistingAddress(address: AddressEntity): List<AddressEntity> {
     return when {
       address.isPrevious() -> this.setPreviousToPrimary(address)
-      else -> this.addresses
+      else -> this.addresses.map { it }
     }
   }
 
@@ -32,9 +32,9 @@ object CommonPlatformAddressBuilder {
   }
 
   private fun PersonEntity.setPreviousToPrimary(existingAddressEntity: AddressEntity): List<AddressEntity> {
-    this.addresses.find { it.id == existingAddressEntity.id }?.let { it.recordType = RecordType.PRIMARY }
     this.addresses.getPrimary().firstOrNull()?.let { it.recordType = RecordType.PREVIOUS }
-    return this.addresses
+    this.addresses.find { it.id == existingAddressEntity.id }?.let { it.recordType = RecordType.PRIMARY }
+    return this.addresses.map { it }
   }
 
   private fun Address?.findIn(addresses: List<AddressEntity>) = addresses.find { address -> Address.from(address) == this }
