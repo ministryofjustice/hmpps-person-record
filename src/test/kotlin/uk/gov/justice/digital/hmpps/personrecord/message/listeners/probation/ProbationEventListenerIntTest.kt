@@ -559,6 +559,21 @@ class ProbationEventListenerIntTest : MessagingMultiNodeTestBase() {
       val updatedPostcodeFourEntity = updatedPerson.addresses.find { it.postcode == postcodeFour }
       assertThat(updatedPostcodeFourEntity?.id).isNotEqualTo(postcodeTwoEntity?.id)
     }
+
+    @Test
+    fun `should not store empty addresses`() {
+      val crn = randomCrn()
+
+      val addresses = listOf(
+        ApiResponseSetupAddress(postcode = null, noFixedAbode = null, startDate = null, endDate = null, fullAddress = null),
+      )
+      probationDomainEventAndResponseSetup(NEW_OFFENDER_CREATED, ApiResponseSetup(crn = crn, addresses = addresses))
+
+      checkTelemetry(CPR_RECORD_CREATED, mapOf("SOURCE_SYSTEM" to "DELIUS", "CRN" to crn))
+
+      val person = awaitNotNull { personRepository.findByCrn(crn) }
+      assertThat(person.addresses).hasSize(0)
+    }
   }
 
   @Test
